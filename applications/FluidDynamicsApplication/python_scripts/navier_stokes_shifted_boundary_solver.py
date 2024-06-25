@@ -48,8 +48,8 @@ class ShiftedBoundaryFormulation(object):
         self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         # Error that discontinuous is not supported yet
-        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous":
-            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\' and \'discontinuous\'.'
+        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous" and self.level_set_type != "iga":
+            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\', \'discontinuous\' and \'iga\'.'
             raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -250,7 +250,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
         set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
 
-        # Get density and dynamic viscostity from the properties of the first element
+        # Get density and dynamic viscosity from the properties of the first element
         for ele in self.main_model_part.Elements:
             # Get DENSITY from properties
             if set_density:
@@ -305,15 +305,28 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
-        settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
 
-        if self.level_set_type == "discontinuous":
+        if self.level_set_type == "iga":
+            # Calculate the required neighbours
+            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbours_process.Execute()
+
+            settings.AddEmptyValue("skin_model_part_name").SetString("skin")
+
+            # Add Kratos conditions for points at the boundary based on extension operators
+            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
+            sbm_interface_utility.AddSkinIntegrationPointConditions()
+
+        elif self.level_set_type == "discontinuous":
             # Calculate the required neighbours
             elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbours_process.Execute()
 
             settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
+
+            # Add Kratos conditions for points at the boundary based on extension operators
+            sbm_interface_utility.CalculateExtensionOperator()
 
         else:
             # Calculate the required neighbours
@@ -325,7 +338,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
 
-        sbm_interface_utility.CalculateExtensionOperator()
+            # Add Kratos conditions for points at the boundary based on extension operators
+            sbm_interface_utility.CalculateExtensionOperator()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility initialized and extension operators were calculated.")
 
     def GetDistanceModificationProcess(self):

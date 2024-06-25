@@ -21,8 +21,6 @@
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
-#include "utilities/assign_unique_model_part_collection_tag_utility.h"
-#include "utilities/shifted_boundary_meshless_interface_utility.h"
 
 namespace Kratos
 {
@@ -48,11 +46,11 @@ namespace Kratos
 
 /**
  * @brief Utilities for the SBM-WTE extension operator calculation
- * This class provides the utilities for calculating a meshless conforming extension operator for a Shifted Boundary Method
- * without Taylor expansions allowing for a discontinuous interface, which is defined by a level set (e.g. ELEMENTAL_DISTANCES)
- * from the calculation of intersections between the volume mesh (e.g. fluid) and the mesh of the interface (e.g. thin-walled structure).
+ * This class provides the utilities for the calculation of the extension operator
+ * in the Shifted Boundary Method Without Taylor Expansions allowing for a discontinuous interface (thin-walled structure),
+ * which is defined by points on the surface of the interface (e.g. IGA integration points).
  */
-class KRATOS_API(KRATOS_CORE) ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility : public ShiftedBoundaryMeshlessInterfaceUtility
+class KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility
 {
 public:
 
@@ -61,14 +59,14 @@ public:
 
     enum class ExtensionOperator
     {
-        MLS,
-        RBF,
-        GradientBased
+        MLS
     };
 
     using IndexType = ModelPart::IndexType;
 
     using NodeType = ModelPart::NodeType;
+
+    using ElementType = Element;
 
     using GeometryType = ModelPart::GeometryType;
 
@@ -78,9 +76,13 @@ public:
 
     using MeshlessShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
 
-    using MLSShapeFunctionsAndGradientsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&, Matrix&)>;
-
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
+
+    using SkinPointsDataVectorType = DenseVector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
+
+    using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
+
+    using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
 
     using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
@@ -91,8 +93,8 @@ public:
     ///@}
     ///@name Pointer Definitions
 
-    /// Pointer definition of ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility
-    KRATOS_CLASS_POINTER_DEFINITION(ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility);
+    /// Pointer definition of ShiftedBoundaryPointBasedInterfaceUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ShiftedBoundaryPointBasedInterfaceUtility);
 
     ///@}
     ///@name Life Cycle
@@ -101,23 +103,25 @@ public:
     /// @brief Standard constructor
     /// @param rModel Model container
     /// @param ThisParameters Parameters object encapsulating the settings
-    ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(
+    ShiftedBoundaryPointBasedInterfaceUtility(
         Model& rModel,
         Parameters ThisParameters);
 
     /// Copy constructor.
-    ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility const& rOther) = delete;
+    ShiftedBoundaryPointBasedInterfaceUtility(ShiftedBoundaryPointBasedInterfaceUtility const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility& operator=(ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility const& rOther) = delete;
+    ShiftedBoundaryPointBasedInterfaceUtility& operator=(ShiftedBoundaryPointBasedInterfaceUtility const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
+
+    void AddSkinIntegrationPointConditions();
 
     ///@}
     ///@name Access
@@ -127,24 +131,26 @@ public:
     ///@name Inquiry
     ///@{
 
+    const Parameters GetDefaultParameters() const;
+
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
-        return "ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility";
+        return "ShiftedBoundaryPointBasedInterfaceUtility";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility";
+        rOStream << "ShiftedBoundaryPointBasedInterfaceUtility";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -153,7 +159,7 @@ public:
     ///@{
 
     ///@}
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -161,7 +167,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    const Variable<Vector>* mpDiscontinuousLevelSetVariable;
+    ModelPart* mpModelPart = nullptr;
+    ModelPart* mpSkinModelPart = nullptr;
+    ModelPart* mpBoundarySubModelPart = nullptr;
+
+    bool mConformingBasis;
+
+    ExtensionOperator mExtensionOperator;
+
+    std::size_t mMLSExtensionOperatorOrder;
+
+    const Condition* mpConditionPrototype;
+
+    /// @brief Protected empty constructor for derived classes
+    ShiftedBoundaryPointBasedInterfaceUtility() {}
 
     ///@}
     ///@name Protected Operators
@@ -178,20 +197,27 @@ private:
      * calculation of the MLS approximants at these points. Then, the basis is made conformant by using the meshless
      * approximants to calculate the interpolation at each one of the point conditions location.
      */
-    void CalculateMeshlessBasedConformingExtensionBasis() override;
+    void CalculateMeshlessBasedConformingExtensionBasis();
+
+    /**
+     * @brief TODO
+     *
+     * @tparam TDim Working space dimension
+     * @param rSkinPointsMap
+     */
+    template <std::size_t TDim>
+    void MapSkinPointsToElements(SkinPointsToElementsMapType& rSkinPointsMap);
 
     /**
      * @brief Set the corresponding flags at the interface
      * This methods sets the corresponding flags at the interface nodes and elements. These are
      * node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
      * node INTERFACE : nodes that belong to the cloud of points (multiple layers surrounding the BOUNDARY elements)
-     * element ACTIVE : elements which are not intersected by the boundary (the ones to be assembled)
-     * element BOUNDARY : intersected elements, as well as incised elements if ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED were calculated
+     * element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
+     * element BOUNDARY : elements in which a part of the surface is located (split elements)
      * element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
-     * Incised elements will be ACTIVE, BOUNDARY and INTERFACE at the same time, to be assembled and contributing to the boundary flux as if they weren't incised,
-     * but still part of BOUNDARY, so that the point cloud for one side can not cross over to the other side via an incised element, separating both sides better.
      */
-    void SetInterfaceFlags() override;
+    void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
 
     /** TODO
      * @brief Set the Extension Operators For Split Element Nodes object selecting a support cloud for each node of each split element and using MLS shape functions
@@ -199,7 +225,8 @@ private:
      * @param rExtensionOperatorMap
      */
     void SetExtensionOperatorsForSplitElementNodes(
-        NodesCloudMapType& rExtensionOperatorMap
+        NodesCloudMapType& rExtensionOperatorMap,
+        const SidesVectorToElementsMapType& rSidesVectorMap
     );
 
     /**
@@ -278,6 +305,43 @@ private:
         const std::size_t conditionId,
         bool ConsiderPositiveSide);
 
+    /**
+     * @brief Get the MLS shape functions factory object
+     * This function returns a prototype for the MLS shape functions calculation
+     * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
+     */
+    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction() const;
+
+    /**
+     * @brief Get the element size function object
+     * This function returns a prototype for the element size calculation call
+     * @param rGeometry Geometry to calculate the element size
+     * @return ElementSizeFunctionType Element size calculation call
+     */
+    ElementSizeFunctionType GetElementSizeFunction(const GeometryType& rGeometry);
+
+    /**
+     * @brief Calculates the kernel function radius
+     * For the given cloud of points coordinates, this function calculates the maximum distance between
+     * the center of the kernel (origin) and the points. This is supposed to be used in the meshless
+     * approximants calculation.
+     * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
+     * @param rOrigin Coordinates of the point on which the kernel function is centered
+     * @return double Kernel function radius
+     */
+    double CalculateKernelRadius(
+        const Matrix& rCloudCoordinates,
+        const array_1d<double,3>& rOrigin);
+
+    /**
+     * @brief Get the number of required points
+     * For the MLS approximants, this function returns the minimum number of required points according to
+     * dimension and order. If the cloud of points has less points than the value returned by this function
+     * the case is ill-conditioned, meaning that the cloud needs to be enlarged.
+     * @return std::size_t Number of required points
+     */
+    std::size_t GetRequiredNumberOfPoints();
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -291,6 +355,6 @@ private:
     ///@{
 
     ///@}
-}; // Class ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility
+}; // Class ShiftedBoundaryPointBasedInterfaceUtility
 
 } // namespace Kratos.

@@ -15,36 +15,36 @@
 // External includes
 
 // Project includes
+#include "containers/array_1d.h"
 #include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/smart_pointers.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/element_size_calculator.h"
-#include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/shifted_boundary_meshless_discontinuous_interface_utility.h"
-#include "utilities/shifted_boundary_meshless_interface_utility.h"
-#include <cstddef>
-#include <ostream>
-#include <vector>
+#include "utilities/shifted_boundary_point_based_interface_utility.h"
+
+#include "utilities/binbased_fast_point_locator.h"
+
 
 namespace Kratos
 {
 
 namespace
 {
-    using GeometryType = ShiftedBoundaryMeshlessInterfaceUtility::GeometryType;
-    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType;
+    using ElementType = Element;
+    using GeometryType = ShiftedBoundaryPointBasedInterfaceUtility::GeometryType;
+    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryPointBasedInterfaceUtility::ModifiedShapeFunctionsFactoryType;
 
-    /**
+        /**
      * @brief Check if current geometry is split
      * This method checks if current geometry is split from the nodal historical level set values
      * Note that this will evaluate to 'true' for incised elements also if CalculateDiscontinuousDistanceToSkinProcess was used with CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED option.
@@ -57,21 +57,6 @@ namespace
         const ElementType& rElement,
         const Variable<Vector>& rLevelSetVariable)
     {
-        //if (IsIncised(rElement, rLevelSetVariable)) {
-        //    return false;
-        //}
-        std::size_t n_intersected_edges_extrapolated = 0;  //TODO
-        const Vector& r_edge_distances_extrapolated = rElement.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-        // Number of edges cut by extrapolated geometry, if not empty
-        for (std::size_t i = 0; i < r_edge_distances_extrapolated.size(); ++i) {
-            if (r_edge_distances_extrapolated[i] > 0.0) {
-                n_intersected_edges_extrapolated++;
-            }
-        }
-        if (n_intersected_edges_extrapolated > 0) {
-            return false;
-        }
-
         std::size_t n_neg = 0;
         std::size_t n_pos = 0;
 
@@ -85,34 +70,6 @@ namespace
             }
         }
         return (n_pos > 0) && (n_neg > 0);
-    }
-
-    /**
-     * @brief Checks if the current element is partially intersected (incised)
-     * Checks if the current element is partially intersected by checking the number of extrapolated intersected edges
-     * This number will only be non-zero if user provided flag to calculate extrapolated edge distances.
-     * The case in which three edges of a tetrahedra are cut and element is only incised is also considered.
-     * @param rElement Element to be checked
-     * @param rLevelSetVariable Variable storing the level set function
-     * @return true if the element is incised
-     * @return false if the element is not incised
-     */
-    bool IsIncised(
-        const ElementType& rElement,
-        const Variable<Vector>& rLevelSetVariable)  //TODO
-    {
-        std::size_t n_intersected_edges_extrapolated = 0;
-
-        const Vector& r_edge_distances_extrapolated = rElement.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-
-        // Number of edges cut by extrapolated geometry, if not empty
-        for (std::size_t i = 0; i < r_edge_distances_extrapolated.size(); ++i) {
-            if (r_edge_distances_extrapolated[i] > 0.0) {
-                n_intersected_edges_extrapolated++;
-            }
-        }
-
-        return n_intersected_edges_extrapolated > 0 ? true : false;
     }
 
     /**
@@ -176,33 +133,27 @@ namespace
     }
 }
 
-    ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(
+    ShiftedBoundaryPointBasedInterfaceUtility::ShiftedBoundaryPointBasedInterfaceUtility(
         Model& rModel,
-        Parameters ThisParameters) : ShiftedBoundaryMeshlessInterfaceUtility()
+        Parameters ThisParameters)
     {
-
         // Validate input settings with defaults
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         // Retrieve the required model parts
         const std::string model_part_name = ThisParameters["model_part_name"].GetString();
+        const std::string skin_model_part_name = ThisParameters["skin_model_part_name"].GetString();
         const std::string boundary_sub_model_part_name = ThisParameters["boundary_sub_model_part_name"].GetString();
         mpModelPart = &rModel.GetModelPart(model_part_name);
+        //TODO error message if skin ModelPart does not exist - automatically?
+        mpSkinModelPart = &rModel.GetModelPart(skin_model_part_name);
         if (mpModelPart->HasSubModelPart(boundary_sub_model_part_name)) {
             mpBoundarySubModelPart = &(mpModelPart->GetSubModelPart(boundary_sub_model_part_name));
-            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceProcess", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
-            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceProcess", mpBoundarySubModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
-            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
         } else {
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
-        }
-
-        // Save a pointer to variable storing the level set
-        const std::string levelset_variable_name = ThisParameters["levelset_variable_name"].GetString();
-        if (KratosComponents<Variable<Vector>>::Has(levelset_variable_name)) {
-            mpDiscontinuousLevelSetVariable = &KratosComponents<Variable<Vector>>::Get(levelset_variable_name);
-        } else {
-            KRATOS_ERROR << "Provided 'levelset_variable_name' " << levelset_variable_name << " is not registered. Be aware that discontinuous level set needs to be used for discontinuous SBM." << std::endl;
         }
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
@@ -214,38 +165,69 @@ namespace
         // If true, the basis is created such that the surrogate boundary gradient is kept
         const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
         if (ext_op_type == "MLS") {
-            mExtensionOperator = ShiftedBoundaryMeshlessInterfaceUtility::ExtensionOperator::MLS;
-        } else if (ext_op_type == "RBF") {
-            mExtensionOperator = ShiftedBoundaryMeshlessInterfaceUtility::ExtensionOperator::RBF;
-            KRATOS_WARNING("ShiftedBoundaryMeshlessInterfaceUtility") << "Only 'MLS' 'extension_operator_type' is supported by discontinuous shifted boundary interface utility." << std::endl;
-        } else if (ext_op_type == "gradient_based") {
-            mExtensionOperator = ShiftedBoundaryMeshlessInterfaceUtility::ExtensionOperator::GradientBased;
-            KRATOS_WARNING("ShiftedBoundaryMeshlessInterfaceUtility") << "Only 'MLS' 'extension_operator_type' is supported by discontinuous shifted boundary interface utility." << std::endl;
+            mExtensionOperator = ExtensionOperator::MLS;
         } else {
-            KRATOS_ERROR << "Wrong 'extension_operator_type' provided. Available options are 'MLS', 'RBF' and 'gradient_based'." << std::endl;
+            KRATOS_ERROR << "Wrong 'extension_operator_type' provided. Only 'MLS' 'extension_operator_type' is supported by point based shifted boundary interface utility." << std::endl;
         }
-
-        // Check that the basis settings are correct
-        KRATOS_ERROR_IF(mExtensionOperator == ShiftedBoundaryMeshlessInterfaceUtility::ExtensionOperator::RBF && !mConformingBasis)
-            << "'RBF' extension operator can only be used with conforming basis." << std::endl;
-        KRATOS_ERROR_IF(mExtensionOperator == ShiftedBoundaryMeshlessInterfaceUtility::ExtensionOperator::GradientBased && !mConformingBasis)
-            << "'gradient_based' extension operator can only be used with conforming basis." << std::endl;
 
         // Set the SBD condition prototype to be used in the condition creation
         std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
         KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
         mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
+    };
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions()
+    {
+        CalculateMeshlessBasedConformingExtensionBasis();
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::CalculateMeshlessBasedConformingExtensionBasis()
+    const Parameters ShiftedBoundaryPointBasedInterfaceUtility::GetDefaultParameters() const
     {
-        // Set the required interface flags
-        SetInterfaceFlags();
+        const Parameters default_parameters = Parameters(R"({
+            "model_part_name" : "",
+            "skin_model_part_name" : "",
+            "boundary_sub_model_part_name" : "",
+            "sbm_interface_condition_name" : "",
+            "conforming_basis" : true,
+            "extension_operator_type" : "MLS",
+            "mls_extension_operator_order" : 1
+        })" );
+
+        return default_parameters;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateMeshlessBasedConformingExtensionBasis()
+    {
+        // Check that the volume model part has elements
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
+
+        // Map skin points (boundary) to elements of volume model part
+        SkinPointsToElementsMapType skin_points_map;
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                MapSkinPointsToElements<2>(skin_points_map);
+            case 3:
+                MapSkinPointsToElements<3>(skin_points_map);
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+
+        // Set the required interface flags (ACTIVE, BOUNDARY, INTERFACE)
+        SetInterfaceFlags(skin_points_map);
+
+        //TODO Loop the split elements to create a vector defining both sides using the element's skin points normals and positions
+        SidesVectorToElementsMapType sides_vector_map;
+        //SetSidesVectorsForSplitElements(sides_vector_map, skin_points_map);
+
+        // Loop the split elements to create the an extension basis for each node of the elements (MLS shape functions values for support cloud of node)
+        NodesCloudMapType ext_op_map;
+        SetExtensionOperatorsForSplitElementNodes(ext_op_map, sides_vector_map);
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
-        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
-            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
+        // TODO remove!
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -256,73 +238,103 @@ namespace
         // Get max condition id
         std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
 
-        // Loop the elements to create the an extension basis for each node of all intersected elements(MLS shape functions values for support cloud of node)
-        NodesCloudMapType ext_op_map;
-        SetExtensionOperatorsForSplitElementNodes(ext_op_map);
-
         // Create the interface conditions
         //TODO: THIS CAN BE PARALLEL (WE JUST NEED TO MAKE CRITICAL THE CONDITION ID UPDATE)
-        for (auto& rElement : mpModelPart->Elements()) {
-            // Check if the element is split
-            const auto& r_geom = rElement.GetGeometry();
-            if (IsSplit(rElement, *mpDiscontinuousLevelSetVariable)) {
+        // Deactivate split elements and mark as BOUNDARY (gamma)
+        // Note that the split elements BC is applied by means of the extension operators
+        for (const auto& [p_element, skin_points_data_vector]: skin_points_map) {
+            const auto& r_geom = p_element->GetGeometry();
 
-                // Retrieve shape functions values, gradients, integration weights and area normals (for positive interface) of the integrations points of the boundary inside the split element
-                Matrix bd_Ns;
-                typename ModifiedShapeFunctions::ShapeFunctionsGradientsType bd_DN_DXs;
-                Vector bd_weights;
-                std::vector<array_1d<double,3>> bd_pos_area_normals;
-                GetDataForSplitElementBoundary(rElement, p_mod_sh_func_factory, bd_Ns, bd_DN_DXs, bd_weights, bd_pos_area_normals);
+            // Retrieve shape functions values, gradients, integration weights and area normals (for positive interface) of the integrations points of the boundary inside the split element
+            //TODO get N and DNDX using standard shape functions from boundary point position
+            Matrix bd_Ns;
+            typename ModifiedShapeFunctions::ShapeFunctionsGradientsType bd_DN_DXs;
+            //TODO get normal, weight and position from boundary point
+            Vector bd_weights;
+            std::vector<array_1d<double,3>> bd_pos_area_normals;
+            GetDataForSplitElementBoundary(*p_element, p_mod_sh_func_factory, bd_Ns, bd_DN_DXs, bd_weights, bd_pos_area_normals);
 
-                // Calculate parent element size for the SBM BC imposition
-                const double h = p_element_size_func(r_geom);
+            // Calculate parent element size for the SBM BC imposition
+            const double h = p_element_size_func(r_geom);
 
-                // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the cloud nodes that affect the current element
-                // To be used in the creation of the condition. Positive side refers to adding the negative node node's support cloud nodes.
-                // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary???
-                PointerVector<NodeType> cloud_nodes_vector_pos;
-                PointerVector<NodeType> cloud_nodes_vector_neg;
-                CreateCloudNodeVectorsForSplitElement(rElement, ext_op_map, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
+            // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the cloud nodes that affect the current element
+            // To be used in the creation of the condition. Positive side refers to adding the negative node node's support cloud nodes.
+            // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary???
+            PointerVector<NodeType> cloud_nodes_vector_pos;
+            PointerVector<NodeType> cloud_nodes_vector_neg;
+            CreateCloudNodeVectorsForSplitElement(*p_element, ext_op_map, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
 
-                // Iterate the interface integration/ Gauss pts.
-                const std::size_t n_nodes = r_geom.PointsNumber();
-                DenseVector<double> i_g_N;
-                DenseMatrix<double> i_g_DN_DX;
-                array_1d<double,3> i_g_coords;
-                const std::size_t n_int_pts = bd_weights.size();
-                for (std::size_t i_g = 0; i_g < n_int_pts; ++i_g) {
+            // Iterate the interface integration/ Gauss pts.
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            DenseVector<double> i_g_N;
+            DenseMatrix<double> i_g_DN_DX;
+            array_1d<double,3> i_g_coords;
+            const std::size_t n_int_pts = bd_weights.size();
+            for (std::size_t i_g = 0; i_g < n_int_pts; ++i_g) {
 
-                    // Get element's shape function values, shape function derivatives, weight and positive area normal at Gauss pt.
-                    i_g_N = row(bd_Ns, i_g);
-                    i_g_DN_DX = bd_DN_DXs[i_g];
-                    const double i_g_w = bd_weights[i_g];
-                    const array_1d<double,3> i_g_pos_n = bd_pos_area_normals[i_g] / norm_2(bd_pos_area_normals[i_g]);
+                // Get element's shape function values, shape function derivatives, weight and positive area normal at Gauss pt.
+                i_g_N = row(bd_Ns, i_g);
+                i_g_DN_DX = bd_DN_DXs[i_g];
+                const double i_g_w = bd_weights[i_g];
+                const array_1d<double,3> i_g_pos_n = bd_pos_area_normals[i_g] / norm_2(bd_pos_area_normals[i_g]);
 
-                    // Calculate Gauss pt. coordinates
-                    noalias(i_g_coords) = ZeroVector(3);
-                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                        noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
-                    }
-
-                    // Add Gauss pt. condition for positive side of boundary - using support cloud data for negative nodes
-                    AddIntegrationPointCondition(rElement, h, ext_op_map, cloud_nodes_vector_pos,
-                    i_g_coords, i_g_N, i_g_DN_DX, i_g_w,  i_g_pos_n, ++max_cond_id, /*ConsiderPositiveSide=*/true);
-
-                    // Add Gauss pt. condition for negative side of boundary - using support cloud data for positive nodes
-                    // NOTE that boundary normal is opposite
-                    AddIntegrationPointCondition(rElement, h, ext_op_map, cloud_nodes_vector_neg,
-                    i_g_coords, i_g_N, i_g_DN_DX, i_g_w, -i_g_pos_n, ++max_cond_id, /*ConsiderPositiveSide=*/false);
+                // Calculate Gauss pt. coordinates
+                noalias(i_g_coords) = ZeroVector(3);
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
                 }
+
+                // Add Gauss pt. condition for positive side of boundary - using support cloud data for negative nodes
+                AddIntegrationPointCondition(*p_element, h, ext_op_map, cloud_nodes_vector_pos,
+                i_g_coords, i_g_N, i_g_DN_DX, i_g_w,  i_g_pos_n, ++max_cond_id, /*ConsiderPositiveSide=*/true);
+
+                // Add Gauss pt. condition for negative side of boundary - using support cloud data for positive nodes
+                // NOTE that boundary normal is opposite
+                AddIntegrationPointCondition(*p_element, h, ext_op_map, cloud_nodes_vector_neg,
+                i_g_coords, i_g_N, i_g_DN_DX, i_g_w, -i_g_pos_n, ++max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::SetInterfaceFlags()
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements(
+        SkinPointsToElementsMapType& rSkinPointsMap)
+    {
+        // Check that the skin model part has elements
+        KRATOS_ERROR_IF_NOT(mpSkinModelPart->NumberOfElements())
+            << "There are no elements in skin model part (boundary) '" << mpSkinModelPart->FullName() << "'." << std::endl;
+
+        BinBasedFastPointLocator<TDim> bin_based_point_locator(*mpModelPart);
+        bin_based_point_locator.UpdateSearchDatabase();
+
+        // Get integration points data from skin geometry (boundary)
+        for (auto& rElement : mpModelPart->Elements()) {
+            //TODO get integration points with normal and weight
+            //find element of background mesh in which
+
+            std::size_t n_skin_points = 1;
+            SkinPointsDataVectorType skin_points_data_vector(n_skin_points);
+            for (std::size_t i_skin_pt = 0; i_skin_pt < n_skin_points; ++i_skin_pt) {
+                //auto p_cl_node = cloud_nodes(i_skin_pt);
+                const array_1d<double, 3> skin_pt_position(3, 0.0);
+                const array_1d<double, 3> skin_pt_area_normal(3, 0.0);
+                auto i_data = std::make_pair(skin_pt_position, skin_pt_area_normal);
+                skin_points_data_vector(i_skin_pt) = i_data;
+            }
+
+            auto skin_points_key_data = std::make_pair(&rElement, skin_points_data_vector);
+            rSkinPointsMap.insert(skin_points_key_data);
+        }
+        KRATOS_WATCH("MAPPING SKIN POINTS TO ELEMENTS")
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags(
+        const SkinPointsToElementsMapType& rSkinPointsMap)
     {
         // Initialize flags to false
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-            rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
-            rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
+            //rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
+            //rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
             rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
         });
         block_for_each(mpModelPart->Elements(), [](Element& rElement){
@@ -331,15 +343,11 @@ namespace
             rElement.Set(INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
         });
 
-        // Find and deactivate BOUNDARY elements (gamma)
-        for (auto& rElement : mpModelPart->Elements()) {
-            if (IsSplit(rElement, *mpDiscontinuousLevelSetVariable)) {
-                // Mark the intersected elements as BOUNDARY
-                // The intersected elements are flagged as non ACTIVE to avoid assembling them
-                // Note that the split elements BC is applied by means of the extension operators
-                rElement.Set(ACTIVE, false);
-                rElement.Set(BOUNDARY, true);
-            }
+        // Deactivate split elements and mark as BOUNDARY (gamma)
+        // Note that the split elements BC is applied by means of the extension operators
+        for (const auto& [p_element, _]: rSkinPointsMap) {
+            p_element->Set(ACTIVE, false);
+            p_element->Set(BOUNDARY, true);
         }
 
         // Find the surrogate boundary elements (gamma_tilde/ INTERFACE, not gamma/ BOUNDARY)
@@ -362,30 +370,19 @@ namespace
                 }
             }
         }
-
-        // Mark incised elements as BOUNDARY (they already are INTERFACE and ACTIVE) using ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED //TODO
-        //TODO ?? Mark neighboring elements of incised elements also as BOUNDARY, so that the support clouds of both sides are separated better
-        // --> PROBLEM that nodes that need support cloud could be only surrounded by BOUNDARY elements then and could not get support
-        std::size_t n_elements_incised = 0;
-        for (auto& rElement : mpModelPart->Elements()) {
-            if (IsIncised(rElement, *mpDiscontinuousLevelSetVariable)) {
-                rElement.Set(BOUNDARY, true);
-                n_elements_incised++;
-            }
-        }
-        KRATOS_WARNING("[ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility]") << "Number of incised elements: " << n_elements_incised << std::endl;
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::SetExtensionOperatorsForSplitElementNodes(
-        NodesCloudMapType& rExtensionOperatorMap)
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetExtensionOperatorsForSplitElementNodes(
+        NodesCloudMapType& rExtensionOperatorMap,
+        const SidesVectorToElementsMapType& rSidesVectorMap)
     {
         // Get the MLS shape functions function
         auto p_meshless_sh_func = GetMLSShapeFunctionsFunction();
 
         for (auto& rElement : mpModelPart->Elements()) {
-            // Check if the element is split
+            // Check if the element is split by boundary
             const auto r_geom = rElement.GetGeometry();
-            if (IsSplit(rElement, *mpDiscontinuousLevelSetVariable)) {
+            if (rElement.Is(BOUNDARY)) {
                 // All nodes of intersected elements are either part of one side of the boundary or the other side of the boundary
                 for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                     const auto p_node = r_geom(i_node);
@@ -394,14 +391,16 @@ namespace
                     if (!found) {
 
                         // Get the support/ cloud nodes for the respective node
+                        //TODO decide on side based on normal, not on positive/ negative!
+                        //TODO only once per side necessary, currently done multiple times (for each node on each side)
                         Matrix cloud_nodes_coordinates;
                         PointerVector<NodeType> cloud_nodes;
-                        if (IsNegative(rElement, i_node, *mpDiscontinuousLevelSetVariable)) {
+                        if (IsNegative(rElement, i_node, ELEMENTAL_DISTANCES)) {
                             // Get the element's positive nodes and that sides neighboring nodes
                             std::vector<NodeType::Pointer> elem_pos_nodes;
                             for (std::size_t j_node = 0; j_node < r_geom.PointsNumber(); ++j_node) {
                                 NodeType::Pointer p_node_j = r_geom(j_node);
-                                if (!IsNegative(rElement, j_node, *mpDiscontinuousLevelSetVariable)) {
+                                if (!IsNegative(rElement, j_node, ELEMENTAL_DISTANCES)) {
                                     elem_pos_nodes.push_back(p_node_j);
                                 }
                             }
@@ -411,7 +410,7 @@ namespace
                             std::vector<NodeType::Pointer> elem_neg_nodes;
                             for (std::size_t j_node = 0; j_node < r_geom.PointsNumber(); ++j_node) {
                                 NodeType::Pointer p_node_j = r_geom(j_node);
-                                if (IsNegative(rElement, j_node, *mpDiscontinuousLevelSetVariable)) {
+                                if (IsNegative(rElement, j_node, ELEMENTAL_DISTANCES)) {
                                     elem_neg_nodes.push_back(p_node_j);
                                 }
                             }
@@ -440,7 +439,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::SetLateralSupportCloud(
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetLateralSupportCloud(
         const std::vector<NodeType::Pointer>& rSameSideNodes,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
@@ -450,9 +449,9 @@ namespace
         NodesCloudSetType aux_set;
         std::vector<NodeType::Pointer> cur_layer_nodes;
         std::vector<NodeType::Pointer> prev_layer_nodes;
-        const std::size_t n_layers = mMLSExtensionOperatorOrder;  // TODO ?? + 1;
+        const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
 
-        // Add first given nodes to cloud nodes set
+        // Add first given nodes to cloud nodes set (1st layer of sampling points)
         for (std::size_t i_node = 0; i_node < rSameSideNodes.size(); ++i_node) {
             const auto p_node = rSameSideNodes[i_node];
             aux_set.insert(p_node);
@@ -461,7 +460,7 @@ namespace
 
         // Add several layers of neighbors to the cloud nodes
         // Note that we check the order of the MLS interpolation to add nodes from enough interior layers
-        for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
+        for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
 
             // Find elemental neighbors of the nodes of the previous layer
             for (auto& p_node : prev_layer_nodes) {
@@ -472,6 +471,7 @@ namespace
                 // NOTE that 'not BOUNDARY' is used instead of 'not ACTIVE' so that incised elements, which might be active, also represent a boundary
                 for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                     auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                    // TODO add points only if they are on the correct side of the intersection plane? (for intersected)
                     if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
                         const auto& r_geom = p_elem_neigh->GetGeometry();
                         for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
@@ -507,7 +507,7 @@ namespace
                     }
                 }
             }
-            KRATOS_WARNING("[SHIFTED-BOUNDARY-MESHLESS-DISCONTINUOUS-INTERFACE-UTILITY] Extra set of points needed for MLS calculation!!");
+            KRATOS_WARNING("[SHIFTED-BOUNDARY-POINT-BASED-DISCONTINUOUS-INTERFACE-UTILITY] Extra set of points needed for MLS calculation!!");
             aux_set = aux_extra_set;
         }
 
@@ -530,7 +530,7 @@ namespace
         });
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::GetDataForSplitElementBoundary(
+    void ShiftedBoundaryPointBasedInterfaceUtility::GetDataForSplitElementBoundary(
         const ElementType& rElement,
         ModifiedShapeFunctionsFactoryType pModifiedShapeFunctionsFactory,
         Matrix& rBoundaryShapeFunctionValues,
@@ -542,7 +542,7 @@ namespace
         const GeometryType::Pointer p_geom = rElement.pGetGeometry();
         const std::size_t n_nodes = p_geom->PointsNumber();
         Vector nodal_distances(n_nodes);
-        SetNodalDistancesVector(rElement, *mpDiscontinuousLevelSetVariable, nodal_distances);
+        SetNodalDistancesVector(rElement, ELEMENTAL_DISTANCES, nodal_distances);
 
         // Set the modified shape functions pointer and calculate the positive interface data
         auto p_mod_sh_func = pModifiedShapeFunctionsFactory(p_geom, nodal_distances);
@@ -551,7 +551,7 @@ namespace
         p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(rBoundaryAreaNormals, GeometryData::IntegrationMethod::GI_GAUSS_2);
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::CreateCloudNodeVectorsForSplitElement(
+    void ShiftedBoundaryPointBasedInterfaceUtility::CreateCloudNodeVectorsForSplitElement(
         const ElementType& rElement,
         NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
@@ -563,7 +563,8 @@ namespace
         const auto& r_geom = rElement.GetGeometry();
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
-            if (IsNegative(rElement, i_node, *mpDiscontinuousLevelSetVariable)) {
+            //TODO: decide on negative/ positive based on normal
+            if (IsNegative(rElement, i_node, ELEMENTAL_DISTANCES)) {
                 // Add negative side node to cloud nodes set of negative side of the boundary //TODO: really necessary? these nodes should be there already as other sides cloud nodes?!
                 cloud_nodes_set_neg.insert(p_node);
                 // Add negative side's node's cloud nodes to cloud nodes set of positive side of the boundary
@@ -603,7 +604,7 @@ namespace
         std::sort(rCloudNodeVectorNegativeSide.ptr_begin(), rCloudNodeVectorNegativeSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
     }
 
-    void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::AddIntegrationPointCondition(
+    void ShiftedBoundaryPointBasedInterfaceUtility::AddIntegrationPointCondition(
         const ElementType& rElement,
         const double ElementSize,
         NodesCloudMapType& rExtensionOperatorMap,
@@ -627,7 +628,7 @@ namespace
         // Loop the nodes that are involved in the current element
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             const auto& r_node = r_geom[i_node];
-            if (ConsiderPositiveSide != IsNegative(rElement, i_node, *mpDiscontinuousLevelSetVariable)) {
+            if (ConsiderPositiveSide != IsNegative(rElement, i_node, ELEMENTAL_DISTANCES)) {
                 // If positive side is considered and node is positive OR negative side is considered and node is negative, then add the standard shape function contribution
                 // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
                 for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
@@ -684,5 +685,88 @@ namespace
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
     }
+
+    ShiftedBoundaryPointBasedInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetMLSShapeFunctionsFunction() const
+    {
+        switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
+            case 2:
+                switch (mMLSExtensionOperatorOrder) {
+                    case 1:
+                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);};
+                    case 2:
+                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);};
+                    default:
+                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+                }
+            case 3:
+                switch (mMLSExtensionOperatorOrder) {
+                    case 1:
+                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);};
+                    case 2:
+                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);};
+                    default:
+                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+                }
+            default:
+                KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
+        }
+    }
+
+    ShiftedBoundaryPointBasedInterfaceUtility::ElementSizeFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetElementSizeFunction(const GeometryType& rGeometry)
+    {
+        switch (rGeometry.GetGeometryType()) {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+            default:
+                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+        }
+    }
+
+    double ShiftedBoundaryPointBasedInterfaceUtility::CalculateKernelRadius(
+        const Matrix& rCloudCoordinates,
+        const array_1d<double,3>& rOrigin)
+    {
+        const std::size_t n_nodes = rCloudCoordinates.size1();
+        const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
+            return std::pow(rCloudCoordinates(I,0) - rOrigin(0),2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1),2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2),2);
+        });
+        return std::sqrt(squared_rad);
+    }
+
+    std::size_t ShiftedBoundaryPointBasedInterfaceUtility::GetRequiredNumberOfPoints()
+    {
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                switch (mMLSExtensionOperatorOrder) {
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 6;
+                    default:
+                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+                }
+            case 3:
+                switch (mMLSExtensionOperatorOrder) {
+                    case 1:
+                        return 4;
+                    case 2:
+                        return 10;
+                    default:
+                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
+                }
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+    }
+
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements<2>(SkinPointsToElementsMapType& rSkinPointsMap);
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements<3>(SkinPointsToElementsMapType& rSkinPointsMap);
 
 } // namespace Kratos.
