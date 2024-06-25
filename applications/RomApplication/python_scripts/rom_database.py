@@ -54,8 +54,7 @@ class RomDatabase(object):
         """
         Set up the database by creating tables if they do not exist.
         """
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
+
         table_definitions = {
             "FOM": '''CREATE TABLE IF NOT EXISTS FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
@@ -94,15 +93,16 @@ class RomDatabase(object):
             "QoI_HROM": '''CREATE TABLE IF NOT EXISTS QoI_HROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, is_active INTEGER  , file_name TEXT)'''
         }
+
         self.table_names = table_definitions.keys()
-        for table_name, table_sql in table_definitions.items():
-            try:
-                cursor.execute(table_sql)
-                conn.commit()
-                print(f"Table {table_name} created successfully.")
-            except sqlite3.OperationalError as e:
-                print(f"Error creating table {table_name}: {e}")
-        conn.close()
+        try:
+            with sqlite3.connect(self.database_name) as conn:
+                cursor = conn.cursor()
+                for table_name, table_sql in table_definitions.items():
+                    cursor.execute(table_sql)
+                    print(f"Table {table_name} created successfully.")
+        except sqlite3.OperationalError as e:
+            print(f"Error creating tables: {e}")
 
 
     def hash_parameters(self, *args):
@@ -170,7 +170,7 @@ class RomDatabase(object):
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         elif table_name == 'SingularValues_Solution':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
-        #TODO some other params might need to be added the "ann_enhanced" part to notice when they are generated with it
+        #TODO some other params might need to be added the "ann_enhanced" part to notice when they are generated with it. To be added in PR including online AnnEnhanced PROM
         elif table_name == 'LeftBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == "HROM_Elements":
@@ -242,11 +242,10 @@ class RomDatabase(object):
             tuple: Boolean indicating existence and file name.
         """
         file_name, _ = self.get_hashed_file_name_for_table(table_name, mu)
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
-        count = cursor.fetchone()[0]
-        conn.close()
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
+            count = cursor.fetchone()[0]
         return count > 0, file_name
 
 
@@ -261,9 +260,6 @@ class RomDatabase(object):
         """
         file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
         tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
-
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
 
         queries = {
             'FOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
@@ -292,70 +288,68 @@ class RomDatabase(object):
 
         query = queries[table_name].format(table=table_name)
 
-        if table_name in ['FOM', 'NonconvergedFOM']:
-            cursor.execute(query, (serialized_mu, file_name))
-        elif table_name in ['ROM', 'NonconvergedROM']:
-            cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name in ['HROM', 'NonconvergedHROM']:
-            cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name in ['ResidualsProjected', 'SingularValues_Residuals']:
-            cursor.execute(query, (serialized_mu, projection_type, tol_sol, tol_res, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'PetrovGalerkinSnapshots':
-            cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
-        elif table_name in ['RightBasis', 'SingularValues_Solution']:
-            cursor.execute(query, (tol_sol, non_converged_fom_14_bool, file_name))
-        elif table_name == 'LeftBasis':
-            cursor.execute(query, (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
-        elif table_name in ['HROM_Elements', 'HROM_Weights']:
-            cursor.execute(query, (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'Neural_Network':
-            cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
-        elif table_name == 'QoI_FOM':
-            if len(numpy_array) > 0:
-                cursor.execute(query, (serialized_mu, file_name, True))
-                for key, value in numpy_array.items():
-                    cursor.execute(f"PRAGMA table_info({table_name})")
-                    columns = [info[1] for info in cursor.fetchall()]
-                    if key not in columns:
-                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
-                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
-                    self.save_as_npy(value, file_name+key)
-            else:
-                cursor.execute(query, (serialized_mu, file_name, False))
-        elif table_name == 'QoI_ROM':
-            if len(numpy_array) > 0:
-                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
-                for key, value in numpy_array.items():
-                    cursor.execute(f"PRAGMA table_info({table_name})")
-                    columns = [info[1] for info in cursor.fetchall()]
-                    if key not in columns:
-                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
-                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
-                    self.save_as_npy(value, file_name+key)
-            else:
-                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
-        elif table_name == 'QoI_HROM':
-            if len(numpy_array) > 0:
-                cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
-                for key, value in numpy_array.items():
-                    cursor.execute(f"PRAGMA table_info({table_name})")
-                    columns = [info[1] for info in cursor.fetchall()]
-                    if key not in columns:
-                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
-                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
-                    self.save_as_npy(value, file_name+key)
-            else:
-                cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
 
-        conn.commit()
-        conn.close()
+            if table_name in ['FOM', 'NonconvergedFOM']:
+                cursor.execute(query, (serialized_mu, file_name))
+            elif table_name in ['ROM', 'NonconvergedROM']:
+                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+            elif table_name in ['HROM', 'NonconvergedHROM']:
+                cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+            elif table_name in ['ResidualsProjected', 'SingularValues_Residuals']:
+                cursor.execute(query, (serialized_mu, projection_type, tol_sol, tol_res, decoder_type, non_converged_fom_14_bool, file_name))
+            elif table_name == 'PetrovGalerkinSnapshots':
+                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
+            elif table_name in ['RightBasis', 'SingularValues_Solution']:
+                cursor.execute(query, (tol_sol, non_converged_fom_14_bool, file_name))
+            elif table_name == 'LeftBasis':
+                cursor.execute(query, (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
+            elif table_name in ['HROM_Elements', 'HROM_Weights']:
+                cursor.execute(query, (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+            elif table_name == 'Neural_Network':
+                cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
+            elif table_name == 'QoI_FOM':
+                if len(numpy_array) > 0:
+                    cursor.execute(query, (serialized_mu, file_name, True))
+                    for key, value in numpy_array.items():
+                        cursor.execute(f"PRAGMA table_info({table_name})")
+                        columns = [info[1] for info in cursor.fetchall()]
+                        if key not in columns:
+                            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                        cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                        self.save_as_npy(value, file_name+key)
+                else:
+                    cursor.execute(query, (serialized_mu, file_name, False))
+            elif table_name == 'QoI_ROM':
+                if len(numpy_array) > 0:
+                    cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
+                    for key, value in numpy_array.items():
+                        cursor.execute(f"PRAGMA table_info({table_name})")
+                        columns = [info[1] for info in cursor.fetchall()]
+                        if key not in columns:
+                            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                        cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                        self.save_as_npy(value, file_name+key)
+                else:
+                    cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
+            elif table_name == 'QoI_HROM':
+                if len(numpy_array) > 0:
+                    cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
+                    for key, value in numpy_array.items():
+                        cursor.execute(f"PRAGMA table_info({table_name})")
+                        columns = [info[1] for info in cursor.fetchall()]
+                        if key not in columns:
+                            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                        cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                        self.save_as_npy(value, file_name+key)
+                else:
+                    cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
 
         if table_name in ["Neural_Network", 'QoI_FOM' , 'QoI_ROM' ,'QoI_HROM']:
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
-
-
 
 
 
@@ -443,24 +437,25 @@ class RomDatabase(object):
             unique_tuples = set(tuple(item) for item in mu_list)
             mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_list
         SnapshotsMatrix = []
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
         unavailable_cases = []
-        for mu in mu_list_unique:
-            hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu)
-            cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
-            result = cursor.fetchone()
-            if result:
-                file_name = result[0]
-                if QoI is not None:
-                    file_name = file_name+QoI
-                SnapshotsMatrix.append(self.get_single_numpy_from_database(file_name))
-            else:
-                print(f"No entry found for hash {hash_mu}")
-                unavailable_cases.append(mu)
-        conn.close()
-        if len(unavailable_cases)>0:
-            print(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases:  {unavailable_cases} ")
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
+            for mu in mu_list_unique:
+                hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu)
+                cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
+                result = cursor.fetchone()
+                if result:
+                    file_name = result[0]
+                    if QoI is not None:
+                        file_name += QoI
+                    SnapshotsMatrix.append(self.get_single_numpy_from_database(file_name))
+                else:
+                    print(f"No entry found for hash {hash_mu}")
+                    unavailable_cases.append(mu)
+
+        if unavailable_cases:
+            print(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
+
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 
 
@@ -499,23 +494,22 @@ class RomDatabase(object):
         if missing_xlsxwriter == True:
             print('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," xlsxwriter library not installed. No excel file generated")
         if missing_pandas==False and missing_xlsxwriter==False:
-            conn = sqlite3.connect(self.database_name)
-            query = "SELECT name FROM sqlite_master WHERE type='table';"
-            tables = pd.read_sql_query(query, conn)
-            if full_tables==False:
-                output_file_path = self.xlsx_directory / 'Summary.xlsx'
-            elif full_tables==True:
-                output_file_path = self.xlsx_directory / 'DataBaseCompleteDump.xlsx'
-            with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
-                for table_name in tables['name']:
-                    if full_tables==True:
-                        df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
-                    else:
-                        df = pd.read_sql_query(f"SELECT * FROM {table_name}  LIMIT {number_of_terms}", conn)
-                    df.to_excel(writer, sheet_name=table_name, index=False)
-                    print(f"Exported {table_name} to Excel sheet.")
-            conn.close()
-            print(f"Data exported to Excel file {output_file_path} successfully.")
+            with sqlite3.connect(self.database_name) as conn:
+                query = "SELECT name FROM sqlite_master WHERE type='table';"
+                tables = pd.read_sql_query(query, conn)
+                if full_tables==False:
+                    output_file_path = self.xlsx_directory / 'Summary.xlsx'
+                elif full_tables==True:
+                    output_file_path = self.xlsx_directory / 'DataBaseCompleteDump.xlsx'
+                with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
+                    for table_name in tables['name']:
+                        if full_tables==True:
+                            df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                        else:
+                            df = pd.read_sql_query(f"SELECT * FROM {table_name}  LIMIT {number_of_terms}", conn)
+                        df.to_excel(writer, sheet_name=table_name, index=False)
+                        print(f"Exported {table_name} to Excel sheet.")
+                print(f"Data exported to Excel file {output_file_path} successfully.")
 
     def generate_database_summary(self):
         """
