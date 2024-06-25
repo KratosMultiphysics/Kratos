@@ -123,14 +123,16 @@ class RomManager(object):
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
-        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
+        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
         in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
         if not in_database:
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
         elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
             while in_database:
                 counter+=1
-                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
+                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
+                #using Fit(), the model launched will be the one trained last.
+                #For Test() or Run() methods, it is the one privided in "model_number"
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
