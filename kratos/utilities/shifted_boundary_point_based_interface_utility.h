@@ -72,8 +72,6 @@ public:
 
     using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
 
-    using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
-
     using MeshlessShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
 
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
@@ -219,14 +217,20 @@ protected:
      */
     void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
 
+    /**TODO*/
+    void SetSidesVectorsForSplitElements(
+        const SkinPointsToElementsMapType& rSkinPointsMap,
+        SidesVectorToElementsMapType& rSidesVectorMap
+    );
+
     /** TODO
      * @brief Set the Extension Operators For Split Element Nodes object selecting a support cloud for each node of each split element and using MLS shape functions
      *
      * @param rExtensionOperatorMap
      */
     void SetExtensionOperatorsForSplitElementNodes(
-        NodesCloudMapType& rExtensionOperatorMap,
-        const SidesVectorToElementsMapType& rSidesVectorMap
+        const SidesVectorToElementsMapType& rSidesVectorMap,
+        NodesCloudMapType& rExtensionOperatorMap
     );
 
     /**
@@ -243,66 +247,43 @@ protected:
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates);
 
-    /** TODO
-     * @brief Get the Data For Split Element Boundary object using modified shape functions
-     *
-     * @param rElement
-     * @param pModifiedShapeFunctionsFactory
-     * @param rBoundaryShapeFunctionValues
-     * @param rBoundaryShapeFunctionDerivatives
-     * @param rBoundaryWeights
-     * @param rBoundaryAreaNormals
-     */
-    void GetDataForSplitElementBoundary(
-        const ElementType& rElement,
-        ModifiedShapeFunctionsFactoryType pModifiedShapeFunctionsFactory,
-        Matrix& rBoundaryShapeFunctionValues,
-        ModifiedShapeFunctions::ShapeFunctionsGradientsType& rBoundaryShapeFunctionDerivatives,
-        Vector& rBoundaryWeights,
-        std::vector<array_1d<double,3>>& rBoundaryAreaNormals);
-
     /**
      * @brief Create a pointer vector of pointers to all the nodes affecting the respective side of a split element's boundary.
      * Create vectors to pointers of cloud nodes for a split element using all the nodes affecting the element.
      * Pointer Vectors are sorted by ID to properly get the extension operator data
      *
      * @param rElement
+     * @param rSidesVector
      * @param rExtensionOperatorMap
      * @param rCloudNodeVectorPositiveSide
      * @param rCloudNodeVectorNegativeSide
      */
     void CreateCloudNodeVectorsForSplitElement(
         const ElementType& rElement,
+        const Vector& rSidesVector,
         NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide);
 
-    /**
-     * @brief
-     *
-     * @param rElement
-     * @param ElementSize
-     * @param rExtensionOperatorMap
-     * @param rCloudNodeVector
-     * @param rIntPtCoordinates
-     * @param rIntPtShapeFunctionValues
-     * @param rIntPtShapeFunctionDerivatives
-     * @param rIntPtWeight
-     * @param rIntPtNormal
-     * @param conditionId
-     * @param ConsiderPositiveSide
-     */
+    /* TODO */
+    void GetDataForSplitElementIntegrationPoint(
+        const ElementType& rElement,
+        const array_1d<double,3>& rIntPtCoordinates,
+        Vector& rIntPtShapeFunctionValues, 
+        Matrix& rIntPtShapeFunctionDerivatives);
+
+    /* TODO */
     void AddIntegrationPointCondition(
         const ElementType& rElement,
+        const Vector& rSidesVector,
         const double ElementSize,
+        const array_1d<double,3>& rIntPtCoordinates,
+        const array_1d<double,3>& rIntPtAreaNormal,
         NodesCloudMapType& rExtensionOperatorMap,
         const PointerVector<NodeType>& rCloudNodeVector,
-        const array_1d<double,3>& rIntPtCoordinates,
-        const DenseVector<double>& rIntPtShapeFunctionValues,
-        const DenseMatrix<double>& rIntPtShapeFunctionDerivatives,
-        const double rIntPtWeight,
-        const array_1d<double,3>& rIntPtNormal,
-        const std::size_t conditionId,
+        const Vector& rIntPtShapeFunctionValues,
+        const Matrix& rIntPtShapeFunctionDerivatives,
+        const std::size_t ConditionId,
         bool ConsiderPositiveSide);
 
     /**

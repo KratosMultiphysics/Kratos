@@ -192,7 +192,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const std::size_t n_nodes = local_size / BlockSize;
 
     // Get meshless geometry data (for the integration point)
-    const double parent_size = this->GetValue(ELEMENT_H);                     // parent element size
+    const double parent_size = this->GetValue(ELEMENT_H);               // parent element size
     const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
     const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points
     const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points
