@@ -454,9 +454,6 @@ public:
         Vector rRomUnknowns,
         Vector& rx)
     {
-
-        KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "INSIDE ANNPROMB&S's GetXFromDecoder " << std::endl;
-
         EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1];
 
         Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());

@@ -48,8 +48,30 @@ def CreateSolver(cls, model, custom_settings):
             else:
                 err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
                 raise ValueError(err_msg)
+            
+        def _create_line_search_strategy(self):     # This is a temporary solution to add the ANNPROM linesearch to the solver,
+                                                    # but it may not take into account every setting available for each application
+            projection_strategy = self.settings["projection_strategy"].GetString()
 
-        def _CreateLineSearchStrategy(self):
+            if not "custom" in projection_strategy:
+                strategy = super()._create_line_search_strategy()
+            else:
+                computing_model_part = self.GetComputingModelPart()
+                scheme = self._GetScheme()
+                convergence_criterion = self._GetConvergenceCriterion()
+                builder_and_solver = self._GetBuilderAndSolver()
+                strategy = KratosROM.AnnPromLineSearchStrategy(computing_model_part,
+                                                            scheme,
+                                                            convergence_criterion,
+                                                            builder_and_solver,
+                                                            self.settings["max_iteration"].GetInt(),
+                                                            self.settings["compute_reactions"].GetBool(),
+                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                            self.settings["move_mesh_flag"].GetBool())
+            return strategy
+
+        def _CreateLineSearchStrategy(self):    # This is a temporary solution just for the Potential Flow application. This method should
+                                                # be replaced with _create_line_search_strategy() in the Potential Flow app
             projection_strategy = self.settings["projection_strategy"].GetString()
 
             if not "custom" in projection_strategy:

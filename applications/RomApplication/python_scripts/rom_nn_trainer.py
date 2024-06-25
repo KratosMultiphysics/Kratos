@@ -212,7 +212,7 @@ class RomNeuralNetworkTrainer(object):
         
         return schedulers_dict[strategy_name]
     
-    def _DefineNetwork(self, n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN):
+    def _DefineNetwork(self, n_inf, n_sup, layers_size, phisig_norm_matrix=None, rescaling_factor=None, w_gradNN=None):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
         for layer_size in layers_size:
@@ -333,16 +333,16 @@ class RomNeuralNetworkTrainer(object):
         sample_l2_err_list=[]
         for i in range(S_recons_val.shape[1]):
             sample_l2_err_list.append(np.linalg.norm(S_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('ANN-PROM : ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
+        print('     ANN-PROM: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
 
         sample_l2_err_list_pod_sup=[]
         for i in range(S_pod_sup_recons_val.shape[1]):
             sample_l2_err_list_pod_sup.append(np.linalg.norm(S_pod_sup_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('POD Sup: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_sup)))))
+        print('     POD Sup: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_sup)))))
 
         sample_l2_err_list_pod_inf=[]
         for i in range(S_pod_inf_recons_val.shape[1]):
             sample_l2_err_list_pod_inf.append(np.linalg.norm(S_pod_inf_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('POD Inf: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_inf)))))
+        print('     POD Inf: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_inf)))))
 
         return err_rel_recons
