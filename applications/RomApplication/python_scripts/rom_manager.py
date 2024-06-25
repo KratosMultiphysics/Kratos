@@ -40,7 +40,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
         self.SetUpQuantityOfInterestContainers()
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
-
+        self.SetupErrorsDictionaries()
 
     def Fit(self, mu_train=[None],mu_validation=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -244,31 +244,50 @@ class RomManager(object):
         if "ROM" in stages:
             rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
             error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
-            setattr(self, f'ROMvsFOM_{case}', error_rom_fom)
+            self.ROMvsFOM[case] = error_rom_fom
         if "HROM" in stages:
             if rom_snapshots is None:  # Only fetch if not already fetched
                 rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
             hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
             error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
             error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
-            setattr(self, f'ROMvsHROM_{case}', error_rom_hrom)
-            setattr(self, f'FOMvsHROM_{case}', error_fom_hrom)
-
+            self.ROMvsHROM[case] = error_rom_hrom
+            self.FOMvsHROM[case] = error_fom_hrom
 
 
 
     def PrintErrors(self):
-        #chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
-        if any(item == "ROM" for item in training_stages):
-            print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_Fit)
-        if any(item == "HROM" for item in training_stages):
-            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_Fit)
-        if any(item == "ROM" for item in testing_stages):
-            print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_Test)
-        if any(item == "HROM" for item in testing_stages):
-            print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_Test)
+
+        training_set = set(training_stages)
+        testing_set = set(testing_stages)
+
+        # Check in Fit
+        if "ROM" in training_set:
+            self.aux_print_errors(self.ROMvsFOM['Fit'], 'train', 'FOM vs ROM')
+        if "HROM" in training_set:
+            self.aux_print_errors(self.ROMvsHROM['Fit'], 'train', 'ROM vs HROM')
+            self.aux_print_errors(self.FOMvsHROM['Fit'], 'train', 'FOM vs HROM')
+
+        # Check in Test
+        if "ROM" in testing_set:
+            self.aux_print_errors(self.ROMvsFOM['Test'], 'test', 'FOM vs ROM')
+        if "HROM" in testing_set:
+            self.aux_print_errors(self.ROMvsHROM['Test'], 'test', 'ROM vs HROM')
+            self.aux_print_errors(self.FOMvsHROM['Test'], 'test', 'FOM vs HROM')
+
+    def aux_print_errors(self, error, train_or_test, comparison_in_string):
+        message = f"approximation error in {train_or_test} set {comparison_in_string}"
+        if error is None:
+            print(f"{message} not computed")
+        else:
+            print(f"{message}: {error}")
+
+    def SetupErrorsDictionaries(self):
+        self.ROMvsFOM = {'Fit': None, 'Test': None}
+        self.ROMvsHROM = {'Fit': None, 'Test': None}
+        self.FOMvsHROM = {'Fit': None, 'Test': None}
 
 
     def _LaunchTrainROM(self, mu_train):
