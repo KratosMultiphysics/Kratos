@@ -306,10 +306,12 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, rDx, rb);
+        BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
 
-        std::copy(mCurrentOutOfBalanceVector.begin(), mCurrentOutOfBalanceVector.end(), mPreviousOutOfBalanceVector.begin());
+        //BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
+        TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
@@ -340,6 +342,7 @@ public:
     {
         KRATOS_TRY
 
+
         BuildRHS(pScheme, rModelPart, rb);
 
         // todo check if this is needed
@@ -353,9 +356,10 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
+        //BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
-        std::copy(mCurrentOutOfBalanceVector.begin(), mCurrentOutOfBalanceVector.end(), mPreviousOutOfBalanceVector.begin());
+        TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
@@ -407,8 +411,7 @@ public:
 
 		BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-        std::copy(mCurrentExternalForceVector.begin(), mCurrentExternalForceVector.end(), mPreviousExternalForceVector.begin()); 
-        
+        TSparseSpace::Copy(mCurrentExternalForceVector, mPreviousExternalForceVector);
 
     }
 
@@ -530,27 +533,26 @@ protected:
         // getting the array of the conditions
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         // contributions to the system
         LocalSystemVectorType local_external_force = LocalSystemVectorType(0);
 
-		TSystemVectorType external_force = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        //TSystemVectorType delta_force = ZeroVector(BaseType::mEquationSystemSize);
+        mCurrentExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+
         // vector containing the localization in the system of the different
         // terms
         Element::EquationIdVectorType equation_ids;
 
-        // assemble all elements
-
-        const int nelements = static_cast<int>(r_elements.size());
-#pragma omp parallel firstprivate(nelements, local_external_force, equation_ids)
+        // assemble all conditions
+        
+#pragma omp parallel firstprivate(local_external_force, equation_ids)
         {
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
+            const int nconditions = static_cast<int>(r_conditions.size());
             local_external_force.resize(0, false);
 
             // assemble all conditions
-            const int nconditions = static_cast<int>(r_conditions.size());
+            
 #pragma omp for schedule(guided, 512)
             for (int i = 0; i < nconditions; i++) {
                 auto it = r_conditions.begin() + i;
@@ -560,19 +562,18 @@ protected:
                     it->EquationIdVector(equation_ids, r_current_process_info);
 
                     // assemble the elemental contribution
-                    BaseType::AssembleRHS(external_force, local_external_force, equation_ids);
+                    BaseType::AssembleRHS(mCurrentExternalForceVector, local_external_force, equation_ids);
                 }
             }
         }
 
-     
-		mCurrentExternalForceVector = external_force;
-
-        noalias(mCurrentOutOfBalanceVector) = mCurrentExternalForceVector - mPreviousExternalForceVector;
+		// mCurrentOutOfBalanceVector = mCurrentExternalForceVector - mPreviousExternalForceVector;
+        TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0, mPreviousExternalForceVector, mCurrentOutOfBalanceVector);
 
         AddMassAndDampingToRhs(rModelPart, mCurrentOutOfBalanceVector);
 
-        noalias(rb) = mCurrentOutOfBalanceVector - mPreviousOutOfBalanceVector;
+        // rb = mCurrentOutOfBalanceVector - mPreviousOutOfBalanceVector;
+        TSparseSpace::ScaleAndAdd(1.0, mCurrentOutOfBalanceVector, -1.0, mPreviousOutOfBalanceVector, rb);
 
 
     }
@@ -583,12 +584,8 @@ private:
     TSystemVectorType mPreviousExternalForceVector;
     TSystemVectorType mCurrentExternalForceVector;
 
-	//TSystemVectorType mCurrentDx;
-
     TSystemVectorType mPreviousOutOfBalanceVector;
 	TSystemVectorType mCurrentOutOfBalanceVector;
-
-	//TSystemVectorType mOutOfBalanceVector;
 
 
     void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,

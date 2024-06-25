@@ -183,8 +183,13 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
 		this->GetFirstAndSecondDerivativeVector(rFirstDerivativeVector, rSecondDerivativeVector, model_part, 0);
 
-        noalias(rUpdatedSecondDerivativeVector) = rFirstDerivativeVector * (1.0 / (mBeta * delta_time)) + rSecondDerivativeVector * (1.0 / (2 * mBeta));
-        noalias(rUpdatedFirstDerivativeVector) = rFirstDerivativeVector * (mGamma / mBeta) + rSecondDerivativeVector * (delta_time * (mGamma / (2 * mBeta) - 1));
+
+        //rUpdatedFirstDerivativeVector = rFirstDerivativeVector * (mGamma / mBeta) + rSecondDerivativeVector * (delta_time * (mGamma / (2 * mBeta) - 1));
+        TSparseSpace::ScaleAndAdd(mGamma / mBeta, rFirstDerivativeVector, delta_time * (mGamma / (2 * mBeta) - 1), rSecondDerivativeVector, rUpdatedFirstDerivativeVector);
+
+        //rUpdatedSecondDerivativeVector = rFirstDerivativeVector * (1.0 / (mBeta * delta_time)) + rSecondDerivativeVector * (1.0 / (2 * mBeta));
+		TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), rFirstDerivativeVector, 1.0 / (2 * mBeta), rSecondDerivativeVector, rUpdatedSecondDerivativeVector);
+
 
 		this->SetFirstAndSecondDerivativeVector(rUpdatedFirstDerivativeVector, rUpdatedSecondDerivativeVector, model_part);
 
@@ -263,7 +268,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             // Setting up the Vectors involved to the correct size
             BuiltinTimer system_matrix_resize_time;
             p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                r_model_part);
+                r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
                 << system_matrix_resize_time << std::endl;
         }
@@ -271,15 +276,27 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
             << system_construction_time << std::endl;
 
-        TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rA = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        TSystemVectorType& rb = *mpb;
 
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-        // Initial operations ... things that are constant over the Solution Step
-        p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+
+        if (!BaseType::mStiffnessMatrixIsBuilt) {
+            // Initial operations ... things that are constant over the Solution Step
+            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+        }
+        else {
+			// only initialize conditions of the stiffness matrix is built
+            const auto& r_current_process_info = r_model_part.GetProcessInfo();
+            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+                if (r_condition.IsActive()) {
+                    r_condition.InitializeSolutionStep(r_current_process_info);
+                }});
+
+        }
 
         // Initialisation of the convergence criteria
         if (mpConvergenceCriteria->GetActualizeRHSflag())
@@ -319,7 +336,17 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+		// just finialize conditions and not elements as defined in the scheme
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+
+        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+            if (r_condition.IsActive()) {
+                r_condition.FinalizeSolutionStep(r_current_process_info);
+            }
+            });
+
+        //p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+
         p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
@@ -363,7 +390,20 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool residual_is_updated = false;
-        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+
+		if (BaseType::mStiffnessMatrixIsBuilt == false) {
+			//initial operations ... things that are constant over the Solution Step
+            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+		}
+        else {
+            // only initialize conditions of the stiffness matrix is built
+            const auto& r_current_process_info = r_model_part.GetProcessInfo();
+            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+                if (r_condition.IsActive()) {
+                    r_condition.InitializeNonLinearIteration(r_current_process_info);
+                }});
+        }
+
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
@@ -389,7 +429,15 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
         this->UpdateSolutionStepValue(rDx, rDx_tot);
 
-        p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+         
+        // only finalize condition non linear iteration
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+            if (r_condition.IsActive()) {
+                r_condition.FinalizeNonLinearIteration(r_current_process_info);
+            }});
+        
+        //p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         if (mStoreNonconvergedSolutionsFlag) {
@@ -444,7 +492,13 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             // Updating the results stored in the database
             this->UpdateSolutionStepValue(rDx, rDx_tot);
 
-            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+            // only finalize condition non linear iteration
+            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+                if (r_condition.IsActive()) {
+                    r_condition.FinalizeNonLinearIteration(r_current_process_info);
+                }});
+
+            //p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             if (mStoreNonconvergedSolutionsFlag == true){
@@ -617,8 +671,6 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
     double mBeta = 0.25;
 	double mGamma = 0.5;
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -703,12 +755,12 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         TSystemVectorType& rFirstDerivativeVector,
         TSystemVectorType& rSecondDerivativeVector, IndexType i) const
     {
-        const auto& first_derivative = rVariable.GetTimeDerivative();
-        const auto& second_derivative = first_derivative.GetTimeDerivative();
+        const auto& r_first_derivative = rVariable.GetTimeDerivative();
+        const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
 
         const auto equation_id = rNode.GetDof(rVariable).EquationId();
-        rFirstDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(first_derivative, i);
-        rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(second_derivative, i);
+        rFirstDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_first_derivative, i);
+        rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_second_derivative, i);
     }
 
 	void SetDerivativesForVariable(const Variable<double>& rVariable,
@@ -716,23 +768,24 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 		const TSystemVectorType& rFirstDerivativeVector,
 		const TSystemVectorType& rSecondDerivativeVector)
 	{
-		const auto& first_derivative = rVariable.GetTimeDerivative();
-		const auto& second_derivative = first_derivative.GetTimeDerivative();
+		const auto& r_first_derivative = rVariable.GetTimeDerivative();
+		const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
 
 		const auto equation_id = rNode.GetDof(rVariable).EquationId();
-		rNode.FastGetSolutionStepValue(first_derivative) = rFirstDerivativeVector[equation_id];
-		rNode.FastGetSolutionStepValue(second_derivative) = rSecondDerivativeVector[equation_id];
+		rNode.FastGetSolutionStepValue(r_first_derivative) = rFirstDerivativeVector[equation_id];
+		rNode.FastGetSolutionStepValue(r_second_derivative) = rSecondDerivativeVector[equation_id];
 	}
 
     void UpdateSolutionStepValue(TSystemVectorType& rDx, TSystemVectorType& rDx_tot){
 
-		rDx_tot += rDx;
+        //rDx_tot += rDx;
+		TSparseSpace::UnaliasedAdd(rDx_tot, 1.0, rDx);
 
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-		DofsArrayType& rDofSet = p_builder_and_solver->GetDofSet();
+		DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
 
-        block_for_each(rDofSet, [&rDx](auto& dof) {
+        block_for_each(r_dof_set, [&rDx](auto& dof) {
             if (dof.IsFree()) {
                 dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx, dof.EquationId());
             }
@@ -745,28 +798,37 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
 
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-        const DofsArrayType& rDofSet = p_builder_and_solver->GetDofSet();
+        const DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        TSystemVectorType& rFirstDerivativeVector = TSystemVectorType(rDofSet.size(), 0.0);
-		TSystemVectorType& rSecondDerivativeVector = TSystemVectorType(rDofSet.size(), 0.0);
+        TSystemVectorType& r_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+		TSystemVectorType& r_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
 
 
 		const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
 
         // get values from previous time step as the derivatives are already updated in the Predict step
-        this->GetFirstAndSecondDerivativeVector(rFirstDerivativeVector, rSecondDerivativeVector, rModelPart, 1);
+        this->GetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart, 1);
 
-        const TSystemVectorType& rDeltaFirstDerivativeVector = rDx_tot * (mGamma / (mBeta * delta_time)) - rFirstDerivativeVector * (mGamma/mBeta) + rSecondDerivativeVector * (delta_time * (1-mGamma / (2 * mBeta)));
+        //const TSystemVectorType& r_delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - r_first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
+        TSystemVectorType& r_delta_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+		TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector, (mGamma / (mBeta * delta_time)), rDx_tot);
+        TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector, - (mGamma / mBeta), r_first_derivative_vector);
+		TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector, delta_time * (1 - mGamma / (2 * mBeta)), r_second_derivative_vector);
 
-		const TSystemVectorType& rDeltaSecondDerivativeVector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - rFirstDerivativeVector * (1 / (mBeta * delta_time)) - rSecondDerivativeVector * (1 / (2 * mBeta));
+        //const TSystemVectorType& r_delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - r_first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
+        TSystemVectorType& r_delta_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+		TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector, 1 / (mBeta * delta_time * delta_time), rDx_tot);
+		TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector, - 1 / (mBeta * delta_time), r_first_derivative_vector);
+		TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector, -1 / (2 * mBeta), r_second_derivative_vector);
+	
+        //r_first_derivative_vector += r_delta_first_derivative_vector;
+		TSparseSpace::UnaliasedAdd(r_first_derivative_vector, 1.0, r_delta_first_derivative_vector);
 
+        //r_second_derivative_vector += r_delta_second_derivative_vector;
+        TSparseSpace::UnaliasedAdd(r_second_derivative_vector, 1.0, r_delta_second_derivative_vector);
 
-		rFirstDerivativeVector += rDeltaFirstDerivativeVector;
-		rSecondDerivativeVector += rDeltaSecondDerivativeVector;
-
-		this->SetFirstAndSecondDerivativeVector(rFirstDerivativeVector, rSecondDerivativeVector, rModelPart);
-
+		this->SetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
 
     }
 

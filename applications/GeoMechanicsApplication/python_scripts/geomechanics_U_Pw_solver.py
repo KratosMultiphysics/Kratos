@@ -252,8 +252,7 @@ class UPwSolver(GeoSolver):
         if (block_builder and
             self.settings.Has("prebuild_dynamics") and
             self.settings["prebuild_dynamics"].GetBool()):
-            return KratosGeo.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(self.linear_solver)
-            #return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
+            return KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
 
         return super()._CreateBuilderAndSolver()
 
