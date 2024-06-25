@@ -16,7 +16,7 @@ void RuntimeDependencyHandler::LoadDependency(const std::string& rApplicationNam
 {
     auto found = mLoadedLibraries.find(rApplicationName);
     if (found == mLoadedLibraries.end()) {
-        #ifdef _WIN32
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
         const std::string lib_file = rLibraryName+".dll";
         LibraryHandle library = LoadLibrary(TEXT(lib_file.c_str()));
         #else
@@ -38,7 +38,7 @@ RuntimeDependencyHandler::ApplicationMap RuntimeDependencyHandler::CreateApplica
 
     for (auto& r_loaded: mLoadedLibraries) {
         LibraryHandle library = r_loaded.second;
-        #ifdef _WIN32
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
         auto p_create_app = reinterpret_cast<CreateApplicationPointer>(GetProcAddress(library, "CreateApplication"));
         #else
         auto p_create_app = reinterpret_cast<CreateApplicationPointer>(dlsym(library, "CreateApplication"));
@@ -55,7 +55,7 @@ void RuntimeDependencyHandler::ReleaseDependencies()
 {
     for (auto iter = mLoadedLibraries.begin(); iter != mLoadedLibraries.end(); ++iter)
     {
-        #ifdef _WIN32
+        #ifdef KRATOS_COMPILED_IN_WINDOWS
         FreeLibrary(iter->second);
         #else
         dlclose(iter->second);

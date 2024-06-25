@@ -14,7 +14,7 @@
 #pragma once
 
 #include <unordered_map>
-#ifdef _WIN32
+#ifdef KRATOS_COMPILED_IN_WINDOWS
 #define NOMINMAX
 #include <windows.h>
 #undef NOMINMAX
@@ -45,7 +45,7 @@ public:
 
 private:
 
-    #ifdef _WIN32
+    #ifdef KRATOS_COMPILED_IN_WINDOWS
     using LibraryHandle = HINSTANCE;
     #else
     using LibraryHandle = void*;
