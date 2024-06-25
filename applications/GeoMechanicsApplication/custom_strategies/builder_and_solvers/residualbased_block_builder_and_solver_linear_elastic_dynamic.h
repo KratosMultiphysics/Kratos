@@ -306,10 +306,10 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
+        // this approach is not working for all solvers, this approach is meant for solvers which can be prefactorized. 
+		// For future reference, use BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart) instead of the following lines if a non compatible solver is required.
         BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, rDx, rb);
         BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
-
-        //BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
@@ -356,8 +356,9 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
+        // this approach is not working for all solvers, this approach is meant for solvers which can be prefactorized. 
+        // For future reference, use BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart) instead of the following line if a non compatible solver is required.
         BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
-        //BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
