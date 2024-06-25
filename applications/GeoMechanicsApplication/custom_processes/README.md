@@ -1,7 +1,7 @@
 # Processes
 This folder contains the custom processes that are used in the GeoMechanicsApplication. Processes are commands that can be executed during several stages of a calculation. In the GeoMechanicsApplication, their main use is to apply boundary conditions and/or constraints , but there are more specific examples (e.g. the K0 procedure, nodal extrapolation, or (de)activation of certain parts of the model).
 
-In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the mainainers (@KratosMultiphysics/geomechanics on GitHub).
+In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
@@ -23,16 +23,16 @@ Currently, this process is only implemented for 3-noded or 6-noded `Triangle` an
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
 ```json
 {
-  "python_module": "geo_integration_values_extrapolation_to_nodes_process",
+  "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
   "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-  "process_name":  "GeoIntegrationValuesExtrapolationToNodesProcess",
+  "process_name":  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
   "Parameters":    {
     "model_part_name":   "ModelPartName",
     "list_of_variables": ["Variable1", "Variable2", "Variable3"]
   }
 }
 ```
-Where the model_part_name should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 

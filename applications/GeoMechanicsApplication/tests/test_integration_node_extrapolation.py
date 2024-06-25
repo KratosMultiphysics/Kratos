@@ -3,6 +3,7 @@ import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
+
 class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
     """
     Class that contains geo element integration points to nodes extrapolation tests.
@@ -75,7 +76,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                 [733.933, 2935.73, 733.933, -370.876, 0, 0],
                                 [-8.04944, -32.1978, -8.04944, -373.822, 0, 0]]
         for cauchy_stress_tensor, expected_tensor in zip(cauchy_stress_tensors, expected_tensors):
-            for (cauchy_stress, expected) in zip(cauchy_stress_tensor, expected_tensor):
+            for cauchy_stress, expected in zip(cauchy_stress_tensor, expected_tensor):
                 self.assertAlmostEqual(cauchy_stress, expected, places=4)
 
 
@@ -85,7 +86,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                             [-3.51008e-06, 2.17395e-05, 0],
                             [5.16742e-06, 1.157e-05, 0]]
         for fluid_flux_vector, expected_fluid_flux_vector in zip(fluid_flux_vectors, expected_fluid_flux_vectors):
-            for (fluid_flux_component, expected) in zip(fluid_flux_vector, expected_fluid_flux_vector):
+            for fluid_flux_component, expected in zip(fluid_flux_vector, expected_fluid_flux_vector):
                 self.assertAlmostEqual(fluid_flux_component, expected, places=4)
 
 if __name__=="__main__":

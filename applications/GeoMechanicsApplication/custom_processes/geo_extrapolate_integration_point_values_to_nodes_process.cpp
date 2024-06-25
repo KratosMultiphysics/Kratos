@@ -28,14 +28,14 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPoi
 }
 
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
-    ModelPart& rMainModelPart, Parameters rParameters)
+    ModelPart& rMainModelPart, Parameters ThisParameters)
     : mrModelPart(rMainModelPart), mpExtrapolator(std::make_unique<LinearNodalExtrapolator>())
 {
     const Parameters default_parameters =
         GeoExtrapolateIntegrationPointValuesToNodesProcess::GetDefaultParameters();
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    FillVariableLists(rParameters);
+    FillVariableLists(ThisParameters);
 }
 
 GeoExtrapolateIntegrationPointValuesToNodesProcess::~GeoExtrapolateIntegrationPointValuesToNodesProcess() = default;
@@ -87,8 +87,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariab
             }
         }
     });
-
-    mrModelPart.GetCommunicator().AssembleNonHistoricalData(mrAverageVariable);
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatrixZeros()
@@ -133,13 +131,12 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
 
     block_for_each(mrModelPart.Elements(), [this](Element& rElem) {
         if (rElem.IsActive()) {
-            const Matrix extrapolation_matrix = GetExtrapolationMatrix(rElem);
-            AddIntegrationContributionsForAllVariableLists(rElem, extrapolation_matrix);
+            AddIntegrationPointContributionsForAllVariables(rElem, GetExtrapolationMatrix(rElem));
         }
     });
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationContributionsForAllVariableLists(
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
     Element& rElem, const Matrix& rExtrapolationMatrix)
 {
     const SizeType integration_points_number =
@@ -163,7 +160,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationContribut
     }
 }
 
-Matrix GeoExtrapolateIntegrationPointValuesToNodesProcess::GetExtrapolationMatrix(const Element& rElement) const
+const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetExtrapolationMatrix(const Element& rElement) const
 {
     if (!ExtrapolationMatrixIsCachedFor(rElement)) {
         CacheExtrapolationMatrixFor(rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(
@@ -178,7 +175,7 @@ bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCa
     return mExtrapolationMatrixMap.count(typeid(rElement).hash_code()) > 0;
 }
 
-Matrix GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
+const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
 {
     return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
 }

@@ -31,7 +31,7 @@ class ProcessInfo;
 /**
  * @class GeoExtrapolateIntegrationPointValuesToNodesProcess
  * @ingroup GeoMechanicsApplication
- * @brief This process extrapolates vales from the integration points to the nodes
+ * @brief This process extrapolates values from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @author Vicente Mataix Ferrandiz
@@ -48,9 +48,9 @@ public:
     explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
                                                                 Parameters ThisParameters = Parameters(R"({})"));
     explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(ModelPart& rMainModelPart,
-                                                                Parameters rParameters = Parameters(R"({})"));
+                                                                Parameters ThisParameters = Parameters(R"({})"));
 
-    ~GeoExtrapolateIntegrationPointValuesToNodesProcess();
+    ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
     void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
@@ -88,8 +88,7 @@ private:
     {
         const bool variable_is_of_correct_type = KratosComponents<Variable<T>>::Has(rVariableName);
         if (variable_is_of_correct_type) {
-            auto& thisVariable = KratosComponents<Variable<T>>::Get(rVariableName);
-            rList.push_back(&thisVariable);
+            rList.push_back(&KratosComponents<Variable<T>>::Get(rVariableName));
         }
 
         return variable_is_of_correct_type;
@@ -120,12 +119,12 @@ private:
         }
     }
 
-    Matrix             GetExtrapolationMatrix(const Element& rElement) const;
+    const Matrix&      GetExtrapolationMatrix(const Element& rElement) const;
     [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
-    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement) const;
+    const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationContributionsForAllVariableLists(Element& rElem, const Matrix& rExtrapolationMatrix);
+    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix);
 };
 
 } // namespace Kratos.

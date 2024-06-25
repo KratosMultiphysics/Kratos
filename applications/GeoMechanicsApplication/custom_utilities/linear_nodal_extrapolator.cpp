@@ -62,7 +62,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
     Matrix quasi_mass_mat_inverse;
     MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
 
-    return Matrix{prod(quasi_mass_mat_inverse, node_coefficients)};
+    return prod(quasi_mass_mat_inverse, node_coefficients);
 }
 
 void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix)

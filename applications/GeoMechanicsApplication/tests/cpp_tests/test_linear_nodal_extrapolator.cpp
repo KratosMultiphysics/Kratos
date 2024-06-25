@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     Kratos::Quadrilateral2D8<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
         Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
-        Kratos::make_intrusive<Node>(5, 0.0, 0.5, 0.0), Kratos::make_intrusive<Node>(6, 1.0, 0.5, 0.0),
+        Kratos::make_intrusive<Node>(5, 0.5, 0.0, 0.0), Kratos::make_intrusive<Node>(6, 1.0, 0.5, 0.0),
         Kratos::make_intrusive<Node>(7, 0.5, 1.0, 0.0), Kratos::make_intrusive<Node>(8, 0.0, 0.5, 0.0));
 
     const LinearNodalExtrapolator nodal_extrapolator;
