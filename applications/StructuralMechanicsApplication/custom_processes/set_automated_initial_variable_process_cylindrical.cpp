@@ -70,13 +70,10 @@ void SetAutomatedInitialVariableProcessCylindrical::ExecuteInitialize()
 
         if (centroid_relative_distance < tolerance){
             // centroid_relative_distance = 2.05E-06; //CP800
-            centroid_relative_distance = 3.25E-06; //CP980
+            // centroid_relative_distance = 3.25E-06; //CP980
+            centroid_relative_distance = mThisParameters["surface_element_centroid"].GetDouble();
         }
-
-        // if (centroid_relative_distance < tolerance){
-        //     centroid_relative_distance = 2.4878275E-06;
-        // }
-        
+       
         // if (centroid_relative_distance < 0.0){
         //     if (std::abs(centroid_relative_distance) <= tolerance) {
         //         centroid_relative_distance = 0.0;
@@ -115,6 +112,7 @@ const Parameters SetAutomatedInitialVariableProcessCylindrical::GetDefaultParame
         "hole_generatrix_axis"     : [0.0,0.0,1.0],
         "hole_generatrix_point"    : [0.0,0.0,0.0],
         "hole_radius_offset"       : 0.0,
+        "surface_element_centroid" : 0.0,
         "table_id_vector"          : [10,11,12,13,14,15]
     })");
 

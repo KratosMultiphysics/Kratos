@@ -30,6 +30,7 @@ def Factory(settings, Model):
             "hole_generatrix_axis"     : [0.0,0.0,1.0],
             "hole_generatrix_point"    : [0.0,0.0,0.0],
             "hole_radius_offset"       : 0.0,
+            "surface_element_centroid" : 0.0,
             "initial_variable_table"     : {
                         "name"             : "csv_table",
                         "filename"         : "sample.csv",
@@ -110,6 +111,7 @@ def Factory(settings, Model):
         process_settings.RemoveValue("hole_generatrix_axis")
         process_settings.RemoveValue("hole_generatrix_point")
         process_settings.RemoveValue("hole_radius_offset")
+        process_settings.RemoveValue("surface_element_centroid")
 
         return SMA.SetAutomatedInitialVariableProcessCartesian(computing_model_part, process_settings)
     
