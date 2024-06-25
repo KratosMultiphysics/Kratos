@@ -32,6 +32,8 @@ public:
         mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
     {}
 
+    StubBilinearLaw() = default;
+
     ConstitutiveLaw::Pointer Clone() const override
     {
         return std::make_shared<StubBilinearLaw>(*this);
@@ -50,10 +52,34 @@ public:
         return rValue;
     }
 
+    void InitializeMaterial(const Properties&,
+                            const GeometryType&,
+                            const Vector&) override
+    {
+        mIsInitialized = true;
+    }
+
+    [[nodiscard]] static bool IsInitialized() {
+        return mIsInitialized;
+    }
+
+    static void SetIsInitialized(bool IsInitialized)
+    {
+        mIsInitialized = IsInitialized;
+    }
+
 private:
     double mStrain = 0.0;
     array_1d<double, 2> mTangentModuli{2.0, 1.0};
+
+    // The reason this boolean is static, is that the constitutive law is cloned
+    // in the element and the member variable is not accessible. Since for the
+    // 3D2N truss element, it is enough to know that `InitializeMaterial` is
+    // called at least once, this is sufficient.
+    static bool mIsInitialized;
 };
+
+bool StubBilinearLaw::mIsInitialized = false;
 
 ModelPart& CreateTestModelPart(Model& rModel)
 {
@@ -307,6 +333,25 @@ namespace Testing
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
         KRATOS_EXPECT_DOUBLE_EQ(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2NInitializesConstitutiveLaw, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        constexpr auto length = 2.0;
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
+        AddDisplacementDofsElement(r_model_part);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        auto p_stub_law= std::make_shared<StubBilinearLaw>();
+        StubBilinearLaw::SetIsInitialized(false);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_stub_law);
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+
+        KRATOS_EXPECT_FALSE(StubBilinearLaw::IsInitialized());
+        p_element->Initialize(r_model_part.GetProcessInfo());
+        KRATOS_EXPECT_TRUE(StubBilinearLaw::IsInitialized());
     }
 
 }
