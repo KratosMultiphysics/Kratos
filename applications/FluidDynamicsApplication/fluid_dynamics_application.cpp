@@ -28,6 +28,11 @@
 #include "fluid_dynamics_application.h"
 #include "includes/variables.h"
 
+Kratos::KratosApplication * CreateApplication()
+{
+    return new Kratos::KratosFluidDynamicsApplication();
+}
+
 namespace Kratos
 {
 

@@ -24,6 +24,7 @@
 #include "includes/expect.h"                    // Includes the expects from gtest and gmock adapted to kratos checks.
 #include "includes/data_communicator.h"
 #include "testing/test_skipped_exception.h"     // Macros and exception class used to skip tests.
+#include "testing/runtime_dependency_handler.h"
 
 #define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
 #define KRATOS_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
@@ -306,5 +307,37 @@ class ShallowWaterApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosMappingApplicationMPITestSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
+
+
+class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyExample: public KratosCoreFastSuite
+{
+public:
+    RuntimeDependencyExample(): KratosCoreFastSuite() {
+        // The list of applications has to be a member, so that it has the same lifetime as the suite
+        mRuntimeDependencyApplications = mRuntimeDependencies.CreateApplications();
+        for (auto& r_dependency: mRuntimeDependencyApplications) {
+            std::cout << "Registering " << r_dependency.first << std::endl;
+            this->ImportApplicationIntoKernel(r_dependency.second);
+        }
+    }
+
+    static void SetUpTestSuite() {
+        // Dependencies should have a CreateApplication function to allow programatic import
+        // The second argument is the library name, the extension (and the "lib" prefix, if needed) is added internally
+        mRuntimeDependencies.LoadDependency("LinearSolversApplication", "KratosLinearSolversCore");
+    }
+
+    static void TearDownTestSuite() {
+        mRuntimeDependencies.ReleaseDependencies();
+    }
+
+private:
+
+    std::unordered_map<std::string, KratosApplication::Pointer> mRuntimeDependencyApplications;
+
+    static RuntimeDependencyHandler mRuntimeDependencies;
+};
+
+
 
 } // namespace Kratos::Testing

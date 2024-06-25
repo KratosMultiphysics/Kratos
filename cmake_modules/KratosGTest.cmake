@@ -22,6 +22,8 @@ macro(kratos_add_gtests)
             endif()
         endif()
 
+        set(KRATOS_ADD_GTEST_SOURCES ${KRATOS_ADD_GTEST_SOURCES} ${KRATOS_BASE_FOLDER}/kratos/testing/runtime_dependency_handler.cpp)
+
         add_executable("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_SOURCES} ${KRATOS_GTEST_MAIN_SOURCE})
         target_link_libraries("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_TARGET} KratosCoreTestUtilities "${TESTING_MPI_UTILITIES}" GTest::gmock_main)
         set_target_properties("${KRATOS_ADD_GTEST_TARGET}Test" PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
