@@ -296,19 +296,20 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE) {
+    // if (rThisVariable == DAMAGE) {
 
-        if (mDelaminationDamageModeTwo[1] > 0.0) {
-            rValue = mDelaminationDamageModeTwo[1];
-        } else if (mDelaminationDamageModeOne[1] > 0.0) {
-            rValue = mDelaminationDamageModeOne[1];
-        } else {
-            rValue = 0.0;
-        }
-        // rValue = mDelaminationDamageModeTwo[1];
-        // rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
-        return rValue;
-    } else if (rThisVariable == REFERENCE_DAMAGE) {
+    //     if (mDelaminationDamageModeTwo[1] > 0.0) {
+    //         rValue = mDelaminationDamageModeTwo[1];
+    //     } else if (mDelaminationDamageModeOne[1] > 0.0) {
+    //         rValue = mDelaminationDamageModeOne[1];
+    //     } else {
+    //         rValue = 0.0;
+    //     }
+    //     // rValue = mDelaminationDamageModeTwo[1];
+    //     // rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
+    //     return rValue;
+    // } else 
+    if (rThisVariable == REFERENCE_DAMAGE) {
 
         if (mFatigueLoadingStateParameter) {
             rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
@@ -457,15 +458,26 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
-
-        noalias(rValue) = mDelaminationDamageModeOne;
+        rValue.resize(6, false);
+        Vector SortedmDelaminationDamageModeOne;
+        SortedmDelaminationDamageModeOne.resize(r_combination_factors.size()+1, false);
+        noalias(SortedmDelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        std::sort(SortedmDelaminationDamageModeOne.begin(), SortedmDelaminationDamageModeOne.end(),std::greater<>());
+        for (int i = 0; i < 6; ++i) {
+            rValue[i] = SortedmDelaminationDamageModeOne[i];
+        }
         return rValue;
     } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
-
-        noalias(rValue) = mDelaminationDamageModeTwo;
+        rValue.resize(6, false);
+        Vector SortedmDelaminationDamageModeTwo;
+        SortedmDelaminationDamageModeTwo.resize(r_combination_factors.size()+1, false);
+        noalias(SortedmDelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        std::sort(SortedmDelaminationDamageModeTwo.begin(), SortedmDelaminationDamageModeTwo.end(),std::greater<>());
+        for (int i = 0; i < 6; ++i) {
+            rValue[i] = SortedmDelaminationDamageModeTwo[i];
+        }
+        // KRATOS_WATCH(rValue);
         return rValue;
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_ONE) {
 

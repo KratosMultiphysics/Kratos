@@ -140,6 +140,19 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         // Now we rotate the strain Eglob-> Eloc
         r_iso_strain_vector = prod((voigt_rotation_matrix), r_iso_strain_vector);
 
+        // Beginning of the thermal effects
+
+        // const double current_temperature_gp = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateInGaussPoint(TEMPERATURE, rValues);
+        // double ReferenceTemperature = r_material_properties[REFERENCE_TEMPERATURE];
+        // double Delta_T = current_temperature_gp - ReferenceTemperature;
+        // double alpha1 = 0.0;
+        // double alpha2 = 3E-5;
+        // r_iso_strain_vector[0] -= alpha1 * Delta_T;
+        // r_iso_strain_vector[1] -= alpha2 * Delta_T;
+        // r_iso_strain_vector[2] -= alpha2 * Delta_T;
+
+        // End of the thermal effects
+
         // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal,loc
         r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector);
 

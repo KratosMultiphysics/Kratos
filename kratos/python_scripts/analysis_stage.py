@@ -208,7 +208,9 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        pass
+        # pass
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,20)
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
