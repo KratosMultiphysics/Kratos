@@ -176,7 +176,7 @@ protected:
     StressStatePolicy& GetStressStatePolicy() const;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
+    [[nodiscard]] virtual DofsVectorType GetDofs() const;
 
     friend class Serializer;
 
