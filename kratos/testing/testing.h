@@ -313,7 +313,7 @@ class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyExample: public KratosCoreF
 {
 public:
     RuntimeDependencyExample(): KratosCoreFastSuite() {
-        // Needs to be a member, so that it has the same lifetime as the suite
+        // The list of applications has to be a member, so that it has the same lifetime as the suite
         mRuntimeDependencyApplications = mRuntimeDependencies.CreateApplications();
         for (auto& r_dependency: mRuntimeDependencyApplications) {
             std::cout << "Registering " << r_dependency.first << std::endl;
@@ -324,7 +324,7 @@ public:
     static void SetUpTestSuite() {
         // Dependencies should have a CreateApplication function to allow programatic import
         // The second argument is the library name, the extension (and the "lib" prefix, if needed) is added internally
-        mRuntimeDependencies.LoadDependency("FluidDynamicsApplication", "KratosFluidDynamicsCore");
+        mRuntimeDependencies.LoadDependency("LinearSolversApplication", "KratosLinearSolversCore");
     }
 
     static void TearDownTestSuite() {
