@@ -59,7 +59,8 @@ public:
         mIsInitialized = true;
     }
 
-    [[nodiscard]] static bool IsInitialized() {
+    [[nodiscard]] static bool IsInitialized()
+    {
         return mIsInitialized;
     }
 
