@@ -111,7 +111,7 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
         exit_code != 0)
         return exit_code;
 
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS));
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "No YOUNGS_MODULUS found" << std::endl;
 
     CheckStressStrainDiagram(rMaterialProperties);
 
@@ -167,7 +167,8 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
     const auto& r_strains_of_piecewise_linear_law = rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW];
     const auto& r_stresses_of_piecewise_linear_law = rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW];
     for (auto i = std::size_t{0}; i < r_strains_of_piecewise_linear_law.size(); ++i) {
-        mStressStrainTable.PushBack(r_strains_of_piecewise_linear_law[i], r_stresses_of_piecewise_linear_law[i]);
+        mStressStrainTable.PushBack(r_strains_of_piecewise_linear_law[i],
+                                    r_stresses_of_piecewise_linear_law[i]);
     }
 }
 
@@ -175,10 +176,14 @@ std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneCo
 
 void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rMaterialProperties)
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW));
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRESSES_OF_PIECEWISE_LINEAR_LAW));
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW))
+        << "No STRAINS_OF_PIECEWISE_LINEAR_LAW found" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRESSES_OF_PIECEWISE_LINEAR_LAW))
+        << "No STRESSES_OF_PIECEWISE_LINEAR_LAW found" << std::endl;
 
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() == rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size());
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() ==
+                        rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size())
+        << "The number of strain components does not match the number of stress components" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
 
     CheckStrainValuesAreAscending(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW]);
