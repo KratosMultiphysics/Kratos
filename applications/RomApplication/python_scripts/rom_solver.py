@@ -32,21 +32,24 @@ def CreateSolver(cls, model, custom_settings):
             return default_settings
 
         def _CreateBuilderAndSolver(self):
-            linear_solver = self._GetLinearSolver()
-            rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
-            available_solving_strategies = {
-                "elemental_galerkin": KratosROM.ROMBuilderAndSolver,
-                "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
-                "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
-                "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver,
-                "GalerkinROM_ANN":KratosROM.AnnPromGlobalROMBuilderAndSolver
-            }
-            if solving_strategy in available_solving_strategies:
-                return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
+            if not hasattr(self, '_builder_and_solver'):
+                linear_solver = self._GetLinearSolver()
+                rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
+                available_solving_strategies = {
+                    "elemental_galerkin": KratosROM.ROMBuilderAndSolver,
+                    "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
+                    "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                    "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
+                    "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver,
+                    "GalerkinROM_ANN":KratosROM.AnnPromGlobalROMBuilderAndSolver
+                }
+                if solving_strategy in available_solving_strategies:
+                    return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
+                else:
+                    err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
+                    raise ValueError(err_msg)
             else:
-                err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
-                raise ValueError(err_msg)
+                return self._builder_and_solver
 
         def _ValidateAndReturnRomParameters(self):
             # Check that the number of ROM DOFs has been provided
