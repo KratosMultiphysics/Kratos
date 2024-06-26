@@ -479,9 +479,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;                     /// Currently selected integration methods
+    IntegrationMethod mThisIntegrationMethod;                     /// Integration method for stress related terms (Lobatto)
+    IntegrationMethod mMassThisIntegrationMethod;                 /// Integration method for the rest (Gauss)
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    IntegrationPointsArrayType mIntegrationPointsArray;
 
     ///@}
     ///@name Protected Operators
@@ -548,10 +548,11 @@ protected:
      */
     const double GetScalingFactor()
     {
-        const auto &r_props = GetProperties();
-        const double E  = r_props[YOUNG_MODULUS];
-        const double nu = r_props[POISSON_RATIO];
-        return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
+        return 1.0;
+        // const auto &r_props = GetProperties();
+        // const double E  = r_props[YOUNG_MODULUS];
+        // const double nu = r_props[POISSON_RATIO];
+        // return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
     }
 
     /**
