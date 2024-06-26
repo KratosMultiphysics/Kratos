@@ -908,7 +908,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
