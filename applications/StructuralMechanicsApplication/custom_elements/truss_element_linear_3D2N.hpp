@@ -122,6 +122,9 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+    using TrussElement3D2N::ReturnTangentModulus1D;
+
 private:
 
     friend class Serializer;

@@ -1,6 +1,6 @@
-# Integration to Node Extrapolation Tests
+# Integration Point to Node Extrapolation Tests
 
-This folder contains a series of tests to test the process that extrapolates integration point values to nodes. The functionality is found in `GeoIntegrationValuesExtrapolationToNodesProcess`. The meshes used are simple rectangular domains, built up using either a single 4- or 8-noded quadrilateral, or four 3- or 6-noded triangles.
+This folder contains a series of tests to test the process that extrapolates integration point values to nodes. The functionality is found in `GeoExtrapolateIntegrationPointValuesToNodesProcess`. The meshes used are simple rectangular domains, built up using either a single 4- or 8-noded quadrilateral, or four 3- or 6-noded triangles.
 
 ### 3-, 4-, 6-noded test cases
 For these testcases the SteadyStatePwElement is used, in 2D3N, 2D6N or 2D4N configurations.
@@ -14,7 +14,7 @@ For these testcases the SteadyStatePwElement is used, in 2D3N, 2D6N or 2D4N conf
 -   Loads:
     -  Self-weight is induced by adding a -10.0 $\mathrm{[m/s^2]}$ VOLUME_ACCELERATION to the domain (using the `ApplyVectorConstraintTableProcess`)
 
-The `GeoIntegrationValuesExtrapolationToNodesProcess` is configured to extrapolate HYDRAULIC HEAD.
+The `GeoExtrapolateIntegrationPointValuesToNodesProcess` is configured to extrapolate HYDRAULIC HEAD.
 
 ### 8 noded test case
 For one of the tests, a more extensive set of variables was tested for the extrapolation. 
@@ -27,7 +27,7 @@ For one of the tests, a more extensive set of variables was tested for the extra
 -   Loads:
     -  Self-weight is induced by adding a -10.0 $\mathrm{[m/s^2]}$ VOLUME_ACCELERATION to the domain (using the `ApplyVectorConstraintTableProcess`)
 
-The `GeoIntegrationValuesExtrapolationToNodesProcess` is configured to extrapolate the HYDRAULIC HEAD, CAUCHY_STRESS_TENSOR and FLUID_FLUX_VECTOR.
+The `GeoExtrapolateIntegrationPointValuesToNodesProcess` is configured to extrapolate the HYDRAULIC HEAD, CAUCHY_STRESS_TENSOR and FLUID_FLUX_VECTOR.
 
 ## Assertions
 These tests are in essence regression tests and check that the extrapolated values stay the same as previous versions.

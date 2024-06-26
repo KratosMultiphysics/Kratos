@@ -16,80 +16,68 @@
 
 #include "geometries/geometry.h"
 #include "includes/element.h"
-#include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "processes/process.h"
 
-#include <unordered_map>
-
 namespace Kratos
 {
 
 class Model;
-class ModelPart;
 class NodalExtrapolator;
-
 class ProcessInfo;
 
 /**
- * @class IntegrationValuesExtrapolationToNodesProcess
+ * @class GeoExtrapolateIntegrationPointValuesToNodesProcess
  * @ingroup GeoMechanicsApplication
- * @brief This process extrapolates vales from the integration points to the nodes
+ * @brief This process extrapolates values from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoExtrapolateIntegrationPointValuesToNodesProcess : public Process
 {
 public:
-    using NodeType     = Node;
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(GeoExtrapolateIntegrationPointValuesToNodesProcess);
 
-    explicit GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
-                                                             Parameters rParameters = Parameters(R"({})"));
-    explicit GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
-                                                             Parameters rParameters = Parameters(R"({})"));
+    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
+                                                                Parameters ThisParameters = Parameters(R"({})"));
+    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(ModelPart& rMainModelPart,
+                                                                Parameters ThisParameters = Parameters(R"({})"));
 
-    ~GeoIntegrationValuesExtrapolationToNodesProcess() override;
+    ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
     void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
     void                           ExecuteFinalize() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
-
-    [[nodiscard]] std::string Info() const override
-    {
-        return "GeoIntegrationValuesExtrapolationToNodesProcess";
-    }
-
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    [[nodiscard]] std::string      Info() const override;
+    void                           PrintInfo(std::ostream& rOStream) const override;
 
 private:
-    ModelPart& mrModelPart;
-
+    ModelPart&                                        mrModelPart;
     std::vector<const Variable<double>*>              mDoubleVariables;
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    const Variable<double>&                           mrAverageVariable;
-    std::unordered_map<SizeType, Matrix>              mExtrapolationMatrixMap = {};
+    const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
+    mutable std::map<SizeType, Matrix>                mExtrapolationMatrixMap = {};
     std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
-    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables;
-    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables;
+    std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 
-    void GetVariableLists(const Parameters& rParameters);
-    void InitializeVectorAndMatrixSizesOfVariables();
-    void InitializeSizesOfVectorVariables(Element&           rFirstElement,
+    void FillVariableLists(const Parameters& rParameters);
+    void InitializeVectorAndMatrixZeros();
+    void InitializeZerosOfVectorVariables(Element&           rFirstElement,
                                           SizeType           NumberOfIntegrationPoints,
                                           const ProcessInfo& rProcessInfo);
-    void InitializeSizesOfMatrixVariables(Element&           rFirstElement,
+    void InitializeZerosOfMatrixVariables(Element&           rFirstElement,
                                           SizeType           NumberOfIntegrationPoints,
                                           const ProcessInfo& rProcessInfo);
     void InitializeVariables();
@@ -100,8 +88,7 @@ private:
     {
         const bool variable_is_of_correct_type = KratosComponents<Variable<T>>::Has(rVariableName);
         if (variable_is_of_correct_type) {
-            auto& thisVariable = KratosComponents<Variable<T>>::Get(rVariableName);
-            rList.push_back(&thisVariable);
+            rList.push_back(&KratosComponents<Variable<T>>::Get(rVariableName));
         }
 
         return variable_is_of_correct_type;
@@ -132,36 +119,12 @@ private:
         }
     }
 
-    Matrix             GetExtrapolationMatrix(const Element&                         rElement,
-                                              GeometryType&                          rGeometry,
-                                              const GeometryData::IntegrationMethod& rIntegrationMethod);
+    const Matrix&      GetExtrapolationMatrix(const Element& rElement) const;
     [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
-    void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
-    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
+    void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
+    const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    [[nodiscard]] bool ModelPartContainsAtLeastOneElement() const;
-    void               AddIntegrationContributionsForAllVariableLists(Element&      rElem,
-                                                                      SizeType      NumberOfIntegrationPoints,
-                                                                      const Matrix& rExtrapolationMatrix);
-    void               AssembleNodalDataForAllVariableLists();
-
-    template <class T>
-    void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
-    {
-        for (const auto p_var : rVariableList) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
-    }
+    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix);
 };
-
-inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess&)
-{
-    return rIStream;
-}
-
-inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess&)
-{
-    return rOStream;
-}
 
 } // namespace Kratos.
