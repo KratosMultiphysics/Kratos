@@ -132,7 +132,6 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
-#include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 
 namespace Kratos {

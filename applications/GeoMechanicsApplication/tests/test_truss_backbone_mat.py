@@ -31,15 +31,13 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         # output
         output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
-        output_data = []
-        output_data.append(reader.read_output_from(output_file_name))
+        output_data = reader.read_output_from(output_file_name)
 
-        stage_nr = 0
-        times    = [1.0, 2.0, 3.0, 4.0]
+        times = [1.0, 2.0, 3.0, 4.0]
         expected_forces = [50., 25., 50, 100]
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
-            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
+            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
             self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_compression(self):
@@ -56,15 +54,13 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         # output
         output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
-        output_data = []
-        output_data.append(reader.read_output_from(output_file_name))
+        output_data = reader.read_output_from(output_file_name)
 
-        stage_nr = 0
-        times    = [1.0, 2.0, 3.0, 4.0]
+        times = [1.0, 2.0, 3.0, 4.0]
         expected_forces = [-50., -25., -50, -100]
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
-            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
+            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
             self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_tension_compression(self):
@@ -81,15 +77,13 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         # output
         output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
-        output_data = []
-        output_data.append(reader.read_output_from(output_file_name))
+        output_data = reader.read_output_from(output_file_name)
 
-        stage_nr = 0
-        times    = [1.0, 2.0, 3.0, 4.0, 5.0]
+        times = [1.0, 2.0, 3.0, 4.0, 5.0]
         expected_forces = [50., -50., -100, 0., 100.]
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
-            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
+            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
             self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_compression_tension(self):
@@ -106,15 +100,13 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         # output
         output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
-        output_data = []
-        output_data.append(reader.read_output_from(output_file_name))
+        output_data = reader.read_output_from(output_file_name)
 
-        stage_nr = 0
-        times    = [1.0, 2.0, 3.0, 4.0, 5.0]
+        times = [1.0, 2.0, 3.0, 4.0, 5.0]
         expected_forces = [-50., 50., 100, 0., -100.]
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
-            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
+            section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
             self.assertAlmostEqual(section_force[0], expected_force, 2)
 
 if __name__ == '__main__':

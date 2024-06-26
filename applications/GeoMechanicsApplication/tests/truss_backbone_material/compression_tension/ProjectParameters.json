@@ -16,7 +16,7 @@
             "input_filename":   "truss_backbone_mat"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":            0.2
@@ -139,7 +139,7 @@
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true, true],
             "is_fixed":        [true,true,true],
-            "value":           [1.0E-02,0.0,0.0],
+            "value":           [0.0,0.0,0.0],
             "table":           [1,0,0]
         }
     }]

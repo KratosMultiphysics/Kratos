@@ -590,7 +590,6 @@ class GiDOutputFileReader:
         else:
             element_results = [item["value"] for item in matching_item["values"]]
 
-
         if integration_point_indices:
             result = []
             for element_result in element_results:

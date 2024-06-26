@@ -90,6 +90,8 @@ private:
     [[nodiscard]] double CalculateUnReLoadAmplitude(double YoungsModulus) const;
     [[nodiscard]] bool   IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
+    void CheckBackboneStiffnessesDontExceedYoungsModulus(const Properties& rMaterialProperties) const;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

@@ -81,7 +81,7 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
         // backbone
         axial_stress_vector[0] =
             BackboneStress(mAccumulatedStrain + (std::abs(axial_strain - mUnReLoadCenter) -
-                                                 (CalculateUnReLoadAmplitude(youngs_modulus) / 2.)));
+                                                 CalculateUnReLoadAmplitude(youngs_modulus)));
         if (axial_strain - mUnReLoadCenter < 0.0) axial_stress_vector[0] *= -1.0;
     }
     rValues.SetStressVector(axial_stress_vector);
@@ -95,10 +95,10 @@ void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValu
         !IsWithinUnReLoading(axial_strain, youngs_modulus)) {
         // update accumulated backbone strain and un- reload center strain
         auto pos_side = (axial_strain - mUnReLoadCenter) > 0.;
-        mAccumulatedStrain += std::abs(axial_strain - mUnReLoadCenter) -
-                              (CalculateUnReLoadAmplitude(youngs_modulus) / 2.);
-        mUnReLoadCenter = pos_side ? axial_strain - CalculateUnReLoadAmplitude(youngs_modulus) / 2.
-                                   : axial_strain + CalculateUnReLoadAmplitude(youngs_modulus) / 2.;
+        mAccumulatedStrain +=
+            std::abs(axial_strain - mUnReLoadCenter) - CalculateUnReLoadAmplitude(youngs_modulus);
+        mUnReLoadCenter = pos_side ? axial_strain - CalculateUnReLoadAmplitude(youngs_modulus)
+                                   : axial_strain + CalculateUnReLoadAmplitude(youngs_modulus);
     }
     mPreviousAxialStrain = axial_strain;
 }
@@ -107,6 +107,10 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const ProcessInfo&  rCurrentProcessInfo) const
 {
+    if (const auto exit_code = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+        exit_code != 0)
+        return exit_code;
+
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS));
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW));
@@ -114,6 +118,8 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() == rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size());
     KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
+
+    CheckBackboneStiffnessesDontExceedYoungsModulus(rMaterialProperties);
 
     return 0;
 }
@@ -130,12 +136,12 @@ double TrussBackboneConstitutiveLaw::BackboneStiffness([[maybe_unused]] double S
 
 double TrussBackboneConstitutiveLaw::CalculateUnReLoadAmplitude(double YoungsModulus) const
 {
-    return 2. * BackboneStress(mAccumulatedStrain) / YoungsModulus;
+    return BackboneStress(mAccumulatedStrain) / YoungsModulus;
 }
 
 bool TrussBackboneConstitutiveLaw::IsWithinUnReLoading(double Strain, double YoungsModulus) const
 {
-    return std::abs(Strain - mUnReLoadCenter) < (CalculateUnReLoadAmplitude(YoungsModulus) / 2.);
+    return std::abs(Strain - mUnReLoadCenter) < CalculateUnReLoadAmplitude(YoungsModulus);
 }
 
 bool TrussBackboneConstitutiveLaw::RequiresInitializeMaterialResponse() { return true; }
@@ -172,5 +178,18 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
 }
 
 std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneConstitutiveLaw"; }
+
+void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModulus(const Properties& rMaterialProperties) const
+{
+    const auto& strains = rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW];
+
+    if (strains.size() > 1) { // only check for potentially non-constant laws
+        const auto youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
+        const auto& stresses = rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW];
+        for (auto i = std::size_t{0}; i < strains.size() - 1; ++i) {
+            KRATOS_ERROR_IF(youngs_modulus < (stresses[i+1] - stresses[i]) / (strains[i+1] - strains[i]));
+        }
+    }
+}
 
 } // Namespace Kratos
