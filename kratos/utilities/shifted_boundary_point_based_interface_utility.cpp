@@ -275,12 +275,28 @@ namespace Kratos
             p_element->Set(BOUNDARY, true);
         }
 
+        // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
+        for (auto& rElement : mpModelPart->Elements()) {
+            std::size_t n_boundary_neighbors = 0;
+            const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
+            auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+            for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                auto p_neigh_elem = r_neigh_elems(i_face).get();
+                if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
+                    n_boundary_neighbors++;
+                }
+            }
+            if (n_boundary_neighbors > 1) {
+                rElement.Set(ACTIVE, false);
+                rElement.Set(BOUNDARY, true);
+            }
+        }
+
         // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
         for (auto& rElement : mpModelPart->Elements()) {
             if (rElement.Is(BOUNDARY)) {
-                const auto& r_geom = rElement.GetGeometry();
-                const std::size_t n_faces = r_geom.FacesNumber();
+                const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
                     // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
