@@ -61,14 +61,18 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void TransferInitialStresses (ModelPart& rInitialModelPart, ModelPart& rCurrentModelPart)
+    void TransferInitialStresses (ModelPart& rInitialModelPart, ModelPart& rCurrentModelPart, const bool& constant_discretization)
     {
-        // Define necessary variables
-        UtilityVariables AuxVariables;
+        if (constant_discretization == true) {
+            this->AssignNodalVariables(rInitialModelPart,rCurrentModelPart);
+        } else {
+            // Define necessary variables
+            UtilityVariables AuxVariables;
 
-        this->ComputeCellMatrixDimensions(AuxVariables,rCurrentModelPart);
+            this->ComputeCellMatrixDimensions(AuxVariables,rCurrentModelPart);
 
-        this->NodalVariablesMapping(AuxVariables,rInitialModelPart,rCurrentModelPart);
+            this->NodalVariablesMapping(AuxVariables,rInitialModelPart,rCurrentModelPart);
+        }
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,8 +249,12 @@ protected:
             }
             Vector nodal_initial_stress_vector(3); // voigt_size
             Matrix nodal_initial_stress_tensor(2,2); // dimension
+            KRATOS_WATCH("DINS UTILITAT INITIAL STRESS")
+            KRATOS_WATCH("LOOP NODES ELEMENT ANTIC")
             for(int j = 0; j < PointsNumber; j++) {
                 noalias(nodal_initial_stress_tensor) = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+                KRATOS_WATCH(pElementOld->GetGeometry().GetPoint(j))
+                KRATOS_WATCH(nodal_initial_stress_tensor)
                 noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
                 for (int k= 0; k < 3; k++) { // voigt_size
                     ComponentsNodalVariableVector[k][j] = nodal_initial_stress_vector[k];
@@ -260,6 +268,33 @@ protected:
             if(rNodalStress.size1() != 2) // Dimension
                 rNodalStress.resize(2,2,false);
             noalias(rNodalStress) = nodal_initial_stress_tensor;
+            KRATOS_WATCH("NODE MALLA NOVA")
+            KRATOS_WATCH(*itNodeNew)
+            KRATOS_WATCH(rNodalStress)
+        }
+    }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void AssignNodalVariables(
+        ModelPart& rInitialModelPart,
+        ModelPart& rCurrentModelPart) {
+
+        // Here rInitialModelPart and rCurrentModelPart have the same exact discretization 
+        const int NNodes = static_cast<int>(rInitialModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin_old = rInitialModelPart.NodesBegin();
+        ModelPart::NodesContainerType::iterator node_begin = rCurrentModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNodeOld = node_begin_old + i;
+            ModelPart::NodesContainerType::iterator itNodeNew = node_begin + i;
+
+            Matrix& rNodalStress = itNodeNew->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(rNodalStress.size1() != 2) // Dimension
+                rNodalStress.resize(2,2,false);
+            noalias(rNodalStress) = itNodeOld->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
         }
     }
 

@@ -1,0 +1,44 @@
+{
+  "properties": [{
+    "model_part_name"                      : "PorousDomain.soil",
+    "properties_id"                        : 1,
+    "Material" : {
+      "Variables" : {
+        "THERMAL_LAW_NAME"                 : "GeoThermalDispersionLaw",
+        "DENSITY_SOLID"                    : 2650.0,
+        "DENSITY_WATER"                    : 1000.0,
+        "POROSITY"                         : 0.3,
+        "RETENTION_LAW"                    : "SaturatedLaw",
+        "SATURATED_SATURATION"             : 1.0,
+        "SPECIFIC_HEAT_CAPACITY_SOLID"     : 400.0,
+        "SPECIFIC_HEAT_CAPACITY_WATER"     : 3795.0,
+        "THERMAL_CONDUCTIVITY_SOLID_XX"    : 2.65,
+        "THERMAL_CONDUCTIVITY_SOLID_YY"    : 2.65,
+        "THERMAL_CONDUCTIVITY_SOLID_XY"    : 0.0,
+        "THERMAL_CONDUCTIVITY_WATER"       : 0.48,
+        "SOLID_COMPRESSIBILITY"            : 1.0,
+        "DYNAMIC_VISCOSITY"                : 0.001
+      },
+      "Tables": {}
+    }
+  },{
+    "model_part_name"                      : "PorousDomain.filter",
+    "properties_id"                        : 2,
+    "Material" : {
+      "Variables" : {
+        "THERMAL_LAW_NAME"                 : "GeoThermalFilterLaw",
+        "DENSITY_SOLID"                    : 2650.0,
+        "DENSITY_WATER"                    : 1000.0,
+        "POROSITY"                         : 1.0,
+        "RETENTION_LAW"                    : "SaturatedLaw",
+        "SATURATED_SATURATION"             : 1.0,
+        "SPECIFIC_HEAT_CAPACITY_SOLID"     : 400.0,
+        "SPECIFIC_HEAT_CAPACITY_WATER"     : 3795.0,
+        "THERMAL_CONDUCTIVITY_SOLID_XX"    : 2.65,
+        "THERMAL_CONDUCTIVITY_WATER"       : 4800,
+        "CROSS_AREA"                       : 0.3
+      },
+      "Tables": {}
+    }
+  }]
+}

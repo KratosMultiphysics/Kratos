@@ -1051,7 +1051,7 @@ private:
             // Compute element kinematics B, F, DN_DX ...
             this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-            // Compute material reponse
+            // Compute material response
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F

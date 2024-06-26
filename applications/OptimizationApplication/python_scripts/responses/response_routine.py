@@ -4,6 +4,8 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class ResponseRoutine:
     """A class which adds optimization-specific utilities to simplify routines
@@ -62,10 +64,10 @@ class ResponseRoutine:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
 
     def Check(self):
-        pass
+        self.__response.Check()
 
     def Finalize(self):
-        pass
+        self.__response.Finalize()
 
     def GetResponseName(self):
         return self.__response.GetName()
@@ -129,7 +131,8 @@ class ResponseRoutine:
         self.__response.CalculateGradient(self.__required_physical_gradients)
 
         # calculate and return the control space gradients from respective controls
-        return self.__master_control.MapGradient(self.__required_physical_gradients)
+        self.__mapped_gradients = self.__master_control.MapGradient(self.__required_physical_gradients)
+        return self.__mapped_gradients
 
     def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
         """Returns required physical gradients by this response
@@ -142,4 +145,28 @@ class ResponseRoutine:
         """
         return self.__required_physical_gradients
 
+    def OutputGradientFields(self, optimization_problem: OptimizationProblem, is_gradients_computed: bool) -> None:
+        unbuffered_data = ComponentDataView(self.GetReponse(), optimization_problem).GetUnBufferedData()
+        if is_gradients_computed:
+            # save the physical gradients for post processing in unbuffered data container.
+            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+                variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
+                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                    unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone(), overwrite=True)
+
+            # save the filtered gradients for post processing in unbuffered data container.
+            for gradient_container_expression, control in zip(self.__mapped_gradients.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+                variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
+                unbuffered_data.SetValue(variable_name, gradient_container_expression.Clone(), overwrite=True)
+        else:
+            # save the physical gradients for post processing in unbuffered data container.
+            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+                variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
+                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                    unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone() * 0.0, overwrite=True)
+
+            # save the filtered gradients for post processing in unbuffered data container.
+            for control in self.GetMasterControl().GetListOfControls():
+                variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
+                unbuffered_data.SetValue(variable_name, control.GetEmptyField(), overwrite=True)
 

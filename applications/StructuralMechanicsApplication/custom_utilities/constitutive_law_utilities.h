@@ -324,5 +324,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const double YoungModulus,
         const double PoissonRatio);
 
+    /**
+    * It calculates the shear modulus "G"
+    * @param rValues: The CL parameters
+    */
+    static double CalculateShearModulus(const Properties& rProperties);
+
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

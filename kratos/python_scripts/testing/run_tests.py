@@ -34,7 +34,7 @@ class Commander(object):
             detail will be.
 
         command: string
-            command to be used to call the tests. Ex: Python, Python3, Runkratos
+            command to be used to call the tests. Ex: Python, Python3
 
         timer: integer
             limit time considered to execute the tests
@@ -165,7 +165,7 @@ def main():
     # parse command line options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used")
+    parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'python\' executable is used")
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'], help="Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'")
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2], help="Verbosity level: 0, 1 (Default), 2")
     parser.add_argument('-a', '--applications', default=applications, help="List of applications to run separated by \':\'. All compiled applications will be run by default")

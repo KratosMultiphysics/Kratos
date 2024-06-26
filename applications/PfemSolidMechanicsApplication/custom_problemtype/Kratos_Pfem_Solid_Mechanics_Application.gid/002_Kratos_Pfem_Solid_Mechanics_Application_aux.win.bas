@@ -16,5 +16,5 @@ IF %write_python_file%==Copy_From (
 )
 
 IF EXIST script.py (
-%3\kratos\runkratos.exe script.py > %2\%1.info 2> %2\%1.err
+ echo "This script was using runkratos. Please contact the developer so he can update it to the new mechanism"
 )

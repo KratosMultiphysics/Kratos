@@ -763,8 +763,7 @@ struct local_terminal_init< reduced_vector_view<Expr, NDIM, NR, RDC> > {
         typedef typename RDC::template impl<T>::result_type T_out;
         typedef typename RDC::template impl<T>::device_in fun;
 
-        src.new_line() << type_name<T_out>() << " " << prm_name << "_sum = (" <<
-            type_name<T_out>() << ")" << RDC::template impl<T>::initial() << ";";
+        src.new_line() << type_name<T_out>() << " " << prm_name << "_sum = " << RDC::template impl<T>::initial() << ";";
         src.open("{");
 
         src.new_line()

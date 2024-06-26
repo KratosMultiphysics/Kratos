@@ -26,6 +26,10 @@ class interface_mc_tension_cutoff(TF.TestFactory):
     file_name = "constitutive_law_tests/interface_MC_tension_cutoff/Test_MixedMode3D"
     file_parameters = "constitutive_law_tests/interface_MC_tension_cutoff//ProjectParameters.json"
 
+class nodal_discharge_2D(TF.TestFactory):
+    file_name = "element_tests/nodal_discharge/2_NodalDischarge3elem"
+    file_parameters = "element_tests/nodal_discharge/ProjectParameters.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
@@ -35,7 +39,8 @@ def SetTestSuite(suites):
             consolidation_interface_2D,
             interface_elastic_linear,
             interface_isotropic_damage,
-            interface_mc_tension_cutoff
+            interface_mc_tension_cutoff,
+            nodal_discharge_2D
         ])
     )
 

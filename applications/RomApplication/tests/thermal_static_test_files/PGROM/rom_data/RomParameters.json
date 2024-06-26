@@ -2,6 +2,7 @@
     "rom_manager": false,
     "train_hrom": false,
     "run_hrom": false,
+    "assembling_strategy": "elemental",
     "rom_format":"numpy",
     "projection_strategy": "petrov_galerkin",
     "rom_settings": {

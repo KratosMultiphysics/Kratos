@@ -22,8 +22,7 @@
 
 #include "containers/geometry_container.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
     Line3D2<Point>::Pointer GenerateLineGeometry() {
         return Kratos::make_shared<Line3D2<Point>>(
@@ -40,6 +39,9 @@ namespace Testing {
         p_line_1->SetId(1);
 
         geometry_container.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(geometry_container.NumberOfGeometries(), 1);
+        geometry_container.AddGeometry(p_line_1); // adding same geomerty does not fail
+        KRATOS_EXPECT_EQ(geometry_container.NumberOfGeometries(), 1);
 
         auto p_line_2 = GenerateLineGeometry();
         p_line_2->SetId(1);
@@ -47,7 +49,7 @@ namespace Testing {
         // check correct error if multiple geometries with sam id are added
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             geometry_container.AddGeometry(p_line_2),
-            "Geometry with Id: 1 exists already.");
+            "Error: Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists!");
 
         p_line_2->SetId(2);
         geometry_container.AddGeometry(p_line_2);
@@ -72,5 +74,4 @@ namespace Testing {
         KRATOS_EXPECT_EQ(geometry_container.NumberOfGeometries(), 1);
         KRATOS_EXPECT_FALSE(geometry_container.HasGeometry("GeometryLine1"));
     }
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.

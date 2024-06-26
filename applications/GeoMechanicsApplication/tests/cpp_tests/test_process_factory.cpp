@@ -44,6 +44,16 @@ KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenNoCreatorWasAddedForRequestedProcess,
     KRATOS_EXPECT_EQ(process.get(), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CreateThrowsForUnknownProcess_WhenCallbackFunctionThrows, KratosGeoMechanicsFastSuite)
+{
+    ProcessFactory factory;
+    factory.SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName){ KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";});
+
+    const Parameters process_settings;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(const auto process = factory.Create("UnknownProcess", process_settings),
+                                      "Unexpected process (UnknownProcess), calculation is aborted")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenTheAddedCreatorIsEmpty, KratosGeoMechanicsFastSuite)
 {
     ProcessFactory factory;

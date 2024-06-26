@@ -8,7 +8,7 @@
             "settings": {
                 "model_part_name": "Structure",
                 "domain_size": 3,
-                "input_filename": "shell_test"
+                "input_filename": "../../../mdpas/algorithms_test_input/constraint/shell_test"
             }
         }
     ],
@@ -23,7 +23,7 @@
                 "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
-                    "@include_json": "primal_parameters.json"
+                    "@include_json": "../../../mdpas/algorithms_test_input/constraint/primal_parameters.json"
                 },
                 "analysis_output_settings": {
                     "nodal_solution_step_data_variables": [
@@ -67,15 +67,10 @@
                     "Structure.Parts_Shell_structure"
                 ],
                 "filter_settings": {
-                    "type": "implicit",
-                    "radius": 0.2,
-                    "linear_solver_settings": {
-                        "solver_type": "LinearSolversApplication.amgcl"
-                    }
+                    "filter_type"  : "implicit_filter",
+                    "filter_radius": 0.2
                 },
                 "output_all_fields": false,
-                "beta_value": 25.0,
-                "initial_physical_thickness": 0.15,
                 "physical_thicknesses": [
                     0.1,
                     0.2

@@ -3,6 +3,7 @@ import csv
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities  as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 from KratosMultiphysics.FluidDynamicsBiomedicalApplication import apply_parabolic_inlet_process
@@ -115,7 +116,7 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
         # Calculate normal and parallel distance
         process.ExecuteInitialize()
         self.assertEqual(test_node.Is(KratosMultiphysics.INLET), True)
-        self.assertVectorAlmostEqual(test_node.GetValue(KratosBio.INLET_NORMAL), [0.0,-1.0,0.0])
+        self.assertVectorAlmostEqual(test_node.GetValue(KratosCFD.INLET_NORMAL), [0.0,-1.0,0.0])
         self.assertLessEqual(abs(test_node.GetValue(KratosBio.WALL_DISTANCE) - 0.9999971715808751), 1.0e-6)
 
         # Set initial value
@@ -164,7 +165,7 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
         # Calculate normal and parallel distance
         process.ExecuteInitialize()
         self.assertEqual(test_node.Is(KratosMultiphysics.INLET), True)
-        self.assertVectorAlmostEqual(test_node.GetValue(KratosBio.INLET_NORMAL), [0.0,-1.0,0.0])
+        self.assertVectorAlmostEqual(test_node.GetValue(KratosCFD.INLET_NORMAL), [0.0,-1.0,0.0])
         self.assertLessEqual(abs(test_node.GetValue(KratosBio.WALL_DISTANCE) - 0.9999971715808751), 1.0e-6)
 
         # Set initial value
@@ -213,7 +214,7 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
         # Calculate normal and parallel distance
         process.ExecuteInitialize()
         self.assertEqual(test_node.Is(KratosMultiphysics.INLET), True)
-        self.assertVectorAlmostEqual(test_node.GetValue(KratosBio.INLET_NORMAL), [0.0,-1.0,0.0])
+        self.assertVectorAlmostEqual(test_node.GetValue(KratosCFD.INLET_NORMAL), [0.0,-1.0,0.0])
         self.assertLessEqual(abs(test_node.GetValue(KratosBio.WALL_DISTANCE) - 0.9999971715808751), 1.0e-6)
 
         # Set initial value
@@ -273,7 +274,7 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
         # Calculate normal and parallel distance
         process.ExecuteInitialize()
         self.assertEqual(test_node.Is(KratosMultiphysics.INLET), True)
-        self.assertVectorAlmostEqual(test_node.GetValue(KratosBio.INLET_NORMAL), [0.0,-1.0,0.0])
+        self.assertVectorAlmostEqual(test_node.GetValue(KratosCFD.INLET_NORMAL), [0.0,-1.0,0.0])
         self.assertLessEqual(abs(test_node.GetValue(KratosBio.WALL_DISTANCE) - 0.9999971715808751), 1.0e-6)
 
         # Set initial value
