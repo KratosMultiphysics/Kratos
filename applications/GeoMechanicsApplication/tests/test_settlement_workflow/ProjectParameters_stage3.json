@@ -179,13 +179,12 @@
     }],
         "auxiliar_process_list": [
             {
-                "python_module": "geo_integration_values_extrapolation_to_nodes_process",
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name" :  "GeoIntegrationValuesExtrapolationToNodesProcess",
+                "process_name" :  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain",
-                    "list_of_variables" : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"],
-                    "average_variable"  : "NODAL_AREA"
+                    "list_of_variables" : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"]
                 }
             }
         ]

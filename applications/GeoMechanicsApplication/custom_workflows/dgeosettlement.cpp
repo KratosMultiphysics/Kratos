@@ -23,7 +23,7 @@
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
-#include "custom_processes/geo_integration_values_extrapolation_to_nodes_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
@@ -138,8 +138,8 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
-    mProcessFactory->AddCreator("GeoIntegrationValuesExtrapolationToNodesProcess",
-                                MakeCreatorFor<GeoIntegrationValuesExtrapolationToNodesProcess>());
+    mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                                MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
