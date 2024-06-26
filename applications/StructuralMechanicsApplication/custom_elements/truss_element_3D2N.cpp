@@ -511,6 +511,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     }
 }
 
+void TrussElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rVariable == CONSTITUTIVE_LAW)
+    {
+        rOutput.resize(1);
+        rOutput[0] = mpConstitutiveLaw;
+    }
+}
+
 int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
