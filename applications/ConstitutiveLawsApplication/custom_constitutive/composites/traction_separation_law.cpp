@@ -724,6 +724,8 @@ double& TractionSeparationLaw3D<TDim>::CalculateValue(
             return rValue;
         }
 
+    } else {
+        return BaseType::CalculateValue(rValues, rThisVariable, rValue);
     }
     return rValue;
 
@@ -830,6 +832,195 @@ Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
         noalias(rValue) = interfacial_stress[interface_identifier];
 
         return rValue;
+    } else if (rThisVariable == STRESS_VECTOR_COMP_1 ||
+                rThisVariable == STRESS_VECTOR_COMP_2 ||
+                rThisVariable == STRESS_VECTOR_COMP_3 ||
+                rThisVariable == STRESS_VECTOR_COMP_4) {
+        
+        //
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
+
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rValues.IsSetDeterminantF()) {
+            const double determinant_f = rValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+
+        // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+        if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
+            this->CalculateGreenLagrangeStrain(rValues);
+            r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
+        }
+
+        // The global strain vector, constant
+        const Vector strain_vector = rValues.GetStrainVector();
+
+        if (r_flags.Is(BaseType::COMPUTE_STRESS)) {
+            // Set new flags
+            r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, false);
+            r_flags.Set(BaseType::COMPUTE_STRESS, true);
+
+            // Auxiliar stress vector
+            const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
+            Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
+            Vector delamination_damage_affected_stress_vector  = ZeroVector(VoigtSize);
+
+            // The rotation matrix
+            BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+
+            const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
+            const auto& r_combination_factors = this->GetCombinationFactors();
+
+            rValue.resize(6, false);
+
+            std::vector<Vector> layer_stress(r_p_constitutive_law_vector.size());
+            for (IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+                layer_stress[i].resize(6, false);
+            }
+
+            std::vector<Vector> interfacial_stress(r_p_constitutive_law_vector.size()-1);
+            for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+                interfacial_stress[i].resize(3, false);
+            }
+
+            std::vector<bool> negative_interfacial_stress_indicator(r_p_constitutive_law_vector.size()+1);
+            for (IndexType i=0; i < r_p_constitutive_law_vector.size()+1; ++i) {
+                negative_interfacial_stress_indicator[i] = false;
+            }
+
+            for (IndexType i_layer = 0; i_layer < r_p_constitutive_law_vector.size(); ++i_layer) {
+                this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
+
+                Properties& r_prop             = *(it_prop_begin + i_layer);
+                ConstitutiveLaw::Pointer p_law = r_p_constitutive_law_vector[i_layer];
+
+                // We rotate to local axes the strain
+                noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+                rValues.SetMaterialProperties(r_prop);
+                p_law->CalculateMaterialResponsePK2(rValues);
+
+                // we return the stress and constitutive tensor to the global coordinates
+                rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+                noalias(layer_stress[i_layer]) = rValues.GetStressVector();
+
+                // we reset the properties and Strain
+                rValues.SetMaterialProperties(r_material_properties);
+                noalias(rValues.GetStrainVector()) = strain_vector;
+            }
+
+            const double tolerance = std::numeric_limits<double>::epsilon();
+            Vector DelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
+            Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
+            Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
+            Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
+
+            noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
+            noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+            noalias(ThresholdModeOne) = mThresholdModeOne;
+            noalias(ThresholdModeTwo) = mThresholdModeTwo;
+
+            for(IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+
+                interfacial_stress[i][0] = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+                interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
+                interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
+
+                double equivalent_stress_mode_one = interfacial_stress[i][0];
+                double equivalent_stress_mode_two = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+
+                if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < tolerance) {
+                    negative_interfacial_stress_indicator[i+1] = true;
+                }
+
+                // Damage calculation
+
+                const double T0n = r_material_properties.Has(INTERFACIAL_NORMAL_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_NORMAL_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+                const double T0s = r_material_properties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? r_material_properties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+                const double GIc = r_material_properties.Has(MODE_ONE_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_ONE_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+                const double GIIc = r_material_properties.Has(MODE_TWO_FRACTURE_ENERGY_VECTOR) ? r_material_properties[MODE_TWO_FRACTURE_ENERGY_VECTOR][i] : r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+                const double Ei = r_material_properties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? r_material_properties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
+                const double Gi = r_material_properties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? r_material_properties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+                
+                equivalent_stress_mode_one /= mFatigueDataContainersModeOne[i].GetFatigueReductionFactor();
+                const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
+                if (F_mode_one > tolerance) {
+
+                    DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                }
+
+                equivalent_stress_mode_two /= mFatigueDataContainersModeTwo[i].GetFatigueReductionFactor();
+                const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
+                if (F_mode_two > tolerance) {
+
+                    DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                }
+
+                // End damage calculation
+            }
+
+            for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+                double layer_damage_variable_mode_one = 0.0;
+                double layer_damage_variable_mode_two = 0.0;
+
+                if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
+                    layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
+                } else {
+                    layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
+                }
+
+                if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
+                    layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
+                } else {
+                    layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
+                }
+
+                layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
+                layer_stress[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+                layer_stress[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+            }
+
+            // for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+            //     const double factor = r_combination_factors[i];
+            //     delamination_damage_affected_stress_vector += factor * layer_stress[i];
+            // }
+
+            auxiliar_stress_vector = delamination_damage_affected_stress_vector;
+
+            if (rThisVariable == STRESS_VECTOR_COMP_1) {
+                rValue = layer_stress[0];
+            } else if (rThisVariable == STRESS_VECTOR_COMP_2) {
+                rValue = layer_stress[1];
+            } else if (rThisVariable == STRESS_VECTOR_COMP_3) {
+                rValue = layer_stress[2];
+            } else if (rThisVariable == STRESS_VECTOR_COMP_4) {
+                rValue = layer_stress[3];
+            }
+            
+            // noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+
+            // if (flag_const_tensor) {
+            //     this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
+            // }
+
+            // Previous flags restored
+            // r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+            // r_flags.Set(BaseType::COMPUTE_STRESS, flag_stress);
+            // r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        }
+
+        //
+    } else {
+        return BaseType::CalculateValue(rValues, rThisVariable, rValue);
     }
     return rValue;
 }
