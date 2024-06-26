@@ -199,7 +199,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
         const auto &r_props = GetProperties();
 
         mThisIntegrationMethod     = GeometryData::IntegrationMethod::GI_LOBATTO_2;
-        mMassThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        mMassThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
