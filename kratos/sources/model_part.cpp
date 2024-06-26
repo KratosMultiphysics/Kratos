@@ -916,20 +916,14 @@ void ModelPart::RemovePropertiesFromAllLevels(ModelPart::PropertiesType::Pointer
 */
 void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPart::IndexType ThisIndex)
 {
-    if (IsSubModelPart())
-    {
+    if (IsSubModelPart()) {
         mpParentModelPart->AddElement(pNewElement, ThisIndex);
         GetMesh(ThisIndex).AddElement(pNewElement);
-    }
-    else
-    {
+    } else {
         auto existing_element_it = this->GetMesh(ThisIndex).Elements().find(pNewElement->Id());
-        if( existing_element_it == GetMesh(ThisIndex).ElementsEnd()) //node did not exist
-        {
+        if( existing_element_it == GetMesh(ThisIndex).ElementsEnd()) { //node did not exist
             GetMesh(ThisIndex).AddElement(pNewElement);
-        }
-        else //node did exist already
-        {
+        } else { //node did exist already
             KRATOS_ERROR_IF(&(*existing_element_it) != (pNewElement.get()))//check if the pointee coincides
                 << "attempting to add pNewElement with Id :" << pNewElement->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
         }
@@ -941,30 +935,29 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex)
 {
     KRATOS_TRY
-    if(IsSubModelPart()) //does nothing if we are on the top model part
-    {
-        //obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &this->GetRootModelPart();
+    if(IsSubModelPart()) { // Does nothing if we are on the top model part
+        // Obtain from the root model part the corresponding list of nodes
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
         ModelPart::ElementsContainerType  aux;
         aux.reserve(ElementIds.size());
-        for(unsigned int i=0; i<ElementIds.size(); i++)
-        {
-            ModelPart::ElementsContainerType::iterator it = root_model_part->Elements().find(ElementIds[i]);
-            if(it!=root_model_part->ElementsEnd())
+        for(auto id : ElementIds) {
+            auto it = p_root_model_part->Elements().find(id);
+            if(it != p_root_model_part->ElementsEnd()) {
                 aux.push_back(*(it.base()));
-            else
-                KRATOS_ERROR << "the element with Id " << ElementIds[i] << " does not exist in the root model part";
+            } else {
+                KRATOS_ERROR << "The element with Id " << id << " does not exist in the root model part " << p_root_model_part->Name() << std::endl;
+            }
         }
 
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it = aux.begin(); it!=aux.end(); it++) {
+                p_current_part->Elements().push_back( *(it.base()) );
+            }
 
-            current_part->Elements().Unique();
+            p_current_part->Elements().Unique();
 
-            current_part = &(current_part->GetParentModelPart());
+            p_current_part = &(p_current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
