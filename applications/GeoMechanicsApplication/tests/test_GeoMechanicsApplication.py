@@ -51,6 +51,7 @@ from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFlu
 from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
 from test_compressibility import KratosGeoMechanicsCompressibilityTests
 from fixed_spatial_variation import KratosGeoMechanicsFixedSpatialVariationTests
+from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -95,7 +96,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletUTests,
                         KratosGeoMechanicsNormalLoadHexaTests,
                         KratosGeoMechanicsCompressibilityTests,
-                        KratosGeoMechanicsFixedSpatialVariationTests
+                        KratosGeoMechanicsFixedSpatialVariationTests,
+                        KratosGeoMechanicsExtrapolationTests
     ]
 
     # Create an array with the selected tests
