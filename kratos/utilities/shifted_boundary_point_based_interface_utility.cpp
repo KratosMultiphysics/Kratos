@@ -19,6 +19,7 @@
 #include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/kratos_flags.h"
 #include "includes/smart_pointers.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
@@ -33,6 +34,8 @@
 #include "utilities/shifted_boundary_point_based_interface_utility.h"
 
 #include "utilities/binbased_fast_point_locator.h"
+#include <cstddef>
+#include <utility>
 
 
 namespace Kratos
@@ -112,8 +115,10 @@ namespace Kratos
         switch (n_dim) {
             case 2:
                 MapSkinPointsToElements<2>(skin_points_map);
+                break;
             case 3:
                 MapSkinPointsToElements<3>(skin_points_map);
+                break;
             default:
                 KRATOS_ERROR << "Wrong domain size.";
         }
@@ -123,12 +128,14 @@ namespace Kratos
 
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
+        // Also store the average position and average normal of the skin points located in the element
         SidesVectorToElementsMapType sides_vector_map;
-        SetSidesVectorsForSplitElements(skin_points_map, sides_vector_map);
+        AverageSkinToElementsMapType avg_skin_map;
+        SetSidesVectorsAndSkinNormalForSplitElements(skin_points_map, sides_vector_map, avg_skin_map);
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         NodesCloudMapType ext_op_map;
-        SetExtensionOperatorsForSplitElementNodes(sides_vector_map, ext_op_map);
+        SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -142,13 +149,13 @@ namespace Kratos
         for (const auto& [p_element, skin_points_data_vector]: skin_points_map) {
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
-            
+
             // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the cloud nodes that affect the current element
             // To be used in the creation of the condition. Positive side refers to adding the negative node's support cloud nodes.
             // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary?
             PointerVector<NodeType> cloud_nodes_vector_pos;
             PointerVector<NodeType> cloud_nodes_vector_neg;
-            CreateCloudNodeVectorsForSplitElement(*p_element, ext_op_map, cloud_nodes_vector_pos, cloud_nodes_vector_neg, sides_vector_map[p_element]);
+            CreateCloudNodeVectorsForSplitElement(*p_element, sides_vector_map[p_element], ext_op_map, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
 
             // Calculate parent element size for the SBM BC imposition
             const double h = p_element_size_func(r_geom);
@@ -157,24 +164,26 @@ namespace Kratos
             auto& sides_vector = sides_vector_map[p_element];
 
             // Iterate over the element's skin points adding a positive side and a negative side condition for each skin point
-            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(), ++i_skin_pt) {
+            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
                 // Get the skin point's position and area normal (integration point of the boundary)
                 auto skin_pt_data = skin_points_data_vector[i_skin_pt];
-                const array_1d<double, 3> skin_pt_position = std::get<0>(skin_points_data);
-                const array_1d<double, 3> skin_pt_area_normal = std::get<1>(skin_points_data);
- 
+                const array_1d<double, 3> skin_pt_position = std::get<0>(skin_pt_data);
+                const array_1d<double, 3> skin_pt_area_normal = std::get<1>(skin_pt_data);
+
                 // Get the split element's shape function values and derivatives at the skin/ integration point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DNDX = ZeroMatrix(n_nodes, n_dim);
-                GetDataForSplitElementIntegrationPoint(*p_element, skin_pt_N, skin_pt_DNDX);
+                GetDataForSplitElementIntegrationPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DNDX);
 
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
-                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal, 
+                // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
+                // because positive side is where dot product of vector to node with average normal is positive
+                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 ext_op_map, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
-                // NOTE that boundary normal is opposite - TODO correct side????
-                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal, 
+                // NOTE that boundary normal is opposite (from negative to positive side)
+                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
                 ext_op_map, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
@@ -189,51 +198,57 @@ namespace Kratos
             << "There are no elements in skin model part (boundary) '" << mpSkinModelPart->FullName() << "'." << std::endl;
 
         // Set the bin-based fast point locator utility
-        BinBasedFastPointLocator<TDim> bin_based_point_locator(*mpModelPart);
-        bin_based_point_locator.UpdateSearchDatabase();
+        const std::size_t point_locator_max_results = 10000;
+        const double point_locator_tolerance = 1.0e-5;
+        BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
         // Search the skin points (skin model part integration points) in the volume mesh elements
-        // TODO get the skin model part integration points instead!!!
-        block_for_each(mpSkinModelPart->Nodes(), 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType(mSearchMaxResults),
-            [&](auto& rNode, auto& rSearchResults){
+        block_for_each(mpSkinModelPart->Elements(),
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType(point_locator_max_results),
+            [&](auto& rElement, auto& rSearchResults){
 
-            "search_tolerance" : 1.0e-5,
-            "search_max_results" : 10000,
+            const auto& r_skin_geom = rElement.GetGeometry();
+            const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
 
-            Vector aux_N(TDim+1);
-            Element::Pointer p_elem = nullptr;
-            const bool is_found = bin_based_point_locator.FindPointOnMesh(
-                rNode.Coordinates(),
-                aux_N,
-                p_elem,
-                rSearchResults.begin(),
-                mSearchMaxResults,
-                mSearchTolerance);
+            for (std::size_t i_gp = 0; i_gp < n_gp; ++i_gp) {
+                // Get position of skin point
+                const array_1d<double, 3> skin_pt_local_coords = integration_points[i_gp].Coordinates();
+                array_1d<double, 3> skin_pt_position = ZeroVector(3);
+                r_skin_geom.GlobalCoordinates(skin_pt_position, skin_pt_local_coords);
 
-            // Check if the node is found
-            if (is_found){
-                //TODO
-                //TODO get integration points with normal and weight
+                // Get normal at the skin point and make its length a measure of the area/ integration weight
+                array_1d<double,3> skin_pt_area_normal = r_skin_geom.Normal(skin_pt_local_coords);
+                //KRATOS_WATCH(norm_2(skin_pt_area_normal));
 
-                std::size_t n_skin_points = 1;
-                SkinPointsDataVectorType skin_points_data_vector(n_skin_points);
-                for (std::size_t i_skin_pt = 0; i_skin_pt < n_skin_points; ++i_skin_pt) {
-                    //auto p_cl_node = cloud_nodes(i_skin_pt);
-                    const array_1d<double, 3> skin_pt_position(3, 0.0);
-                    const array_1d<double, 3> skin_pt_area_normal(3, 0.0);
-                    auto i_data = std::make_pair(skin_pt_position, skin_pt_area_normal);
-                    skin_points_data_vector(i_skin_pt) = i_data;
+                // Search for the skin point in the volume mesh to get the element containing the point
+                Vector aux_N(TDim+1);
+                Element::Pointer p_element = nullptr;
+                const bool is_found = point_locator.FindPointOnMesh(
+                    skin_pt_position, aux_N, p_element,
+                    rSearchResults.begin(), point_locator_max_results, point_locator_tolerance);
+
+                // Add the skin point's position and area normal to the map for the element it was found in
+                if (is_found){
+                    const std::size_t element_in_map = rSkinPointsMap.count(p_element);
+                    if (element_in_map) {
+                        rSkinPointsMap[p_element].push_back( std::make_pair(skin_pt_position, skin_pt_area_normal) );
+                    } else {
+                        SkinPointsDataVectorType skin_points_data_vector;
+                        skin_points_data_vector.push_back( std::make_pair(skin_pt_position, skin_pt_area_normal) );
+                        auto skin_points_key_data = std::make_pair(p_element, skin_points_data_vector);
+                        rSkinPointsMap.insert(skin_points_key_data);
+                    }
+                } else {
+                    KRATOS_WARNING("FixedMeshALEUtilities")
+                        << "A skin point has not been found in any volume model part element. Point coordinates: (" << skin_pt_position[0] << " , " << skin_pt_position[1] << " , " << skin_pt_position[2] << ")" << std::endl;
                 }
-
-                auto skin_points_key_data = std::make_pair(&rElement, skin_points_data_vector);
-                rSkinPointsMap.insert(skin_points_key_data);
-
-            } else {
-                //TODO: coordinates of skin point!!
-                KRATOS_WARNING("FixedMeshALEUtilities")
-                    << "A skin point has not been found in any volume model part element. Point coordinates: (" << rNode.X() << " , " << rNode.Y() << " , " << rNode.Z() << ")" << std::endl;
             }
+            //TODO Get skin point position
+            //const array_1d<double, 3> skin_pt_position = rNode.Coordinates();
         });
     }
 
@@ -244,7 +259,7 @@ namespace Kratos
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
             //rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
             //rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
-            rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
+            //rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
         });
         block_for_each(mpModelPart->Elements(), [](Element& rElement){
             rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
@@ -254,15 +269,11 @@ namespace Kratos
 
         // Deactivate split elements and mark them as BOUNDARY (gamma)
         // Note that the split elements BC is applied by means of the extension operators
-        /*for (const auto& [p_element, _]: rSkinPointsMap) {
+        //TODO: parallel
+        for (const auto& [p_element, _]: rSkinPointsMap) {
             p_element->Set(ACTIVE, false);
             p_element->Set(BOUNDARY, true);
-        }*/
-        //TODO: parallel
-        block_for_each(rSkinPointsMap, [](std::pair<ElementType::Pointer, SkinPointsDataVectorType> element_skin_points){
-            element_skin_points.first->Set(ACTIVE, false);
-            element_skin_points.first->Set(BOUNDARY, true);
-        });
+        }
 
         // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
@@ -286,54 +297,64 @@ namespace Kratos
         }
     }
 
-    void SetSidesVectorsForSplitElements(
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetSidesVectorsAndSkinNormalForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
-        SidesVectorToElementsMapType& rSidesVectorMap)
+        SidesVectorToElementsMapType& rSidesVectorMap,
+        AverageSkinToElementsMapType& rAvgSkinMap)
     {
         // TODO can be parallel if insert into rSidesVectorMap is unique?
         for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
             // Calculate average position and normal of the element's skin points
             std::size_t n_skin_points = 0;
-            const array_1d<double, 3> avg_position(3, 0.0);
-            const array_1d<double, 3> avg_normal(3, 0.0);
+            array_1d<double, 3> avg_position(3, 0.0);
+            array_1d<double, 3> avg_normal(3, 0.0);
             for (const auto& skin_points_data: skin_points_data_vector) {
                 n_skin_points++;
                 avg_position += std::get<0>(skin_points_data);
                 avg_normal += std::get<1>(skin_points_data);
             }
-            //avg_normal /= norm_2(avg_normal);
+            avg_normal /= norm_2(avg_normal);
             avg_position /= n_skin_points;
 
-            
+            // Store the average normal of the skin points located in the element
+            auto avg_position_and_normal = std::make_pair(avg_position, avg_normal);
+            rAvgSkinMap.insert(std::make_pair(p_element, avg_position_and_normal));
+
             // Compute the dot product for each node between a vector from the average skin position to the node and the skin's average normal
             // Note that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product = negative side
-            Vector sides_vector;
-            //auto& r_geom = p_element->pGetGeometry()
-            //for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            //const auto& r_node = r_geom[i_node];
-            for (const auto& r_node : p_element->pGetGeometry()) {
+            auto& r_geom = p_element->GetGeometry();
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            Vector sides_vector(n_nodes);
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                const auto& r_node = r_geom[i_node];
                 array_1d<double, 3> skin_pt_to_node = avg_position - r_node.Coordinates();
                 if (inner_prod(skin_pt_to_node, avg_normal) > 0.0) {
-                    sides_vector.push_back(1.0);
+                    sides_vector[i_node] =  1.0;
                 } else {
-                    sides_vector.push_back(-1.0);
+                    sides_vector[i_node] = -1.0;
                 }
             }
-
-            auto sides_vector_key_data = std::make_pair(p_element, sides_vector);
-            rSidesVectorMap.insert(skin_points_key_data);
+            // Store the vector deciding on the positive and negative side of the element's nodes
+            rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
         }
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetExtensionOperatorsForSplitElementNodes(
         const SidesVectorToElementsMapType& rSidesVectorMap,
+        AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap)
     {
         // Get the MLS shape functions function
         auto p_meshless_sh_func = GetMLSShapeFunctionsFunction();
 
         for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
-            const auto r_geom = p_element->pGetGeometry();
+            const auto r_geom = p_element->GetGeometry();
+
+            // Get averaged position and normal of the skin points located inside the element
+            auto avg_position_and_normal = rAvgSkinMap[p_element];
+            const array_1d<double, 3> avg_position = std::get<0>(avg_position_and_normal);
+            const array_1d<double, 3> avg_normal = std::get<1>(avg_position_and_normal);
+
             // All nodes of intersected elements are either part of one side of the boundary or the other side of the boundary
             for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 const auto p_node = r_geom(i_node);
@@ -355,8 +376,9 @@ namespace Kratos
                                 elem_neg_nodes.push_back(r_geom(j_node));
                             }
                         }
-                        SetLateralSupportCloud(elem_neg_nodes, cloud_nodes, cloud_nodes_coordinates);
-                
+                        // NOTE that average normal is inverted, so that dot product between normal and vector support node should be positive
+                        SetLateralSupportCloud(elem_neg_nodes, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/false);
+
                     // Node is on negative side of the boundary
                     } else {
                         // Get the element's positive nodes and that sides neighboring nodes
@@ -366,7 +388,7 @@ namespace Kratos
                                 elem_pos_nodes.push_back(r_geom(j_node));
                             }
                         }
-                        SetLateralSupportCloud(elem_pos_nodes, cloud_nodes, cloud_nodes_coordinates);
+                        SetLateralSupportCloud(elem_pos_nodes, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/true);
                     }
 
                     // Calculate the extension basis in the current node (MLS shape functions)
@@ -392,8 +414,11 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetLateralSupportCloud(
         const std::vector<NodeType::Pointer>& rSameSideNodes,
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
-        Matrix& rCloudCoordinates)
+        Matrix& rCloudCoordinates,
+        bool ConsiderPositiveSide)
     {
         // Find the same side support cloud of nodes
         // Note that we use an unordered_set to ensure that these are unique
@@ -410,7 +435,7 @@ namespace Kratos
         }
 
         // Add several layers of neighbors to the cloud nodes
-        // NOTE that we check the order of the MLS interpolation to add nodes from enough interior 
+        // NOTE that we check the order of the MLS interpolation to add nodes from enough interior
         // NOTE that we start from 1 here as the first layer already has been added
         for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
 
@@ -419,18 +444,25 @@ namespace Kratos
                 auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
                 // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY
-                // This way only nodes of the same side as the given nodes are added
-                // NOTE that 'not BOUNDARY' is used instead of 'not ACTIVE' so that incised elements, which might be active, also represent a boundary
+                // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
                 for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                     auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                    // TODO add points only if they are on the correct side of the intersection plane? (for intersected)
                     if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
                         const auto& r_geom = p_elem_neigh->GetGeometry();
                         for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                            // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
+                            // NOTE this is done for a more robust separation of both sides of the boundary
                             NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                            p_neigh->Set(INTERFACE, true);
-                            aux_set.insert(p_neigh);
-                            cur_layer_nodes.push_back(p_neigh);
+                            const array_1d<double, 3> avg_skin_pt_to_node = rSkinPosition - p_neigh->Coordinates();
+                            if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
+                                if (ConsiderPositiveSide) {
+                                    p_neigh->Set(INTERFACE, true);
+                                } else {
+                                    p_neigh->Set(BOUNDARY, true);
+                                }
+                                aux_set.insert(p_neigh);
+                                cur_layer_nodes.push_back(p_neigh);
+                            }
                         }
                     }
                 }
@@ -535,10 +567,10 @@ namespace Kratos
         std::sort(rCloudNodeVectorNegativeSide.ptr_begin(), rCloudNodeVectorNegativeSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
     }
 
-    void GetDataForSplitElementIntegrationPoint(
+    void ShiftedBoundaryPointBasedInterfaceUtility::GetDataForSplitElementIntegrationPoint(
         const ElementType& rElement,
         const array_1d<double,3>& rIntPtCoordinates,
-        Vector& rIntPtShapeFunctionValues, 
+        Vector& rIntPtShapeFunctionValues,
         Matrix& rIntPtShapeFunctionDerivatives)
     {
         const auto& r_geom = rElement.GetGeometry();
@@ -546,17 +578,17 @@ namespace Kratos
         // Compute the local coordinates of the integration point in the element's geometry
         //Geometry<Node>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
         //r_bd_geom.GlobalCoordinates(aux_global_coords, r_integration_points[i_int_pt].Coordinates());
-        Geometry<Node>::CoordinatesArrayType int_pt_local_coords = ZeroVector(3);
-        rElement.PointLocalCoordinates(int_pt_local_coords, rIntPtCoordinates);
+        array_1d<double, 3> int_pt_local_coords = ZeroVector(3);
+        r_geom.PointLocalCoordinates(int_pt_local_coords, rIntPtCoordinates);
 
         // Get N of the element at the integration point
-        rElement.ShapeFunctionsValues(rIntPtShapeFunctionValues, int_pt_local_coords);
+        r_geom.ShapeFunctionsValues(rIntPtShapeFunctionValues, int_pt_local_coords);
 
         // Get DN_DX of the element at the integration point
         Matrix aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
         double aux_detJ_parent;
-        rElement.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords);
-        rElement.Jacobian(aux_J_parent, int_pt_local_coords);
+        r_geom.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords);
+        r_geom.Jacobian(aux_J_parent, int_pt_local_coords);
         MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
         rIntPtShapeFunctionDerivatives = prod(aux_DN_DXi_parent, aux_J_inv_parent);
     }

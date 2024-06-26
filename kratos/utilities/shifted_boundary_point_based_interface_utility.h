@@ -76,11 +76,13 @@ public:
 
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
-    using SkinPointsDataVectorType = DenseVector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
+    using SkinPointsDataVectorType = std::vector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
 
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
 
     using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
+
+    using AverageSkinToElementsMapType = std::unordered_map<ElementType::Pointer, std::pair<array_1d<double,3>, array_1d<double,3>>, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
 
     using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
@@ -218,9 +220,10 @@ protected:
     void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
 
     /**TODO*/
-    void SetSidesVectorsForSplitElements(
+    void SetSidesVectorsAndSkinNormalForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
-        SidesVectorToElementsMapType& rSidesVectorMap
+        SidesVectorToElementsMapType& rSidesVectorMap,
+        AverageSkinToElementsMapType& rAvgSkinMap
     );
 
     /** TODO
@@ -230,6 +233,7 @@ protected:
      */
     void SetExtensionOperatorsForSplitElementNodes(
         const SidesVectorToElementsMapType& rSidesVectorMap,
+        AverageSkinToElementsMapType& rAvgSkinMap,
         NodesCloudMapType& rExtensionOperatorMap
     );
 
@@ -239,13 +243,17 @@ protected:
      * These first nodes could be the positive nodes of a BOUNDARY element in order to get a support cloud and extension basis for one of the element's negative nodes and vice versa.
      * The support cloud created by this function is to be used for calculating the MLS-based extension operator.
      * @param rSameSideNodes Pointer to the first nodes of the support cloud
+     * TODO
      * @param rCloudNodes Vector containing pointers to the nodes of the cloud
      * @param rCloudCoordinates Matrix containing the coordinates of the nodes of the cloud
      */
     void SetLateralSupportCloud(
         const std::vector<NodeType::Pointer>& rSameSideNodes,
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
-        Matrix& rCloudCoordinates);
+        Matrix& rCloudCoordinates,
+        bool ConsiderPositiveSide);
 
     /**
      * @brief Create a pointer vector of pointers to all the nodes affecting the respective side of a split element's boundary.
@@ -269,7 +277,7 @@ protected:
     void GetDataForSplitElementIntegrationPoint(
         const ElementType& rElement,
         const array_1d<double,3>& rIntPtCoordinates,
-        Vector& rIntPtShapeFunctionValues, 
+        Vector& rIntPtShapeFunctionValues,
         Matrix& rIntPtShapeFunctionDerivatives);
 
     /* TODO */
