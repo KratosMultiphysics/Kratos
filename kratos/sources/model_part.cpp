@@ -940,12 +940,12 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
         ModelPart* p_root_model_part = &this->GetRootModelPart();
         ModelPart::ElementsContainerType  aux;
         aux.reserve(ElementIds.size());
-        for(auto id : ElementIds) {
-            auto it = p_root_model_part->Elements().find(id);
+        for(unsigned int i=0; i<ElementIds.size(); i++) {
+            auto it = p_root_model_part->Elements().find(ElementIds[i]);
             if(it != p_root_model_part->ElementsEnd()) {
                 aux.push_back(*(it.base()));
             } else {
-                KRATOS_ERROR << "The element with Id " << id << " does not exist in the root model part " << p_root_model_part->Name() << std::endl;
+                KRATOS_ERROR << "The element with Id " << ElementIds[i] << " does not exist in the root model part " << p_root_model_part->Name() << std::endl;
             }
         }
 
