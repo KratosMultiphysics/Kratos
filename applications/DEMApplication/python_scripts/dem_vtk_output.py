@@ -251,6 +251,9 @@ class VtkOutput():
             self.local_contact_force_Y_point = np.empty(number_of_nodes)
             self.local_contact_force_Z_point = np.empty(number_of_nodes)
 
+            self.local_contact_force_mag = np.empty(number_of_elements)
+            self.local_contact_force_mag_point = np.empty(number_of_nodes)
+
         if self.PostFailureCriterionState:
             self.failure_criterion_state = np.empty(number_of_elements)
 
@@ -290,6 +293,11 @@ class VtkOutput():
                 self.local_contact_force_Y_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
                 self.local_contact_force_Z_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
                 self.local_contact_force_Z_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+
+                local_contact_force_mag_value = (self.local_contact_force_X[i_contact]**2 + self.local_contact_force_Y[i_contact]**2 + self.local_contact_force_Z[i_contact]**2)**0.5
+                self.local_contact_force_mag[i_contact] = local_contact_force_mag_value
+                self.local_contact_force_mag_point[i_point] = local_contact_force_mag_value
+                self.local_contact_force_mag_point[i_point + 1] = local_contact_force_mag_value
 
             if self.PostFailureCriterionState:
                 self.failure_criterion_state[i_contact] = element.GetValue(FAILURE_CRITERION_STATE)
@@ -331,7 +339,7 @@ class VtkOutput():
             i += 1
 
         number_of_conditions = self.rigid_face_model_part.NumberOfConditions(0)
-        self.walls_connectivity = np.empty(number_of_conditions * 3)
+        self.walls_connectivity = np.empty(number_of_conditions * 4) #TODO: here could be problematic if 'condition' is a triangle.
         self.walls_offsets = np.empty(number_of_conditions)
         self.walls_cell_types = np.empty(number_of_conditions)
         i = 0
@@ -425,6 +433,9 @@ class VtkOutput():
         if self.PostLocalContactForce:
             contacts_output_dict_cell['local_contact_force'] = (self.local_contact_force_X, self.local_contact_force_Y, self.local_contact_force_Z) 
             contacts_output_dict_point['local_contact_force'] = (self.local_contact_force_X_point, self.local_contact_force_Y_point, self.local_contact_force_Z_point)
+
+            contacts_output_dict_cell['local_contact_force_mag'] = self.local_contact_force_mag
+            contacts_output_dict_point['local_contact_force_mag'] = self.local_contact_force_mag_point
 
         if self.PostFailureCriterionState:
             contacts_output_dict_cell['failure_criterion_state'] = self.failure_criterion_state
