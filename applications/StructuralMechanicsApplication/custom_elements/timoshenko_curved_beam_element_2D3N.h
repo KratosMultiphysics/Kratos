@@ -82,9 +82,7 @@ public:
     ///@{
 
     // Constructor void
-    LinearTimoshenkoCurvedBeamElement2D3N()
-    {
-    }
+    LinearTimoshenkoCurvedBeamElement2D3N() = default;
 
     // Constructor using an array of nodes
     LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
@@ -255,7 +253,7 @@ public:
         const array_3 &rShapeFunctions,
         GlobalSizeVector &rNshape,
         GlobalSizeVector &rNu,
-        GlobalSizeVector &rNtheta);
+        GlobalSizeVector &rNtheta) const;
 
     /**
      * @brief Returns the Jacobian of the isoparametric transformation of arc length s
@@ -269,7 +267,7 @@ public:
     void GetTangentandTransverseUnitVectors(
         const double xi,
         array_3 &rt,
-        array_3 &rn);
+        array_3 &rn) const;
 
     /**
      * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
@@ -288,7 +286,7 @@ public:
     array_3 GetBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber);
+        const IndexType PointNumber) const;
 
     /**
      * @brief This function provides a more general interface to the element.

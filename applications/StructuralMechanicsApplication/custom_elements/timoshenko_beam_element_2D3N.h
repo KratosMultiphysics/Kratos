@@ -78,9 +78,7 @@ public:
     ///@{
 
     // Constructor void
-    LinearTimoshenkoBeamElement2D3N()
-    {
-    }
+    LinearTimoshenkoBeamElement2D3N() = default;
 
     // Constructor using an array of nodes
     LinearTimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)

@@ -415,7 +415,7 @@ array_1d<double, 3> LinearTimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     const double angle = GetAngle();
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);

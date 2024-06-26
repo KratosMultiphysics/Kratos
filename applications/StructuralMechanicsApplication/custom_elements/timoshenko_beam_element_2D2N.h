@@ -78,7 +78,7 @@ public:
     // Constructor using an array of nodes
     LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Constructor using an array of nodes with properties
@@ -86,7 +86,7 @@ public:
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Copy constructor
@@ -340,7 +340,7 @@ public:
     array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber);
+        const IndexType PointNumber) const;
 
     /**
      * @brief This function provides a more general interface to the element.

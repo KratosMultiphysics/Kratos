@@ -38,11 +38,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::Initialize(const ProcessInfo& rCurre
             }
         }
 
-        const auto& r_r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+        const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law initialisation
-        if (mConstitutiveLawVector.size() != r_r_integration_points.size())
-            mConstitutiveLawVector.resize(r_r_integration_points.size());
+        if (mConstitutiveLawVector.size() != r_integration_points.size())
+            mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
     KRATOS_CATCH("")
@@ -217,7 +217,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
     const double xi,
     array_3& rt,
     array_3& rn
-    )
+    ) const
 {
     const auto& r_geom = GetGeometry();
 
@@ -338,7 +338,7 @@ LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
@@ -351,7 +351,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValuesGlobalVectors
     GlobalSizeVector &rNshape,
     GlobalSizeVector &rNu,
     GlobalSizeVector &rNtheta
-    )
+    ) const
 {
     // deflection v
     rNshape.clear();
