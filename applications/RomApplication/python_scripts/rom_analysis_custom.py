@@ -177,8 +177,8 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                 exit()
             elif self.rom_format == "numpy":
                 # Set the nodal ROM basis
-                # node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
-                node_ids = np.arange(computing_model_part.NumberOfNodes())+1
+                node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
+                # node_ids = np.arange(computing_model_part.NumberOfNodes())+1
                 # right_modes = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
                 # if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                 #     right_modes.reshape(-1,1)
@@ -249,7 +249,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
-                
+
 
         def Initialize(self):
             super().Initialize()
@@ -267,7 +267,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                 self._GetSolver()._GetBuilderAndSolver().SetNNLayer(i, layer)
             self._GetSolver()._GetBuilderAndSolver().SetPhiMatrices(SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2])
             self._GetSolver()._GetBuilderAndSolver().SetReferenceSnapshot(refSnapshot)
-            
+
             computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
             nodal_unknown_names= self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
             nodal_dofs = len(nodal_unknown_names)
@@ -301,7 +301,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                 for nodal_var in nodal_unknowns:
                     node.SetSolutionStepValue(nodal_var, s_init[i])
                     i+=1
-                    
+
             computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
 
             # Initialize nodal ROM_BASIS to zeros
