@@ -393,6 +393,8 @@ class GeoMechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
 
     def _GetLinearSolver(self):
+        if not hasattr(self, 'linear_solver'):
+            self.linear_solver = self._ConstructLinearSolver()
         return self.linear_solver
 
     def _ExecuteCheckAndPrepare(self):
@@ -462,16 +464,26 @@ class GeoMechanicalSolver(PythonSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
+
+    def _GetBuilderAndSolver(self):
+        if not hasattr(self, '_builder_and_solver'):
+            self._builder_and_solver = self._CreateBuilderAndSolver()
+        return self._builder_and_solver
+
+
     def _CreateBuilderAndSolver(self):
-        block_builder = self.settings["block_builder"].GetBool()
+        if not hasattr(self, '_builder_and_solver'):
+            block_builder = self.settings["block_builder"].GetBool()
 
-        # Creating the builder and solver
-        if (block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            # Creating the builder and solver
+            if (block_builder):
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+
+            return builder_and_solver
         else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-
-        return builder_and_solver
+            return self._builder_and_solver
 
     def _ConstructSolver(self, builder_and_solver, strategy_type):
 
