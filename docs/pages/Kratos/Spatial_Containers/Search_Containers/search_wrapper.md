@@ -148,6 +148,8 @@ We can search the nodes in a radius of 0.5 from the nodes in X = 0.
 
 ![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Search/search_wrapper_example_2.png?raw=true)
 
+We can perform that with the following script:
+
 ~~~py
 # Create search
 search = KM.SearchWrapperKDTreeNode(model_part.Nodes, data_comm)
@@ -173,7 +175,30 @@ if number_search_results > 0:
         ids = node_results.GetResultIndices()
         number_of_global_results = node_results.NumberOfGlobalResults()
         if global_id > 0: # Solution defined in this rank
-            print(number_of_global_results, ids)
+            rank = data_comm.Rank()
+            print("Global id: ", global_id, " Rank: ", rank, " Number of local results: ", node_results.NumberOfLocalResults())
+            if rank == 0:
+               print("Global id: ", global_id, " Number of global results: ", number_of_global_results, " Ids: ", ids)
+~~~
+
+The output will looks something like the following:
+
+~~~sh
+Global id:  1  Rank:  0  Number of local results:  2
+Global id:  1  Rank:  1  Number of local results:  3
+Global id:  1  Number of global results:  5  Ids:  [5, 4, 1, 2, 3]
+Global id:  2  Rank:  0  Number of local results:  3
+Global id:  2  Rank:  1  Number of local results:  4
+Global id:  2  Number of global results:  7  Ids:  [5, 9, 4, 6, 1, 2, 3]
+Global id:  6  Rank:  0  Number of local results:  4
+Global id:  6  Rank:  1  Number of local results:  2
+Global id:  6  Number of global results:  6  Ids:  [12, 5, 9, 4, 6, 2]
+Global id:  12  Rank:  0  Number of local results:  5
+Global id:  12  Rank:  1  Number of local results:  2
+Global id:  12  Number of global results:  7  Ids:  [12, 5, 16, 9, 14, 6, 20]
+Global id:  16  Rank:  0  Number of local results:  4
+Global id:  16  Rank:  1  Number of local results:  1
+Global id:  16  Number of global results:  5  Ids:  [12, 16, 9, 14, 20]
 ~~~
 
 ## Parameters & Defaults
