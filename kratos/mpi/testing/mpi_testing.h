@@ -47,26 +47,11 @@ class KratosMpiTestEnv : public ::testing::Environment
 };
 
 /*
- * Suite for the mpi testing environment (mKernel(true))
-*/
-class KratosMPICoreFastSuite : public KratosCoreFastSuite
-{
-    public:
-        void TearDown() override;
-
-    protected:
-        KratosMPICoreFastSuite(): mKernel(true) {}
-        ~KratosMPICoreFastSuite() {}
-
-    	Kratos::Kernel mKernel;
-};
-
-/*
  * Initializes the parallel testing environment. This is usefull for other tests depending on a parallel environment.
 */
 class MPIGTestMain {
     public:
-        static int InitializeMPIKernel(int argc, char* argv[]) {
+        static int InitializeMPITesting(int argc, char* argv[]) {
             // Initialize MPI
             // int err = MPI_Init(&argc, &argv);
             MPI_Init(&argc, &argv);

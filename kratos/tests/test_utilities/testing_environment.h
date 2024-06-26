@@ -7,18 +7,24 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Carlos A. Roig
 //
 //
+
+#pragma once
 
 // System includes
 
 // External includes
+#include <gtest/gtest.h>
 
 // Project includes
-#include "testing/testing.h"
 
-int main(int argc, char* argv[]) 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosTestEnv : public ::testing::Environment
 {
-    return Kratos::Testing::GTestMain::InitializeKernel(argc, argv);
-}
+    public:
+        KratosTestEnv();
+        ~KratosTestEnv() override {}
+        void SetUp() override;
+        void TearDown() override;
+};

@@ -16,8 +16,9 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/parallel_environment.h"
+
+#include "tests/test_utilities/testing_environment.h"
 
 namespace Kratos::Testing 
 {

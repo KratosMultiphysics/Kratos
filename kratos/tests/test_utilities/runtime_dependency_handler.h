@@ -14,20 +14,22 @@
 #pragma once
 
 #include <unordered_map>
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-#define NOMINMAX
-#include <windows.h>
-#undef NOMINMAX
-#else
-#include <dlfcn.h>
-#endif
 
 #include "includes/define.h"
 #include "includes/kernel.h"
 
+// Prevent Windows.h from polluting the global namespace
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+    #define NOMINMAX
+    #include <windows.h>
+    #undef NOMINMAX
+#else
+    #include <dlfcn.h>
+#endif
+
 namespace Kratos::Testing {
 
-class RuntimeDependencyHandler
+class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyHandler
 {
 public:
 
@@ -52,7 +54,6 @@ private:
     #endif
 
     std::unordered_map<std::string, LibraryHandle> mLoadedLibraries = {};
-
 };
 
 }

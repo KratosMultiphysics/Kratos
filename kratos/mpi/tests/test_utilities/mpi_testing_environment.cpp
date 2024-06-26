@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "mpi/testing/mpi_testing.h"
+#include "mpi/test/test_utilities/mpi_testing_environment.h"
 
 namespace Kratos::Testing 
 {
