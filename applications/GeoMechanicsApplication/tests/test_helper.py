@@ -500,7 +500,7 @@ class GiDOutputFileReader:
         value = {"node": int(words[0])}
         if self.result_type == "Scalar":
             value["value"] = float(words[1])
-        elif self.result_type == "Vector":
+        elif self.result_type == "Vector" or self.result_type == "Matrix":
             value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
