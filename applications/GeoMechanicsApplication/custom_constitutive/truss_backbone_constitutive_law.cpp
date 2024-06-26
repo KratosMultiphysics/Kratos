@@ -113,13 +113,7 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS));
 
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW));
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRESSES_OF_PIECEWISE_LINEAR_LAW));
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() == rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size());
-    KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
-
-    CheckBackboneStiffnessesDontExceedYoungsModulus(rMaterialProperties);
+    CheckStressStrainDiagram(rMaterialProperties);
 
     return 0;
 }
@@ -179,15 +173,38 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
 
 std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneConstitutiveLaw"; }
 
-void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModulus(const Properties& rMaterialProperties) const
+void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rMaterialProperties)
 {
-    const auto& strains = rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW];
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW));
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRESSES_OF_PIECEWISE_LINEAR_LAW));
 
-    if (strains.size() > 1) { // only check for potentially non-constant laws
-        const auto youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
-        const auto& stresses = rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW];
-        for (auto i = std::size_t{0}; i < strains.size() - 1; ++i) {
-            KRATOS_ERROR_IF(youngs_modulus < (stresses[i+1] - stresses[i]) / (strains[i+1] - strains[i]));
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() == rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size());
+    KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
+
+    CheckStrainValuesAreAscending(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW]);
+
+    CheckBackboneStiffnessesDontExceedYoungsModulus(
+        rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW],
+        rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW], rMaterialProperties[YOUNG_MODULUS]);
+}
+
+void TrussBackboneConstitutiveLaw::CheckStrainValuesAreAscending(const Vector& rStrains)
+{
+    auto previous_strain = rStrains[0];
+    for (auto i = std::size_t{1}; i < rStrains.size(); ++i) {
+        KRATOS_ERROR_IF_NOT(rStrains[i] > previous_strain);
+        previous_strain = rStrains[i];
+    }
+}
+
+void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,
+                                                                                   const Vector& rStresses,
+                                                                                   double YoungsModulus)
+{
+    if (rStrains.size() > 1) { // only check for potentially non-constant laws
+        for (auto i = std::size_t{0}; i < rStrains.size() - 1; ++i) {
+            KRATOS_ERROR_IF(YoungsModulus <
+                            (rStresses[i + 1] - rStresses[i]) / (rStrains[i + 1] - rStrains[i]));
         }
     }
 }
