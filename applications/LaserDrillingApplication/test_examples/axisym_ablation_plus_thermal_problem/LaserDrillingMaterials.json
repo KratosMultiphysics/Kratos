@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"       : 1.72E-06,
+                "CONDUCTIVITY"  : 3.00E-04,
+                "SPECIFIC_HEAT" : 1500.0,
+                "IONIZATION_ALPHA": 0.95,
+                "PENETRATION_DEPTH": 0.0006,
+                "ABLATION_THRESHOLD": 0.003,
+                "THERMAL_DEPTH": 0.00025,
+                "ENTHALPY": 4e5
+            },
+            "Tables"    : null
+        }
+    }]
+}

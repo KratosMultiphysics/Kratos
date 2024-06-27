@@ -1,0 +1,130 @@
+{
+    "analysis_stage"    : "KratosMultiphysics.LaserDrillingApplication.laserdrilling_analysis",
+    "problem_data"      : {
+        "problem_name"  : "axisym_ablation_plus_thermal_problem",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 5e-7,
+        "start_time"    : 0.0,
+        "end_time"      : 1e-6,
+        "echo_level"    : 0,
+        "energy"        : 15e-6,
+        "mask_aperture_diameter" : 0.025,
+        "vaporisation_temperature" : 1000.0,
+        "compute_vaporisation" : true,
+        "mesh_size" : "coarse",
+        "mesh_type" : "structured",
+        "time_jump_between_pulses": 5e-6
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",
+        "analysis_type"                      : "linear",
+        "model_part_name"                    : "ThermalModelPart",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "axisym_ablation_plus_thermal_problem"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "LaserDrillingMaterials.json"
+        },
+        "line_search"                        : false,
+        "echo_level"                         : 1,
+        "compute_reactions"                  : false,
+        "max_iteration"                      : 10,
+        "convergence_criterion"              : "residual_criterion",
+        "solution_relative_tolerance"        : 1e-5,
+        "solution_absolute_tolerance"        : 1e-7,
+        "residual_relative_tolerance"        : 1e-5,
+        "residual_absolute_tolerance"        : 1e-7,
+        "problem_domain_sub_model_part_list" : ["CNVDFFParts_piece"],
+        "transient_parameters" : {
+            "dynamic_tau": 0.0,
+            "theta"    : 1.0
+        },
+        "ambient_temperature" : 298.15,
+        "time_stepping"                      : {
+            "time_step" : 5e-7
+        },
+        "linear_solver_settings":             {
+            "solver_type":   "LinearSolversApplication.sparse_lu"
+        },
+        "element_replace_settings" : {
+            "element_name" : "LaserAxisymmetricEulerianConvectionDiffusion",
+            "condition_name" : "AxisymmetricThermalFace"
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [],
+        "list_other_processes"            : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+                "variable_name"   : "HEAT_FLUX",
+                "value"           : 0.0,
+                "constrained"     : false
+            }
+        },{
+            "python_module" : "element_deactivation_process",
+            "kratos_module" : "KratosMultiphysics.LaserDrillingApplication",
+            "process_name"  : "ElementDeactivationProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+                "interval"        : [0.0,1e30],
+                "thermal_energy_per_volume_threshold" : 0.9,
+                "thermal_counter_threshold" : 1,
+                "alpha_threshold" : 0.85,
+                "decomposition_law" : "Prout-Tompkins",
+                "A" : 8720000,
+                "Ea": 79600,
+                "R" : 8.3145,
+                "m" : 0.947,
+                "n" : 3.692,
+                "decomposition_law_reference_temperature" : 400.0,
+                "decomposition_law_constant_1" : 1e-7,
+                "decomposition_law_constant_2" : 0.007
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"               : {
+                            "GiDPostMode"           : "GiD_PostAscii",
+                            "WriteDeformedMeshFlag" : "WriteUndeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "MultipleFiles"
+                        },
+                        "file_label"                  : "time",
+                        "output_control_type"         : "step",
+                        "output_interval"             : 1,
+                        "body_output"                 : true,
+                        "node_output"                 : false,
+                        "skin_output"                 : false,
+                        "plane_output"                : [],
+                        "nodal_results"               : [],
+                        "nodal_nonhistorical_results" : ["DECOMPOSED_NODE"],
+                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME"]
+                    },
+                    "point_data_configuration"  : []
+                },
+                "output_name"            : "gid_output/axisym_ablation_plus_thermal_problem"
+            }
+        }],
+        "vtk_output" : []
+    },
+    "restart_options"  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    }
+}
