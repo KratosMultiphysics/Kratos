@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Nicolas Sibuet, Sebastian Ares de Parga
-//                  
+//
 //
 
 #pragma once
@@ -128,12 +128,14 @@ public:
         Parameters this_parameters_copy = ThisParameters.Clone();
         this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
         this->AssignSettings(this_parameters_copy);
+        KRATOS_WATCH('CONSTRUCT 1')
     }
 
     explicit AnnPromGlobalROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
+        KRATOS_WATCH('CONSTRUCT 2')
     }
 
     ~AnnPromGlobalROMBuilderAndSolver() = default;
@@ -215,7 +217,7 @@ public:
     {
         return mNumberOfRomModes;
     }
-    
+
     bool GetMonotonicityPreservingFlag() const noexcept
     {
         return mMonotonicityPreservingFlag;
@@ -271,7 +273,7 @@ public:
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB
-    ) 
+    )
     {
         const auto& r_dof_set = BaseType::GetDofSet();
         Vector dofs_values = ZeroVector(r_dof_set.size());
@@ -323,7 +325,7 @@ public:
         BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
         }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -407,7 +409,6 @@ public:
         Vector rRomUnknowns,
         Vector& rx)
     {
-
         EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1];
 
         Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
@@ -415,17 +416,17 @@ public:
         Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
 
         mGradientLayers = mNNLayers;
-        
+
         mLayersOut[0] = mSVDPhiMatrices[2]*eigen_rom_unknowns;
 
         int i=0;
         for(auto& layers_item : mNNLayers)
-        {   
+        {
             mLayersOut[i+1] = layers_item.transpose()*mLayersOut[i];
 
             if(i<mNNLayers.size()-1){
                 IndexPartition<IndexType>(mLayersOut[i+1].size()).for_each([&](IndexType Index)
-                {   
+                {
                     if (mLayersOut[i+1][Index]<0.0){
                         mGradientLayers[i].col(Index)*=exp(mLayersOut[i+1][Index]);
                         mLayersOut[i+1][Index] = exp(mLayersOut[i+1][Index])-1.0;
@@ -441,6 +442,9 @@ public:
         {
             mIntermediateGradients[i+1] = mIntermediateGradients[i]*mGradientLayers[i+1];
         }
+
+        EigenDynamicMatrix phi_eff_sup = phisig_sup*mIntermediateGradients[mIntermediateGradients.size()-1].transpose()*mSVDPhiMatrices[2];
+        KRATOS_WATCH(phi_eff_sup.norm());
 
         eigen_phi_global=mSVDPhiMatrices[0]+phisig_sup*mIntermediateGradients[mIntermediateGradients.size()-1].transpose()*mSVDPhiMatrices[2];
 
@@ -461,17 +465,17 @@ public:
 
         Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
         Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
-        
+
         mLayersOut[0] = mSVDPhiMatrices[2]*eigen_rom_unknowns;
 
         int i=0;
         for(auto& layers_item : mNNLayers)
-        {   
+        {
             mLayersOut[i+1] = layers_item.transpose()*mLayersOut[i];
 
             if(i<mNNLayers.size()-1){
                 IndexPartition<IndexType>(mLayersOut[i+1].size()).for_each([&](IndexType Index)
-                {   
+                {
                     if (mLayersOut[i+1][Index]<0.0){
                         mLayersOut[i+1][Index] = exp(mLayersOut[i+1][Index])-1.0;
                     }
@@ -624,7 +628,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -705,7 +709,7 @@ protected:
     }
 
     /**
-     * Builds and projects the reduced system of equations 
+     * Builds and projects the reduced system of equations
      */
     virtual void BuildAndProjectROM(
         typename TSchemeType::Pointer pScheme,
@@ -741,7 +745,7 @@ protected:
     }
 
     /**
-     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight. 
+     * @brief Function to perform the build of the LHS and RHS multiplied by its corresponding hrom weight.
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -818,15 +822,15 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
 
     /**
-     * Projects the reduced system of equations 
+     * Projects the reduced system of equations
      */
     virtual void ProjectROM(
         ModelPart &rModelPart,
@@ -845,18 +849,18 @@ protected:
         }
 
         BuildRightROMBasis();
-        
+
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        
+
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
-        
+
         KRATOS_CATCH("")
     }
 
@@ -893,19 +897,19 @@ protected:
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        
+
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         GetXAndDecoderGradient(xrom+dxrom,xNew);
-        
+
         GetDxAndUpdateXBase(xNew, xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         xromTotal = xrom+dxrom;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -918,7 +922,7 @@ protected:
         rxBase = rx;
     }
 
-    void BuildRightROMBasis() 
+    void BuildRightROMBasis()
     {
 
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();
@@ -943,9 +947,9 @@ protected:
     ///@name Protected life cycle
     ///@{
 private:
-    ///@name Private member variables 
+    ///@name Private member variables
     ///@{
-        
+
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
@@ -958,7 +962,7 @@ private:
     EigenDynamicVector mRefSnapshot;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     ///@}

@@ -143,7 +143,7 @@ class RomDatabase(object):
         elif table_name == "HROM_Weights":
             hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == "Neural_Network":
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data15_double, table_name)
         elif table_name == "QoI_FOM":
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":

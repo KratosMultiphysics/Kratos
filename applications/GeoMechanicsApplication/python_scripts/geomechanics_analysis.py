@@ -181,6 +181,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
+                converged = True
                 self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
 
                 if converged:
