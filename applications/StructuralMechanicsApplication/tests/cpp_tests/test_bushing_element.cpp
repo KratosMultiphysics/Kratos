@@ -62,7 +62,8 @@ void CreateBushingElementModelPart(
     }
 
     auto p_prop = rModelPart.CreateNewProperties(1);
-    rModelPart.CreateNewElement("BushingElement3D2N", 1, std::vector<long unsigned int>({1UL, 2UL}), p_prop);
+    std::vector<IndexType> node_ids({1, 2});
+    rModelPart.CreateNewElement("BushingElement3D2N", 1, node_ids, p_prop);
 
     if (IsLinearStiffnessUsed) {
         // constant stiffness based
