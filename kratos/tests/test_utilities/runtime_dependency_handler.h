@@ -17,7 +17,7 @@
 
 namespace Kratos::Testing {
 
-class RuntimeDependencyHandler
+class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyHandler
 {
 public:
 
