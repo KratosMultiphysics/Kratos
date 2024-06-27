@@ -13,23 +13,11 @@
 
 #pragma once
 
-#include <unordered_map>
-
-#include "includes/define.h"
-#include "includes/kernel.h"
-
-// Prevent Windows.h from polluting the global namespace
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-    #define NOMINMAX
-    #include <windows.h>
-    #undef NOMINMAX
-#else
-    #include <dlfcn.h>
-#endif
+#include "includes/kratos_application.h"
 
 namespace Kratos::Testing {
 
-class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyHandler
+class RuntimeDependencyHandler
 {
 public:
 
@@ -47,13 +35,8 @@ public:
 
 private:
 
-    #ifdef KRATOS_COMPILED_IN_WINDOWS
-    using LibraryHandle = HINSTANCE;
-    #else
-    using LibraryHandle = void*;
-    #endif
+    std::unordered_map<std::string, void*> mLoadedLibraries = {};
 
-    std::unordered_map<std::string, LibraryHandle> mLoadedLibraries = {};
 };
 
 }

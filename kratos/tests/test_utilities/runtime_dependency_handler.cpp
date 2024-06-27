@@ -13,6 +13,14 @@
 
 #include "runtime_dependency_handler.h"
 
+#include "includes/define.h" // defines KRATOS_COMPILED_IN... flags
+
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
 namespace Kratos::Testing {
 
 
@@ -31,13 +39,13 @@ void RuntimeDependencyHandler::LoadDependency(const std::string& rApplicationNam
     if (found == mLoadedLibraries.end()) {
         #ifdef KRATOS_COMPILED_IN_WINDOWS
         const std::string lib_file = rLibraryName+".dll";
-        LibraryHandle library = LoadLibrary(TEXT(lib_file.c_str()));
+        void* p_library = reinterpret_cast<void*>(LoadLibrary(TEXT(lib_file.c_str())));
         #else
         const std::string lib_file = "lib"+rLibraryName+".so";
-        LibraryHandle library = dlopen(lib_file.c_str(), RTLD_NOW|RTLD_GLOBAL);
+        void* p_library = dlopen(lib_file.c_str(), RTLD_NOW|RTLD_GLOBAL);
         #endif
-        KRATOS_ERROR_IF(library == nullptr) << "Could not load runtime dependency library " << rLibraryName << std::endl;
-        mLoadedLibraries.insert_or_assign(rApplicationName, library);
+        KRATOS_ERROR_IF(p_library == nullptr) << "Could not load runtime dependency library " << rLibraryName << std::endl;
+        mLoadedLibraries.insert({rApplicationName, p_library});
     }
 }
 
@@ -50,11 +58,11 @@ RuntimeDependencyHandler::ApplicationMap RuntimeDependencyHandler::CreateApplica
     ApplicationMap applications;
 
     for (auto& r_loaded: mLoadedLibraries) {
-        LibraryHandle library = r_loaded.second;
+        void* p_library = r_loaded.second;
         #ifdef KRATOS_COMPILED_IN_WINDOWS
-        auto p_create_app = reinterpret_cast<CreateApplicationPointer>(GetProcAddress(library, "CreateApplication"));
+        auto p_create_app = reinterpret_cast<CreateApplicationPointer>(GetProcAddress(reinterpret_cast<HINSTANCE>(p_library), "CreateApplication"));
         #else
-        auto p_create_app = reinterpret_cast<CreateApplicationPointer>(dlsym(library, "CreateApplication"));
+        auto p_create_app = reinterpret_cast<CreateApplicationPointer>(dlsym(p_library, "CreateApplication"));
         #endif
         KRATOS_ERROR_IF(p_create_app == nullptr) << "Could not find CreateApplication method for runtime dependency library " << r_loaded.first << std::endl;
         applications.insert({r_loaded.first, KratosApplication::Pointer((*p_create_app)())});
@@ -69,7 +77,7 @@ void RuntimeDependencyHandler::ReleaseDependencies()
     for (auto iter = mLoadedLibraries.begin(); iter != mLoadedLibraries.end(); ++iter)
     {
         #ifdef KRATOS_COMPILED_IN_WINDOWS
-        FreeLibrary(iter->second);
+        FreeLibrary(reinterpret_cast<HINSTANCE>(iter->second));
         #else
         dlclose(iter->second);
         #endif
