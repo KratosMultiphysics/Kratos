@@ -239,6 +239,8 @@ private:
     public:
         KRATOS_CLASS_POINTER_DEFINITION(Stiffness);
 
+        virtual ~Stiffness() = default;
+
         virtual double GetValue(
             const double Value,
             const Properties& rProperties) const = 0;
@@ -250,6 +252,8 @@ private:
         KRATOS_CLASS_POINTER_DEFINITION(ConstantStiffness);
 
         ConstantStiffness(const Variable<double>& rVariable) : mpVariable(&rVariable) {};
+
+        ~ConstantStiffness() = default;
 
         double GetValue(
             const double Value,
@@ -270,6 +274,8 @@ private:
             : mpVariableX(&rVariableX),
               mpVariableY(&rVariableY)
         {};
+
+        ~NonLinearStiffness() = default;
 
         double GetValue(
             const double Value,
