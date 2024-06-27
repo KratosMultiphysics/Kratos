@@ -150,7 +150,7 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field += update
+        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
     @time_decorator()
     def GetCurrentObjValue(self) -> float:
@@ -163,6 +163,9 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.__objective.OutputGradientFields(self._optimization_problem, True)
+        for constraint in self.__constraints_list:
+            constraint.OutputGradientFields(self._optimization_problem, constraint.GetStandardizedValue() > 0.0)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()

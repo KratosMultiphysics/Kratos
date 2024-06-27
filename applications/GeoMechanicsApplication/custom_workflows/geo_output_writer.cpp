@@ -122,6 +122,8 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
         {"LINE_LOAD_Y", MakeNodalResultWriterFor(LINE_LOAD_Y)},
         {"REACTION", MakeNodalResultWriterFor(REACTION)},
         {"NORMAL_CONTACT_STRESS", MakeNodalResultWriterFor(NORMAL_CONTACT_STRESS)},
+        {"TOTAL_STRESS_TENSOR", MakeNodalResultWriterFor(TOTAL_STRESS_TENSOR)},
+        {"CAUCHY_STRESS_TENSOR", MakeNodalResultWriterFor(CAUCHY_STRESS_TENSOR)},
         {"TANGENTIAL_CONTACT_STRESS", MakeNodalResultWriterFor(TANGENTIAL_CONTACT_STRESS)}};
 
     for (const auto& name : rOutputItemNames) {
