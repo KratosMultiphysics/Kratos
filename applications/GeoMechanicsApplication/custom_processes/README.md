@@ -5,13 +5,13 @@ In this document, we will explain the different processes. Since this effort is 
 Documented processes:
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 
-## c-$\phi$ reduction process
-For the assesment of a safety factor to characterize slope stability, a Mohr-Coulomb material based c-$\phi$ reduction 
+## $c-\phi$ reduction process
+For the assesment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
 scheme is implemented. The apex of the Mohr-Coulomb cone shaped failure surface is kept in the same position, 
 therefore both c and $\tan \phi$ will diminish at the same rate.
 
 ### Incrementation scheme
-The c-$\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr-Coulomb material 
+The $c-\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr-Coulomb material 
 (in a UDSM or UMAT formulation). Preferably this stress state is an equilibrium state, such that no stresses in integration 
 points violate the given Mohr-Coulomb failure surface. During the stage with the active c-$\phi$ reduction process, 
 c and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
