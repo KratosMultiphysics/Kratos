@@ -70,7 +70,7 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "Neural_Network": '''CREATE TABLE IF NOT EXISTS Neural_Network
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, NN_gradient_regularisation_weight REAL, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)''',
             "QoI_FOM": '''CREATE TABLE IF NOT EXISTS QoI_FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, is_active INTEGER , file_name TEXT)''',
             "QoI_ROM": '''CREATE TABLE IF NOT EXISTS QoI_ROM
@@ -104,18 +104,18 @@ class RomDatabase(object):
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
+        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool, nn_data15_double = self.get_curret_params()
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int,nn_data15_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, ann_params ,non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == 'HROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int,nn_data15_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, table_name)
@@ -148,13 +148,13 @@ class RomDatabase(object):
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int,nn_data15_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, non_converged_fom_14_bool, table_name)
         elif table_name == "QoI_HROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int,nn_data15_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, ann_params, non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, non_converged_fom_14_bool,table_name)
@@ -185,8 +185,9 @@ class RomDatabase(object):
         nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].GetInt()
         non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
+        nn_data15_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"]
 
-        return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool
+        return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool, nn_data15_double
 
 
 
@@ -202,7 +203,7 @@ class RomDatabase(object):
 
     def add_to_database(self, table_name, mu, numpy_array):
         file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
+        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool, nn_data15_double = self.get_curret_params()
 
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -248,8 +249,8 @@ class RomDatabase(object):
             cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
         elif table_name == 'Neural_Network':
-            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
+            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, NN_gradient_regularisation_weight, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data15_double, file_name))
         elif table_name == 'QoI_FOM':
             if len(numpy_array) > 0:
                 cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
