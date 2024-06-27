@@ -24,9 +24,9 @@ class Materials:
             "young_modulus": 1.0
         }""")
 
-        self.__list_of_densities: 'list[float]' = [0.0]
-        self.__list_of_young_modulus: 'list[float]' = [0.0]
-        self.__phi: 'list[float]' = [0.0]
+        self.__list_of_densities: 'list[float]' = []
+        self.__list_of_young_modulus: 'list[float]' = []
+        self.__phi: 'list[float]' = []
 
         data: 'list[tuple[float, float]]' = []
         for params in parameters:
@@ -42,7 +42,7 @@ class Materials:
                 raise RuntimeError("Young modulus and densities are not in the ascending order.")
 
         for i, (density, young_modulus) in enumerate(data):
-            self.__phi.append(i+1)
+            self.__phi.append(i)
             self.__list_of_densities.append(density)
             self.__list_of_young_modulus.append(young_modulus)
 
