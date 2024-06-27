@@ -42,6 +42,8 @@ from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
+from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -80,7 +82,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsChangingWaterLevelTests,
                         KratosGeoMechanicsStrainMeasureTests,
                         KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
-                        KratosGeoMechanicsRotationWithMovingLoadTests
+                        KratosGeoMechanicsRotationWithMovingLoadTests,
+                        KratosGeoMechanicsCPhiReductionProcess
                         ]
 
     # Create an array with the selected tests
