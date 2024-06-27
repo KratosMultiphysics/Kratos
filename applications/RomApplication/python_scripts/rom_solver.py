@@ -31,6 +31,56 @@ def CreateSolver(cls, model, custom_settings):
             default_settings.AddMissingParameters(super().GetDefaultParameters())
             return default_settings
 
+
+        def _create_line_search_strategy(self):     # This is a temporary solution to add the ANNPROM linesearch to the solver,
+                                                    # but it may not take into account every setting available for each application
+            projection_strategy = self.settings["projection_strategy"].GetString()
+
+            if not "GalerkinROM_ANN" in projection_strategy:
+                strategy = super()._create_line_search_strategy()
+            else:
+                computing_model_part = self.GetComputingModelPart()
+                scheme = self._GetScheme()
+                convergence_criterion = self._GetConvergenceCriterion()
+                builder_and_solver = self._GetBuilderAndSolver()
+                strategy = KratosROM.AnnPromLineSearchStrategy(computing_model_part,
+                                                            scheme,
+                                                            convergence_criterion,
+                                                            builder_and_solver,
+                                                            self.settings["max_iteration"].GetInt(),
+                                                            self.settings["compute_reactions"].GetBool(),
+                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                            self.settings["move_mesh_flag"].GetBool())
+            return strategy
+
+        def _CreateLineSearchStrategy(self):    # This is a temporary solution just for the Potential Flow application. This method should
+                                                # be replaced with _create_line_search_strategy() in the Potential Flow app
+            projection_strategy = self.settings["projection_strategy"].GetString()
+
+            if not "custom" in projection_strategy:
+                solution_strategy = super()._CreateLineSearchStrategy()
+            else:
+                if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+                    settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+                    settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+                else:
+                    settings = self._GetDefaultLineSearchParameters()
+                settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+                settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+                settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+                settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+                computing_model_part = self.GetComputingModelPart()
+                time_scheme = self._GetScheme()
+                convergence_criterion = self._GetConvergenceCriterion()
+                builder_and_solver = self._GetBuilderAndSolver()
+                print('BUILDER AND SOLVER: ', builder_and_solver)
+                solution_strategy = KratosROM.AnnPromLineSearchStrategy(computing_model_part,
+                    time_scheme,
+                    convergence_criterion,
+                    builder_and_solver,
+                    settings)
+            return solution_strategy
+
         def _CreateBuilderAndSolver(self):
             if not hasattr(self, '_builder_and_solver'):
                 linear_solver = self._GetLinearSolver()
