@@ -30,6 +30,8 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
+#include "kratos/mpi/tests/test_utilities/mpi_test_environment.h"
+
 namespace Kratos::Testing 
 {
 

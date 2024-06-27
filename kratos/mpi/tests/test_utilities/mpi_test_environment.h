@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "test/test_utilities/testing_environment.h"
+#include "test/test_utilities/test_environment.h"
 
 /*
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
