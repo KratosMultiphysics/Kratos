@@ -7,18 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Carlos A. Roig
 //
 //
 
-// System includes
-
-// External includes
-
-// Project includes
-#include "testing/testing.h"
-
-int main(int argc, char* argv[]) 
-{
-    return Kratos::Testing::GTestMain::InitializeTesting(argc, argv);
-}
+// This file is intentioanlly empty. 
+// Please use this file to add the implementation of custom test suites for the core module.

@@ -16,7 +16,15 @@
 // External includes
 
 // Project includes
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
+#include "includes/parallel_environment.h"
+
+// Parallel Extension
+#include "mpi/includes/mpi_expect.h"
+#include "mpi/includes/mpi_communicator.h"
+#include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/tests/test_utilities/mpi_test_environment.h"
 
 namespace Kratos::Testing 
 {
@@ -61,18 +69,6 @@ void KratosMpiTestEnv::TearDown() {
     // Unregister the World DataCommunicator
     // TODO: It should be possible to obtain a list of all data_communicators and unregister them all (see test: - PointerCommunicatorPartialPartitions)
     ParallelEnvironment::UnregisterDataCommunicator("World");
-}
-
-void KratosMPICoreFastSuite::TearDown() {
-    int has_failure = ::testing::Test::HasFailure();
-
-    // Synchronize the failre status
-    MPI_Allreduce(MPI_IN_PLACE, &has_failure, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-    // If any of the processes has issued a failure, fail the whole tests
-    if (has_failure) {
-        KRATOS_FAIL();
-    }
 }
 
 } // namespace Kratos::Testing
