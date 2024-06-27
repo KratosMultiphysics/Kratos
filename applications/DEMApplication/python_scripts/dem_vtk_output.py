@@ -236,7 +236,30 @@ class VtkOutput():
             i += 1
 
     def ConvertContactsToNumpyArrays(self):
-        number_of_elements = self.contact_model_part.NumberOfElements(0)
+        
+        max_radius = 0.0
+        for node in self.spheres_model_part.Nodes:
+            r = node.GetSolutionStepValue(RADIUS)
+            if r > max_radius:
+                max_radius = r
+        
+        number_of_elements = 0
+
+        for element in self.contact_model_part.Elements:
+            
+            X1 = element.GetNode(0).X
+            X2 = element.GetNode(1).X
+            Y1 = element.GetNode(0).Y
+            Y2 = element.GetNode(1).Y
+            Z1 = element.GetNode(0).Z
+            Z2 = element.GetNode(1).Z
+
+            element_length = ((X2-X1)**2 + (Y2-Y1)**2 + (Z2-Z1)**2)**0.5
+
+            if element_length < 3 * max_radius:
+                number_of_elements += 1
+        
+        #number_of_elements = self.contact_model_part.NumberOfElements(0)
         number_of_nodes = number_of_elements * 2
 
         self.start_and_end_points_X = np.empty(number_of_nodes)
@@ -276,52 +299,63 @@ class VtkOutput():
         i_contact = 0
         for element in self.contact_model_part.Elements:
             
-            self.start_and_end_points_X[i_point] = element.GetNode(0).X
-            self.start_and_end_points_X[i_point+1] = element.GetNode(1).X
-            self.start_and_end_points_Y[i_point] = element.GetNode(0).Y
-            self.start_and_end_points_Y[i_point+1] = element.GetNode(1).Y
-            self.start_and_end_points_Z[i_point] = element.GetNode(0).Z
-            self.start_and_end_points_Z[i_point+1] = element.GetNode(1).Z
+            X1 = element.GetNode(0).X
+            X2 = element.GetNode(1).X
+            Y1 = element.GetNode(0).Y
+            Y2 = element.GetNode(1).Y
+            Z1 = element.GetNode(0).Z
+            Z2 = element.GetNode(1).Z
 
-            if self.PostLocalContactForce:
-                self.local_contact_force_X[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_Y[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Z[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
-                self.local_contact_force_X_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_X_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_Y_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Y_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Z_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
-                self.local_contact_force_Z_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+            element_length = ((X2-X1)**2 + (Y2-Y1)**2 + (Z2-Z1)**2)**0.5
 
-                local_contact_force_mag_value = (self.local_contact_force_X[i_contact]**2 + self.local_contact_force_Y[i_contact]**2 + self.local_contact_force_Z[i_contact]**2)**0.5
-                self.local_contact_force_mag[i_contact] = local_contact_force_mag_value
-                self.local_contact_force_mag_point[i_point] = local_contact_force_mag_value
-                self.local_contact_force_mag_point[i_point + 1] = local_contact_force_mag_value
+            if element_length < 3 * max_radius:
 
-            if self.PostFailureCriterionState:
-                self.failure_criterion_state[i_contact] = element.GetValue(FAILURE_CRITERION_STATE)
+                self.start_and_end_points_X[i_point] = X1
+                self.start_and_end_points_X[i_point+1] = X2
+                self.start_and_end_points_Y[i_point] = Y1
+                self.start_and_end_points_Y[i_point+1] = Y2
+                self.start_and_end_points_Z[i_point] = Z1
+                self.start_and_end_points_Z[i_point+1] = Z2
 
-            if self.PostContactFailureId:
-                self.contact_failure_id[i_contact] = element.GetValue(CONTACT_FAILURE)
+                if self.PostLocalContactForce:
+                    self.local_contact_force_X[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_Y[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Z[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                    self.local_contact_force_X_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_X_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_Y_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Y_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Z_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                    self.local_contact_force_Z_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
 
-            if self.PostContactTau:
-                self.contact_tau[i_contact] = element.GetValue(CONTACT_TAU)
-                self.contact_tau_point[i_point] = element.GetValue(CONTACT_TAU)
-                self.contact_tau_point[i_point+1] = element.GetValue(CONTACT_TAU)
+                    local_contact_force_mag_value = (self.local_contact_force_X[i_contact]**2 + self.local_contact_force_Y[i_contact]**2 + self.local_contact_force_Z[i_contact]**2)**0.5
+                    self.local_contact_force_mag[i_contact] = local_contact_force_mag_value
+                    self.local_contact_force_mag_point[i_point] = local_contact_force_mag_value
+                    self.local_contact_force_mag_point[i_point + 1] = local_contact_force_mag_value
 
-            if self.PostContactSigma:
-                self.contact_sigma[i_contact] = element.GetValue(CONTACT_SIGMA)
-                self.contact_sigma_point[i_point] = element.GetValue(CONTACT_SIGMA)
-                self.contact_sigma_point[i_point+1] = element.GetValue(CONTACT_SIGMA)
+                if self.PostFailureCriterionState:
+                    self.failure_criterion_state[i_contact] = element.GetValue(FAILURE_CRITERION_STATE)
 
-            if self.PostContactRadius:
-                self.contact_radius[i_contact] = element.GetValue(CONTACT_RADIUS)
-                self.contact_radius_point[i_point] = element.GetValue(CONTACT_RADIUS)
-                self.contact_radius_point[i_point+1] = element.GetValue(CONTACT_RADIUS)
+                if self.PostContactFailureId:
+                    self.contact_failure_id[i_contact] = element.GetValue(CONTACT_FAILURE)
 
-            i_point += 2
-            i_contact += 1
+                if self.PostContactTau:
+                    self.contact_tau[i_contact] = element.GetValue(CONTACT_TAU)
+                    self.contact_tau_point[i_point] = element.GetValue(CONTACT_TAU)
+                    self.contact_tau_point[i_point+1] = element.GetValue(CONTACT_TAU)
+
+                if self.PostContactSigma:
+                    self.contact_sigma[i_contact] = element.GetValue(CONTACT_SIGMA)
+                    self.contact_sigma_point[i_point] = element.GetValue(CONTACT_SIGMA)
+                    self.contact_sigma_point[i_point+1] = element.GetValue(CONTACT_SIGMA)
+
+                if self.PostContactRadius:
+                    self.contact_radius[i_contact] = element.GetValue(CONTACT_RADIUS)
+                    self.contact_radius_point[i_point] = element.GetValue(CONTACT_RADIUS)
+                    self.contact_radius_point[i_point+1] = element.GetValue(CONTACT_RADIUS)
+
+                i_point += 2
+                i_contact += 1
 
     def ConvertWallsToNumpyArrays(self):
         number_of_nodes = self.rigid_face_model_part.NumberOfNodes(0)
