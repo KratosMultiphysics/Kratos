@@ -3,15 +3,15 @@
 In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
-- [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes) moved out
+- [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 
 ## c-$\phi$ reduction process
 For the assesment of a safety factor to characterize slope stability, a Mohr-Coulomb material based c-$\phi$ reduction 
-scheme is implemented. The apex of the Mohr_Coulomb cone shaped failure surface is kept in the same position, 
+scheme is implemented. The apex of the Mohr-Coulomb cone shaped failure surface is kept in the same position, 
 therefore both c and $\tan \phi$ will diminish at the same rate.
 
 ### Incrementation scheme
-The c-$\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr=Coulomb material 
+The c-$\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr-Coulomb material 
 (in a UDSM or UMAT formulation). Preferably this stress state is an equilibrium state, such that no stresses in integration 
 points violate the given Mohr-Coulomb failure surface. During the stage with the active c-$\phi$ reduction process, 
 c and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
@@ -30,7 +30,7 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 ## Extrapolation of integration values to nodes 
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
-Conceptually the process consists of the following steps: these lines move to bottom
+Conceptually the process consists of the following steps: 
 1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
