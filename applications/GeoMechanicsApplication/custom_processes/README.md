@@ -3,6 +3,7 @@
 In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
+- $c-\phi$ reduction process
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 
 ## $c-\phi$ reduction process
@@ -13,8 +14,8 @@ therefore both c and $\tan \phi$ will diminish at the same rate.
 ### Incrementation scheme
 The $c-\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr-Coulomb material 
 (in a UDSM or UMAT formulation). Preferably this stress state is an equilibrium state, such that no stresses in integration 
-points violate the given Mohr-Coulomb failure surface. During the stage with the active c-$\phi$ reduction process, 
-c and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
+points violate the given Mohr-Coulomb failure surface. During the stage with the active $c-\phi$ reduction process, 
+$c$ and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
 mapped back onto the reduced Mohr-Coulomb yield surface and equilibrium is found if possible. When equilibrium is no longer 
 found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment. This is repeated until the allowed number of cycles for a step is reached.   
 
