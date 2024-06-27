@@ -184,7 +184,8 @@ void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rM
     KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() ==
                         rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size())
         << "The number of strain components does not match the number of stress components" << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
+    KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty())
+        << "STRAINS_OF_PIECEWISE_LINEAR_LAW is empty";
 
     CheckStrainValuesAreAscending(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW]);
 
@@ -197,7 +198,9 @@ void TrussBackboneConstitutiveLaw::CheckStrainValuesAreAscending(const Vector& r
 {
     auto previous_strain = rStrains[0];
     for (auto i = std::size_t{1}; i < rStrains.size(); ++i) {
-        KRATOS_ERROR_IF_NOT(rStrains[i] > previous_strain);
+        KRATOS_ERROR_IF_NOT(rStrains[i] > previous_strain)
+            << "Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: " << rStrains[i] << " (at index "
+            << i + 1 << ") does not exceed " << previous_strain << " (at index " << i << ")" << std::endl;
         previous_strain = rStrains[i];
     }
 }
@@ -208,8 +211,11 @@ void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModul
 {
     if (rStrains.size() > 1) { // only check for potentially non-constant laws
         for (auto i = std::size_t{0}; i < rStrains.size() - 1; ++i) {
-            KRATOS_ERROR_IF(YoungsModulus <
-                            (rStresses[i + 1] - rStresses[i]) / (rStrains[i + 1] - rStrains[i]));
+            const auto backbone_stiffness =
+                (rStresses[i + 1] - rStresses[i]) / (rStrains[i + 1] - rStrains[i]);
+            KRATOS_ERROR_IF(YoungsModulus < backbone_stiffness)
+                << "YOUNGS_MODULUS (" << YoungsModulus << ") is smaller than the backbone stiffness of line segment "
+                << i + 1 << " (" << backbone_stiffness << ")" << std::endl;
         }
     }
 }
