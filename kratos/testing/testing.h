@@ -27,7 +27,7 @@
 #include "testing/test_skipped_exception.h"
 
 #include "tests/test_utilities/test_suite.h"            // Default Testing Suite. TODO: Remove once core is migrated to "core_test_suites".
-#include "tests/test_utilities/test_evnvironment.h"     // Environment used to initialize the tests.
+#include "tests/test_utilities/test_environment.h"      // Environment used to initialize the tests.
 #include "tests/test_utilities/test_event_listener.h"   // Custom Event Listener to control the output of the tests.
 
 #define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
@@ -35,8 +35,6 @@
 #define KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
 
 namespace Kratos::Testing {
-
-KRATOS_API(KRATOS_TEST_UTILS) extern std::vector<std::function<void(std::vector<KratosApplication::Pointer> &, Kratos::Kernel &)>> mApplicationInitializerList;
 
 /*
  * Initializes the parallel testing environment. This is usefull for other tests depending on a parallel environment.

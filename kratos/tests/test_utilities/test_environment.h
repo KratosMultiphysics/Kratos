@@ -20,6 +20,9 @@
 
 // Project includes
 
+namespace Kratos::Testing 
+{
+
 class KRATOS_API(KRATOS_TEST_UTILS) KratosTestEnv : public ::testing::Environment
 {
     public:
@@ -28,3 +31,7 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosTestEnv : public ::testing::Environmen
         void SetUp() override;
         void TearDown() override;
 };
+
+KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
+
+} // namespace Kratos::Testing

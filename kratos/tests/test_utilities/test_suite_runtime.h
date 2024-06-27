@@ -22,6 +22,9 @@
 #include "tests/tests_utilities/test_suite.h"
 #include "tests/tests_utilities/runtime_dependency_handler.h"
 
+namespace Kratos::Testing 
+{
+
 /*
  * This Fixture extends the KratosCoreFastSuite to include the runtime dependency handler.
  * This header is not ment to be used directly, but serve as a example on how to create a suite that handles runtime dependencies
@@ -55,3 +58,5 @@ class KRATOS_API(KRATOS_TEST_UTILS) RuntimeDependencyExample: public KratosCoreF
 
         static RuntimeDependencyHandler mRuntimeDependencies;
 };
+
+} // namespace Kratos::Testing

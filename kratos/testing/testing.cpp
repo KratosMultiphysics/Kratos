@@ -20,5 +20,5 @@
 
 int main(int argc, char* argv[]) 
 {
-    return Kratos::Testing::GTestMain::InitializeKernel(argc, argv);
+    return Kratos::Testing::GTestMain::InitializeTesting(argc, argv);
 }

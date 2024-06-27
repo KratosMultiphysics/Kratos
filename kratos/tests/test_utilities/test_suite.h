@@ -22,6 +22,11 @@
 // Project includes
 #include "includes/kernel.h"
 
+namespace Kratos::Testing 
+{
+
+KRATOS_API(KRATOS_TEST_UTILS) extern std::vector<std::function<void(std::vector<KratosApplication::Pointer> &, Kratos::Kernel &)>> mApplicationInitializerList;
+
 /*
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
  * Its called this way to that all tests belong to a existing kernel fixture
@@ -54,3 +59,48 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
         // std::streambuf * mCerrBuffer;
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
+//// ALL THIS CLASSES NEED TO BE REMOVED OR MOVED TO CORE_TEST_SUTES.H ONCE MERGED  ////
+////////////////////////////////////////////////////////////////////////////////////////
+
+// Define some suits that are needed by 
+class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
+class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosCoreGeometryContainerFastSuite : public KratosCoreFastSuite {};
+class KratosCoreNurbsGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
+class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
+class KratosCoreStressSuite : public KratosCoreFastSuite {};
+
+// This classes are temporal and should be changed. Please see: GeoMechanicsApplication, StructuralMechanicsApplication or TrilinosApplication
+// TODO: Remove once every test includes its own suit
+class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {};
+class CompressiblePotentialApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite {};
+class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
+class KratosConvectionDiffusionFastSuite : public KratosCoreFastSuite {};
+class KratosCSharpWrapperApplicationFastSuite : public KratosCoreFastSuite {};
+class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};
+class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {};
+class FSIApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosIgaFastSuite : public KratosCoreFastSuite {};
+class KratosIgaFast5PSuite : public KratosCoreFastSuite {};
+class KratosMappingApplicationSerialTestSuite : public KratosCoreFastSuite {};
+class KratosMedFastSuite : public KratosCoreFastSuite {};
+class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosRansFastSuite : public KratosCoreFastSuite {};
+class RomApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
+class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
+class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
+class KratosMPMFastSuite : public KratosCoreFastSuite {};
+class KratosHDF5TestSuite : public KratosCoreFastSuite {};
+class ShallowWaterApplicationFastSuite : public KratosCoreFastSuite {};
+
+// TODO: those should be in its own mpi suite
+class KratosMappingApplicationMPITestSuite : public KratosCoreFastSuite {};
+
+} // namespace Kratos::Testing

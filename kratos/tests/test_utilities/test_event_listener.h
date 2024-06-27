@@ -20,6 +20,9 @@
 
 // Project includes
 
+namespace Kratos::Testing
+{
+
 /*
  * ConfigurableEventListener provides a configurable event listener for the test output.
  * In Kratos this is used to remove the output from the tests
@@ -182,3 +185,5 @@ class ConfigurableEventListener : public ::testing::TestEventListener
             }
         }
 };
+
+} // namespace Kratos::Testing
