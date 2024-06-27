@@ -113,6 +113,7 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
     const auto output_writer_map = std::map<std::string, NodalResultWriter, std::less<>>{
         {"DISPLACEMENT", MakeNodalResultWriterFor(DISPLACEMENT)},
         {"TOTAL_DISPLACEMENT", MakeNodalResultWriterFor(TOTAL_DISPLACEMENT)},
+        {"INCREMENTAL_DISPLACEMENT", MakeNodalResultWriterFor(INCREMENTAL_DISPLACEMENT)},
         {"WATER_PRESSURE", MakeNodalResultWriterFor(WATER_PRESSURE)},
         {"NORMAL_FLUID_FLUX", MakeNodalResultWriterFor(NORMAL_FLUID_FLUX)},
         {"VOLUME_ACCELERATION", MakeNodalResultWriterFor(VOLUME_ACCELERATION)},
@@ -121,6 +122,8 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
         {"LINE_LOAD_Y", MakeNodalResultWriterFor(LINE_LOAD_Y)},
         {"REACTION", MakeNodalResultWriterFor(REACTION)},
         {"NORMAL_CONTACT_STRESS", MakeNodalResultWriterFor(NORMAL_CONTACT_STRESS)},
+        {"TOTAL_STRESS_TENSOR", MakeNodalResultWriterFor(TOTAL_STRESS_TENSOR)},
+        {"CAUCHY_STRESS_TENSOR", MakeNodalResultWriterFor(CAUCHY_STRESS_TENSOR)},
         {"TANGENTIAL_CONTACT_STRESS", MakeNodalResultWriterFor(TANGENTIAL_CONTACT_STRESS)}};
 
     for (const auto& name : rOutputItemNames) {

@@ -1,5 +1,10 @@
 # Custom processes
 
+In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
+
+Documented processes:
+- [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes) moved out
+
 ## c-$\phi$ reduction process
 For the assesment of a safety factor to characterize slope stability, a Mohr-Coulomb material based c-$\phi$ reduction 
 scheme is implemented. The apex of the Mohr_Coulomb cone shaped failure surface is kept in the same position, 
@@ -21,6 +26,37 @@ $$SF = \frac{1}{\alpha}$$
 where the reduction factor $\alpha$ is the ratio of the found critical values for cohesion and friction angle $c_c$ or $\phi_c$ and original material parameters.
 
 $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$ 
+
+## Extrapolation of integration values to nodes 
+The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
+
+Conceptually the process consists of the following steps: these lines move to bottom
+1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
+2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
+3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
+4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
+5. Divide the nodal values by the count to get the average value.
+
+### Restrictions 
+Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+
+### Usage 
+The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
+```json
+{
+  "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+  "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+  "process_name":  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+  "Parameters":    {
+    "model_part_name":   "ModelPartName",
+    "list_of_variables": ["Variable1", "Variable2", "Variable3"]
+  }
+}
+```
+Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+
+
+When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
 ## Bibliography
 Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.

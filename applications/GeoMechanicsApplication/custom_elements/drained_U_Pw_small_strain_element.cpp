@@ -44,7 +44,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const
 
     UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(rCurrentProcessInfo);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     KRATOS_TRY
 
     // Verify generic variables
-    int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
@@ -90,7 +90,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixTyp
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTyp
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------

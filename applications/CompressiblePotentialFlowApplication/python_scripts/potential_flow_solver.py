@@ -93,7 +93,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -106,7 +106,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -119,7 +119,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
 
 def CreateSolver(model, custom_settings):
@@ -186,7 +186,7 @@ class PotentialFlowSolver(FluidSolver):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
-        self._enforce_element_and_condition_replacement = True #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])

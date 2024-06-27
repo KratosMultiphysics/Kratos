@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/geo_structural_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -119,7 +120,7 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +212,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType
     CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -265,25 +266,14 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
 {
     KRATOS_TRY
 
-    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
+    MatrixType mass_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
+    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    // Compute Mass Matrix
-    MatrixType MassMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
+    MatrixType stiffness_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
+    this->CalculateStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-
-    // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
-
-    this->CalculateStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
-
-    // Compute Damping Matrix
-    if (rDampingMatrix.size1() != N_DOF_ELEMENT)
-        rDampingMatrix.resize(N_DOF_ELEMENT, N_DOF_ELEMENT, false);
-    noalias(rDampingMatrix) = ZeroMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
-
-    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
-    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        rCurrentProcessInfo[RAYLEIGH_ALPHA], rCurrentProcessInfo[RAYLEIGH_BETA], mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -387,7 +377,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Mat
                     "for a particular element ... illegal operation!!"
                  << this->Id() << std::endl;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
