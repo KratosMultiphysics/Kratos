@@ -941,6 +941,7 @@ class RomManager(object):
                     "layers_size":[200,200],
                     "batch_size":2,
                     "epochs":800,
+                    "NN_gradient_regularisation_weight": 0,
                     "lr_strategy":{
                         "scheduler": "sgdr",
                         "base_lr": 0.001,
