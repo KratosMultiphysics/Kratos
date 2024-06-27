@@ -475,7 +475,11 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         temp_stress[0] += prestress;
-        rOutput[0] = temp_stress;
+        Vector stress = ZeroVector(msDimension);
+        stress[0] = temp_stress[0];
+        stress[1] = 0.00;
+        stress[2] = 0.00;
+        rOutput[0] = stress;
 
 
         if (rVariable == CAUCHY_STRESS_VECTOR){
