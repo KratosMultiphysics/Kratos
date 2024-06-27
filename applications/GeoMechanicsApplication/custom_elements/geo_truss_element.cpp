@@ -238,7 +238,7 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     f_local[TDim]                                   = 1.00 * normal_force;
     rInternalForces                                 = ZeroVector(TDim * TNumNodes);
     noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& r
     GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //--------------------------------------------------------------------------------------------

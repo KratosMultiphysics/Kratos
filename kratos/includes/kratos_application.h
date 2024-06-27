@@ -76,6 +76,7 @@
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
+#include "modeler/voxel_mesh_generator_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -128,7 +129,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
-    virtual ~KratosApplication() {}
+    virtual ~KratosApplication() 
+    {
+        // This must be commented until tests have been fixed.
+        // DeregisterCommonComponents();
+        // DeregisterApplication();
+    }
 
     ///@}
     ///@name Operations
@@ -140,6 +146,28 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
+
+    template<class TComponentsContainer>
+    void DeregisterComponent(std::string const & rComponentName);
+
+    /**
+     * @brief This method is used to unregister common components of the application.
+     * @details This method is used to unregister common components of the application. 
+     * The list of unregistered components are the ones exposed in the common KratosComponents interface:
+     * - Geometries
+     * - Elements
+     * - Conditions
+     * - MasterSlaveConstraints
+     * - Modelers
+     * - ConstitutiveLaws
+     */
+    void DeregisterCommonComponents();
+
+    /**
+     * @brief This method is used to unregister specific application components.
+     * @details This method is used to unregister specific application components.
+     */
+    virtual void DeregisterApplication();
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
@@ -495,6 +523,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
     const CombineModelPartModeler mCombineModelPartModeler;
     const ConnectivityPreserveModeler mConnectivityPreserveModeler;
+    const VoxelMeshGeneratorModeler mVoxelMeshGeneratorModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
