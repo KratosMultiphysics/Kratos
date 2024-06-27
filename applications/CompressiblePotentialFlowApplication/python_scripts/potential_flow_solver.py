@@ -262,9 +262,12 @@ class PotentialFlowSolver(FluidSolver):
         if strategy_type == "linear":
             # Fake scheme creation to do the solution update
             scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        elif strategy_type == "non_linear":
+        elif strategy_type == "non_linear" and self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic":
             # Custom Scheme for transonic cases
-            scheme = KCPFApp.ResidualBasedIncrementalUpdateStaticSchemeMod(self.settings["scheme_settings"])
+            scheme = KCPFApp.TransonicCoefficientsUpdateScheme(self.settings["scheme_settings"])
+        elif strategy_type == "non_linear":
+            # Fake scheme creation to do the solution update
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return scheme
 
     def _CreateConvergenceCriterion(self):

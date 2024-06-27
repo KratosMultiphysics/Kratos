@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:    Marco Antonio Zuñiga Perez
 //                   
 //
 

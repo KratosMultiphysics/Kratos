@@ -379,7 +379,10 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
     const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
     double v_2 = inner_prod(velocity, velocity);
-    const double vacuum_velocity_squared = ComputeVacuumVelocitySquared(rCurrentProcessInfo);
+
+    // compute max velocity allowed by limit Mach number
+    const double vacuum_velocity_squared = ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+    // const double vacuum_velocity_squared = ComputeVacuumVelocitySquared(rCurrentProcessInfo);
     if( v_2 > vacuum_velocity_squared){
         v_2 = vacuum_velocity_squared;
     }

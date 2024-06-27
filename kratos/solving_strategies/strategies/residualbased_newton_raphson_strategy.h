@@ -884,23 +884,6 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-    Vector GetCurrentSolution(
-        ModelPart &rModelPart
-    ) {
-        int NumberOfNodes = rModelPart.NumberOfNodes();
-        int number_of_dos_per_node = 2;
-        Vector a = ZeroVector(NumberOfNodes*number_of_dos_per_node);
-        //KRATOS_WATCH(NumberOfNodes)
-        for (Node& node : rModelPart.Nodes()){
-            a((node.Id()-1)*number_of_dos_per_node) = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "AUXILIARY_VELOCITY_POTENTIAL" ));
-            a((node.Id()*number_of_dos_per_node-1))  = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "VELOCITY_POTENTIAL" ));
-            //a((node.Id()*number_of_dos_per_node-1)) = node.GetSolutionStepValue(VELOCITY_POTENTIAL);
-        }
-        //KRATOS_WATCH(a)
-        return a;
-    }
-
-
     Matrix GetIntermediateSolutionsMatrix(){
         return IntermediateSolutionMatrix;
     }
@@ -915,9 +898,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
-
-        Vector initial = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-        Solutions.push_back(initial);
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -957,9 +937,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-        Vector first = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-        Solutions.push_back(first);
 
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -1028,12 +1005,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-            // if (r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] < 0.5)
-            // {
-            Vector ith = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-            Solutions.push_back(ith);
-            // }
 
             residual_is_updated = false;
 

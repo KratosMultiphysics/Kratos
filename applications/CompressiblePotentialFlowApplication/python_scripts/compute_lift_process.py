@@ -67,17 +67,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         self.free_stream_velocity_norm = free_stream_velocity.norm_2()
         self.wake_direction = free_stream_velocity / self.free_stream_velocity_norm
-
-        self.wake_normal = KratosMultiphysics.Vector(3)
-        if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.wake_normal[0] = -self.wake_direction[1]
-            self.wake_normal[1] = self.wake_direction[0]
-            self.wake_normal[2] = 0.0
-        elif(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            # TODO: Read wake normal from wake process
-            self.wake_normal[0] = 0.0
-            self.wake_normal[1] = 0.0
-            self.wake_normal[2] = 1.0
+        self.wake_normal = self.fluid_model_part.ProcessInfo[CPFApp.WAKE_NORMAL]
 
         self.span_direction = KratosMultiphysics.Vector(3)
         self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)

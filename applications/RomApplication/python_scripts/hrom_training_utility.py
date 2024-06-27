@@ -61,6 +61,16 @@ class HRomTrainingUtility(object):
 
         for model_part_name in self.include_elements_model_parts_list:
             if not self.solver.model.HasModelPart(model_part_name):
+                if "upwind_elements" in model_part_name:
+                    element_list = np.unique(np.int0(np.loadtxt("upwind_elements_list.txt", usecols=(0,))))
+                    element_list =  [element_id.tolist() for element_id in element_list]
+                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+                    root_model_part.CreateSubModelPart("upwind_elements")
+                    upwind_elements_model_part = root_model_part.GetSubModelPart("upwind_elements")
+                    upwind_elements_model_part.AddElements(element_list)
+                    # model_part_io = KratosMultiphysics.ModelPartIO(model_part_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                    # model_part_io.WriteModelPart(upwind_elements_model_part)
+            else:
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 
 
@@ -74,6 +84,16 @@ class HRomTrainingUtility(object):
         candidate_ids = np.empty(0)
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
+                if "upwind_elements" in model_part_name:
+                    element_list = np.unique(np.int0(np.loadtxt("upwind_elements_list.txt", usecols=(0,))))
+                    element_list =  [element_id.tolist() for element_id in element_list]
+                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+                    root_model_part.CreateSubModelPart("upwind_elements")
+                    upwind_elements_model_part = root_model_part.GetSubModelPart("upwind_elements")
+                    upwind_elements_model_part.AddElements(element_list)
+                    # model_part_io = KratosMultiphysics.ModelPartIO(model_part_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                    # model_part_io.WriteModelPart(upwind_elements_model_part)
+            else:
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             candidate_elements_model_part = self.solver.model.GetModelPart(model_part_name)
             if candidate_elements_model_part.NumberOfElements() == 0:
@@ -135,7 +155,7 @@ class HRomTrainingUtility(object):
     def map_element_ids_to_numpy_indexes(self, this_modelpart_element_ids):
         this_modelpart_indexes_numpy = []
         for elem_id in this_modelpart_element_ids:
-            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[elem_id])
+            this_modelpart_indexes_numpy.append(self.element_id_to_numpy_index_mapping[elem_id])
         return np.array(this_modelpart_indexes_numpy)
 
 
@@ -252,6 +272,9 @@ class HRomTrainingUtility(object):
         hrom_output_name = "{}HROM".format(model_part_output_name)
         model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(hrom_main_model_part)
+
+        print(hrom_main_model_part)
+
         KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
@@ -347,7 +370,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetConditionIdsNotInHRomModelPart function
                 new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
 
@@ -384,6 +406,7 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 
