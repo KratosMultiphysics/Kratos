@@ -18,7 +18,10 @@
 // External includes
 
 // Project includes
-#include "test/test_utilities/test_environment.h"
+#include "tests/test_utilities/test_environment.h"
+
+namespace Kratos::Testing
+{
 
 /*
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
@@ -32,3 +35,5 @@ class KratosMpiTestEnv : public ::testing::Environment
         void SetUp() override;
         void TearDown() override;
 };
+
+} // namespace Kratos::Testing

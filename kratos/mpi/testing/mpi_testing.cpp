@@ -22,5 +22,5 @@
 // Create a custom main with the MPI environment and custom listeners for the test output
 int main(int argc, char* argv[]) 
 {
-    return Kratos::Testing::MPIGTestMain::InitializeMPIKernel(argc, argv);
+    return Kratos::Testing::MPIGTestMain::InitializeMPITesting(argc, argv);
 }

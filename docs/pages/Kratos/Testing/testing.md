@@ -302,9 +302,9 @@ While overall the same rules and structure from `cpp-test` apply, for mpi there 
 Please note that most importantly there are two changes happening under the hood:
 
 1) The `mKernel` is initialized with the distributed flag set to `true`.
-2) The `main` file is using a different initialization code `InitializeMPIKernel` and it is changing some events and the execution environment. 
+2) The `main` file is using a different initialization code `InitializeMPITesting` and it is changing some events and the execution environment. 
 
-In particular, in the `InitializeMPIKernel` function, the most relevant changes are:
+In particular, in the `InitializeMPITesting` function, the most relevant changes are:
 
 - The initialization process of MPI:
 
@@ -312,7 +312,7 @@ In particular, in the `InitializeMPIKernel` function, the most relevant changes 
 class MPIGTestMain {
     public:
 
-    static int InitializeMPIKernel(int argc, char* argv[]) {
+    static int InitializeMPITesting(int argc, char* argv[]) {
         // Initialize MPI
         MPI_Init(&argc, &argv);
 

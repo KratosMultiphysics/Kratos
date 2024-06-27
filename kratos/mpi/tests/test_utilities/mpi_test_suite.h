@@ -19,6 +19,9 @@
 // Project includes
 #include "tests/test_utilities/test_suite.h"
 
+namespace Kratos::Testing
+{
+
 /*
  * Suite for the mpi testing environment (mKernel(true))
 */
@@ -33,3 +36,5 @@ class KratosMPICoreFastSuite : public KratosCoreFastSuite
 
     	Kratos::Kernel mKernel;
 };
+
+} // namespace Kratos::Testing

@@ -22,31 +22,14 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/parallel_environment.h"
+#include "tests/test_utilities/test_event_listener.h"
 
 // Parallel Extension
-#include "mpi/includes/mpi_expect.h"
-#include "mpi/includes/mpi_communicator.h"
-#include "mpi/includes/mpi_data_communicator.h"
-#include "mpi/utilities/parallel_fill_communicator.h"
-
-#include "kratos/mpi/tests/test_utilities/mpi_test_environment.h"
+#include "mpi/tests/test_utilities/mpi_test_suite.h"        // Default Testing Suite. TODO: Remove once core is migrated to "mpi_core_test_suites".
+#include "mpi/tests/test_utilities/mpi_test_environment.h"
 
 namespace Kratos::Testing 
 {
-
-/*
- * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
- * Its called this way to that all tests belong to a existing kernel fixture
-*/
-class KratosMpiTestEnv : public ::testing::Environment 
-{
-    public:
-        ~KratosMpiTestEnv() override {}
-
-        void SetUp() override;
-        void TearDown() override;
-};
 
 /*
  * Initializes the parallel testing environment. This is usefull for other tests depending on a parallel environment.
