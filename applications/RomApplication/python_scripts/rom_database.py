@@ -185,7 +185,7 @@ class RomDatabase(object):
         nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].GetInt()
         non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
-        nn_data15_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"]
+        nn_data15_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"].GetDouble()
 
         return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool, nn_data15_double
 
