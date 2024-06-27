@@ -23,9 +23,11 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
+#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 
 //builders and solvers
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 
 //schemes
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
@@ -70,6 +72,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using GeoMechanicsNewtonRaphsonStrategyType = GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     using GeoMechanicsRammArcLengthStrategyType = GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType = GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+	using GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType = GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -120,11 +123,22 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
+	
+	py::class_< GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType, typename GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType::Pointer, BaseSolvingStrategyType >
+    (m, "GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic")
+    .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
 
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType = ResidualBasedBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
     py::class_< ResidualBasedBlockBuilderAndSolverWithMassAndDampingType, ResidualBasedBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
+        .def(py::init< LinearSolverType::Pointer >())
+        .def(py::init< LinearSolverType::Pointer, Parameters >())
+        ;
+		
+	using ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType = ResidualBasedBlockBuilderAndSolverLinearElasticDynamic< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    py::class_< ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType, ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType::Pointer, BuilderAndSolverType>(m, "ResidualBasedBlockBuilderAndSolverLinearElasticDynamic")
         .def(py::init< LinearSolverType::Pointer >())
         .def(py::init< LinearSolverType::Pointer, Parameters >())
         ;

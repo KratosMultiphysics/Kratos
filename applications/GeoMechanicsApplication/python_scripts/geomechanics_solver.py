@@ -503,6 +503,34 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          compute_reactions,
                                                                                          reform_step_dofs,
                                                                                          move_mesh_flag)
+        elif strategy_type.lower() == "newton_raphson_linear_elastic":
+
+            if (not (self.settings["solver_type"].GetString() == "U_Pw")
+                    and not (self.settings["solution_type"].GetString() == "dynamic")
+                    and not (self.settings["scheme_type"].GetString() == "newmark")):
+                raise Exception("The selected strategy is only available for the U-Pw solver, "
+                                "dynamic solution type and newmark scheme")
+
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+
+            # a direct solver is needed which can be pre-factorized
+            linear_solver = KratosMultiphysics.python_linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+
+            new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(linear_solver)
+
+            solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
+                                                                                         self.computing_model_part,
+                                                                                         self.scheme,
+                                                                                         linear_solver,
+                                                                                         self.convergence_criterion,
+                                                                                         new_builder_and_solver,
+                                                                                         self.strategy_params,
+                                                                                         max_iters,
+                                                                                         compute_reactions,
+                                                                                         reform_step_dofs,
+                                                                                         move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
