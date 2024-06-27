@@ -1,9 +1,9 @@
 ---
 title: Getting Kratos Binaries for Linux
-keywords: 
+keywords:
 tags: [Getting-Kratos-Binaries-for-Linux.md]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 # Pip Install
@@ -35,7 +35,6 @@ The following Kratos Pakcages ara avaialable
 - KratosPoromechanicsApplication;
 - KratosFSIApplication;
 - KratosSwimmingDEMApplication;
-- KratosEigenSolversApplication;
 - KratosLinearSolversApplication;
 - KratosConstitutiveLawsApplication;
 - KratosDelaunayMeshingApplication;

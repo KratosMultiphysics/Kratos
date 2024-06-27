@@ -163,6 +163,7 @@ void BilinearCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
             rStressVector[0] = 0.0;
         }
 
+        /*
         //TODO
 
         // rStressVector[1] = -0.5*rVariables.YoungModulus*std::exp(-StrainVector[1]); // Kn = 0.5E
@@ -198,6 +199,12 @@ void BilinearCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
         //         rStressVector[0] = 0.0;
         //     }
         // }
+        */
+
+       //Add initial stresses
+       const Element::GeometryType& geometry = rValues.GetElementGeometry();
+       InterfaceElementUtilities::AddInitialInterfaceStresses2D(rStressVector, rValues, geometry);
+
     }
 }
 

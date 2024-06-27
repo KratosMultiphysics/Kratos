@@ -8,6 +8,26 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.RomApplication.rom_manager import RomManager
+from pathlib import Path
+
+def CustomizeSimulation(cls, global_model, parameters):
+
+    class CustomSimulation(cls):
+
+        def GetFinalData(self):
+            super().GetFinalData()
+            #taken from the GeoMechanics app tests folder
+            return {f"displacement": rom_testing_utilities.GetVectorNodalResults(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT), f"nodal_area": rom_testing_utilities.GetNodalAreaVector(self._GetSolver().GetComputingModelPart()) }
+
+    return CustomSimulation(global_model, parameters)
+
+
+general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
+            "projection_strategy": "galerkin"
+        }""")
+
+
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestStructuralRom(KratosUnittest.TestCase):
@@ -21,19 +41,12 @@ class TestStructuralRom(KratosUnittest.TestCase):
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            # Set up simulation
-            with open(parameters_filename,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
-
-            # Run test case
-            self.simulation.Run()
-
+            rom_manager = RomManager(project_parameters_name=parameters_filename, CustomizeSimulation = CustomizeSimulation, general_rom_manager_parameters=general_rom_manager_parameters)
+            rom_manager.RunROM()
             # Check results
             expected_output = np.load(expected_output_filename)
-            obtained_output = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
-            aux_nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
+            obtained_output = rom_manager.QoI_Run_ROM[0]["displacement"]
+            aux_nodal_area = rom_manager.QoI_Run_ROM[0]["nodal_area"]
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
             numerator = 0.0
@@ -51,22 +64,13 @@ class TestStructuralRom(KratosUnittest.TestCase):
         expected_output_filename = "ExpectedOutputHROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            # Set up and run simulation
-            with open(parameters_filename,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
-
-            #setting hrom flag to true
-            #self.simulation.parameters
-
-            # Run test case
-            self.simulation.Run()
+            rom_manager = RomManager(project_parameters_name=parameters_filename, CustomizeSimulation = CustomizeSimulation)
+            rom_manager.RunHROM(use_full_model_part = True)
 
             # Check results
             expected_output = np.load(expected_output_filename)
-            obtained_output = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
-            aux_nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
+            obtained_output = rom_manager.QoI_Run_HROM[0]["displacement"]
+            aux_nodal_area = rom_manager.QoI_Run_HROM[0]["nodal_area"]
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
             numerator = 0.0
@@ -133,6 +137,10 @@ class TestStructuralRom(KratosUnittest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+        workfolders = ["structural_static_test_files/HROM/","structural_static_test_files/ROM/"]
+        for workfolder in workfolders:
+            with KratosUnittest.WorkFolderScope(workfolder, __file__):
+                kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database'))
 
 ##########################################################################################
 

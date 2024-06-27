@@ -333,6 +333,11 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateRightHandSide(
 template<std::size_t TDim>
 int SmallDisplacementShiftedBoundaryElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
+    // Check that only simplicial geometries are used
+    const auto geom_type = this->GetGeometry().GetGeometryType();
+    KRATOS_ERROR_IF_NOT(geom_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || geom_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) <<
+        "SmallDisplacementShiftedBoundaryElement only supports simplicial geometries (linear triangles and tetrahedra)." << std::endl;
+
     // Base SmallDisplacement element check
     return BaseType::Check(rCurrentProcessInfo);
 }

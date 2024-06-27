@@ -36,7 +36,6 @@ class TSolver(GeoSolver):
             "compute_reactions": false,
             "move_mesh_flag": false,
             "nodal_smoothing": false,
-            "reset_displacements":  false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
@@ -56,14 +55,13 @@ class TSolver(GeoSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "calculate_reactions"        : true,
+            "calculate_reactions"        : false,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 1.0,
             "min_alpha"                  : 0.1,
             "max_alpha"                  : 2.0,
             "line_search_tolerance"      : 0.5,
-            "rotation_dofs"              : false,
             "block_builder"              : true,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
@@ -113,7 +111,7 @@ class TSolver(GeoSolver):
             if scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow":
                 theta = self.settings["newmark_theta"].GetDouble()
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
-                scheme = KratosGeo.NewmarkTScheme(theta)
+                scheme = KratosGeo.GeneralizedNewmarkTScheme(theta)
             elif scheme_type.lower() == "backward_euler":
                  KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Transient heat transfer.")
                  scheme = KratosGeo.BackwardEulerTScheme()

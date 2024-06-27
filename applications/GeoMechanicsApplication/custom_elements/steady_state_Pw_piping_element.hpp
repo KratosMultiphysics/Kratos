@@ -47,7 +47,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
@@ -56,8 +55,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwPipingElement(IndexType NewId = 0)
+    explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -87,8 +85,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwPipingElement() override {}
+    ~SteadyStatePwPipingElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -114,8 +111,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,

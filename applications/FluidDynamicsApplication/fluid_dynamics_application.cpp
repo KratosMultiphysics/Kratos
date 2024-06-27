@@ -136,6 +136,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mNavierStokesLinearLogWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokesNavierSlipWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesNavierSlipWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    // Incompressible Navier-Stokes div-stable wall condition
+    mNavierStokesP2P1ContinuousWallCondition2D(0, Element::GeometryType::Pointer(new Line2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokesP2P1ContinuousWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D6<Node>(Element::GeometryType::PointsArrayType(6)))),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
@@ -160,6 +163,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mShiftedBoundaryWeaklyCompressibleNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mShiftedBoundaryWallCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node>())),
     mShiftedBoundaryWallCondition3D(0, Element::GeometryType::Pointer(new Geometry<Node>())),
+    // Incompressible Navier-Stokes div-stable elements
+    mIncompressibleNavierStokesP2P1Continuous2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node >(Element::GeometryType::PointsArrayType(6)))),
+    mIncompressibleNavierStokesP2P1Continuous3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -393,6 +399,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D4N",mCompressibleNavierStokesExplicit2D4N);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit3D4N",mCompressibleNavierStokesExplicit3D4N);
 
+    // Incompressbile Navier-Stokes div-stable elements
+    KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesP2P1Continuous2D6N",mIncompressibleNavierStokesP2P1Continuous2D6N);
+    KRATOS_REGISTER_ELEMENT("IncompressibleNavierStokesP2P1Continuous3D10N",mIncompressibleNavierStokesP2P1Continuous3D10N);
+
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D", mVMSAdjointElement3D);   // old naming convention
@@ -424,6 +434,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("NavierStokesLinearLogWallCondition3D3N", mNavierStokesLinearLogWallCondition3D);
     KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition2D2N", mNavierStokesNavierSlipWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition3D3N", mNavierStokesNavierSlipWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesP2P1ContinuousWallCondition2D3N", mNavierStokesP2P1ContinuousWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesP2P1ContinuousWallCondition3D6N", mNavierStokesP2P1ContinuousWallCondition3D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition2D2N", mTwoFluidNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition3D3N", mTwoFluidNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);
