@@ -242,8 +242,8 @@ class RomDatabase(object):
             cursor.execute(f'INSERT INTO {table_name} (tol_sol, type_of_projection, type_of_decoder,  using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                         (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
         elif table_name == 'HROM_Elements':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, projection_type, file_name))
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
+                        (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
         elif table_name == 'HROM_Weights':
             cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
@@ -282,7 +282,7 @@ class RomDatabase(object):
                             (serialized_mu, tol_sol, projection_type,decoder_type, non_converged_fom_14_bool, file_name, False))
         elif table_name == 'QoI_HROM':
             if len(numpy_array) > 0:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                             (serialized_mu, tol_sol, tol_res, projection_type,decoder_type, non_converged_fom_14_bool, file_name, True))
                 for key, value in numpy_array.items():
                     # Check if the column exists
@@ -293,7 +293,7 @@ class RomDatabase(object):
                     cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
                     self.save_as_npy(value, file_name+key)
             else:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                             (serialized_mu, tol_sol, tol_res, projection_type,decoder_type, non_converged_fom_14_bool, file_name, False))
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
