@@ -196,7 +196,7 @@ class UPwSolver(GeoSolver):
             else:
                 raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
         else:
-            raise RuntimeError("Apart from Newmark, other scheme_type are not available.")
+            raise RuntimeError("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
         return scheme
 
