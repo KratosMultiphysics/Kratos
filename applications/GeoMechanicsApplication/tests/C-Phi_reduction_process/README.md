@@ -1,16 +1,17 @@
-# c-$\phi$ reduction process
+# $c-\phi$ reduction process
 
-c-$\phi$ reduction process is tested here. This test allows one to perform a real 2D computation. 
+$c-\phi$ reduction process is tested here. This test allows one to perform a real 2D computation. 
 However, the end time is decreased and tollerances are increased to perform just a few steps. 
 This is done to have enough data to verify the implemented process and do not over-spend CPU resources. 
 
 ## Setup
-This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N class). A
-schematic representation can be found in the figure below:
+This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N class). These elements are shown in the figure below:
 
 ![MeshStructure](mesh.svg)
 
-Constraints are applied on the bottom nodes that are fixed completly and on the vertical boundaries on the left and right sides of the domain. 
+Constraints are applied 
+- on the bottom nodes that are fixed completly and 
+- on the vertical boundaries on the left and right sides of the domain that are allowed to move in the vertical direction only. 
 
 The gravitation acts down in the vertical direction. 
 
