@@ -155,29 +155,19 @@ class PwSolver(GeoSolver):
         return scheme
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
-
-        D_RT = self.settings["water_pressure_relative_tolerance"].GetDouble()
-        D_AT = self.settings["water_pressure_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
-
         if (convergence_criterion.lower() == "water_pressure_criterion"):
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            convergence_criterion.SetEchoLevel(echo_level)
+            return self._MakeWaterPressureCriterion()
         elif (convergence_criterion.lower() == "residual_criterion"):
-            convergence_criterion = self._MakeResidualCriterion()
+            return self._MakeResidualCriterion()
         elif (convergence_criterion.lower() == "and_criterion"):
-            WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            WaterPressure.SetEchoLevel(echo_level)
-            residual = self._MakeResidualCriterion()
-            convergence_criterion = KratosMultiphysics.AndCriteria(residual, WaterPressure)
+            residual_criterion       = self._MakeResidualCriterion()
+            water_pressure_criterion = self._MakeWaterPressureCriterion()
+            return KratosMultiphysics.AndCriteria(residual_criterion, water_pressure_criterion)
         elif (convergence_criterion.lower() == "or_criterion"):
-            WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            WaterPressure.SetEchoLevel(echo_level)
-            residual = self._MakeResidualCriterion()
-            convergence_criterion = KratosMultiphysics.OrCriteria(residual, WaterPressure)
+            residual_criterion       = self._MakeResidualCriterion()
+            water_pressure_criterion = self._MakeWaterPressureCriterion()
+            return KratosMultiphysics.OrCriteria(residual_criterion, water_pressure_criterion)
         else:
             err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
             err_msg += "Available options are: \"water_pressure_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
             raise Exception(err_msg)
-
-        return convergence_criterion
