@@ -202,34 +202,32 @@ class UPwSolver(GeoSolver):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
-
         if (convergence_criterion.lower() == "displacement_criterion"):
-            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            convergence_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = self._MakeDisplacementCriterion()
         elif (convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = self._MakeResidualCriterion()
         elif (convergence_criterion.lower() == "and_criterion"):
-            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            Displacement.SetEchoLevel(echo_level)
-            residual = self._MakeResidualCriterion()
-            convergence_criterion = KratosMultiphysics.AndCriteria(residual, Displacement)
+            displacement_criterion = self._MakeDisplacementCriterion()
+            residual_criterion     = self._MakeResidualCriterion()
+            convergence_criterion = KratosMultiphysics.AndCriteria(residual_criterion, displacement_criterion)
         elif (convergence_criterion.lower() == "or_criterion"):
-            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
-            Displacement.SetEchoLevel(echo_level)
+            displacement_criterion = self._MakeDisplacementCriterion()
+            R_RT = self.settings["residual_relative_tolerance"].GetDouble()
+            R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
             other_dof_name = "WATER_PRESSURE"
-            residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
-            residual.SetEchoLevel(echo_level)
-            convergence_criterion = KratosMultiphysics.OrCriteria(residual, Displacement)
+            residual_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
+            echo_level = self.settings["echo_level"].GetInt()
+            residual_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = KratosMultiphysics.OrCriteria(residual_criterion, displacement_criterion)
         elif (convergence_criterion.lower() == "water_pressure_criterion"):
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
-            convergence_criterion.SetEchoLevel(echo_level)
+            convergence_criterion = self._MakeWaterPressureCriterion()
         elif (convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
-            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+            D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
+            W_RT = self.settings["water_pressure_relative_tolerance"].GetDouble()
+            W_AT = self.settings["water_pressure_absolute_tolerance"].GetDouble()
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, W_RT, W_AT)])
+            echo_level = self.settings["echo_level"].GetInt()
             convergence_criterion.SetEchoLevel(echo_level)
         else:
             err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
@@ -237,6 +235,15 @@ class UPwSolver(GeoSolver):
             raise Exception(err_msg)
 
         return convergence_criterion
+
+    def _MakeDisplacementCriterion(self):
+        relative_tolerance = self.settings["displacement_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["displacement_absolute_tolerance"].GetDouble()
+
+        displacement = KratosMultiphysics.DisplacementCriteria(relative_tolerance, absolute_tolerance)
+        displacement.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        return displacement
 
     def _CreateBuilderAndSolver(self):
         block_builder = self.settings["block_builder"].GetBool()
@@ -248,8 +255,7 @@ class UPwSolver(GeoSolver):
         return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
-        IsConverged = self.solver.IsConverged()
-        return IsConverged
+        return self.solver.IsConverged()
 
     def _UpdateLoads(self):
         self.solver.UpdateLoads()

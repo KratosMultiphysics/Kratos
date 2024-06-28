@@ -573,3 +573,13 @@ class GeoMechanicalSolver(PythonSolver):
 
         return residual_criterion
 
+    def _MakeWaterPressureCriterion(self):
+        relative_tolerance = self.settings["water_pressure_relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["water_pressure_absolute_tolerance"].GetDouble()
+
+        water_pressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, relative_tolerance, absolute_tolerance)])
+        water_pressure.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        return water_pressure
+
+
