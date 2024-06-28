@@ -273,8 +273,8 @@ public:
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
-        // clear any nodal reaction values on penalty boundary
-        ClearReactionOnPenaltyBoundary();
+        // clear any nodal reaction values for conforming friction (needed in current penalty-based formulation)
+        ClearConformingFrictionReaction();
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
@@ -437,7 +437,7 @@ public:
                 const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
 
                 // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (!mRotationTool.IsPenalty(rConstNode) && rConstNode.Is(SLIP) && mu > 0) {
+                if (mRotationTool.IsConformingSlip(rNode) && mu > 0) {
                     mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
                 }
             });
@@ -622,13 +622,13 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-    void ClearReactionOnPenaltyBoundary() const
+    void ClearConformingFrictionReaction() const
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {
             const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
 
-            if( mRotationTool.IsPenalty(rConstNode) )
+            if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
                 rNode.FastGetSolutionStepValue(REACTION).clear();
         });
     }
