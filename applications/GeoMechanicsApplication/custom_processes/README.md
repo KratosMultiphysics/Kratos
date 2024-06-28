@@ -31,17 +31,17 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 ## Extrapolation of integration values to nodes 
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
-Conceptually the process consists of the following steps: 
+Conceptually the process consists of the following steps:
 1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
 4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
-### Restrictions 
+### Restrictions
 Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
-### Usage 
+### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
 ```json
 {
