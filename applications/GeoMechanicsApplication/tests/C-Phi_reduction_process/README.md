@@ -10,11 +10,9 @@ schematic representation can be found in the figure below:
 
 ![MeshStructure](mesh.svg)
 
-The computation is done in two stages. The first stage is a settlement due to gravitation when all nodes except the bootom nodes are allowed to move in the vertical direction. 
-The second stage is
+Constraints are applied on the bottom nodes that are fixed completly and on the vertical boundaries on the left and right sides of the domain. 
 
-All nodes on the sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
-direction. At the top of the column a vertical compressive line load with a magnitude of $q=1.0 \mathrm{[N/m]}$ is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation, the top load generates the excess pore pressure. In the first stage no Dirichlet boundaries for the water pressure D.O.F. are given, such that all water is contained within the column. In all later stages, the water pressure (p) on the top of the column is specified to be 0.0 [Pa]. This creates an outflow boundary at the top.
+The gravitation acts down in the vertical direction. 
 
 The material is described using:
 
@@ -23,4 +21,15 @@ The material is described using:
 -  Unit weight 20 $kN/m^3$
 -  Cohesion 10 $kPa$
 -  Friction angle 35.0 deg
+ 
+The computation is done in two stages. The first stage is a settlement due to gravitation when all nodes except the bootom nodes are allowed to move in the vertical direction. 
+The second stage is done only for two time steps. 
 
+
+## Assertions
+
+The test asserts movement in horizontal direction at three nodes, which are chosen because their movement is larger than for majority of nodes. 
+
+The figure below shows the calculated deformation.
+
+![Deformation](deformation.svg)
