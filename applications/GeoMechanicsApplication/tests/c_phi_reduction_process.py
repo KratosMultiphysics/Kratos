@@ -20,7 +20,7 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
         
-    @KratosUnittest.skip("Test test_c_phi_reduction_process skipped temporary.")
+    #@KratosUnittest.skip("Test test_c_phi_reduction_process skipped temporary.")
     def test_c_phi_reduction_process(self):
 
         # get the parameter file names for all stages
@@ -50,9 +50,9 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
         reader.read_output_from(os.path.join(file_path, "stage2.post.res"))
         displacement = test_helper.get_displacement(stages[1])
-        self.assertAlmostEqual(-0.001288561508339424, displacement[12][0])
-        self.assertAlmostEqual(-0.001688453602754448, displacement[27][0])
-        self.assertAlmostEqual(-0.01123562533250766, displacement[150][0])
+        self.assertAlmostEqual(-0.0008964807371535437, displacement[12][0])
+        self.assertAlmostEqual(-0.0011135191709369784, displacement[27][0])
+        self.assertAlmostEqual(-0.00967769824048078, displacement[150][0])
 
 
 if __name__ == '__main__':
