@@ -117,10 +117,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
-    .def("SetNumberOfNNLayers", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
-    .def("SetPhiMatrices", &AnnPromGlobalROMBuilderAndSolverType::SetPhiMatrices)
-    .def("SetReferenceSnapshot", &AnnPromGlobalROMBuilderAndSolverType::SetReferenceSnapshot)
     ;
 
     typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
@@ -128,10 +126,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
-    .def("SetNumberOfNNLayers", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
-    .def("SetPhiMatrices", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetPhiMatrices)
-    .def("SetReferenceSnapshot", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetReferenceSnapshot)
     ;
 
 }

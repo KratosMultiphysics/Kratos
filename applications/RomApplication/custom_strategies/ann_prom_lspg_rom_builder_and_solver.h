@@ -342,14 +342,24 @@ public:
     {
         KRATOS_TRY
 
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+
         if (mRightRomBasisInitialized==false){
             BaseType::mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), BaseType::GetNumberOfROMModes());
-            auto& r_root_mp = rModelPart.GetRootModelPart();
             Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
             Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            BaseType::GetXAndDecoderGradient(xrom, xBase);
+            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom, xBase, BaseType::mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
             mRightRomBasisInitialized = true;
-            }
+        }
+        else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
+            Vector& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
+            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, BaseType::mPhiGlobal, svdPhiMatrices, nnLayers);
+        }
 
         BaseType::BuildRightROMBasis();
         auto a_wrapper = UblasWrapper<double>(rA);

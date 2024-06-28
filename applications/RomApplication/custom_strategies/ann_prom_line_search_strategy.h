@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_utilities/rom_nn_utility.h" 
 
 
 namespace Kratos
@@ -443,10 +444,16 @@ protected:
         typename TSchemeType::Pointer pScheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
-        TSystemVectorType& DxRom = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
-        TSystemVectorType& XRomPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_BASE);
-        TSystemVectorType& XRomTotal = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_TOTAL);
-        TSystemVectorType& UPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(SOLUTION_BASE);
+        auto& r_root_mp = BaseType::GetModelPart().GetRootModelPart();
+
+        TSystemVectorType& DxRom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+        TSystemVectorType& XRomPrevious = r_root_mp.GetValue(ROM_SOLUTION_BASE);
+        TSystemVectorType& XRomTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
+        TSystemVectorType& UPrevious = r_root_mp.GetValue(SOLUTION_BASE);
+
+        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+        Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_INCREMENT " << DxRom << std::endl;
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_BASE " << XRomPrevious << std::endl;
@@ -474,7 +481,7 @@ protected:
         //Compute residual with 1 coefficient update (x1)
         TSparseSpace::Assign(auxRom,x1,DxRom);
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "X1: " << x1 << "AuxROM " << auxRom << std::endl;
-        pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
+        RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(auxRom+XRomPrevious, UTotal, svdPhiMatrices, nnLayers, refSnapshot);
         aux = UTotal-UPrevious;
         Dx = aux;
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
@@ -491,7 +498,7 @@ protected:
             //Compute residual with 2 coefficient update (x2)
             TSparseSpace::Assign(auxRom,x2, DxRom);
             // KRATOS_INFO("AnnPromLineSearchStrategy") << "X2: " << x2 << "AuxROM " << auxRom << std::endl;
-            pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(auxRom+XRomPrevious, UTotal, svdPhiMatrices, nnLayers, refSnapshot);
             auxPrevious = aux;
             aux = UTotal-UPrevious;
             Dx = aux-auxPrevious;
@@ -522,7 +529,7 @@ protected:
             //Perform final update
             TSparseSpace::Assign(auxRom,x, DxRom);
             // KRATOS_INFO("AnnPromLineSearchStrategy") << "x: " << x << "AuxROM " << auxRom << std::endl;
-            pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXFromDecoder(auxRom+XRomPrevious, UTotal, svdPhiMatrices, nnLayers, refSnapshot);
             auxPrevious = aux;
             aux = UTotal-UPrevious;
             Dx = aux-auxPrevious;
@@ -572,9 +579,11 @@ protected:
         DxRom = auxRom;
         XRomTotal = DxRom+XRomPrevious;
 
-        pBuilderAndSolver->GetXAndDecoderGradient(auxRom+XRomPrevious, UTotal);
+        // pBuilderAndSolver->GetXAndDecoderGradient(auxRom+XRomPrevious, UTotal);
 
         TSparseSpace::SetToZero(b);
+
+        r_root_mp.SetValue(UPDATE_PHI_EFFECTIVE_BOOL, true);
 
     }
 

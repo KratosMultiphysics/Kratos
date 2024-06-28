@@ -34,6 +34,7 @@
 /* Application includes */
 #include "rom_application_variables.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/rom_nn_utility.h"
 
 namespace Kratos
 {
@@ -226,46 +227,34 @@ public:
         mNumberOfRomModes = numberOfRomModes;
     }
 
-    void SetNumberOfNNLayers(SizeType numberOfNNLayers)
+    void SetDecoderParameters(
+        ModelPart &rModelPart,
+        SizeType numberOfNNLayers,
+        Matrix svdPhiInf,
+        Matrix svdPhiSigSup,
+        Matrix svdSigInvInf,
+        Vector refSnapshot
+    )
     {
-        mNNLayers = vector<EigenDynamicMatrix> (numberOfNNLayers);
-        mGradientLayers = vector<EigenDynamicMatrix> (numberOfNNLayers);
-        mIntermediateGradients = vector<EigenDynamicMatrix> (numberOfNNLayers);
-        mLayersOut = vector<EigenDynamicVector> (numberOfNNLayers+1);
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.SetValue(NN_LAYERS, vector<Matrix>(numberOfNNLayers));
+        r_root_mp.SetValue(SVD_PHI_MATRICES, vector<Matrix>(3));
+        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        svdPhiMatrices[0] = svdPhiInf;
+        svdPhiMatrices[1] = svdPhiSigSup;
+        svdPhiMatrices[2] = svdSigInvInf;
+        r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
     }
 
     void SetNNLayer(
+        ModelPart &rModelPart,
         SizeType layerIndex,
         Matrix nnLayer
     )
     {
-        Eigen::Map<EigenDynamicMatrix> eigen_nn_layer(nnLayer.data().begin(), nnLayer.size1(), nnLayer.size2());
-        mNNLayers[layerIndex]= eigen_nn_layer;
-    }
-
-
-    void SetPhiMatrices(
-        Matrix svdPhiInf,
-        Matrix svdPhiSigSup,
-        Matrix svdSigInvInf
-    )
-    {
-        mSVDPhiMatrices = vector<EigenDynamicMatrix>(3);
-
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_inf(svdPhiInf.data().begin(), svdPhiInf.size1(), svdPhiInf.size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_phisig_sup(svdPhiSigSup.data().begin(), svdPhiSigSup.size1(), svdPhiSigSup.size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_sig_inv_inf(svdSigInvInf.data().begin(), svdSigInvInf.size1(), svdSigInvInf.size2());
-        mSVDPhiMatrices[0] = eigen_phi_inf;
-        mSVDPhiMatrices[1] = eigen_phisig_sup;
-        mSVDPhiMatrices[2] = eigen_sig_inv_inf;
-    }
-
-    void SetReferenceSnapshot(
-        Vector refSnapshot
-    )
-    {
-        Eigen::Map<EigenDynamicVector> eigenRefSnapshot(refSnapshot.data().begin(), refSnapshot.size());
-        mRefSnapshot = eigenRefSnapshot;
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+        nnLayers[layerIndex] = nnLayer;
     }
 
     void MonotonicityPreserving(
@@ -401,90 +390,6 @@ public:
         return "ann_prom_global_rom_builder_and_solver";
     }
 
-
-
-    void GetXAndDecoderGradient(
-        Vector rRomUnknowns,
-        Vector& rx)
-    {
-
-        EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1];
-        // EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1]*0;
-
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_phi_global(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
-
-        mGradientLayers = mNNLayers;
-        
-        mLayersOut[0] = mSVDPhiMatrices[2]*eigen_rom_unknowns;
-
-        int i=0;
-        for(auto& layers_item : mNNLayers)
-        {   
-            mLayersOut[i+1] = layers_item.transpose()*mLayersOut[i];
-
-            if(i<mNNLayers.size()-1){
-                IndexPartition<IndexType>(mLayersOut[i+1].size()).for_each([&](IndexType Index)
-                {   
-                    if (mLayersOut[i+1][Index]<0.0){
-                        mGradientLayers[i].col(Index)*=exp(mLayersOut[i+1][Index]);
-                        mLayersOut[i+1][Index] = exp(mLayersOut[i+1][Index])-1.0;
-                    }
-                });
-            }
-            i++;
-        }
-
-        mIntermediateGradients[0] = mGradientLayers[0];
-
-        for (int i = 0; i < mGradientLayers.size()-1; i++)
-        {
-            mIntermediateGradients[i+1] = mIntermediateGradients[i]*mGradientLayers[i+1];
-        }
-
-        eigen_phi_global=mSVDPhiMatrices[0]+phisig_sup*mIntermediateGradients[mIntermediateGradients.size()-1].transpose()*mSVDPhiMatrices[2];
-
-        eigen_rx = mRefSnapshot + mSVDPhiMatrices[0]*eigen_rom_unknowns + phisig_sup*mLayersOut[mLayersOut.size()-1];
-
-    }
-
-
-    void GetXFromDecoder(
-        Vector rRomUnknowns,
-        Vector& rx)
-    {
-        EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1];
-
-        Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
-        Eigen::Map<EigenDynamicVector> eigen_rx(rx.data().begin(), rx.size());
-        
-        mLayersOut[0] = mSVDPhiMatrices[2]*eigen_rom_unknowns;
-
-        int i=0;
-        for(auto& layers_item : mNNLayers)
-        {   
-            mLayersOut[i+1] = layers_item.transpose()*mLayersOut[i];
-
-            if(i<mNNLayers.size()-1){
-                IndexPartition<IndexType>(mLayersOut[i+1].size()).for_each([&](IndexType Index)
-                {   
-                    if (mLayersOut[i+1][Index]<0.0){
-                        mLayersOut[i+1][Index] = exp(mLayersOut[i+1][Index])-1.0;
-                    }
-                });
-            }
-            i++;
-        }
-
-        eigen_rx = mRefSnapshot + mSVDPhiMatrices[0]*eigen_rom_unknowns + phisig_sup*mLayersOut[mLayersOut.size()-1];
-    }
-
-    Matrix GetPhiEffectiveMatrix()
-    const override
-    {
-        return mPhiGlobal;
-    }
 
     ///@}
     ///@name Access
@@ -832,13 +737,25 @@ protected:
     {
         KRATOS_TRY
 
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+
         if (mRightRomBasisInitialized==false){
             mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
-            auto& r_root_mp = rModelPart.GetRootModelPart();
             Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
             Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            GetXAndDecoderGradient(xrom, xBase);
+            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom, xBase, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
+
             mRightRomBasisInitialized = true;
+        }
+        else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
+            Vector& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
+            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, mPhiGlobal, svdPhiMatrices, nnLayers);
         }
 
         BuildRightROMBasis();
@@ -883,6 +800,10 @@ protected:
         // KRATOS_WATCH(xBase);
         Vector xNew (rDx.size());
 
+        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
+        Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+
         const auto solving_timer = BuiltinTimer();
 
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
@@ -894,14 +815,17 @@ protected:
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 
-        // project reduced solution back to full order model
+        // project reduced solution back to full order modela
         const auto backward_projection_timer = BuiltinTimer();
-        GetXAndDecoderGradient(xrom+dxrom,xNew);
+
+        RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom+dxrom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
         
         GetDxAndUpdateXBase(xNew, xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         xromTotal = xrom+dxrom;
+
+        r_root_mp.SetValue(UPDATE_PHI_EFFECTIVE_BOOL, false);
         
         KRATOS_CATCH("")
     }
@@ -947,12 +871,6 @@ private:
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     bool mMonotonicityPreservingFlag;
-    vector<EigenDynamicMatrix> mNNLayers;
-    vector<EigenDynamicMatrix> mGradientLayers;
-    vector<EigenDynamicMatrix> mIntermediateGradients;
-    vector<EigenDynamicVector> mLayersOut;
-    vector<EigenDynamicMatrix> mSVDPhiMatrices;
-    EigenDynamicVector mRefSnapshot;
 
     ///@}
     ///@name Private operations 

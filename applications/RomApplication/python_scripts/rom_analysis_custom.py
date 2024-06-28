@@ -30,7 +30,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             """
 
         def _GetSVDPhiMatrices(self):
-            """Define method to obtain the Phi_inf and Phi_sup matrices"""
+            """Define method to obtain the Phi_inf, PhiSig_sup and Sig_inf_inf matrices"""
 
         def _GetNNLayers(self):
             """Define method to obtain the NN layers' weights"""
@@ -257,18 +257,17 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
         def ModifyInitialGeometry(self):
             super().ModifyInitialGeometry()
 
+            computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+
             NNLayers=self._GetNNLayers()
             SVDPhiMatrices=self._GetSVDPhiMatrices()
             refSnapshot=self._GetReferenceSnapshot()
             numberOfROMModes = SVDPhiMatrices[0].Size2()
             self._GetSolver()._GetBuilderAndSolver().SetNumberOfROMModes(numberOfROMModes)
-            self._GetSolver()._GetBuilderAndSolver().SetNumberOfNNLayers(len(NNLayers))
+            self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
             for i, layer in enumerate(NNLayers):
-                self._GetSolver()._GetBuilderAndSolver().SetNNLayer(i, layer)
-            self._GetSolver()._GetBuilderAndSolver().SetPhiMatrices(SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2])
-            self._GetSolver()._GetBuilderAndSolver().SetReferenceSnapshot(refSnapshot)
+                self._GetSolver()._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
             
-            computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
             nodal_unknown_names= self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
             nodal_dofs = len(nodal_unknown_names)
             nodal_unknowns=[]
