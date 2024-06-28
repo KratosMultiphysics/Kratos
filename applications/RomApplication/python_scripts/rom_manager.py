@@ -314,7 +314,7 @@ class RomManager(object):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            if self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool():
+            if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
                 u,sigma = BasisOutputProcess._ComputeSVD(nonconverged = True,data_base =  self.data_base, mu_train=mu_train )
             else:
                 u,sigma = BasisOutputProcess._ComputeSVD(snapshots_matrix =self.data_base.get_snapshots_matrix_from_database(mu_train), nonconverged = False) #Calling the RomOutput Process for creating the RomParameter.json
