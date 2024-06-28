@@ -43,7 +43,7 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
         self.SetupErrorsDictionaries()
 
-    def Fit(self, mu_train=[None],mu_validation=[None]):
+    def Fit(self, mu_train=[None],mu_validation=[None], use_hhrom_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -70,7 +70,7 @@ class RomManager(object):
                     self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                     self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hhrom_model_part = use_hhrom_model_part)
         #######################
 
         #######################################
@@ -90,7 +90,7 @@ class RomManager(object):
                     self._LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hhrom_model_part = use_hhrom_model_part)
         #######################################
 
         ##########################
@@ -113,7 +113,7 @@ class RomManager(object):
                     self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
                     self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hhrom_model_part = use_hhrom_model_part)
             ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -154,7 +154,7 @@ class RomManager(object):
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test', use_hhrom_model_part = use_hhrom_model_part)
 
         #######################
 
@@ -167,7 +167,7 @@ class RomManager(object):
                 self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test', use_hhrom_model_part = use_hhrom_model_part)
         #######################################
 
 
@@ -181,7 +181,7 @@ class RomManager(object):
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test', use_hhrom_model_part = use_hhrom_model_part)
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -250,6 +250,13 @@ class RomManager(object):
             if rom_snapshots is None:  # Only fetch if not already fetched
                 rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
             hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
+
+            if len(hrom_snapshots) != len(fom_snapshots) or len(hrom_snapshots) != len(rom_snapshots):
+                q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM_q')
+                if (q.shape[0] == 1): q = q.T
+                phi = np.load(f'{self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
+                hrom_snapshots = phi @ q
+
             error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
             error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
             self.ROMvsHROM[case] = error_rom_hrom
@@ -366,6 +373,9 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("ROM_q", mu, q)
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
@@ -472,12 +482,15 @@ class RomManager(object):
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
 
-    def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
+    def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit', use_hhrom_model_part = False):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        if use_hhrom_model_part:
+            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             in_database, _ = self.data_base.check_if_in_database("HROM", mu)
@@ -491,6 +504,9 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("HROM_q", mu, q)
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):

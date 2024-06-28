@@ -70,6 +70,14 @@ class HRomTrainingUtility(object):
                     upwind_elements_model_part.AddElements(element_list)
                     # model_part_io = KratosMultiphysics.ModelPartIO(model_part_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
                     # model_part_io.WriteModelPart(upwind_elements_model_part)
+                    
+                if "trailing_edge_element" in model_part_name:
+                    element_list = np.unique(np.int0(np.loadtxt("trailing_edge_element_id.txt", usecols=(0,))))
+                    element_list =  [element_id.tolist() for element_id in element_list]
+                    root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+                    root_model_part.CreateSubModelPart("trailing_edge_element")
+                    trailing_edge_element_model_part = root_model_part.GetSubModelPart("trailing_edge_element")
+                    trailing_edge_element_model_part.AddElements(element_list)
             else:
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 

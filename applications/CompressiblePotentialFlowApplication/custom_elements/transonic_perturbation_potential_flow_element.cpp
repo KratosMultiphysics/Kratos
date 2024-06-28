@@ -88,6 +88,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
         if (save_value){
             upwind_elements_list << this->Id() << std::endl;
             upwind_elements_list << pGetUpwindElement()->Id() << std::endl;
+            this->SetValue(ID_UPWIND_ELEMENT, pGetUpwindElement()->Id());
         }
     }
     upwind_elements_list.close();
@@ -313,6 +314,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnInte
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
     {
         rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
+    }
+    else if (rVariable == ID_UPWIND_ELEMENT)
+    {
+        rValues[0] = this->GetValue(ID_UPWIND_ELEMENT);
     }
 }
 

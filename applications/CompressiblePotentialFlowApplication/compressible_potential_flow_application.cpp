@@ -135,6 +135,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
   KRATOS_REGISTER_VARIABLE(DEACTIVATED_WAKE);
   KRATOS_REGISTER_VARIABLE(ALL_TRAILING_EDGE);
   KRATOS_REGISTER_VARIABLE(ZERO_VELOCITY_CONDITION);
+  KRATOS_REGISTER_VARIABLE(ID_UPWIND_ELEMENT);
 
   //Register elements
   KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N", mIncompressiblePotentialFlowElement2D3N);
