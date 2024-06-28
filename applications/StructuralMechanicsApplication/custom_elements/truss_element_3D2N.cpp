@@ -438,6 +438,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints();
     if (rOutput.size() != integration_points.size()) {
@@ -453,6 +454,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     }
 
     if ((rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)) {
+        KRATOS_INFO("TrussElement3D2N") << "Calculating CAUCHY_STRESS_VECTOR" << std::endl;
 
         array_1d<double, 3 > truss_stresses;
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
@@ -477,8 +479,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         temp_stress[0] += prestress;
         Vector stress = ZeroVector(msDimension);
         stress[0] = temp_stress[0];
-        stress[1] = 0.00;
-        stress[2] = 0.00;
         rOutput[0] = stress;
 
 

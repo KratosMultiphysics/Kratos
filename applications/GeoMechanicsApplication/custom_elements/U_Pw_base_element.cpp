@@ -389,9 +389,9 @@ void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVaria
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Vector) "
-                    "method for a particular element ... illegal operation!!"
-                 << this->Id() << std::endl;
+    // KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Vector) "
+    //                 "method for a particular element ... illegal operation!!"
+    //              << this->Id() << std::endl;
 
     KRATOS_CATCH("")
 }

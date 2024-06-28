@@ -179,6 +179,8 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         Strain[2] = 0.00;
         rOutput[0] = Strain;
     }
+
+    TrussElement3D2N::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
