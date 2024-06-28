@@ -49,9 +49,6 @@ Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
     return Kratos::make_intrusive<GeoCrBeamElement3D2N>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------------------
-GeoCrBeamElement3D2N::~GeoCrBeamElement3D2N() {}
-
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {

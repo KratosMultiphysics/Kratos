@@ -233,7 +233,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
   windows:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -422,7 +422,7 @@ jobs:
 
 
   windows-core-without-unity:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -456,7 +456,7 @@ jobs:
     - name: Build
       shell: cmd
       run: |
-        call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
         set CC=cl.exe
         set CXX=cl.exe
@@ -472,7 +472,7 @@ jobs:
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
         cmake                                                 ^
-          -G"Visual Studio 17 2022"                           ^
+          -G"Visual Studio 16 2019"                           ^
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^

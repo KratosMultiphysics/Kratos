@@ -13,21 +13,21 @@
 //                   Marjan Fathian
 //
 #include "apply_excavation_process.h"
-#include "includes/model_part.h"
 #include "includes/element.h"
-#include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 
-ApplyExcavationProcess::ApplyExcavationProcess(ModelPart&        rModelPart,
-                                               const Parameters& rProcessSettings)
-           : Process(Flags()),
-             mrModelPart{rModelPart},
-             mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
-{}
+ApplyExcavationProcess::ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
+    : Process(Flags()),
+      mrModelPart{rModelPart},
+      mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
+{
+}
 
 void ApplyExcavationProcess::ExecuteInitialize()
 {
@@ -35,9 +35,8 @@ void ApplyExcavationProcess::ExecuteInitialize()
     VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Elements());
 
     if (mDeactivateSoilPart) {
-        block_for_each(mrModelPart.Elements(), [](Element &rElement) {
-            rElement.ResetConstitutiveLaw();
-        });
+        block_for_each(mrModelPart.Elements(),
+                       [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
     } else {
         VariableUtils{}.SetFlag(ACTIVE, true, mrModelPart.Nodes());
     }
@@ -48,4 +47,4 @@ void ApplyExcavationProcess::ExecuteInitialize()
 
 ApplyExcavationProcess::~ApplyExcavationProcess() = default;
 
-}
+} // namespace Kratos

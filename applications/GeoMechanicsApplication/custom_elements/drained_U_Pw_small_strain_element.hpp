@@ -50,8 +50,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    DrainedUPwSmallStrainElement(IndexType NewId = 0)
+    explicit DrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -81,8 +80,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~DrainedUPwSmallStrainElement() override {}
+    ~DrainedUPwSmallStrainElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,

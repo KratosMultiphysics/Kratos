@@ -57,7 +57,7 @@ public:
     using FullDofMatrixType    = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
     using FullDofVectorType    = BoundedVector<double, TDim * TNumNodes>;
 
-    GeoTrussElementBase(){};
+    GeoTrussElementBase() = default;
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 

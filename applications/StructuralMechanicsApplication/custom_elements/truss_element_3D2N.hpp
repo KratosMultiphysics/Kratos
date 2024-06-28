@@ -246,7 +246,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
+        virtual double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -256,6 +256,9 @@ namespace Kratos
         bool HasSelfWeight() const;
 
         const Parameters GetSpecifications() const override;
+
+protected:
+    double ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     /**
