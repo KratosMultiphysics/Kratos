@@ -111,7 +111,7 @@ class SlipBoundaryTest(MPMTestFactory):
     file_name = "slip_tests/conforming/slip_boundary_test"
 
 class PenaltyBasedSlipTest(MPMTestFactory):
-    file_name = "slip_tests/non_conforming/penalty_based/penalty_based_slip_test"
+    file_name = "slip_tests/particle_based/particle_based_slip_test"
 
 ### Explicit time integration tests
 class ExplicitOscillatingPointUSLTest(MPMTestFactory):

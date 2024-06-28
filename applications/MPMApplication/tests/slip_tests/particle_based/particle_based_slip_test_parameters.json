@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "penalty_based_slip_test",
+        "problem_name": "particle_based_slip_test",
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
@@ -19,10 +19,10 @@
         "scheme_type": "newmark",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "slip_tests/non_conforming/penalty_based/penalty_based_slip_test_Body"
+            "input_filename": "slip_tests/particle_based/particle_based_slip_test_Body"
         },
         "material_import_settings": {
-            "materials_filename": "slip_tests/non_conforming/penalty_based/penalty_based_slip_test_materials.json"
+            "materials_filename": "slip_tests/particle_based/particle_based_slip_test_materials.json"
         },
         "convergence_criterion": "residual_criterion",
         "displacement_relative_tolerance": 0.0001,
@@ -32,7 +32,7 @@
         "max_iteration": 10,
         "grid_model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "slip_tests/non_conforming/penalty_based/penalty_based_slip_test_Grid"
+            "input_filename": "slip_tests/particle_based/particle_based_slip_test_Grid"
         },
         "pressure_dofs": false,
         "linear_solver_settings": {
@@ -84,7 +84,7 @@
         "process_name"          : "MPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables"  : ["MP_DISPLACEMENT", "MP_VELOCITY"],
-            "output_file_name"               : "slip_tests/non_conforming/penalty_based/penalty_based_slip_test_results.json",
+            "output_file_name"               : "slip_tests/particle_based/particle_based_slip_test_results.json",
             "model_part_name"                : "MPM_Material",
             "time_frequency"                 : 0.49
         }
