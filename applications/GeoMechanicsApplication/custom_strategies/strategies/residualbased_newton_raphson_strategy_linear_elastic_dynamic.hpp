@@ -84,9 +84,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
-	using BaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
-    //typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    using MotherType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+	using BaseType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     typedef GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
@@ -135,10 +133,12 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters& rParameters,
+        double Beta,
+        double Gamma,
         int MaxIterations = 30,
         bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false
+)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
             rModelPart,
             pScheme,
@@ -147,8 +147,8 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             pNewBuilderAndSolver,
             MaxIterations,
             CalculateReactions,
-            ReformDofSetAtEachStep,
-            MoveMeshFlag)
+            false,
+            MoveMeshFlag), mBeta(Beta), mGamma(Gamma)
     {
         // new constructor
     }
@@ -190,7 +190,6 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         //rUpdatedSecondDerivativeVector = rFirstDerivativeVector * (1.0 / (mBeta * delta_time)) + rSecondDerivativeVector * (1.0 / (2 * mBeta));
 		TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), rFirstDerivativeVector, 1.0 / (2 * mBeta), rSecondDerivativeVector, rUpdatedSecondDerivativeVector);
 
-
 		this->SetFirstAndSecondDerivativeVector(rUpdatedFirstDerivativeVector, rUpdatedSecondDerivativeVector, model_part);
 
         // Move the mesh if needed
@@ -212,6 +211,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TConvergenceCriteriaType::Pointer p_convergence_criteria = mpConvergenceCriteria;
+            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
             //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
             if (p_scheme->SchemeIsInitialized() == false)
@@ -228,6 +228,8 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             //initialisation of the convergence criteria
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
+     
+            this->InititalizeSystemAndState();
 
             mInitializeWasPerformed = true;
         }
@@ -251,7 +253,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
-        if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep)
+        if (!p_builder_and_solver->GetDofSetIsInitializedFlag())
         {
             // Setting up the list of the DOFs to be solved
             BuiltinTimer setup_dofs_time;
@@ -376,7 +378,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
         if (mStoreNonconvergedSolutionsFlag) {
             Vector initial;
-            GetCurrentSolution(r_dof_set,initial);
+            BaseType::GetCurrentSolution(r_dof_set,initial);
             NonconvergedSolutions.push_back(initial);
         }
 
@@ -391,37 +393,24 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool residual_is_updated = false;
 
-		if (BaseType::mStiffnessMatrixIsBuilt == false) {
-			//initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
-		}
-        else {
-            // only initialize conditions of the stiffness matrix is built
-            const auto& r_current_process_info = r_model_part.GetProcessInfo();
-            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-                if (r_condition.IsActive()) {
-                    r_condition.InitializeNonLinearIteration(r_current_process_info);
-                }});
-        }
+
+        // only initialize conditions of the stiffness matrix is built
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+            if (r_condition.IsActive()) {
+                r_condition.InitializeNonLinearIteration(r_current_process_info);
+            }});
 
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-        // Function to perform the building and the solving phase.
-        if (BaseType::mStiffnessMatrixIsBuilt == false) {
-            TSparseSpace::SetToZero(rA);
-            TSparseSpace::SetToZero(rDx);
-            TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        TSparseSpace::SetToZero(rDx); 
+        TSparseSpace::SetToZero(rb);
 
-        } else {
-            TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
-            TSparseSpace::SetToZero(rb);
+        p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
 
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-        }
-
+        
         // Debugging info
         EchoInfo(iteration_number);
 
@@ -431,7 +420,6 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
          
         // only finalize condition non linear iteration
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
         block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
             if (r_condition.IsActive()) {
                 r_condition.FinalizeNonLinearIteration(r_current_process_info);
@@ -442,7 +430,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
         if (mStoreNonconvergedSolutionsFlag) {
             Vector first;
-            GetCurrentSolution(r_dof_set,first);
+            BaseType::GetCurrentSolution(r_dof_set,first);
             NonconvergedSolutions.push_back(first);
         }
 
@@ -503,7 +491,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 
             if (mStoreNonconvergedSolutionsFlag == true){
                 Vector ith;
-                GetCurrentSolution(r_dof_set,ith);
+                BaseType::GetCurrentSolution(r_dof_set,ith);
                 NonconvergedSolutions.push_back(ith);
             }
 
@@ -565,7 +553,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                                : "newton_raphson_strategy",
+            "name"                                : "newton_raphson_strategy_linear_elastic_dynamic",
             "use_old_stiffness_in_first_iteration": false,
             "max_iteration"                       : 10,
             "reform_dofs_at_each_step"            : false,
@@ -668,8 +656,8 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
     ///@{
 
 
-    double mBeta = 0.25;
-	double mGamma = 0.5;
+    double mBeta;
+	double mGamma;
 
     ///@}
     ///@name Private Operators
@@ -831,6 +819,26 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
 		this->SetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
 
     }
+
+    /// <summary>
+    /// Initializes the system matrices and the initial state
+    /// </summary>
+    void InititalizeSystemAndState()
+	{
+        TSystemMatrixType& rA = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb = *mpb;
+
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+		typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+
+        this->InitializeSolutionStep();
+        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+        p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
+        this->FinalizeSolutionStep();
+        BaseType::mStiffnessMatrixIsBuilt = true;
+	}
 
     ///@}
     ///@name Private Operations
