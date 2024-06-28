@@ -32,7 +32,6 @@
     "block_builder"                      : true,
     "solution_type"                      : "Transient_Groundwater_Flow",
     "scheme_type"                        : "Backward_Euler",
-    "reset_displacements"                : false,
     "newmark_beta"                       : 0.25,
     "newmark_gamma"                      : 0.5,
     "newmark_theta"                      : 0.5,
@@ -61,7 +60,6 @@
     "min_alpha"                          : 0.1,
     "max_alpha"                          : 2.0,
     "line_search_tolerance"              : 0.5,
-    "rotation_dofs"                      : true,
     "linear_solver_settings" : {
       "solver_type"                      : "LinearSolversApplication.sparse_lu",
       "scaling"                          : true
