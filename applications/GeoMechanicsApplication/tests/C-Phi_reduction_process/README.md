@@ -23,7 +23,7 @@ The material is described using:
 -  Cohesion 10 $kPa$
 -  Friction angle 35.0 deg
  
-The computation is done in two stages. The first stage is a settlement due to gravitation when all nodes except the bootom nodes are allowed to move in the vertical direction. 
+The computation is done in two stages. The first stage is a settlement due to the gravitation. 
 The second stage is done only for two time steps. 
 
 
