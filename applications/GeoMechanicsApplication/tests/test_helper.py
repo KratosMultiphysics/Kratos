@@ -500,7 +500,7 @@ class GiDOutputFileReader:
         value = {"node": int(words[0])}
         if self.result_type == "Scalar":
             value["value"] = float(words[1])
-        elif self.result_type == "Vector":
+        elif self.result_type == "Vector" or self.result_type == "Matrix":
             value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
@@ -566,3 +566,32 @@ class GiDOutputFileReader:
             return [item["value"] for item in matching_item["values"]]
 
         return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
+
+    @staticmethod
+    def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
+        if element_ids and element_ids != sorted(element_ids):
+            raise RuntimeError("Element IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnGaussPoints":
+            raise RuntimeError(f"'{result_item_name}' is not an integration point result")
+
+        if element_ids:
+            element_results = [item["value"] for item in matching_item["values"] if item["element"] in element_ids]
+        else:
+            element_results = [item["value"] for item in matching_item["values"]]
+
+        if integration_point_indices:
+            result = []
+            for element_result in element_results:
+                result.append([item for index, item in enumerate(element_result) if index in integration_point_indices])
+            return result
+        else:
+            return element_results

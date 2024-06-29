@@ -169,7 +169,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorT
 
     rInternalForces = prod(transformation_matrix, rInternalForces);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     GeoTrussElementLinearBase<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

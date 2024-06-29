@@ -43,6 +43,15 @@ from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
 from test_conditions import KratosGeoMechanicsConditionTests
+from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
+from test_dirichlet_u import KratosGeoMechanicsDirichletUTests
+from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTests
+from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
+from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFluxTests
+from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
+from test_compressibility import KratosGeoMechanicsCompressibilityTests
+from fixed_spatial_variation import KratosGeoMechanicsFixedSpatialVariationTests
+from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -82,8 +91,14 @@ def AssembleTestSuites():
                         KratosGeoMechanicsStrainMeasureTests,
                         KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
                         KratosGeoMechanicsRotationWithMovingLoadTests,
-                        KratosGeoMechanicsConditionTests
-                        ]
+                        KratosGeoMechanicsConditionTests,
+                        KratosGeoMechanicsPrescribedDerivatives,
+                        KratosGeoMechanicsDirichletUTests,
+                        KratosGeoMechanicsNormalLoadHexaTests,
+                        KratosGeoMechanicsCompressibilityTests,
+                        KratosGeoMechanicsFixedSpatialVariationTests,
+                        KratosGeoMechanicsExtrapolationTests
+    ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
@@ -98,7 +113,10 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests
+                        KratosGeoMechanicsTimeIntegrationTests,
+                        KratosGeoMechanicsTransientPressureLineElementTests,
+                        KratosGeoMechanicsTransientPressurePointFluxTests,
+                        KratosGeoMechanicsSettlementWorkflow
                         ]
     night_test_cases.extend(small_test_cases)
 

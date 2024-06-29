@@ -154,6 +154,13 @@ protected:
         array_1d<double,TNumNodes> PVector;
     };
 
+    struct ExtrapolationVariables
+    {
+        std::vector<double> JointWidthContainer;
+        std::vector<double> MidPlaneLiquidPressureContainer;
+        std::vector<double> SlipTendencyContainer;
+    };
+
     /// Member Variables
 
     std::vector<double> mInitialGap;
@@ -164,7 +171,7 @@ protected:
     void CalculateInitialGap(const GeometryType& Geom);
 
 
-    void ExtrapolateGPValues (const std::vector<double>& JointWidthContainer);
+    void ExtrapolateGPValues (const ExtrapolationVariables& MyExtrapolationVariables);
 
 
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo ) override;

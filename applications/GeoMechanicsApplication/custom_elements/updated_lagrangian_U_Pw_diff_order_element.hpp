@@ -67,7 +67,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
     using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
@@ -209,12 +208,10 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 unsigned int      GPoint);
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations
@@ -231,6 +228,11 @@ protected:
     ///@}
 
 private:
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                 const Vector& rStressVector,
+                                                 const Matrix& rDNuDx,
+                                                 const double  IntegrationCoefficient) const;
+
     ///@name Static Member Variables
     ///@{
 

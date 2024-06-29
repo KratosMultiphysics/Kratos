@@ -1,0 +1,107 @@
+{
+    "problem_data": {
+        "problem_name": "solve_forward_problem_system_identification",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "solver_type": "Static",
+        "model_part_name": "Structure",
+        "domain_size": 3,
+        "echo_level": 0,
+        "analysis_type": "linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "auxiliary_files/structure"
+        },
+        "material_import_settings": {
+            "materials_filename": "auxiliary_files/damaged_problem/damaged_material_parameters.json"
+        },
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solving_strategy_settings": {
+            "line_search": false
+        },
+        "move_mesh_flag": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 20,
+        "rotation_dofs": true,
+        "volumetric_strain_dofs": false
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.BoundPtsType7",
+                    "variable_name": "DISPLACEMENT",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process sets a vector variable value over a condition",
+                "check": "DirectorVectorNonZero direction",
+                "process_name": "AssignModulusAndDirectionToConditionsProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.load_boundary_P2",
+                    "variable_name": "LINE_LOAD",
+                    "modulus": 1000000.0,
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ],
+        "list_other_processes": []
+    },
+    "output_processes": {
+        "sensor_output": [
+            {
+                "kratos_module": "KratosMultiphysics.SystemIdentificationApplication.processes",
+                "process_name": "SensorOutputProcess",
+                "python_module": "sensor_output_process",
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_file_name": "auxiliary_files/damaged_problem/measured_data.csv",
+                    "@include_json": "auxiliary_files/system_identification/sensor_data.json"
+                }
+            }
+        ]
+    },
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}
