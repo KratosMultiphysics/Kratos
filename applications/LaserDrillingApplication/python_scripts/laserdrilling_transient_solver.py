@@ -59,11 +59,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
             elem.SetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION, 0.01)
             elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ELEMENTAL_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
             elem.Set(KratosMultiphysics.ACTIVE, True)
 
         for node in self.main_model_part.Nodes:
             node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
             node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
+            node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
 
     def SetParameters(self):
 
@@ -140,6 +143,16 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             mesh_type = project_parameters["problem_data"]["mesh_type"].GetString()
 
+        #
+        '''light_lambda = 550e-6 # mm, light wavelength
+        epoxy_n = 1.5
+        n = epoxy_n
+        A = 4.0 * n / ((n + 1)**2 + n**2)
+        print(A)
+        self.l_s = 0.25 * light_lambda * A / np.pi
+        print(self.l_s)'''
+        #
+
         self.decomposed_nodes_coords_filename = "hole_coords_l_s=" + str(self.l_s) + "_F_th=" + str(self.F_th) + "_H_ev=" + str(self.H_ev) + "_l_th=" + str(self.l_th) + "_alpha_ion=" + str(i_alpha) + "_" + mesh_type + "_" + mesh_size + ".txt"
 
         # if self.compute_vaporisation:
@@ -192,6 +205,20 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         # Debug
         self.plot_progressive_hole_figures = False
+
+        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+
+        ## Laser data
+        self.F_p = 1.01e-1 # J/mm2
+        self.omega_0 = 0.0125 # mm
+
+        ## Material calibration using experiments
+        self.q_ast = 10.0 # J/mm3
+        self.delta_pen = 5e-4 # mm
+
+        ##
+        self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
+        ##
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -278,7 +305,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         for elem in self.main_model_part.Elements:
             for node in elem.GetNodes():
                 # TODO: extremely ad-hoc!
-                if node.X < 0.0000001 and node.Y <= self.R_far:
+                if node.X < 0.0000001 and node.Y <= self.r_ast_max:
                     list_of_decomposed_nodes_ids.append(node.Id)
                     list_of_decomposed_elements_ids.append(elem.Id)    
                     list_of_decomposed_nodes_coords_X.append(node.X)
@@ -539,7 +566,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
             distance_to_surface = F(radius)
             z = node.X - distance_to_surface
-            if radius <= self.R_far:
+            if radius <= self.r_ast_max:
                 delta_temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
                 old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
                 new_temp = old_temp + delta_temp

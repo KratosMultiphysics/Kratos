@@ -110,11 +110,14 @@ public:
             std::vector<double> ThermalEnergyPerVolumeVector(NumGPoints); // All components in this vector contain the same elemental thermal energy
             std::vector<double> Temperature(NumGPoints); // All components in this vector contain the same elemental thermal energy
             std::vector<double> ThermalDecomposition(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> DecomposedElementalVolume(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> ElementalVolume(NumGPoints); // All components in this vector contain the same elemental thermal energy
 
             itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME, ThermalEnergyPerVolumeVector, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(TEMPERATURE, Temperature, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(THERMAL_DECOMPOSITION, ThermalDecomposition, CurrentProcessInfo);
-            itElem->CalculateOnIntegrationPoints(DECOMPOSED_ELEMENTAL_VOLUME, ThermalDecomposition, CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(DECOMPOSED_ELEMENTAL_VOLUME, DecomposedElementalVolume, CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(ELEMENTAL_VOLUME, ElementalVolume, CurrentProcessInfo);
         }
 
         KRATOS_CATCH("");

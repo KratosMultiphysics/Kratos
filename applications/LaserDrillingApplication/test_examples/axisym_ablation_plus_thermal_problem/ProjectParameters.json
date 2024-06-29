@@ -5,7 +5,7 @@
         "parallel_type" : "OpenMP",
         "time_step"     : 5e-7,
         "start_time"    : 0.0,
-        "end_time"      : 1e-6,
+        "end_time"      : 21e-6,
         "echo_level"    : 0,
         "energy"        : 15e-6,
         "mask_aperture_diameter" : 0.025,
@@ -112,7 +112,7 @@
                         "plane_output"                : [],
                         "nodal_results"               : [],
                         "nodal_nonhistorical_results" : ["DECOMPOSED_NODE"],
-                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME"]
+                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME", "ELEMENTAL_VOLUME"]
                     },
                     "point_data_configuration"  : []
                 },
