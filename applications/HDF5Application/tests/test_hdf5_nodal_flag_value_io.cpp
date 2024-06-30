@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalFlagValueIO_WriteNodalFlags1, KratosHDF5TestS
     nodal_value_io.Write(r_write_model_part.Nodes(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));
     model_part_io.ReadNodes(r_read_model_part.Nodes());
     nodal_value_io.Read(r_read_model_part.Nodes(), HDF5::Internals::FlagIO{}, r_read_model_part.GetCommunicator());
-    CompareNonHistoricalNodalData(r_read_model_part.Nodes(), r_write_model_part.Nodes());
+    CompareNonHistoricalNodalData({}, r_read_model_part.Nodes(), r_write_model_part.Nodes());
 }
 
 } // namespace Testing
