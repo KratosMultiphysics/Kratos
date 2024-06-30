@@ -394,7 +394,8 @@ void CopyToContiguousArray(
     const TContainerType& rContainer,
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
-    TDataType* pBegin)
+    TDataType* pBegin,
+    const IndexType Size)
 {
     KRATOS_TRY
 
@@ -417,6 +418,11 @@ void CopyToContiguousArray(
 
     // get the stride from the first element to support dynamic types.
     const auto stride = value_type_traits::Size(initial_value);
+
+    KRATOS_ERROR_IF_NOT(Size == rContainer.size() * stride)
+        << "The contiguous array size mismatch with data in the container [ "
+        << "Contiguous array size = " << Size << ", number of entities = "
+        << rContainer.size() << ", data stride = " << stride << " ].";
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
         const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
