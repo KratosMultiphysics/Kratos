@@ -206,20 +206,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Debug
         self.plot_progressive_hole_figures = False
 
-        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
-
-        ## Laser data
-        self.F_p = 1.01e-1 # J/mm2
-        self.omega_0 = 0.0125 # mm
-
-        ## Material calibration using experiments
-        self.q_ast = 10.0 # J/mm3
-        self.delta_pen = 5e-4 # mm
-
-        ##
-        self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
-        ##
-
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
         self.SetUpHDF5Files()

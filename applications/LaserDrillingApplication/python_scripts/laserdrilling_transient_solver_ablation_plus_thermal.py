@@ -14,8 +14,26 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def SolveSolutionStep(self):
         super(laserdrilling_transient_solver.LaserDrillingTransientSolver, self).SolveSolutionStep()
 
-    def ResidualHeatStage(self):
-        pass
+    def SetParameters(self):
+        super().SetParameters()
+
+        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+        ## Laser data
+        self.omega_0 = self.R_far # mm
+        self.F_p = 2.0 * self.Q / (np.pi * self.omega_0**2) # J/mm2
+
+        ## Material calibration using experiments
+        if not self.material_settings["Variables"].Has("OPTICAL_PENETRATION_DEPTH"):
+            self.delta_pen = 5e-4 # mm
+        else:
+            self.delta_pen = self.material_settings['Variables']['OPTICAL_PENETRATION_DEPTH'].GetDouble()
+        if not self.material_settings["Variables"].Has("IONIZATION_ENERGY_PER_VOLUME_THRESHOLD"):
+            self.q_ast = 10.0 # J/mm3
+        else:
+            self.q_ast = self.material_settings['Variables']['IONIZATION_ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
+
+        ##
+        self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
 
     def TemperatureVariationInZDueToLaser1D(self, radius, z):        
         delta_pen = self.delta_pen
@@ -39,3 +57,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def RemoveElementsByAblation(self):
         self.ImposeTemperatureIncreaseDueTo1DConduction()
         super().RemoveElementsByAblation()
+
+    def ResidualHeatStage(self):
+        pass
