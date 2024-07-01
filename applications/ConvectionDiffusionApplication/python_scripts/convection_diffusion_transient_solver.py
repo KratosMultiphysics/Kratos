@@ -50,6 +50,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STATIONARY] = False
 
         # As the time integration is managed by the element, we set a "fake" scheme to perform the solution update
         if not self.main_model_part.IsDistributed():

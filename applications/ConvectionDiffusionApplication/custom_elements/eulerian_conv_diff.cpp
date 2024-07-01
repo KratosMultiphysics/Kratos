@@ -117,7 +117,6 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
 
-        std::cout << "Using beta = " << Variables.beta << std::endl;
         // Gauss points and Number of nodes coincides in this case.
         for(unsigned int igauss=0; igauss<TNumNodes; igauss++)
         {
@@ -136,8 +135,10 @@ namespace Kratos
             const double tau = this->CalculateTau(Variables,norm_vel,h);
 
             //terms multiplying dphi/dt (aux1)
-            noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
-            noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
+            if (Variables.stationary == false) {
+                noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
+                noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
+            }
 
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
@@ -177,8 +178,13 @@ namespace Kratos
 
         rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
-        const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        rVariables.dt_inv = 1.0 / delta_t;
+        rVariables.stationary = rCurrentProcessInfo[STATIONARY];
+        if (rVariables.stationary == true) {
+            rVariables.dt_inv = 0.0;
+        } else {
+            const double delta_t = rCurrentProcessInfo[DELTA_TIME];
+            rVariables.dt_inv = 1. / delta_t;
+        }
 		rVariables.lumping_factor = 1.00 / double(TNumNodes);
 
         rVariables.conductivity = 0.0;
