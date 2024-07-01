@@ -1,5 +1,77 @@
 {
     "output_processes": [],
+	"solver_settings": {
+        "block_builder": true,
+        "body_domain_sub_model_part_list": [
+            "Material_1"
+        ],
+        "buffer_size": 2,
+        "calculate_reactions": true,
+        "clear_storage": false,
+        "compute_reactions": true,
+        "convergence_criterion": "displacement_criterion",
+        "desired_iterations": 4,
+        "displacement_absolute_tolerance": 1e-09,
+        "displacement_relative_tolerance": 0.0001,
+        "domain_size": 2,
+        "echo_level": 1,
+        "first_alpha_value": 0.5,
+        "increase_factor": 1.0,
+        "line_search_tolerance": 0.5,
+        "linear_solver_settings": {
+            "scaling": true,
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "material_import_settings": {
+            "materials_filename": "MaterialParameters_stage1.json"
+        },
+        "max_alpha": 2.0,
+        "max_iterations": 15,
+        "max_line_search_iterations": 5,
+        "max_radius_factor": 10.0,
+        "min_alpha": 0.1,
+        "min_iterations": 6,
+        "min_radius_factor": 0.1,
+        "model_import_settings": {
+            "input_filename": "plxMesh",
+            "input_type": "mdpa"
+        },
+        "model_part_name": "PorousDomain",
+        "move_mesh_flag": false,
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta": 0.5,
+        "nodal_smoothing": false,
+        "number_cycles": 1,
+        "problem_domain_sub_model_part_list": [
+            "Material_1"
+        ],
+        "processes_sub_model_part_list": [
+            "Main",
+            "All_Nodes",
+            "Side_Nodes",
+            "Base_Nodes"
+        ],
+        "rayleigh_k": 0.0,
+        "rayleigh_m": 0.0,
+        "reduction_factor": 0.5,
+        "reform_dofs_at_each_step": false,
+        "reset_displacements": true,
+        "residual_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 0.0001,
+        "rotation_dofs": true,
+        "scheme_type": "Newmark",
+        "second_alpha_value": 1.0,
+        "solution_type": "K0-Procedure",
+        "solver_type": "U_Pw",
+        "strategy_type": "linear",
+        "time_stepping": {
+            "max_delta_time_factor": 1000,
+            "time_step": 1e-06
+        },
+        "water_pressure_absolute_tolerance": 1e-09,
+        "water_pressure_relative_tolerance": 0.0001
+    },
     "problem_data": {
         "echo_level": 1,
         "end_time": 0.0,
@@ -109,77 +181,5 @@
                 }
             }
         }]
-    },
-    "solver_settings": {
-        "block_builder": true,
-        "body_domain_sub_model_part_list": [
-            "Material_1"
-        ],
-        "buffer_size": 2,
-        "calculate_reactions": true,
-        "clear_storage": false,
-        "compute_reactions": true,
-        "convergence_criterion": "displacement_criterion",
-        "desired_iterations": 4,
-        "displacement_absolute_tolerance": 1e-09,
-        "displacement_relative_tolerance": 0.0001,
-        "domain_size": 2,
-        "echo_level": 1,
-        "first_alpha_value": 0.5,
-        "increase_factor": 1.0,
-        "line_search_tolerance": 0.5,
-        "linear_solver_settings": {
-            "scaling": true,
-            "solver_type": "LinearSolversApplication.sparse_lu"
-        },
-        "material_import_settings": {
-            "materials_filename": "MaterialParameters_stage1.json"
-        },
-        "max_alpha": 2.0,
-        "max_iterations": 15,
-        "max_line_search_iterations": 5,
-        "max_radius_factor": 10.0,
-        "min_alpha": 0.1,
-        "min_iterations": 6,
-        "min_radius_factor": 0.1,
-        "model_import_settings": {
-            "input_filename": "plxMesh",
-            "input_type": "mdpa"
-        },
-        "model_part_name": "PorousDomain",
-        "move_mesh_flag": false,
-        "newmark_beta": 0.25,
-        "newmark_gamma": 0.5,
-        "newmark_theta": 0.5,
-        "nodal_smoothing": false,
-        "number_cycles": 1,
-        "problem_domain_sub_model_part_list": [
-            "Material_1"
-        ],
-        "processes_sub_model_part_list": [
-            "Main",
-            "All_Nodes",
-            "Side_Nodes",
-            "Base_Nodes"
-        ],
-        "rayleigh_k": 0.0,
-        "rayleigh_m": 0.0,
-        "reduction_factor": 0.5,
-        "reform_dofs_at_each_step": false,
-        "reset_displacements": true,
-        "residual_absolute_tolerance": 1e-09,
-        "residual_relative_tolerance": 0.0001,
-        "rotation_dofs": true,
-        "scheme_type": "Newmark",
-        "second_alpha_value": 1.0,
-        "solution_type": "K0-Procedure",
-        "solver_type": "U_Pw",
-        "strategy_type": "linear",
-        "time_stepping": {
-            "max_delta_time_factor": 1000,
-            "time_step": 1e-06
-        },
-        "water_pressure_absolute_tolerance": 1e-09,
-        "water_pressure_relative_tolerance": 0.0001
     }
 }
