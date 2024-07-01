@@ -1,6 +1,6 @@
 # Custom processes
 
-In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
+This folder contains the custom processes that are used in the GeoMechanicsApplication. Processes are commands that can be executed during several stages of a calculation. In the GeoMechanicsApplication, their main use is to apply boundary conditions and/or constraints , but there are more specific examples (e.g. the K0 procedure, nodal extrapolation, or (de)activation of certain parts of the model). Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
 - $c-\phi$ reduction process
@@ -20,7 +20,7 @@ mapped back onto the reduced Mohr-Coulomb yield surface and equilibrium is found
 found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment. This is repeated until the allowed number of cycles for a step is reached.   
 
 ### Safety factor
-The safety factor is computed as the inverse of the reduction factor:
+The safety factor is computed as the inverse of the reduction factor [[1]](#1):
 
 $$SF = \frac{1}{\alpha}$$
 
@@ -59,5 +59,5 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Bibliography
-Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.
+## References
+<a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.
