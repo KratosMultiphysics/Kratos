@@ -34,11 +34,14 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces = [50., 25., 50, 100]
-        for time, expected_force in zip(times, expected_forces):
+        expected_forces_x = [50., 25., 50, 100]
+        expected_displacements_x = [1.0, 0.75, 1.0, 2.0]
+        for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            displacement = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
+            self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
     def test_truss_backbone_mat_compression(self):
         """
@@ -57,11 +60,14 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces = [-50., -25., -50, -100]
-        for time, expected_force in zip(times, expected_forces):
+        expected_forces_x = [-50., -25., -50, -100]
+        expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
+        for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            displacement = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
+            self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
     def test_truss_backbone_mat_tension_compression(self):
         """
@@ -80,11 +86,14 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0, 5.0]
-        expected_forces = [50., -50., -100, 0., 100.]
-        for time, expected_force in zip(times, expected_forces):
+        expected_forces_x = [50., -50., -100, 0., 100.]
+        expected_displacements_x = [1.0, 0.0, -1.0, 0.0, 1.0]
+        for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            displacement = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
+            self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
     def test_truss_backbone_mat_compression_tension(self):
         """
@@ -103,11 +112,14 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0, 5.0]
-        expected_forces = [-50., 50., 100, 0., -100.]
-        for time, expected_force in zip(times, expected_forces):
+        expected_forces_x = [-50., 50., 100, 0., -100.]
+        expected_displacements_x = [-1.0, 0.0, 1.0, 0.0, -1.0]
+        for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            displacement = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
+            self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
 if __name__ == '__main__':
     KratosUnittest.main()
