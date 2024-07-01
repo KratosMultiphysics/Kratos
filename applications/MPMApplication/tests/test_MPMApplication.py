@@ -31,6 +31,8 @@ from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSe
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
+from mpm_test_factory import FrictionConformingTest as TFrictionConformingTest
+
 from mpm_test_factory import ExplicitOscillatingPointUSLTest as TExplicitOscillatingPointUSLTest
 from mpm_test_factory import ExplicitOscillatingPointUSFTest as TExplicitOscillatingPointUSFTest
 from mpm_test_factory import ExplicitOscillatingPointMUSLTest as TExplicitOscillatingPointMUSLTest
@@ -106,6 +108,8 @@ def AssembleTestSuites():
 
     # TODO: Look further into this test as they are still failing for AMatrix
     smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:
+
+    smallSuite.addTest(TFrictionConformingTest('test_execution'))
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
