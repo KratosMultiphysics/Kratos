@@ -9,9 +9,9 @@ This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N 
 
 ![MeshStructure](mesh.svg)
 
-Constraints are applied 
-- on the bottom nodes that are fixed completly and 
-- on the vertical boundaries on the left and right sides of the domain that are allowed to move in the vertical direction only. 
+The following constraints are applied. 
+- The bottom nodes are fixed completely and 
+- The nodes on left and right vertical boundaries are allowed to move in the vertical direction only. 
 
 The gravitation acts down in the vertical direction. 
 
@@ -24,13 +24,11 @@ The material is described using:
 -  Friction angle 35.0 deg
  
 The computation is done in two stages. The first stage is a settlement due to the gravitation. 
-The second stage is done only for two time steps. 
+The second stage is $c-\phi$ reduction process and it done only for two time steps. The figure below shows the calculated deformation.
 
+![Deformation](deformation.svg)
 
 ## Assertions
 
-The test asserts movement in horizontal direction at three nodes, which are chosen because their movement is larger than for majority of nodes. 
+The test asserts movement in the horizontal direction at three nodes, which are chosen because their movement is larger than the movement for the majority of nodes. 
 
-The figure below shows the calculated deformation.
-
-![Deformation](deformation.svg)
