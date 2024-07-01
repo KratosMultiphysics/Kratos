@@ -253,7 +253,6 @@ private:
 
         ConstantStiffness(const Variable<double>& rVariable) : mpVariable(&rVariable) {};
 
-        ~ConstantStiffness() = default;
 
         double GetValue(
             const double Value,
