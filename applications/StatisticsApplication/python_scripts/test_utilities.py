@@ -50,11 +50,11 @@ def CheckValues(test_unit, value_a, value_b, tolerance):
     else:
         if (isinstance(value_a, Kratos.Matrix)):
             test_unit.assertMatrixAlmostEqual(value_a, value_b, tolerance)
-        elif (isinstance(value_a, Kratos.Vector)):
+        elif (isinstance(value_a, Kratos.Vector)) or isinstance(value_a, Kratos.Array3):
             test_unit.assertVectorAlmostEqual(value_a, value_b, tolerance)
         elif (isinstance(value_a, list)):
             for i, v_a in enumerate(value_a):
-                test_unit.assertAlmostEqual(v_a, value_b[i], tolerance)
+                CheckValues(test_unit, v_a, value_b[i], tolerance)
         else:
             test_unit.assertAlmostEqual(value_a, value_b, tolerance)
 
