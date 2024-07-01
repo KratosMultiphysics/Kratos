@@ -275,7 +275,6 @@ private:
               mpVariableY(&rVariableY)
         {};
 
-        ~NonLinearStiffness() = default;
 
         double GetValue(
             const double Value,
