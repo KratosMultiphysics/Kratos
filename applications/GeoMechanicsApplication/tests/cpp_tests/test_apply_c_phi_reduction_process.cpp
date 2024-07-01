@@ -7,19 +7,15 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Anne van de Graaf
+//  Main authors:    Wijtze Pieter Kikstra
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.hpp"
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
 #include "testing/testing.h"
 #include <boost/numeric/ublas/assignment.hpp>
-
-#include <boost/algorithm/cxx11/all_of.hpp>
-#include <boost/algorithm/cxx11/none_of.hpp>
 
 using namespace Kratos;
 
@@ -30,10 +26,10 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
     auto& result = rModel.CreateModelPart("dummy");
 
     // Set up the test model part mesh
-    auto                   p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto                   p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    auto                   p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
+    const auto             p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto             p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    const auto             p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    const auto             p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
@@ -58,21 +54,21 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
     return result;
 }
 
-void CheckReducedCPhi(ModelPart& rModelPart, double COrig, double PhiOrig, double ReductionFactor)
+void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig, double ReductionFactor)
 {
-    block_for_each(rModelPart.Elements(), [COrig, PhiOrig, ReductionFactor](Element& rElement) {
-        auto element_properties     = rElement.GetProperties();
-        auto umat_properties_vector = element_properties.GetValue(UMAT_PARAMETERS);
-        auto c_index                = element_properties.GetValue(INDEX_OF_UMAT_C_PARAMETER) - 1;
-        auto phi_index              = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
+    for (Element& rElement : rModelPart.Elements()) {
+        const auto element_properties     = rElement.GetProperties();
+        const auto umat_properties_vector = element_properties.GetValue(UMAT_PARAMETERS);
+        const auto c_index   = element_properties.GetValue(INDEX_OF_UMAT_C_PARAMETER) - 1;
+        const auto phi_index = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
 
         KRATOS_EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), ReductionFactor * COrig);
 
-        double phi_rad = MathUtils<>::DegreesToRadians(PhiOrig);
-        double tan_phi = std::tan(phi_rad);
+        const double phi_rad = MathUtils<>::DegreesToRadians(PhiOrig);
+        const double tan_phi = std::tan(phi_rad);
         KRATOS_EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))),
                                 ReductionFactor * tan_phi);
-    });
+    };
 }
 } // namespace
 

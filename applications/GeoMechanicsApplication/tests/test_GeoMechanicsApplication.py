@@ -93,7 +93,6 @@ def AssembleTestSuites():
                         KratosGeoMechanicsStrainMeasureTests,
                         KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
                         KratosGeoMechanicsRotationWithMovingLoadTests,
-                        KratosGeoMechanicsCPhiReductionProcess,
                         KratosGeoMechanicsConditionTests,
                         KratosGeoMechanicsPrescribedDerivatives,
                         KratosGeoMechanicsDirichletUTests,
@@ -119,7 +118,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsSettlementWorkflow
+                        KratosGeoMechanicsSettlementWorkflow,
+                        KratosGeoMechanicsCPhiReductionProcess
                         ]
     night_test_cases.extend(small_test_cases)
 

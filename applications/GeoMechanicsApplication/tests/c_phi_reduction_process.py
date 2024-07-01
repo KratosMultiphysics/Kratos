@@ -25,26 +25,8 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
         # get the parameter file names for all stages
         test_name = 'C-Phi_reduction_process'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
-        n_stages = 2
-        parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                            range(n_stages)]
-                            
-        # change to project directory
-        os.chdir(file_path)
-        
-        #setup stages from parameterfiles
-        parameters_stages = [None] * n_stages
-        
-        for idx, parameter_file_name in enumerate(parameter_file_names):
-            with open(parameter_file_name, 'r') as parameter_file:
-                parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
+        stages = test_helper.run_stages(file_path, 2)
 
-        model = Kratos.Model()
-        stages = [GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-
-        # execute the stages
-        [stage.Run() for stage in stages]
-    
         # read results
         reader = test_helper.GiDOutputFileReader()
         reader.read_output_from(os.path.join(file_path, "stage2.post.res"))
