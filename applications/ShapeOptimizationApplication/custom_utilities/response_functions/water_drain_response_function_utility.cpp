@@ -44,11 +44,41 @@ WaterDrainResponseFunctionUtility::WaterDrainResponseFunctionUtility(ModelPart& 
 	mGravityDirection /= direction_norm;
 
 	mMaxIterations = ResponseSettings["max_iterations_volume_search"].GetInt();
+
+	mContinuousSens = ResponseSettings["continuous_sensitivities"].GetBool();
+	mQuadraticHeightPenalization = ResponseSettings["quadratic_height_penalization"].GetBool();
+
+	// TODO: eventually manual declaration of free edge
+	mEdgeSubModelPartName = mrModelPart.Name() + "_edges";
 }
 
 void WaterDrainResponseFunctionUtility::Initialize()
 {
 	KRATOS_TRY;
+
+	BuiltinTimer timer;
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting Initialize..." << std::endl;
+
+	// neighbour nodes for automatic edge extraction
+    FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> find_neighbours_process(
+        mrModelPart,
+        NEIGHBOUR_NODES);
+    find_neighbours_process.Execute();
+
+	// neighbour conditions for automatic edge extraction
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_condition_neighbours_process(
+        mrModelPart,
+        NEIGHBOUR_CONDITIONS);
+    find_condition_neighbours_process.Execute();
+
+	// get edges
+	ModelPart& r_edge_model_part = mrModelPart.HasSubModelPart(mEdgeSubModelPartName) ? mrModelPart.GetSubModelPart(mEdgeSubModelPartName) : mrModelPart.CreateSubModelPart(mEdgeSubModelPartName);
+	if (r_edge_model_part.Nodes().size() == 0) {
+		mGeometryUtilities.ExtractEdgeNodes(mEdgeSubModelPartName);
+	}
+
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "r_edge_model_part.Nodes().size()" << r_edge_model_part.Nodes().size() << std::endl;
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished Initialize in " << timer.ElapsedSeconds() << " s." << std::endl;
 
 	KRATOS_CATCH("");
 }
@@ -57,7 +87,11 @@ void WaterDrainResponseFunctionUtility::InitializeSolutionStep()
 {
 	KRATOS_TRY;
 
+	VariableUtils().SetHistoricalVariableToZero(WATER_LEVEL, mrModelPart.Nodes());
+
 	this->SearchWaterVolumes();
+	mGeometryUtilities.CalculateNodalAreasFromConditions();
+
 	KRATOS_CATCH("");
 }
 
@@ -65,18 +99,11 @@ double WaterDrainResponseFunctionUtility::CalculateValue()
 {
 	KRATOS_TRY;
 
-	// const double value = block_for_each<SumReduction<double>>(mrModelPart.Conditions(), [&](Condition& rCond) {
-	// 	if (mConsiderOnlyInitiallyFeasible && !(rCond.GetValue(CONSIDER_FACE_ANGLE))){
-	// 		return 0.0;
-	// 	}
-	// 	const double g_i = CalculateConditionValue(rCond);
-	// 	if (g_i <= 0) {
-	// 		return 0.0;
-	// 	}
-	// 	return g_i*g_i;
-	// });
-
-	mValue = 0;
+	const double mValue = block_for_each<SumReduction<double>>(mrModelPart.Nodes(), [&](Node& rNode) {
+		double g_i = rNode.FastGetSolutionStepValue(WATER_LEVEL) * rNode.FastGetSolutionStepValue(NODAL_AREA);
+		if (mQuadraticHeightPenalization) g_i *= rNode.FastGetSolutionStepValue(WATER_LEVEL);
+		return g_i;
+	});
 
 	return mValue;
 
@@ -88,6 +115,19 @@ void WaterDrainResponseFunctionUtility::CalculateGradient()
 	KRATOS_TRY;
 	// First gradients are initialized
 	VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
+    {
+		if (rNode.FastGetSolutionStepValue(WATER_LEVEL) > 0.0) {
+			double nodal_area = 1;
+			if (!mContinuousSens) nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+
+			array_3d gradient = mGravityDirection * nodal_area;
+			if (mQuadraticHeightPenalization) gradient *= 2 * rNode.FastGetSolutionStepValue(WATER_LEVEL);
+
+			rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = gradient;
+		}
+    });
 
 	KRATOS_CATCH("");
 }
@@ -113,6 +153,7 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 	mListOfVolumes.clear();
 
 	this->SearchLowPoints();
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "# mListOfVolumes " << mListOfVolumes.size() << std::endl;
 
 	// TODO: evtl vector mListOfVolumes dynamisch verkleinern: (anstelle von isMerged)
 	// https://stackoverflow.com/questions/41027593/erasing-indices-of-stdvector-inside-a-for-loop-based-on-vector-size
@@ -166,7 +207,7 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 // 				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mListOfNodes.size()  " << r_volume.mListOfNodes.size() << std::endl;
 // 				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mNeighbourNodes.size()  " << r_volume.mNeighbourNodes.size() << std::endl;
 // 				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mNeighbourNodesSorted.size()  " << r_volume.mNeighbourNodesSorted.size() << std::endl;
-// 				this->GrowVolumeV2(r_volume);
+// 				this->GrowVolume(r_volume);
 // 			}
 
 // 			// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "After growth: volume " << i << " will still grow " << r_volume.isGrowing << std::endl;
@@ -181,7 +222,7 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 
 	while (volumes_are_growing && iter < mMaxIterations) {
 
-// #pragma omp parallel for
+#pragma omp parallel for
 		for (int i = 0; i<mListOfVolumes.size(); i++) {
 
 			Volume& r_volume = mListOfVolumes[i];
@@ -191,13 +232,10 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 
 			int inner_iter = 0;
 			while (r_volume.isGrowing && inner_iter < 1e5) {
-			// if (r_volume.isGrowing) {
-				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mListOfNodes.size()  " << r_volume.mListOfNodes.size() << std::endl;
-				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mNeighbourNodes.size()  " << r_volume.mNeighbourNodes.size() << std::endl;
-				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "volume " << i << " mNeighbourNodesSorted.size()  " << r_volume.mNeighbourNodesSorted.size() << std::endl;
-				this->GrowVolumeV2(r_volume);
+				this->GrowVolume(r_volume);
 				inner_iter++;
 			}
+			KRATOS_INFO("ShapeOpt::WaterDrain") << "Volume " << i  << " wuchs für " << inner_iter << " iterationen." << std::endl;
 		}
 		volumes_are_growing = false;
 
@@ -208,28 +246,25 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 				break;
 			}
 		}
-
 		iter++;
 	}
 
+	KRATOS_INFO("ShapeOpt::WaterDrain") << "# mListOfVolumes " << mListOfVolumes.size() << std::endl;
+
 	int counter = 1;
 	for (int i = 0; i<mListOfVolumes.size(); i++) {
-	// for (int i = 0; i<1; i++) {
 		Volume& r_volume = mListOfVolumes[i];
 		if (r_volume.isMerged) continue;
+	#pragma omp parallel for
 		for (ModelPart::NodesContainerType::iterator p_node = r_volume.mListOfNodes.begin(); p_node != r_volume.mListOfNodes.end(); ++p_node) {
-			double& height = p_node->FastGetSolutionStepValue(WATER_HEIGHT);
-			height = counter;
+			const auto& distance_vector = p_node->Coordinates() - r_volume.mHighestPoint;
+			double& water_level = p_node->FastGetSolutionStepValue(WATER_LEVEL);
+			water_level = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
+			int& volume_id = p_node->FastGetSolutionStepValue(WATER_VOLUMES);
+			volume_id = counter;
 		}
 		counter++;
 	}
-
-	// for (int i = 0; i<mListOfVolumes.size(); i++) {
-	// 	Volume& r_volume = mListOfVolumes[i];
-	// 	ModelPart::NodeType& r_node = *r_volume.mListOfNodes[0];
-	// 	double& height = r_node.FastGetSolutionStepValue(WATER_HEIGHT);
-	// 	height = 1.0;
-	// }
 
 	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished SearchWaterVolumes in " << timer.ElapsedSeconds() << " s." << std::endl;
 	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished SearchWaterVolumes in " << iter << " iterations." << std::endl;
@@ -238,178 +273,48 @@ void WaterDrainResponseFunctionUtility::SearchWaterVolumes()
 }
 
 void WaterDrainResponseFunctionUtility::GrowVolume(Volume& rVolume) {
-
-	std::vector<std::pair<double, NodeTypePointer>> neighbours;
-	NodesArrayType neighbours_container;
-
-	// find neighbour nodes of volume
-	for (NodesArrayType::iterator p_node = rVolume.mListOfNodes.begin(); p_node != rVolume.mListOfNodes.end(); ++p_node) {
-
-		auto& r_candidates = p_node->GetValue(NEIGHBOUR_NODES);
-		for (auto& r_candidate : r_candidates) {
-			auto find_node = rVolume.mListOfNodes.find(r_candidate.Id());
-			if (find_node == rVolume.mListOfNodes.end()) {
-				NodeTypePointer p_new_node = &r_candidate;
-				neighbours.push_back(std::make_pair(0, p_new_node));
-				neighbours_container.insert(neighbours_container.begin(), p_new_node);
-			}
-		}
-	}
-
-	for (int j = 0; j < neighbours.size(); ++j) {
-		const auto& distance_vector = rVolume.mLowestPoint - neighbours[j].second->Coordinates();
-		const double height_difference = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
-		neighbours[j].first = height_difference;
-
-		// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "neighbour " << neighbours[j].second->Id() << " : " << height_difference << std::endl;
-
-	}
-
-	// sort neigbhours according to height
-	std::sort(neighbours.begin(), neighbours.end());
-
-	for (int j = 0; j < neighbours.size(); ++j) {
-
-		// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "neighbour " << neighbours[j].second->Id() << " : " << neighbours[j].second->Coordinates() << std::endl;
-
-		rVolume.mListOfNodes.insert(rVolume.mListOfNodes.begin(), neighbours[j].second);
-
-		auto& r_neighbours_of_neighbour = neighbours[j].second->GetValue(NEIGHBOUR_NODES);
-
-		// check if one neighbour of neighbour is lower => stop growth
-		for (auto& r_neighbour_of_neighbour : r_neighbours_of_neighbour) {
-			// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "neighbour of neighbour " << r_neighbour_of_neighbour.Id() << " : " << r_neighbour_of_neighbour.Coordinates() << std::endl;
-
-			auto find_node = rVolume.mListOfNodes.find(r_neighbour_of_neighbour.Id());
-			// auto find_node_in_candidates = neighbours_container.find(r_neighbour_of_neighbour.Id());
-			if (find_node == rVolume.mListOfNodes.end()) {
-			// if (find_node == rVolume.mListOfNodes.end() && find_node_in_candidates == neighbours_container.end()) {
-				const auto& distance_vector = r_neighbour_of_neighbour.Coordinates() - neighbours[j].second->Coordinates();
-				const double height_difference = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
-				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "height_difference " << height_difference << std::endl;
-
-				if (height_difference > 0.0) {
-					rVolume.isGrowing = false;
-					break;
-				}
-			}
-		}
-		if (!rVolume.isGrowing) break;
-	}
-}
-
-void WaterDrainResponseFunctionUtility::GrowVolumeV2(Volume& rVolume) {
 	// add nodes one by one
 	// => neigbhour candidates have to be resorted every time after adding a node the volume
+	// BuiltinTimer timer;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting GrowVolume..." << std::endl;
 
-	// std::vector<std::pair<double, NodeTypePointer>> neighbours;
-	// NodesArrayType neighbours_container;
+	// rVolume.mListOfNodes.insert(rVolume.mListOfNodes.end(), rVolume.mNeighbourNodesSorted[0].second);
 
-	// find neighbour nodes of volume
-// #pragma omp parallel for
-	// for (NodesArrayType::iterator p_node = rVolume.mListOfNodes.begin(); p_node != rVolume.mListOfNodes.end(); ++p_node) {
-
-	// 	auto& r_candidates = p_node->GetValue(NEIGHBOUR_NODES);
-	// 	for (auto& r_candidate : r_candidates) {
-	// 		auto find_node = rVolume.mListOfNodes.find(r_candidate.Id());
-	// 		// auto alread_added = neighbours_container.find(r_candidate.Id());
-	// 		// if (find_node == rVolume.mListOfNodes.end() && alread_added == neighbours_container.end()) {
-	// 		if (find_node == rVolume.mListOfNodes.end()) {
-	// 			NodeTypePointer p_new_node = &r_candidate;
-	// 			neighbours.push_back(std::make_pair(0, p_new_node));
-	// 			// neighbours_container.insert(neighbours_container.begin(), p_new_node);
-	// 		}
-	// 	}
-	// }
-
-// #pragma omp parallel for
-	// for (int j = 0; j < neighbours.size(); ++j) {
-	// 	const auto& distance_vector = rVolume.mLowestPoint - neighbours[j].second->Coordinates();
-	// 	const double height_difference = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
-	// 	neighbours[j].first = height_difference;
-
-	// 	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "neighbour " << neighbours[j].second->Id() << " : " << height_difference << std::endl;
-
-	// }
-
-	// for (auto& r_neighbour : rVolume.mNeighbourNodes) {
-	// 	const auto& distance_vector = rVolume.mLowestPoint - r_neighbour.Coordinates();
-	// 	const double height_difference = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
-	// }
-
-	// // sort neigbhours according to height
-	// std::sort(neighbours.begin(), neighbours.end());
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "TEST" << std::endl;
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "rVolume.mNeighbourNodesSorted.size()  " << rVolume.mNeighbourNodesSorted.size() << std::endl;
-
-	BuiltinTimer timer;
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting GrowVolume..." << std::endl;
-
-	rVolume.mListOfNodes.insert(rVolume.mListOfNodes.begin(), rVolume.mNeighbourNodesSorted[0].second);
-	auto& r_neighbours_of_neighbour = rVolume.mNeighbourNodesSorted[0].second->GetValue(NEIGHBOUR_NODES);
-	// check if one neighbour of neighbour is lower => stop growth
-
-	// NodesArrayType new_neighbours_container;
-	// new_neighbours_container.size(r_neighbours_of_neighbour.size());
-
-	std::vector<std::tuple<bool, double, NodeTypePointer>> new_neighbour_candidates;
-	// new_neighbour_candidates.resize(r_neighbours_of_neighbour.size());
-	KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "r_neighbours_of_neighbour.size() " << r_neighbours_of_neighbour.size() << std::endl;
-
-	for (int i=0; i < r_neighbours_of_neighbour.size(); i++) {
-		auto& r_neighbour_of_neighbour = r_neighbours_of_neighbour[i];
-		NodeTypePointer p_neighbour_of_neighbour = &r_neighbour_of_neighbour;
-		new_neighbour_candidates.push_back(std::make_tuple(false, -1, p_neighbour_of_neighbour));
+	if (rVolume.mNeighbourNodesSorted.size() == 0) {
+		rVolume.isGrowing = false;
+		return;
 	}
-	KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "new_neighbours.size() " << new_neighbour_candidates.size() << std::endl;
 
-// TODO: parallelisierung funktioniert nicht, überhaupt sinnvoll?
-//
-		Vector& rLowestPoint = rVolume.mLowestPoint;
-		double& rLowestNeighbourHeight = rVolume.mNeighbourNodesSorted[0].first;
+	rVolume.mListOfNodes.push_back(rVolume.mNeighbourNodesSorted[0].second);
+	rVolume.mHighestPoint = Vector(rVolume.mNeighbourNodesSorted[0].second->Coordinates());
 
-#pragma omp parallel for
-	for (int i=0; i < new_neighbour_candidates.size(); i++) {
-		KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "i " << i << std::endl;
-		// auto& r_neighbour_of_neighbour = r_neighbours_of_neighbour[i];
-		// NodeTypePointer p_neighbour_of_neighbour = &r_neighbour_of_neighbour;
-		// new_neighbour_candidates[i] = std::make_tuple(false, -1, p_neighbour_of_neighbour);
-		// auto find_node = rVolume.mListOfNodes.find(r_neighbour_of_neighbour.Id());
-		// auto find_node_in_neighbours = rVolume.mNeighbourNodes.find(r_neighbour_of_neighbour.Id());
+	ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(mEdgeSubModelPartName);
+	if (r_edge_model_part.HasNode(rVolume.mNeighbourNodesSorted[0].second->Id())) {
+		rVolume.isGrowing = false;
+		return;
+	}
 
-		NodeTypePointer p_neighbour_of_neighbour = std::get<2>(new_neighbour_candidates[i]);
-		#pragma omp critical
-		{
+	auto& r_neighbours_of_neighbour = rVolume.mNeighbourNodesSorted[0].second->GetValue(NEIGHBOUR_NODES);
 
-		}
-		auto find_node = rVolume.mListOfNodes.find(p_neighbour_of_neighbour->Id());
-		auto find_node_in_neighbours = rVolume.mNeighbourNodes.find(p_neighbour_of_neighbour->Id());
-
-		// if (find_node == rVolume.mListOfNodes.end()) {
+	for (auto& r_neighbour_of_neighbour : r_neighbours_of_neighbour) {
+		auto find_node = rVolume.mListOfNodes.find(r_neighbour_of_neighbour.Id());
+		auto find_node_in_neighbours = rVolume.mNeighbourNodes.find(r_neighbour_of_neighbour.Id());
 		if (find_node == rVolume.mListOfNodes.end() && find_node_in_neighbours == rVolume.mNeighbourNodes.end()) {
-			// const auto& distance_vector = rVolume.mLowestPoint - r_neighbour_of_neighbour.Coordinates();
-			const auto& distance_vector = rLowestPoint - p_neighbour_of_neighbour->Coordinates();
-			double height = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
-			KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "height " << height << std::endl;
-			KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "height of lowest neighbour " << rVolume.mNeighbourNodesSorted[0].first << std::endl;
+			const auto& distance_vector = rVolume.mLowestPoint - r_neighbour_of_neighbour.Coordinates();
+			const double height = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
+			// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "height " << height << std::endl;
+			// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "height of lowest neighbour " << rVolume.mNeighbourNodesSorted[0].first << std::endl;
 
-			// if (height < rVolume.mNeighbourNodesSorted[0].first) {
-			if (height < rLowestNeighbourHeight) {
-			#pragma omp critical
+			// check if one neighbour of neighbour is lower => stop growth
+			if (height < rVolume.mNeighbourNodesSorted[0].first) {
 				{
 					rVolume.isGrowing = false;
 				}
 				// break;
 			}
-
-// #pragma omp critical
-			{
-				std::get<0>(new_neighbour_candidates[i]) = true;
-				std::get<1>(new_neighbour_candidates[i]) = height;
-				// new_neighbour_candidates[i] = std::make_tuple(true, height, p_neighbour_of_neighbour);
-				// rVolume.mNeighbourNodes.insert(rVolume.mNeighbourNodes.begin(), p_neighbour_of_neighbour);
-				// rVolume.mNeighbourNodesSorted.push_back(std::make_pair(height, p_neighbour_of_neighbour));
-			}
+			NodeTypePointer p_neighbour_of_neighbour = &r_neighbour_of_neighbour;
+			rVolume.mNeighbourNodes.insert(rVolume.mNeighbourNodes.end(), p_neighbour_of_neighbour);
+			rVolume.mNeighbourNodesSorted.push_back(std::make_pair(height, p_neighbour_of_neighbour));
 		}
 	}
 
@@ -417,28 +322,12 @@ void WaterDrainResponseFunctionUtility::GrowVolumeV2(Volume& rVolume) {
 	rVolume.mNeighbourNodes.erase(lowest_neighbour_node);
 	rVolume.mNeighbourNodesSorted.erase(rVolume.mNeighbourNodesSorted.begin());
 
-	std::vector<std::pair<double, NodeTypePointer>> new_neighbours;
-	for (int i=0; i < new_neighbour_candidates.size(); i++) {
-		if (std::get<0>(new_neighbour_candidates[i])) {
-			NodeTypePointer p_new_neighbour = std::get<2>(new_neighbour_candidates[i]);
-			rVolume.mNeighbourNodes.insert(rVolume.mNeighbourNodes.begin(), p_new_neighbour);
-			double height = std::get<1>(new_neighbour_candidates[i]);
-			new_neighbours.push_back(std::make_pair(height, p_new_neighbour));
-		}
-	}
-	rVolume.mNeighbourNodesSorted.insert(rVolume.mNeighbourNodesSorted.end(), new_neighbours.begin(), new_neighbours.end());
-
 	// resort neighbours according to height
-	BuiltinTimer timer2;
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting Sort..." << std::endl;
+	// BuiltinTimer timer2;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting Sort..." << std::endl;
 	std::sort(rVolume.mNeighbourNodesSorted.begin(), rVolume.mNeighbourNodesSorted.end());
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished Sort in " << timer2.ElapsedSeconds() << " s." << std::endl;
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "AFTER GROWTH" << std::endl;
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "rVolume.mListOfNodes.size() " << rVolume.mListOfNodes.size() << std::endl;
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "rVolume.mNeighbourNodes.size() " << rVolume.mNeighbourNodes.size() << std::endl;
-	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "rVolume.mNeighbourNodesSorted.size() " << rVolume.mNeighbourNodesSorted.size() << std::endl;
-
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished GrowVolume in " << timer.ElapsedSeconds() << " s." << std::endl;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished Sort in " << timer2.ElapsedSeconds() << " s." << std::endl;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished GrowVolume in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
 void WaterDrainResponseFunctionUtility::SearchLowPoints() {
@@ -504,14 +393,7 @@ void WaterDrainResponseFunctionUtility::SearchLowPoints() {
 	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchLowPoints") << "mrModelPart, # of conditions: " << mrModelPart.NumberOfConditions() << std::endl;
 	// KRATOS_INFO("ShapeOpt::WaterDrain::SearchLowPoints") << "Starting parallel loop ..." << std::endl;
 
-	// get edges
-	ModelPart& r_edge_model_part = mrModelPart.HasSubModelPart(mrModelPart.Name() + "_edges") ? mrModelPart.GetSubModelPart(mrModelPart.Name() + "_edges") : mrModelPart.CreateSubModelPart(mrModelPart.Name() + "_edges");
-	if (r_edge_model_part.Nodes().size() == 0) {
-		// KRATOS_INFO("ShapeOpt::WaterDrain::SearchLowPoints") << "ExtractEdgeNodes ..." << std::endl;
-		mGeometryUtilities.ExtractEdgeNodes(mrModelPart.Name() + "_edges");
-		// KRATOS_INFO("ShapeOpt::WaterDrain::SearchLowPoints") << "r_edge_model_part, # of nodes: " << r_edge_model_part.NumberOfNodes() << std::endl;
-	}
-
+	ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(mEdgeSubModelPartName);
 
 	for(auto& rNode : mrModelPart.Nodes()) {
 
@@ -534,7 +416,7 @@ void WaterDrainResponseFunctionUtility::SearchLowPoints() {
 				const double height_difference = MathUtils<double>::Dot3(mGravityDirection, distance_vector);
 
 				// KRATOS_INFO("ShapeOpt::WaterDrain::SearchLowPoints") << "Height difference: " << height_difference << std::endl;
-				if (height_difference > 0.0) {
+				if (height_difference >= 0.0) {
 					low_point = false;
 					break;
 				}
@@ -575,8 +457,8 @@ void WaterDrainResponseFunctionUtility::SearchLowPoints() {
 
 void WaterDrainResponseFunctionUtility::MergeVolumes() {
 
-	BuiltinTimer timer;
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting MergeVolumes..." << std::endl;
+	// BuiltinTimer timer;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Starting MergeVolumes..." << std::endl;
 
 	for (int i = 0; i<mListOfVolumes.size(); i++) {
 
@@ -585,6 +467,8 @@ void WaterDrainResponseFunctionUtility::MergeVolumes() {
 		// KRATOS_INFO("ShapeOpt::WaterDrain::SearchWaterVolumes") << "MergeVolumes r_volume.mNeighbourNodesSorted.size()  " << r_volume.mNeighbourNodesSorted.size() << std::endl;
 
 		if (r_volume.isMerged) continue;
+
+		KRATOS_INFO("ShapeOpt::WaterDrain") << "Checke merge für MasterVolume " << i << std::endl;
 
 		// add volume nodes and neighbour nodes to container
 		// NodesArrayType node_container;
@@ -609,18 +493,21 @@ void WaterDrainResponseFunctionUtility::MergeVolumes() {
 			Volume& r_volume_j = mListOfVolumes[j];
 			if (r_volume_j.isMerged) continue;
 
+			KRATOS_INFO("ShapeOpt::WaterDrain") << "Checke merge für SlaveVolume " << j << std::endl;
+
 			for (NodesArrayType::iterator p_node = r_volume_j.mListOfNodes.begin(); p_node != r_volume_j.mListOfNodes.end(); ++p_node) {
 				auto find_node = r_volume.mListOfNodes.find(p_node->Id());
 				auto find_node_in_neighbours = r_volume.mNeighbourNodes.find(p_node->Id());
 				if (find_node != r_volume.mListOfNodes.end() || find_node_in_neighbours != r_volume.mNeighbourNodes.end()) {
-					KRATOS_INFO("ShapeOpt::WaterDrain::MergeVolumes") << "Merging volume " << i << " and volume " << j << std::endl;
+					// KRATOS_INFO("ShapeOpt::WaterDrain::MergeVolumes") << "Merging volume " << i << " and volume " << j << std::endl;
+					KRATOS_INFO("ShapeOpt::WaterDrain") << "Merge SlaveVolume " << j << " in MasterVolume " << i << std::endl;
 					this->MergeTwoVolumes(r_volume, r_volume_j);
 					break;
 				}
 			}
 		}
 	}
-	KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished MergeVolumes in " << timer.ElapsedSeconds() << " s." << std::endl;
+	// KRATOS_INFO("ShapeOpt::WaterDrain") << "Finished MergeVolumes in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
 void WaterDrainResponseFunctionUtility::MergeTwoVolumes(Volume& rVolume1, Volume& rVolume2) {

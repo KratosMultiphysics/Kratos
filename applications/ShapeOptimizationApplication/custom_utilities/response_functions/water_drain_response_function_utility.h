@@ -149,8 +149,6 @@ private:
 
 	void GrowVolume(Volume& rVolume);
 
-	void GrowVolumeV2(Volume& rVolume);
-
 	void MergeVolumes();
 
 	void MergeTwoVolumes(Volume& rVolume1, Volume& rVolume2);
@@ -174,6 +172,9 @@ private:
 	int mMaxIterations;
 	double mValue;
 	std::vector<Volume> mListOfVolumes;
+	bool mContinuousSens;
+	bool mQuadraticHeightPenalization;
+	std::string mEdgeSubModelPartName;
 
 	///@}
 

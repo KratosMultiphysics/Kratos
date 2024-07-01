@@ -81,7 +81,8 @@ class Optimizer:
 
         # water drain response
         if self.optimization_settings["objectives"][0]["identifier"].GetString() == "water_drain":
-            model_part.AddNodalSolutionStepVariable(KSO.WATER_HEIGHT)
+            model_part.AddNodalSolutionStepVariable(KSO.WATER_LEVEL)
+            model_part.AddNodalSolutionStepVariable(KSO.WATER_VOLUMES)
 
 
     def __AddVariablesToBeUsedByDesignVariables(self):
