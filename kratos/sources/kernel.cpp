@@ -25,14 +25,19 @@
 
 namespace Kratos {
 
-Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel() 
+    : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics"))) 
+{
     Initialize();
 }
 
-Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel(bool IsDistributedRun) 
+        : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics")))
+{
+    // Distributed run definition
     mIsDistributedRun = IsDistributedRun;
+
+    // Initialize kernel
     Initialize();
 }
 
@@ -51,17 +56,46 @@ void Kernel::Initialize() {
     }
 }
 
-std::unordered_set<std::string> &Kernel::GetApplicationsList() {
-  static std::unordered_set<std::string> application_list;
-  return application_list;
+std::unordered_set<std::string>& Kernel::GetApplicationsList() {
+    static std::unordered_set<std::string> application_list;
+    return application_list;
 }
 
-bool Kernel::IsImported(const std::string& ApplicationName) const {
-    if (GetApplicationsList().find(ApplicationName) !=
-        GetApplicationsList().end())
-        return true;
-    else
-        return false;
+std::unordered_set<std::string>& Kernel::GetLibrayList() {
+    // TODO: add more libraries if required
+    static std::unordered_set<std::string> library_list = {
+    #if USE_TRIANGLE_NONFREE_TPL
+            "triangle",
+    #else
+            "delaunator-cpp",
+    #endif
+    #if USE_TETGEN_NONFREE_TPL
+            "tetgen",
+    #endif
+    #if KRATOS_USE_AMATRIX
+            "a_matrix",
+    #endif
+            "amgcl",
+            "concurrentqueue",
+            "ghc",
+            "gidpost",
+            "intrusive_ptr",
+            "json",
+            "pybind11",
+            "span",
+            "tinyexpr",
+            "vexcl",
+            "zlib"
+    };
+    return library_list;
+}
+
+bool Kernel::IsImported(const std::string& rApplicationName) const {
+    return GetApplicationsList().find(rApplicationName) != GetApplicationsList().end();
+}
+
+bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
+    return GetLibrayList().find(rLibraryName) != GetLibrayList().end();
 }
 
 bool Kernel::IsDistributedRun() {
