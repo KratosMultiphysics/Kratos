@@ -67,17 +67,14 @@ public:
         block_for_each(mrModelPart.Elements(),
                        [this, &phi, &reduced_phi, &c, &reduced_c, &previousPropertyId](Element& rElement) {
             // Only compute new c and phi if the Id changes
-            if (mrModelPart.GetProperties(rElement.GetProperties().Id()).Id() != previousPropertyId) {
+            if (rElement.GetProperties().Id() != previousPropertyId) {
                 phi                = GetAndCheckPhi(rElement.GetProperties());
                 reduced_phi        = ComputeReducedPhi(phi);
                 c                  = GetAndCheckC(rElement.GetProperties());
                 reduced_c          = mReductionFactor * c;
-                previousPropertyId = mrModelPart.GetProperties(rElement.GetProperties().Id()).Id();
-                KRATOS_INFO("ApplyCPhiReductionProces")
-                    << "c = " << reduced_c << " (" << c << ") phi = " << reduced_phi << " (" << phi
-                    << ")" << std::endl;
+                previousPropertyId = rElement.GetProperties().Id();
             }
-            set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
+            SetCPhiAtElement(rElement, reduced_phi, reduced_c);
         });
         KRATOS_CATCH("")
     }
@@ -109,22 +106,16 @@ private:
         const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
 
         // Check for UMAT PHI Parameter
-        if (!part_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) ||
-            !part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) || !part_properties.Has(UMAT_PARAMETERS)) {
-            KRATOS_ERROR << "Insufficient material data for C-Phi reduction process: " << std::endl;
-        } else {
-            if (part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
-                part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS]) {
-                KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER: "
-                             << part_properties[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
-            }
-            const double phi =
-                part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
-            if (phi < 0. || phi > 90.) {
-                KRATOS_ERROR << "Friction angle Phi out of range: " << phi << std::endl;
-            }
-            return phi;
-        }
+        KRATOS_ERROR_IF(!part_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) ||
+                        !part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) || !part_properties.Has(UMAT_PARAMETERS))
+            << "Insufficient material data for C-Phi reduction process: " << std::endl;
+        KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 || part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS])
+            << "undefined INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
+            << std::endl;
+        const double phi =
+            part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
+        KRATOS_ERROR_IF(phi < 0. || phi > 90.) << "Friction angle Phi out of range: " << phi << std::endl;
+        return phi;
     }
 
     double ComputeReducedPhi(double Phi) const
@@ -132,7 +123,7 @@ private:
         // Phi converted to radians and then its tangent is reduced by the reduction factor
         const double tan_phi         = std::tan(MathUtils<>::DegreesToRadians(Phi));
         const double reduced_tan_phi = tan_phi * mReductionFactor;
-        return std::atan(reduced_tan_phi) * 180.0 / Globals::Pi; // add to MathUtils?
+        return std::atan(reduced_tan_phi) * 180.0 / Globals::Pi;
     }
 
     double GetAndCheckC(const Element::PropertiesType& rProp)
@@ -141,42 +132,35 @@ private:
         // properties object with reduced c and phi for each and every element. Those reduced
         // properties objects are not linked to the original ones.
         const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
-
-        if (!part_properties.Has(INDEX_OF_UMAT_C_PARAMETER) ||
-            !part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) || !part_properties.Has(UMAT_PARAMETERS)) {
-            KRATOS_ERROR << "Insufficient material data for C-phi reduction: " << std::endl;
-        } else {
-            if (part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                part_properties[INDEX_OF_UMAT_C_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS]) {
-                KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: "
-                             << part_properties[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
-            }
-            const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
-            if (c < 0.) KRATOS_ERROR << "Cohesion C out of range: " << c << std::endl;
-            return c;
-        }
+        KRATOS_ERROR_IF(!part_properties.Has(INDEX_OF_UMAT_C_PARAMETER) ||
+                        !part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) || !part_properties.Has(UMAT_PARAMETERS))
+            << "Insufficient material data for C-phi reduction: " << std::endl;
+        KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 || part_properties[INDEX_OF_UMAT_C_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS])
+            << "undefined INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER]
+            << std::endl;
+        const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
+        KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
+        return c;
     }
 
     double GetAndCheckYoung(const Element::PropertiesType& rProp)
     {
         const auto young = mrModelPart.GetProperties(rProp.Id())[UMAT_PARAMETERS][0];
-        if (young < 0.)
-            KRATOS_ERROR << "Positive value expected for Youngs modulus UMAT_PARAMETERS(1) "
-                         << young << std::endl;
+        KRATOS_ERROR_IF(young < 0.)
+            << "Positive value expected for Youngs modulus UMAT_PARAMETERS(1) " << young << std::endl;
         return young;
     }
 
     double GetAndCheckPoisson(const Element::PropertiesType& rProp)
     {
         const auto nu = mrModelPart.GetProperties(rProp.Id())[UMAT_PARAMETERS][1];
-        if (nu < -1. || nu >= 0.5)
-            KRATOS_ERROR
-                << "Value between -1.0 and 0.5 expected for Poissons ratio UMAT_PARAMETERS(2) "
-                << nu << std::endl;
+        KRATOS_ERROR_IF(nu < -1. || nu >= 0.5)
+            << "Value between -1.0 and 0.5 expected for Poissons ratio UMAT_PARAMETERS(2) " << nu
+            << std::endl;
         return nu;
     }
 
-    void set_C_Phi_At_Element(Element& rElement, double ReducedPhi, double ReducedC) const
+    void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const
     {
         // Get C/Phi material properties of this element
         const auto& r_prop = rElement.GetProperties();
@@ -186,7 +170,6 @@ private:
         Umat_parameters[r_prop[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
         Umat_parameters[r_prop[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
 
-        // Write back to the element
         SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
     }
 
