@@ -73,6 +73,9 @@ class CoSimulationSolverWrapper:
     def Predict(self):
         pass
 
+    def BeforeSolutionLoop(self):
+        pass
+
     def InitializeSolutionStep(self):
         pass
 
