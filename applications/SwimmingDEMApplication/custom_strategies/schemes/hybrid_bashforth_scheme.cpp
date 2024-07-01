@@ -2,7 +2,6 @@
 // Author: Guillermo Casas gcasas@cimne.upc.edu
 //
 // Project includes
-#include "includes/dem_variables.h"
 #include "hybrid_bashforth_scheme.h"
 
 namespace Kratos {
@@ -25,6 +24,7 @@ namespace Kratos {
 
         if (StepFlag == 1){
             for (int k = 0; k < 3; k++) {
+                noalias(mOldForce) = i.FastGetSolutionStepValue(TOTAL_FORCES);
                 delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
@@ -32,12 +32,18 @@ namespace Kratos {
         }
 
         else {
+            double particle_mass = mass;
+            array_1d<double, 3 > old_force = mOldForce;
+            if (i.SolutionStepsDataHas(VIRTUAL_MASS_FORCE)){
+                const double radius = i.GetSolutionStepValue(RADIUS);
+                particle_mass += 0.5 * 4.0/3.0 * Globals::Pi * std::pow(radius,3) * i.FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
+            }
             noalias(mOldVelocity) = vel;
             array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
             noalias(old_vel) = vel;
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
-                    vel[k] += delta_t * force_reduction_factor * force[k] / mass;
+                    vel[k] += 0.5 * delta_t * (3.0 * force[k] - old_force[k]) / particle_mass;
                 }
             } // dimensions
         }

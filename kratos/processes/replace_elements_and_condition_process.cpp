@@ -157,7 +157,6 @@ void ReplaceElementsAndConditionsProcess::Execute()
     KRATOS_TRY;
 
     ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
-
     /* Elements */
     if (mElementIdentifier.IsInitialized()) {
         std::unordered_set<std::size_t> set_element_ids (mrModelPart.NumberOfElements());
@@ -169,7 +168,6 @@ void ReplaceElementsAndConditionsProcess::Execute()
             UpdateElementsInSubModelPart(r_sub_model_part, r_root_model_part, set_element_ids);
         }
     }
-
     /* Conditions */
     if (mConditionIdentifier.IsInitialized()) {
         std::unordered_set<std::size_t> set_conditions_ids (mrModelPart.NumberOfConditions());

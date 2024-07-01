@@ -14,7 +14,6 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -921,9 +920,6 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
-
-template class FluidElement< AxisymmetricNavierStokesData<2,3> >;
-template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;

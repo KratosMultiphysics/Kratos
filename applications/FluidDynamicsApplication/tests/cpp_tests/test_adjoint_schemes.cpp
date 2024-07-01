@@ -19,7 +19,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
-#include "includes/expect.h"
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"

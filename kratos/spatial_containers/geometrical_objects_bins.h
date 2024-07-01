@@ -377,8 +377,8 @@ protected:
 
     BoundingBox<PointType> mBoundingBox;             /// The bounding box of the domain
     array_1d<std::size_t, Dimension> mNumberOfCells; /// The number of cells in each direction
-    array_1d<double, 3> mCellSizes;                  /// The size of each cell in each direction
-    array_1d<double, 3> mInverseOfCellSize;          /// The inverse of the size of each cell in each direction
+    array_1d<double, 3>  mCellSizes;                 /// The size of each cell in each direction
+    array_1d<double, 3>  mInverseOfCellSize;         /// The inverse of the size of each cell in each direction
     std::vector<CellType> mCells;                    /// The cells of the domain
     double mTolerance;                               /// The tolerance considered
 
@@ -583,8 +583,10 @@ private:
 }; // Class GeometricalObjectsBins
 
 ///@}
+
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
@@ -606,7 +608,6 @@ private:
 
 //     return rOStream;
 // }
-
 ///@}
 
 ///@} addtogroup block

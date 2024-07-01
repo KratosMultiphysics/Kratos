@@ -385,11 +385,6 @@ SensitivityBuilder::SensitivityBuilder(
     KRATOS_CATCH("");
 }
 
-void SensitivityBuilder::SetResponseFunction(AdjointResponseFunction::Pointer pResponseFunction)
-{
-    mpResponseFunction = pResponseFunction;
-}
-
 void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;

@@ -27,6 +27,7 @@
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/embedded_mls_constraint_process.h"
+#include "custom_utilities/surface_integral.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -111,6 +112,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
+    ;
+
+    py::class_<ComputeFlux > (m,"ComputeFlux")
+    .def(py::init< ModelPart&, const Variable<array_1d<double,3>>& >())
     ;
 
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")

@@ -158,6 +158,7 @@ namespace Kratos
                                const array_1d<double, 3>& buoyancy,
                                const array_1d<double, 3>& drag_force,
                                const array_1d<double, 3>& inviscid_force,
+                               const array_1d<double, 3>& undisturbed_flow_force,
                                const array_1d<double, 3>& history_force,
                                const array_1d<double, 3>& vorticity_induced_lift,
                                const array_1d<double, 3>& rotation_induced_lift,

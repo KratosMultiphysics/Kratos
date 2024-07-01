@@ -68,6 +68,7 @@ NodalScalarData MassSource;
 NodalVectorData FluidFractionGradient;
 NodalVectorData Acceleration;
 NodalVectorData BodyForce;
+NodalVectorData AveragedParticleVelocity;
 
 NodalTensorData Permeability;
 
@@ -90,6 +91,7 @@ void Initialize(
     this->FillFromHistoricalNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
     this->FillFromHistoricalNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
     this->FillFromHistoricalNodalData(Permeability, PERMEABILITY, r_geometry);
+    this->FillFromHistoricalNodalData(AveragedParticleVelocity, AVERAGED_PARTICLE_VELOCITY, r_geometry);
     this->FillFromHistoricalNodalData(MassSource, MASS_SOURCE, r_geometry);
     this->FillFromHistoricalNodalData(Acceleration, ACCELERATION, r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);

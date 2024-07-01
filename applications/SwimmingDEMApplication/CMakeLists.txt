@@ -45,11 +45,17 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/shah_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/newton_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/dallavalle_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/difelice_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/rong_drag_law.cpp
 
-    # Inviscid Force Laws
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.cpp
+    # Virtual mass Force Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/virtual_mass_force_laws/virtual_mass_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/virtual_mass_force_laws/auton_hunt_prudhomme_virtual_mass_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/virtual_mass_force_laws/zuber_virtual_mass_force_law.cpp
+
+    # Undisturbed Force Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/undisturbed_force_laws/undisturbed_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/undisturbed_force_laws/pressure_gradient_undisturbed_force_law.cpp
 
     # History Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/history_force_law.cpp
@@ -75,12 +81,21 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     #Process
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/bump_transient_porosity_solution_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_sinusoidal_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/skrzypacz_porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/skrzypacz_homogeneous_porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/codina2001_porosity_solution_and_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_and_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hyperbolic_tangential_porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/plateau_bump_porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/plateau_bump_porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/plateau_bump_transient_porosity_solution_transient_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/non_divergence_free_transient_porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/flow_past_cylinder_porosity_field_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/plateau_linear_porosity_field_process.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
@@ -92,6 +107,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_gradient_Pouliot_2012_edge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian_component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_fluid_fraction_gradient_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swimming_particle.cpp
 
@@ -118,6 +134,8 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_check.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_calculator_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/averaging_variables_utility.cpp
 )
 
 ## Define python interface sources

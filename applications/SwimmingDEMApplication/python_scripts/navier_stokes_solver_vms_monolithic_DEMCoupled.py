@@ -229,14 +229,14 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
                 # TO DO: TO BE REMOVED WHEN NEXT GID VERSION LETS DEFINE PERMEABILITY FROM PROBLEMTYPE
                     if self.dimension == 2:
                         permeability = [
-                            [1e+89,1e+89],
-                            [1e+89,1e+90]
+                            [0.0,0.0],
+                            [0.0,0.0]
                             ]
                     else:
                         permeability = [
-                            [1e+89,1e+89,0.0],
-                            [1e+89,1e+90,0.0],
-                            [0.0,1e+90,1e+89]]
+                            [0.0,0.0,0.0],
+                            [0.0,0.0,0.0],
+                            [0.0,0.0,0.0]]
                     perm = KratosMultiphysics.Matrix(permeability)
                     KratosMultiphysics.Logger.PrintWarning('No \'PERMEABILITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, perm))
                     KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, perm, self.main_model_part.Nodes)

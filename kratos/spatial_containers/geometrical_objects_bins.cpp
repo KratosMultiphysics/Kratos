@@ -222,34 +222,28 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
 
 void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
 {
-    const std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
+    const std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
     std::array<double, Dimension> lengths;
-    double average_length = 0.0;
+    double avarage_length = 0.0;
     for (unsigned int i = 0; i < Dimension; i++) {
         lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
-        average_length += lengths[i];
+        avarage_length += lengths[i];
     }
-    average_length *= 0.33333333333333333333333333333333;
+    avarage_length *= 0.33333333333333333333333333333333;
 
-    if (average_length < std::numeric_limits<double>::epsilon()) {
+    if (avarage_length < std::numeric_limits<double>::epsilon()) {
         mNumberOfCells = ScalarVector(3, 1);
-        for (unsigned int i = 0; i < Dimension; i++) {
-            mNumberOfCells[i] = 0;
-            mCellSizes[i] = 0.0;
-            mInverseOfCellSize[i] = std::numeric_limits<double>::max();
-        }
         return;
     }
 
     for (unsigned int i = 0; i < Dimension; i++) {
-        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / average_length * average_number_of_cells) + 1;
-        if (mNumberOfCells[i] > 1) {
+        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / avarage_length * avarage_number_of_cells) + 1;
+        if (mNumberOfCells[i] > 1)
             mCellSizes[i] = lengths[i] / mNumberOfCells[i];
-        } else {
-            mCellSizes[i] = average_length;
-        }
+        else
+            mCellSizes[i] = avarage_length;
 
-        mInverseOfCellSize[i] = 1.0 / mCellSizes[i];
+        mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
     }
 
 }

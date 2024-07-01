@@ -68,7 +68,6 @@
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
-#include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Python {
 
@@ -547,7 +546,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
         .def("Finalize", &SensitivityBuilder::Finalize)
-        .def("SetResponseFunction", &SensitivityBuilder::SetResponseFunction, py::arg("new_response_function"))
         ;
 
     //Sensitivity utilities
@@ -820,10 +818,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Substract", &ModelPartOperationUtilities::FillSubModelPart<ModelPartSubstractionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"))
         .def("Intersect", &ModelPartOperationUtilities::FillSubModelPart<ModelPartIntersectionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"))
         .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
-    ;
-
-    m.def_submodule("TestsUtilities", "Auxiliary utilities for tests.")
-        .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
     ;
 
 }

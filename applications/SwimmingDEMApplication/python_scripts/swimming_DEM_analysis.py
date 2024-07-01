@@ -4,9 +4,12 @@ import math
 import time as timer
 import weakref
 
+import numpy as np
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger, Parameters
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.FluidDynamicsApplication as Fluid
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
@@ -182,7 +185,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.SetDoSolveDEMVariable()
 
-        self.TransferBodyForceFromDisperseToFluid()
+        #self.TransferBodyForceFromDisperseToFluid()
 
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
@@ -268,6 +271,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.rigid_face_model_part,
                 self.mixed_model_part)
 
+        use_fluid_static = self.project_parameters["use_fluid_static"].GetInt()
+
+        self.spheres_model_part.ProcessInfo.SetValue(Fluid.VISCOUS_PROJECTION, use_fluid_static)
         self.SetPointGraphPrinter()
 
         self.AssignKinematicViscosityFromDynamicViscosity()
@@ -390,6 +396,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.PerformZeroStepInitializations()
 
+        self._GetSolver()._GetProjectionModule()
+
         if self.do_print_results:
             self._Print()
 
@@ -399,6 +407,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def FluidInitialize(self):
         self.fluid_model_part = self._GetFluidAnalysis().fluid_model_part
         self._GetFluidAnalysis().vars_man = self.vars_man
+
         self._GetFluidAnalysis().Initialize()
 
         self.AddExtraProcessInfoVariablesToFluid()
@@ -455,6 +464,18 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self._GetSolver().CannotIgnoreFluidNow():
             self._GetFluidAnalysis().InitializeSolutionStep()
         super().InitializeSolutionStep()
+        if self._GetSolver().first_DEM_iteration:
+            self.SetInitialParticlePosition()
+
+    def SetInitialParticlePosition(self):
+        self.ApplyForwardCoupling(1.0)
+        for elem in self.spheres_model_part.Elements:
+            elem.Calculate(Kratos.HYDRODYNAMIC_FORCE,self.spheres_model_part.ProcessInfo)
+        self._GetSolver().projection_module.ProjectFromParticles()
+        for node in self.fluid_model_part.Nodes:
+            fluid_fraction = node.GetSolutionStepValue(Kratos.FLUID_FRACTION)
+            node.SetSolutionStepValue(Kratos.FLUID_FRACTION_OLD, fluid_fraction)
+            node.SetSolutionStepValue(SDEM.FLUID_FRACTION_OLD_2, fluid_fraction)
 
     def FinalizeSolutionStep(self):
         # printing if required
@@ -467,6 +488,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["coupling"]["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
+            #self.force_balance.WriteData(self.spheres_model_part, self.fluid_model_part, self.time)
 
         # coupling checks (debugging)
         if self.debug_info_counter.Tick():
@@ -653,7 +675,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def ProcessAnalyticDataCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_analytic_processing_step"].GetInt(),
+            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
             beginning_step=1,
             is_active=self.project_parameters["do_process_analytic_data"].GetBool())
 

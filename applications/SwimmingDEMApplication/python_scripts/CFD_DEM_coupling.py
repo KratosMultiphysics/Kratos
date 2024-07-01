@@ -95,7 +95,6 @@ class ProjectionModule:
                 alpha = 1 - np.exp(- averaging_time_interval)
             else:
                 alpha = 1.0 / averaging_time_interval
-            print('A'*100, alpha)
             self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
 
     def UpdateDatabase(self, HMin):
@@ -142,9 +141,8 @@ class ProjectionModule:
 
         if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
-
         else:
-            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh, self.use_drew_model)
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.bin_of_objects_fluid, recalculate_neigh, self.use_drew_model)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

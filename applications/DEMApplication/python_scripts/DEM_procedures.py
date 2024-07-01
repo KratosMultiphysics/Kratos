@@ -1182,7 +1182,6 @@ class Report():
         return report
 
     def StepiReport(self, timer, time, step):
-
         incremental_time = (timer.time() - self.initial_re_time) - self.prev_time
         report = ""
         label = "DEM: "

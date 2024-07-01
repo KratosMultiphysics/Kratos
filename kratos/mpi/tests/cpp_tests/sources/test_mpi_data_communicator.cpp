@@ -370,8 +370,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumMatrix, KratosMPICor
             // TODO: For some reason, if the following line is uncommented,
             //       It produces an error which is totally unrelated.
             // resultant_matrix = base_values * (world_size * (i + 2));
-            KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-            KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
         }
     }
 
@@ -697,8 +697,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinMatrix, KratosMPICor
 
         for (unsigned int i = 0; i < 3; ++i) {
             resultant_matrix = base_values * (world_size - 1) * (i + 1);
-            KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-            KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
         }
     }
 
@@ -1016,8 +1016,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxMatrix, KratosMPICor
         base_values.data()[0] = 0; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 0;
         for (unsigned int i = 0; i < 3; ++i) {
             resultant_matrix = base_values * (world_size - 1) * (i + 1);
-            KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-            KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
         }
     }
 
@@ -1285,8 +1285,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllMatrix, KratosMPI
         // TODO: For some reason, if the following line is uncommented,
         //       It produces an error which is totally unrelated.
         // resultant_matrix = base_values * (world_size * (i + 2));
-        KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-        KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
     }
 }
 
@@ -1535,8 +1535,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllMatrix, KratosMPI
 
     for (unsigned int i = 0; i < 3; ++i) {
         resultant_matrix = base_values * (world_size - 1) * (i + 1);
-        KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-        KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
     }
 }
 
@@ -1777,8 +1777,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllMatrix, KratosMPI
     base_values.data()[0] = 0; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 0;
     for (unsigned int i = 0; i < 3; ++i) {
         resultant_matrix = base_values * (world_size - 1) * (i + 1);
-        KRATOS_EXPECT_MATRIX_EQ(vec_result[i], resultant_matrix);
-        KRATOS_EXPECT_MATRIX_EQ(global_results[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(global_results[i], resultant_matrix);
     }
 }
 
@@ -2029,7 +2029,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumMatrix, KratosMP
     local.data()[0] = 2.0; local.data()[1] = 3.0; local.data()[2] = 4.0; local.data()[3] = 5.0;
     resultant.data()[0] = 2.0*(rank+1); resultant.data()[1] = 3.0*(rank+1); resultant.data()[2] = 4.0*(rank+1); resultant.data()[3] = 5.0*(rank+1);
     const auto& partial_sum = mpi_world_communicator.ScanSum(local);
-    KRATOS_EXPECT_MATRIX_EQ(partial_sum, resultant);
+    KRATOS_EXPECT_MATRIX_EQUAL(partial_sum, resultant);
 
     // check std::vector methods
     std::vector<Matrix> vec_local(3, Matrix(2, 2));
@@ -2047,8 +2047,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumMatrix, KratosMP
     KRATOS_EXPECT_EQ(vec_partial_sum.size(), 3);
     for (unsigned int i = 0; i < 3; ++i) {
         resultant_matrix = base_values * (i+1);
-        KRATOS_EXPECT_MATRIX_EQ(vec_partial_sum[i], resultant_matrix);
-        KRATOS_EXPECT_MATRIX_EQ(global_vec[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(vec_partial_sum[i], resultant_matrix);
+        KRATOS_EXPECT_MATRIX_EQUAL(global_vec[i], resultant_matrix);
     }
 }
 
@@ -2421,11 +2421,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvMatrix, KratosM
 
         // value two-buffer version
         mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
-        KRATOS_EXPECT_MATRIX_EQ(recv_value, expected_recv);
+        KRATOS_EXPECT_MATRIX_EQUAL(recv_value, expected_recv);
 
         // value return version
         const auto& return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
-        KRATOS_EXPECT_MATRIX_EQ(return_value, expected_recv);
+        KRATOS_EXPECT_MATRIX_EQUAL(return_value, expected_recv);
 
         // two-buffer version
         mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
@@ -2436,8 +2436,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvMatrix, KratosM
         KRATOS_EXPECT_EQ(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++) {
             result = expected_recv * (i+1);
-            KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], result);
-            KRATOS_EXPECT_MATRIX_EQ(return_buffer[i], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[i], result);
         }
     }
 }
@@ -2596,7 +2596,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvMatrix, Krat
         // value two-buffer version
         mpi_world_communicator.Send(send_value, send_rank, 0);
         mpi_world_communicator.Recv(recv_value, recv_rank, 0);
-        KRATOS_EXPECT_MATRIX_EQ(recv_value, expected_recv);
+        KRATOS_EXPECT_MATRIX_EQUAL(recv_value, expected_recv);
 
         // two-buffer version
         mpi_world_communicator.Send(send_buffer, send_rank, 0);
@@ -2606,7 +2606,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvMatrix, Krat
 
         for (int i = 0; i < 2; i++) {
             result = expected_recv * (i+1);
-            KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], result);
         }
     }
 }
@@ -2758,7 +2758,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastMatrix, Kratos
     result.data()[3] = 7.0*(send_rank+1);
 
     mpi_world_communicator.Broadcast(send, send_rank);
-    KRATOS_EXPECT_MATRIX_EQ(send, result);
+    KRATOS_EXPECT_MATRIX_EQUAL(send, result);
 }
 
 namespace {
@@ -2949,7 +2949,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastMatrixVector, 
 
     mpi_world_communicator.Broadcast(send,send_rank);
     for (unsigned int i = 0; i < 2; i++) {
-        KRATOS_EXPECT_MATRIX_EQ(send[i], result[i]);
+        KRATOS_EXPECT_MATRIX_EQUAL(send[i], result[i]);
     }
 
     #ifdef KRATOS_DEBUG
@@ -3228,7 +3228,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterMatrix, KratosMP
     base_values.data()[0] = 2; base_values.data()[1] = 3; base_values.data()[2] = 5; base_values.data()[3] = 7;
     for (int i = 0; i < 2; i++) {
         resultant = base_values * (world_rank * 2 + i + 1);
-        KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], resultant);
+        KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], resultant);
     }
 
     // return version
@@ -3236,7 +3236,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterMatrix, KratosMP
     KRATOS_EXPECT_EQ(return_buffer.size(), 2);
     for (int i = 0; i < 2; i++) {
         resultant = base_values * (world_rank * 2 + i + 1);
-        KRATOS_EXPECT_MATRIX_EQ(return_buffer[i], resultant);
+        KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[i], resultant);
     }
 
     #ifdef KRATOS_DEBUG
@@ -3739,7 +3739,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervMatrix, KratosM
     Matrix result(2,2);
     result.data()[0] = 2.0*world_rank; result.data()[1] = 3.0*world_rank; result.data()[2] = 4.0*world_rank; result.data()[3] = 5.0*world_rank;
     for (int i = 0; i < recv_size; i++) {
-        KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], result);
+        KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], result);
     }
 
     // return buffer version
@@ -3757,7 +3757,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervMatrix, KratosM
     }
     const auto& returned_result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
     for (int i = 0; i < recv_size; i++) {
-        KRATOS_EXPECT_MATRIX_EQ(returned_result[i], result);
+        KRATOS_EXPECT_MATRIX_EQUAL(returned_result[i], result);
     }
 
     #ifdef KRATOS_DEBUG
@@ -4079,7 +4079,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherMatrix, KratosMPI
         for (int rank = 0; rank < world_size; rank++) {
             for (int j = 2*rank; j < 2*rank+2; j++) {
                 result = base_values * (rank + 1) * (j % 2 + 1);
-                KRATOS_EXPECT_MATRIX_EQ(recv_buffer[j], result);
+                KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[j], result);
             }
         }
     }
@@ -4091,7 +4091,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherMatrix, KratosMPI
         for (int rank = 0; rank < world_size; rank++) {
             for (int j = 2*rank; j < 2*rank+2; j++) {
                 result = base_values * (rank + 1) * (j % 2 + 1);
-                KRATOS_EXPECT_MATRIX_EQ(return_buffer[j], result);
+                KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[j], result);
             }
         }
     }
@@ -4633,11 +4633,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervMatrix, KratosMP
             // the message from this rank...
             for (int i = recv_offset; i < recv_offset + recv_size; i++) {
                 result = base_value * (rank+1);
-                KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], result);
+                KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], result);
             }
             // ...followed by the expected padding.
             for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++) {
-                KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], padded_value);
+                KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], padded_value);
             }
 
         }
@@ -4653,7 +4653,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervMatrix, KratosMP
             KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
             for (unsigned int i = 0; i < expected_size; i++) {
                 result = base_value * (rank+1);
-                KRATOS_EXPECT_MATRIX_EQ(return_buffer[rank][i], result);
+                KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[rank][i], result);
             }
             // no padding in return version
         }
@@ -4963,7 +4963,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherMatrix, Kratos
     for (int rank = 0; rank < world_size; rank++) {
         for (int j = 2*rank; j < 2*rank+2; j++) {
             result = base_values * (rank + 1) * (j % 2 + 1);
-            KRATOS_EXPECT_MATRIX_EQ(recv_buffer[j], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[j], result);
         }
     }
 
@@ -4974,7 +4974,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherMatrix, Kratos
     for (int rank = 0; rank < world_size; rank++) {
         for (int j = 2*rank; j < 2*rank+2; j++) {
             result = base_values * (rank + 1) * (j % 2 + 1);
-            KRATOS_EXPECT_MATRIX_EQ(return_buffer[j], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[j], result);
         }
     }
 
@@ -5449,11 +5449,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervMatrix, Krato
         // the message from this rank...
         for (int i = recv_offset; i < recv_offset + recv_size; i++) {
             result = base_value * (rank + 1);
-            KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], result);
         }
         // ...followed by the expected padding.
         for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++) {
-            KRATOS_EXPECT_MATRIX_EQ(recv_buffer[i], padding);
+            KRATOS_EXPECT_MATRIX_EQUAL(recv_buffer[i], padding);
         }
 
     }
@@ -5467,7 +5467,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervMatrix, Krato
         KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
         for (unsigned int i = 0; i < expected_size; i++) {
             result = base_value * (rank + 1);
-            KRATOS_EXPECT_MATRIX_EQ(return_buffer[rank][i], result);
+            KRATOS_EXPECT_MATRIX_EQUAL(return_buffer[rank][i], result);
         }
         // no padding in return version
     }

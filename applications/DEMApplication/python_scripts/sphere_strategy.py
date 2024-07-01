@@ -594,6 +594,9 @@ class ExplicitStrategy():
             class_name = 'TaylorScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        # Added to be able to use TerminalVelocityScheme
+        elif name == 'Terminal_Velocity':
+            class_name = 'TerminalVelocityScheme'
 
         return class_name
 

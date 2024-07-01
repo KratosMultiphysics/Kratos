@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-NodalPositionExpressionIO::Input::Input(
+NodalPositionExpressionIO::NodalPositionExpressionInput::NodalPositionExpressionInput(
     const ModelPart& rModelPart,
     const Configuration& rConfiguration,
     const MeshType& rMeshType)
@@ -32,7 +32,7 @@ NodalPositionExpressionIO::Input::Input(
 {
 }
 
-Expression::Pointer NodalPositionExpressionIO::Input::Execute() const
+Expression::Pointer NodalPositionExpressionIO::NodalPositionExpressionInput::Execute() const
 {
     const auto& r_mesh = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType);
     const auto number_of_nodes = r_mesh.Nodes().size();
@@ -65,7 +65,7 @@ Expression::Pointer NodalPositionExpressionIO::Input::Execute() const
     return expression;
 }
 
-NodalPositionExpressionIO::Output::Output(
+NodalPositionExpressionIO::NodalPositionExpressionOutput::NodalPositionExpressionOutput(
     ModelPart& rModelPart,
     const Configuration& rConfiguration,
     const MeshType& rMeshType)
@@ -75,7 +75,7 @@ NodalPositionExpressionIO::Output::Output(
 {
 }
 
-void NodalPositionExpressionIO::Output::Execute(const Expression& rExpression)
+void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
 
@@ -145,7 +145,7 @@ void NodalPositionExpressionIO::Read(
     ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
     const Configuration& rConfiguration)
 {
-    auto p_expression = Input(rContainerExpression.GetModelPart(),
+    auto p_expression = NodalPositionExpressionInput(rContainerExpression.GetModelPart(),
                                                      rConfiguration, TMeshType)
                             .Execute();
 
@@ -157,7 +157,7 @@ void NodalPositionExpressionIO::Write(
     const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
     const Configuration& rConfiguration)
 {
-    Output(*rContainerExpression.pGetModelPart(),
+    NodalPositionExpressionOutput(*rContainerExpression.pGetModelPart(),
                                   rConfiguration, TMeshType)
         .Execute(rContainerExpression.GetExpression());
 }

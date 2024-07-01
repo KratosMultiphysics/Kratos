@@ -22,73 +22,79 @@
 
 namespace Kratos {
 
-VariableExpressionIO::Input::Input(
+VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
     const ModelPart& rModelPart,
     const VariableType& rVariable,
-    Globals::DataLocation CurrentLocation,
-    MeshType CurrentMeshType)
-    : mpModelPart(&rModelPart),
+    const ContainerType& rContainerType,
+    const MeshType& rMeshType)
+    : mrModelPart(rModelPart),
       mpVariable(rVariable),
-      mDataLocation(CurrentLocation),
-      mMeshType(CurrentMeshType)
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
 {
 }
 
-Expression::Pointer VariableExpressionIO::Input::Execute() const
+Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() const
 {
-    const auto& r_mesh = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType);
-    const auto& r_data_communicator = mpModelPart->GetCommunicator().GetDataCommunicator();
+    const auto& r_mesh = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType);
+    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
 
-    switch (mDataLocation) {
-        case Globals::DataLocation::NodeHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
-        case Globals::DataLocation::NodeNonHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
-        case Globals::DataLocation::Condition:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable, r_data_communicator);
-        case Globals::DataLocation::Element:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable, r_data_communicator);
-        default:
-            KRATOS_ERROR << "Invalid container type. Only supports NodeHistorical, NodeNonHistorical, Condition, Element.";
+    switch (mContainerType) {
+        case ContainerType::NodalHistorical: {
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
+                break;
+            }
+        case ContainerType::NodalNonHistorical: {
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
+                break;
+            }
+        case ContainerType::ConditionNonHistorical: {
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable, r_data_communicator);
+                break;
+            }
+        case ContainerType::ElementNonHistorical: {
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable, r_data_communicator);
+                break;
+            }
+        default: {
+                KRATOS_ERROR << "Invalid container type";
             break;
+        }
     }
 
     return nullptr;
 }
 
-VariableExpressionIO::Output::Output(
+VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
     ModelPart& rModelPart,
     const VariableType& rVariable,
-    Globals::DataLocation CurrentLocation,
-    MeshType CurrentMeshType)
-    : mpModelPart(&rModelPart),
+    const ContainerType& rContainerType,
+    MeshType  rMeshType)
+    : mrModelPart(rModelPart),
       mpVariable(rVariable),
-      mDataLocation(CurrentLocation),
-      mMeshType(CurrentMeshType)
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
 {
 }
 
-void VariableExpressionIO::Output::Execute(const Expression& rExpression)
+void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
-    auto& r_communicator = mpModelPart->GetCommunicator();
+    auto& r_communicator = mrModelPart.GetCommunicator();
     auto& r_mesh = ExpressionIOUtils::GetMesh(r_communicator, mMeshType);
 
-    switch (mDataLocation) {
-        case Globals::DataLocation::NodeHistorical:
+    switch (mContainerType) {
+        case ContainerType::NodalHistorical:
             ExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
-        case Globals::DataLocation::NodeNonHistorical:
+        case ContainerType::NodalNonHistorical:
             ExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
-        case Globals::DataLocation::Condition:
+        case ContainerType::ConditionNonHistorical:
             ExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mpVariable);
             break;
-        case Globals::DataLocation::Element:
+        case ContainerType::ElementNonHistorical:
             ExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpVariable);
-            break;
-        default:
-            KRATOS_ERROR << "Invalid container type. Only supports NodeHistorical, NodeNonHistorical, Condition, Element.";
             break;
     }
     KRATOS_CATCH("");
@@ -101,9 +107,9 @@ void VariableExpressionIO::Read(
     const bool IsHistorical)
 {
     auto p_expression =
-        Input(rContainerExpression.GetModelPart(), rVariable,
-                                IsHistorical ? Globals::DataLocation::NodeHistorical
-                                             : Globals::DataLocation::NodeNonHistorical,
+        VariableExpressionInput(rContainerExpression.GetModelPart(), rVariable,
+                                IsHistorical ? ContainerType::NodalHistorical
+                                             : ContainerType::NodalNonHistorical,
                                 TMeshType)
             .Execute();
 
@@ -120,10 +126,10 @@ void VariableExpressionIO::Read(
                   "stated.\n");
 
     auto p_expression =
-        Input(rContainerExpression.GetModelPart(), rVariable,
+        VariableExpressionInput(rContainerExpression.GetModelPart(), rVariable,
                                 std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                    ? Globals::DataLocation::Condition
-                                    : Globals::DataLocation::Element,
+                                    ? ContainerType::ConditionNonHistorical
+                                    : ContainerType::ElementNonHistorical,
                                 TMeshType)
             .Execute();
 
@@ -136,9 +142,9 @@ void VariableExpressionIO::Write(
     const VariableType& rVariable,
     const bool IsHistorical)
 {
-    Output(*rContainerExpression.pGetModelPart(), rVariable,
-                             IsHistorical ? Globals::DataLocation::NodeHistorical
-                                          : Globals::DataLocation::NodeNonHistorical,
+    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
+                             IsHistorical ? ContainerType::NodalHistorical
+                                          : ContainerType::NodalNonHistorical,
                              TMeshType)
         .Execute(rContainerExpression.GetExpression());
 }
@@ -152,10 +158,10 @@ void VariableExpressionIO::Write(
                   "NodesContainerType expressions should have the IsHistorical "
                   "stated.\n");
 
-    Output(*rContainerExpression.pGetModelPart(), rVariable,
+    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                 ? Globals::DataLocation::Condition
-                                 : Globals::DataLocation::Element,
+                                 ? ContainerType::ConditionNonHistorical
+                                 : ContainerType::ElementNonHistorical,
                              TMeshType)
         .Execute(rContainerExpression.GetExpression());
 }

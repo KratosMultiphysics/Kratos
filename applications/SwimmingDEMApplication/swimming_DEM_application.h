@@ -33,6 +33,7 @@
 #include "custom_elements/calculate_gradient_Pouliot_2012_edge.h"
 #include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/calculate_velocity_laplacian.h"
+#include "custom_elements/calculate_fluid_fraction_gradient_element.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
@@ -122,6 +123,13 @@ private:
 
     const ComputeMaterialDerivativeSimplex<2> mComputeMaterialDerivativeSimplex2D;
     const ComputeMaterialDerivativeSimplex<3> mComputeMaterialDerivativeSimplex3D;
+
+    const ComputeFluidFractionGradient<2,3> mComputeFluidFractionGradient2D3N;
+    const ComputeFluidFractionGradient<2,4> mComputeFluidFractionGradient2D4N;
+    const ComputeFluidFractionGradient<2,9> mComputeFluidFractionGradient2D9N;
+    const ComputeFluidFractionGradient<3,4> mComputeFluidFractionGradient3D4N;
+    const ComputeFluidFractionGradient<3,8> mComputeFluidFractionGradient3D8N;
+    const ComputeFluidFractionGradient<3,27> mComputeFluidFractionGradient3D27N;
 
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;

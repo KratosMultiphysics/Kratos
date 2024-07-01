@@ -23,7 +23,7 @@
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -31,7 +31,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosCoreFas
     KRATOS_EXPECT_EQ(serial_communicator.Size(), 1);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -40,7 +40,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosCoreF
     KRATOS_EXPECT_EQ(serial_communicator.IsDistributed(), false);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosCoreFastSuite)
 {
     KRATOS_EXPECT_EQ(KratosComponents<DataCommunicator>::Has("Serial"), true);
     const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
@@ -49,7 +49,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, Krat
 
 // Sum ////////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -65,7 +65,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosCoreFastSuit
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -81,7 +81,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosCoreFastS
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -103,7 +103,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosCoreFast
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -144,7 +144,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosCoreFa
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -187,7 +187,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosCor
 
 // Min ////////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -203,7 +203,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosCoreFastSuit
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -219,7 +219,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosCoreFastS
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -241,7 +241,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosCoreFast
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -282,7 +282,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosCoreFa
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -325,7 +325,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosCor
 
 // Max ////////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -341,7 +341,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosCoreFastSuit
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -357,7 +357,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosCoreFastS
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -379,7 +379,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosCoreFast
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -420,7 +420,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosCoreFa
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -463,7 +463,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosCor
 
 // SumAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -472,7 +472,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllInt, KratosCoreFastS
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -481,7 +481,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllDouble, KratosCoreFa
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -496,7 +496,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosCoreF
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -527,7 +527,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosCor
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -560,7 +560,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, Kratos
 
 // MinAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -569,7 +569,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllInt, KratosCoreFastS
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -578,7 +578,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllDouble, KratosCoreFa
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -593,7 +593,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosCoreF
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -624,7 +624,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosCor
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -657,7 +657,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, Kratos
 
 // MaxAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -666,7 +666,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllInt, KratosCoreFastS
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -675,7 +675,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllDouble, KratosCoreFa
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -690,7 +690,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosCoreF
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -713,7 +713,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosCor
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -738,7 +738,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, Kratos
 
 // MinLocAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -748,7 +748,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllInt, KratosCoreFa
     KRATOS_EXPECT_EQ(result.second, 0);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -760,7 +760,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllDouble, KratosCor
 
 // MaxLocAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -770,7 +770,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllInt, KratosCoreFa
     KRATOS_EXPECT_EQ(result.second, 0);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -782,7 +782,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllDouble, KratosCor
 
 // ScanSum ////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -791,7 +791,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosCoreFast
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -800,7 +800,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosCoreF
     KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -831,7 +831,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosCo
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -864,7 +864,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, Krato
 
 // SendRecv ///////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -918,7 +918,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosCoreFas
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -972,7 +972,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosCore
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1023,7 +1023,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosCore
 
 // Broadcast //////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1035,7 +1035,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosCoreFa
     KRATOS_EXPECT_EQ(send, 1 + world_rank);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1047,7 +1047,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosCor
     KRATOS_EXPECT_EQ(send, 1.0 + world_rank);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1060,7 +1060,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, Kratos
     KRATOS_EXPECT_EQ(send[1], 1 + world_rank);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1075,7 +1075,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, Kra
 
 // Scatter ////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1126,7 +1126,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosCo
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1179,7 +1179,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, Krato
 
 // Scatterv ///////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1245,7 +1245,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosCoreFas
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1313,7 +1313,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosCore
 
 // Gather /////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1364,7 +1364,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosCoreFastS
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1417,7 +1417,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosCoreFa
 
 // Gatherv ////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1483,7 +1483,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosCoreFast
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1551,7 +1551,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosCoreF
 
 // AllGather //////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1583,7 +1583,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosCoreFa
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1617,7 +1617,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosCor
 
 // AllGatherv ////////////////////////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1664,7 +1664,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosCoreF
     #endif
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1713,7 +1713,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosCo
 
 // Error broadcasting methods /////////////////////////////////////////////////
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 

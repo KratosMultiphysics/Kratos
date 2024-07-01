@@ -51,10 +51,10 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         self.variable_type = Kratos.KratosGlobals.GetVariableType(self.destination_variable_name)
         if self.variable_type == "Array":
             self.destination_variable_name_component = []
-            self.exact_variable_name_component = []
+            #self.exact_variable_name_component = [Kratos.KratosGlobals.GetVariable((self.exact_variable_name))]
             for string in ["_X", "_Y", "_Z"]:
                 self.destination_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.destination_variable_name + string)))
-                self.exact_variable_name_component.append(Kratos.KratosGlobals.GetVariable((self.exact_variable_name + string)))
+                #self.exact_variable_name_component.append()
 
     def ExecuteBeforeSolutionLoop(self):
         """
@@ -73,8 +73,13 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         """
 
         if self.variable_type == "Array":
-            Kratos.VariableUtils().CopyVectorVar(self.exact_variable, self.destination_variable, self.model_part.Nodes)
+            #TO-DO make it in c++
+            #Kratos.VariableUtils().CopyVectorVar(self.exact_variable, self.destination_variable, self.model_part.Nodes)
             for node in self.model_part.Nodes:
+                exact_var = node.GetSolutionStepValue(self.exact_variable)
+                node.SetSolutionStepValue(self.destination_variable_name_component[0],0,exact_var[0])
+                node.SetSolutionStepValue(self.destination_variable_name_component[1],0,exact_var[1])
+                node.SetSolutionStepValue(self.destination_variable_name_component[2],0,exact_var[2])
                 node.Fix(self.destination_variable_name_component[0])
                 node.Fix(self.destination_variable_name_component[1])
                 node.Fix(self.destination_variable_name_component[2])

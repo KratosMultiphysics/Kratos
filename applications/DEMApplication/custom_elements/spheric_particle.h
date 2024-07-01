@@ -442,6 +442,7 @@ double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when
 double mRadius;
 double mSearchRadius;
 double mRealMass;
+double mNodalDensity;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;

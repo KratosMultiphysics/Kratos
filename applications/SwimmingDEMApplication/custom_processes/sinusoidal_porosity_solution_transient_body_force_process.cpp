@@ -224,8 +224,8 @@ void SinusoidalPorositySolutionTransientBodyForceProcess::SetInitialBodyForceAnd
         double& r_body_force1 = it_node->FastGetSolutionStepValue(BODY_FORCE_X);
         double& r_body_force2 = it_node->FastGetSolutionStepValue(BODY_FORCE_Y);
 
-        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
-        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
+        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[0];
+        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[1];
 
         Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
@@ -350,8 +350,8 @@ void SinusoidalPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosit
         double& r_body_force1 = it_node->FastGetSolutionStepValue(BODY_FORCE_X);
         double& r_body_force2 = it_node->FastGetSolutionStepValue(BODY_FORCE_Y);
 
-        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
-        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
+        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[0];
+        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[1];
 
         double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 

@@ -35,7 +35,6 @@
 
 // Application includes
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
-#include "custom_elements/axisymmetric_navier_stokes.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
@@ -78,7 +77,6 @@
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 
-#include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -295,8 +293,6 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mAlternativeQSVMSDEMCoupled3D27N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
-    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
-    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
@@ -373,9 +369,11 @@ private:
     const WallConditionDiscontinuous<3,3> mWallConditionDiscontinuous3D;
 
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
-    const MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
+    const MonolithicWallCondition<2,2> mMonolithicWallCondition2D2N;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
-    const MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
+    const MonolithicWallCondition<3,3> mMonolithicWallCondition3D3N;
+    const MonolithicWallCondition<3,4> mMonolithicWallCondition3D4N;
+    const MonolithicWallCondition<3,9> mMonolithicWallCondition3D9N;
     /// stokes condition(monolithic version)
     const StokesWallCondition<3,3> mStokesWallCondition3D;
     const StokesWallCondition<3,4> mStokesWallCondition3D4N;
@@ -419,6 +417,8 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2,2> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3,3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<3,4> mNavierStokesWallCondition3D4N;
+    const NavierStokesWallCondition<3,9> mNavierStokesWallCondition3D9N;
     const NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>> mNavierStokesLinearLogWallCondition2D;
     const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;

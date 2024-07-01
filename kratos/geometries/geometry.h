@@ -231,10 +231,10 @@ public:
     }
 
     /// Standard Constructor with a geometry Id
-    Geometry(IndexType GeometryId)
+    Geometry(IndexType GeomertyId)
         : mpGeometryData(&GeometryDataInstance())
     {
-        SetId(GeometryId);
+        SetId(GeomertyId);
     }
 
     /// Standard Constructor with a Name
@@ -1888,7 +1888,7 @@ public:
             const double norm2DXi = norm_2(DeltaXi);
 
             if(norm2DXi > MaxNormPointLocalCoordinates) {
-                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                //KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
                 break;
             }
 

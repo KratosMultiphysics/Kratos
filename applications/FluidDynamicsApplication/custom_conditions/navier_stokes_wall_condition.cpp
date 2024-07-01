@@ -606,6 +606,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ProjectViscousStre
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
+template class NavierStokesWallCondition<3,4>;
+template class NavierStokesWallCondition<3,9>;
 template class NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;

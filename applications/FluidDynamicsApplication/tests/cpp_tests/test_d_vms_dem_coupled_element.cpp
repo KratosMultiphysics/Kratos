@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {2.885342223,3.817976395,-0.05954391544,-3.764678983,2.452222894,-0.04746809897,-5.675304236,-5.32981538,-0.04009093622,1.144992949,-6.350031955,-0.05289704936}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {7.01623,8.98244,-0.0592665,-6.70311,6.39427,-0.0474478,-8.95559,-8.22618,-0.0403782,5.90279,-9.8902,-0.0529075}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
@@ -121,11 +121,8 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
         i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
-        // std::cout << i->Info() << std::setprecision(10) << std::endl;
-        // KRATOS_WATCH(RHS);
-
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-5);
+            KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-5);
         }
     }
     double porosity = 0.5;
@@ -144,9 +141,9 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
 
         for (unsigned int j = 0; j < output.size(); j++) {
             if ((j+1) % (Dim+1) == 0){
-                KRATOS_CHECK_NEAR(RHS[j], porosity*output[j], 1e-4);}
+                KRATOS_EXPECT_NEAR(RHS[j], porosity*output[j], 1e-4);}
             else{
-                KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-4);}
+                KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-4);}
 
         }
     }

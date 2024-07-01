@@ -27,7 +27,17 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) {
 
-        double mass_inv = 1.0 / mass;
+        // If virtual mass force is active, the particle's mass must be updated
+        // noalias(old_force) = i.FastGetSolutionStepValue(TOTAL_FORCES);
+        double particle_mass = mass;
+        if (i.SolutionStepsDataHas(VIRTUAL_MASS_FORCE)){
+            array_1d<double, 3 > old_force = i.FastGetSolutionStepValue(TOTAL_FORCES);
+            const double radius = i.GetSolutionStepValue(RADIUS);
+            particle_mass += 0.5 * 4.0/3.0 * Globals::Pi * std::pow(radius,3) * i.FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
+        }
+
+        // double mass_inv = 1.0 / mass;
+        double mass_inv = 1.0 / particle_mass;
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
                 delta_displ[k] = delta_t * vel[k];
@@ -40,6 +50,7 @@ namespace Kratos {
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
+
     }
 
     void ForwardEulerScheme::CalculateNewRotationalVariablesOfSpheres(

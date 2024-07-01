@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
     }
 
     // Check that the flag TO_SPLIT is correctly set
-    KRATOS_EXPECT_TRUE((model_part.ElementsBegin())->Is(TO_SPLIT));
+    KRATOS_CHECK((model_part.ElementsBegin())->Is(TO_SPLIT));
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();
@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynami
     KRATOS_EXPECT_VECTOR_NEAR(r_elem_edge_dist_extra, expected_extra_values, tolerance);
 
     // Check that the flag TO_SPLIT is correctly set
-    KRATOS_EXPECT_TRUE((model_part.ElementsBegin())->Is(TO_SPLIT));
+    KRATOS_CHECK((model_part.ElementsBegin())->Is(TO_SPLIT));
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();

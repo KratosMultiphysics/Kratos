@@ -6,7 +6,7 @@ import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
 import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
+import KratosMultiphysics as Kratos
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
@@ -44,6 +44,7 @@ class SwimmingDEMSolver(PythonSolver):
         },
         "do_print_results_option" : true,
         "output_interval" : 0.5,
+        "use_fluid_static" : 0,
 
         "processes" : {},
 
@@ -344,15 +345,15 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
 
-        if self.CannotIgnoreFluidNow():
-            self.SolveFluidSolutionStep()
-        else:
-            Say("Skipping solving system for the fluid phase...\n")
-
         self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()
+
+        if self.CannotIgnoreFluidNow():
+            self.SolveFluidSolutionStep()
+        else:
+            Say("Skipping solving system for the fluid phase...\n")
 
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')

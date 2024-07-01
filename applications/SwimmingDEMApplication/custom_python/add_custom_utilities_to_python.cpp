@@ -84,7 +84,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/mesh_rotation_utility.h"
 #include "custom_utilities/renumbering_nodes_utility.h"
 #include "custom_utilities/stationarity_check.h"
-#include "custom_utilities/L2_error_calculator_utility.h"
+#include "custom_utilities/error_norm_calculator_utility.h"
+#include "custom_utilities/averaging_variables_utility.h"
 
 namespace Kratos{
 
@@ -316,6 +317,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("GetRules", &SpaceTimeSet::GetRules)
         ;
 
+
+    py::class_<AveragingVariablesUtility, AveragingVariablesUtility::Pointer>(m, "AveragingVariablesUtility")
+        .def(py::init<>())
+        .def("AverageVariables", &AveragingVariablesUtility::AverageVariables)
+        ;
+
     // next we do what is needed to define the overloaded function 'FieldUtility::ImposeFieldOnNodes'
 
     typedef double (FieldUtility::*EvaluateDoubleFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
@@ -420,6 +427,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("RecoverLagrangianAcceleration", &DerivativeRecovery <3>::RecoverLagrangianAcceleration)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
+        ;
+
+    py::class_<DerivativeRecovery <2> > (m, "DerivativeRecoveryTool2D")
+        .def(py::init<ModelPart&, Parameters&>())
+        .def("AddTimeDerivativeComponent", &DerivativeRecovery <2>::AddTimeDerivativeComponent)
+        .def("RecoverSuperconvergentGradient", &DerivativeRecovery <2>::RecoverSuperconvergentGradient< Variable<double> >)
+        .def("RecoverSuperconvergentLaplacian", &DerivativeRecovery <2>::RecoverSuperconvergentLaplacian)
+        .def("RecoverSuperconvergentVelocityLaplacianFromGradient", &DerivativeRecovery <2>::RecoverSuperconvergentVelocityLaplacianFromGradient)
+        .def("RecoverSuperconvergentMatDeriv", &DerivativeRecovery <2>::RecoverSuperconvergentMatDeriv)
+        .def("CalculateVectorMaterialDerivativeFromGradient", &DerivativeRecovery <2>::CalculateVectorMaterialDerivativeFromGradient)
+        .def("CalculateVectorMaterialDerivativeComponent", &DerivativeRecovery <2>::CalculateVectorMaterialDerivativeComponent)
+        .def("CalculateVorticityFromGradient", &DerivativeRecovery <2>::CalculateVorticityFromGradient)
+        .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <2>::CalculateVorticityContributionOfTheGradientOfAComponent)
+        .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <2>::RecoverSuperconvergentMatDerivAndLaplacian)
+        .def("CalculateGradient", &DerivativeRecovery <2>::CalculateGradient< Variable<double> >)
+        .def("SmoothVectorField", &DerivativeRecovery <2>::SmoothVectorField)
+        .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <2>::CalculateVectorMaterialDerivative)
+        .def("RecoverLagrangianAcceleration", &DerivativeRecovery <2>::RecoverLagrangianAcceleration)
+        .def("CalculateVectorLaplacian", &DerivativeRecovery <2>::CalculateVectorLaplacian)
+        .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <2>::CalculateVelocityLaplacianRate)
         ;
     //**********************************************************************************************************************************************
 
@@ -529,11 +556,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
-    py::class_<L2ErrorNormCalculator> (m, "L2ErrorNormCalculator")
+    py::class_<ErrorNormCalculator> (m, "ErrorNormCalculator")
         .def(py::init<>())
-        .def("ComputeDofsErrors", &L2ErrorNormCalculator::ComputeDofsErrors)
-        .def("GetL2VectorErrorNorm", &L2ErrorNormCalculator::GetL2VectorErrorNorm)
-        .def("GetL2ScalarErrorNorm", &L2ErrorNormCalculator::GetL2ScalarErrorNorm)
+        .def("ComputeDofsErrors", &ErrorNormCalculator::ComputeDofsErrors)
+        .def("GetL2VectorErrorNorm", &ErrorNormCalculator::GetL2VectorErrorNorm)
+        .def("GetL2ScalarErrorNorm", &ErrorNormCalculator::GetL2ScalarErrorNorm)
+        .def("GetH1ScalarErrorSemiNorm", &ErrorNormCalculator::GetH1ScalarErrorSemiNorm)
+        .def("GetH1VectorErrorSemiNorm", &ErrorNormCalculator::GetH1VectorErrorSemiNorm)
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

@@ -31,6 +31,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         translational_scheme = BaseAnalysis.SelectTranslationalScheme(self)
         translational_scheme_name = self.project_parameters["TranslationalIntegrationScheme"].GetString()
 
+        # Force terminal velocity scheme
         if translational_scheme is None:
             if translational_scheme_name == 'Hybrid_Bashforth':
                 return SDEM.HybridBashforthScheme()
@@ -78,14 +79,21 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
     def IsTimeToPrintPostProcess(self):
         return self.analytic_data_counter.Tick()
 
-    def SetGraphicalOutput(self):
-        pass
+    def PrintResults(self):
+        #### GiD IO ##########################################
+        if self.IsTimeToPrintPostProcess():
+            self.PrintResultsForGid(self.time)
+            self.time_old_print = self.time
 
-    def GraphicalOutputInitialize(self):
-        pass
+    # def SetGraphicalOutput(self):
+    #     pass
+
+    # def GraphicalOutputInitialize(self):
+    #     pass
 
     def PrintResultsForGid(self, time):
-        pass
+        super().PrintResultsForGid(time)
+    #     pass
 
-    def GraphicalOutputFinalize(self):
-        pass
+    # def GraphicalOutputFinalize(self):
+    #     pass

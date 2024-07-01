@@ -325,7 +325,6 @@ namespace Kratos:: Python
         py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
         (m, "ResidualBasedAdjointStaticScheme")
         .def(py::init<AdjointResponseFunction::Pointer>())
-        .def("SetResponseFunction", &ResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
         ;
 
         // Residual Based Adjoint Steady Scheme Type

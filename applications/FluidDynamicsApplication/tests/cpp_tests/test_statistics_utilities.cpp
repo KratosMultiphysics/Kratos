@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
-    KRATOS_EXPECT_EQ(expected_output.size(), obtained_output.size());
+    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
@@ -179,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
-    KRATOS_EXPECT_EQ(expected_output.size(), obtained_output.size());
+    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {

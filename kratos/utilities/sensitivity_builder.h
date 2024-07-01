@@ -12,7 +12,8 @@
 //                Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
-#pragma once
+#if !defined(KRATOS_SENSITIVITY_BUILDER_H_INCLUDED)
+#define KRATOS_SENSITIVITY_BUILDER_H_INCLUDED
 
 // System includes
 #include <string>
@@ -126,19 +127,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Set the Response Function
-     *
-     * This sets the response function used in the sensitivity builder. This
-     * is useful in cases where the LHS of the adjoint problem does not change,
-     * but the RHS changes due to change in the the response function. In these
-     * cases, this allows re-use of the already constructed LHS with different
-     * RHSs.
-     *
-     * @param pResponseFunction         New Response function to be set.
-     */
-    void SetResponseFunction(AdjointResponseFunction::Pointer pResponseFunction);
-
     void Initialize();
 
     void InitializeSolutionStep();
@@ -232,3 +220,5 @@ private:
 ///@} // Kratos Classes
 
 } /* namespace Kratos.*/
+
+#endif /* KRATOS_SENSITIVITY_BUILDER_H_INCLUDED defined */

@@ -213,6 +213,17 @@ public:
     KRATOS_CATCH("");
   }
 
+   void InitializeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
+    {
+
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+
+    }
+
   void FinalizeNonLinIteration(ModelPart& rModelPart,
                                        TSystemMatrixType& rA,
                                        TSystemVectorType& rDx,

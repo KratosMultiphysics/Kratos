@@ -22,36 +22,35 @@
 
 namespace Kratos {
 
-LiteralExpressionIO::Input::Input(
+LiteralExpressionIO::LiteralExpressionInput::LiteralExpressionInput(
     const ModelPart& rModelPart,
     const DataType& rValue,
-    Globals::DataLocation CurrentLocation,
-    MeshType CurrentMeshType)
-    : mpModelPart(&rModelPart),
+    const ContainerType& rContainerType,
+    const MeshType& rMeshType)
+    : mrModelPart(rModelPart),
       mValue(rValue),
-      mDataLocation(CurrentLocation),
-      mMeshType(CurrentMeshType)
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
 {
 }
-Expression::Pointer LiteralExpressionIO::Input::Execute() const
+Expression::Pointer LiteralExpressionIO::LiteralExpressionInput::Execute() const
 {
     return std::visit([&](auto& rValue){
         using data_type = std::remove_const_t<std::remove_reference_t<decltype(rValue)>>;
 
         IndexType number_of_entities = 0;
-        switch (mDataLocation) {
-            case Globals::DataLocation::NodeHistorical:
-            case Globals::DataLocation::NodeNonHistorical:
-                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfNodes();
+        switch (mContainerType) {
+            case ContainerType::NodalHistorical:
+                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfNodes();
                 break;
-            case Globals::DataLocation::Condition:
-                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfConditions();
+            case ContainerType::NodalNonHistorical:
+                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfNodes();
                 break;
-            case Globals::DataLocation::Element:
-                number_of_entities = ExpressionIOUtils::GetMesh(mpModelPart->GetCommunicator(), mMeshType).NumberOfElements();
+            case ContainerType::ConditionNonHistorical:
+                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfConditions();
                 break;
-            default:
-                KRATOS_ERROR << "Invalid container type. Only supports NodeHistorical, NodeNonHistorical, Condition, Element.";
+            case ContainerType::ElementNonHistorical:
+                number_of_entities = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType).NumberOfElements();
                 break;
         }
 
@@ -65,12 +64,12 @@ void LiteralExpressionIO::SetData(
     const DataType& rValue)
 {
     rContainerExpression.SetExpression(
-        Input(rContainerExpression.GetModelPart(), rValue,
+        LiteralExpressionInput(rContainerExpression.GetModelPart(), rValue,
                             std::is_same_v<TContainerType, ModelPart::NodesContainerType>
-                                ? Globals::DataLocation::NodeNonHistorical
+                                ? ContainerType::NodalNonHistorical
                                 : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                    ? Globals::DataLocation::Condition
-                                    : Globals::DataLocation::Element,
+                                    ? ContainerType::ConditionNonHistorical
+                                    : ContainerType::ElementNonHistorical,
                             TMeshType)
             .Execute());
 }
@@ -82,12 +81,12 @@ void LiteralExpressionIO::SetDataToZero(
 {
     std::visit([&rContainerExpression](const auto pVariable) {
         rContainerExpression.SetExpression(
-            Input(rContainerExpression.GetModelPart(), pVariable->Zero(),
+            LiteralExpressionInput(rContainerExpression.GetModelPart(), pVariable->Zero(),
                                 std::is_same_v<TContainerType, ModelPart::NodesContainerType>
-                                    ? Globals::DataLocation::NodeNonHistorical
+                                    ? ContainerType::NodalNonHistorical
                                     : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                        ? Globals::DataLocation::Condition
-                                        : Globals::DataLocation::Element,
+                                        ? ContainerType::ConditionNonHistorical
+                                        : ContainerType::ElementNonHistorical,
                                 TMeshType)
                 .Execute());
     }, rVariable);

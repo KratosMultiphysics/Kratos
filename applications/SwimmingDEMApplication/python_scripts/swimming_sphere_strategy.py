@@ -91,12 +91,19 @@ class SwimmingStrategy(BaseStrategy):
                 buoyancy_law = SwimmingStrategy.SDEMEvaluateString(buoyancy_name)(buoyancy_parameters)
                 HydrodynamicInteractionLaw.SetBuoyancyLaw(buoyancy_law)
 
-        if hydrodynamic_law_parameters.Has('inviscid_force_parameters'):
-            inviscid_force_parameters = hydrodynamic_law_parameters['inviscid_force_parameters']
-            inviscid_force_name = inviscid_force_parameters['name'].GetString()
-            if not inviscid_force_name == 'default':
-                inviscid_force_law = SwimmingStrategy.SDEMEvaluateString(inviscid_force_name)(inviscid_force_parameters)
-                HydrodynamicInteractionLaw.SetInviscidForceLaw(inviscid_force_law)
+        if hydrodynamic_law_parameters.Has('virtual_mass_force_parameters'):
+            virtual_mass_force_parameters = hydrodynamic_law_parameters['virtual_mass_force_parameters']
+            virtual_mass_force_name = virtual_mass_force_parameters['name'].GetString()
+            if not virtual_mass_force_name == 'default':
+                virtual_mass_force_law = SwimmingStrategy.SDEMEvaluateString(virtual_mass_force_name)(virtual_mass_force_parameters)
+                HydrodynamicInteractionLaw.SetVirtualMassForceLaw(virtual_mass_force_law)
+
+        if hydrodynamic_law_parameters.Has('undisturbed_force_parameters'):
+            undisturbed_force_parameters = hydrodynamic_law_parameters['undisturbed_force_parameters']
+            undisturbed_force_name = undisturbed_force_parameters['name'].GetString()
+            if not undisturbed_force_name == 'default':
+                undisturbed_force_law = SwimmingStrategy.SDEMEvaluateString(undisturbed_force_name)(undisturbed_force_parameters)
+                HydrodynamicInteractionLaw.SetUndisturbedForceLaw(undisturbed_force_law)
 
         if hydrodynamic_law_parameters.Has('drag_parameters'):
             drag_parameters = hydrodynamic_law_parameters['drag_parameters']

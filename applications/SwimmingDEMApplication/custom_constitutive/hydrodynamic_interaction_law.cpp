@@ -6,7 +6,8 @@ namespace Kratos {
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(Properties::Pointer pProp, Parameters& r_hydrodynamic_parameters):
         mpBuoyancyLaw(BuoyancyLaw().Clone()),
         mpDragLaw(DragLaw().Clone()),
-        mpInviscidForceLaw(InviscidForceLaw().Clone()),
+        mpVirtualMassForceLaw(VirtualMassForceLaw().Clone()),
+        mpUndisturbedForceLaw(UndisturbedForceLaw().Clone()),
         mpHistoryForceLaw(HistoryForceLaw().Clone()),
         mpVorticityInducedLiftLaw(VorticityInducedLiftLaw().Clone()),
         mpRotationInducedLiftLaw(RotationInducedLiftLaw().Clone()),
@@ -16,7 +17,8 @@ namespace Kratos {
     {
         mpBuoyancyLaw = rHydrodynamicInteractionLaw.CloneBuoyancyLaw();
         mpDragLaw = rHydrodynamicInteractionLaw.CloneDragLaw();
-        mpInviscidForceLaw = rHydrodynamicInteractionLaw.CloneInviscidForceLaw();
+        mpVirtualMassForceLaw = rHydrodynamicInteractionLaw.CloneVirtualMassForceLaw();
+        mpUndisturbedForceLaw = rHydrodynamicInteractionLaw.CloneUndisturbedForceLaw();
         mpHistoryForceLaw = rHydrodynamicInteractionLaw.CloneHistoryForceLaw();
         mpVorticityInducedLiftLaw = rHydrodynamicInteractionLaw.CloneVorticityInducedLiftLaw();
         mpRotationInducedLiftLaw = rHydrodynamicInteractionLaw.CloneRotationInducedLiftLaw();
@@ -48,8 +50,12 @@ namespace Kratos {
         return mpDragLaw->Clone();
     }
 
-    InviscidForceLaw::Pointer HydrodynamicInteractionLaw::CloneInviscidForceLaw() const {
-        return mpInviscidForceLaw->Clone();
+    VirtualMassForceLaw::Pointer HydrodynamicInteractionLaw::CloneVirtualMassForceLaw() const {
+        return mpVirtualMassForceLaw->Clone();
+    }
+
+    UndisturbedForceLaw::Pointer HydrodynamicInteractionLaw::CloneUndisturbedForceLaw() const {
+        return mpUndisturbedForceLaw->Clone();
     }
 
     HistoryForceLaw::Pointer HydrodynamicInteractionLaw::CloneHistoryForceLaw() const {
@@ -114,24 +120,37 @@ namespace Kratos {
 
     }
 
-    void HydrodynamicInteractionLaw::ComputeInviscidForce(Geometry<Node >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeVirtualMassForce(Geometry<Node >& r_geometry,
                                                           const double fluid_density,
                                                           const double displaced_volume,
-                                                          array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
+                                                          array_1d<double, 3>& virtual_mass_force,
                                                           const ProcessInfo& r_current_process_info)
     {
-        mpInviscidForceLaw->ComputeForce(r_geometry,
+        mpVirtualMassForceLaw->ComputeForce(r_geometry,
                                          fluid_density,
                                          displaced_volume,
-                                         virtual_mass_plus_undisturbed_flow_force,
+                                         virtual_mass_force,
                                          r_current_process_info);
     }
 
-    double HydrodynamicInteractionLaw::GetInviscidAddedMass(Geometry<Node >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeUndisturbedForce(Geometry<Node >& r_geometry,
+                                                          const double fluid_density,
+                                                          const double displaced_volume,
+                                                          array_1d<double, 3>& undisturbed_flow_force,
+                                                          const ProcessInfo& r_current_process_info)
+    {
+        mpUndisturbedForceLaw->ComputeForce(r_geometry,
+                                         fluid_density,
+                                         displaced_volume,
+                                         undisturbed_flow_force,
+                                         r_current_process_info);
+    }
+
+    double HydrodynamicInteractionLaw::GetVirtualAddedMass(Geometry<Node >& r_geometry,
                                                             double fluid_density,
                                                             const ProcessInfo& r_current_process_info)
     {
-        return mpInviscidForceLaw->GetAddedMass(r_geometry,
+        return mpVirtualMassForceLaw->GetAddedMass(r_geometry,
                                                 fluid_density,
                                                 r_current_process_info);
     }

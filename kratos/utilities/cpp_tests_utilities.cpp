@@ -18,8 +18,6 @@
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos
@@ -342,40 +340,40 @@ void Create3DQuadraticGeometry(
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // First we create the nodes
-    rModelPart.CreateNewNode(1, 1.0, 0.0, 1.0);
-    rModelPart.CreateNewNode(2, 0.5, 0.0, 1.0);
-    rModelPart.CreateNewNode(3, 1.0, 0.5, 1.0);
-    rModelPart.CreateNewNode(4, 1.0, 0.0, 0.5);
-    rModelPart.CreateNewNode(5, 0.5, 0.0, 0.5);
-    rModelPart.CreateNewNode(6, 1.0, 0.5, 0.5);
-    rModelPart.CreateNewNode(7, 0.5, 0.5, 1.0);
-    rModelPart.CreateNewNode(8, 0.5, 0.5, 0.5);
+    rModelPart.CreateNewNode(1, 1.0000000000, 0.0000000000, 1.0000000000);
+    rModelPart.CreateNewNode(2, 0.5000000000, 0.0000000000, 1.0000000000);
+    rModelPart.CreateNewNode(3, 1.0000000000, 0.5000000000, 1.0000000000);
+    rModelPart.CreateNewNode(4, 1.0000000000, 0.0000000000, 0.5000000000);
+    rModelPart.CreateNewNode(5, 0.5000000000, 0.0000000000, 0.5000000000);
+    rModelPart.CreateNewNode(6, 1.0000000000, 0.5000000000, 0.5000000000);
+    rModelPart.CreateNewNode(7, 0.5000000000, 0.5000000000, 1.0000000000);
+    rModelPart.CreateNewNode(8, 0.5000000000, 0.5000000000, 0.5000000000);
     rModelPart.CreateNewNode(9, 0.2019246055, 0.3959160307, 0.6930668948);
     rModelPart.CreateNewNode(10, 0.7019246055, 0.8959160307, 0.6930668948);
-    rModelPart.CreateNewNode(11, 1.0, 0.0, 0.0);
-    rModelPart.CreateNewNode(12, 0.0, 0.0, 1.0);
-    rModelPart.CreateNewNode(13, 1.0, 1.0, 1.0);
-    rModelPart.CreateNewNode(14, 0.5, 0.0, 0.0);
-    rModelPart.CreateNewNode(15, 1.0, 0.5, 0.0);
-    rModelPart.CreateNewNode(16, 0.5, 1.0, 1.0);
-    rModelPart.CreateNewNode(17, 0.0, 0.5, 1.0);
-    rModelPart.CreateNewNode(18, 0.0, 0.0, 0.5);
-    rModelPart.CreateNewNode(19, 1.0, 1.0, 0.5);
+    rModelPart.CreateNewNode(11, 1.0000000000, 0.0000000000, 0.0000000000);
+    rModelPart.CreateNewNode(12, 0.0000000000, 0.0000000000, 1.0000000000);
+    rModelPart.CreateNewNode(13, 1.0000000000, 1.0000000000, 1.0000000000);
+    rModelPart.CreateNewNode(14, 0.5000000000, 0.0000000000, 0.0000000000);
+    rModelPart.CreateNewNode(15, 1.0000000000, 0.5000000000, 0.0000000000);
+    rModelPart.CreateNewNode(16, 0.5000000000, 1.0000000000, 1.0000000000);
+    rModelPart.CreateNewNode(17, 0.0000000000, 0.5000000000, 1.0000000000);
+    rModelPart.CreateNewNode(18, 0.0000000000, 0.0000000000, 0.5000000000);
+    rModelPart.CreateNewNode(19, 1.0000000000, 1.0000000000, 0.5000000000);
     rModelPart.CreateNewNode(20, 0.4038492111, 0.7918320615, 0.3861337896);
     rModelPart.CreateNewNode(21, 0.2019246055, 0.3959160307, 0.1930668948);
-    rModelPart.CreateNewNode(22, 0.5, 0.5, 0.0);
-    rModelPart.CreateNewNode(23, 0.5, 1.0, 0.5);
-    rModelPart.CreateNewNode(24, 0.0, 0.5, 0.5);
+    rModelPart.CreateNewNode(22, 0.5000000000, 0.5000000000, 0.0000000000);
+    rModelPart.CreateNewNode(23, 0.5000000000, 1.0000000000, 0.5000000000);
+    rModelPart.CreateNewNode(24, 0.0000000000, 0.5000000000, 0.5000000000);
     rModelPart.CreateNewNode(25, 0.2019246055, 0.8959160307, 0.6930668948);
     rModelPart.CreateNewNode(26, 0.7019246055, 0.8959160307, 0.1930668948);
-    rModelPart.CreateNewNode(27, 0.0, 0.0, 0.0);
-    rModelPart.CreateNewNode(28, 1.0, 1.0, 0.0);
-    rModelPart.CreateNewNode(29, 0.0, 1.0, 1.0);
+    rModelPart.CreateNewNode(27, 0.0000000000, 0.0000000000, 0.0000000000);
+    rModelPart.CreateNewNode(28, 1.0000000000, 1.0000000000, 0.0000000000);
+    rModelPart.CreateNewNode(29, 0.0000000000, 1.0000000000, 1.0000000000);
     rModelPart.CreateNewNode(30, 0.2019246055, 0.8959160307, 0.1930668948);
-    rModelPart.CreateNewNode(31, 0.5, 1.0, 0.0);
-    rModelPart.CreateNewNode(32, 0.0, 0.5, 0.0);
-    rModelPart.CreateNewNode(33, 0.0, 1.0, 0.5);
-    rModelPart.CreateNewNode(34, 0.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(31, 0.5000000000, 1.0000000000, 0.0000000000);
+    rModelPart.CreateNewNode(32, 0.0000000000, 0.5000000000, 0.0000000000);
+    rModelPart.CreateNewNode(33, 0.0000000000, 1.0000000000, 0.5000000000);
+    rModelPart.CreateNewNode(34, 0.0000000000, 1.0000000000, 0.0000000000);
 
     // Now we create the elements
     rModelPart.CreateNewElement(rElementName, 1,  {{27, 11, 28, 13, 14, 15, 22,  8,  6, 19}}, p_prop);
@@ -396,238 +394,6 @@ void Create3DQuadraticGeometry(
         for (auto& r_elem : rModelPart.Elements())
             r_elem.Initialize(r_process_info);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void CreateSphereTriangularMesh(
-    ModelPart& rModelPart,
-    const std::string& rConditionName,
-    const double Radius,
-    const std::array<double, 3>& rCenter
-    )
-{
-    const double scale = Radius/0.25;
-    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
-
-    // Get the Initial Id
-    const std::size_t initial_node_id = block_for_each<MaxReduction<std::size_t>>(rModelPart.Nodes(), [](Node& rNode) {
-        return rNode.Id();
-    });
-
-    // Adding check
-    KRATOS_ERROR_IF_NOT(rModelPart.NumberOfNodes() == 0) << "Model part is not empty" << std::endl;
-
-    // First we create the nodes
-    rModelPart.CreateNewNode(initial_node_id + 1, scale * 0.16372, scale * 0.18066, scale * -0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 2, 0.0, scale * 0.15451, scale * -0.47553);
-    rModelPart.CreateNewNode(initial_node_id + 3, 0.0, scale * 0.29389, scale * -0.40451);
-    rModelPart.CreateNewNode(initial_node_id + 4, scale * -0, scale * -0, scale * -0.5);
-    rModelPart.CreateNewNode(initial_node_id + 5, scale * 0.33997, scale * -0, scale * -0.36663);
-    rModelPart.CreateNewNode(initial_node_id + 6, scale * 0.23141, scale * 0.37802, scale * -0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 7, 0.0, scale * 0.40451, scale * -0.29389);
-    rModelPart.CreateNewNode(initial_node_id + 8, scale * -0.16372, scale * 0.18066, scale * -0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 9, scale * 0.16372, scale * -0.18066, scale * -0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 10, 0.0, scale * -0.15451, scale * -0.47553);
-    rModelPart.CreateNewNode(initial_node_id + 11, scale * 0.43653, scale * 0.18066, scale * -0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 12, 0.0, scale * 0.47553, scale * -0.15451);
-    rModelPart.CreateNewNode(initial_node_id + 13, scale * -0.23141, scale * 0.37802, scale * -0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 14, scale * -0.16372, scale * -0.18066, scale * -0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 15, 0.0, scale * -0.29389, scale * -0.40451);
-    rModelPart.CreateNewNode(initial_node_id + 16, scale * 0.29389, scale * 0.40451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 17, scale * 0.40451, scale * 0.29389, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 18, scale * 0.15451, scale * 0.47553, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 19, scale * 0.43653, scale * -0.18066, scale * -0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 20, scale * 0.47553, scale * 0.15451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 21, 0.0, scale * 0.5, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 22, scale * -0.36663, 0.0, scale * -0.33997);
-    rModelPart.CreateNewNode(initial_node_id + 23, scale * 0.5, scale * -0, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 24, scale * 0.23141, scale * -0.37802, scale * -0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 25, scale * -0.15451, scale * 0.47553, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 26, 0.0, scale * -0.40451, scale * -0.29389);
-    rModelPart.CreateNewNode(initial_node_id + 27, scale * 0.47553, scale * -0.15451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 28, scale * -0.43653, scale * 0.18066, scale * -0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 29, scale * 0.43653, scale * 0.18066, scale * 0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 30, scale * -0.29389, scale * 0.40451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 31, 0.0, scale * 0.47553, scale * 0.15451);
-    rModelPart.CreateNewNode(initial_node_id + 32, scale * 0.40451, scale * -0.29389, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 33, scale * 0.23141, scale * 0.37802, scale * 0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 34, scale * -0.23141, scale * -0.37802, scale * -0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 35, scale * -0.40451, scale * 0.29389, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 36, 0.0, scale * -0.47553, scale * -0.15451);
-    rModelPart.CreateNewNode(initial_node_id + 37, scale * 0.29389, scale * -0.40451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 38, scale * -0.43653, scale * -0.18066, scale * -0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 39, scale * 0.43653, scale * -0.18066, scale * 0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 40, scale * -0.47553, scale * 0.15451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 41, 0.0, scale * 0.40451, scale * 0.29389);
-    rModelPart.CreateNewNode(initial_node_id + 42, scale * 0.15451, scale * -0.47553, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 43, scale * -0.23141, scale * 0.37802, scale * 0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 44, scale * -0.5, scale * -0, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 45, scale * 0.36663, scale * -0, scale * 0.33997);
-    rModelPart.CreateNewNode(initial_node_id + 46, 0.0, scale * -0.5, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 47, scale * -0.47553, scale * -0.15451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 48, scale * -0.43653, scale * 0.18066, scale * 0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 49, scale * -0.15451, scale * -0.47553, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 50, scale * -0.40451, scale * -0.29389, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 51, scale * -0.29389, scale * -0.40451, 0.0);
-    rModelPart.CreateNewNode(initial_node_id + 52, 0.0, scale * 0.29389, scale * 0.40451);
-    rModelPart.CreateNewNode(initial_node_id + 53, scale * 0.16372, scale * 0.18066, scale * 0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 54, scale * 0.23141, scale * -0.37802, scale * 0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 55, 0.0, scale * -0.47553, scale * 0.15451);
-    rModelPart.CreateNewNode(initial_node_id + 56, scale * -0.43653, scale * -0.18066, scale * 0.16372);
-    rModelPart.CreateNewNode(initial_node_id + 57, 0.0, scale * 0.15451, scale * 0.47553);
-    rModelPart.CreateNewNode(initial_node_id + 58, scale * -0.16372, scale * 0.18066, scale * 0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 59, scale * 0.16372, scale * -0.18066, scale * 0.43653);
-    rModelPart.CreateNewNode(initial_node_id + 60, 0.0, scale * -0.40451, scale * 0.29389);
-    rModelPart.CreateNewNode(initial_node_id + 61, scale * -0.23141, scale * -0.37802, scale * 0.23141);
-    rModelPart.CreateNewNode(initial_node_id + 62, scale * -0.33997, scale * -0, scale * 0.36663);
-    rModelPart.CreateNewNode(initial_node_id + 63, 0.0, scale * -0, scale * 0.5);
-    rModelPart.CreateNewNode(initial_node_id + 64, 0.0, scale * -0.29389, scale * 0.40451);
-    rModelPart.CreateNewNode(initial_node_id + 65, 0.0, scale * -0.15451, scale * 0.47553);
-    rModelPart.CreateNewNode(initial_node_id + 66, scale * -0.16372, scale * -0.18066, scale * 0.43653);
-
-    // Modify center
-    block_for_each(rModelPart.Nodes(), [&rCenter](Node& rNode) {
-        rNode.X() += rCenter[0];
-        rNode.Y() += rCenter[1];
-        rNode.Z() += rCenter[2];
-    });
-
-    // Get the Initial Id
-    const std::size_t initial_condition_id = block_for_each<MaxReduction<std::size_t>>(rModelPart.Conditions(), [](Condition& rCond) {
-        return rCond.Id();
-    });
-
-    // Now we create the conditions
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 1, {{53, 29, 33}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 2, {{8, 28, 13}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 3, {{66, 62, 56}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 4, {{48, 56, 62}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 5, {{62, 58, 48}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 6, {{62, 66, 58}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 7, {{22, 38, 28}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 8, {{39, 45, 59}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 9, {{45, 29, 53}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 10, {{45, 39, 29}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 11, {{5, 9, 1}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 12, {{39, 59, 54}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 13, {{9, 24, 26}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 14, {{39, 54, 37}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 15, {{48, 43, 30}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 16, {{6, 11, 1}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 17, {{8, 13, 7}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 18, {{38, 22, 14}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 19, {{8, 14, 22}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 20, {{26, 34, 14}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 21, {{61, 66, 56}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 22, {{37, 24, 19}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 23, {{7, 6, 1}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 24, {{41, 53, 33}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 25, {{50, 38, 51}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 26, {{32, 39, 37}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 27, {{3, 8, 7}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 28, {{15, 9, 26}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 29, {{58, 52, 41}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 30, {{52, 53, 41}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 31, {{36, 34, 26}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 32, {{29, 17, 16}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 33, {{58, 66, 63}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 34, {{63, 66, 65}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 35, {{4, 8, 2}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 36, {{56, 50, 51}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 37, {{23, 11, 20}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 38, {{47, 56, 44}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 39, {{29, 39, 23}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 40, {{23, 39, 27}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 41, {{42, 36, 24}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 42, {{65, 59, 63}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 43, {{48, 58, 43}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 44, {{57, 58, 63}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 45, {{50, 47, 38}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 46, {{35, 48, 30}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 47, {{40, 28, 44}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 48, {{19, 32, 37}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 49, {{2, 1, 4}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 50, {{5, 1, 11}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 51, {{10, 14, 4}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 52, {{14, 15, 26}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 53, {{46, 55, 49}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 54, {{3, 1, 2}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 55, {{42, 24, 37}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 56, {{11, 6, 16}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 57, {{50, 56, 47}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 58, {{18, 12, 21}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 59, {{27, 19, 23}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 60, {{15, 14, 10}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 61, {{18, 21, 31}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 62, {{32, 19, 27}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 63, {{12, 18, 6}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 64, {{21, 12, 25}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 65, {{34, 38, 14}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 66, {{46, 36, 42}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 67, {{35, 28, 40}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 68, {{28, 35, 30}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 69, {{64, 65, 66}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 70, {{5, 19, 9}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 71, {{20, 29, 23}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 72, {{1, 3, 7}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 73, {{63, 53, 57}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 74, {{1, 9, 4}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 75, {{19, 5, 11}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 76, {{17, 29, 20}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 77, {{4, 9, 10}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 78, {{46, 42, 55}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 79, {{35, 40, 48}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 80, {{52, 58, 57}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 81, {{31, 41, 33}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 82, {{66, 61, 60}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 83, {{59, 64, 60}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 84, {{52, 57, 53}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 85, {{31, 43, 41}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 86, {{36, 26, 24}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 87, {{64, 59, 65}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 88, {{32, 27, 39}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 89, {{12, 13, 25}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 90, {{42, 54, 55}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 91, {{31, 33, 18}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 92, {{12, 7, 13}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 93, {{22, 28, 8}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 94, {{64, 66, 60}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 95, {{3, 2, 8}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 96, {{49, 34, 36}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 97, {{18, 33, 16}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 98, {{42, 37, 54}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 99, {{55, 54, 60}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 100, {{45, 53, 59}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 101, {{49, 61, 51}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 102, {{24, 9, 19}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 103, {{25, 13, 30}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 104, {{49, 51, 34}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 105, {{12, 6, 7}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 106, {{30, 13, 28}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 107, {{59, 53, 63}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 108, {{44, 48, 40}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 109, {{18, 16, 6}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 110, {{25, 31, 21}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 111, {{19, 11, 23}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 112, {{28, 38, 44}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 113, {{17, 11, 16}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 114, {{15, 10, 9}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 115, {{14, 8, 4}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 116, {{16, 33, 29}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 117, {{60, 54, 59}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 118, {{51, 61, 56}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 119, {{41, 43, 58}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 120, {{36, 46, 49}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 121, {{17, 20, 11}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 122, {{25, 30, 43}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 123, {{49, 55, 61}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 124, {{56, 48, 44}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 125, {{55, 60, 61}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 126, {{31, 25, 43}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 127, {{44, 38, 47}}, p_prop);
-    rModelPart.CreateNewCondition(rConditionName, initial_condition_id + 128, {{51, 38, 34}}, p_prop);
 }
 
 /***********************************************************************************/
