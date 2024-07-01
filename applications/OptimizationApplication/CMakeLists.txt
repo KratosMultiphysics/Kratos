@@ -2,9 +2,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
 
+find_package(OpenSubdiv REQUIRED)
+
 ################### PYBIND11
 include(pybind11Tools)
 
+include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Optimization core sources
@@ -34,7 +37,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE} ${KRATOS_OPTIMIZATION_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosOptimizationCore PUBLIC KratosCore)
+target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE ${OPENSUBDIV_LIBRARIES})
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################
