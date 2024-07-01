@@ -29,6 +29,7 @@
 #include "custom_utilities/implicit_filter_utils.h"
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/properties_variable_expression_io.h"
+#include "custom_utilities/fft_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -370,6 +371,23 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
              py::arg("model_part"),
              py::arg("variable"),
              py::arg("data_location"))
+        ;
+
+    py::class_<FFTUtils, FFTUtils::Pointer>(m, "FFTUtils")
+        .def(py::init<const double, const double, const double>(), py::arg("total_time"), py::arg("windowing_length"), py::arg("delta_time"))
+        .def("CalculateFFTFrequencyDistribution", &FFTUtils::CalculateFFTFrequencyDistribution, py::arg("values_for_each_time_step"))
+        .def("IsWithinWindowingRange", &FFTUtils::IsWithinWindowingRange, py::arg("current_time"))
+        .def("CalculateHannWindowCoefficient", &FFTUtils::CalculateHannWindowCoefficient, py::arg("current_time"))
+        .def("CalculateFFTRealCoefficient", &FFTUtils::CalculateFFTRealCoefficient, py::arg("frequency_bin_index"), py::arg("current_time"))
+        .def("CalculateFFTImagCoefficient", &FFTUtils::CalculateFFTImagCoefficient, py::arg("frequency_bin_index"), py::arg("current_time"))
+        .def("CalculateFFTAmplitudeSquare", &FFTUtils::CalculateFFTAmplitudeSquare, py::arg("real_value"), py::arg("imag_value"))
+        .def("CalculateFFTAmplitudeSquareDerivative", &FFTUtils::CalculateFFTAmplitudeSquareDerivative, py::arg("real_value"), py::arg("real_value_derivative"), py::arg("imag_value"), py::arg("imag_value_derivative"))
+        .def("GetFrequencyResolution", &FFTUtils::GetFrequencyResolution)
+        .def("GetFrequency", &FFTUtils::GetFrequency, py::arg("frequency_bin_index"))
+        .def("GetMaximumFrequency", &FFTUtils::GetMaximumFrequency)
+        .def("GetTotalNumberOfSteps", &FFTUtils::GetTotalNumberOfSteps)
+        .def("GetNumberOfWindowingSteps", &FFTUtils::GetNumberOfWindowingSteps)
+        .def("__str__", &FFTUtils::Info)
         ;
 }
 
