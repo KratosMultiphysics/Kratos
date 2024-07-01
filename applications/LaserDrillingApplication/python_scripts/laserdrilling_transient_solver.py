@@ -264,13 +264,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.ResidualHeatStage()
 
         system_energy_after_residual_heat = self.MonitorEnergy()
-        print("\nPulse_number:", self.pulse_number)
+        '''print("\nPulse_number:", self.pulse_number)
         print("Initial system energy:", initial_system_energy)
         print("\nComputed energy after laser:", computed_energy_after_ablation)
         print("\nResidual_heat:", residual_heat)
-        print("System energy after residual heat:", system_energy_after_residual_heat)
+        print("System energy after residual heat:", system_energy_after_residual_heat)'''
         difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_ablation
-        print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
+        #print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
 
         if self.print_hdf5_and_gnuplot_files:
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
@@ -682,9 +682,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.AddDecomposedNodesToSurfaceList()
             self.list_of_ablated_nodes_coords_X = self.list_of_decomposed_nodes_coords_X
             self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
-            print('\nR_far:', self.R_far)
+            '''print('\nR_far:', self.R_far)
             print('\nRadius_th:', self.radius_th)
-            print("\nDecomposed volume:", self.MonitorDecomposedVolume())
+            print("\nDecomposed volume:", self.MonitorDecomposedVolume())'''
 
     def sortSecond(self, val):
         return val[1]

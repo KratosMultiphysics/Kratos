@@ -5,7 +5,7 @@
         "parallel_type" : "OpenMP",
         "time_step"     : 5e-7,
         "start_time"    : 0.0,
-        "end_time"      : 1e-6,
+        "end_time"      : 6e-6,
         "echo_level"    : 0,
         "energy"        : 25e-6,
         "mask_aperture_diameter" : 0.025,
