@@ -66,10 +66,10 @@ public:
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            Matrix& rInitialStress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if(rInitialStress.size1() != 3)
-                rInitialStress.resize(3,3,false);
-            noalias(rInitialStress) = ZeroMatrix(3,3);
+            auto& r_initial_stress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(r_initial_stress.size1() != 3)
+                r_initial_stress.resize(3,3,false);
+            noalias(r_initial_stress) = ZeroMatrix(3,3);
         }
 
         mSchemeIsInitialized = true;
