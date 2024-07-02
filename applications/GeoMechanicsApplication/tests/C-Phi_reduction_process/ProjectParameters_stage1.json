@@ -1,6 +1,14 @@
 {
     "output_processes": [],
-	"solver_settings": {
+    "problem_data": {
+        "echo_level": 1,
+        "end_time": 0.0,
+        "number_of_threads": 1,
+        "parallel_type": "OpenMP",
+        "problem_name": "slope_stage1",
+        "start_time": -1e-06
+    },
+    "solver_settings": {
         "block_builder": true,
         "body_domain_sub_model_part_list": [
             "Material_1"
@@ -71,14 +79,6 @@
         },
         "water_pressure_absolute_tolerance": 1e-09,
         "water_pressure_relative_tolerance": 0.0001
-    },
-    "problem_data": {
-        "echo_level": 1,
-        "end_time": 0.0,
-        "number_of_threads": 1,
-        "parallel_type": "OpenMP",
-        "problem_name": "slope_stage1",
-        "start_time": -1e-06
     },
     "processes": {
         "auxilliary_process_list": [
