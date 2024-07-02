@@ -8,27 +8,22 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Carlos A. Roig
 //
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#pragma once
 
-// Project includes
 #include "testing/testing.h"
-#include "fluid_dynamics_biomedical_application.h"
+#include "fluid_dynamics_Biomedical_application.h"
 
-int main(int argc, char* argv[]) 
-{
-    ::testing::InitGoogleTest(&argc, argv);
+namespace Kratos::Testing {
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("FluidDynamicsBiomedicalApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosFluidDynamicsBiomedicalApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
+class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {
+public:
+  FluidDynamicsBiomedicalApplicationFastSuite();
 
-    return RUN_ALL_TESTS();
-}
+private:
+  KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
+};
+
+} // namespace Kratos::Testing
