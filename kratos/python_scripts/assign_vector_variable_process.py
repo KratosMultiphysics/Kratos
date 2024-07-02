@@ -115,7 +115,9 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         specifications = KratosMultiphysics.Parameters("""{
             "required_solution_step_data_variables" : [],
             "required_dofs" : [],
-            "flags_used" : [],
+            "nodal_flags_used" : [],
+            "elemental_flags_used" : [],
+            "condition_flags_used" : [],
             "documentation" : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart."
         }""")
 
