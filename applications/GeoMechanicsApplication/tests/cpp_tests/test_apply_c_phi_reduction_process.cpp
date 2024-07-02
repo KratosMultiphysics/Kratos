@@ -80,19 +80,6 @@ void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig,
     };
 }
 
-void CheckThrow(ModelPart& rModelPart)
-{
-    auto has_thrown = false;
-
-    try {
-        ApplyCPhiReductionProcess process{rModelPart, {}};
-        process.ExecuteInitializeSolutionStep();
-    } catch (const Exception&) {
-        has_thrown = true;
-    }
-
-    KRATOS_EXPECT_TRUE(has_thrown)
-}
 } // namespace
 
 namespace Kratos::Testing
