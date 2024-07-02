@@ -194,6 +194,16 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @brief This method returns the specifications of current proces, which might depend on the input settings
+    /// @param rParameters Input parameters
+    /// @return Specifications of current process
+    static const Parameters GetSpecifications(const Parameters rParameters)
+    {
+        KRATOS_ERROR << "Calling the base Process class GetSpecifications. Please implement the GetSpecifications in your derived process class." << std::endl;
+        const Parameters specifications = Parameters(R"({})");
+        return specifications;
+    }
+
     /// Turn back information as a string.
     std::string Info() const override
     {
