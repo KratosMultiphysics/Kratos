@@ -103,9 +103,6 @@ public:
         r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
-
         // Initialize INITIAL_STRESS_TENSOR
         block_for_each(r_model_part.Nodes(), [](Node& rNode){
             auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
