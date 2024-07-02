@@ -135,16 +135,12 @@ public:
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
 
         // Initialize INITIAL_STRESS_TENSOR
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            Matrix& rInitialStress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if(rInitialStress.size1() != 3)
-                rInitialStress.resize(3,3,false);
-            noalias(rInitialStress) = ZeroMatrix(3,3);
-        }
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(r_initial_stress.size1() != 3)
+                r_initial_stress.resize(3,3,false);
+            noalias(r_initial_stress) = ZeroMatrix(3,3);
+        });
 
         BaseType::mSchemeIsInitialized = true;
 
