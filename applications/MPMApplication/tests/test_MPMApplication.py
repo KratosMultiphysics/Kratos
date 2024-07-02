@@ -30,6 +30,7 @@ from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTe
 from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
+from mpm_test_factory import PenaltyBasedSlipTest as TPenaltyBasedSlipTest
 
 from mpm_test_factory import FrictionConformingTest as TFrictionConformingTest
 
@@ -108,6 +109,7 @@ def AssembleTestSuites():
 
     # TODO: Look further into this test as they are still failing for AMatrix
     smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:
+    smallSuite.addTest(TPenaltyBasedSlipTest('test_execution'))
 
     smallSuite.addTest(TFrictionConformingTest('test_execution'))
 
