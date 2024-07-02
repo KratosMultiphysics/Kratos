@@ -415,12 +415,13 @@ class RomManager(object):
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
-            BasisOutputProcess._PrintRomBasis(u, None) #Calling the RomOutput Process for creating the RomParameter.json
+            BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), None ) #this updates the RomParameters.json
+            _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
     def _LoadSolutionBasis(self, mu_train):
@@ -430,7 +431,8 @@ class RomManager(object):
             raise Exception(err_msg)
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), None ) #this updates the RomParameters.json
+            _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
