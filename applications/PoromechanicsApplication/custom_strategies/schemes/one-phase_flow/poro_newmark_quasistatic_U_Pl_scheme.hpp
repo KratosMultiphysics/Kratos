@@ -131,9 +131,6 @@ public:
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,1.0/(mTheta_u*mDeltaTime));
         r_model_part.GetProcessInfo().SetValue(DT_LIQUID_PRESSURE_COEFFICIENT,1.0/(mTheta_p*mDeltaTime));
 
-        // const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        // ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
-
         // Initialize INITIAL_STRESS_TENSOR
         block_for_each(r_model_part.Nodes(), [](Node& rNode){
             auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
