@@ -239,10 +239,10 @@ public:
         auto& r_root_mp = rModelPart.GetRootModelPart();
         r_root_mp.SetValue(NN_LAYERS, vector<Matrix>(numberOfNNLayers));
         r_root_mp.SetValue(SVD_PHI_MATRICES, vector<Matrix>(3));
-        vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-        svdPhiMatrices[0] = svdPhiInf;
-        svdPhiMatrices[1] = svdPhiSigSup;
-        svdPhiMatrices[2] = svdSigInvInf;
+        vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+        r_svdPhiMatrices[0] = svdPhiInf;
+        r_svdPhiMatrices[1] = svdPhiSigSup;
+        r_svdPhiMatrices[2] = svdSigInvInf;
         r_root_mp.SetValue(SOLUTION_REFERENCE, refSnapshot);
     }
 
@@ -253,8 +253,8 @@ public:
     )
     {
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-        nnLayers[layerIndex] = nnLayer;
+        vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+        r_nnLayers[layerIndex] = nnLayer;
     }
 
     void MonotonicityPreserving(
@@ -741,24 +741,24 @@ protected:
 
         if (mRightRomBasisInitialized==false){
             mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
-            Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
-            Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+            RomSystemVectorType& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
+            TSystemVectorType& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
+            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
 
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom, xBase, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom, r_xBase, mPhiGlobal, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
 
             mRightRomBasisInitialized = true;
         }
         else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
-            Vector& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, mPhiGlobal, svdPhiMatrices, nnLayers);
+            RomSystemVectorType& r_xRomTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
+            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(r_xRomTotal, mPhiGlobal, r_svdPhiMatrices, r_nnLayers);
         }
 
-        BuildRightROMBasis();
+        SetFixedDofsROMBasisToZero();
         
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
@@ -788,16 +788,14 @@ protected:
         // Save the current ROM solution and other variables from the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
 
-        RomSystemVectorType& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
-        RomSystemVectorType& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-        // KRATOS_WATCH(xrom);
-        // KRATOS_WATCH(xromTotal);
-        xrom = xromTotal;
-        RomSystemVectorType& dxrom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
-        // KRATOS_WATCH(dxrom);
+        RomSystemVectorType& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
+        RomSystemVectorType& r_xRomTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
 
-        Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
-        // KRATOS_WATCH(xBase);
+        r_xRom = r_xRomTotal;
+
+        RomSystemVectorType& r_dxRom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+
+        Vector& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
         Vector xNew (rDx.size());
 
         vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
@@ -806,7 +804,7 @@ protected:
 
         const auto solving_timer = BuiltinTimer();
 
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(r_dxRom.data().begin(), r_dxRom.size());
         if(rEigenRomA.colPivHouseholderQr().isInvertible() == false){
             KRATOS_INFO("AnnPromGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
         }
@@ -818,12 +816,12 @@ protected:
         // project reduced solution back to full order modela
         const auto backward_projection_timer = BuiltinTimer();
 
-        RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom+dxrom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
+        RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom+r_dxRom,xNew, mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
         
-        GetDxAndUpdateXBase(xNew, xBase, rDx);
+        GetDxAndUpdateXBase(xNew, r_xBase, rDx);
         KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
-        xromTotal = xrom+dxrom;
+        r_xRomTotal = r_xRom+r_dxRom;
 
         r_root_mp.SetValue(UPDATE_PHI_EFFECTIVE_BOOL, false);
         
@@ -839,7 +837,7 @@ protected:
         rxBase = rx;
     }
 
-    void BuildRightROMBasis() 
+    void SetFixedDofsROMBasisToZero() 
     {
 
         const auto& r_dof_set = BaseBuilderAndSolverType::GetDofSet();

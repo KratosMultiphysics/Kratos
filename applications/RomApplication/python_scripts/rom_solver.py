@@ -38,8 +38,8 @@ def CreateSolver(cls, model, custom_settings):
                 "elemental_galerkin": KratosROM.ROMBuilderAndSolver,
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "custom_lspg": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "global_custom": KratosROM.AnnPromGlobalROMBuilderAndSolver,
+                "lspg_ann": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "galerkin_ann": KratosROM.AnnPromGlobalROMBuilderAndSolver,
                 "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
                 "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver
             }
@@ -53,7 +53,7 @@ def CreateSolver(cls, model, custom_settings):
                                                     # but it may not take into account every setting available for each application
             projection_strategy = self.settings["projection_strategy"].GetString()
 
-            if not "custom" in projection_strategy:
+            if not "ann" in projection_strategy:
                 strategy = super()._create_line_search_strategy()
             else:
                 computing_model_part = self.GetComputingModelPart()
@@ -74,7 +74,7 @@ def CreateSolver(cls, model, custom_settings):
                                                 # be replaced with _create_line_search_strategy() in the Potential Flow app
             projection_strategy = self.settings["projection_strategy"].GetString()
 
-            if not "custom" in projection_strategy:
+            if not "ann" in projection_strategy:
                 solution_strategy = super()._CreateLineSearchStrategy()
             else:
                 if self.settings["solving_strategy_settings"].Has("advanced_settings"):
@@ -120,7 +120,7 @@ def CreateSolver(cls, model, custom_settings):
                 KratosMultiphysics.Logger.PrintWarning("::[ROMSolver]:: ", warn_msg)
 
             # For now, only Galerkin and Petrov-Galerkin projections have the elemental or global approach option
-            if projection_strategy in ("galerkin", "petrov_galerkin", "custom"): #TODO: Possibility of doing elemental lspg
+            if projection_strategy in ("galerkin", "petrov_galerkin"): #TODO: Possibility of doing elemental lspg
                 available_assembling_strategies = {
                     "global",
                     "elemental"
@@ -135,7 +135,7 @@ def CreateSolver(cls, model, custom_settings):
             self._AssignMissingInnerRomParameters(projection_strategy)
 
             # Check that the number of ROM DOFs has been provided
-            if not "custom" in projection_strategy:
+            if not "ann" in projection_strategy:
                 n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
                 if not n_rom_dofs > 0:
                     err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
@@ -148,7 +148,7 @@ def CreateSolver(cls, model, custom_settings):
             if not self.settings["rom_settings"].Has("rom_bns_settings"):
                 self.settings["rom_settings"].AddEmptyValue("rom_bns_settings")
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
-            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "global_custom", "custom_lspg"):
+            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)

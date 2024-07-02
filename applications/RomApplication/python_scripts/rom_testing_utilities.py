@@ -2,9 +2,8 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication.rom_analysis
-import KratosMultiphysics.RomApplication.rom_analysis_custom
 
-def SetUpSimulationInstance(model, parameters, customROM=None):
+def SetUpSimulationInstance(model, parameters, nn_rom_interface=None):
     """ Creates and returns a ROM simulation instance """
 
     # Get the parent simulation class
@@ -17,19 +16,13 @@ def SetUpSimulationInstance(model, parameters, customROM=None):
 
     # Set up simulation
     model = KratosMultiphysics.Model()
-    if not customROM is None:
-        if customROM == 'annprom':
-            instance_factory = KratosMultiphysics.RomApplication.rom_analysis_custom.CreateCustomRomAnalysisInstance
-        else:
-            print('')
-            instance_factory = None
-    else:
-        instance_factory = KratosMultiphysics.RomApplication.rom_analysis.CreateRomAnalysisInstance
+    instance_factory = KratosMultiphysics.RomApplication.rom_analysis.CreateRomAnalysisInstance
 
     simulation = instance_factory(
         analysis_stage_class,
         model,
-        parameters)
+        parameters,
+        nn_rom_interface=nn_rom_interface)
 
     return simulation
 

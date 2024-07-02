@@ -346,22 +346,23 @@ public:
 
         if (mRightRomBasisInitialized==false){
             BaseType::mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), BaseType::GetNumberOfROMModes());
-            Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
-            Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
-            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            Vector& refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(xrom, xBase, BaseType::mPhiGlobal, svdPhiMatrices, nnLayers, refSnapshot);
+            Vector& r_xRom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
+            Vector& r_xBase = r_root_mp.GetValue(SOLUTION_BASE);
+            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            Vector& r_refSnapshot = r_root_mp.GetValue(SOLUTION_REFERENCE);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetXAndDecoderGradient(r_xRom, r_xBase, BaseType::mPhiGlobal, r_svdPhiMatrices, r_nnLayers, r_refSnapshot);
             mRightRomBasisInitialized = true;
         }
         else if (r_root_mp.GetValue(UPDATE_PHI_EFFECTIVE_BOOL)==true){
             Vector& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
-            vector<Matrix>& svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
-            vector<Matrix>& nnLayers = r_root_mp.GetValue(NN_LAYERS);
-            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, BaseType::mPhiGlobal, svdPhiMatrices, nnLayers);
+            vector<Matrix>& r_svdPhiMatrices = r_root_mp.GetValue(SVD_PHI_MATRICES);
+            vector<Matrix>& r_nnLayers = r_root_mp.GetValue(NN_LAYERS);
+            RomNNUtility<TSparseSpace,TDenseSpace>::GetDecoderGradient(xromTotal, BaseType::mPhiGlobal, r_svdPhiMatrices, r_nnLayers);
         }
 
-        BaseType::BuildRightROMBasis();
+        BaseType::SetFixedDofsROMBasisToZero();
+
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
