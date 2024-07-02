@@ -11,22 +11,21 @@
 //
 
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
 class NewmarkDynamicUPwSchemeTester
 {
 public:
-    Model mModel;
-    NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> mScheme =
-        CreateValidScheme();
+    Model                                                    mModel;
+    NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> mScheme = CreateValidScheme();
 
     explicit NewmarkDynamicUPwSchemeTester(const bool ThreeDCase = true)
     {
@@ -58,25 +57,18 @@ public:
         p_node->AddDof(ROTATION_Y);
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
-        p_node->FastGetSolutionStepValue(VELOCITY, 0) =
-            Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
-        p_node->FastGetSolutionStepValue(ACCELERATION, 0) =
-            Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
-        p_node->FastGetSolutionStepValue(DISPLACEMENT, 0) =
-            Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_node->FastGetSolutionStepValue(VELOCITY, 0) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
+        p_node->FastGetSolutionStepValue(ACCELERATION, 0) = Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
+        p_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
 
-        p_node->FastGetSolutionStepValue(VELOCITY, 1) =
-            Kratos::array_1d<double, 3>{10.0, 11.0, 12.0};
-        p_node->FastGetSolutionStepValue(ACCELERATION, 1) =
-            Kratos::array_1d<double, 3>{13.0, 14.0, 15.0};
-        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
-            Kratos::array_1d<double, 3>{16.0, 17.0, 18.0};
+        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{10.0, 11.0, 12.0};
+        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{13.0, 14.0, 15.0};
+        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{16.0, 17.0, 18.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
 
-        if (Add3DDofs)
-        {
+        if (Add3DDofs) {
             p_node->AddDof(DISPLACEMENT_Z);
             p_node->AddDof(ROTATION_Z);
         }
@@ -90,11 +82,12 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedAccelerations_U
 {
     NewmarkDynamicUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.GetModelPart().GetNode(0).Fix(ACCELERATION_X);
     tester.GetModelPart().GetNode(0).Fix(ACCELERATION_Y);
@@ -114,11 +107,12 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedVelocities_Upda
 {
     NewmarkDynamicUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.GetModelPart().GetNode(0).Fix(VELOCITY_X);
     tester.GetModelPart().GetNode(0).Fix(VELOCITY_Y);
@@ -138,11 +132,12 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithNoFixedVariables_Upd
 {
     NewmarkDynamicUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
@@ -158,11 +153,12 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
 {
     NewmarkDynamicUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.GetModelPart().GetNode(0).Fix(DISPLACEMENT_X);
     tester.GetModelPart().GetNode(0).Fix(DISPLACEMENT_Y);
@@ -177,17 +173,17 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
     KRATOS_EXPECT_VECTOR_NEAR(actual_displacement, expected_displacement, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement, KratosGeoMechanicsFastSuite)
 {
-    const bool three_d_case = false;
+    const bool                    three_d_case = false;
     NewmarkDynamicUPwSchemeTester tester(three_d_case);
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
@@ -198,35 +194,104 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpd
     KRATOS_EXPECT_VECTOR_NEAR(actual_displacement, expected_displacement, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivatives,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto expected_acceleration = Kratos::array_1d<double, 3>{13, 14, 15};
-    const auto expected_velocity = Kratos::array_1d<double, 3>{62, 67, 72};
+    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{13, 14, 15};
+    const auto     expected_velocity          = Kratos::array_1d<double, 3>{62, 67, 72};
     constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
     KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_acceleration, 1e-6)
 
-    const auto actual_velocity =
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
     KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
 
-    KRATOS_EXPECT_DOUBLE_EQ(
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
-        expected_dt_water_pressure);
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
+                            expected_dt_water_pressure);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedSecondDerivativeVectorVariable,
+                          KratosGeoMechanicsFastSuite)
+{
+    NewmarkDynamicUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_X);
+    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_Z);
+
+    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+
+    // first and last term should be the same as original, while the middle value is updated
+    const auto expected_acceleration = Kratos::array_1d<double, 3>{4.0, -29.25, 6.0};
+
+    const auto actual_acceleration =
+        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_acceleration, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedFirstDerivativeVectorVariable,
+                          KratosGeoMechanicsFastSuite)
+{
+    NewmarkDynamicUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.GetModelPart().Nodes()[0].Fix(VELOCITY_Y);
+
+    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+
+    // first and last term should be updated, while the middle value is fixed
+    const auto expected_velocity = Kratos::array_1d<double, 3>{-18, 2, -21};
+
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuite)
+{
+    NewmarkDynamicUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.GetModelPart().Nodes()[0].Fix(DT_WATER_PRESSURE);
+
+    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+
+    // should be the same as the original
+    const auto expected_dt_water_pressure = 0.0;
+
+    const auto actual_dt_water_pressure =
+        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0);
+    KRATOS_EXPECT_DOUBLE_EQ(actual_dt_water_pressure, expected_dt_water_pressure);
 }
 
 } // namespace Kratos::Testing

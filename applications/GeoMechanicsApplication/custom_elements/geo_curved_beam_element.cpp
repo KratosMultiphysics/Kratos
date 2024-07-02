@@ -328,19 +328,17 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
-                                                                     ElementVariables& rVariables) const
+                                                                     const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp   = this->GetProperties();
-    const double&         density = rProp[DENSITY];
+    const PropertiesType& rProp = this->GetProperties();
 
-    // Distribute body force block vector into elemental vector
-    noalias(rVariables.UVector) =
-        density * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) * rVariables.IntegrationCoefficient;
+    const array_1d<double, TNumNodes * TDim> body_force =
+        rProp[DENSITY] * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) *
+        rVariables.IntegrationCoefficient;
 
-    // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, body_force);
 
     KRATOS_CATCH("")
 }
@@ -348,12 +346,11 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType&
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables,
+                                                                          const ElementVariables& rVariables,
                                                                           unsigned int GPoint) const
 {
     KRATOS_TRY
 
-    // Distribute stiffness block vector into elemental vector
     rRightHandSideVector -= prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("")
@@ -727,13 +724,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
 
         // calculating the local gradients
         const ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
-
-        // GiD accepts equally distributed points
-        // Matrix NContainer;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(NContainer);
-
-        // ShapeFunctionsGradientsType DN_De;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(DN_De);
 
         // Constitutive Law parameters
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);

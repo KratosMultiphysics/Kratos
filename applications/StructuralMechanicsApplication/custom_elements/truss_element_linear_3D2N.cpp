@@ -261,6 +261,13 @@ void TrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("");
 }
 
+double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    return ReturnTangentModulus1D(CalculateLinearStrain(), rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
 
 void TrussElementLinear3D2N::save(Serializer& rSerializer) const
 {

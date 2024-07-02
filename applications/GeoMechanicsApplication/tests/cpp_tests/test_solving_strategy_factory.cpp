@@ -10,9 +10,9 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
-#include "custom_utilities/solving_strategy_factory.hpp"
 #include "containers/model.h"
+#include "custom_utilities/solving_strategy_factory.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
@@ -131,6 +131,24 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLineSearchStrategy, K
     KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
     KRATOS_EXPECT_NE(created_strategy, nullptr);
     KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CreatedLineSearchStrategyUsesMaxIterationsInput, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    const int  buffer_size      = 2;
+    auto&      dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("line_search");
+    const auto max_number_of_iterations = 30;
+    parameters["max_iterations"].SetInt(max_number_of_iterations);
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+
+    using LineSearchStrategyType = LineSearchStrategy<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+    auto p_line_search_strategy = dynamic_cast<LineSearchStrategyType*>(created_strategy.get());
+    KRATOS_EXPECT_NE(p_line_search_strategy, nullptr);
+    KRATOS_EXPECT_EQ(static_cast<int>(p_line_search_strategy->GetMaxIterationNumber()), max_number_of_iterations);
 }
 
 }

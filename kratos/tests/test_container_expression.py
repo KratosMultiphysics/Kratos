@@ -2,6 +2,7 @@
 import numpy
 from abc import ABC
 from abc import abstractmethod
+from math import log
 from typing import Union
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -721,6 +722,15 @@ class TestContainerExpression(ABC):
             self.assertEqual(v1, -v2)
             self.assertEqual(v3, abs(v2))
 
+    def test_Log(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.PRESSURE)
+        b = a * 2.0
+        c = Kratos.Expression.Utils.Log(b)
+        for v1, v2, v3 in zip(a.Evaluate(), b.Evaluate(), c.Evaluate()):
+            self.assertEqual(v1 * 2, v2)
+            self.assertEqual(v3, log(v2))
+
     def test_EntityMin(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -753,7 +763,13 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
         a *= -1
         c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(numpy.linalg.norm(c, ord=numpy.inf)), 9)
+        if c.shape == (0,):
+            # numpy norm inf throws an error if the array shape is zero.
+            # hence this is checked before.
+            norm_inf = 0.0
+        else:
+            norm_inf = numpy.linalg.norm(c, ord=numpy.inf)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(norm_inf), 9)
 
     def test_NormL2(self):
         a = self._GetContainerExpression()
@@ -979,5 +995,4 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
