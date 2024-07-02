@@ -47,6 +47,7 @@
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/apply_c_phi_reduction_process.hpp"
 
 namespace Kratos::Python
 {
@@ -166,6 +167,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<GeoExtrapolateIntegrationPointValuesToNodesProcess, GeoExtrapolateIntegrationPointValuesToNodesProcess::Pointer, Process>(
         m, "GeoExtrapolateIntegrationPointValuesToNodesProcess")
         .def(py::init<ModelPart&, const Parameters&>());
+
+
+    py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>
+            (m, "ApplyCPhiReductionProcess")
+            .def(py::init < ModelPart&, const Parameters>());
+
 }
 
 } // Namespace Kratos::Python.

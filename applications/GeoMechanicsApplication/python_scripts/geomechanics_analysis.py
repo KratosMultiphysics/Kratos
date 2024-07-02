@@ -174,8 +174,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
                 # set new_time and delta_time in the nonlinear solver
                 new_time = t + self.delta_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]       = new_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]             = new_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]       = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NUMBER_OF_CYCLES] = number_cycle
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
