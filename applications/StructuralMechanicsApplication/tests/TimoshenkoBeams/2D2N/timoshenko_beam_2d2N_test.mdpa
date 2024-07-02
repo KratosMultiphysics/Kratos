@@ -184,3 +184,15 @@ Begin SubModelPart SelfWeight2D_Self_weight_Auto1 // Group Self weight Auto1 // 
            31
     End SubModelPartNodes
 End SubModelPart
+
+Begin SubModelPart test // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           7
+		   15
+		   22
+    End SubModelPartNodes
+Begin SubModelPartElements
+		4
+		28
+End SubModelPartElements
+End SubModelPart

@@ -154,7 +154,7 @@ void LinearTimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -174,7 +174,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -194,7 +194,7 @@ void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -214,7 +214,7 @@ void LinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -227,15 +227,15 @@ void LinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     rN[3] = 6.0   / (one_plus_phi * L_square);
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
+/***********************************************************************************/
+/***********************************************************************************/
 
 void LinearTimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     const double one_plus_phi = 1.0 + Phi;
     if (rN.size() != 4)
@@ -254,7 +254,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsVal
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     const double one_plus_phi = 1.0 + Phi;
     if (rN.size() != 4)
@@ -274,7 +274,7 @@ void LinearTimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 2)
         rN.resize(2, false);
@@ -290,7 +290,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 2)
         rN.resize(2, false);
@@ -302,20 +302,19 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
+void LinearTimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues) const
 {
     if (rNodalValues.size() != 6)
         rNodalValues.resize(6, false);
     const auto &r_geom = GetGeometry();
 
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedVector<double, 6> global_values;
         BoundedMatrix<double, 6, 6> global_size_T;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
@@ -353,19 +352,22 @@ void LinearTimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
     const double Phi,
     const double xi,
     const VectorType &rNodalValues
-    )
+    ) const
 {
     rStrain[0] = CalculateAxialStrain(Length, Phi, xi, rNodalValues);      // El
     rStrain[1] = CalculateBendingCurvature(Length, Phi, xi, rNodalValues); // Kappa
     rStrain[2] = CalculateShearStrain(Length, Phi, xi, rNodalValues);      // Gamma_xy
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double LinearTimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Length,
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_u0_derivatives(2);
     GetFirstDerivativesNu0ShapeFunctionsValues(N_u0_derivatives, Length, Phi, xi);
@@ -380,7 +382,7 @@ double LinearTimoshenkoBeamElement2D2N::CalculateShearStrain(
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_derivatives(4), N_theta(4);
     GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
@@ -398,7 +400,7 @@ double LinearTimoshenkoBeamElement2D2N::CalculateBendingCurvature(
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_theta_derivatives(4);
     GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
@@ -413,9 +415,9 @@ array_1d<double, 3> LinearTimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
-    const double angle = StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
     const double c = std::cos(angle);
@@ -554,8 +556,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * area;
         GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * area;
-    }
 
+    }
     RotateAll(rLHS, rRHS, r_geometry);
 
     KRATOS_CATCH("");
@@ -752,8 +754,10 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
         GlobalSizeAxialVector(global_size_N, N_u);
         const double J_area = jacobian_weight * area;
         noalias(rRHS) += global_size_N * local_body_forces[0] * J_area;
+
         GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * J_area;
+
     }
 
     RotateRHS(rRHS, r_geometry);
@@ -768,13 +772,12 @@ void LinearTimoshenkoBeamElement2D2N::RotateLHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
         BoundedMatrix<double, 6, 6> global_size_T, aux_product;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
         noalias(aux_product) = prod(rLHS, trans(global_size_T));
         noalias(rLHS) = prod(global_size_T, aux_product);
@@ -789,14 +792,13 @@ void LinearTimoshenkoBeamElement2D2N::RotateRHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 6, 6> global_size_T;
         BoundedVector<double, 6> local_rhs;
         noalias(local_rhs) = rRHS;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -812,13 +814,12 @@ void LinearTimoshenkoBeamElement2D2N::RotateAll(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 6, 6> global_size_T, aux_product;
         BoundedVector<double, 6> local_rhs;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         noalias(local_rhs) = rRHS;
