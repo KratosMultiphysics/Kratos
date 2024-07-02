@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Wijtze Pieter Kikstra
+//                   Gennady Markelov
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.hpp"
@@ -21,7 +22,7 @@ using namespace Kratos;
 
 namespace
 {
-ModelPart& PrepareCPhiTestModelPart(Model& rModel)
+ModelPart& SetGeometryAndMesh(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
 
@@ -41,8 +42,16 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
 
     StructuredMeshGeneratorProcess(domain_geometry, result, mesher_parameters).Execute();
 
-    auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
+    return result;
+}
+
+ModelPart& PrepareCPhiTestModelPart(Model& rModel)
+{
+    auto& result = SetGeometryAndMesh(rModel);
+
     auto& r_model_part_properties = result.GetProperties(0);
+    auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
+
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
@@ -69,6 +78,20 @@ void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig,
         KRATOS_EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))),
                                 ReductionFactor * tan_phi);
     };
+}
+
+void CheckThrow(ModelPart& rModelPart)
+{
+    auto has_thrown = false;
+
+    try {
+        ApplyCPhiReductionProcess process{rModelPart, {}};
+        process.ExecuteInitializeSolutionStep();
+    } catch (const Exception&) {
+        has_thrown = true;
+    }
+
+    KRATOS_EXPECT_TRUE(has_thrown)
 }
 } // namespace
 
@@ -98,4 +121,49 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.8);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = SetGeometryAndMesh(model);
+
+    auto& r_model_part_properties = r_model_part.GetProperties(0);
+    auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
+    r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
+
+    // check absence of UMAT_PARAMETERS
+    CheckThrow(r_model_part);
+
+    Vector umat_parameters(6);
+    umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
+    r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+
+    // check absence of INDEX_OF_UMAT_C_PARAMETER, INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS
+    CheckThrow(r_model_part);
+
+    // check absence of INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
+    CheckThrow(r_model_part);
+
+    // check absence of NUMBER_OF_UMAT_PARAMETERS
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
+    CheckThrow(r_model_part);
+
+    r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
+
+    // check wrong values for phi
+    umat_parameters(3) = -0.0001;
+    r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    CheckThrow(r_model_part);
+
+    umat_parameters(3) = 90.00001;
+    r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    CheckThrow(r_model_part);
+    // restore a correct value for phi
+    umat_parameters(3) = 25.0;
+
+    // check a wrong value for c
+    umat_parameters(2) = -0.00001;
+    r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    CheckThrow(r_model_part);
+}
 } // namespace Kratos::Testing
