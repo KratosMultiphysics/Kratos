@@ -6,6 +6,7 @@ from KratosMultiphysics.HDF5Application import import_model_part_from_hdf5_proce
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
 from os.path import commonprefix
 from pathlib import Path
+import math
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -128,9 +129,16 @@ class ReadFromSwInterfaceProcess(KM.Process):
             self.y_bottom = ymin
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
             zmax = -1e32
+            distmin = 1e32
             for node in self.interface_model_part.Nodes:
                 if node.Z > zmax:
                     zmax = node.Z
+                for node2 in self.interface_model_part.Nodes:
+                    dist = (node.X - node2.X)*(node.X - node2.X) + (node.Y - node2.Y)*(node.Y - node2.Y) + (node.Z - node2.Z)*(node.Z - node2.Z)
+                    if dist > 0:
+                        if dist < distmin:
+                            distmin = dist
+            self.delta = math.sqrt(distmin)
             self.z_top = zmax
             
             
@@ -158,8 +166,11 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 vel_z_var  = (node.Z - self.z_bottom)/self.height*self.vel_z
                 vel_x      = self.corrective_factor*node.GetValue(KM.VELOCITY_X)
                 vel_y      = self.corrective_factor*node.GetValue(KM.VELOCITY_Y)
-                node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
-                node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
+                Nel = self.h_pfem/self.delta
+                self.corrective_factor = 2*Nel/(2*Nel - 1)
+                # print(self.corrective_factor)
+                node.SetSolutionStepValue(KM.VELOCITY_X, self.corrective_factor*vel_x)
+                node.SetSolutionStepValue(KM.VELOCITY_Y, self.corrective_factor*vel_y)
                 node.SetSolutionStepValue(KM.VELOCITY_Z, vel_z_var)
             # self.CorrectVelocity3D()
                 
@@ -206,19 +217,43 @@ class ReadFromSwInterfaceProcess(KM.Process):
         nElements = nNodes - 1
         self.avg_vel_x = 2*self.avg_vel_x*nElements/(2*nElements - 1)
 
-    #def CorrectVelocity3D(self):
-    #    flux_moving = 0
-    #    flux_total = 0
-    #    for node in self.interface_model_part.Nodes:
-    #        flux_total = flux_total + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA) 
-    #        if (node.IsNot(KM.RIGID)):
-    #            flux_moving = flux_moving + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA)
-    #    for node in self.interface_model_part.Nodes:
-    #        if (node.IsNot(KM.RIGID)):
-    #            vel_x = node.GetValue(KM.VELOCITY_X)*flux_total/flux_moving
-    #            vel_y = node.GetValue(KM.VELOCITY_Y)*flux_total/flux_moving
-    #            node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
-    #            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
+    def CorrectVelocity3D(self):
+        print("Sono qui1")
+        area_tot = 0.0
+        flux_tot_x = 0.0
+        flux_tot_y = 0.0
+        flux_mov_x = 0.0
+        flux_mov_y = 0.0
+        area_moving = 0.0
+        for node in self.interface_model_part.Nodes:
+            print("Sono qui2")
+            node.SetValue(KM.NODAL_AREA,0.0)
+        for element in self.interface_model_part.Elements:
+            print("Sono qui3")
+            element_nodes = element.GetNodes()
+            element_area = element.GetGeometry().Area()
+            for node in element_nodes:
+                print("Sono qui3_1")
+                node_area = node.GetValue(KM.NODAL_AREA)
+                node_area = node_area + 0.33333*element_area
+                node.SetValue(KM.NODAL_AREA,node_area)
+                flux_tot_x = flux_tot_x + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA)
+                flux_tot_y = flux_tot_y + node.GetValue(KM.VELOCITY_Y)*node.GetValue(KM.NODAL_AREA) 
+                if (node.IsNot(KM.RIGID)):
+                   print("Sono qui3_1_1")
+                   flux_mov_x = flux_mov_x + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA)
+                   flux_mov_y = flux_mov_y + node.GetValue(KM.VELOCITY_Y)*node.GetValue(KM.NODAL_AREA) 
+        for node in self.interface_model_part.Nodes:
+            print("Sono qui4")
+            if (node.IsNot(KM.RIGID)):
+                print("Sono qui4_1")
+                coeff_x = flux_tot_x/flux_mov_x
+                coeff_y = flux_tot_y/flux_mov_y
+                print("coeff:". coeff_x) 
+                vel_x = node.GetValue(KM.VELOCITY_X)*coeff_x
+                vel_y = node.GetValue(KM.VELOCITY_Y)*coeff_y
+                node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
+                node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
 
     def ComputeCorrectiveFactor3D(self):    ##to do implement correction
         all_nodes = 0
