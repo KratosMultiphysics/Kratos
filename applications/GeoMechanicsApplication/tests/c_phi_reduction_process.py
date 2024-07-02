@@ -1,5 +1,3 @@
-# from KratosMultiphysics import * as Kratos
-
 import os
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -23,17 +21,17 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
     def test_c_phi_reduction_process(self):
 
         # get the parameter file names for all stages
-        test_name = 'C-Phi_reduction_process'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        file_path = test_helper.get_file_path('C-Phi_reduction_process')
         stages = test_helper.run_stages(file_path, 2)
 
         # read results
         reader = test_helper.GiDOutputFileReader()
-        reader.read_output_from(os.path.join(file_path, "stage2.post.res"))
-        displacement = test_helper.get_displacement(stages[1])
-        self.assertAlmostEqual(-0.0008964807371535437, displacement[12][0])
-        self.assertAlmostEqual(-0.0011135191709369784, displacement[27][0])
-        self.assertAlmostEqual(-0.00967769824048078, displacement[150][0])
+        actual_data = reader.read_output_from(os.path.join(file_path, "stage2.post.res"))
+        node_ids = [57, 151, 235]
+        displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", 0.2, actual_data, node_ids)
+        self.assertAlmostEqual(-0.002667, displacement_vectors[0][0])
+        self.assertAlmostEqual(-0.0096777, displacement_vectors[1][0])
+        self.assertAlmostEqual(-0.0115495, displacement_vectors[2][0])
 
 
 if __name__ == '__main__':

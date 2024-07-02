@@ -1,7 +1,7 @@
 # $c-\phi$ reduction process
 
 $c-\phi$ reduction process is tested here. This test allows one to perform a real 2D computation. 
-However, the end time is decreased and tollerances are increased to perform just a few steps. 
+However, the end time is decreased and tolerances are increased to perform just a few steps. 
 This is done to have enough data to verify the implemented process and do not over-spend CPU resources. 
 
 ## Setup

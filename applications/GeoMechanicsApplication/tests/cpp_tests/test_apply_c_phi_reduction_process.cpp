@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 #include "containers/model.h"
-#include "custom_processes/apply_c_phi_reduction_process.hpp"
+#include "custom_processes/apply_c_phi_reduction_process.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
@@ -27,10 +27,10 @@ ModelPart& SetGeometryAndMesh(Model& rModel)
     auto& result = rModel.CreateModelPart("dummy");
 
     // Set up the test model part mesh
-    const auto             p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto             p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    const auto             p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    const auto             p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
+    const auto             p_point_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto             p_point_2 = make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    const auto             p_point_3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    const auto             p_point_4 = make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
@@ -130,40 +130,92 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
 
-    // check absence of UMAT_PARAMETERS
-    CheckThrow(r_model_part);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Missing required item UMAT_PARAMETERS")
+    }
 
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
-    // check absence of INDEX_OF_UMAT_C_PARAMETER, INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS
-    CheckThrow(r_model_part);
-
-    // check absence of INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS
-    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
-    CheckThrow(r_model_part);
-
-    // check absence of NUMBER_OF_UMAT_PARAMETERS
-    r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
-    CheckThrow(r_model_part);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Missing required item NUMBER_OF_UMAT_PARAMETERS")
+    }
 
     r_model_part_properties.SetValue(NUMBER_OF_UMAT_PARAMETERS, 6);
 
-    // check wrong values for phi
+    // checking of Phi
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Missing required item INDEX_OF_UMAT_PHI_PARAMETER")
+    }
+
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            process.ExecuteInitializeSolutionStep(),
+            "invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
+    }
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            process.ExecuteInitializeSolutionStep(),
+            "invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
+    }
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
     umat_parameters(3) = -0.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    CheckThrow(r_model_part);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Friction angle Phi out of range: -0.0001")
+    }
 
     umat_parameters(3) = 90.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    CheckThrow(r_model_part);
-    // restore a correct value for phi
-    umat_parameters(3) = 25.0;
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Friction angle Phi out of range: 90")
+    }
 
-    // check a wrong value for c
+    umat_parameters(3) = 25.0;
+    r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    // checking of c
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Missing required item INDEX_OF_UMAT_C_PARAMETER")
+    }
+
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            process.ExecuteInitializeSolutionStep(),
+            "invalid INDEX_OF_UMAT_C_PARAMETER: 0 (out-of-bounds index)")
+    }
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 7);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            process.ExecuteInitializeSolutionStep(),
+            "invalid INDEX_OF_UMAT_C_PARAMETER: 7 (out-of-bounds index)")
+    }
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
     umat_parameters(2) = -0.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    CheckThrow(r_model_part);
+    {
+        ApplyCPhiReductionProcess process{r_model_part, {}};
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                          "Cohesion C out of range: -1e-05")
+    }
 }
 } // namespace Kratos::Testing

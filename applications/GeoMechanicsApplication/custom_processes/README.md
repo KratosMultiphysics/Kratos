@@ -7,9 +7,9 @@ Documented processes:
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 
 ## $c-\phi$ reduction process
-For the assesment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
+For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
 scheme is implemented. The apex of the Mohr-Coulomb cone shaped failure surface is kept in the same position, 
-therefore both c and $\tan \phi$ will diminish at the same rate.
+therefore both $c$ and $\tan \phi$ will diminish at the same rate.
 
 ### Incrementation scheme
 The $c-\phi$ reduction process requires the existence of a stress state in your model and the use of a Mohr-Coulomb material 
