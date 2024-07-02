@@ -295,7 +295,7 @@ public:
 					new_model_part.Nodes()(triangle_nodes[2])
 				);
 				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
-				new_model_part.Conditions().push_back(p_condition);
+				new_model_part.Conditions().insert(new_model_part.Conditions().end(), p_condition);
 				++number_of_triangles;
 			}
 		}
@@ -768,7 +768,7 @@ public:
                 );
 
                 Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
-                new_model_part.Conditions().push_back(p_condition);
+                new_model_part.Conditions().insert(new_model_part.Conditions().end(), p_condition);
                 ++number_of_triangles;
 
                 for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;
@@ -907,7 +907,7 @@ public:
 
                     Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties);
 
-                    new_model_part.Conditions().push_back(p_condition);
+                    new_model_part.Conditions().insert(new_model_part.Conditions().end(), p_condition);
                     ++number_of_triangles;
 
                     for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case

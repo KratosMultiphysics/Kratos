@@ -593,8 +593,7 @@ protected:
         const int n_constraints = static_cast<int>(r_constraints_array.size());
 
         // Global dof set
-        DofSetType dof_global_set;
-        dof_global_set.reserve(n_elems*20);
+        mDofSet = DofsArrayType();
 
         // Auxiliary DOFs list
         DofsVectorType dof_list;
@@ -605,7 +604,7 @@ protected:
             const auto& r_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
-            DofSetType dofs_tmp_set;
+            DofsArrayType dofs_tmp_set;
             dofs_tmp_set.reserve(20000);
 
             // Get the DOFs list from each element and insert it in the temporary set
@@ -636,21 +635,12 @@ protected:
             // We merge all the sets in one thread
 #pragma omp critical
             {
-                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+                mDofSet.insert(dofs_tmp_set);
             }
         }
 
         KRATOS_INFO_IF("ExplicitBuilder", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
-        // Ordering the global DOF set
-        mDofSet = DofsArrayType();
-        DofsArrayType temp_dof_set;
-        temp_dof_set.reserve(dof_global_set.size());
-        for (auto it_dof = dof_global_set.begin(); it_dof != dof_global_set.end(); ++it_dof) {
-            temp_dof_set.push_back(*it_dof);
-        }
-        temp_dof_set.Sort();
-        mDofSet = temp_dof_set;
         mEquationSystemSize = mDofSet.size();
 
         // DoFs set checks
