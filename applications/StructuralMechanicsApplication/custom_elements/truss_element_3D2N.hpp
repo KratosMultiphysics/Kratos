@@ -126,6 +126,11 @@ namespace Kratos
             std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            std::vector<ConstitutiveLaw::Pointer>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
         /**
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
