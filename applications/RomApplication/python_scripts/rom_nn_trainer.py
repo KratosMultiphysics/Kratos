@@ -9,8 +9,86 @@ from keras import layers
 from keras.optimizers import AdamW
 from keras.callbacks import LearningRateScheduler
 from keras.utils import set_random_seed as keras_set_random_seed
+from keras import metrics
+
+tf.keras.backend.set_floatx('float64')
+
 
 import KratosMultiphysics
+
+class ANNPROM_Keras_Model(Model):
+
+    def __init__(self, phisig_norm_matrix, rescaling_factor, w_gradNN, *args, **kwargs):
+        super(ANNPROM_Keras_Model,self).__init__(*args, **kwargs)
+
+        self.run_eagerly = False
+        
+        self.phisig_norm_matrix = phisig_norm_matrix
+        self.w_gradNN = w_gradNN
+        self.rescaling_factor_x = rescaling_factor
+
+        self.loss_tracker = metrics.Mean(name="loss")
+        self.loss_x_tracker = metrics.Mean(name="loss_x")
+        self.loss_gradNN_tracker = metrics.Mean(name="loss_grad")
+
+
+    def train_step(self,data):
+        input_batch, x_true_batch = data # target_aux is the reference force or residual, depending on the settings
+        
+        with tf.GradientTape() as tape_d:
+
+            with tf.GradientTape() as tape_e:
+                tape_e.watch(input_batch)
+                x_pred_batch = self(input_batch, training=True)
+
+            mse_gradNN = tf.math.reduce_mean(tf.math.square(tape_e.gradient(x_pred_batch, input_batch)))
+
+            x_diff_batch=x_true_batch-x_pred_batch
+            mse_x = tf.math.reduce_mean(tf.math.multiply(x_diff_batch,tf.transpose(tf.matmul(self.phisig_norm_matrix,tf.transpose(x_diff_batch)))))
+            mse_x /= self.rescaling_factor_x
+
+            mse = mse_x + self.w_gradNN * mse_gradNN
+
+        gradients = tape_d.gradient(mse, self.trainable_variables)
+
+        self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+
+        # Compute our own metrics
+        self.loss_tracker.update_state(mse)
+        self.loss_x_tracker.update_state(mse_x)
+        self.loss_gradNN_tracker.update_state(mse_gradNN)
+        return {"loss": self.loss_tracker.result(), "loss_x": self.loss_x_tracker.result(), "loss_grad": self.loss_gradNN_tracker.result()}
+
+    def test_step(self, data):
+        input_batch, x_true_batch = data
+
+        with tf.GradientTape() as tape_e:
+            tape_e.watch(input_batch)
+            x_pred_batch = self(input_batch, training=True)
+
+        mse_gradNN = tf.math.reduce_mean(tf.math.square(tape_e.gradient(x_pred_batch, input_batch)))
+
+        x_diff_batch=x_true_batch-x_pred_batch
+        mse_x = tf.math.reduce_mean(tf.math.multiply(x_diff_batch,tf.transpose(tf.matmul(self.phisig_norm_matrix,tf.transpose(x_diff_batch)))))
+        mse_x /= self.rescaling_factor_x
+
+        mse = mse_x + self.w_gradNN * mse_gradNN
+
+        # Compute our own metrics
+        self.loss_tracker.update_state(mse)
+        self.loss_x_tracker.update_state(mse_x)
+        self.loss_gradNN_tracker.update_state(mse_gradNN)
+        return {"loss": self.loss_tracker.result(), "loss_x": self.loss_x_tracker.result(), "loss_grad": self.loss_gradNN_tracker.result()}
+
+    @property
+    def metrics(self):
+        # We list our `Metric` objects here so that `reset_states()` can be
+        # called automatically at the start of each epoch
+        # or at the start of `evaluate()`.
+        # If you don't implement this property, you have to call
+        # `reset_states()` yourself at the time of your choosing.
+        
+        return [self.loss_tracker, self.loss_x_tracker, self.loss_gradNN_tracker]
 
 
 class RomNeuralNetworkTrainer(object):
@@ -19,32 +97,9 @@ class RomNeuralNetworkTrainer(object):
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.nn_parameters = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]
-        self.nn_parameters.RecursivelyValidateAndAssignDefaults(self._GetDefaultNeuralNetworkParameters())
         self.mu_train = mu_train
         self.mu_validation = mu_validation
         self.data_base = data_base
-
-    @classmethod
-    def _GetDefaultNeuralNetworkParameters(self):
-        nn_training_parameters = KratosMultiphysics.Parameters("""{
-            "modes":[5,50],
-            "layers_size":[200,200],
-            "batch_size":2,
-            "epochs":800,
-            "lr_strategy":{
-                "scheduler": "sgdr",
-                "base_lr": 0.001,
-                "additional_params": [1e-4, 10, 400]
-            },
-            "training":{
-                "retrain_if_exists" : false,  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
-                "model_number" : 0     // this part of the parameters will be updated with the number of trained models that exist for the same mu_train and NN hyperparameters combination
-            },
-            "online":{
-                "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
-            }
-         }""")
-        return nn_training_parameters
 
     def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
         if n_inf >= n_max:
@@ -161,15 +216,15 @@ class RomNeuralNetworkTrainer(object):
         schedulers_dict={"const": lr_const_scheduler, "steps": lr_steps_scheduler, "sgdr": lr_sgdr_scheduler}
 
         return schedulers_dict[strategy_name]
-
-    def _DefineNetwork(self, n_inf, n_sup, layers_size):
+    
+    def _DefineNetwork(self, n_inf, n_sup, layers_size, phisig_norm_matrix=None, rescaling_factor=None, w_gradNN=None):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
         for layer_size in layers_size:
-            layer_out=layers.Dense(layer_size, 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
+            layer_out=layers.Dense(int(layer_size), 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
         output_layer=layers.Dense(n_sup-n_inf, 'linear', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
 
-        network=Model(input_layer, output_layer)
+        network=ANNPROM_Keras_Model(phisig_norm_matrix, rescaling_factor, w_gradNN, input_layer, output_layer)
         return network
 
     def TrainNetwork(self, seed=None):
@@ -184,6 +239,7 @@ class RomNeuralNetworkTrainer(object):
         n_sup = int(nn_training_parameters['modes'].GetVector()[1])
         layers_size = nn_training_parameters['layers_size'].GetVector()
         batch_size = nn_training_parameters['batch_size'].GetInt()
+        w_gradNN = nn_training_parameters['NN_gradient_regularisation_weight'].GetDouble()
         lr_scheme = nn_training_parameters['lr_strategy']['scheduler'].GetString()
         base_lr = nn_training_parameters['lr_strategy']['base_lr'].GetDouble()
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
@@ -196,15 +252,16 @@ class RomNeuralNetworkTrainer(object):
 
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
 
-        network = self._DefineNetwork(n_inf, n_sup, layers_size)
+        network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN) 
 
-        def scaled_phinorm_mse_loss(y_true, y_pred):
-            y_diff=y_true-y_pred
-            mse = tf.math.reduce_mean(tf.math.multiply(y_diff,tf.transpose(tf.matmul(phisig_norm_matrix,tf.transpose(y_diff)))))
-            mse /= rescaling_factor
-            return mse
+        # def scaled_phinorm_mse_loss(y_true, y_pred):
+        #     y_diff=y_true-y_pred
+        #     mse = tf.math.reduce_mean(tf.math.multiply(y_diff,tf.transpose(tf.matmul(phisig_norm_matrix,tf.transpose(y_diff)))))
+        #     mse /= rescaling_factor
 
-        network.compile(AdamW(epsilon=1e-17), loss=scaled_phinorm_mse_loss, run_eagerly=False)
+        #     return mse
+
+        network.compile(AdamW(epsilon=1e-17), run_eagerly=False)
         network.summary()
 
         callbacks = [LearningRateScheduler(self._SelectScheduler(lr_scheme, base_lr, lr_additional_params), verbose=0)]
@@ -218,6 +275,7 @@ class RomNeuralNetworkTrainer(object):
             "layers_size":list(layers_size),
             "batch_size":batch_size,
             "epochs":epochs,
+            "NN_gradient_regularisation_weight": w_gradNN,
             "lr_strategy":{
                 "scheduler": lr_scheme,
                 "base_lr": base_lr,
@@ -228,13 +286,12 @@ class RomNeuralNetworkTrainer(object):
         with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(str(model_path)+"/model_weights.h5")
+        network.save_weights(str(model_path)+"/model.weights.h5")
         with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
-        return model_name
 
-    def EvaluateNetwork(self, model_name):
+    def EvaluateNetwork(self):
 
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
@@ -249,33 +306,126 @@ class RomNeuralNetworkTrainer(object):
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
-        network.load_weights(str(model_path)+'/model_weights.h5')
+        network.load_weights(str(model_path)+'/model.weights.h5')
 
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 
+        print('RECONSTRUCTION RESULTS, VALIDATION DATASET:')
+        print(' - Relative Frobenius error:')
+
         S_recons_val = phisig_sup@network(Q_inf_val).numpy().T+phisig_inf@Q_inf_val.T
         err_rel_recons = np.linalg.norm(S_recons_val-S_val)/np.linalg.norm(S_val)
-        print('ANN-PROM Validation Reconstruction error (Rel. Frob): ', err_rel_recons)
+        print('     ANN-PROM: ', err_rel_recons)
 
+        S_pod_sup_recons_val = phisig_sup@Q_sup_val.T+phisig_inf@Q_inf_val.T
+        print('     POD Sup: ', np.linalg.norm(S_pod_sup_recons_val-S_val)/np.linalg.norm(S_val))
+
+        S_pod_inf_recons_val = phisig_inf@Q_inf_val.T
+        print('     POD Inf: ', np.linalg.norm(S_pod_inf_recons_val-S_val)/np.linalg.norm(S_val))
+
+
+        print(' - Relative geometric mean of the L2 error of each snapshot:')
         sample_l2_err_list=[]
         for i in range(S_recons_val.shape[1]):
             sample_l2_err_list.append(np.linalg.norm(S_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('ANN-PROM Validation Reconstruction error (Geometric Rel. L2): ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
+        print('     ANN-PROM: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
 
-        S_pod_sup_recons_val = phisig_sup@Q_sup_val.T+phisig_inf@Q_inf_val.T
-        print('POD Sup Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_pod_sup_recons_val-S_val)/np.linalg.norm(S_val))
-
-        sample_l2_err_list=[]
+        sample_l2_err_list_pod_sup=[]
         for i in range(S_pod_sup_recons_val.shape[1]):
-            sample_l2_err_list.append(np.linalg.norm(S_pod_sup_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('POD Sup Validation Reconstruction error (Geometric Rel. L2): ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
+            sample_l2_err_list_pod_sup.append(np.linalg.norm(S_pod_sup_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
+        print('     POD Sup: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_sup)))))
 
-        S_pod_inf_recons_val = phisig_inf@Q_inf_val.T
-        print('POD Inf Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_pod_inf_recons_val-S_val)/np.linalg.norm(S_val))
-
-        sample_l2_err_list=[]
+        sample_l2_err_list_pod_inf=[]
         for i in range(S_pod_inf_recons_val.shape[1]):
-            sample_l2_err_list.append(np.linalg.norm(S_pod_inf_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('POD Inf Validation Reconstruction error (Geometric Rel. L2): ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
+            sample_l2_err_list_pod_inf.append(np.linalg.norm(S_pod_inf_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
+        print('     POD Inf: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_inf)))))
 
         return err_rel_recons
+
+
+class NN_ROM_Interface():
+    def __init__(self, mu_train, data_base):
+
+        model_name, _ = data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
+        model_path=pathlib.Path(data_base.database_root_directory / 'saved_nn_models' / model_name)
+
+        with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
+            model_config = json.load(config_file)
+
+        self.n_inf = int(model_config["modes"][0])
+        self.n_sup = int(model_config["modes"][1])
+        layers_size = model_config["layers_size"]
+                                                  
+        self.network = self._DefineNetwork(self.n_inf, self.n_sup, layers_size)
+        self.network.summary()
+
+        self.network.load_weights(str(pathlib.Path(model_path / 'model.weights.h5')))
+
+        _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
+        self.phi = data_base.get_single_numpy_from_database(hash_basis)
+        _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
+        self.sigma =  data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
+        self.ref_snapshot = np.zeros(self.phi.shape[0])
+
+    def _DefineNetwork(self, n_inf, n_sup, layers_size):
+        input_layer=layers.Input((n_inf,), dtype=tf.float64)
+        layer_out=input_layer
+        for layer_size in layers_size:
+            layer_out=layers.Dense(int(layer_size), 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
+        output_layer=layers.Dense(n_sup-n_inf, 'linear', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
+
+        network=Model(input_layer, output_layer)
+        return network
+
+    def get_encode_function(self):
+
+        phi_inf = self.phi[:,:self.n_inf]
+        ref_snapshot = self.ref_snapshot
+
+        def encode_function(s):
+            output_data=(s-ref_snapshot).copy()
+            output_data = (phi_inf.T@output_data).T
+            return np.expand_dims(output_data,axis=0), None
+        
+        return encode_function
+
+    def get_decode_function(self):
+        
+        ref_snapshot = self.ref_snapshot
+
+        phi_inf = self.phi[:,:self.n_inf]
+
+        sigma_inf = self.sigma[:self.n_inf]
+        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
+
+        phi_sup = self.phi[:,self.n_inf:self.n_sup]
+        sigma_sup = self.sigma[self.n_inf:self.n_sup]
+        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
+
+        def decode_function(q_inf):
+
+            q_sup_pred = self.network((sigma_inf_inv@q_inf.T).T).numpy()
+            s_pred = np.expand_dims(ref_snapshot,axis=1) + phi_inf@q_inf.T + phi_sup_weighted@q_sup_pred.T
+            return s_pred.T
+        
+        return decode_function
+    
+    def get_phi_matrices(self):
+        phi_inf = self.phi[:,:self.n_inf]
+        phi_sup = self.phi[:,self.n_inf:self.n_sup]
+        sigma_inf = self.sigma[:self.n_inf]
+        sigma_sup = self.sigma[self.n_inf:self.n_sup]
+        phi_inf_weighted = phi_inf @ np.diag(sigma_inf)
+        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
+        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
+
+        return KratosMultiphysics.Matrix(phi_inf), KratosMultiphysics.Matrix(phi_sup_weighted), KratosMultiphysics.Matrix(sigma_inf_inv)
+    
+    def get_NN_layers(self):
+        layers=[]
+        for layer in self.network.trainable_variables:
+            layers.append(KratosMultiphysics.Matrix(layer.numpy()))
+        return layers
+    
+    def get_ref_snapshot(self):
+        return self.ref_snapshot
