@@ -39,8 +39,8 @@ class ApplyCPhiReductionProcess : public Process
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyCPhiReductionProcess);
 
-    ApplyCPhiReductionProcess(ModelPart& model_part, const Parameters&)
-        : Process(Flags()), mrModelPart(model_part)
+    ApplyCPhiReductionProcess(ModelPart& rModelPart, const Parameters&)
+        : Process(Flags()), mrModelPart(rModelPart)
     {
     }
 
