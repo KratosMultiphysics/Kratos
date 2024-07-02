@@ -132,6 +132,7 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/truss_backbone_constitutive_law.h"
 
 namespace Kratos {
 
@@ -601,6 +602,7 @@ private:
     const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
+    const TrussBackboneConstitutiveLaw    mTrussBackboneConstitutiveLaw;
 
     ///@}
 

@@ -516,8 +516,10 @@ class GiDOutputFileReader:
         value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
         if self.result_type == "Scalar":
             value.append(float(words[0]))
-        elif self.result_type == "Matrix":
+        elif self.result_type == "Matrix" or self.result_type == "Vector":
             value.append([float(x) for x in words])
+        else:
+            raise RuntimeError(f'Unsupported result type "{self.result_type}"')
 
     def _process_begin_of_block(self, line):
         assert(self.current_block_name is None)  # nested blocks are not supported
