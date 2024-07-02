@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -25,6 +24,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos::Testing {
 

@@ -14,16 +14,18 @@
 #pragma once
 
 #include "testing/testing.h"
-#include "fluid_dynamics_Biomedical_application.h"
+#include "fluid_dynamics_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {
-public:
-  FluidDynamicsBiomedicalApplicationFastSuite();
+class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite 
+{
+  public:
+    FluidDynamicsApplicationFastSuite();
 
-private:
-  KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
+  private:
+    KratosFluidDynamicsApplication::Pointer mpFluidDynamicsApp;
 };
 
 } // namespace Kratos::Testing

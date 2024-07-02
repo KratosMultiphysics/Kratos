@@ -8,22 +8,22 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Carlos A. Roig
 //
 
 #pragma once
 
-#include "fluid_dynamics_biomedical_application.h"
 #include "testing/testing.h"
+#include "fluid_dynamics_biomedical_application.h"
 
 namespace Kratos::Testing {
 
-class KratosFluidDynamicsBiomecanicalFastSuite : public KratosCoreFastSuite {
+class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {
 public:
-  KratosFluidDynamicsBiomecanicalFastSuite();
+  FluidDynamicsBiomedicalApplicationFastSuite();
 
 private:
-  KratosFluidDynamicsBiomecanicalApplication::Pointer mpStructuralApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
 };
 
 } // namespace Kratos::Testing

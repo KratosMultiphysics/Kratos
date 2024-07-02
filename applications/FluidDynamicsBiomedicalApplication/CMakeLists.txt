@@ -25,7 +25,7 @@ file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES ${CM
 ## define fluid dynamics biomedical test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-  kratos_add_gtests(TARGET KratosFluidDynamicsBiomedicalCore SOURCES "${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_TESTING_SOURCES}" USE_CUSTOM_MAIN)
+  kratos_add_gtests(TARGET KratosFluidDynamicsBiomedicalCore SOURCES "${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################

@@ -14,13 +14,13 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "includes/cfd_variables.h"
 
 // Application includes
+#include "includes/cfd_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {

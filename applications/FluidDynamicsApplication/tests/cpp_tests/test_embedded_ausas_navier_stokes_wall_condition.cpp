@@ -17,15 +17,18 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "custom_elements/embedded_ausas_navier_stokes.h"
-#include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+
+// Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_elements/embedded_ausas_navier_stokes.h"
+#include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
+
 
 namespace Kratos
 {

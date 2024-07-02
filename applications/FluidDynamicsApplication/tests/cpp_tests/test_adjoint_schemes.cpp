@@ -24,7 +24,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -37,6 +36,7 @@
 #include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos
 {

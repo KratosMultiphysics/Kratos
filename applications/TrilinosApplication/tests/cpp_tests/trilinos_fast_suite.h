@@ -17,6 +17,12 @@
 
 namespace Kratos::Testing {
 
-class KratosTrilinosApplicationMPITestSuite : public KratosMPICoreFastSuite {};
+class KratosTrilinosApplicationMPITestSuite : public KratosMPICoreFastSuite {
+public:
+  KratosTrilinosApplicationMPITestSuite();
+
+private:
+  KratosTrilinosApplication::Pointer mpTrilinosApp;
+};
 
 } // namespace Kratos::Testing

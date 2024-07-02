@@ -21,10 +21,10 @@
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
-#include "testing/testing.h"
 
 // Application includes
 #include "custom_utilities/fluid_mesh_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos::Testing
 {
