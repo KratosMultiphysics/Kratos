@@ -129,8 +129,10 @@ public:
         const Parameters specifications = Parameters(R"({
             "required_solution_step_data_variables" : [],
             "required_dofs" : [],
-            "flags_used" : [],
-            "documentation" : "This is the base process."
+            "nodal_flags_used" : [],
+            "elemental_flags_used" : [],
+            "condition_flags_used" : [],
+            "documentation" : "This process assigns a scalar value to an entity (nodes, elements, conditions and constraints)."
         })");
 
         if constexpr (std::is_same<TEntity, Node>::value && THistorical == AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable) {
