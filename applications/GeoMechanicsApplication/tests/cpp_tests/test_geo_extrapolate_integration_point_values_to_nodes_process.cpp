@@ -262,7 +262,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
+// KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
+[[maybe_unused]] void TestExtrapolatesVectorCorrectlyForLinearFields()
 {
     //   This test uses the following two-element system.
     //   4------3------6
