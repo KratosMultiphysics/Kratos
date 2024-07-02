@@ -16,14 +16,16 @@
 #include "testing/testing.h"
 #include "fluid_dynamics_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {
-public:
-  FluidDynamicsApplicationFastSuite();
+class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite 
+{
+  public:
+    FluidDynamicsApplicationFastSuite();
 
-private:
-  KratosFluidDynamicsApplication::Pointer mpFluidDynamicsApp;
+  private:
+    KratosFluidDynamicsApplication::Pointer mpFluidDynamicsApp;
 };
 
 } // namespace Kratos::Testing
