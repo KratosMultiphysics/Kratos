@@ -27,6 +27,7 @@
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "spatial_containers/bins_dynamic.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -57,6 +58,11 @@ public:
     using GeometryPointerType = Geometry<NodeType>::Pointer;
 
     using NodesPointerSetType = ModelPart::NodesContainerType;
+
+    using ResultNodesContainerType = NodesPointerSetType::ContainerType;
+
+    //Bin
+    using NodeBinsType = BinsDynamic<3, NodeType, NodesPointerSetType::ContainerType>;
 
     using ElementFacesMapType = std::unordered_map<
         std::vector<IndexType>,
@@ -366,9 +372,31 @@ public:
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
 
+    /**
+     * @brief Finds the nearest neighbors for a set of nodes in a given model part.
+     *
+     * This function locates the closest node in the master structure to each node in the provided vector.
+     * It uses a spatial bin to efficiently search for the nearest neighbor. The IDs of the nearest nodes are
+     * stored in an unordered set to ensure uniqueness.
+     *
+     * @param rMasterStructureNodes Reference to the master structure nodes, which contain all the nodes in the model part.
+     * @param nodesVector A vector of pointers to the nodes for which the nearest neighbors are to be found.
+     * @return std::unordered_set<int> A set containing unique IDs of the nearest nodes.
+     */
+    std::unordered_set<int> FindNearestNeighbors(
+        NodesPointerSetType& rMasterStructureNodes,
+        std::vector<Node::Pointer> nodesVector);
+
     ///@}
 
     private:
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        NodeBinsType::UniquePointer mpBins;
+
+        ///@}
 
     ///@name Private Static Operations
     ///@{
