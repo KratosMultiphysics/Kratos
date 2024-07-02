@@ -7,7 +7,8 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:   Sebastian Ares de Parga Regalado
+//  Main authors:   Nicolas Sibuet Ruiz
+//                  Sebastian Ares de Parga Regalado
 //                  Eduard Gomez Escandell
 //
 
