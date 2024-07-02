@@ -114,9 +114,10 @@ public:
         // Initialize INITIAL_STRESS_TENSOR
         block_for_each(r_model_part.Nodes(), [](Node& rNode){
             auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if(r_initial_stress.size1() != 3)
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
                 r_initial_stress.resize(3,3,false);
-            noalias(r_initial_stress) = ZeroMatrix(3,3);
+            }
+            r_initial_stress.clear();
         });
 
         BaseType::mSchemeIsInitialized = true;
