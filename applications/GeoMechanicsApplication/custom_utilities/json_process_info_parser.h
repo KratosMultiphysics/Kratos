@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class JsonProcessInfoParser : public ProcessInfoParser
+class KRATOS_API(GEO_MECHANICS_APPLICATION) JsonProcessInfoParser : public ProcessInfoParser
 {
 public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const override;
