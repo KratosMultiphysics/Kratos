@@ -161,5 +161,4 @@ class TestConvergence(kratos_unittest.TestCase):
         self.assertTrue(convergence_criterium.IsConverged())
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

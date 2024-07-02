@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"

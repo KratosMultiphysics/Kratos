@@ -161,9 +161,12 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NZero, FluidDynamicsApplic
     Matrix LHS;
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
+    Vector expected_RHS = ZeroVector(6);
+    Matrix expected_LHS = ZeroMatrix(6,6);
+
     // Check results
-    KRATOS_EXPECT_VECTOR_NEAR(RHS, ZeroVector(6), 1.0e-12)
-    KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynamicsApplicationFastSuite)

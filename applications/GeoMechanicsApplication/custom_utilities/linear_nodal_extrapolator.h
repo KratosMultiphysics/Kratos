@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class LinearNodalExtrapolator : public NodalExtrapolator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearNodalExtrapolator : public NodalExtrapolator
 {
 public:
     using NodalExtrapolator::GeometryType;
