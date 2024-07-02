@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //                   Suneth Warnakulasuriya, https://github.com/sunethwarna
@@ -21,8 +21,9 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_io/hdf5_condition_flag_value_io.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_container_component_io.h"
+#include "custom_utilities/container_io_utils.h"
 #include "tests/test_utils.h"
 
 namespace Kratos
@@ -74,10 +75,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
         })");
     io_params["list_of_variables"].SetStringArray(variables_list);
 
-    HDF5::ConditionFlagValueIO data_io(io_params, p_test_file);
-    data_io.WriteConditionFlags(r_write_model_part.Conditions());
-    data_io.ReadConditionFlags(r_read_model_part.Conditions(),
-                               r_read_model_part.GetCommunicator());
+    HDF5::ContainerComponentIO<ModelPart::ConditionsContainerType, HDF5::Internals::FlagIO, Flags> data_io(io_params, p_test_file);
+    data_io.Write(r_write_model_part.Conditions(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Conditions(), HDF5::Internals::FlagIO{}, r_read_model_part.GetCommunicator());
 
     for (auto& r_write_condition : r_write_model_part.Conditions())
     {

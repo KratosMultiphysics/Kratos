@@ -21,8 +21,9 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_io/hdf5_element_flag_value_io.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_container_component_io.h"
+#include "custom_utilities/container_io_utils.h"
 #include "tests/test_utils.h"
 
 namespace Kratos
@@ -75,10 +76,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementFlags, KratosHDF5TestSuite)
     })");
     io_params["list_of_variables"].SetStringArray(variables_list);
 
-    HDF5::ElementFlagValueIO data_io(io_params, p_test_file);
-    data_io.WriteElementFlags(r_write_model_part.Elements());
-    data_io.ReadElementFlags(r_read_model_part.Elements(),
-                             r_read_model_part.GetCommunicator());
+    HDF5::ContainerComponentIO<ModelPart::ElementsContainerType, HDF5::Internals::FlagIO, Flags> data_io(io_params, p_test_file);
+    data_io.Write(r_write_model_part.Elements(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Elements(), HDF5::Internals::FlagIO{}, r_read_model_part.GetCommunicator());
 
     for (auto& r_write_element : r_write_model_part.Elements()) {
         HDF5::ElementType& r_read_element =
