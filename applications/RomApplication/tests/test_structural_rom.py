@@ -9,7 +9,7 @@ import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_ut
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
-
+from pathlib import Path
 
 def CustomizeSimulation(cls, global_model, parameters):
 
@@ -137,6 +137,10 @@ class TestStructuralRom(KratosUnittest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+        workfolders = ["structural_static_test_files/HROM/","structural_static_test_files/ROM/"]
+        for workfolder in workfolders:
+            with KratosUnittest.WorkFolderScope(workfolder, __file__):
+                kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database'))
 
 ##########################################################################################
 

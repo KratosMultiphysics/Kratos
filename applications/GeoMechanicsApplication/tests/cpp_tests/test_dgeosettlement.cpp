@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
 #include "custom_workflows/dgeosettlement.h"
+#include "geo_mechanics_fast_suite.h"
 #include "stub_input_utility.h"
 #include "stub_process_info_parser.h"
 #include "stub_time_loop_executor.h"

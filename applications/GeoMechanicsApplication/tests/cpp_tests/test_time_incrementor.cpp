@@ -11,9 +11,9 @@
 //                   Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "custom_workflows/adaptive_time_incrementor.h"
 #include "custom_workflows/time_step_end_state.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 

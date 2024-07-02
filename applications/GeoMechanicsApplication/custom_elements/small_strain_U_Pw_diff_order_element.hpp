@@ -69,43 +69,16 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
-
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ResetConstitutiveLaw() override;
-
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
-                                      const std::vector<double>& rValues,
-                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
-                                      const ProcessInfo&         rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
-                                      const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
     using Element::SetValuesOnIntegrationPoints;
@@ -129,10 +102,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     using Element::CalculateOnIntegrationPoints;
 
@@ -289,9 +258,9 @@ protected:
     [[nodiscard]] SizeType GetNumberOfDOF() const override;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     GeometryType::Pointer mpPressureGeometry;
+
+    [[nodiscard]] DofsVectorType GetDofs() const override;
 
     // Serialization
 
