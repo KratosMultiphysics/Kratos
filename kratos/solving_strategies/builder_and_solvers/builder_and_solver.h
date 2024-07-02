@@ -643,7 +643,10 @@ public:
     {
         return "builder_and_solver";
     }
-
+    
+    ///@}
+    ///@name Operations
+    ///@{
 
     ///@}
     ///@name Access
