@@ -14,12 +14,14 @@
 // Project includes
 #include "fluid_dynamics_fast_suite.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
 FluidDynamicsApplicationFastSuite::FluidDynamicsApplicationFastSuite()
-    : KratosCoreFastSuite() {
-  mpFluidDynamicsApp = std::make_shared<KratosFluidDynamicsApplication>();
-  this->ImportApplicationIntoKernel(mpFluidDynamicsApp);
+    : KratosCoreFastSuite() 
+{
+    mpFluidDynamicsApp = std::make_shared<KratosFluidDynamicsApplication>();
+    this->ImportApplicationIntoKernel(mpFluidDynamicsApp);
 }
 
 } // namespace Kratos::Testing
