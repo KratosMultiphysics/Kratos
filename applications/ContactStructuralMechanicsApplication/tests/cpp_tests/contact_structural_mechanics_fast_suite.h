@@ -12,18 +12,19 @@
 
 #pragma once
 
-#include "structural_mechanics_application.h"
 #include "testing/testing.h"
+#include "contact_structural_mechanics_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite {
-public:
-  KratosContactStructuralMechanicsFastSuite();
+class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite 
+{
+  public:
+    KratosContactStructuralMechanicsFastSuite();
 
-private:
-  KratosContactStructuralMechanicsApplication::Pointer mpContactStructuralMechanicsApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  private:
+    KratosContactStructuralMechanicsApplication::Pointer mpContactStructuralMechanicsApp;
 };
 
 } // namespace Kratos::Testing
