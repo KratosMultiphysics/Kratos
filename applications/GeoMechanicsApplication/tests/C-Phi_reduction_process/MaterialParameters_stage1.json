@@ -20,8 +20,6 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "UDSM_NAME"                :  "MohrCoulombUMAT.dll",
-              "IS_FORTRAN_UDSM"          :  true,
               "NUMBER_OF_UMAT_PARAMETERS":   6,
      	      "INDEX_OF_UMAT_PHI_PARAMETER": 4,
      	      "INDEX_OF_UMAT_C_PARAMETER":   3,
