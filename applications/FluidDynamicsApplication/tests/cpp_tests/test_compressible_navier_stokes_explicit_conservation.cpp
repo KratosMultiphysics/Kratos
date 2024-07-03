@@ -22,9 +22,11 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "testing/testing.h"
 #include "input_output/logger.h"
+
+// Application includes
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {

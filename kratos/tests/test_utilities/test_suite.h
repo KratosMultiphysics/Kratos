@@ -60,11 +60,7 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
 
-////////////////////////////////////////////////////////////////////////////////////////
-//// ALL THIS CLASSES NEED TO BE REMOVED OR MOVED TO CORE_TEST_SUTES.H ONCE MERGED  ////
-////////////////////////////////////////////////////////////////////////////////////////
-
-// Define some suits that are needed by 
+// Define some suits that are needed by core tests
 class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometryContainerFastSuite : public KratosCoreFastSuite {};
@@ -74,16 +70,18 @@ class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
 
+////////////////////////////////////////////////////////////////////////////////////////
+//// ALL THIS CLASSES NEED TO BE REMOVED OR MOVED TO CORE_TEST_SUTES.H ONCE MERGED  ////
+////////////////////////////////////////////////////////////////////////////////////////
+
 // This classes are temporal and should be changed. Please see: GeoMechanicsApplication, StructuralMechanicsApplication or TrilinosApplication
 // TODO: Remove once every test includes its own suit
-class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {};
 class CompressiblePotentialApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite {};
 class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosConvectionDiffusionFastSuite : public KratosCoreFastSuite {};
 class KratosCSharpWrapperApplicationFastSuite : public KratosCoreFastSuite {};
 class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};
-class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {};
 class FSIApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosIgaFastSuite : public KratosCoreFastSuite {};
 class KratosIgaFast5PSuite : public KratosCoreFastSuite {};

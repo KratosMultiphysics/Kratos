@@ -18,7 +18,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "includes/table.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -33,6 +32,7 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
