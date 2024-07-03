@@ -13,8 +13,8 @@
 #include "containers/model.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "geo_mechanics_application_variables.h"
-#include "geometries/quadrilateral_2d_4.h"
 #include "geo_mechanics_fast_suite.h"
+#include "geometries/quadrilateral_2d_4.h"
 
 namespace Kratos::Testing
 {
@@ -218,8 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
-[[maybe_unused]] void TestExtrapolatesMatrixCorrectlyForLinearFields()
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
 {
     //   This test uses the following two-element system.
     //   4------3------6
@@ -262,8 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     }
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
-[[maybe_unused]] void TestExtrapolatesVectorCorrectlyForLinearFields()
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
 {
     //   This test uses the following two-element system.
     //   4------3------6

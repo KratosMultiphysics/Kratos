@@ -11,17 +11,21 @@
 //                   Carlos A. Roig
 //
 
-// Project includes
-#include "fluid_dynamics_fast_suite.h"
+#pragma once
+
+#include "testing/testing.h"
+#include "fluid_dynamics_application.h"
 
 namespace Kratos::Testing 
 {
 
-FluidDynamicsApplicationFastSuite::FluidDynamicsApplicationFastSuite()
-    : KratosCoreFastSuite() 
+class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite 
 {
-    mpFluidDynamicsApp = std::make_shared<KratosFluidDynamicsApplication>();
-    this->ImportApplicationIntoKernel(mpFluidDynamicsApp);
-}
+  public:
+    FluidDynamicsApplicationFastSuite();
+
+  private:
+    KratosFluidDynamicsApplication::Pointer mpFluidDynamicsApp;
+};
 
 } // namespace Kratos::Testing
