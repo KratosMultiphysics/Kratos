@@ -16,14 +16,16 @@
 #include "testing/testing.h"
 #include "fluid_dynamics_biomedical_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {
-public:
-  FluidDynamicsBiomedicalApplicationFastSuite();
+class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite 
+{
+  public:
+    FluidDynamicsBiomedicalApplicationFastSuite();
 
-private:
-  KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
+  private:
+    KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
 };
 
 } // namespace Kratos::Testing

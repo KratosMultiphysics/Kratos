@@ -11,19 +11,17 @@
 //                   Carlos A. Roig
 //
 
-#pragma once
+// Project includes
+#include "tests/cpp_tests/fluid_dynamics_biomedical_fast_suite.h"
 
-#include "testing/testing.h"
-#include "fluid_dynamics_Biomedical_application.h"
+namespace Kratos::Testing 
+{
 
-namespace Kratos::Testing {
-
-class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {
-public:
-  FluidDynamicsBiomedicalApplicationFastSuite();
-
-private:
-  KratosFluidDynamicsBiomedicalApplication::Pointer mpFluidDynamicsBiomedicalApp;
-};
+FluidDynamicsBiomedicalApplicationFastSuite::FluidDynamicsBiomedicalApplicationFastSuite()
+    : KratosCoreFastSuite() 
+{
+    mpFluidDynamicsBiomedicalApp = std::make_shared<KratosFluidDynamicsBiomedicalApplication>();
+    this->ImportApplicationIntoKernel(mpFluidDynamicsBiomedicalApp);
+}
 
 } // namespace Kratos::Testing
