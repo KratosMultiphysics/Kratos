@@ -184,16 +184,6 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
-        Vector current_disp = ZeroVector(msLocalSize);
-        GetValuesVector(current_disp, 1);
-        BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
-            ZeroMatrix(msLocalSize, msLocalSize);
-        CreateTransformationMatrix(transformation_matrix);
-
-        current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
-        const double length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        const double e = (current_disp[3]-current_disp[0])/length_0;
-
         temp_strain[0] = CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
