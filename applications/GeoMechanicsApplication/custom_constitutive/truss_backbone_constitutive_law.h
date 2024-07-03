@@ -64,15 +64,6 @@ public:
 
     [[nodiscard]] SizeType GetStrainSize() const override;
 
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material
-     * @param rElementGeometry: The geometry of the element
-     * @param rCurrentProcessInfo: The current process info instance
-     */
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
