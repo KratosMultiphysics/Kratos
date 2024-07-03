@@ -11,6 +11,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
+
 // System includes
 
 // External includes
@@ -36,8 +37,7 @@ void AddGlobalPointersToPython(pybind11::module& m)
     py::class_< GlobalPointer<Condition>  >(m,"GlobalConditionPointer");
 
     py::class_< GlobalPointersVector<Node> >(m,"GlobalNodePointersVector");
-    py::class_< GlobalPointersVector<Element> >(m,"GlobalElementPointersVector");
-    py::class_< GlobalPointersVector<Condition> >(m,"GlobalConditionPointersVector");
+
 }
 
 } // namespace Kratos::Python.

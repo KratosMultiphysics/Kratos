@@ -41,8 +41,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::EquationIdVector(
 
     IndexType local_index = 0;
     const auto& r_geometry = GetGeometry();
-    const unsigned int v_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
-    const unsigned int p_pos = r_geometry[0].GetDofPosition(PRESSURE);
+    const unsigned int v_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int p_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     for (const auto& r_node : r_geometry) {
         rResult[local_index++] = r_node.GetDof(VELOCITY_X, v_pos).EquationId();
         rResult[local_index++] = r_node.GetDof(VELOCITY_Y, v_pos + 1).EquationId();
@@ -64,8 +64,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::GetDofList(
 
     IndexType local_index = 0;
     const auto &r_geometry = GetGeometry();
-    const unsigned int v_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
-    const unsigned int p_pos = r_geometry[0].GetDofPosition(PRESSURE);
+    const unsigned int v_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int p_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     for (const auto& r_node : r_geometry) {
         rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X, v_pos);
         rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y, v_pos + 1);
@@ -606,6 +606,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ProjectViscousStre
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
+template class NavierStokesWallCondition<3,4>;
+template class NavierStokesWallCondition<3,9>;
 template class NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;

@@ -80,18 +80,4 @@ KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTableSpecialization, KratosCoreFastSuite
     KRATOS_EXPECT_EQ(table.NameOfY(), "Bar");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TableDerivativeUsesExtrapolationWhenOutsideOfDomain, KratosCoreFastSuite)
-{
-    Table<double, double> table;
-    table.PushBack(0.0, 0.0);
-    table.PushBack(1.0, 2.0);
-    table.PushBack(3.0, 3.0);
-
-    constexpr auto abs_tolerance = 1.0e-08;
-    KRATOS_EXPECT_NEAR(table.GetDerivative(-2.0), 2.0, abs_tolerance); // before first point in table
-    KRATOS_EXPECT_NEAR(table.GetDerivative(0.0), 2.0, abs_tolerance); // at first point in table
-    KRATOS_EXPECT_NEAR(table.GetDerivative(3.0), 0.5, abs_tolerance); // at last point in table
-    KRATOS_EXPECT_NEAR(table.GetDerivative(5.0), 0.5, abs_tolerance); // beyond last point in table
-}
-
 }  // namespace Kratos::Testing.

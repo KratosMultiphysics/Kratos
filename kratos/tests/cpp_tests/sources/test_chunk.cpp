@@ -170,9 +170,8 @@ namespace Kratos {
 		}
 
 
-		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
-			GTEST_SKIP() << "This test is disabled" << std::endl;
 			std::size_t block_size_in_bytes = 5;
 		  	std::size_t chunk_size_in_bytes =  1024;
 

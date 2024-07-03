@@ -5,40 +5,32 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Josep Maria Carbonell
 //                   Vicente Mataix Ferrandiz
 //
 
-#pragma once
+#if !defined(KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "containers/model.h"
 #include "utilities/function_parser_utility.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
+
 ///@name Kratos Classes
 ///@{
-
-/**
- * @brief This struct is used in order to identify when using the historical and non historical variables
- */
-struct AssignScalarFieldToEntitiesProcessSettings
-{
-    // Defining clearer options
-    constexpr static bool SaveAsHistoricalVariable = true;
-    constexpr static bool SaveAsNonHistoricalVariable = false;
-};
 
 /**
  * @class AssignScalarFieldToEntitiesProcess
@@ -53,7 +45,7 @@ struct AssignScalarFieldToEntitiesProcessSettings
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
 */
-template<class TEntity, bool THistorical = AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>
+template<class TEntity>
 class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess
     : public Process
 {
@@ -61,17 +53,20 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The definition of the geometry
-    using GeometryType = Geometry<Node>;
+    /// The definitionof the node
+    typedef Node NodeType;
+
+    /// The definitionof the geometry
+    typedef Geometry<NodeType> GeometryType;
 
     /// The IndexType definition
-    using IndexType = std::size_t;
+    typedef std::size_t IndexType;
 
-    /// The SizeType definition
-    using SizeType = std::size_t;
+    /// The sizeType definition
+    typedef std::size_t SizeType;
 
     /// The container of the entities
-    using EntityContainerType = PointerVectorSet<TEntity, IndexedObject>;
+    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
     /// Pointer definition of AssignScalarFieldToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
@@ -79,16 +74,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief The default constructor
-     * @param rModel The model where the scalar field will be applied
-     * @param rParameters The configuration parameters
-     */
-    AssignScalarFieldToEntitiesProcess(
-        Model& rModel,
-        Parameters rParameters
-        );
 
     /**
      * @brief The default constructor
@@ -136,6 +121,16 @@ public:
     const Parameters GetDefaultParameters() const override;
 
     ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -157,28 +152,54 @@ public:
     }
 
     ///@}
-private:
-    ///@name Static Member Variables
+    ///@name Friends
+    ///@{
+    ///@}
+
+protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
+    ///@name Protected Operators
     ///@{
 
+    /// Copy constructor.
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                /// The modelpart where compute
+    ModelPart& mrModelPart;                     /// The modelpart where compute
+
     Kratos::unique_ptr<GenericFunctionUtility> mpFunction; /// The python function used, depends on X, Y, Z, and t (it could also depend on X0, Y0, Z0)
-    std::string mVariableName;                             /// The name of the variable to assign
-    std::size_t mMeshId = 0;                               /// The id of the mesh (0 by default)
+
+    std::string mVariableName;                  /// The name of the vaiable to assign
+
+    std::size_t mMeshId = 0;                    /// The id of the mesh (0 by deafault)
 
     ///@}
     ///@name Private Operators
-    ///@{
-
-    /// Assignment operator.
-    AssignScalarFieldToEntitiesProcess& operator=(AssignScalarFieldToEntitiesProcess const& rOther);
-
-    ///@}
-    ///@name Private Operations
     ///@{
 
     /**
@@ -188,10 +209,9 @@ private:
      * @param rValue The value to set
      */
     void CallFunction(
-        const typename TEntity::Pointer pEntity,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
-        Vector& rValue,
-        GenericFunctionUtility& rFunction
+        Vector& rValue
         );
 
     /**
@@ -199,13 +219,11 @@ private:
      * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
-     * @param rFunction The function to call
      */
     void CallFunctionComponents(
-        const typename TEntity::Pointer pEntity,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
-        double& rValue,
-        GenericFunctionUtility& rFunction
+        double& rValue
         );
 
     /**
@@ -213,13 +231,11 @@ private:
      * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
-     * @param rFunction The function to call
      */
     void CallFunctionLocalSystem(
-        const typename TEntity::Pointer pEntity,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
-        Vector& rValue,
-        GenericFunctionUtility& rFunction
+        Vector& rValue
         );
 
     /**
@@ -227,13 +243,11 @@ private:
      * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
-     * @param rFunction The function to call
      */
     void CallFunctionLocalSystemComponents(
-        const typename TEntity::Pointer pEntity,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
-        double& rValue,
-        GenericFunctionUtility& rFunction
+        double& rValue
         );
 
     /**
@@ -244,7 +258,7 @@ private:
      * @param Value The dependency value
      */
     void AssignTimeDependentValue(
-        const typename TEntity::Pointer pEntity,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         Vector& rValue,
         const double Value
@@ -255,20 +269,94 @@ private:
      * @param rVar The variable to set
      * @param Time The current time
      */
+    template< class TVarType >
     void InternalAssignValueVector(
-        const Variable<Vector>& rVar,
+        TVarType& rVar,
         const double Time
-        );
+        )
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const SizeType number_of_entities = r_entities_array.size();
+
+        Vector Value;
+
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
+
+            if(mpFunction->DependsOnSpace()) {
+                if(mpFunction->UseLocalSystem()) {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionLocalSystem(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
+                    }
+                } else {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunction(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
+                    }
+                }
+            } else { // only varies in time
+                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
+                // WARNING: do not parallelize with openmp. python GIL prevents it
+                for(IndexType i = 0; i<number_of_entities; ++i) {
+                    auto it_entity = it_begin + i;
+                    this->AssignTimeDependentValue(*(it_entity.base()), Time, Value,  TimeValue);
+                    it_entity->SetValue(rVar, Value);
+                }
+            }
+        }
+    }
 
     /**
      * @brief This is the methods that set the values globally (tries all the possible options) for components
      * @param rVar The variable to set
      * @param Time The current time
      */
+    template< class TVarType >
     void InternalAssignValueScalar(
-        const Variable<double>& rVar,
+        TVarType& rVar,
         const double Time
-        );
+        )
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const SizeType number_of_entities = r_entities_array.size();
+
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
+
+            if(mpFunction->DependsOnSpace()) {
+                double Value;
+
+                if(mpFunction->UseLocalSystem()) {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionLocalSystemComponents(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
+                    }
+                } else {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionComponents(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
+                    }
+                }
+            } else { // only varies in time
+                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
+                // WARNING: do not parallelize with openmp. python GIL prevents it
+                for(IndexType i = 0; i<number_of_entities; ++i) {
+                    auto it_entity = it_begin + i;
+                    it_entity->SetValue(rVar, TimeValue);
+                }
+
+            }
+        }
+    }
 
     /**
      * @brief This method returns the current entity container
@@ -277,25 +365,49 @@ private:
     EntityContainerType& GetEntitiesContainer();
 
     ///@}
+    ///@name Private Operations
+    ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    /// Assignment operator.
+    AssignScalarFieldToEntitiesProcess& operator=(AssignScalarFieldToEntitiesProcess const& rOther);
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    ///@}
+
 }; // Class AssignScalarFieldToEntitiesProcess
 
+
 ///@}
+
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
 
+
 /// input stream function
-template<class TEntity, bool THistorical>
+template<class TEntity>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignScalarFieldToEntitiesProcess<TEntity, THistorical>& rThis);
+                                  AssignScalarFieldToEntitiesProcess<TEntity>& rThis);
 
 /// output stream function
-template<class TEntity, bool THistorical>
+template<class TEntity>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignScalarFieldToEntitiesProcess<TEntity, THistorical>& rThis)
+                                  const AssignScalarFieldToEntitiesProcess<TEntity>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -305,4 +417,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+
 }  // namespace Kratos.
+
+#endif // KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED  defined

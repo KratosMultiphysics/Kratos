@@ -22,11 +22,9 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "testing/testing.h"
 #include "input_output/logger.h"
-
-// Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -250,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTra
 
     // Check obtained RHS values
     const std::vector<double> reference(12, 0.0);
-    KRATOS_EXPECT_VECTOR_NEAR(rhs, reference, 1e-4);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 /**
@@ -284,7 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
 
     // Check obtained RHS values
     const std::vector<double> reference(12, 0.0);
-    KRATOS_EXPECT_VECTOR_NEAR(rhs, reference, 1e-4);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 
@@ -354,7 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRot
     // hence conservation is not fulfilled at the nodes but must be at the element level.
     const auto rhs_totals = SumNodalContributions(r_model_part);
     const std::vector<double> reference(4, 0.0);
-    KRATOS_EXPECT_VECTOR_NEAR(rhs_totals, reference, 1e-4);
+    KRATOS_CHECK_VECTOR_NEAR(rhs_totals, reference, 1e-4);
 }
 
 

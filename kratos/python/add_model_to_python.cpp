@@ -39,11 +39,8 @@ void  AddModelToPython(pybind11::module& m)
         .def("GetModelPart", &Model_GetModelPart, py::return_value_policy::reference_internal)
         .def("HasModelPart", &Model::HasModelPart)
         .def("GetModelPartNames", &Model::GetModelPartNames)
-        .def("GetDataValueContainer", [&](Model& rSelf) -> DataValueContainer& { return rSelf.GetDataValueContainer(); }, py::return_value_policy::reference_internal)
         .def("__getitem__", &Model_GetModelPart, py::return_value_policy::reference_internal)
-        .def("__str__", PrintObject<Model>)
-        ;
-
+        .def("__str__", PrintObject<Model>);
 }
 
 }  // namespace Kratos::Python.

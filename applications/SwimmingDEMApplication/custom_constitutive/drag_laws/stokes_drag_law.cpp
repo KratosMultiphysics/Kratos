@@ -26,7 +26,10 @@ namespace Kratos {
                                      array_1d<double, 3>& drag_force,
                                      const ProcessInfo& r_current_process_info)
     {
+        Geometry<Node >& r_geometry = p_particle->GetGeometry();
         double drag_coeff = 6.0 * Globals::Pi * fluid_kinematic_viscosity * fluid_density * particle_radius;
+        double& drag_magnitude = r_geometry[0].FastGetSolutionStepValue(DRAG_COEFFICIENT);
+        drag_magnitude = drag_coeff;
         noalias(drag_force) = drag_coeff * minus_slip_velocity;
     }
 } // namespace Kratos

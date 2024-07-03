@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/gid_io.h"
 #include "includes/model_part.h"
@@ -26,7 +27,6 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_processes/shock_capturing_physics_based_process.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -150,9 +150,9 @@ namespace ShockCapturingPhysicsBasedTesting{
 
         // Check values
         const double tolerance = 1.0e-8;
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000107408, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000902773, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 6.45302e-05, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000107408, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000902773, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 6.45302e-05, tolerance);
 
         // GidIO<> gid_io_abgrall(
         //     "/home/rzorrilla/Desktop/abgrall_function_smooth_field",
@@ -199,12 +199,12 @@ namespace ShockCapturingPhysicsBasedTesting{
 
         // Check values
         const double tolerance = 1.0e-8;
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(4223).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000188616, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(4364).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000303507, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(7131).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000283975, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(5309).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000541887, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(4810).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 3.08545e-05, tolerance);
-        KRATOS_EXPECT_NEAR(r_model_part.GetNode(6000).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 0.000177703, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4223).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000188616, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4364).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000303507, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(7131).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000283975, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5309).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000541887, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4810).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 3.08545e-05, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(6000).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 0.000177703, tolerance);
 
         // GidIO<> gid_io_abgrall(
         //     "/home/rzorrilla/Desktop/abgrall_function_shock_detection",

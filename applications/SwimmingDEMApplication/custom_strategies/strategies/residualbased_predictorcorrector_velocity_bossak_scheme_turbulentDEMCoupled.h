@@ -262,6 +262,89 @@ public:
 
     }
 
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+
+        if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
+
+        const ProcessInfo ProcessInfo = rModelPart.GetProcessInfo();
+
+        //if orthogonal subscales are computed
+        if (ProcessInfo[OSS_SWITCH] == 1.0)
+        {
+            this->LumpedProjection(rModelPart);
+        }
+
+    }
+
+    void LumpedProjection(ModelPart& rModelPart)
+    {
+            KRATOS_INFO("Bossak Scheme") << "Computing OSS projections" << std::endl;
+            const auto& r_current_process_info = rModelPart.GetProcessInfo();
+            const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+            auto nbegin = rModelPart.NodesBegin();
+            #pragma omp parallel for firstprivate(nbegin,nnodes)
+            for(int i=0; i<nnodes; ++i)
+            {
+                auto ind = nbegin + i;
+                noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
+
+                ind->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+
+                ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+
+
+            }//end of loop over nodes
+
+            //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
+            array_1d<double, 3 > output = ZeroVector(3);
+
+            const int nel = static_cast<int>(rModelPart.Elements().size());
+            auto elbegin = rModelPart.ElementsBegin();
+            #pragma omp parallel for firstprivate(elbegin,nel,output)
+            for(int i=0; i<nel; ++i)
+            {
+                auto elem = elbegin + i;
+                elem->Calculate(ADVPROJ, output, r_current_process_info);
+            }
+
+            rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+            rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+
+            // Correction for periodic conditions
+            this->PeriodicConditionProjectionCorrection(rModelPart);
+
+            #pragma omp parallel for firstprivate(nbegin,nnodes)
+            for(int i=0; i<nnodes; ++i)
+            {
+                auto ind = nbegin + i;
+                if (ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+                {
+                    ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+                    //KRATOS_WATCH("*********ATTENTION: NODAL AREA IS ZERRROOOO************");
+                }
+                const double Area = ind->FastGetSolutionStepValue(NODAL_AREA);
+                ind->FastGetSolutionStepValue(ADVPROJ) /= Area;
+                ind->FastGetSolutionStepValue(DIVPROJ) /= Area;
+            }
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
+    {
+
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+    }
 
     //*************************************************************************************
     //*************************************************************************************

@@ -265,7 +265,7 @@ public:
     */
     void AddNode(typename NodeType::Pointer pNewNode)
     {
-        mpNodes->insert(mpNodes->end(), pNewNode);
+        mpNodes->insert(mpNodes->begin(), pNewNode);
     }
 
     /** Returns the Node::Pointer  corresponding to it's identifier */
@@ -487,7 +487,7 @@ public:
     */
     void AddElement(typename ElementType::Pointer pNewElement)
     {
-        mpElements->insert(mpElements->end(), pNewElement);
+        mpElements->insert(mpElements->begin(), pNewElement);
     }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
@@ -610,7 +610,7 @@ public:
     */
     void AddCondition(typename ConditionType::Pointer pNewCondition)
     {
-        mpConditions->insert(mpConditions->end(), pNewCondition);
+        mpConditions->insert(mpConditions->begin(), pNewCondition);
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -728,19 +728,11 @@ public:
         return mpMasterSlaveConstraints->size();
     }
 
-    /// @brief Insert a @ref MasterSlaveConstraint.
-    /// @returns @a false if a constraint with identical ID already exists
-    ///          in the mesh and the insertion did not take place, @a true
-    ///          otherwise.
-    bool AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
+    /** Inserts a master-slave constraint  in the mesh.
+    */
+    void AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
     {
-        const auto it_existing_constraint = mpMasterSlaveConstraints->find(pNewMasterSlaveConstraint->Id());
-        if (it_existing_constraint == mpMasterSlaveConstraints->end()) {
-            const auto it_insert_position = mpMasterSlaveConstraints->end();
-            mpMasterSlaveConstraints->insert(it_insert_position, pNewMasterSlaveConstraint);
-            return true;
-        }
-        return false;
+        mpMasterSlaveConstraints->insert(mpMasterSlaveConstraints->begin(), pNewMasterSlaveConstraint);
     }
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */

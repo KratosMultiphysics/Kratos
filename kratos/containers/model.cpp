@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
@@ -234,16 +234,6 @@ std::vector<std::string> Model::GetModelPartNames() const
     return model_parts_names;
 }
 
-DataValueContainer& Model::GetDataValueContainer()
-{
-    return mDataValueContainer;
-}
-
-const DataValueContainer& Model::GetDataValueContainer() const
-{
-    return mDataValueContainer;
-}
-
 std::string Model::Info() const
 {
     std::stringstream ss;
@@ -289,14 +279,15 @@ void Model::save(Serializer& rSerializer) const
     std::vector<std::string> aux_names;
     aux_names.reserve(mRootModelPartMap.size());
 
-    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it) {
+    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
+    {
         aux_names.push_back(it->first);
     }
 
     rSerializer.save("ModelPartNames", aux_names);
-    rSerializer.save("ModelData", mDataValueContainer);
 
-    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it) {
+    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
+    {
         rSerializer.save(it->first, (it->second).get());
     }
 }
@@ -307,7 +298,6 @@ void Model::load(Serializer& rSerializer)
     std::vector<std::string> aux_names;
 
     rSerializer.load("ModelPartNames", aux_names);
-    rSerializer.load("ModelData", mDataValueContainer);
 
     for(IndexType i=0; i<aux_names.size(); ++i) {
         //NOTE: CreateModelPart CANNOT be used here

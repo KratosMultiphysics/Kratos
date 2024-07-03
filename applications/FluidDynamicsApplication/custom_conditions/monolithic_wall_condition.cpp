@@ -64,6 +64,52 @@ void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResul
 }
 
 /**
+ * @see MonolithicWallCondition::EquationIdVector
+ */
+template <>
+void MonolithicWallCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 4;
+    const SizeType LocalSize = 16;
+    unsigned int LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+    }
+}
+
+/**
+ * @see MonolithicWallCondition::EquationIdVector
+ */
+template <>
+void MonolithicWallCondition<3,9>::EquationIdVector(EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 9;
+    const SizeType LocalSize = 36;
+    unsigned int LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+    }
+}
+
+/**
  * @see MonolithicWallCondition::GetDofList
  */
 template <>
@@ -110,7 +156,53 @@ void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
+/**
+ * @see MonolithicWallCondition::GetDofList
+ */
+template <>
+void MonolithicWallCondition<3,4>::GetDofList(DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 4;
+    const SizeType LocalSize = 16;
 
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+    }
+}
+
+/**
+ * @see MonolithicWallCondition::GetDofList
+ */
+template <>
+void MonolithicWallCondition<3,9>::GetDofList(DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 9;
+    const SizeType LocalSize = 36;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+    }
+}
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -262,6 +354,30 @@ void MonolithicWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     An *= 0.5;
 }
 
+template <>
+void MonolithicWallCondition<3,4>::CalculateNormal(array_1d<double,3>& An )
+{
+    Geometry<Node >& pGeometry = this->GetGeometry();
+
+    array_1d<double,3> v1,v2;
+    v1[0] = pGeometry[1].X() - pGeometry[0].X();
+    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+    v2[0] = pGeometry[2].X() - pGeometry[0].X();
+    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+    MathUtils<double>::CrossProduct(An,v1,v2);
+    An *= 0.5;
+}
+
+template <>
+void MonolithicWallCondition<3,9>::CalculateNormal(array_1d<double,3>& An )
+{
+    KRATOS_ERROR << "The calculation of the normal is not implemented in triquadratic quadrilaterals. Please, select another geometry" << std::endl;
+}
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
@@ -341,5 +457,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
 
 template class MonolithicWallCondition<2,2>;
 template class MonolithicWallCondition<3,3>;
+template class MonolithicWallCondition<3,4>;
+template class MonolithicWallCondition<3,9>;
 
 } // namespace Kratos

@@ -53,9 +53,6 @@ class TestModel(KratosUnittest.TestCase):
     def _create_and_save_model(self,file_name, serializer_flag):
         current_model = KratosMultiphysics.Model()
 
-        # Setting the data value container
-        current_model.GetDataValueContainer().SetValue(KratosMultiphysics.TEMPERATURE, 293.0)
-
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part.CreateSubModelPart("Inlets")
@@ -67,13 +64,6 @@ class TestModel(KratosUnittest.TestCase):
 
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
-    def test_model_datavaluecontainer(self):
-        current_model = KratosMultiphysics.Model()
-        current_model.GetDataValueContainer().SetValue(KratosMultiphysics.DENSITY, 1.2)
-        self.assertTrue(current_model.GetDataValueContainer().Has(KratosMultiphysics.DENSITY))
-        self.assertFalse(current_model.GetDataValueContainer().Has(KratosMultiphysics.TEMPERATURE))
-        self.assertEqual(current_model.GetDataValueContainer().GetValue(KratosMultiphysics.DENSITY), 1.2)
-
     def test_model_serialization(self):
 
         file_name = "model_serialization"
@@ -83,9 +73,6 @@ class TestModel(KratosUnittest.TestCase):
 
         loaded_model = KratosMultiphysics.Model()
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
-
-        self.assertTrue(loaded_model.GetDataValueContainer().Has(KratosMultiphysics.TEMPERATURE))
-        self.assertAlmostEqual(loaded_model.GetDataValueContainer().GetValue(KratosMultiphysics.TEMPERATURE), 293.0)
 
         self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
@@ -132,6 +119,7 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(1 in loaded_model["Main"].Nodes)
         self.assertTrue(1 in loaded_model["Other"].Nodes)
 
+
+
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

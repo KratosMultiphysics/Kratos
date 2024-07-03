@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultDefaultConstruction, KratosCoreFast
     auto result = SpatialSearchResult<GeometricalObject>();
     KRATOS_EXPECT_EQ(result.IsObjectFound(), false);
     KRATOS_EXPECT_EQ(result.IsDistanceCalculated(), false);
-    KRATOS_EXPECT_TRUE(result.Get() == nullptr);
+    KRATOS_EXPECT_EQ(result.Get(), nullptr);
     KRATOS_EXPECT_EQ(result.GetDistance(), 0.0);
 }
 

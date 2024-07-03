@@ -76,10 +76,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Copy constructor.
     /** This constructor is empty
     */
-    Kernel(Kernel const& rOther);
+    Kernel(Kernel const& rOther) {}
 
     /// Destructor.
-    virtual ~Kernel();
+    virtual ~Kernel() {}
 
     ///@}
     ///@name Operations
@@ -96,12 +96,6 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     @param NewApplication The application to be added and synchronized
     */
     void ImportApplication(KratosApplication::Pointer pNewApplication);
-
-    /// This method is used to print the information about the kernel
-    /** This method is used to print the information about the kernel which contains the main information
-        about the compiler usnsed, the release type and also number of threads and processes used to run in this execution.
-    */
-    void PrintInfo();
 
     /// To be deprecated because variables have their own hash key.
     /** The keys of Variables are not sequential anymore, so this method will be deprecated

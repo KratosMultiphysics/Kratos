@@ -33,6 +33,7 @@ def GetDefaultInputParameters():
 
         "do_print_results_option" : true,
         "output_interval" : 0.5,
+        "use_fluid_static" : 0,
 
         "processes" : {
         },

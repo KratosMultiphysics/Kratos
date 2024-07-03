@@ -17,15 +17,13 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
-
-// Application includes
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -118,15 +116,15 @@ namespace Kratos {
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_EXPECT_NEAR(RHS(0), 0.0475309, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(1), 0.0975309, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(2), -0.0546391, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(3), 0.0469136, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(4), 0.0969136, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(5), 0.0176796, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(6), 28.2303, 1e-1);
-			KRATOS_EXPECT_NEAR(RHS(7), 46.459, 1e-1);
-			KRATOS_EXPECT_NEAR(RHS(8), 0.0202928, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -0.0546391, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), 0.0469136, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4), 0.0969136, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5), 0.0176796, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6), 28.2303, 1e-1);
+			KRATOS_CHECK_NEAR(RHS(7), 46.459, 1e-1);
+			KRATOS_CHECK_NEAR(RHS(8), 0.0202928, 1e-7);
 		}
 
 	    // /** Checks the EmbeddedNavierStokes3D4N element.
@@ -214,22 +212,22 @@ namespace Kratos {
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_EXPECT_NEAR(RHS(0), 0.023845, 1e-6);
-			KRATOS_EXPECT_NEAR(RHS(1), 0.048607, 1e-6);
-			KRATOS_EXPECT_NEAR(RHS(2), 0.0733691, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(3), -0.00618707, 1e-8);
-			KRATOS_EXPECT_NEAR(RHS(4), 0.179191, 1e-3);
-			KRATOS_EXPECT_NEAR(RHS(5), 3.49007, 1e-2);
-			KRATOS_EXPECT_NEAR(RHS(6), 4.62064, 1e-2);
-			KRATOS_EXPECT_NEAR(RHS(7), -0.00350587, 1e-8);
-			KRATOS_EXPECT_NEAR(RHS(8), 0.0229279, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(9), 0.0476899, 1e-7);
-			KRATOS_EXPECT_NEAR(RHS(10), 0.072452, 1e-6);
-			KRATOS_EXPECT_NEAR(RHS(11), 0.00207051, 1e-8);
-			KRATOS_EXPECT_NEAR(RHS(12), 2.66708, 1e-3);
-			KRATOS_EXPECT_NEAR(RHS(13), 4.29637, 1e-2);
-			KRATOS_EXPECT_NEAR(RHS(14), 5.67408, 1e-2);
-			KRATOS_EXPECT_NEAR(RHS(15), 0.000903677, 1e-9);
+			KRATOS_CHECK_NEAR(RHS(0), 0.023845, 1e-6);
+			KRATOS_CHECK_NEAR(RHS(1), 0.048607, 1e-6);
+			KRATOS_CHECK_NEAR(RHS(2), 0.0733691, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), -0.00618707, 1e-8);
+			KRATOS_CHECK_NEAR(RHS(4), 0.179191, 1e-3);
+			KRATOS_CHECK_NEAR(RHS(5), 3.49007, 1e-2);
+			KRATOS_CHECK_NEAR(RHS(6), 4.62064, 1e-2);
+			KRATOS_CHECK_NEAR(RHS(7), -0.00350587, 1e-8);
+			KRATOS_CHECK_NEAR(RHS(8), 0.0229279, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(9), 0.0476899, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(10), 0.072452, 1e-6);
+			KRATOS_CHECK_NEAR(RHS(11), 0.00207051, 1e-8);
+			KRATOS_CHECK_NEAR(RHS(12), 2.66708, 1e-3);
+			KRATOS_CHECK_NEAR(RHS(13), 4.29637, 1e-2);
+			KRATOS_CHECK_NEAR(RHS(14), 5.67408, 1e-2);
+			KRATOS_CHECK_NEAR(RHS(15), 0.000903677, 1e-9);
 
 		}
 	} // namespace Testing

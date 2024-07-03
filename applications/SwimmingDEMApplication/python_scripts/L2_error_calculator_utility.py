@@ -31,7 +31,7 @@ class L2ErrorCalculatorUtility:
 
         self.model = KratosMultiphysics.Model()
 
-        self.element_name = "Element3D4N"
+        self.element_name = "Element2D4N"
 
         self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
 

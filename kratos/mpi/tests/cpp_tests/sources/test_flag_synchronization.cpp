@@ -18,11 +18,11 @@
 // Project includes
 #include "includes/kratos_flags.h"
 #include "mpi/includes/mpi_data_communicator.h"
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -39,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite
     KRATOS_EXPECT_EQ(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFast
     KRATOS_EXPECT_EQ(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
     KRATOS_EXPECT_EQ(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastS
 
 // Synchronization using ALL_DEFINED as mask //////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, Kr
 
 // Flags And //////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
 
 // Flags Or ///////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
 
 // Flags AndAll ///////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -321,7 +321,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
 
 // Flags OrAll ////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();

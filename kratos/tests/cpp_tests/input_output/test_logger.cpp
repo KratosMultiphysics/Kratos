@@ -36,9 +36,7 @@ namespace Kratos {
             message << "Test message with number " << 12 << 'e' << "00";
 
             KRATOS_EXPECT_STREQ(message.GetLabel().c_str(), "label");
-            if (Testing::GetDefaultDataCommunicator().Rank() == 0) { 
-                KRATOS_EXPECT_STREQ(message.GetMessage().c_str(), "Test message with number 12e00");
-            }
+            if (Testing::GetDefaultDataCommunicator().Rank() == 0) KRATOS_EXPECT_STREQ(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_EXPECT_EQ(message.GetSeverity(), LoggerMessage::Severity::INFO);
             KRATOS_EXPECT_EQ(message.GetCategory(), LoggerMessage::Category::STATUS);
             KRATOS_EXPECT_EQ(message.GetLocation().GetFileName(), "Unknown");
@@ -54,7 +52,7 @@ namespace Kratos {
             KRATOS_EXPECT_EQ(message.GetCategory(), LoggerMessage::Category::CRITICAL);
             KRATOS_EXPECT_NE(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
             KRATOS_EXPECT_EQ(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
-            KRATOS_EXPECT_EQ(message.GetLocation().GetLineNumber(), 50);
+            KRATOS_EXPECT_EQ(message.GetLocation().GetLineNumber(), 48);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerOutput, KratosCoreFastSuite)
@@ -94,8 +92,7 @@ namespace Kratos {
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
-            // I am not sure what this does.
-            // KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
+            KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
             std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestCheckPoint: The value in check point is 3.14" : "";

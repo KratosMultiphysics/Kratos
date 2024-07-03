@@ -393,7 +393,7 @@ protected:
         if constexpr (!TSparseSpace::IsDistributedSpace()) {
             return mActiveDofs[dof_id] == 1;
         } else {
-            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size() && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank)) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
+            KRATOS_DEBUG_ERROR_IF((dof_id - mInitialDoFId) >= mActiveDofs.size()) << "DofId is greater than the size of the active Dofs vector. DofId: " << dof_id << "\tInitialDoFId: " << mInitialDoFId << "\tActiveDofs size: " << mActiveDofs.size() << std::endl;
             return (mActiveDofs[dof_id - mInitialDoFId] == 1 && (rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank));
         }
     }

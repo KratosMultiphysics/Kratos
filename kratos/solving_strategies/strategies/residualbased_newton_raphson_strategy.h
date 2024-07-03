@@ -600,7 +600,6 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
-        mpConvergenceCriteria->SetEchoLevel(Level);
     }
 
     //*********************************************************************************
@@ -880,41 +879,6 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-    * @brief Gets the current solution vector
-    * @param rDofSet The set of degrees of freedom (DOFs)
-    * @param this_solution The vector that will be filled with the current solution values
-    * @details This method retrieves the current solution values for the provided DOF set.
-    * The provided solution vector will be resized to match the size of the DOF set if necessary,
-    * and will be filled with the solution values corresponding to each DOF. Each value is accessed
-    * using the equation ID associated with each DOF.
-    */
-    void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
-        this_solution.resize(rDofSet.size());
-        block_for_each(rDofSet, [&](const auto& r_dof) {
-            this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
-        });
-    }
-
-    /**
-     * @brief Gets the matrix of non-converged solutions and the DOF set
-     * @return A tuple containing the matrix of non-converged solutions and the DOF set
-     * @details This method returns a tuple where the first element is a matrix of non-converged solutions and the second element is the corresponding DOF set.
-     */
-    std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
-        return std::make_tuple(mNonconvergedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet());
-    }
-
-    /**
-    * @brief Sets the state for storing non-converged solutions.
-    * @param state The state to set for storing non-converged solutions (true to enable, false to disable).
-    * @details This method enables or disables the storage of non-converged solutions at each iteration
-    * by setting the appropriate flag. When the flag is set to true, non-converged solutions will be stored.
-    */
-    void SetUpNonconvergedSolutionsFlag(bool state) {
-        mStoreNonconvergedSolutionsFlag = state;
-    }
-
-    /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     bool SolveSolutionStep() override
@@ -924,13 +888,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
-        std::vector<Vector> NonconvergedSolutions;
-
-        if (mStoreNonconvergedSolutionsFlag) {
-            Vector initial;
-            GetCurrentSolution(r_dof_set,initial);
-            NonconvergedSolutions.push_back(initial);
-        }
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -970,12 +927,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-        if (mStoreNonconvergedSolutionsFlag) {
-            Vector first;
-            GetCurrentSolution(r_dof_set,first);
-            NonconvergedSolutions.push_back(first);
-        }
 
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -1044,12 +995,6 @@ class ResidualBasedNewtonRaphsonStrategy
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-            if (mStoreNonconvergedSolutionsFlag == true){
-                Vector ith;
-                GetCurrentSolution(r_dof_set,ith);
-                NonconvergedSolutions.push_back(ith);
-            }
-
             residual_is_updated = false;
 
             if (is_converged == true)
@@ -1092,15 +1037,6 @@ class ResidualBasedNewtonRaphsonStrategy
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
-
-        if (mStoreNonconvergedSolutionsFlag) {
-            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), NonconvergedSolutions.size() );
-            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
-                block_for_each(r_dof_set, [&](const auto& r_dof) {
-                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = NonconvergedSolutions[i](r_dof.EquationId());
-                });
-            }
-        }
 
         return is_converged;
     }
@@ -1327,20 +1263,6 @@ class ResidualBasedNewtonRaphsonStrategy
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     bool mKeepSystemConstantDuringIterations; // Flag to allow keeping system matrix constant during iterations
-
-    /**
-     * @brief This matrix stores the non-converged solutions
-     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
-     */
-    Matrix mNonconvergedSolutionsMatrix;
-
-    /**
-     * @brief Flag indicating whether to store non-converged solutions
-     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
-     */
-    bool mStoreNonconvergedSolutionsFlag = false;
-
-
 
     ///@}
     ///@name Private Operators

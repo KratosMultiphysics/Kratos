@@ -66,11 +66,6 @@ const std::vector<std::size_t> UnarySliceExpression::GetItemShape() const
     }
 }
 
-std::size_t UnarySliceExpression::GetMaxDepth() const
-{
-    return mpSourceExpression->GetMaxDepth() + 1;
-}
-
 std::string UnarySliceExpression::Info() const
 {
     std::stringstream msg;

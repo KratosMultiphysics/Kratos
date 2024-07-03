@@ -59,12 +59,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetHistoricalVariablesToZero, KratosCoreF
 
     // Values are properly allocated
     const double tolerance = 1.0e-12;
-    const auto ZeroArray = array_1d<double, 3>(3, 0.0);
     for (const auto& r_node : r_test_model_part.Nodes()) {
         KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), 0.0, tolerance);
         KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroArray, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroArray, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), tolerance);
         KRATOS_EXPECT_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
@@ -83,12 +82,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroNodes, Kra
 
     // Values are properly allocated
     const double tolerance = 1.0e-12;
-    const auto ZeroArray = array_1d<double, 3>(3, 0.0);
     for (const auto& r_node : r_test_model_part.Nodes()) {
         KRATOS_EXPECT_NEAR(r_node.GetValue(PRESSURE), 0.0, tolerance);
         KRATOS_EXPECT_NEAR(r_node.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(VELOCITY), ZeroArray, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(DISPLACEMENT), ZeroArray, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
         KRATOS_EXPECT_MATRIX_NEAR(r_node.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
@@ -112,12 +110,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroElements, 
 
     // Values are properly allocated
     const double tolerance = 1.0e-12;
-    const auto ZeroArray = array_1d<double, 3>(3, 0.0);
     for (const auto& r_element : r_test_model_part.Elements()) {
         KRATOS_EXPECT_NEAR(r_element.GetValue(PRESSURE), 0.0, tolerance);
         KRATOS_EXPECT_NEAR(r_element.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(VELOCITY), ZeroArray, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(DISPLACEMENT), ZeroArray, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_element.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
         KRATOS_EXPECT_MATRIX_NEAR(r_element.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }
@@ -141,12 +138,11 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsSetNonHistoricalVariablesToZeroConditions
 
     // Values are properly allocated
     const double tolerance = 1.0e-12;
-    const auto ZeroArray = array_1d<double, 3>(3, 0.0);
     for (const auto& r_condition : r_test_model_part.Conditions()) {
         KRATOS_EXPECT_NEAR(r_condition.GetValue(PRESSURE), 0.0, tolerance);
         KRATOS_EXPECT_NEAR(r_condition.GetValue(TEMPERATURE), 0.0, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroArray, tolerance);
-        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroArray, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroVector(3), tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
         KRATOS_EXPECT_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
     }
 }

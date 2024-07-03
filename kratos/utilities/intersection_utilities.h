@@ -740,9 +740,9 @@ public:
 
         // Compute the intersection point and check if it is inside the bounds of the segment
         const double r = a / b;
-        if (r < 0.0 - epsilon){
+        if (r < 0.0){
             return 0;    // Intersection point lies outside the bounds of the segment
-        } else if (r > 1.0 + epsilon) {
+        } else if (r > 1.0) {
             return 0;    // Intersection point lies outside the bounds of the segment
         }
         rIntersectionPoint = rLinePoint1 + r * line_dir;

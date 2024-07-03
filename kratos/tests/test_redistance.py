@@ -33,11 +33,8 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(1.0)
 
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name" : "Main",
-            "max_iterations" : 2
-        }""")
-        KratosMultiphysics.VariationalDistanceCalculationProcess3D(current_model, linear_solver, settings).Execute()
+        max_iterations = 2
+        KratosMultiphysics.VariationalDistanceCalculationProcess3D(model_part, linear_solver, max_iterations).Execute()
 
         max_distance = -1.0
         min_distance = +1.0
@@ -74,12 +71,12 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(1.0)
 
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name" : "Main",
-            "max_iterations" : 2,
-            "calculate_exact_distances_to_plane" : true
-        }""")
-        KratosMultiphysics.VariationalDistanceCalculationProcess2D(current_model, linear_solver, settings).Execute()
+        max_iterations = 2
+        KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+            model_part,
+            linear_solver,
+            max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
 
         for node in model_part.Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )
@@ -109,12 +106,12 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(1.0)
 
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name" : "Main",
-            "max_iterations" : 2,
-            "calculate_exact_distances_to_plane" : true
-        }""")
-        KratosMultiphysics.VariationalDistanceCalculationProcess3D(current_model, linear_solver, settings).Execute()
+        max_iterations = 2
+        KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+            model_part,
+            linear_solver,
+            max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
 
         for node in model_part.Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )

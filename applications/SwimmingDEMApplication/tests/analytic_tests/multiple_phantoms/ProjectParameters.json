@@ -7,7 +7,7 @@
         "automatic_time_step" : false,
         "time_step"           : 1e-4
     },
-    "output_interval"         : 1e-3,
+    "output_interval"         : 1e-4,
     "non_newtonian_fluid"     : {
         "non_newtonian_option"       : false,
         "power_law_k"                : 0.001002,
@@ -26,7 +26,7 @@
     "do_print_results_option" : true,
     "coupling"                : {
         "coupling_level_type"    : 3,
-        "coupling_weighing_type" : 2,
+        "coupling_weighing_type" : 3,
         "interaction_start_time" : 0.0,
         "forward_coupling"       : {
             "time_averaging_type" : 0
@@ -44,7 +44,7 @@
     },
     "custom_dem"              : {
         "do_solve_dem"                     : true,
-        "do_search_dem_neighbours"             : false,
+        "do_search_dem_neighbours"         : false,
         "type_of_dem_inlet"                : "VelocityImposed",
         "translational_integration_scheme" : "Symplectic_Euler"
     },

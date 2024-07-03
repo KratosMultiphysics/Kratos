@@ -6,7 +6,7 @@ import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
 import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
+import KratosMultiphysics as Kratos
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
@@ -44,6 +44,7 @@ class SwimmingDEMSolver(PythonSolver):
         },
         "do_print_results_option" : true,
         "output_interval" : 0.5,
+        "use_fluid_static" : 0,
 
         "processes" : {},
 
@@ -208,7 +209,6 @@ class SwimmingDEMSolver(PythonSolver):
         fluid_volume = 10
         # the variable n_particles_in_depth is only relevant in 2D problems
         self.project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
-
         projection_module = CFD_DEM_coupling.ProjectionModule(
         self.fluid_solver.main_model_part,
         self.dem_solver.spheres_model_part,
@@ -344,6 +344,11 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
 
+        self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
+
+        if self.derivative_recovery_counter.Tick():
+            self.recovery.RecoverFluidFractionGradient()
+
         if self.CannotIgnoreFluidNow():
             self.SolveFluidSolutionStep()
         else:
@@ -361,7 +366,7 @@ class SwimmingDEMSolver(PythonSolver):
         return True
 
     def SolveFluidSolutionStep(self):
-        self.fluid_solver.SolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep(self._GetProjectionModule())
         if self.move_mesh_flag:
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
         else: # stationarity can only checked for fixed meshes for the moment

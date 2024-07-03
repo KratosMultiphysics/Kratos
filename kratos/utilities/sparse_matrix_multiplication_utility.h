@@ -4,27 +4,29 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#pragma once
+#if !defined(KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED )
+#define  KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED
 
 // System includes
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <numeric>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // External includes
 #include "amgcl/value_type/interface.hpp"
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -66,26 +68,26 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( SparseMatrixMultiplicationUtility );
 
     /// The size type
-    using SizeType = std::size_t;
+    typedef std::size_t SizeType;
 
     /// The index type
-    using IndexType = std::size_t;
+    typedef std::size_t IndexType;
 
     /// The signed index type
-    using SignedIndexType = std::ptrdiff_t;
+    typedef std::ptrdiff_t  SignedIndexType;
 
     /// A vector of indexes
-    using IndexVectorType = DenseVector<IndexType>;
+    typedef DenseVector<IndexType> IndexVectorType;
 
     /// A vector of indexes (signed)
-    using SignedIndexVectorType = DenseVector<SignedIndexType>;
+    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    SparseMatrixMultiplicationUtility() = delete;
+    SparseMatrixMultiplicationUtility(){};
 
     /// Desctructor
     virtual ~SparseMatrixMultiplicationUtility()= default;
@@ -97,6 +99,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// Metafunction that returns value type of a matrix or a vector type.
+    template <class T, class Enable = void>
+    struct value_type {
+        typedef typename T::value_type type;
+    };
 
     /**
      * @brief Matrix-matrix product C = A·B
@@ -112,10 +120,13 @@ public:
         CMatrix& rC
         )
     {
-        // We check the number of threads
-        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
+    #ifdef _OPENMP
+        const int nt = omp_get_max_threads();
+    #else
+        const int nt = 1;
+    #endif
 
-        if (number_of_threads > 16) {
+        if (nt > 16) {
             MatrixMultiplicationRMerge(rA, rB, rC);
         } else {
             MatrixMultiplicationSaad(rA, rB, rC);
@@ -136,9 +147,9 @@ public:
         CMatrix& C
         )
     {
-        using ValueType = typename CMatrix::value_type;
+        typedef typename value_type<CMatrix>::type ValueType;
 
-        // Auxiliary sizes
+        // Auxiliar sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = B.size2();
 
@@ -157,36 +168,34 @@ public:
 
         c_ptr[0] = 0;
 
-        // Definition of marker TLS
-        struct TLS {
-            TLS(const SizeType NumberOfColumns)
-                : marker(NumberOfColumns)
-            {
-                std::fill(marker.begin(), marker.end(), -1);
-            }
-            SignedIndexVectorType marker;
-        };
+        #pragma omp parallel
+        {
+            SignedIndexVectorType marker(ncols);
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+                marker[i_fill] = -1;
 
-        IndexPartition<SignedIndexType>(static_cast<SignedIndexType>(nrows)).for_each(TLS(ncols), [&](SignedIndexType ia, TLS& rTLS) {
-            const IndexType row_begin_a = index1_a[ia];
-            const IndexType row_end_a   = index1_a[ia+1];
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
 
-            IndexType C_cols = 0;
-            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                const IndexType ca = index2_a[ja];
-                const IndexType row_begin_b = index1_b[ca];
-                const IndexType row_end_b   = index1_b[ca+1];
+                IndexType C_cols = 0;
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    const IndexType row_begin_b = index1_b[ca];
+                    const IndexType row_end_b   = index1_b[ca+1];
 
-                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const IndexType cb = index2_b[jb];
-                    if (rTLS.marker[cb] != ia) {
-                        rTLS.marker[cb]  = ia;
-                        ++C_cols;
+                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                        const IndexType cb = index2_b[jb];
+                        if (marker[cb] != ia) {
+                            marker[cb]  = ia;
+                            ++C_cols;
+                        }
                     }
                 }
+                c_ptr[ia + 1] = C_cols;
             }
-            c_ptr[ia + 1] = C_cols;
-        });
+        }
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
@@ -194,35 +203,43 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        IndexPartition<IndexType>(nrows).for_each(TLS(ncols), [&](IndexType ia, TLS& rTLS) {
-            const IndexType row_begin_a = index1_a[ia];
-            const IndexType row_end_a   = index1_a[ia+1];
+        #pragma omp parallel
+        {
+            SignedIndexVectorType marker(ncols);
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+                marker[i_fill] = -1;
 
-            const IndexType row_beg = c_ptr[ia];
-            IndexType row_end = row_beg;
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
 
-            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                const IndexType ca = index2_a[ja];
-                const ValueType va = values_a[ja];
+                const IndexType row_beg = c_ptr[ia];
+                IndexType row_end = row_beg;
 
-                const IndexType row_begin_b = index1_b[ca];
-                const IndexType row_end_b   = index1_b[ca+1];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    const ValueType va = values_a[ja];
 
-                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const IndexType cb = index2_b[jb];
-                    const ValueType vb = values_b[jb];
+                    const IndexType row_begin_b = index1_b[ca];
+                    const IndexType row_end_b   = index1_b[ca+1];
 
-                    if (rTLS.marker[cb] < static_cast<SignedIndexType>(row_beg)) {
-                        rTLS.marker[cb] = row_end;
-                        aux_index2_c[row_end] = cb;
-                        aux_val_c[row_end] = va * vb;
-                        ++row_end;
-                    } else {
-                        aux_val_c[rTLS.marker[cb]] += va * vb;
+                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                        const IndexType cb = index2_b[jb];
+                        const ValueType vb = values_b[jb];
+
+                        if (marker[cb] < static_cast<SignedIndexType>(row_beg)) {
+                            marker[cb] = row_end;
+                            aux_index2_c[row_end] = cb;
+                            aux_val_c[row_end] = va * vb;
+                            ++row_end;
+                        } else {
+                            aux_val_c[marker[cb]] += va * vb;
+                        }
                     }
                 }
             }
-        });
+        }
 
         // We reorder the rows
         SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
@@ -250,9 +267,9 @@ public:
         CMatrix &C
         )
     {
-        using ValueType = typename CMatrix::value_type;
+        typedef typename value_type<CMatrix>::type ValueType;
 
-        // Auxiliary sizes
+        // Auxiliar sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = B.size2();
 
@@ -268,51 +285,65 @@ public:
         const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
-        // Definition of TLS
-        struct TLS_max {
+        IndexType max_row_width = 0;
+
+        #pragma omp parallel
+        {
             IndexType my_max = 0;
-        };
 
-        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS_max(), [&](IndexType i, TLS_max& rTLS) {
-            const IndexType row_beg = index1_a[i];
-            const IndexType row_end = index1_a[i+1];
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(nrows); ++i) {
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
 
-            IndexType row_width = 0;
-            for(IndexType j = row_beg; j < row_end; ++j) {
-                const IndexType a_col = index2_a[j];
-                row_width += index1_b[a_col + 1] - index1_b[a_col];
+                IndexType row_width = 0;
+                for(IndexType j = row_beg; j < row_end; ++j) {
+                    const IndexType a_col = index2_a[j];
+                    row_width += index1_b[a_col + 1] - index1_b[a_col];
+                }
+                my_max = std::max(my_max, row_width);
             }
-            rTLS.my_max = std::max(rTLS.my_max, row_width);
-            return rTLS.my_max;
-        });
 
-        // We check the number of threads
-        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
+            #pragma omp critical
+            max_row_width = std::max(max_row_width, my_max);
+        }
 
-        std::vector<std::vector<IndexType>> tmp_col(number_of_threads);
-        std::vector<std::vector<ValueType>> tmp_val(number_of_threads);
+    #ifdef _OPENMP
+        const int nthreads = omp_get_max_threads();
+    #else
+        const int nthreads = 1;
+    #endif
 
-        for(unsigned int i = 0; i < number_of_threads; ++i) {
+        std::vector< std::vector<IndexType> > tmp_col(nthreads);
+        std::vector< std::vector<ValueType> > tmp_val(nthreads);
+
+        for(int i = 0; i < nthreads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
             tmp_val[i].resize(2 * max_row_width);
         }
 
-        // We create the c_ptr auxiliary variable
+        // We create the c_ptr auxiliar variable
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
-            const IndexType row_beg = index1_a[i];
-            const IndexType row_end = index1_a[i+1];
+        #pragma omp parallel
+        {
+        #ifdef _OPENMP
+            const int tid = omp_get_thread_num();
+        #else
+            const int tid = 0;
+        #endif
 
-            int tid = 0;
-            #ifdef _OPENMP
-                tid = omp_get_thread_num();
-            #endif
             IndexType* t_col = &tmp_col[tid][0];
 
-            c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
-        });
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(nrows); ++i) {
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
+
+                c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
+            }
+        }
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
@@ -320,21 +351,26 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
-            const IndexType row_beg = index1_a[i];
-            const IndexType row_end = index1_a[i+1];
-
-            int tid = 0;
-            #ifdef _OPENMP
-                tid = omp_get_thread_num();
-            #endif
+        #pragma omp parallel
+        {
+        #ifdef _OPENMP
+            const int tid = omp_get_thread_num();
+        #else
+            const int tid = 0;
+        #endif
 
             IndexType* t_col = tmp_col[tid].data();
-            ValueType* t_val = tmp_val[tid].data();
+            ValueType *t_val = tmp_val[tid].data();
 
-            ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
-                    index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
-        });
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(nrows); ++i) {
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
+
+                ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
+                        index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
+            }
+        }
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
@@ -357,9 +393,9 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename AMatrix::value_type;
+        typedef typename value_type<AMatrix>::type ValueType;
 
-        // Auxiliary sizes
+        // Auxiliar sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = A.size2();
 
@@ -382,36 +418,40 @@ public:
         IndexType* new_a_ptr = new IndexType[nrows + 1];
         new_a_ptr[0] = 0;
 
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
-            SignedIndexVectorType marker(ncols);
-            for (int i = 0; i < static_cast<int>(ncols); ++i) {
-                marker[i] = -1;
-            }
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-            // Initialize
-            IndexType new_A_cols = 0;
+                SignedIndexVectorType marker(ncols);
+                for (int i = 0; i < static_cast<int>(ncols); ++i)
+                    marker[i] = -1;
 
-            // Iterate over A
-            const IndexType row_begin_a = index1_a[ia];
-            const IndexType row_end_a   = index1_a[ia+1];
-            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                const IndexType ca = index2_a[ja];
-                marker[ca] = 1;
-                ++new_A_cols;
-            }
+                // Initialize
+                IndexType new_A_cols = 0;
 
-            // Iterate over B
-            const IndexType row_begin_b = index1_b[ia];
-            const IndexType row_end_b   = index1_b[ia+1];
-            for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                const IndexType cb = index2_b[jb];
-                if (marker[cb] < 0) {
-                    marker[cb] = 1;
+                // Iterate over A
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    marker[ca] = 1;
                     ++new_A_cols;
                 }
+
+                // Iterate over B
+                const IndexType row_begin_b = index1_b[ia];
+                const IndexType row_end_b   = index1_b[ia+1];
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
+                    if (marker[cb] < 0) {
+                        marker[cb] = 1;
+                        ++new_A_cols;
+                    }
+                }
+                new_a_ptr[ia + 1] = new_A_cols;
             }
-            new_a_ptr[ia + 1] = new_A_cols;
-        });
+        }
 
         // We initialize the sparse matrix
         std::partial_sum(new_a_ptr, new_a_ptr + nrows + 1, new_a_ptr);
@@ -419,44 +459,50 @@ public:
         IndexType* aux_index2_new_a = new IndexType[nonzero_values];
         ValueType* aux_val_new_a = new ValueType[nonzero_values];
 
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
-            SignedIndexVectorType marker(ncols);
-            std::fill(marker.begin(), marker.end(), -1);
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-            // Initialize
-            const IndexType row_beg = new_a_ptr[ia];
-            IndexType row_end = row_beg;
+                SignedIndexVectorType marker(ncols);
+                for (int i = 0; i < static_cast<int>(ncols); ++i)
+                    marker[i] = -1;
 
-            // Iterate over A
-            const IndexType row_begin_a = index1_a[ia];
-            const IndexType row_end_a   = index1_a[ia+1];
-            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                const IndexType ca = index2_a[ja];
-                const ValueType va = values_a[ja];
+                // Initialize
+                const IndexType row_beg = new_a_ptr[ia];
+                IndexType row_end = row_beg;
 
-                marker[ca] = row_end;
-                aux_index2_new_a[row_end] = ca;
-                aux_val_new_a[row_end] = va;
-                ++row_end;
-            }
+                // Iterate over A
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    const ValueType va = values_a[ja];
 
-            // Iterate over B
-            const IndexType row_begin_b = index1_b[ia];
-            const IndexType row_end_b   = index1_b[ia+1];
-            for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                const IndexType cb = index2_b[jb];
-                const ValueType vb = values_b[jb];
-
-                if (marker[cb] < 0) {
-                    marker[cb] = row_end;
-                    aux_index2_new_a[row_end] = cb;
-                    aux_val_new_a[row_end] = Factor * vb;
+                    marker[ca] = row_end;
+                    aux_index2_new_a[row_end] = ca;
+                    aux_val_new_a[row_end] = va;
                     ++row_end;
-                } else {
-                    aux_val_new_a[marker[cb]] += Factor * vb;
+                }
+
+                // Iterate over B
+                const IndexType row_begin_b = index1_b[ia];
+                const IndexType row_end_b   = index1_b[ia+1];
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
+                    const ValueType vb = values_b[jb];
+
+                    if (marker[cb] < 0) {
+                        marker[cb] = row_end;
+                        aux_index2_new_a[row_end] = cb;
+                        aux_val_new_a[row_end] = Factor * vb;
+                        ++row_end;
+                    } else {
+                        aux_val_new_a[marker[cb]] += Factor * vb;
+                    }
                 }
             }
-        });
+        }
 
         // We reorder the rows
         SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
@@ -482,7 +528,7 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename AMatrix::value_type;
+        typedef typename value_type<AMatrix>::type ValueType;
 
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
@@ -498,31 +544,32 @@ public:
         }
 
         IndexVectorType new_a_ptr(size_system_2 + 1);
-        IndexPartition<IndexType>(size_system_2 + 1).for_each([&](IndexType i) {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i)
             new_a_ptr[i] = 0;
-        });
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
-        // Auxiliary index 1
+        // Auxiliar index 1
         const IndexType aux_1_index = 1;
 
-        IndexPartition<IndexType>(size_system_1).for_each([&](IndexType i) {
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
             IndexType row_begin = index1[i];
             IndexType row_end   = index1[i+1];
 
             for (IndexType j=row_begin; j<row_end; j++) {
                 AtomicAdd(new_a_ptr[index2[j] + 1], aux_1_index);
             }
-        });
+        }
 
         // We initialize the blocks sparse matrix
         std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
 
         IndexVectorType aux_indexes(size_system_2);
-        IndexPartition<IndexType>(size_system_2).for_each([&](IndexType i) {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2); ++i)
             aux_indexes[i] = 0;
-        });
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
@@ -551,7 +598,7 @@ public:
     }
 
     /**
-     * @brief This method is designed to create the final solution sparse matrix from the auxiliary values
+     * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
      * @param C The matrix solution
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
@@ -573,7 +620,7 @@ public:
         if ((NRows == 0) || (NCols == 0))
             return void();
 
-        // Auxiliary values
+        // Auxiliar values
         const TSize nonzero_values = CPtr[NRows];
 
         C = CMatrix(NRows, NCols, nonzero_values);
@@ -582,15 +629,15 @@ public:
         double* values_c = C.value_data().begin();
 
         index1_c[0] = 0;
-        for (TSize i = 0; i < NRows; i++) {
+        for (TSize i = 0; i < NRows; i++)
             index1_c[i+1] = index1_c[i] + (CPtr[i+1] - CPtr[i]);
-        }
 
-        IndexPartition<IndexType>(nonzero_values).for_each([&](IndexType i) {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(nonzero_values); i++) {
             KRATOS_DEBUG_ERROR_IF(AuxIndex2C[i] > static_cast<IndexType>(NCols)) << "Index " << AuxIndex2C[i] <<" is greater than the number of columns " << NCols << std::endl;
             index2_c[i] = AuxIndex2C[i];
             values_c[i] = AuxValC[i];
-        });
+        }
 
         C.set_filled(NRows+1, nonzero_values);
     }
@@ -599,7 +646,7 @@ public:
      * @brief This method is designed to reorder the rows by columns
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
-     * @param CPtr The indexes that indicate the number of nonzero values in each column
+     * @param CPtr The indexes taht indicate the number of nonzero values in each column
      * @param Columns The columns of the problem
      * @param Values The values (to be ordered with the rows)
      */
@@ -612,28 +659,31 @@ public:
         ValueType* Values
         )
     {
-        IndexPartition<TSize>(NRows).for_each([&](TSize i_row) {
-            const TIndexType row_begin = CPtr[i_row];
-            const TIndexType row_end = CPtr[i_row + 1];
-            TSize length = row_end - row_begin;
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i_row=0; i_row<static_cast<int>(NRows); i_row++) {
+                const TIndexType row_beg = CPtr[i_row];
+                const TIndexType row_end = CPtr[i_row + 1];
 
-            // Use vectors to facilitate sorting
-            std::vector<std::pair<Col, ValueType>> row_data(length);
-            for (TSize j = 0; j < length; ++j) {
-                row_data[j] = {Columns[j + row_begin], Values[j + row_begin]};
+                for(IndexType j = 1; j < row_end - row_beg; ++j) {
+                    const IndexType c = Columns[j + row_beg];
+                    const double v = Values[j + row_beg];
+
+                    SignedIndexType i = j - 1;
+
+                    while(i >= 0 && Columns[i + row_beg] > c) {
+                        KRATOS_DEBUG_ERROR_IF(Columns[i + row_beg] > static_cast<Col>(NCols)) << " Index for column: " << i + row_beg << ". Index " << Columns[i + row_beg] <<" is greater than the number of columns " << NCols << std::endl;
+                        Columns[i + 1 + row_beg] = Columns[i + row_beg];
+                        Values[i + 1 + row_beg] = Values[i + row_beg];
+                        i--;
+                    }
+
+                    Columns[i + 1 + row_beg] = c;
+                    Values[i + 1 + row_beg] = v;
+                }
             }
-
-            // Sort using a more efficient parallel algorithm
-            std::sort(row_data.begin(), row_data.end(), [](const auto& a, const auto& b) {
-                return a.first < b.first;
-            });
-
-            // Write back sorted data
-            for (TSize j = 0; j < length; ++j) {
-                Columns[j + row_begin] = row_data[j].first;
-                Values[j + row_begin] = row_data[j].second;
-            }
-        });
+        }
     }
 
     /**
@@ -711,9 +761,9 @@ public:
 
         // We will compute nonzero terms
         IndexType* matrix_ptr = new IndexType[nrows + 1];
-        IndexPartition<IndexType>(nrows + 1).for_each([&](IndexType i) {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(nrows + 1); ++i)
             matrix_ptr[i] = 0;
-        });
 
     #ifdef KRATOS_DEBUG
         IndexType check_non_zero = 0;
@@ -725,47 +775,51 @@ public:
         }
     #endif
 
-        IndexPartition<IndexType>(number_of_rows_blocks).for_each([&](IndexType i) {
-            for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
-                IndexType matrix_cols_aux = 0;
-                for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-                #ifdef KRATOS_DEBUG
-                    IndexType partial_matrix_cols_aux = 0;
-                #endif
-                    // Skip if empty matrix
-                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
-                    if (r_matrix.nnz() > 0) {
-                        if (TransposeBlocks(i, j)) {
-                            // We compute the transposed matrix
-                            const SizeType size_system_1 = r_matrix.size1();
-                            const SizeType size_system_2 = r_matrix.size2();
-                            CompressedMatrix transpose(size_system_2, size_system_1);
-                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
-                            ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
-                        #ifdef KRATOS_DEBUG
-                            ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
-                        #endif
-                        } else {
-                            ComputeNonZeroBlocks(r_matrix, k, matrix_cols_aux);
-                        #ifdef KRATOS_DEBUG
-                            ComputeNonZeroBlocks(r_matrix, k, partial_matrix_cols_aux);
-                        #endif
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                    IndexType matrix_cols_aux = 0;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                    #ifdef KRATOS_DEBUG
+                        IndexType partial_matrix_cols_aux = 0;
+                    #endif
+                        // Skip if empty matrix
+                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                        if (r_matrix.nnz() > 0) {
+                            if (TransposeBlocks(i, j)) {
+                                // We compute the transposed matrix
+                                const SizeType size_system_1 = r_matrix.size1();
+                                const SizeType size_system_2 = r_matrix.size2();
+                                CompressedMatrix transpose(size_system_2, size_system_1);
+                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                                ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
+                            #ifdef KRATOS_DEBUG
+                                ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
+                            #endif
+                            } else {
+                                ComputeNonZeroBlocks(r_matrix, k, matrix_cols_aux);
+                            #ifdef KRATOS_DEBUG
+                                ComputeNonZeroBlocks(r_matrix, k, partial_matrix_cols_aux);
+                            #endif
+                            }
                         }
+                    #ifdef KRATOS_DEBUG
+                        check_non_zero_blocks(i, j) += partial_matrix_cols_aux;
+                    #endif
                     }
+                    IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
+                    AtomicAdd(r_matrix_ptr_value, matrix_cols_aux);
+
                 #ifdef KRATOS_DEBUG
-                    check_non_zero_blocks(i, j) += partial_matrix_cols_aux;
+                    AtomicAdd(check_non_zero, matrix_cols_aux);
                 #endif
                 }
-                IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
-                AtomicAdd(r_matrix_ptr_value, matrix_cols_aux);
-
-            #ifdef KRATOS_DEBUG
-                AtomicAdd(check_non_zero, matrix_cols_aux);
-            #endif
             }
-        });
+        }
 
-        // Auxiliary values
+        // Auxiliar values
         std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
         const SizeType nonzero_values = matrix_ptr[nrows];
 
@@ -791,34 +845,37 @@ public:
         IndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
-        for (IndexType i = 0; i < nrows; ++i) {
+        for (IndexType i = 0; i < nrows; ++i)
             Matrix_index1[i+1] = Matrix_index1[i] + (matrix_ptr[i + 1] - matrix_ptr[i]);
-        }
 
-        IndexPartition<IndexType>(number_of_rows_blocks).for_each([&](IndexType i) {
-            for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
-                const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
-                IndexType row_end = row_beg;
-                for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-                    const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                    const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
+                    IndexType row_end = row_beg;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                        const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
 
-                    // Skip if empty matrix
-                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
-                    if (r_matrix.nnz() > 0) {
-                        if (TransposeBlocks(i, j)) {
-                            // We compute the transposed matrix
-                            const SizeType size_system_1 = r_matrix.size1();
-                            const SizeType size_system_2 = r_matrix.size2();
-                            CompressedMatrix transpose(size_system_2, size_system_1);
-                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
-                            ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
-                        } else {
-                            ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        // Skip if empty matrix
+                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                        if (r_matrix.nnz() > 0) {
+                            if (TransposeBlocks(i, j)) {
+                                // We compute the transposed matrix
+                                const SizeType size_system_1 = r_matrix.size1();
+                                const SizeType size_system_2 = r_matrix.size2();
+                                CompressedMatrix transpose(size_system_2, size_system_1);
+                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                                ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                            } else {
+                                ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                            }
                         }
                     }
                 }
             }
-        });
+        }
 
         // Close the matrix
         rMatrix.set_filled(nrows+1, nonzero_values);
@@ -829,7 +886,7 @@ public:
 
     /**
      * @brief This is a method to check the block containing nonzero values
-     * @param rMatrix The auxiliary block
+     * @param rMatrix The auxiliar block
      * @param CurrentRow The current row computed
      * @param rNonZeroColsAux2 The nonzero rows array
      */
@@ -851,13 +908,13 @@ public:
     }
 
     /**
-     * @brief This is a method to compute the contribution of the auxiliary blocks
-     * @param AuxK The auxiliary block
+     * @brief This is a method to compute the contribution of the auxiliar blocks
+     * @param AuxK The auxiliar block
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      * @param CurrentRow The current row computed
      * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
+     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
      */
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
@@ -886,6 +943,14 @@ public:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -905,6 +970,39 @@ public:
     void PrintData (std::ostream& rOStream) const
     {
     }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
     ///@}
 private:
@@ -1231,17 +1329,50 @@ private:
     }
 
     ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
 }; // Class SparseMatrixMultiplicationUtility
 
 ///@}
+
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
 
+// /****************************** INPUT STREAM FUNCTION ******************************/
+// /***********************************************************************************/
+//
+// template<class TPointType, class TPointerType>
+// inline std::istream& operator >> (std::istream& rIStream,
+//                                   SparseMatrixMultiplicationUtility& rThis);
+//
+// /***************************** OUTPUT STREAM FUNCTION ******************************/
+// /***********************************************************************************/
+//
+// template<class TPointType, class TPointerType>
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                                   const SparseMatrixMultiplicationUtility& rThis)
+// {
+//     return rOStream;
+// }
 
 ///@}
 
 }  // namespace Kratos.
+
+#endif // KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED  defined

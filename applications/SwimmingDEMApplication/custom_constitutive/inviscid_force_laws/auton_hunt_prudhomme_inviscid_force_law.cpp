@@ -55,7 +55,7 @@ namespace Kratos {
             noalias(minus_slip_acc) -= 0.1 * radius * radius * fluid_vel_laplacian_rate; // add Faxen term
         }
 
-        noalias(virtual_mass_plus_undisturbed_flow_force) = fluid_mass * (virtual_mass_coeff * minus_slip_acc + fluid_acc);
+        noalias(virtual_mass_plus_undisturbed_flow_force) = fluid_mass * (0.0*virtual_mass_coeff * minus_slip_acc + fluid_acc);
     }
 
 } // namespace Kratos

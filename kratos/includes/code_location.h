@@ -7,11 +7,12 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Author1 Pooyan Dadvand
 //
 //
 
-#pragma once
+#if !defined(KRATOS_CODE_LOCATION_H_INCLUDED )
+#define  KRATOS_CODE_LOCATION_H_INCLUDED
 
 // System includes
 #include <string>
@@ -92,6 +93,8 @@ namespace Kratos
 
         static std::size_t GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position);
 
+        static bool IsWhiteSpace(char C);
+
         static void ReplaceAll(std::string& ThisString, const std::string& FromString, const std::string& ToString);
 
         ///@}
@@ -126,8 +129,12 @@ namespace Kratos
 #define KRATOS_CURRENT_FUNCTION "unknown function"
 #endif
 
+
 #define KRATOS_CODE_LOCATION Kratos::CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
+
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
+
+#endif // KRATOS_CODE_LOCATION_H_INCLUDED  defined

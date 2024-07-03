@@ -8,7 +8,8 @@
 
 #include "buoyancy_laws/buoyancy_law.h"
 #include "drag_laws/drag_law.h"
-#include "inviscid_force_laws/inviscid_force_law.h"
+#include "virtual_mass_force_laws/virtual_mass_force_law.h"
+#include "undisturbed_force_laws/undisturbed_force_law.h"
 #include "history_force_laws/history_force_law.h"
 #include "vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "rotation_induced_lift_laws/rotation_induced_lift_law.h"
@@ -30,7 +31,8 @@ public:
 
     void SetBuoyancyLaw(const BuoyancyLaw& r_law){mpBuoyancyLaw = r_law.Clone();}
     void SetDragLaw(const DragLaw& r_law){mpDragLaw = r_law.Clone();}
-    void SetInviscidForceLaw(const InviscidForceLaw& r_law){mpInviscidForceLaw = r_law.Clone();}
+    void SetVirtualMassForceLaw(const VirtualMassForceLaw& r_law){mpVirtualMassForceLaw = r_law.Clone();}
+    void SetUndisturbedForceLaw(const UndisturbedForceLaw& r_law){mpUndisturbedForceLaw = r_law.Clone();}
     void SetHistoryForceLaw(const HistoryForceLaw& r_law){mpHistoryForceLaw = r_law.Clone();}
     void SetVorticityInducedLiftLaw(const VorticityInducedLiftLaw& r_law){mpVorticityInducedLiftLaw = r_law.Clone();}
     void SetRotationInducedLiftLaw(const RotationInducedLiftLaw& r_law){mpRotationInducedLiftLaw = r_law.Clone();}
@@ -50,7 +52,8 @@ public:
 
     virtual BuoyancyLaw::Pointer CloneBuoyancyLaw() const;
     virtual DragLaw::Pointer CloneDragLaw() const;
-    virtual InviscidForceLaw::Pointer CloneInviscidForceLaw() const;
+    virtual VirtualMassForceLaw::Pointer CloneVirtualMassForceLaw() const;
+    virtual UndisturbedForceLaw::Pointer CloneUndisturbedForceLaw() const;
     virtual HistoryForceLaw::Pointer CloneHistoryForceLaw() const;
     virtual VorticityInducedLiftLaw::Pointer CloneVorticityInducedLiftLaw() const;
     virtual RotationInducedLiftLaw::Pointer CloneRotationInducedLiftLaw() const;
@@ -75,13 +78,19 @@ public:
                                   array_1d<double, 3>& drag_force,
                                   const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeInviscidForce(Geometry<Node >& r_geometry,
+    virtual void ComputeVirtualMassForce(Geometry<Node >& r_geometry,
                                       const double fluid_density,
                                       const double displaced_volume,
-                                      array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
+                                      array_1d<double, 3>& virtual_mass_force,
                                       const ProcessInfo& r_current_process_info);
 
-    virtual double GetInviscidAddedMass(Geometry<Node >& r_geometry,
+    virtual void ComputeUndisturbedForce(Geometry<Node >& r_geometry,
+                                      const double fluid_density,
+                                      const double displaced_volume,
+                                      array_1d<double, 3>& undisturbed_flow_force,
+                                      const ProcessInfo& r_current_process_info);
+
+    virtual double GetVirtualAddedMass(Geometry<Node >& r_geometry,
                                         double fluid_density,
                                         const ProcessInfo& r_current_process_info);
 
@@ -123,7 +132,8 @@ public:
 protected:
     BuoyancyLaw::Pointer mpBuoyancyLaw;
     DragLaw::Pointer mpDragLaw;
-    InviscidForceLaw::Pointer mpInviscidForceLaw;
+    VirtualMassForceLaw::Pointer mpVirtualMassForceLaw;
+    UndisturbedForceLaw::Pointer mpUndisturbedForceLaw;
     HistoryForceLaw::Pointer mpHistoryForceLaw;
     VorticityInducedLiftLaw::Pointer mpVorticityInducedLiftLaw;
     RotationInducedLiftLaw::Pointer mpRotationInducedLiftLaw;

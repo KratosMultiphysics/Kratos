@@ -17,11 +17,11 @@
 
 // Project includes
 #include "utilities/communication_coloring_utilities.h"
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFas
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 

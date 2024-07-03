@@ -4,15 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "testing/testing.h"
@@ -23,51 +25,59 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/gid_io.h"
 
-namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite)
-{
-    Model current_model;
+namespace Kratos {
+	namespace Testing {
 
-    Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
-    Node::Pointer p_point2(new Node(2, 10.00, 0.00, 0.00));
-    Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
-    Node::Pointer p_point4(new Node(4, 0.00, 10.00, 0.00));
-    Node::Pointer p_point5(new Node(5, 0.00, 0.00, 10.00));
-    Node::Pointer p_point6(new Node(6, 10.00, 0.00, 10.00));
-    Node::Pointer p_point7(new Node(7, 10.00, 10.00, 10.00));
-    Node::Pointer p_point8(new Node(8, 0.00, 10.00, 10.00));
 
-    Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+		KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite)
+		{
+			Model current_model;
+			
+			Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+			Node::Pointer p_point2(new Node(2, 10.00, 0.00, 0.00));
+			Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+			Node::Pointer p_point4(new Node(4, 0.00, 10.00, 0.00));
+			Node::Pointer p_point5(new Node(5, 0.00, 0.00, 10.00));
+			Node::Pointer p_point6(new Node(6, 10.00, 0.00, 10.00));
+			Node::Pointer p_point7(new Node(7, 10.00, 10.00, 10.00));
+			Node::Pointer p_point8(new Node(8, 0.00, 10.00, 10.00));
 
-    ModelPart& model_part = current_model.CreateModelPart("Test");
+			Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions":1,
-        "element_name": "Element3D4N"
-    }  )");
+			ModelPart& model_part = current_model.CreateModelPart("Test");
 
-    //std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
+			Parameters mesher_parameters(R"(
+            {
+                "number_of_divisions":1,
+                "element_name": "Element3D4N"
+            }  )");
 
-    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+			//std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
 
-    GidIO<> gid_io("/home/pooyan/kratos/tests/edge_swapping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    gid_io.InitializeMesh(0.00);
-    gid_io.WriteMesh(model_part.GetMesh());
-    gid_io.FinalizeMesh();
+			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 
-    ModelPart& r_skin_model_part = model_part.GetSubModelPart("Skin");
+			GidIO<> gid_io("/home/pooyan/kratos/tests/edge_swapping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			gid_io.InitializeMesh(0.00);
+			gid_io.WriteMesh(model_part.GetMesh());
+			gid_io.FinalizeMesh();
 
-    for (auto i_node = r_skin_model_part.NodesBegin(); i_node != r_skin_model_part.NodesEnd(); i_node++)
-        i_node->Set(BOUNDARY);
+			ModelPart& r_skin_model_part = model_part.GetSubModelPart("Skin");
 
-    FindNodalNeighboursProcess(model_part).Execute();
+			for (auto i_node = r_skin_model_part.NodesBegin(); i_node != r_skin_model_part.NodesEnd(); i_node++)
+				i_node->Set(BOUNDARY);
 
-    TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+			FindNodalNeighboursProcess(model_part).Execute();
 
-    // gid_io.InitializeMesh(1.00);
-    // gid_io.WriteMesh(model_part.GetMesh());
-    // gid_io.FinalizeMesh();
-}
-}  // namespace Kratos::Testing.
+			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+
+			// gid_io.InitializeMesh(1.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
+
+
+
+		}
+
+	}
+}  // namespace Kratos.

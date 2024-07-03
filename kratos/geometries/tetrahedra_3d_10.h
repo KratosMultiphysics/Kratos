@@ -145,7 +145,7 @@ public:
     /// type as its result.
     using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
-    /// A third order tensor to hold shape functions' local second derivatives.
+     /// A third order tensor to hold shape functions' local second derivatives.
     /// ShapeFunctionsSecondDerivatives function return this type as its result.
     using ShapeFunctionsSecondDerivativesType = typename BaseType::ShapeFunctionsSecondDerivativesType;
 

@@ -26,7 +26,8 @@
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 #include "custom_constitutive/buoyancy_laws/buoyancy_law.h"
 #include "custom_constitutive/drag_laws/drag_law.h"
-#include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
+#include "custom_constitutive/virtual_mass_force_laws/virtual_mass_force_law.h"
+#include "custom_constitutive/undisturbed_force_laws/undisturbed_force_law.h"
 #include "custom_constitutive/history_force_laws/history_force_law.h"
 #include "custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
@@ -36,11 +37,15 @@ namespace Kratos
 {
 
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXACT_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_BODY_FORCE)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HYDRODYNAMIC_REACTION_PROJECTED)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(UNDISTURBED_FLOW_FORCE)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HYDRODYNAMIC_FORCE_OLD)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(IMPULSE)
+KRATOS_CREATE_VARIABLE(double, WEIGHTED_SUM)
 KRATOS_CREATE_VARIABLE(double, RELAXATION_ALPHA)
 KRATOS_CREATE_VARIABLE(double, EXACT_PRESSURE)
 KRATOS_CREATE_VARIABLE(double, SCALAR_ERROR)
@@ -56,14 +61,16 @@ KRATOS_CREATE_VARIABLE(bool, MANUFACTURED)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_BUOYANCY_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
-KRATOS_CREATE_VARIABLE(std::string, SDEM_INVISCID_FORCE_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_VIRTUAL_MASS_FORCE_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_UNDISTURBED_FORCE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HISTORY_FORCE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_VORTICITY_LIFT_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_ROTATION_LIFT_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_STEADY_VISCOUS_TORQUE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(BuoyancyLaw::Pointer, SDEM_BUOYANCY_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
-KRATOS_CREATE_VARIABLE(InviscidForceLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(VirtualMassForceLaw::Pointer, SDEM_VIRTUAL_MASS_FORCE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(UndisturbedForceLaw::Pointer, SDEM_UNDISTURBED_FORCE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(HistoryForceLaw::Pointer, SDEM_HISTORY_FORCE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(VorticityInducedLiftLaw::Pointer, SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(RotationInducedLiftLaw::Pointer, SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
@@ -80,6 +87,12 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mComputeMaterialDerivativeSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mComputeMaterialDerivativeSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeFluidFractionGradient2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeFluidFractionGradient2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeFluidFractionGradient2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
+  mComputeFluidFractionGradient3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeFluidFractionGradient3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
+  mComputeFluidFractionGradient3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
   mComputeComponentGradientSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mComputeComponentGradientSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mComputeGradientPouliot20122DEdge(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
@@ -105,11 +118,13 @@ void KratosSwimmingDEMApplication::Register()
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
 
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXACT_VELOCITY)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_BODY_FORCE)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(HYDRODYNAMIC_REACTION_PROJECTED)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(UNDISTURBED_FLOW_FORCE)
+  KRATOS_REGISTER_VARIABLE(WEIGHTED_SUM)
   KRATOS_REGISTER_VARIABLE(RELAXATION_ALPHA)
   KRATOS_REGISTER_VARIABLE(EXACT_PRESSURE)
   KRATOS_REGISTER_VARIABLE(SCALAR_ERROR)
@@ -124,14 +139,16 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_BUOYANCY_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_NAME)
-  KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_VIRTUAL_MASS_FORCE_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_UNDISTURBED_FORCE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_VORTICITY_LIFT_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_ROTATION_LIFT_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_STEADY_VISCOUS_TORQUE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_BUOYANCY_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_POINTER)
-  KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_VIRTUAL_MASS_FORCE_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_UNDISTURBED_FORCE_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
@@ -150,6 +167,14 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingAnalyticParticle3D", mSwimmingAnalyticParticle3D)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D", mComputeMaterialDerivativeSimplex2D)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D", mComputeMaterialDerivativeSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D3N", mComputeFluidFractionGradient2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D4N", mComputeFluidFractionGradient2D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D9N", mComputeFluidFractionGradient2D9N)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D4N", mComputeFluidFractionGradient3D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D8N", mComputeFluidFractionGradient3D8N)
+  KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D27N", mComputeFluidFractionGradient3D27N)
   KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D", mComputeMaterialDerivativeSimplex2D)
   KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D", mComputeMaterialDerivativeSimplex3D)
   KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex2D", mComputeComponentGradientSimplex2D)

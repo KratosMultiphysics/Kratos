@@ -23,7 +23,6 @@
 #include "expression_io.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -58,25 +57,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) LiteralExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(Input);
+        KRATOS_CLASS_POINTER_DEFINITION(LiteralExpressionInput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Input(
+        LiteralExpressionInput(
             const ModelPart& rModelPart,
             const DataType& rValue,
-            Globals::DataLocation CurrentLocation,
-            MeshType CurrentMeshType = MeshType::Local);
+            const ContainerType& rContainerType,
+            const MeshType& rMeshType = MeshType::Local);
 
-        ~Input() override = default;
+        ~LiteralExpressionInput() override = default;
 
         ///@}
         ///@name Public operations
@@ -90,13 +89,13 @@ public:
         ///@name Private member variables
         ///@{
 
-        ModelPart const * mpModelPart;
+        const ModelPart& mrModelPart;
 
-        DataType mValue;
+        const DataType mValue;
 
-        Globals::DataLocation mDataLocation;
+        const ContainerType mContainerType;
 
-        MeshType mMeshType;
+        const MeshType mMeshType;
 
         ///@}
 

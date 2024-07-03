@@ -95,8 +95,6 @@ public:
 
     const std::vector<IndexType> GetItemShape() const override;
 
-    IndexType GetMaxDepth() const override { return 1; }
-
     IndexType size() const noexcept { return mData.size(); }
 
     iterator begin() noexcept { return mData.begin(); }

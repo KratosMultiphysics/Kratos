@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/distributed_sparse_graph.h"
@@ -286,7 +286,7 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
 }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -310,7 +310,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuit
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -354,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICoreFastSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -389,7 +389,7 @@ KRATOS_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosMPICor
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, KratosMPICoreF
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     DistTestingInternals::IndexType col_divider = 3; //ratio of size between columns and row indices
@@ -618,7 +618,7 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMPICoreFastSui
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
 {
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
@@ -664,7 +664,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFas
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
@@ -725,7 +725,7 @@ KRATOS_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSu
 
 
 
-KRATOS_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMultiply, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMultiply, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();

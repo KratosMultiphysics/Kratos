@@ -31,7 +31,7 @@ namespace Kratos::Testing
 * @details It is designed to create a simple LHS and RHS in order to test builder and solvers (a minimal connectivity of two nodes). This way the common interface of the elements/conditions can be used to minimize the difference between the actual implementation and the test
 * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(KRATOS_TEST_UTILS) TestBarElement
+class TestBarElement
     : public Element
 {
 public:

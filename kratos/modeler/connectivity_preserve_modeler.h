@@ -52,9 +52,6 @@ public:
     /// Default Constructor
     ConnectivityPreserveModeler() = default;
 
-    /// Factory Constructor
-    ConnectivityPreserveModeler(Model& rModeler, Parameters Settings);
-
     /// Copy constructor.
     ConnectivityPreserveModeler(ConnectivityPreserveModeler const& rOther) = delete;
 
@@ -71,9 +68,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /// Factory initialization
-    Modeler::Pointer Create(Model& rModel, const Parameters Settings) const override;
 
     /// Generate a copy of rOriginModelPart in rDestinationModelPart, using the given element and condtion types.
     /** This function fills rDestinationModelPart using data obtained from rOriginModelPart. The elements
@@ -131,24 +125,6 @@ public:
         const Condition& rReferenceCondition
     );
 
-    /// Generate a copy of rOriginModelPart in rDestinationModelPart.
-    /** This function fills rDestinationModelPart using data obtained from
-     *  rOriginModelPart. It is equivalent to one of the GenerateModelPart
-     *  functions, depending on whether an element and/or a condition
-     *  have been defined in the Parameters during construction.
-     */
-    void SetupModelPart() override;
-
-    /// Defines the expected structure for the Parameters of this class.
-    const Parameters GetDefaultParameters() const override;
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override;
-
     ///@}
 
 private:
@@ -185,12 +161,6 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
     ) const;
-
-    ///@}
-    ///@name Private members
-    ///@{
-
-    Model* mpModel = nullptr;
 
     ///@}
 };

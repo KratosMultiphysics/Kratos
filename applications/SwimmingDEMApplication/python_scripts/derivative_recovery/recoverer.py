@@ -8,7 +8,11 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 class DerivativesRecoverer:
     def __init__(self, project_parameters, model_part):
         self.model_part = model_part
-        self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool3D(model_part, project_parameters)
+        domain_size = model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+        if domain_size == 2:
+            self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool2D(model_part, project_parameters)
+        else:
+            self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool3D(model_part, project_parameters)
 
 class EmptyGradientRecoverer(DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):

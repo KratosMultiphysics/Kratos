@@ -226,9 +226,10 @@ void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
 
 template class FluidElementUtilities<3>; // triangle3
 template class FluidElementUtilities<4>; // tetrahedra4, quadrilateral4
-template class FluidElementUtilities<9>; // quadrilateral9
+template class FluidElementUtilities<9>; // quadratic quadrilateral
 template class FluidElementUtilities<6>; // prism
 template class FluidElementUtilities<8>; // hexahedra8
+template class FluidElementUtilities<10>; // tetrahedra10
 template class FluidElementUtilities<27>; // hexahedra27
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

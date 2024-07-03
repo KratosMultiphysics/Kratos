@@ -78,8 +78,17 @@ namespace Kratos
                                    const ProcessInfo& rCurrentProcessInfo,
                                    const array_1d<double,3>& gravity) override;
 
+      void FinalizeSolutionStep(const ProcessInfo& r_current_process_info) override;
+
+      void UpdateGentleCouplingInitiationCoefficients(NodeType& node,
+                                                      const ProcessInfo& r_current_process_info);
+
       std::vector<Node::Pointer> mNeighbourNodes;
       std::vector<double> mNeighbourNodesDistances;
+      /// NEW IMPLEMENTATION
+      //std::vector<Element::Pointer> mNeighbourElements;
+      std::vector<Element*> mNeighbourElements;
+      ///
 
       /// Turn back information as a string.
       virtual std::string Info() const override
@@ -158,6 +167,7 @@ namespace Kratos
                                const array_1d<double, 3>& buoyancy,
                                const array_1d<double, 3>& drag_force,
                                const array_1d<double, 3>& inviscid_force,
+                               const array_1d<double, 3>& undisturbed_flow_force,
                                const array_1d<double, 3>& history_force,
                                const array_1d<double, 3>& vorticity_induced_lift,
                                const array_1d<double, 3>& rotation_induced_lift,
@@ -177,12 +187,14 @@ namespace Kratos
       ///@{
 
       bool mFirstStep;
+      bool mUpdateImpulse = true;
       int mPorosityCorrectionType;
       double mFluidDensity;
       double mKinematicViscosity;
       double mSphericity;
       double mNormOfSlipVel;
-      array_1d<double, 3> mSlipVel;
+      array_1d<double, 3> mPseudoSlipVel;
+      array_1d<double, 3> mLastForce;
       HydrodynamicInteractionLaw::Pointer mHydrodynamicInteractionLaw;
 
       ///@}

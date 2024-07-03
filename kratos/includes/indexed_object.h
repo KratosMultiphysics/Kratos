@@ -260,21 +260,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-
-inline bool operator<(
-    const IndexedObject& rFirst,
-    const IndexedObject& rSecond)
-{
-    return rFirst.Id() < rSecond.Id();
-}
-
-inline bool operator==(
-    const IndexedObject& rFirst,
-    const IndexedObject& rSecond)
-{
-    return rFirst.Id() == rSecond.Id();
-}
-
 ///@}
 
 }  // namespace Kratos.

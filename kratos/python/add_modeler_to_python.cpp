@@ -26,7 +26,6 @@
 #include "modeler/duplicate_mesh_modeler.h"
 #include "modeler/copy_properties_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
-#include "modeler/voxel_mesh_generator_modeler.h"
 
 namespace Kratos::Python
 {
@@ -111,10 +110,6 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_< CreateEntitiesFromGeometriesModeler, CreateEntitiesFromGeometriesModeler::Pointer, Modeler >(m, "CreateEntitiesFromGeometriesModeler")
         .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<VoxelMeshGeneratorModeler, VoxelMeshGeneratorModeler::Pointer, Modeler>(m, "VoxelMeshGeneratorModeler")
-        .def(py::init<Model &, Parameters>())
     ;
 }
 

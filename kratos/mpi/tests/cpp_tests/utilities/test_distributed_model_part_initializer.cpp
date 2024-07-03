@@ -15,14 +15,14 @@
 // External includes
 
 // Project includes
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "mpi/utilities/distributed_model_part_initializer.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_Empty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_Empty, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");
@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_Empty,
     KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_WithNodes, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_WithNodes, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_WithNo
     KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), num_nodes);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_Empty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_Empty, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_Empty, 
     KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_WithNodes, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_WithNodes, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_WithNod
     KRATOS_EXPECT_EQ(main_model_part.GetSubModelPart("sub").GetCommunicator().GlobalNumberOfNodes(), num_nodes_sub);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModelParts_Empty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModelParts_Empty, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");
@@ -133,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModelParts_Empty,
     KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubModelParts_Empty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubModelParts_Empty, KratosMPICoreFastSuite)
 {
     Model current_model;
     ModelPart& main_model_part = current_model.CreateModelPart("main");

@@ -14,12 +14,17 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT)
+    def RecoverFluidFractionGradient(self):
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.FLUID_FRACTION, Kratos.FLUID_FRACTION_GRADIENT)
 
 class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.MaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
     def RecoverMaterialAcceleration(self):
-        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+        self.RecoverGradientOfVelocity()
+        self.RecoverMaterialAccelerationFromGradient()
+    # def RecoverMaterialAcceleration(self):
+    #     self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 
 class ZhangGuoDirectLaplacianRecoverer(recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):

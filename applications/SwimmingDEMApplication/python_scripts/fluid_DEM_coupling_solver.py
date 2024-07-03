@@ -6,13 +6,16 @@ import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+from KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling import ProjectionModule
 
-def CreateSolver(model, custom_settings):
-    return FluidDEMSolver(model, custom_settings)
+def CreateSolver(model, custom_settings, projector):
+    return FluidDEMSolver(model, custom_settings, projector)
 
 class FluidDEMSolver(FluidSolver):
 
     ## FluidDEMSolver specific methods.
+    def __init__(self, model, custom_settings):
+        super().__init__(model, custom_settings)
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step if we are not using a manufactured solution (step 0, read from input)
@@ -20,6 +23,7 @@ class FluidDEMSolver(FluidSolver):
             return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 2 >= self.GetMinimumBufferSize()
         else:
             return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+
 
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -57,7 +61,7 @@ class FluidDEMSolver(FluidSolver):
                 scheme = KratosSDEM.BDF2TurbulentSchemeDEMCoupled()
             # Time scheme for steady state fluid solver
             elif self.settings["time_scheme"].GetString() == "steady":
-                scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                scheme = KratosSDEM.ResidualBasedSimpleSteadySchemeDEMCoupled(
                         self.settings["velocity_relaxation"].GetDouble(),
                         self.settings["pressure_relaxation"].GetDouble(),
                         domain_size)
@@ -68,12 +72,33 @@ class FluidDEMSolver(FluidSolver):
 
         return scheme
 
+    def _CreateSolutionStrategy(self):
+        analysis_type = self.settings["analysis_type"].GetString()
+        if analysis_type == "linear":
+            solution_strategy = self._CreateLinearStrategy()
+        elif analysis_type == "non_linear":
+            solution_strategy = self._CreateNewtonRaphsonStrategy()
+        else:
+            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available options are: \"linear\", \"non_linear\""
+            raise Exception(err_msg)
+        return solution_strategy
+
+    def SolveSolutionStep(self,projection_module):
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep(projection_module)
+        if not is_converged:
+            msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
+        return is_converged
+
     def _CreateNewtonRaphsonStrategy(self):
+        import KratosMultiphysics.SwimmingDEMApplication.residual_based_newton_raphson_strategy as NewtonRaphsonStrategy
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
-        return KratosSDEM.RelaxedResidualBasedNewtonRaphsonStrategy(
+        return NewtonRaphsonStrategy.ResidualBasedNewtonRaphsonStrategyPython(
             computing_model_part,
             time_scheme,
             convergence_criterion,

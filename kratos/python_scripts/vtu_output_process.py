@@ -89,7 +89,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
         current_suffix = self.__controller.GetCurrentControlValue()
 
         for vtu_output in self.vtu_output_ios:
-            vtu_output.PrintOutput(f"{self.output_path / vtu_output.GetModelPart().FullName()}_{current_suffix}")
+            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_suffix)
 
         self.__controller.Update()
 

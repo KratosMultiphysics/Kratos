@@ -4,26 +4,33 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
+//
 
-#pragma once
+#if !defined(KRATOS_FLAGS_H_INCLUDED )
+#define  KRATOS_FLAGS_H_INCLUDED
+
+
 
 // System includes
 #include <string>
 #include <iostream>
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
 
 namespace Kratos
 {
+
 ///@name Kratos Globals
 ///@{
 
@@ -43,15 +50,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class Serializer; /// Forward declaration
-
-/**
- * @class Flags
- * @ingroup KratosCore
- * @brief Defines flags used in the Kratos framework for efficient storage and manipulation of state information.
- * @details Flags operate using bitwise logic, providing a crucial base class for numerous essential Kratos components.
- * @author Pooyan Dadvand
- */
+/// Short class definition.
+/** Detail class definition.
+*/
+class Serializer;
 class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
@@ -65,11 +67,11 @@ public:
     typedef __int64 int64_t;
 #endif
 
-    using BlockType = int64_t;
+    typedef int64_t BlockType;
 
-    using FlagType = int64_t;
+    typedef int64_t FlagType;
 
-    using IndexType = std::size_t;
+    typedef std::size_t IndexType;
 
     enum FlagsList
     {
@@ -121,6 +123,15 @@ public:
     {
     }
 
+//    Flags(BlockType rOther) : mIsDefined(rOther), mFlags(rOther)
+//    {
+//    }
+
+//    template<class TFlagsType>
+//    Flags(TFlagsType rOther) : mIsDefined(static_cast<BlockType>(rOther)), mFlags(static_cast<BlockType>(rOther))
+//    {
+//    }
+
     /// Destructor.
     virtual ~Flags() {}
 
@@ -130,6 +141,7 @@ public:
         flags.SetPosition(ThisPosition, Value);
         return flags;
     }
+
 
     ///@}
     ///@name Operators
@@ -143,19 +155,12 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Conversion operator to bool.
-     * @return true if any flag is set, false otherwise.
-     */
+
     operator bool() const
     {
         return mFlags;
     }
 
-    /**
-     * @brief Bitwise NOT operator.
-     * @return Flags with each bit inverted.
-     */
     Flags operator~() const
     {
         Flags results(*this);
@@ -163,10 +168,6 @@ public:
         return  results;
     }
 
-    /**
-     * @brief Logical NOT operator.
-     * @return Flags with logical negation applied.
-     */
     bool operator!() const
     {
         Flags results(*this);
@@ -174,10 +175,7 @@ public:
         return  results;
     }
 
-    /**
-     * @brief Assign flags from another Flags object.
-     * @param rOther The Flags object to assign from.
-     */
+
     void AssignFlags(Flags const& rOther)
     {
         mIsDefined = rOther.mIsDefined;
@@ -188,95 +186,58 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Set the specified flag.
-     * @param ThisFlag The flag to set.
-     */
     void Set(const Flags ThisFlag);
 
-    /**
-     * @brief Set the specified flag with a given value.
-     * @param ThisFlag The flag to set.
-     * @param Value The value to set the flag to.
-     */
     void Set(const Flags ThisFlag, bool Value);
 
-    /**
-     * @brief Reset the specified flag.
-     * @param ThisFlag The flag to reset.
-     */
     void Reset(const Flags ThisFlag)
     {
         mIsDefined &= (~ThisFlag.mIsDefined);
         mFlags &= (~ThisFlag.mIsDefined); // I want to put to zero the ones are set regardless to their value. Pooyan.
     }
 
-    /**
-     * @brief Flip the specified flag.
-     * @param ThisFlag The flag to flip.
-     */
     void Flip(const Flags ThisFlag)
     {
         mIsDefined |= ThisFlag.mIsDefined;
         mFlags ^= (ThisFlag.mIsDefined); // I want to flip  the ones are set in this flags regardless to their value. Pooyan.
     }
 
-    /**
-     * @brief Set the value of the flag at the specified position.
-     * @param Position The position of the flag to set.
-     * @param Value The value to set the flag to (default is true).
-     */
-    void SetPosition(IndexType Position, const bool Value=true )
+    void SetPosition(IndexType Position, bool Value=true )
     {
         mIsDefined |= (BlockType(1) << Position);
 
+
         mFlags &= ~(BlockType(1) << Position);   // First reseting the position
         mFlags |= (BlockType(Value) << Position);
+
     }
 
-    /**
-     * @brief Get the value of the flag at the specified position.
-     * @param Position The position of the flag to get.
-     * @return True if the flag is set, false otherwise.
-     */
     bool GetPosition(IndexType Position) const
     {
         return (mFlags & (BlockType(1) << Position));
     }
 
-    /**
-     * @brief Flip the value of the flag at the specified position.
-     * @param Position The position of the flag to flip.
-     */
-    void FlipPosition(IndexType Position)
+
+   void FlipPosition(IndexType Position)
     {
         mIsDefined |= (BlockType(1) << Position);
         mFlags ^= (BlockType(1) << Position);
     }
 
-    /**
-     * @brief Clear the flag at the specified position.
-     * @param Position The position of the flag to clear.
-     */
+
     void ClearPosition(IndexType Position)
     {
         mIsDefined &= ~((BlockType(1) << Position));
         mFlags &= ~(BlockType(1) << Position);
     }
 
-    /**
-     * @brief Clear all flags.
-     */
+
     void Clear()
     {
         mIsDefined = BlockType();
         mFlags = BlockType();
     }
 
-    /**
-     * @brief Return a Flags object with all flags set to false.
-     * @return Flags object with all flags set to false.
-     */
     Flags AsFalse() const
     {
         Flags this_flag_false(*this);
@@ -288,67 +249,56 @@ public:
     ///@name Access
     ///@{
 
-    /**
-     * @brief Returns a Flags object with all flags defined.
-     * @return Flags object with all flags defined.
-     */
     static const Flags AllDefined()
     {
-        return Flags(~0, 0);
+        return Flags(~0,0);
     }
 
-    /**
-     * @brief Returns a Flags object with all flags set to true. 
-     * @return Flags object with all flags set to true.
-     */
     static const Flags AllTrue()
     {
-        return Flags(~0, ~0);
+        return Flags(~0,~0);
     }
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    /**
-     * @brief Checks if the flags in this object match those in the given Flags object.
-     * @param rOther The Flags object to compare against.
-     * @return True if the flags match, false otherwise.
-     */
+
+//    template<class TFlagsType>
+//    bool Is(TFlagsType Flag)
+//    {
+//        return (mFlags & Flag);
+//    }
+
+
     bool Is(Flags const & rOther) const
     {
         return (mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags));
     }
 
-    /**
-     * @brief Checks if all flags in this object are defined (set).
-     * @param rOther The Flags object to compare against.
-     * @return True if all flags are defined, false otherwise.
-     */
     bool IsDefined(Flags const & rOther) const
     {
         return (mIsDefined & rOther.mIsDefined);
     }
 
-    /**
-     * @brief Checks if the flags in this object do not match those in the given Flags object.
-     * @param rOther The Flags object to compare against.
-     * @return True if the flags do not match, false otherwise.
-     */
+
+//    template<class TFlagsType>
+//    bool IsNot(TFlagsType const& Flag )
+//    {
+//        return !(mFlags & Flag);
+//    }
+
     bool IsNot(Flags const& rOther) const
     {
         return !((mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags)));
     }
 
-    /**
-     * @brief Checks if any flags in this object are not defined (unset).
-     * @param rOther The Flags object to compare against.
-     * @return True if any flags are not defined, false otherwise.
-     */
     bool IsNotDefined(Flags const& rOther) const
     {
         return !(mIsDefined & rOther.mIsDefined);
     }
+
+
 
     ///@}
     ///@name Input and output
@@ -371,139 +321,103 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+
         for(std::size_t i = sizeof(BlockType) * 8 ; i > 0 ; i--)
             rOStream << bool(mFlags & (BlockType(1) << i));
     }
+
 
     ///@}
     ///@name Friends
     ///@{
 
-    /**
-     * @brief Equality comparison operator for Flags.
-     * @param Left The left-hand side Flags object.
-     * @param Right The right-hand side Flags object.
-     * @return True if the Flags objects are equal, false otherwise.
-     */
+
     friend bool KRATOS_API(KRATOS_CORE) operator==(const Flags& Left, const Flags& Right );
 
-    /**
-     * @brief Inequality comparison operator for Flags.
-     * @param Left The left-hand side Flags object.
-     * @param Right The right-hand side Flags object.
-     * @return True if the Flags objects are not equal, false otherwise.
-     */
     friend bool KRATOS_API(KRATOS_CORE) operator!=(const Flags& Left, const Flags& Right );
 
-    /**
-     * @brief Bitwise OR operator for Flags.
-     * @param Left The left-hand side Flags object.
-     * @param Right The right-hand side Flags object.
-     * @return Flags object resulting from the bitwise OR operation.
-     */
     friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
-    /**
-     * @brief Bitwise AND operator for Flags.
-     * @param Left The left-hand side Flags object.
-     * @param Right The right-hand side Flags object.
-     * @return Flags object resulting from the bitwise AND operation.
-     */
     friend Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right );
 
-    /**
-     * @brief Compound assignment operator for bitwise OR.
-     * @param Other The Flags object to perform bitwise OR with.
-     * @return Reference to the modified Flags object after bitwise OR.
-     */
     const Flags& operator|=(const Flags& Other );
 
-    /**
-     * @brief Compound assignment operator for bitwise AND.
-     * @param Other The Flags object to perform bitwise AND with.
-     * @return Reference to the modified Flags object after bitwise AND.
-     */
     const Flags& operator&=(const Flags& Other );
 
     ///@}
+
 protected:
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
+
     ///@}
     ///@name Protected Operators
     ///@{
+
 
     ///@}
     ///@name Protected Operations
     ///@{
 
+
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
+
     ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
+
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    BlockType mIsDefined; /// Bitmask representing defined flags.
-    BlockType mFlags; /// Bitmask representing flag values.
+    BlockType mIsDefined;
+    BlockType mFlags;
+
 
     ///@}
     ///@name Private Operators
     ///@{
 
+
     ///@}
     ///@name Private Operations
     ///@{
 
-    friend class MPIDataCommunicator; ///< Friend class for accessing private members.
+    friend class MPIDataCommunicator;
 
-    /**
-     * @brief Get the bitmask representing defined flags.
-     * @return BlockType representing defined flags.
-     */
     BlockType GetDefined() const;
 
-    /**
-     * @brief Set the bitmask representing defined flags.
-     * @param rDefined The BlockType to set as defined flags.
-     */
     void SetDefined(const BlockType& rDefined);
 
-    /**
-     * @brief Get the bitmask representing flag values.
-     * @return BlockType representing flag values.
-     */
     BlockType GetFlags() const;
 
-    /**
-     * @brief Set the bitmask representing flag values.
-     * @param rValues The BlockType to set as flag values.
-     */
     void SetFlags(const BlockType& rValues);
 
     ///@}
     ///@name Serialization
     ///@{
-
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const;
@@ -513,6 +427,7 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
+
 
     ///@}
     ///@name Private Inquiry
@@ -530,16 +445,21 @@ private:
     ///@name Un accessible methods
     ///@{
 
+
     ///@}
+
 }; // Class Flags
 
 ///@}
+
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
+
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -560,4 +480,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+
 }  // namespace Kratos.
+
+#endif // KRATOS_FLAGS_H_INCLUDED  defined

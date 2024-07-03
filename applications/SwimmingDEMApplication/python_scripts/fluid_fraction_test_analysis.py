@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics import Model, Parameters, Logger
+import numpy as np
 
 import os
 import sys
@@ -14,7 +15,7 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 import swimming_DEM_procedures as SDP
 
 class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, iteration, varying_parameters = Parameters("{}")):
+    def __init__(self, model, iteration, damkohler = 0, omega = 0, L = 1, varying_parameters = Parameters("{}")):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -29,6 +30,12 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.project_parameters = varying_parameters
         self.GetModelAttributes()
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
+        #self.lowest_alpha = 0.5
+        self.lowest_alpha = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
+        self.u_characteristic = self.project_parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
+        self.damkohler_number = damkohler
+        self.omega = omega
+        self.length = L
         # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
 
     def InitializeVariablesWithNonZeroValues(self):
@@ -36,7 +43,17 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
     def Initialize(self):
         super().Initialize()
-        self._GetSolver().ConstructL2ErrorCalculator()
+        self._GetSolver().ConstructErrorNormCalculator()
+        for Element in self.fluid_model_part.Elements:
+            element_size = Element.GetGeometry().Length()
+            break
+        for node in self.fluid_model_part.Nodes:
+            vel_x = node.GetSolutionStepValue(Kratos.VELOCITY_X)
+            vel_y = node.GetSolutionStepValue(Kratos.VELOCITY_Y)
+            node.SetSolutionStepValue(Kratos.VELOCITY_X,(vel_x-vel_x*element_size))
+            node.SetSolutionStepValue(Kratos.VELOCITY_Y,(vel_y-vel_y*element_size))
+            #node.SetSolutionStepValue(Kratos.PRESSURE,0.0)
+
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)
@@ -71,29 +88,45 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
-        super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
+        #super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
         self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
         self.relax_alpha = self.fluid_model_part.ProcessInfo[SDEM.RELAXATION_ALPHA]
-        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part, self.reynolds_number, self.porosity_mean = self._GetSolver().CalculateL2Error()
 
-        self.projector_post_process.WriteData(self.error_model_part,
-                                            self.velocity_error_projected,
-                                            self.pressure_error_projected,
+        porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
+        self.porosity_mean = np.mean(porosity_field)
+        for node in self.fluid_model_part.Nodes:
+            self.nu = node.GetSolutionStepValue(Kratos.VISCOSITY)
+            break
+        self.reynolds_number = self.length*self.u_characteristic/self.nu
+
+        self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
+
+        self.velocity_H1_error_seminorm, self.pressure_H1_error_seminorm = self._GetSolver().CalculateH1ErrorSemiNorm()
+        self.projector_post_process.WriteData(self.fluid_model_part,
+                                            self.velocity_L2_error_norm,
+                                            self.pressure_L2_error_norm,
+                                            self.velocity_H1_error_seminorm,
+                                            self.pressure_H1_error_seminorm,
                                             self.projection_type,
                                             self.model_type,
                                             self.subscale_type,
-                                            self.reynolds_number,
                                             self.porosity_mean,
                                             self.n_iteration_number,
                                             self.max_iteration,
-                                            self.relax_alpha)
-
-        return self.velocity_error_projected
+                                            self.relax_alpha,
+                                            self.lowest_alpha,
+                                            self.damkohler_number,
+                                            self.omega,
+                                            self.reynolds_number,
+                                            2)
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass
 
     def GetVolumeDebugTool(self):
+        pass
+
+    def SetInitialParticlePosition(self):
         pass
 
     def GetModelAttributes(self):

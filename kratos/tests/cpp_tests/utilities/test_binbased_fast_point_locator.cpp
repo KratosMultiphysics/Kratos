@@ -21,7 +21,7 @@
 #include "includes/model_part.h"
 
 /* Utilities */
-#include "tests/test_utilities/cpp_tests_utilities.h"
+#include "utilities/cpp_tests_utilities.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 

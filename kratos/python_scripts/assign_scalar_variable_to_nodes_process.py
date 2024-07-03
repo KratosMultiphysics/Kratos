@@ -38,7 +38,6 @@ class AssignScalarVariableToNodesProcess(assign_scalar_variable_to_entities_proc
             "interval"        : [0.0, 1e30],
             "value"           : 0.0,
             "local_axes"      : {},
-            "historical"      : false,
             "entities"        : ["nodes"]
         }
         """
@@ -59,4 +58,4 @@ class AssignScalarVariableToNodesProcess(assign_scalar_variable_to_entities_proc
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super().__init__(Model, settings)
+        super(AssignScalarVariableToNodesProcess, self).__init__(Model, settings)

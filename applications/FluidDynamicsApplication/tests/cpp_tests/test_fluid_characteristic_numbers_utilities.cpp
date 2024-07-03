@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
 #include "utilities/element_size_calculator.h"
@@ -23,7 +24,6 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing  {
@@ -101,8 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateLocalCFL, FluidDyna
 
     // Check results
     const double tolerance = 2.0e-6;
-    KRATOS_EXPECT_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
-    KRATOS_EXPECT_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
+    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
+    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementCFLWithSoundVelocity, FluidDynamicsApplicationFastSuite)
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementCFLWithSound
     constexpr double expected_cfl = (V + c) * dt / min_h;
     
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(element_cfl, expected_cfl, tolerance);
+    KRATOS_CHECK_NEAR(element_cfl, expected_cfl, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPrandtlNumber, FluidDynamicsApplicationFastSuite)
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPrandtlNumbe
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(prandtl_number, 0.5, tolerance);
+    KRATOS_CHECK_NEAR(prandtl_number, 0.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumbers, FluidDynamicsApplicationFastSuite)
@@ -171,8 +171,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumber
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(std::get<0>(peclet_numbers), 0.055555555555, tolerance);
-    KRATOS_EXPECT_NEAR(std::get<1>(peclet_numbers), 0.027777777777, tolerance);
+    KRATOS_CHECK_NEAR(std::get<0>(peclet_numbers), 0.055555555555, tolerance);
+    KRATOS_CHECK_NEAR(std::get<1>(peclet_numbers), 0.027777777777, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecletNumber, FluidDynamicsApplicationFastSuite)
@@ -190,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecle
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(k_peclet_number, 0.027777777777, tolerance);
+    KRATOS_CHECK_NEAR(k_peclet_number, 0.027777777777, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecletNumber, FluidDynamicsApplicationFastSuite)
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecle
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(mu_peclet_number, 0.055555555555, tolerance);
+    KRATOS_CHECK_NEAR(mu_peclet_number, 0.055555555555, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbers, FluidDynamicsApplicationFastSuite)
@@ -230,8 +230,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbe
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(std::get<0>(fourier_numbers), 3.75, tolerance);
-    KRATOS_EXPECT_NEAR(std::get<1>(fourier_numbers), 7.5, tolerance);
+    KRATOS_CHECK_NEAR(std::get<0>(fourier_numbers), 3.75, tolerance);
+    KRATOS_CHECK_NEAR(std::get<1>(fourier_numbers), 7.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFourierNumber, FluidDynamicsApplicationFastSuite)
@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFouri
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(thermal_fourier_number, 7.5, tolerance);
+    KRATOS_CHECK_NEAR(thermal_fourier_number, 7.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFourierNumber, FluidDynamicsApplicationFastSuite)
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFouri
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_EXPECT_NEAR(viscous_fourier_number, 3.75, tolerance);
+    KRATOS_CHECK_NEAR(viscous_fourier_number, 3.75, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementMachNumber, FluidDynamicsApplicationFastSuite)
@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementMachNumber, 
 
     // Check results
     const double tolerance = 1.0e-6;
-    KRATOS_EXPECT_NEAR(mach_number, 0.357143, tolerance);
+    KRATOS_CHECK_NEAR(mach_number, 0.357143, tolerance);
 }
 
 }

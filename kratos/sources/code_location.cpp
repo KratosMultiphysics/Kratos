@@ -148,9 +148,14 @@ void CodeLocation::ReplaceAll(std::string& ThisString, const std::string& FromSt
 std::size_t CodeLocation::GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position)
 {
     char c = ThisString[Position];
-    while (std::isspace(c))
+    while (IsWhiteSpace(c))
         c = ThisString[++Position];
     return Position;
+}
+
+bool CodeLocation::IsWhiteSpace(char C)
+{
+    return ((C == ' ') || (C == '\t') || (C == '\r') || (C == '\n'));
 }
 
 std::ostream & operator <<(std::ostream& rOStream,

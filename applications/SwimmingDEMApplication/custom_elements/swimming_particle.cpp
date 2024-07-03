@@ -22,13 +22,17 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
 
     mNeighbourNodes = rOther.mNeighbourNodes;
     mNeighbourNodesDistances = rOther.mNeighbourNodesDistances;
+    /// NEW IMPLEMENTATION
+    mNeighbourElements = rOther.mNeighbourElements;
+    ///
     mFirstStep = rOther.mFirstStep;
     mPorosityCorrectionType = rOther.mPorosityCorrectionType;
     mFluidDensity = rOther.mFluidDensity;
     mKinematicViscosity = rOther.mKinematicViscosity;
     mSphericity = rOther.mSphericity;
     mNormOfSlipVel = rOther.mNormOfSlipVel;
-    noalias(mSlipVel) = rOther.mSlipVel;
+    noalias(mPseudoSlipVel) = rOther.mPseudoSlipVel;
+    noalias(mLastForce) = rOther.mLastForce;
     mHydrodynamicInteractionLaw = rOther.mHydrodynamicInteractionLaw->Clone();
 
     return *this;
@@ -55,18 +59,22 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     }
 
     mFluidDensity                           = node.FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-    mKinematicViscosity                     = node.FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+    //mKinematicViscosity                     = node.FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+    mKinematicViscosity = 1.48843382632;
     const array_1d<double, 3>& fluid_vel    = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
     const array_1d<double, 3>& particle_vel = node.FastGetSolutionStepValue(VELOCITY);
 
+    noalias(mPseudoSlipVel) = fluid_vel - particle_vel;
 
-    noalias(mSlipVel) = fluid_vel - particle_vel;
+    mNormOfSlipVel = SWIMMING_MODULUS_3(mPseudoSlipVel);
+    if (mFirstStep == true)
+        noalias(node.FastGetSolutionStepValue(SLIP_VELOCITY)) = mPseudoSlipVel;
 
-    mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
     array_1d<double, 3> weight = ZeroVector(3);
     array_1d<double, 3> buoyancy = ZeroVector(3);
     array_1d<double, 3> drag_force = ZeroVector(3);
-    array_1d<double, 3> inviscid_force = ZeroVector(3);
+    array_1d<double, 3> virtual_mass_force = ZeroVector(3);
+    array_1d<double, 3> undisturbed_flow_force = ZeroVector(3);
     array_1d<double, 3> history_force = ZeroVector(3);
     array_1d<double, 3> vorticity_induced_lift = ZeroVector(3);
     array_1d<double, 3> rotation_induced_lift = ZeroVector(3);
@@ -75,6 +83,8 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
+
+    this->UpdateGentleCouplingInitiationCoefficients(node, r_current_process_info);
 
     TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could be adding something else apart from weight
 
@@ -89,21 +99,28 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,
-                                                  mSlipVel,
+                                                  mPseudoSlipVel,
                                                   drag_force,
                                                   r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeInviscidForce(r_geometry,
+    mHydrodynamicInteractionLaw->ComputeVirtualMassForce(r_geometry,
                                                       mFluidDensity,
                                                       CalculateVolume(),
-                                                      inviscid_force,
+                                                      virtual_mass_force,
                                                       r_current_process_info);
 
+    if (node.SolutionStepsDataHas(UNDISTURBED_FLOW_FORCE)){
+        mHydrodynamicInteractionLaw->ComputeUndisturbedForce(r_geometry,
+                                                        mFluidDensity,
+                                                        CalculateVolume(),
+                                                        undisturbed_flow_force,
+                                                        r_current_process_info);
+    }
     mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
                                                      mRadius,
                                                      mFluidDensity,
                                                      mKinematicViscosity,
-                                                     mSlipVel,
+                                                     mPseudoSlipVel,
                                                      history_force,
                                                      r_current_process_info);
 
@@ -111,7 +128,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                              mRadius,
                                                              mFluidDensity,
                                                              mKinematicViscosity,
-                                                             mSlipVel,
+                                                             mPseudoSlipVel,
                                                              vorticity_induced_lift,
                                                              r_current_process_info);
 
@@ -119,7 +136,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                             mRadius,
                                                             mFluidDensity,
                                                             mKinematicViscosity,
-                                                            mSlipVel,
+                                                            mPseudoSlipVel,
                                                             rotation_induced_lift,
                                                             r_current_process_info);
 
@@ -127,43 +144,35 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                             mRadius,
                                                             mFluidDensity,
                                                             mKinematicViscosity,
-                                                            mSlipVel,
+                                                            mPseudoSlipVel,
                                                             steady_viscous_torque,
                                                             r_current_process_info);
 
+    const double gentle_initilization_coefficient = node.FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
     // Adding all fluid-related forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += weight
                                 + buoyancy
-                                + drag_force
-                                + inviscid_force
+                                + undisturbed_flow_force
+                                + gentle_initilization_coefficient * (drag_force
+                                + virtual_mass_force
                                 + vorticity_induced_lift
-                                + rotation_induced_lift;
+                                + rotation_induced_lift);
 
     // Adding all fluid-related moments
     noalias(non_contact_moment) += steady_viscous_torque;
 
-    const double inviscid_added_mass =  mHydrodynamicInteractionLaw->GetInviscidAddedMass(GetGeometry(),
-                                                                                          mFluidDensity,
-                                                                                          r_current_process_info);
+    const double force_reduction_coeff = 1.0;
 
-    const double history_force_added_mass =  mHydrodynamicInteractionLaw->GetHistoryForceAddedMass(GetGeometry(),
-                                                                                                   r_current_process_info);
-
-    const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + history_force_added_mass);
-
-    array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
-
-    if (node.SolutionStepsDataHas(ADDITIONAL_FORCE_OLD) && !mFirstStep){
-        ApplyNumericalAveragingWithOldForces(node, non_contact_force, r_current_process_info);
-    }
+    //array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 
     UpdateNodalValues(node,
-                      non_contact_force_not_altered,
+                      non_contact_force,
                       non_contact_moment,
                       weight,
                       buoyancy,
                       drag_force,
-                      inviscid_force,
+                      virtual_mass_force,
+                      undisturbed_flow_force,
                       history_force,
                       vorticity_induced_lift,
                       rotation_induced_lift,
@@ -179,6 +188,35 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+
+template < class TBaseElement >
+void SwimmingParticle<TBaseElement>::UpdateGentleCouplingInitiationCoefficients(NodeType& node,
+                                                       const ProcessInfo& r_current_process_info)
+
+{
+    const double current_time = r_current_process_info[TIME];
+
+    double& gentle_coupling_coeff = node.FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
+    const double gentle_coupling_initiation_interval = r_current_process_info[SCALAR_ERROR];
+    const double initialization_time = this->GetInitializationTime();
+    const double programmed_destruction_time = this->GetProgrammedDestructionTime();
+    const double particle_age = current_time - initialization_time;
+    const double particle_time_left = programmed_destruction_time - current_time;
+
+    if (gentle_coupling_initiation_interval <= particle_age){
+            gentle_coupling_coeff = 1.0;
+        }
+
+    else {
+            gentle_coupling_coeff = particle_age / gentle_coupling_initiation_interval;
+    }
+
+    if (particle_time_left <= gentle_coupling_initiation_interval && particle_time_left > 0.0){
+            gentle_coupling_coeff = std::min(gentle_coupling_coeff, particle_time_left / gentle_coupling_initiation_interval);
+    }
+}
+
+
 // Here nodal values are modified to record DEM forces that we want to print. In Kratos this is an exception since nodal values are meant to be modified only outside the element. Here it was not possible.
 template < class TBaseElement >
 void SwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
@@ -187,16 +225,29 @@ void SwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
                                                        const array_1d<double, 3>& weight,
                                                        const array_1d<double, 3>& buoyancy,
                                                        const array_1d<double, 3>& drag_force,
-                                                       const array_1d<double, 3>& inviscid_force,
+                                                       const array_1d<double, 3>& virtual_mass_force,
+                                                       const array_1d<double, 3>& undisturbed_flow_force,
                                                        const array_1d<double, 3>& history_force,
                                                        const array_1d<double, 3>& vorticity_induced_lift,
                                                        const array_1d<double, 3>& rotation_induced_lift,
                                                        const double& force_reduction_coeff,
                                                        const ProcessInfo& r_current_process_info)
 {
-    noalias(node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))       = force_reduction_coeff * (non_contact_nor_history_force + history_force - buoyancy - weight);
+
+    array_1d<double, 3>& hydrodynamic_force = node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE);
+    const double dt = r_current_process_info[DELTA_TIME];
+    array_1d<double, 3>& impulse = node.FastGetSolutionStepValue(IMPULSE);
+
+
+    noalias(hydrodynamic_force) = force_reduction_coeff * (non_contact_nor_history_force - undisturbed_flow_force - buoyancy - weight);
+
+    noalias(impulse) += (mLastForce + hydrodynamic_force)/2 * dt;
+    noalias(mLastForce) = hydrodynamic_force;
+
     noalias(node.FastGetSolutionStepValue(BUOYANCY))                 = buoyancy;
+
     array_1d<double, 3>& total_force = node.FastGetSolutionStepValue(TOTAL_FORCES);
+
     total_force *= force_reduction_coeff;
 
     if (node.SolutionStepsDataHas(HYDRODYNAMIC_MOMENT)){
@@ -208,7 +259,11 @@ void SwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
     }
 
     if (node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE)){ // This only includes the part proportional to the fluid acceleration (undisturbed flow plus added mass terms), since the particle acceleration is treated implicitly. It is added later by the strategy, which calls Calculate here, once the current acceleration is available
-        noalias(node.FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))   = inviscid_force;
+        noalias(node.FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))   = virtual_mass_force;
+    }
+
+    if (node.SolutionStepsDataHas(UNDISTURBED_FLOW_FORCE)){
+        noalias(node.FastGetSolutionStepValue(UNDISTURBED_FLOW_FORCE)) = undisturbed_flow_force;
     }
 
     if (node.SolutionStepsDataHas(BASSET_FORCE)){
@@ -247,8 +302,8 @@ void SwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<double>&
             mKinematicViscosity                     = node.FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
             const array_1d<double, 3>& fluid_vel    = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
             const array_1d<double, 3>& particle_vel = node.FastGetSolutionStepValue(VELOCITY);
-            noalias(mSlipVel) = fluid_vel - particle_vel;
-            mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
+            noalias(mPseudoSlipVel) = fluid_vel - particle_vel;
+            mNormOfSlipVel = SWIMMING_MODULUS_3(mPseudoSlipVel);
             mHydrodynamicInteractionLaw->ComputeParticleReynoldsNumber(mRadius,
                                                                        mKinematicViscosity,
                                                                        mNormOfSlipVel);
@@ -263,18 +318,39 @@ void SwimmingParticle<TBaseElement>::Calculate(const Variable<array_1d<double, 3
                                                const ProcessInfo& r_current_process_info)
 {
     if (rVariable == VIRTUAL_MASS_FORCE) {
-        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-        const double virtual_mass_coeff = mHydrodynamicInteractionLaw->GetInviscidAddedMass(GetGeometry(),
+
+        const double virtual_mass_coeff = mHydrodynamicInteractionLaw->GetVirtualAddedMass(GetGeometry(),
                                                                                             mFluidDensity,
                                                                                             r_current_process_info);
-        Output -= virtual_mass_coeff / mRealMass * total_forces;
+
+        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+
+        Output -= virtual_mass_coeff / (mRealMass + virtual_mass_coeff) * total_forces; //Esto es lo que hay que añadir
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)) -= virtual_mass_coeff / (mRealMass + virtual_mass_coeff) * total_forces;
     }
 
     else if (rVariable == BASSET_FORCE) {
-        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+
         const double history_force_added_mass =  mHydrodynamicInteractionLaw->GetHistoryForceAddedMass(GetGeometry(),
-                                                                                                       r_current_process_info);
+                                                                                            r_current_process_info);
+
+        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+
         Output -= history_force_added_mass / mRealMass * total_forces;
+    }
+
+    else if (rVariable == HYDRODYNAMIC_FORCE){
+        array_1d<double, 3>& impulse = GetGeometry()[0].FastGetSolutionStepValue(IMPULSE);
+        noalias(impulse) = ZeroVector(3);
+        // mUpdateImpulse = false;
+        // array_1d<double, 3 > non_contact_force = ZeroVector(3);
+        // array_1d<double, 3> non_contact_moment = ZeroVector(3);
+        // noalias(GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)) = non_contact_force;
+        // const array_1d<double,3> gravity = r_current_process_info[GRAVITY];
+        // this->ComputeAdditionalForces(non_contact_force, non_contact_moment, r_current_process_info, gravity);
+        // non_contact_force = ZeroVector(3);
+        // non_contact_moment = ZeroVector(3);
+        // mUpdateImpulse = true;
     }
 
     else {
@@ -427,7 +503,9 @@ void SwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_inf
     CreateHydrodynamicInteractionLaws(r_process_info);
 
     NodeType& node = GetGeometry()[0];
+
     mFirstStep = true;
+    noalias(mLastForce) = ZeroVector(3);
 
     if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){
         node.FastGetSolutionStepValue(PARTICLE_SPHERICITY) = this->GetProperties()[PARTICLE_SPHERICITY];
@@ -436,6 +514,15 @@ void SwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_inf
     else {
         mSphericity = 1.0;
     }
+}
+
+template < class TBaseElement >
+void SwimmingParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info){
+
+    TBaseElement::FinalizeSolutionStep(r_process_info);
+    NodeType& node = GetGeometry()[0];
+
+    noalias(node.FastGetSolutionStepValue(SLIP_VELOCITY)) = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED) - node.FastGetSolutionStepValue(VELOCITY);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

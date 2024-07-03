@@ -35,7 +35,6 @@
 
 // Application includes
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
-#include "custom_elements/axisymmetric_navier_stokes.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
@@ -55,8 +54,6 @@
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
-#include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
-
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
 #include "custom_conditions/fs_generalized_wall_condition.h"
@@ -66,7 +63,6 @@
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
-#include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
@@ -81,7 +77,6 @@
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 
-#include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -114,8 +109,6 @@
 
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
-
-extern "C" KRATOS_API(FLUID_DYNAMICS_APPLICATION) Kratos::KratosApplication * CreateApplication();
 
 namespace Kratos
 {
@@ -290,18 +283,18 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mQSVMSDEMCoupled2D9N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mQSVMSDEMCoupled3D10N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mQSVMSDEMCoupled3D27N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mAlternativeQSVMSDEMCoupled3D10N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeQSVMSDEMCoupled2D9N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mAlternativeQSVMSDEMCoupled3D27N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
-    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
-    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
@@ -378,9 +371,11 @@ private:
     const WallConditionDiscontinuous<3,3> mWallConditionDiscontinuous3D;
 
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
-    const MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
+    const MonolithicWallCondition<2,2> mMonolithicWallCondition2D2N;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
-    const MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
+    const MonolithicWallCondition<3,3> mMonolithicWallCondition3D3N;
+    const MonolithicWallCondition<3,4> mMonolithicWallCondition3D4N;
+    const MonolithicWallCondition<3,9> mMonolithicWallCondition3D9N;
     /// stokes condition(monolithic version)
     const StokesWallCondition<3,3> mStokesWallCondition3D;
     const StokesWallCondition<3,4> mStokesWallCondition3D4N;
@@ -424,14 +419,12 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2,2> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3,3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<3,4> mNavierStokesWallCondition3D4N;
+    const NavierStokesWallCondition<3,9> mNavierStokesWallCondition3D9N;
     const NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>> mNavierStokesLinearLogWallCondition2D;
     const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
     const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
-
-    /// Incompressible Navier-Stokes div-stable wall condition
-    const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
-    const NavierStokesP2P1ContinuousWallCondition<3> mNavierStokesP2P1ContinuousWallCondition3D;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
@@ -455,10 +448,6 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
-
-    /// Incompressible Navier-Stokes div-stable element
-    const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
-    const IncompressibleNavierStokesP2P1Continuous<3> mIncompressibleNavierStokesP2P1Continuous3D10N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

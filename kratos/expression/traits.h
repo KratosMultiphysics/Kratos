@@ -22,4 +22,13 @@ enum MeshType {
     Interface
 }; // enum MeshType
 
+enum ContainerType
+{
+    NodalHistorical,
+    NodalNonHistorical,
+    ConditionNonHistorical,
+    ElementNonHistorical
+}; // enum ContainerType
+
+
 } // namespace Kratos

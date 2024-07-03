@@ -32,6 +32,7 @@ class ProjectionModule:
         self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
         self.flow_field = flow_field
         self.use_drew_model = False
+        self.use_new_implementation = True
         if fluid_model_type == "advmsDEM" or fluid_model_type == "aqsvmsDEM":
             self.use_drew_model = True
 
@@ -95,8 +96,10 @@ class ProjectionModule:
                 alpha = 1 - np.exp(- averaging_time_interval)
             else:
                 alpha = 1.0 / averaging_time_interval
-            print('A'*100, alpha)
             self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
+
+    def UpdateHydrodynamicForces(self):
+        self.projector.UpdateHydrodynamicForces(self.particles_model_part)
 
     def UpdateDatabase(self, HMin):
 
@@ -138,13 +141,12 @@ class ProjectionModule:
     def ImposeVelocityOnDEMFromFieldToAuxVelocity(self):
         self.projector.ImposeVelocityOnDEMFromFieldToAuxVelocity(self.flow_field, self.particles_model_part)
 
-    def ProjectFromParticles(self, recalculate_neigh = True):
-
+    def ProjectFromParticles(self, recalculate_neigh = True, update_impulse = True):
         if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
-
         else:
-            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh, self.use_drew_model)
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.bin_of_objects_fluid, self.use_drew_model, self.use_new_implementation, recalculate_neigh, update_impulse)
+            # self.projector.HomogenizeFromDEMMeshToElements(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.bin_of_objects_fluid, self.use_drew_model, self.use_new_implementation, recalculate_neigh)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

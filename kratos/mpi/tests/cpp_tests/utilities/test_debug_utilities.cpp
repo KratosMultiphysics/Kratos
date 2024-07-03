@@ -22,11 +22,11 @@
 #include "includes/model_part.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/debug_utilities.h"
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMP
     MpiDebugUtilities::CheckHistoricalVariable(model_part, TEMPERATURE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
@@ -85,7 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosM
     MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, Kra
     );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixityError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixityError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixityError, Kr
     );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCombinedError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCombinedError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCombinedError, 
     );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValue, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValue, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValue, Krato
     MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), TEMPERATURE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValueError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValueError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -254,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValueError, 
 }
 
 // This will work with #5091 or when we move to C++17
-// KRATOS_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleHistoricalVariablesValue, KratosMPICoreFastSuite)
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleHistoricalVariablesValue, KratosMPICoreFastSuite)
 // {
 //     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
 //     const int world_rank = r_comm.Rank();

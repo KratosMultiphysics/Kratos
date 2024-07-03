@@ -58,4 +58,4 @@ class AssignScalarVariableToConstraintsProcess(assign_scalar_variable_to_entitie
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super().__init__(Model, settings)
+        super(AssignScalarVariableToConstraintsProcess, self).__init__(Model, settings)

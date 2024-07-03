@@ -97,9 +97,8 @@ namespace Kratos {
 			}
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
 		{
-			GTEST_SKIP() << "This test is disabled" << std::endl;
 			std::size_t block_size = 64;
 			std::size_t default_chunk_size = 128 ;// 1M
 			std::size_t number_of_blocks = (default_chunk_size ) / block_size;
@@ -184,9 +183,8 @@ namespace{
 			// std::cout << MemoryPool::Info() << std::endl;
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
 		{
-			GTEST_SKIP() << "This test is disabled" << std::endl;
 			auto repeat_number = 256;
 			Timer::Start("Pool");
 // #pragma omp parallel for
@@ -239,9 +237,8 @@ namespace{
 
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
 		{
-			GTEST_SKIP() << "This test is disabled" << std::endl;
 			auto repeat_number = 128;
 			std::size_t block_size_in_bytes = 230;
 		    std::size_t chunk_size_in_bytes =  1024*1024;

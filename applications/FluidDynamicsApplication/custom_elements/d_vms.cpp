@@ -921,6 +921,7 @@ template class DVMS< QSVMSData<3,4> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,3> >;
 template class DVMS< QSVMSDEMCoupledData<3,4> >;
+template class DVMS< QSVMSDEMCoupledData<3,10> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,4> >;
 template class DVMS< QSVMSDEMCoupledData<2,6> >;

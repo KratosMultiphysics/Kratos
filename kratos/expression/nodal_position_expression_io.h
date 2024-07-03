@@ -37,24 +37,24 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) NodalPositionExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(Input);
+        KRATOS_CLASS_POINTER_DEFINITION(NodalPositionExpressionInput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Input(
+        NodalPositionExpressionInput(
             const ModelPart& rModelPart,
             const Configuration& rConfiguration,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~Input() override = default;
+        ~NodalPositionExpressionInput() override = default;
 
         ///@}
         ///@name Public operations
@@ -78,24 +78,24 @@ public:
 
     };
 
-    class KRATOS_API(KRATOS_CORE) Output : public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) NodalPositionExpressionOutput : public ExpressionOutput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(Output);
+        KRATOS_CLASS_POINTER_DEFINITION(NodalPositionExpressionOutput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Output(
+        NodalPositionExpressionOutput(
             ModelPart& rModelPart,
             const Configuration& rConfiguration,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~Output() override = default;
+        ~NodalPositionExpressionOutput() override = default;
 
         ///@}
         ///@name Public operations

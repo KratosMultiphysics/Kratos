@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 # Import applications
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver as NavierMonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
 
 # Import base class file
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver
@@ -78,6 +78,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
+        #self.condition_name = "NavierStokesWallCondition"
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
     def _SetUpAQSVMSDEM(self,settings):
@@ -115,7 +116,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithicDEM(model, custom_settings)
 
-class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesMonolithicSolver):
+class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesSolverMonolithic):
 
     def GetDefaultParameters(cls):
 
@@ -153,7 +154,7 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -185,6 +186,7 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         """
         self._validate_settings_in_baseclass=True
         self.dimension = custom_settings["domain_size"].GetInt()
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
 
         # Set up the auxiliary class with the formulation settings
@@ -203,12 +205,16 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
+    def CreateSolutionStrategy(self):
+        super(NavierStokesSolverMonolithicDEM, self).CreateSolutionStrategy()
+
     def InitializeSolutionStep(self):
         super(NavierStokesSolverMonolithicDEM, self).InitializeSolutionStep()
 
     def _SetFormulation(self):
         self.formulation = StabilizedFormulationDEMCoupled(self.settings["formulation"])
         self.element_name = self.formulation.element_name
+        #self.condition_name = "NavierStokesWallCondition"
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
@@ -228,14 +234,14 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
                 # TO DO: TO BE REMOVED WHEN NEXT GID VERSION LETS DEFINE PERMEABILITY FROM PROBLEMTYPE
                     if self.dimension == 2:
                         permeability = [
-                            [1e+89,1e+89],
-                            [1e+89,1e+90]
+                            [0.0,0.0],
+                            [0.0,0.0]
                             ]
                     else:
                         permeability = [
-                            [1e+89,1e+89,0.0],
-                            [1e+89,1e+90,0.0],
-                            [0.0,1e+90,1e+89]]
+                            [0.0,0.0,0.0],
+                            [0.0,0.0,0.0],
+                            [0.0,0.0,0.0]]
                     perm = KratosMultiphysics.Matrix(permeability)
                     KratosMultiphysics.Logger.PrintWarning('No \'PERMEABILITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, perm))
                     KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, perm, self.main_model_part.Nodes)

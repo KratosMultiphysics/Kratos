@@ -27,11 +27,17 @@
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
 #include "../custom_constitutive/drag_laws/chien_drag_law.h"
 #include "../custom_constitutive/drag_laws/dallavalle_drag_law.h"
+#include "../custom_constitutive/drag_laws/difelice_drag_law.h"
+#include "../custom_constitutive/drag_laws/rong_drag_law.h"
 
-// Inviscid force laws
-#include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
-#include "custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
-#include "custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.h"
+// Virtual mass force laws
+#include "custom_constitutive/virtual_mass_force_laws/virtual_mass_force_law.h"
+#include "custom_constitutive/virtual_mass_force_laws/auton_hunt_prudhomme_virtual_mass_force_law.h"
+#include "custom_constitutive/virtual_mass_force_laws/zuber_virtual_mass_force_law.h"
+
+// Undisturbed flow force laws
+#include "custom_constitutive/undisturbed_force_laws/undisturbed_force_law.h"
+#include "custom_constitutive/undisturbed_force_laws/pressure_gradient_undisturbed_force_law.h"
 
 // History force laws
 #include "custom_constitutive/history_force_laws/history_force_law.h"
@@ -62,7 +68,8 @@ namespace py = pybind11;
 typedef HydrodynamicInteractionLaw BaseHydrodynamicInteractionLawType;
 typedef BuoyancyLaw BaseBuoyancyLawType;
 typedef DragLaw BaseDragLawType;
-typedef InviscidForceLaw BaseInviscidForceLawType;
+typedef VirtualMassForceLaw BaseVirtualMassForceLawType;
+typedef UndisturbedForceLaw BaseUndisturbedForceLawType;
 typedef HistoryForceLaw BaseHistoryForceLaw;
 typedef VorticityInducedLiftLaw BaseVorticityInducedLiftLawType;
 typedef RotationInducedLiftLaw BaseRotationInducedLiftLawType;
@@ -78,7 +85,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
         .def("SetBuoyancyLaw", &HydrodynamicInteractionLaw::SetBuoyancyLaw)
         .def("SetDragLaw", &HydrodynamicInteractionLaw::SetDragLaw)
-        .def("SetInviscidForceLaw", &HydrodynamicInteractionLaw::SetInviscidForceLaw)
+        .def("SetVirtualMassForceLaw", &HydrodynamicInteractionLaw::SetVirtualMassForceLaw)
+        .def("SetUndisturbedForceLaw", &HydrodynamicInteractionLaw::SetUndisturbedForceLaw)
         .def("SetHistoryForceLaw", &HydrodynamicInteractionLaw::SetHistoryForceLaw)
         .def("SetVorticityInducedLiftLaw", &HydrodynamicInteractionLaw::SetVorticityInducedLiftLaw)
         .def("SetRotationInducedLiftLaw", &HydrodynamicInteractionLaw::SetRotationInducedLiftLaw)
@@ -141,7 +149,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<Parameters>())
         ;
 
-
     py::class_<GanserDragLaw, GanserDragLaw::Pointer, BaseDragLawType>(m, "GanserDragLaw")
         .def(py::init<>())
         .def(py::init<Parameters>())
@@ -162,24 +169,48 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<Parameters&>())
         ;
 
-    // Inviscid force laws
-    py::class_<InviscidForceLaw, InviscidForceLaw::Pointer>(m, "InviscidForceLaw")
+    py::class_<DiFeliceDragLaw, DiFeliceDragLaw::Pointer, BaseDragLawType>(m, "DiFeliceDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters>())
-        .def("Clone", &InviscidForceLaw::Clone)
-        .def("SetInviscidForceLawInProperties", &InviscidForceLaw::SetInviscidForceLawInProperties)
-        .def("GetTypeOfLaw", &InviscidForceLaw::GetTypeOfLaw)
+        .def(py::init<Parameters&>())
         ;
 
-    py::class_<AutonHuntPrudhommeInviscidForceLaw, AutonHuntPrudhommeInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "AutonHuntPrudhommeInviscidForceLaw")
+    py::class_<RongDragLaw, RongDragLaw::Pointer, BaseDragLawType>(m, "RongDragLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    // Virtual mass force laws
+    py::class_<VirtualMassForceLaw, VirtualMassForceLaw::Pointer>(m, "VirtualMassForceLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def("Clone", &VirtualMassForceLaw::Clone)
+        .def("SetVirtualMassForceLawInProperties", &VirtualMassForceLaw::SetVirtualMassForceLawInProperties)
+        .def("GetTypeOfLaw", &VirtualMassForceLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<AutonHuntPrudhommeVirtualMassForceLaw, AutonHuntPrudhommeVirtualMassForceLaw::Pointer, BaseVirtualMassForceLawType>(m, "AutonHuntPrudhommeVirtualMassForceLaw")
         .def(py::init<>())
         .def(py::init<Parameters>())
         ;
 
-    py::class_<ZuberInviscidForceLaw, ZuberInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "ZuberInviscidForceLaw")
+
+    py::class_<ZuberVirtualMassForceLaw, ZuberVirtualMassForceLaw::Pointer, BaseVirtualMassForceLawType>(m, "ZuberVirtualMassForceLaw")
         .def(py::init<>())
         .def(py::init<Parameters>())
         ;
+
+    // Undisturbed flow force laws
+    py::class_<UndisturbedForceLaw, UndisturbedForceLaw::Pointer>(m, "UndisturbedForceLaw")
+            .def(py::init<>())
+            .def(py::init<Parameters>())
+            ;
+
+
+    py::class_<PressureGradientUndisturbedForceLaw, PressureGradientUndisturbedForceLaw::Pointer, BaseUndisturbedForceLawType>(m, "PressureGradientUndisturbedForceLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        ;
+
 
     // History force laws
     py::class_<HistoryForceLaw, HistoryForceLaw::Pointer>(m, "HistoryForceLaw")

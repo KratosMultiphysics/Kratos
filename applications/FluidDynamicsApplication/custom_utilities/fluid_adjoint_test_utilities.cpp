@@ -364,13 +364,13 @@ void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(
 
 
 // template instantiations
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<double>&, const NodeType&);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) array_1d<double, 3> FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<array_1d<double, 3>>&, const NodeType&);
+template double FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<double>&, const NodeType&);
+template array_1d<double, 3> FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<array_1d<double, 3>>&, const NodeType&);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
 
 } // namespace Kratos

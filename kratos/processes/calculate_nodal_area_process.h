@@ -4,14 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborators:   Vicente Mataix Ferrandiz
 //
 
-#pragma once
+#if !defined(KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED )
+#define  KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -19,8 +20,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -52,18 +52,14 @@ struct CalculateNodalAreaSettings
     constexpr static bool SaveAsHistoricalVariable = true;
     constexpr static bool SaveAsNonHistoricalVariable = false;
 };
-
-/**
+    
+/** 
  * @class CalculateNodalAreaProcess
- * @ingroup KratosCore
+ * @ingroup KratosCore 
  * @brief Computes NODAL_AREA
- * @details Calculate the NODAL_AREA for computing the weighted area in each node. This process computes the nodal area for each node in the given model part. It supports calculations
- * for both historical and non-historical data storage. The process iterates over all elements in the
- * model part, calculates the area contribution from each element to its nodes, and aggregates these
- * contributions to compute the total area associated with each node.
+ * @details Calculate the NODAL_AREA for computing the weighted area in each node
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @tparam THistorical Determines the type of data storage (historical or non-historical) used for the nodal area variable.
  */
 template<bool THistorical = true>
 class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
@@ -74,11 +70,14 @@ public:
     ///@{
 
     /// Index type definition
-    using IndexType = std::size_t;
-
+    typedef std::size_t IndexType;
+    
     /// Size type definition
-    using SizeType = std::size_t;
+    typedef std::size_t SizeType;
 
+    /// The definition of the node
+    typedef Node NodeType;
+    
     /// Pointer definition of CalculateNodalAreaProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalAreaProcess);
 
@@ -87,27 +86,27 @@ public:
     ///@{
 
     /**
-     * @brief Constructor with Model and Parameters.
-     * @param rModel The model containing the model part to be computed
-     * @param rParameters The parameters containing the necessary data for the process
-     */
-    CalculateNodalAreaProcess(
-        Model& rModel,
-        Parameters rParameters
-        );
-
-    /**
      * @brief Default constructor.
      * @param rModelPart The model part to be computed
      * @param DomainSize The size of the space, if the value is not provided will compute from the model part
      */
     CalculateNodalAreaProcess(
-        ModelPart& rModelPart,
+        ModelPart& rModelPart, 
         const SizeType DomainSize = 0
-        );
+        ): mrModelPart(rModelPart),
+           mDomainSize(DomainSize)
+    {
+        // In case is not provided we will take from the model part
+        if (mDomainSize == 0) {
+            KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo" << std::endl;
+            mDomainSize = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        }
+    }
 
     /// Destructor.
-    ~CalculateNodalAreaProcess() override = default;
+    ~CalculateNodalAreaProcess() override
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -118,23 +117,12 @@ public:
         Execute();
     }
 
+
     ///@}
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Execute method is used to execute the Process algorithms for calculating nodal area
-     * @details This function first checks the availability of required variables and initializes nodal area values to zero.
-     * It then iterates over all elements in the model part, calculates the area contribution from each element
-     * to its nodes, and aggregates these contributions to compute the total area associated with each node.
-     * Finally, it synchronizes the nodal area data across different processors if running in parallel.
-     */
     void Execute() override;
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -143,6 +131,7 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
 
     ///@}
     ///@name Input and output
@@ -165,25 +154,67 @@ public:
     {
     }
 
+
     ///@}
     ///@name Friends
     ///@{
 
+
     ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
 
+
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     ModelPart& mrModelPart;  /// The model part where the nodal area is computed
     SizeType mDomainSize;    /// The dimension of the space
 
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -194,22 +225,17 @@ private:
      * @param rNode The node iterator to be get
      * @return The current value of NODAL_AREA
      */
-    double& GetAreaValue(Node& rNode);
-
-    /**
-     * @brief Checks the domain size and throws an error if it is not specified.
-     * @details This function checks the domain size of the model part and throws an error if it is not specified in the ProcessInfo.
-     * The domain size is obtained from the ProcessInfo and stored in the member variable mDomainSize.
-     */
-    void CheckDomainSize();
+    double& GetAreaValue(NodeType& rNode);
 
     ///@}
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
 
     ///@}
     ///@name Un accessible methods
@@ -220,6 +246,7 @@ private:
 
     /// Copy constructor.
     //CalculateNodalAreaProcess(CalculateNodalAreaProcess const& rOther);
+
 
     ///@}
 
@@ -254,6 +281,9 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+
 }  // namespace Kratos.
+
+#endif // KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED  defined 
 
 

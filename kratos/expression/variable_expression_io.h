@@ -23,7 +23,6 @@
 #include "expression_io.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -48,25 +47,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) Input : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) VariableExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(Input);
+        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionInput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Input(
+        VariableExpressionInput(
             const ModelPart& rModelPart,
             const VariableType& rVariable,
-            Globals::DataLocation CurrentLocation,
-            MeshType CurrentMeshType = MeshType::Local);
+            const ContainerType& rContainerType,
+            const MeshType& rMeshType = MeshType::Local);
 
-        ~Input() override = default;
+        ~VariableExpressionInput() override = default;
 
         ///@}
         ///@name Public operations
@@ -80,37 +79,37 @@ public:
         ///@name Private member variables
         ///@{
 
-        ModelPart const * mpModelPart;
+        const ModelPart& mrModelPart;
 
-        VariableType mpVariable;
+        const VariableType mpVariable;
 
-        Globals::DataLocation mDataLocation;
+        const ContainerType mContainerType;
 
-        MeshType mMeshType;
+        const MeshType mMeshType;
 
         ///@}
 
     };
 
-    class KRATOS_API(KRATOS_CORE) Output : public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) VariableExpressionOutput : public ExpressionOutput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(Output);
+        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionOutput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        Output(
+        VariableExpressionOutput(
             ModelPart& rModelPart,
             const VariableType& rVariable,
-            Globals::DataLocation CurrentLocation,
-            MeshType CurrentMeshType = MeshType::Local);
+            const ContainerType& rContainerType,
+            MeshType rMeshType = MeshType::Local);
 
-        ~Output() override = default;
+        ~VariableExpressionOutput() override = default;
 
         ///@}
         ///@name Public operations
@@ -124,13 +123,13 @@ public:
         ///@name Private member variables
         ///@{
 
-        ModelPart * mpModelPart;
+        ModelPart& mrModelPart;
 
-        VariableType mpVariable;
+        const VariableType mpVariable;
 
-        Globals::DataLocation mDataLocation;
+        const ContainerType mContainerType;
 
-        MeshType mMeshType;
+        const MeshType mMeshType;
 
         ///@}
 

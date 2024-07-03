@@ -52,7 +52,8 @@ namespace Kratos {
         double A = 180 + 18 * std::pow(eps, 4) / eps_s * (1 + 1.5 * std::sqrt(eps_s));
         double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(mod_reynolds_number, - 0.343)) / (1.0 + std::pow(10.0, 3 * eps_s) * std::pow(mod_reynolds_number, 2 * eps - 2.5));
         drag_coeff = Globals::Pi / 3.0 * fluid_kinematic_viscosity * fluid_density * particle_radius * (A * eps_s / eps + B * mod_reynolds_number);
-
+        double& drag_magnitude = r_geometry[0].FastGetSolutionStepValue(DRAG_COEFFICIENT);
+        drag_magnitude = drag_coeff;
         noalias(drag_force) = drag_coeff * minus_slip_velocity;
     }
 } // namespace Kratos

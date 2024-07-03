@@ -58,6 +58,17 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Node type (default is: Node<3>)
+    typedef Node NodeType;
+
+    /// Geometry type (using with given NodeType)
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
     /// Pointer definition of PorositySolutionAndBodyForceProcess
     KRATOS_CLASS_POINTER_DEFINITION(PorositySolutionAndBodyForceProcess);
 
@@ -152,7 +163,7 @@ public:
 
     void SetBodyForceAndPorosityField();
 
-    void SetFluidProperties();
+    void SetValuesOnIntegrationPoints();
     ///@}
     ///@name Friends
     ///@{

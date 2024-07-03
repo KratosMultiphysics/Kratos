@@ -119,15 +119,6 @@ public:
     }
 
     /**
-     * @brief Removes all components.
-     * @details This function removes all components form the ComponentsContainer and leaves it empty.
-     */
-    static void Clear() 
-    {
-        msComponents.clear();
-    }
-
-    /**
      * @brief Registers the function.
      */
     static void Register()
@@ -476,7 +467,8 @@ private:
 
 }; // Class KratosComponents
 
-template<class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+template<class TComponentType>
+typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int>>;

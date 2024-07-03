@@ -1,15 +1,3 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Pablo Agustin Becker
-//
-
 // System includes
 #include <limits>
 
@@ -25,7 +13,10 @@
 #include "includes/model_part_io.h"
 #include "testing/testing.h"
 
-namespace Kratos::Testing {
+
+namespace Kratos {
+
+namespace Testing {
 
 
 KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
@@ -130,6 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
 
 }
 
+
 KRATOS_TEST_CASE_IN_SUITE(TetrahedraGenericFindElementsNeighbourProcessTest,
                           KratosCoreFastSuite)
 {
@@ -184,7 +176,10 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraGenericFindElementsNeighbourProcessTest,
             KRATOS_EXPECT_EQ( elem1_neighs(i_face).get(),nullptr); //no neigh in these faces
         }
     }
+
+
 }
+
 
 KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProcessTest,
                           KratosCoreFastSuite)
@@ -299,4 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProc
 
 }
 
-} // namespace Kratos::Testing
+
+} // namespace Testing
+
+} // namespace Kratos

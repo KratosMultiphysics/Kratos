@@ -189,6 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Horizontal, KratosCoreFastS
     KRATOS_EXPECT_NEAR((*neg_ext_faces[0])[2].X(), 0.0, tolerance);
     KRATOS_EXPECT_NEAR((*neg_ext_faces[0])[2].Y(), 1.0, tolerance);
     KRATOS_EXPECT_NEAR((*neg_ext_faces[0])[2].Z(), 0.0, tolerance);
+
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Oblique, KratosCoreFastSuite)

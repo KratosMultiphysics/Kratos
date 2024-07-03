@@ -195,6 +195,7 @@ public:
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
+    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
 
     ///@}
@@ -217,8 +218,17 @@ protected:
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
-    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    DenseVector <BoundedMatrix<double,3,3>> mViscousResistanceTensor;
+    DenseVector <double> mPreviousPressure;
     int mInterpolationOrder = 1;
+    std::vector<double> mExactPorosity;
+    std::vector<double> mExactPorosityRate;
+    std::vector<Vector> mExactPorosityGradient;
+    std::vector<Vector> mExactBodyForce;
+    std::vector<Vector> mExactVector;
+    std::vector<double> mExactScalar;
+    std::vector<array_1d<double,3>> mExactScalarGradient;
+    std::vector<Matrix> mExactVectorGradient;
 
     ///@}
     ///@name Protected Operators
@@ -263,6 +273,13 @@ protected:
     void CalculateResistanceTensor(
         const TElementData& rData);
 
+    void CalculateSpectralRadius(
+        const TElementData& rData,
+        double& spectral_radius,
+        double tau_one_NS,
+        const double c1,
+        MatrixType matrix) const;
+
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
@@ -279,6 +296,10 @@ protected:
         VectorType& rRHS) override;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void UpdateIntegrationPointDataSecondDerivatives(
         TElementData& rData,
@@ -301,6 +322,14 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double& rPressureSubscale) const override;
+
+    bool GaussSeidelEigenSystem(
+        MatrixType& rA,
+        MatrixType& rEigenVectorsMatrix,
+        MatrixType& rEigenValuesMatrix,
+        const double Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        ) const;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const override;
@@ -331,8 +360,34 @@ protected:
 
     void CalculateOnIntegrationPoints(
         Variable<Matrix> const& rVariable,
-        std::vector<Matrix>& rValues,
+        std::vector<Matrix>& rOutput,
         ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<array_1d<double,3>> const& rVariable,
+        std::vector<array_1d<double,3>> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

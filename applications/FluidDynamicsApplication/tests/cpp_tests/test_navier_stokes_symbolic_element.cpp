@@ -17,15 +17,13 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
-
-// Application includes
 #include "custom_elements/navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -144,11 +142,11 @@ namespace Kratos {
 
 			// // Check quadratic convergence (if FullNR has been selected when generating the element)
 			// for(unsigned int i=1; i<error_norms.size(); ++i)
-			// 	KRATOS_EXPECT_NEAR(error_norms[i-1]/error_norms[i], 4.0, 1e-1);
+			// 	KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 4.0, 1e-1);
 
 			// Check quadratic convergence (if Picard has been selected when generating the element)
 			for(unsigned int i=1; i<error_norms.size(); ++i)
-				KRATOS_EXPECT_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
+				KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
 
 			// std::cout<<std::endl;
 			// for(unsigned int i=0;i<error_norms.size();++i){
@@ -225,7 +223,7 @@ namespace Kratos {
 			double sum_RHS = 0.0;
 			for (unsigned int i=0; i<RHS.size(); ++i)
 				sum_RHS += RHS[i];
-			KRATOS_EXPECT_NEAR(sum_RHS, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-12);
 
 			// Check rigid movement modes
 			Vector a(9);
@@ -237,21 +235,21 @@ namespace Kratos {
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 2 check
 			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;	a[8] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 3 check
 			a[0] = 1.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 1.0;	a[4] = 1.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 1.0;	a[8] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 
 	    }
 
@@ -370,11 +368,11 @@ namespace Kratos {
 
 			// // Check quadratic convergence (if FullNR has been selected when generating the element)
 			// for(unsigned int i=1; i<error_norms.size(); ++i)
-			// 	KRATOS_EXPECT_NEAR(error_norms[i-1]/error_norms[i], 4.0, 1e-1);
+			// 	KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 4.0, 1e-1);
 
 			// Check quadratic convergence (if Picard has been selected when generating the element)
 			for(unsigned int i=1; i<error_norms.size(); ++i)
-				KRATOS_EXPECT_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
+				KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
 
 			// std::cout<<std::endl;
 			// for(unsigned int i=0; i<error_norms.size(); ++i)
@@ -448,7 +446,7 @@ namespace Kratos {
 			double sum_RHS = 0.0;
 			for (unsigned int i=0; i<RHS.size(); ++i)
 				sum_RHS += RHS[i];
-			KRATOS_EXPECT_NEAR(sum_RHS, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-12);
 
 			// Check modes
 			Vector a(16);
@@ -460,42 +458,42 @@ namespace Kratos {
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 2 check
 			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	a[4] = 0.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;	a[8] = 0.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0; a[12] = 0.0; a[13] = 1.0; a[14] = 0.0; a[15] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 3 check
 			a[0] = 0.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;	a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;	a[8] = 0.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0; a[12] = 0.0; a[13] = 0.0; a[14] = 1.0; a[15] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 4 check
 			a[0] = 1.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;	a[4] = 1.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;	a[8] = 1.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0; a[12] = 1.0; a[13] = 0.0; a[14] = 1.0; a[15] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 5 check
 			a[0] = 0.0; a[1] = 1.0; a[2] = 1.0;	a[3] = 0.0;	a[4] = 0.0;	a[5] = 1.0;	a[6] = 1.0;	a[7] = 0.0;	a[8] = 0.0; a[9] = 1.0; a[10] = 1.0; a[11] = 0.0; a[12] = 0.0; a[13] = 1.0; a[14] = 1.0; a[15] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 			// Mode 6 check
 			a[0] = 1.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	a[4] = 1.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;	a[8] = 1.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0; a[12] = 1.0; a[13] = 1.0; a[14] = 0.0; a[15] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
 			for (unsigned int i=0; i<rhs.size(); ++i)
 				sum_rhs += rhs[i];
-			KRATOS_EXPECT_NEAR(sum_rhs, 0.0, 1e-12);
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
 
 		}
 

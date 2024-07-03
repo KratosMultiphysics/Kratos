@@ -16,13 +16,13 @@
 // External includes
 
 // Project includes
-#include "mpi/testing/mpi_testing.h"
+#include "testing/testing.h"
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_exporter.h"
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
 {
     using IndexType = std::size_t;
     auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -47,22 +47,15 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
         indices_to_export.push_back(total_size-1);
         data_to_export.push_back(15.0);
     }
-
     DistributedVectorExporter<IndexType> exporter(r_comm,indices_to_export,x.GetNumbering());
     exporter.Apply(x,data_to_export);
-
-    if(x.GetNumbering().IsLocal(0)) {
+    if(x.GetNumbering().IsLocal(0))
         KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(0)], 5.0, 1e-14);
-    }
-
     // TODO: These checks are failing, to be fixed by @riccardorossi
-    if(x.GetNumbering().IsLocal(total_size/2)) {
+    if(x.GetNumbering().IsLocal(total_size/2))
         KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size/2)], 9.0, 1e-14);
-    }
-    
-    if(x.GetNumbering().IsLocal(total_size-1)) {
+    if(x.GetNumbering().IsLocal(total_size-1))
         KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
-    }
 }
 
 } // namespace Kratos::Testing

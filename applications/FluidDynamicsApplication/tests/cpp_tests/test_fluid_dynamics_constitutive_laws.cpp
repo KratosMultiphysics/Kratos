@@ -18,6 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "testing/testing.h"
 #include "includes/table.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -32,7 +33,6 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -173,19 +173,19 @@ namespace Kratos {
             // Check computed values
             const double tolerance = 1e-10;
 
-            KRATOS_EXPECT_NEAR(c_matrix(0,0),  0.4, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(0,1), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(0,2),  0.0, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,0), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,1),  0.4, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,2),  0.0, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,0),  0.0, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,1),  0.0, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,2),  0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.4, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.4, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.3, tolerance);
 
-            KRATOS_EXPECT_NEAR(stress_vector(0), 0.0, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(1), 1.8, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(2), 0.3, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(0), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1), 1.8, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), 0.3, tolerance);
 	    }
 
 	    /**
@@ -237,9 +237,9 @@ namespace Kratos {
             std::vector<double> expected_stress_1 = {0, 0.0078354, 0.0013059};
             std::vector<double> expected_c_1 = {0.0017412, -0.0008706, 0, -0.0008706, 0.0017412, 0, 0, 0, 0.0013059};
             for (unsigned int i = 0; i < 3; ++i) {
-                KRATOS_EXPECT_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
                 for (unsigned int j = 0; j < 3; ++j) {
-                    KRATOS_EXPECT_NEAR(c_matrix(i,j), expected_c_1[i*3 + j], tolerance);
+                    KRATOS_CHECK_NEAR(c_matrix(i,j), expected_c_1[i*3 + j], tolerance);
                 }
             }
 
@@ -252,9 +252,9 @@ namespace Kratos {
             std::vector<double> expected_stress_2 = {0, 0.0060096, 0.0010016};
             std::vector<double> expected_c_2 = {0.00133547, -0.000667733, 0, -0.000667733, 0.00133547, 0, 0, 0, 0.0010016};
             for (unsigned int i = 0; i < 3; ++i) {
-                KRATOS_EXPECT_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
                 for (unsigned int j = 0; j < 3; ++j) {
-                    KRATOS_EXPECT_NEAR(c_matrix(i,j), expected_c_2[i*3 + j], tolerance);
+                    KRATOS_CHECK_NEAR(c_matrix(i,j), expected_c_2[i*3 + j], tolerance);
                 }
             }
 	    }
@@ -311,8 +311,8 @@ namespace Kratos {
             std::vector<double> expected_c_1_diag = {0.00163977, 0.00163977, 0.00163977, 0.00122982, 0.00122982, 0.00122982};
             std::vector<double> expected_stress_1 = {-0.000819883, 0.00655907, -0.00573918, -0.00122982, -0.00737895, -0.00368947};
             for (unsigned int i = 0; i < strain_size; ++i) {
-                KRATOS_EXPECT_NEAR(c_matrix(i,i), expected_c_1_diag[i], tolerance);
-                KRATOS_EXPECT_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
+                KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_1_diag[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
             }
 
             // Set second temperature field
@@ -324,8 +324,8 @@ namespace Kratos {
             std::vector<double> expected_c_2_diag = {0.00119921, 0.00119921, 0.00119921, 0.00089941, 0.00089941, 0.00089941};
             std::vector<double> expected_stress_2 = {-0.000599607, 0.00479685, -0.00419725, -0.00089941, -0.00539646, -0.00269823};
             for (unsigned int i = 0; i < strain_size; ++i) {
-                KRATOS_EXPECT_NEAR(c_matrix(i,i), expected_c_2_diag[i], tolerance);
-                KRATOS_EXPECT_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
+                KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_2_diag[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
             }
 	    }
 
@@ -374,25 +374,25 @@ namespace Kratos {
             // Check computed values
             const double tolerance = 1e-10;
 
-            KRATOS_EXPECT_NEAR(c_matrix(0,0),  0.4, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(0,1), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(0,2), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,0), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,1),  0.4, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(1,2), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,0), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,1), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(2,2),  0.4, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(3,3),  0.3, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(4,4),  0.3, tolerance);
-            KRATOS_EXPECT_NEAR(c_matrix(5,5),  0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.4, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.4, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.4, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(3,3),  0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(4,4),  0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(5,5),  0.3, tolerance);
 
-            KRATOS_EXPECT_NEAR(stress_vector(0), -0.2, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(1),  1.6, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(2), -1.4, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(3),  0.6, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(4),  0.9, tolerance);
-            KRATOS_EXPECT_NEAR(stress_vector(5),  1.2, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(0), -0.2, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1),  1.6, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), -1.4, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(3),  0.6, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(4),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(5),  1.2, tolerance);
 	    }
 
         /**
@@ -494,9 +494,9 @@ namespace Kratos {
             theoretical_c_matrix(4,4) = 0.50625;
             theoretical_c_matrix(5,5) = 0.50625;
 
-            KRATOS_EXPECT_VECTOR_NEAR(stress_vector, theoretical_stress_vector, tolerance);
+            KRATOS_CHECK_VECTOR_NEAR(stress_vector, theoretical_stress_vector, tolerance);
 
-            KRATOS_EXPECT_MATRIX_NEAR(c_matrix, theoretical_c_matrix, tolerance);    
+            KRATOS_CHECK_MATRIX_NEAR(c_matrix, theoretical_c_matrix, tolerance);    
 	    }
 
 	    /**
@@ -543,12 +543,12 @@ namespace Kratos {
 
             for (unsigned int i = 0; i < strain_size; ++i) {
                 for (unsigned int j = 0; j < strain_size; ++j) {
-                    KRATOS_EXPECT_NEAR(c_matrix(i,j), 0.0, tolerance);
+                    KRATOS_CHECK_NEAR(c_matrix(i,j), 0.0, tolerance);
                 }
             }
 
             for (unsigned int i = 0; i < strain_size; ++i) {
-                KRATOS_EXPECT_NEAR(stress_vector(i), 0.0, tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), 0.0, tolerance);
             }
 	    }
 
@@ -599,12 +599,12 @@ namespace Kratos {
 
             for (unsigned int i = 0; i < strain_size; ++i) {
                 for (unsigned int j = 0; j < strain_size; ++j) {
-                    KRATOS_EXPECT_NEAR(c_matrix(i,j), 0.0, tolerance);
+                    KRATOS_CHECK_NEAR(c_matrix(i,j), 0.0, tolerance);
                 }
             }
 
             for (unsigned int i = 0; i < strain_size; ++i) {
-                KRATOS_EXPECT_NEAR(stress_vector(i), 0.0, tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), 0.0, tolerance);
             }
 	    }
 	} // namespace Testing

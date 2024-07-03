@@ -83,18 +83,9 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CheckDefaultsAndPr
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
-    double dynamic_viscosity = mViscosity * mDensity;
-
-    this->CalculatePermeability(dynamic_viscosity);
-
     this->CalculateFunctionParameters();
 }
 
-void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
-{
-    mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mViscosity * (mUchar/std::pow(mLength,2))));
-
-}
 
 void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculateFunctionParameters()
 {
@@ -169,8 +160,6 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForc
     const double height = mHeight;
     const double mean_alpha = mMeanAlpha;
 
-    Matrix inv_permeability = ZeroMatrix(dim,dim);
-
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // Computation of the BodyForce and Porosity fields
@@ -190,10 +179,10 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForc
         double& r_body_force1 = it_node->FastGetSolutionStepValue(BODY_FORCE_X);
         double& r_body_force2 = it_node->FastGetSolutionStepValue(BODY_FORCE_Y);
 
-        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
-        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
+        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[0];
+        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY)[1];
 
-        Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+        Matrix& sigma = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
         double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 
@@ -239,14 +228,7 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForc
 
         r_pressure = 0.0;
 
-        for (unsigned int d = 0; d < dim; ++d){
-            permeability(d,d) = 1.0e+30;
-        }
-
-        double det_permeability = MathUtils<double>::Det(permeability);
-        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
-
-        Matrix sigma = nu * rho * inv_permeability;
+        sigma = ZeroMatrix(dim, dim);
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
@@ -268,9 +250,9 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForc
             const double grad_alpha_div1 = r_alpha1 * (du11 + du22);
             const double grad_alpha_div2 = r_alpha2 * (du11 + du22);
 
-            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(1,0) * r_u2;
 
-            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(0,1) * r_u1 + sigma(1,1) * r_u2;
 
         }else{
             r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
@@ -280,11 +262,6 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForc
 
         r_mass_source = (r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22));
 
-        it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-        it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-        it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
-        it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
-        it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
     }
 
 }

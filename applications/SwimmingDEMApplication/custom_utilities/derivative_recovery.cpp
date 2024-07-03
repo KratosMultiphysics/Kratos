@@ -27,7 +27,7 @@ void DerivativeRecovery<TDim>::AddTimeDerivative(ModelPart& r_model_part, Variab
     const double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
-        const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(VELOCITY, 1));
+        const array_1d <double, 3> eulerian_rate_of_change = inode->FastGetSolutionStepValue(ACCELERATION);
         noalias(material_derivative) += eulerian_rate_of_change;
     }
 }
@@ -62,27 +62,52 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
     std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
     convective_contributions_to_the_derivative.resize(entry);
     array_1d <double, 3> grad = ZeroVector(3);
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    // array_1d <double, TDim + 1 > elemental_values;
+    // array_1d <double, TDim + 1 > N; // shape functions vector
+    // BoundedMatrix<double, TDim + 1, TDim> DN_DX;
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
         // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             // computing the shape function derivatives
             Geometry<Node >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-            for (unsigned int i = 0; i < TDim + 1; ++i){
+            // FROM HERE, I TRY TO DO AN IMPLEMENTATION FOR ANY ELEMENT
+            GeometryData::IntegrationMethod integration_method = ielem->GetIntegrationMethod();
+            auto number_integration_points = geom.IntegrationPointsNumber(integration_method);
+            const std::vector<IntegrationPoint<3>>& IntegrationPoints = geom.IntegrationPoints(integration_method);
+            double NumNodes = geom.size();
+            Vector gauss_weights = ZeroVector(number_integration_points);
+            Matrix shape_functions = ZeroMatrix(number_integration_points,NumNodes);
+            DenseVector<Matrix> shape_derivatives;
+            Matrix DN_DX = ZeroMatrix(NumNodes, TDim);
+            Vector N = ZeroVector(NumNodes);
+            Vector elemental_values = ZeroVector(NumNodes);
+
+            Vector DetJ;
+            geom.ShapeFunctionsIntegrationPointsGradients(shape_derivatives,DetJ,integration_method);
+            shape_functions = geom.ShapeFunctionsValues(integration_method);
+
+            for (unsigned int g = 0; g < number_integration_points; g++){
+                gauss_weights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+                for (unsigned int i = 0; i < NumNodes; ++i){
+                    for (unsigned int j = 0; j < NumNodes; ++j){
+                        for (unsigned int d = 0; d < TDim; ++d)
+                            DN_DX(j,d) += gauss_weights[g] * shape_functions(g,i) * shape_derivatives[g](j,d);
+                    }
+                }
+            }
+
+            //GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+            for (unsigned int i = 0; i < NumNodes; ++i){
                 elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
             }
             array_1d <double, 3> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
             for (unsigned int i = 0; i < TDim; ++i){
                 grad[i] = grad_aux[i];
             }
-            double nodal_area = Volume / static_cast<double>(TDim + 1);
-            grad *= nodal_area;
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                geom[i].FastGetSolutionStepValue(material_derivative_container) += grad; // we use material_derivative_container to store the gradient of one component at a time
+            // double nodal_area = Volume / static_cast<double>(TDim + 1);
+            // grad *= nodal_area;
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                geom[i].FastGetSolutionStepValue(material_derivative_container) += grad/NumNodes; // we use material_derivative_container to store the gradient of one component at a time
             }
         }
         // normalizing the constributions to the gradient and getting the j-component of the material derivative
@@ -268,26 +293,53 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
         noalias(inode->FastGetSolutionStepValue(gradient_container)) = ZeroVector(3);
     }
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    //array_1d <double, TDim + 1 > elemental_values;
+    //array_1d <double, TDim + 1 > N; // shape functions vector
+    //BoundedMatrix<double, TDim + 1, TDim> DN_DX;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
         Geometry<Node >& geom = ielem->GetGeometry();
-        double Volume;
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+        // FROM HERE, I TRY TO DO AN IMPLEMENTATION FOR ANY ELEMENT
+        GeometryData::IntegrationMethod integration_method = ielem->GetIntegrationMethod();
+        auto number_integration_points = geom.IntegrationPointsNumber(integration_method);
+        const std::vector<IntegrationPoint<3>>& IntegrationPoints = geom.IntegrationPoints(integration_method);
+
+        double NumNodes = geom.size();
+        Vector gauss_weights = ZeroVector(number_integration_points);
+        Matrix shape_functions = ZeroMatrix(number_integration_points,NumNodes);
+        DenseVector<Matrix> shape_derivatives;
+        Matrix DN_DX = ZeroMatrix(NumNodes, TDim);
+        Vector N = ZeroVector(NumNodes);
+        Vector elemental_values = ZeroVector(NumNodes);
+        // computing DN_DX values for the strain rate
+        //ielem->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        Vector DetJ;
+        geom.ShapeFunctionsIntegrationPointsGradients(shape_derivatives,DetJ,integration_method);
+        shape_functions = geom.ShapeFunctionsValues(integration_method);
+
+        //double Volume = geom.Volume();
+        for (unsigned int g = 0; g < number_integration_points; g++){
+            gauss_weights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                for (unsigned int j = 0; j < NumNodes; ++j){
+                    for (unsigned int d = 0; d < TDim; ++d)
+                        DN_DX(j,d) += gauss_weights[g] * shape_functions(g,i) * shape_derivatives[g](j,d);
+                }
+            }
+        }
+
+        //GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
         // getting the gradients;
-        for (unsigned int i = 0; i < TDim + 1; ++i){
+        for (unsigned int i = 0; i < NumNodes; ++i){
             elemental_values[i] = geom[i].FastGetSolutionStepValue(scalar_container);
         }
         array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
-        for (unsigned int i = 0; i < TDim; ++i){
-            grad[i] = grad_aux[i];
+        for (unsigned int d = 0; d < TDim; ++d){
+            grad[d] = grad_aux[d];
         }
-        double nodal_area = Volume / static_cast<double>(TDim + 1);
-        grad *= nodal_area;
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            geom[i].FastGetSolutionStepValue(gradient_container) += grad;
+        // AVERAGING
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            geom[i].FastGetSolutionStepValue(gradient_container) += grad/NumNodes;
         }
     }
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
@@ -348,12 +400,16 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
         }
         array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(gradient_container);
         recovered_gradient = ZeroVector(3);
-        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+        Vector gradient = ZeroVector(3);
+        const Vector& nodal_weights = inode->GetValue(NODAL_WEIGHTS);
         for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
             const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
             for (unsigned int d = 0; d < TDim; ++d){
-                recovered_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
+                gradient[d] += nodal_weights[TDim * i_neigh + d] * neigh_nodal_value;
             }
+        }
+        for (unsigned int d = 0; d < TDim; ++d){
+            recovered_gradient[d] = gradient[d];
         }
     }
     mCalculatingTheGradient = false;
@@ -432,6 +488,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
         if (!n_neigh){ // then we keep the defualt value
             continue;
         }
+
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
             polynomial_coefficients[i] = ZeroVector(3);
         }
@@ -772,7 +829,8 @@ double DerivativeRecovery<TDim>::SecondDegreeTestPolynomial(const array_1d <doub
 {
     const double x = coordinates[0];
     const double y = coordinates[1];
-    const double z = coordinates[2];
+    double z = 0.0;
+    if (TDim == 3) z = coordinates[2];
     return 1.0 + x + y + z + x * y + x * z + y * z + x * x + y * y + z * z;
 }
 //**************************************************************************************************************************************************
@@ -782,8 +840,14 @@ double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(DenseMatrix<doubl
 {
     const double x = coordinates[0];
     const double y = coordinates[1];
-    const double z = coordinates[2];
-    return C(0,0) + C(1,0) * x + C(2,0) * y + C(3,0) * z + C(4,0) * x * y + C(5,0) * x * z + C(6,0) * y * z + C(7,0) * x * x + C(8,0) * y * y + C(9,0) * z * z;
+    if (TDim == 3){
+        const double z = coordinates[2];
+        return C(0,0) + C(1,0) * x + C(2,0) * y + C(3,0) * z + C(4,0) * x * y + C(5,0) * x * z + C(6,0) * y * z + C(7,0) * x * x + C(8,0) * y * y + C(9,0) * z * z;
+    }
+    else{
+        return C(0,0) + C(1,0) * x + C(2,0) * y + C(3,0) * x * y + C(4,0) * x * x + C(5,0) * y * y;
+    }
+
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -804,7 +868,7 @@ template <std::size_t TDim>
 bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node)
 {
     unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
-    KRATOS_ERROR_IF(TDim == 2) << "Gradient recovery not implemented yet in 2D!)" << std::endl;
+    //KRATOS_ERROR_IF(TDim == 2) << "Gradient recovery not implemented yet in 2D!)" << std::endl;
     GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
     const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
@@ -835,13 +899,29 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 }
             }
         }
-        else {
-            KRATOS_ERROR << "Gradient recovery not implemented yet in 2D!)" << std::endl;
+        if constexpr (TDim == 2){
+            Node& neigh = neigh_nodes[i];
+            const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
+            TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
+            for (unsigned int d = 1; d < 6; ++d){
+                if (d < 3){
+                    A(i, d) = rel_coordinates[d - 1];
+                }
+                else if (d == 3){
+                    A(i, d) = rel_coordinates[0] * rel_coordinates[1];
+                }
+                else {
+                    A(i, d) = rel_coordinates[d - 4] * rel_coordinates[d - 4];
+                }
+            }
         }
+        //else {
+        //    KRATOS_ERROR << "Gradient recovery not implemented yet in 2D!)" << std::endl;
+        //}
     }
     DenseMatrix<double>AtransA(n_poly_terms, n_poly_terms);
     noalias(AtransA) = prod(trans(A), A);
-    if (std::abs(mMyCustomFunctions.template determinant< DenseMatrix<double> >(AtransA)) < 0.01){
+    if (std::abs(MathUtils<double>::Det(AtransA)) < 0.01){
         return false;
     }
     else {
@@ -862,7 +942,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
             normalization = h_inv;
             relevant_terms[0] = 1;
             relevant_terms[1] = 2;
-            relevant_terms[2] = 3;
+            if (TDim == 3) relevant_terms[2] = 3;
         }
         else if (mCalculatingTheLaplacian){
             normalization = h_inv * h_inv;
@@ -878,8 +958,18 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 relevant_terms[i - 1] = i;
             }
         }
-        Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
-        nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
+        p_node->SetLock();
+
+        //if (nodal_weights.size() > 1e6){
+        p_node->SetValue(NODAL_WEIGHTS, ZeroVector(n_relevant_terms * n_nodal_neighs));
+            //nodal_weights = ZeroVector(n_relevant_terms * n_nodal_neighs);}
+        // }else{
+        //     nodal_weights.clear();
+        //     nodal_weights.resize(n_relevant_terms * n_nodal_neighs,true);
+        //}
+        Vector& nodal_weights = p_node->GetValue(NODAL_WEIGHTS);
+        p_node->UnSetLock();
+        //if (nodal_weights.size() != n_relevant_terms * n_nodal_neighs) nodal_weights.resize(n_relevant_terms * n_nodal_neighs, false);
         const DenseMatrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
 //        for (unsigned i = 0; i < n_poly_terms; i++){
 //            for (unsigned j = 0; j < n_poly_terms; j++){
@@ -903,7 +993,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 nodal_weights(n_relevant_terms * i + d) = AtransAinvAtrans(relevant_terms[d], i) * normalization;
             }
         }
-        DenseMatrix<double> C(n_nodal_neighs, 1);
+        DenseMatrix<double> C = ZeroMatrix(n_nodal_neighs, 1);
         C = prod(AtransAinvAtrans, TestNodalValues);
         double abs_difference = 0.0;
         for (unsigned int i = 0; i < n_nodal_neighs; ++i){

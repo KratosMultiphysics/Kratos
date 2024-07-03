@@ -21,7 +21,7 @@
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "containers/model.h"
 #include "geometries/triangle_3d_3.h"
-#include "tests/test_utilities/cpp_tests_utilities.h"
+#include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Testing 
 {

@@ -257,6 +257,7 @@ public:
 
             // Predict acceleration
             rAcceleration = BDFcoefs[0] * rVel0 + BDFcoefs[1] * rVel1 + BDFcoefs[2] * rVel2;
+
         }
 
         KRATOS_CATCH("")
@@ -270,7 +271,7 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    void Update(
+    virtual void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,

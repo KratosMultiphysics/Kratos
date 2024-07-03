@@ -891,22 +891,6 @@ public:
         return false;
     }
 
-    /**
-     * @brief Returns a list of the fastest direct solvers.
-     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
-     * @return A vector of strings containing the names of the fastest direct solvers.
-     */
-    inline static std::vector<std::string> FastestDirectSolverList()
-    {
-        std::vector<std::string> faster_direct_solvers({
-            "pardiso_lu",              // LinearSolversApplication (if compiled with Intel-support)
-            "pardiso_ldlt",            // LinearSolversApplication (if compiled with Intel-support)
-            "sparse_lu",               // LinearSolversApplication
-            "skyline_lu_factorization" // In Core, always available, but slow
-        });
-        return faster_direct_solvers;
-    }
-
     //***********************************************************************
 
     inline static TDataType GetValue(const VectorType& x, std::size_t I)

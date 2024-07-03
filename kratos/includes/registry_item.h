@@ -18,12 +18,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
-
-#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
-    #include <boost/any.hpp>
-#else
-    #include <any>
-#endif 
+#include <any>
 
 // External includes
 
@@ -248,11 +243,7 @@ public:
     {
         KRATOS_TRY
 
-#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
-        return *(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
-#else
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
-#endif
 
         KRATOS_CATCH("");
     }
@@ -262,11 +253,7 @@ public:
     {
         KRATOS_TRY
 
-#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
-        return *std::dynamic_pointer_cast<TCastType>(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
-#else
         return *std::dynamic_pointer_cast<TCastType>(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
-#endif
 
         KRATOS_CATCH("");
     }
@@ -306,11 +293,7 @@ private:
     ///@{
 
     std::string mName;
-#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
-    boost::any mpValue;
-#else
     std::any mpValue;
-#endif
     std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}

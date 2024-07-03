@@ -713,9 +713,11 @@ private:
 
     char SkipWhiteSpaces();
 
+    bool IsWhiteSpace(char C);
+
     char GetCharacter();
 
-    void CheckStatement(std::string const& rStatement, std::string const& rGivenWord) const;
+    bool CheckStatement(std::string const& rStatement, std::string const& rGivenWord);
 
     void ResetInput();
 

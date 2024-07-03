@@ -7,31 +7,28 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Joaquin Gonzalez-Usua
+//  Main authors:    Joaquin Gonzalez-Usua, https://github.com/jgonzalezusua
 //
 
 #if !defined(KRATOS_BDF2_TURBULENT_SCHEME_DEM_COUPLED_H_INCLUDED )
 #define  KRATOS_BDF2_TURBULENT_SCHEME_DEM_COUPLED_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
-
+#include "boost/smart_ptr.hpp"
+#include <omp.h>
 // Project includes
 #include "solving_strategies/schemes/scheme.h"
-#include "includes/define.h"
-#include "includes/dof.h"
-#include "processes/process.h"
-#include "containers/pointer_vector_set.h"
-#include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "swimming_dem_application_variables.h"
+#include "linear_solvers/amgcl_solver.h"
+#include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h"
 
 
 namespace Kratos
@@ -70,10 +67,15 @@ public:
 
     /// Pointer definition of BDF2TurbulentSchemeDEMCoupled
     KRATOS_CLASS_POINTER_DEFINITION(BDF2TurbulentSchemeDEMCoupled);
+    //typedef BinBasedDEMFluidCoupledMapping<3, SphericParticle> BinBasedDEMFluidCoupledMapping3D;
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
+
+    typedef typename TSparseSpace::MatrixType MatrixType;
+    typedef typename TSparseSpace::VectorType VectorType;
+
 
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
@@ -83,6 +85,8 @@ public:
 
     typedef CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> RotationToolType;
     typedef typename RotationToolType::UniquePointer RotationToolPointerType;
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryData::SizeType  SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -92,6 +96,13 @@ public:
     BDF2TurbulentSchemeDEMCoupled()
     : BDF2TurbulentScheme<TSparseSpace, TDenseSpace>()
     , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    {}
+
+
+    BDF2TurbulentSchemeDEMCoupled(BinBasedDEMFluidCoupledMapping<3, SphericParticle>& rProjector)
+    : BDF2TurbulentScheme<TSparseSpace, TDenseSpace>()
+    , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    , mpProjector(&rProjector)
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -162,7 +173,7 @@ public:
                 rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
-        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+        //this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
     void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
@@ -194,103 +205,215 @@ public:
         KRATOS_CATCH("");
     }
 
+    void AssembleMassMatrix(TSystemMatrixType& rA,
+                          Matrix& rElementContribution,
+                          std::vector<std::size_t>& rEquationId)
+  {
+    const SizeType local_size = rElementContribution.size1();
+
+    for (unsigned int i_local = 0; i_local < local_size; i_local++)
+    {
+      unsigned int i_global = rEquationId[i_local];
+      double* values_vector = rA.value_data().begin();
+      std::size_t* index1_vector = rA.index1_data().begin();
+      std::size_t* index2_vector = rA.index2_data().begin();
+      size_t left_limit = index1_vector[i_global];
+      //find the first entry
+      size_t last_pos;
+      unsigned int position = left_limit;
+      while(rEquationId[0] != index2_vector[position])position++;
+
+      last_pos = position;
+      size_t last_found = rEquationId[0];
+      double& r_a = values_vector[last_pos];
+      const double& v_a = rElementContribution(i_local,0);
+      AtomicAdd(r_a,  v_a);
+      size_t posit = 0;
+      unsigned int pos;
+      for (unsigned int j=1; j<rEquationId.size(); j++) {
+          unsigned int id_to_find = rEquationId[j];
+          if(id_to_find > last_found) {
+            pos = last_pos+1;
+            while(id_to_find != index2_vector[pos]) pos++;
+            posit = pos;
+          } else if(id_to_find < last_found) {
+            pos = last_pos-1;
+            while(id_to_find != index2_vector[pos]) pos--;
+            posit = pos;
+          } else {
+              posit = last_pos;
+          }
+          double& r = values_vector[posit];
+          const double& v = rElementContribution(i_local,j);
+          AtomicAdd(r,  v);
+          last_found = id_to_find;
+          last_pos = posit;
+      }
+    }
+  }
+
+  void ConstructMassMatrixStructure(TSystemMatrixType& rA,
+                                    ModelPart& rModelPart,
+                                    const SizeType rEquationSystemSize)
+  {
+
+      std::vector<std::unordered_set<IndexType> > indices(rEquationSystemSize);
+
+      block_for_each(indices, [](std::unordered_set<IndexType>& rIndices){
+          rIndices.reserve(40);
+      });
+      const int number_of_elements = rModelPart.NumberOfElements();
+      std::vector<std::size_t> ids(3, 0);
+
+      #pragma omp parallel firstprivate(ids,number_of_elements)
+      {
+          ProcessInfo& ProcessInfo = rModelPart.GetProcessInfo();
+          // We repeat the same declaration for each thead
+          std::vector<std::unordered_set<IndexType> > temp_indexes(rEquationSystemSize);
+
+          #pragma omp for
+          for (int index = 0; index < static_cast<int>(rEquationSystemSize); ++index)
+              temp_indexes[index].reserve(30);
+
+          // Element initial iterator
+          const auto it_elem_begin = rModelPart.ElementsBegin();
+
+          // We iterate over the elements
+          #pragma omp for schedule(guided, 512) nowait
+          for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
+              auto it_elem = it_elem_begin + i_elem;
+              this->EquationId( *it_elem, ids, ProcessInfo);
+
+              for (auto& id_i : ids) {
+                  if (id_i < rEquationSystemSize) {
+                      auto& row_indices = temp_indexes[id_i];
+                      for (auto& id_j : ids)
+                          if (id_j < rEquationSystemSize)
+                              row_indices.insert(id_j);
+                  }
+              }
+          }
+          // Merging all the temporal indexes
+          #pragma omp critical
+          {
+              for (int i = 0; i < static_cast<int>(temp_indexes.size()); ++i) {
+                  indices[i].insert(temp_indexes[i].begin(), temp_indexes[i].end());
+              }
+          }
+      }
+
+      // Count the row sizes
+      SizeType nnz = 0;
+      for (IndexType i = 0; i < indices.size(); ++i)
+          nnz += indices[i].size();
+
+      rA = TSystemMatrixType(indices.size(), indices.size(), nnz);
+
+      double* Avalues = rA.value_data().begin();
+      std::size_t* Arow_indices = rA.index1_data().begin();
+      std::size_t* Acol_indices = rA.index2_data().begin();
+
+      // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+      Arow_indices[0] = 0;
+      for (IndexType i = 0; i < rA.size1(); ++i)
+          Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
+
+      IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+          const IndexType row_begin = Arow_indices[Index];
+          const IndexType row_end = Arow_indices[Index + 1];
+          IndexType k = row_begin;
+          for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
+              Acol_indices[k] = *it;
+              Avalues[k] = 0.0;
+              ++k;
+          }
+
+          std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+      });
+
+      mGlobalProjMassMatrix.set_filled(indices.size() + 1, nnz);
+  }
+
     void FullProjection(ModelPart& rModelPart)
     {
-        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        const auto timer_projector = BuiltinTimer();
+        KRATOS_INFO_IF("ResidualBasedBDF2SchemeDEMCoupled", rModelPart.GetCommunicator().MyPID() == 0)<< "Computing OSS projections" << std::endl;
+        ProcessInfo ProcessInfo = rModelPart.GetProcessInfo();
+        const int number_of_nodes = rModelPart.NumberOfNodes();
+        const int number_of_elements = rModelPart.NumberOfElements();
 
-        // Initialize containers
-        const int n_nodes = rModelPart.NumberOfNodes();
-        const int n_elems = rModelPart.NumberOfElements();
-        const array_1d<double,3> zero_vect = ZeroVector(3);
-#pragma omp parallel for firstprivate(zero_vect)
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto ind = rModelPart.NodesBegin() + i_node;
-            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = zero_vect; // "x"
-            ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
-            ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
-        }
+        Timer::Start("FullProjection");
+        const unsigned int dimension = ProcessInfo[DOMAIN_SIZE];
+        const SizeType system_size = number_of_nodes*(dimension+1);
+        VectorType ProjectionRHS = ZeroVector(system_size);
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        if (mMassMatrixAlreadyComputed == false){
 
-        // Newton-Raphson parameters
-        const double RelTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-4 * rModelPart.NumberOfNodes();
-        const double AbsTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-6 * rModelPart.NumberOfNodes();
-        const unsigned int MaxIter = 100;
-
-        // iteration variables
-        unsigned int iter = 0;
-        array_1d<double,3> dMomProj = zero_vect;
-        double dMassProj = 0.0;
-
-        double RelMomErr = 1000.0 * RelTol;
-        double RelMassErr = 1000.0 * RelTol;
-        double AbsMomErr = 1000.0 * AbsTol;
-        double AbsMassErr = 1000.0 * AbsTol;
-
-        while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
-        {
-            // Reinitialize RHS
-#pragma omp parallel for firstprivate(zero_vect)
-            for (int i_node = 0; i_node < n_nodes; ++i_node)
+            this->ConstructMassMatrixStructure(mGlobalProjMassMatrix,rModelPart,system_size);
+            Matrix LocalLHS;
+            std::vector<std::size_t> equation_id;
+            #pragma omp parallel firstprivate(number_of_elements, LocalLHS, equation_id )
             {
-                auto ind = rModelPart.NodesBegin() + i_node;
-                noalias(ind->GetValue(ADVPROJ)) = zero_vect; // "b"
-                ind->GetValue(DIVPROJ) = 0.0; // "b"
-                ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
+            # pragma omp for schedule(guided, 512) nowait
+            for (int k = 0; k < number_of_elements; k++){
+            ModelPart::ElementsContainerType::iterator it_elem = el_begin + k;
+            it_elem->EquationIdVector(equation_id, ProcessInfo);
+
+            it_elem->Calculate(CONSISTENT_MASS_MATRIX,LocalLHS,ProcessInfo);
+
+            this->AssembleMassMatrix(mGlobalProjMassMatrix,LocalLHS,equation_id);
+            }
             }
 
-            // Reinitialize errors
-            RelMomErr = 0.0;
-            RelMassErr = 0.0;
-            AbsMomErr = 0.0;
-            AbsMassErr = 0.0;
-
-            // Compute new values
-            array_1d<double, 3 > output;
-#pragma omp parallel for private(output)
-            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-                auto it_elem = rModelPart.ElementsBegin() + i_elem;
-                it_elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
-            }
-
-            rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-            rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
-            rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
-
-            // Update iteration variables
-#pragma omp parallel for
-            for (int i_node = 0; i_node < n_nodes; ++i_node) {
-                auto ind = rModelPart.NodesBegin() + i_node;
-                const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
-                dMomProj = ind->GetValue(ADVPROJ) / Area;
-                dMassProj = ind->GetValue(DIVPROJ) / Area;
-
-                RelMomErr += std::sqrt(std::pow(dMomProj[0],2) + std::pow(dMomProj[1],2) + std::pow(dMomProj[2],2));
-                RelMassErr += std::fabs(dMassProj);
-
-                auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
-                double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
-                rMomRHS += dMomProj;
-                rMassRHS += dMassProj;
-
-                AbsMomErr += std::sqrt(std::pow(rMomRHS[0],2) + std::pow(rMomRHS[1],2) + std::pow(rMomRHS[2],2));
-                AbsMassErr += std::fabs(rMassRHS);
-            }
-
-            if(AbsMomErr > 1e-10)
-                RelMomErr /= AbsMomErr;
-            else // If residual is close to zero, force absolute convergence to avoid division by zero errors
-                RelMomErr = 1000.0;
-
-            if(AbsMassErr > 1e-10)
-                RelMassErr /= AbsMassErr;
-            else
-                RelMassErr = 1000.0;
-
-            iter++;
+            mMassMatrixAlreadyComputed = true;
         }
 
-        KRATOS_INFO("BDF2TurbulentSchemeDEMCoupled") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
+        it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+        it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+        }
+        array_1d<double, 3 > output;
+
+        #pragma omp parallel for private(output)
+        for (int i = 0; i < number_of_elements; i++) {
+            ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+            it_elem->Calculate(ADVPROJ,output,ProcessInfo);
+        }
+
+        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+        rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_nodes; i++) {
+            ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+            array_1d<double,3>& AdvProj = it_node->FastGetSolutionStepValue(ADVPROJ);
+            unsigned int row = i*(dimension+1);
+            for (unsigned int d = 0; d < dimension; ++d)
+                ProjectionRHS[row+d] += AdvProj[d];
+            ProjectionRHS[row+dimension] += it_node->FastGetSolutionStepValue(DIVPROJ);
+        }
+
+        VectorType Proj = ZeroVector(system_size);
+
+        AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
+        LinearSolver.Solve(mGlobalProjMassMatrix, Proj, ProjectionRHS);
+
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_nodes; i++) {
+            ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+
+            array_1d<double,3>& MomentumProjection = it_node->FastGetSolutionStepValue(ADVPROJ);
+            unsigned int row = i*(dimension+1);
+            for (unsigned int d = 0; d < dimension; ++d)
+                MomentumProjection[d] = Proj[row+d];
+            it_node->FastGetSolutionStepValue(DIVPROJ) = Proj[row+dimension];
+        }
+        Timer::Stop("FullProjection");
+        KRATOS_INFO_IF("ResidualBasedBDF2SchemeDEMCoupled", rModelPart.GetCommunicator().MyPID() == 0) << "Residual projection time: " << timer_projector << std::endl;
     }
 
     void InitializeNonLinIteration(
@@ -299,20 +422,19 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-        KRATOS_TRY
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
 
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo ProcessInfo = rModelPart.GetProcessInfo();
 
         //if orthogonal subscales are computed
-        if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
+        if (ProcessInfo[OSS_SWITCH] == 1.0)
         {
-            //this->LumpedProjection(rModelPart);
             this->FullProjection(rModelPart);
+            //this->LumpedProjection(rModelPart);
         }
 
-        KRATOS_CATCH("")
     }
 
     void FinalizeNonLinIteration(
@@ -321,9 +443,35 @@ public:
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
-
         BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+        //mpProjector->UpdateHydrodynamicForces(rModelPart);
 
+    }
+
+    /// Store the iteration results as solution step variables and update acceleration after a Newton-Raphson iteration.
+    /**
+     * @param rModelPart fluid ModelPart
+     * @param rDofSet DofSet containing the Newton-Raphson system degrees of freedom.
+     * @param A Newton-Raphson system matrix (unused)
+     * @param Dx Newton-Raphson iteration solution
+     * @param b Newton-Raphson right hand side (unused)
+     */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        double alpha = rModelPart.GetProcessInfo()[RELAXATION_ALPHA];
+
+        TSparseSpace::InplaceMult(Dx, alpha);
+
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::Update(rModelPart,rDofSet,A,Dx,b);
+
+        KRATOS_CATCH("");
     }
 
     void UpdateFluidFraction(
@@ -340,16 +488,10 @@ public:
             double& fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
             double& fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
 
-            // This condition is needed to avoid large time variation of the porosity at the beginning of the simulation that can induce fluid instabilities
-            if (step <= 2){
-                fluid_fraction_2 = fluid_fraction_0;
-                fluid_fraction_1 = fluid_fraction_0;
-            }
-
             rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = BDFcoefs[0] * fluid_fraction_0 + BDFcoefs[1] * fluid_fraction_1 + BDFcoefs[2] * fluid_fraction_2;
 
-            rNode.GetSolutionStepValue(FLUID_FRACTION_OLD_2) = rNode.GetSolutionStepValue(FLUID_FRACTION_OLD);
-            rNode.GetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.GetSolutionStepValue(FLUID_FRACTION);
+            fluid_fraction_2 = fluid_fraction_1;
+            fluid_fraction_1 = fluid_fraction_0;
         });
     }
 
@@ -460,6 +602,9 @@ private:
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
+    BinBasedDEMFluidCoupledMapping<3,SphericParticle>::Pointer mpProjector = nullptr;
+    MatrixType mGlobalProjMassMatrix;
+    bool mMassMatrixAlreadyComputed = false;
 
     ///@}
     ///@name Serialization

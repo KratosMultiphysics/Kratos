@@ -25,13 +25,48 @@
 #include "utilities/reduction_utilities.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/rbf_shape_functions_utility.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
 
 namespace Kratos
 {
+
+bool FluidAuxiliaryUtilities::IsSplit(const Vector& rElementDistancesVector)
+{
+    std::size_t n_pos(0);
+    std::size_t n_neg(0);
+    const std::size_t pts_number = rElementDistancesVector.size();
+    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+        if (rElementDistancesVector[i_node] > 0.0)
+            n_pos++;
+        else
+            n_neg++;
+    }
+    return (n_pos > 0 && n_neg > 0) ? true : false;
+}
+
+bool FluidAuxiliaryUtilities::IsPositive(const Vector &rElementDistancesVector)
+{
+    std::size_t n_pos (0);
+    const std::size_t pts_number = rElementDistancesVector.size();
+    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+        if (rElementDistancesVector[i_node] > 0.0)
+            n_pos++;
+    }
+    return (n_pos == pts_number) ? true : false;
+}
+
+bool FluidAuxiliaryUtilities::IsNegative(const Vector &rElementDistancesVector)
+{
+    std::size_t n_neg (0);
+    const std::size_t pts_number = rElementDistancesVector.size();
+    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+        if (rElementDistancesVector[i_node] < 0.0)
+            n_neg++;
+    }
+    return n_neg == pts_number;
+}
 
 double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
 {
@@ -475,41 +510,6 @@ double FluidAuxiliaryUtilities::FindMaximumEdgeLength(
     });
 
     return l_max;
-}
-
-void FluidAuxiliaryUtilities::PostprocessP2P1ContinuousPressure(ModelPart& rModelPart)
-{
-    // Reset VISITED flag to indicate the already postprocessed nodes
-    VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
-
-    // Loop the P2P1 elements to postprocess the pressure in edge midpoint nodes
-    // Note that there is no need to do MPI synchronization as we are updating the ghost nodes too
-    if (rModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0) {
-        // Check DOMAIN_SIZE
-        KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
-            << "DOMAIN_SIZE cannot be found in '" << rModelPart.FullName() << "' ProcessInfo container."<<  std::endl;
-        // Loop the elements to assign the edge midpoint nodes PRESSURE
-        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
-            block_for_each(rModelPart.Elements(), [](auto& rElement){
-                auto& r_geometry = rElement.GetGeometry();
-                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D6);
-                PostprocessP2P1NodePressure(r_geometry, 3, 0, 1);
-                PostprocessP2P1NodePressure(r_geometry, 4, 1, 2);
-                PostprocessP2P1NodePressure(r_geometry, 5, 0, 2);
-            });
-        } else {
-            block_for_each(rModelPart.Elements(), [](auto& rElement){
-                auto& r_geometry = rElement.GetGeometry();
-                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10);
-                PostprocessP2P1NodePressure(r_geometry, 4, 0, 1);
-                PostprocessP2P1NodePressure(r_geometry, 5, 1, 2);
-                PostprocessP2P1NodePressure(r_geometry, 6, 0, 2);
-                PostprocessP2P1NodePressure(r_geometry, 7, 0, 3);
-                PostprocessP2P1NodePressure(r_geometry, 8, 1, 3);
-                PostprocessP2P1NodePressure(r_geometry, 9, 2, 3);
-            });
-        }
-    }
 }
 
 } // namespace Kratos

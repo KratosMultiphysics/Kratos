@@ -17,14 +17,14 @@
 
 // Project includes
 #include "containers/model.h"
+#include "testing/testing.h"
 #include "includes/constitutive_law.h"
 
 // Application includes
-#include "includes/cfd_variables.h"
 #include "custom_utilities/fluid_adjoint_test_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
-#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos
 {

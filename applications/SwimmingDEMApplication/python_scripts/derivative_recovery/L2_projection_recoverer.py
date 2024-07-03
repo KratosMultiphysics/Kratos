@@ -9,8 +9,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.DerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.model_part = model_part
-        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
-        self.recovery_model_part = ModelPart("PostGradientFluidPart")
+        self.recovery_model_part = Kratos.Model().CreateModelPart("PostGradientFluidPart")
         self.custom_functions_tool = SDEM.CustomFunctionsCalculator3D()
         self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
                                     or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
@@ -27,23 +26,27 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         model_part_cloner.GenerateModelPart(self.model_part, self.recovery_model_part, element_type, condition_type)
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
-        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        try:
+            from Kratos.ExternalSolversApplication import SuperLUIterativeSolver
+            linear_solver = SuperLUIterativeSolver()
+        except:
+            linear_solver = Kratos.SkylineLUFactorizationSolver()
+        #from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         # linear_solver = SuperLUIterativeSolver()
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         scheme = Kratos.ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = Kratos.AMGCLSmoother.ILU0
-        amgcl_krylov_type = Kratos.AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-8
+        amgcl_krylov_type = Kratos.AMGCLIterativeSolverType.BICGSTAB2
+        tolerance = 1e-12
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
 
-        if self.use_lumped_mass_matrix:
-            linear_solver = SuperLUIterativeSolver()
-        else:
+        if not self.use_lumped_mass_matrix:
             linear_solver = Kratos.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
-        self.recovery_strategy = Kratos.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
+        builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        self.recovery_strategy = SDEM.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, builder_and_solver, False, True, False, False)
         self.recovery_strategy.SetEchoLevel(echo_level)
 
     def AddDofs(self, DOF_variables):
@@ -63,6 +66,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
 class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.VorticityRecoverer):
     def __init__(self, project_parameters, model_part):
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeComponentGradientSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
@@ -101,6 +105,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
 
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionGradientRecoverer.__init__(self, project_parameters, model_part)
         self.store_full_gradient = project_parameters["store_full_gradient_option"].GetBool()
 
@@ -118,6 +123,7 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
 
 class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeMaterialDerivativeSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
@@ -129,8 +135,35 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccele
         self.SetToZero(Kratos.MATERIAL_ACCELERATION)
         self.recovery_strategy.Solve()
 
+class L2ProjectionFluidFractionGradientRecoverer(L2ProjectionDerivativesRecoverer):
+    def __init__(self, project_parameters, model_part):
+        self.use_lumped_mass_matrix = 0
+        L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
+        element_num_nodes = 4
+        condition_num_nodes = 2
+        domain_size = model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+        self.element_type = "ComputeFluidFractionGradient"+str(int(domain_size))+"D"+str(int(element_num_nodes))+"N"
+        self.condition_type = "MonolithicWallCondition"+str(int(domain_size))+"D"+str(int(condition_num_nodes))+"N"
+        #self.FillUpModelPart(self.element_type, self.condition_type)
+        #self.DOFs = (Kratos.FLUID_FRACTION_GRADIENT_X, Kratos.FLUID_FRACTION_GRADIENT_Y, Kratos.FLUID_FRACTION_GRADIENT_Z)
+        #self.AddDofs(self.DOFs)
+
+    def RecoverFluidFractionGradient(self, model_part):
+        self.model_part = model_part
+        self.element_type = "ComputeFluidFractionGradient2D4N"
+        self.condition_type = "MonolithicWallCondition2D2N"
+        self.recovery_model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] == 1
+        self.model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] == 1
+        self.FillUpModelPart(self.element_type, self.condition_type)
+        self.DOFs = (Kratos.FLUID_FRACTION_GRADIENT_X, Kratos.FLUID_FRACTION_GRADIENT_Y, Kratos.FLUID_FRACTION_GRADIENT_Z)
+        self.AddDofs(self.DOFs)
+        self.CreateCPluPlusStrategies()
+        self.SetToZero(Kratos.FLUID_FRACTION_GRADIENT)
+        self.recovery_strategy.Solve()
+
 class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeVelocityLaplacianSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"

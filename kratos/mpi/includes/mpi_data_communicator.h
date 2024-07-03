@@ -274,51 +274,15 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Inquiry
     ///@{
 
-    /**
-     * @brief Get the parallel rank for this DataCommunicator.
-     * @details This function serves as a wrapper for MPI_Comm_rank.
-     * @return The parallel rank of the current process.
-     */
     int Rank() const override;
 
-    /**
-     * @brief Get the parallel size of this DataCommunicator.
-     * @details This function serves as a wrapper for MPI_Comm_size.
-     * @return The parallel size of the communicator.
-     */
     int Size() const override;
 
-    /**
-     * @brief Check whether this DataCommunicator is aware of parallelism.
-     * @return True if the DataCommunicator is distributed, otherwise false.
-     */
     bool IsDistributed() const override;
 
-    /**
-     * @brief Check whether this DataCommunicator involves the current rank.
-     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
-     * @return True if the DataCommunicator is defined on the current rank, otherwise false.
-     */
     bool IsDefinedOnThisRank() const override;
 
-    /**
-     * @brief Check whether this DataCommunicator is MPI_COMM_NULL for the current rank.
-     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
-     * @return True if the DataCommunicator is MPI_COMM_NULL, otherwise false.
-     */
     bool IsNullOnThisRank() const override;
-
-    /**
-     * @brief Get a sub-data communicator.
-     * @details This function returns a sub-data communicator based on the provided ranks and a new communicator name.
-     * @param rRanks               The ranks to include in the sub-communicator.
-     * @param rNewCommunicatorName The name of the new sub-communicator.
-     * @return The sub-data communicator.
-     */
-    const DataCommunicator& GetSubDataCommunicator(
-        const std::vector<int>& rRanks,
-        const std::string& rNewCommunicatorName
-        ) const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI
