@@ -15,14 +15,15 @@
 #include "trilinos_application.h"
 #include "mpi/testing/mpi_testing.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
 class KratosTrilinosApplicationMPITestSuite : public KratosMPICoreFastSuite {
-public:
-  KratosTrilinosApplicationMPITestSuite();
+  public:
+    KratosTrilinosApplicationMPITestSuite();
 
-private:
-  KratosTrilinosApplication::Pointer mpTrilinosApp;
+  private:
+    KratosTrilinosApplication::Pointer mpTrilinosApp;
 };
 
 } // namespace Kratos::Testing

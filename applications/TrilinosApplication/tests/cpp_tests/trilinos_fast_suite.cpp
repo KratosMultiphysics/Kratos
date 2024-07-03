@@ -13,12 +13,14 @@
 // Project includes
 #include "trilinos_fast_suite.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
 KratosTrilinosApplicationMPITestSuite::KratosTrilinosApplicationMPITestSuite()
-    : KratosMPICoreFastSuite() {
-  mpTrilinosApp = std::make_shared<KratosTrilinosApplication>();
-  this->ImportApplicationIntoKernel(mpTrilinosApp);
+    : KratosMPICoreFastSuite() 
+{
+    mpTrilinosApp = std::make_shared<KratosTrilinosApplication>();
+    this->ImportApplicationIntoKernel(mpTrilinosApp);
 }
 
 } // namespace Kratos::Testing
