@@ -110,10 +110,12 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
-    py::class_< GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType >
-    (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
-    .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+    py::class_<GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType>
+        (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+                    BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>())
+        .def("SetUpNonconvergedSolutionsFlag", &GeoMechanicsNewtonRaphsonErosionProcessStrategyType::SetUpNonconvergedSolutionsFlag)
+        .def("GetNonconvergedSolutions", &GeoMechanicsNewtonRaphsonErosionProcessStrategyType::GetNonconvergedSolutions);
 
     py::class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsRammArcLengthStrategy")

@@ -78,6 +78,44 @@ public:
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
+
+    std::vector<Vector> NonconvergedSolutions;
+
+
+    /**
+     * @brief This matrix stores the non-converged solutions
+     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
+     */
+    Matrix mNonconvergedSolutionsMatrix;
+
+    /**
+     * @brief Flag indicating whether to store non-converged solutions
+     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
+     */
+    bool mStoreNonconvergedSolutionsFlag = false;
+
+
+    /**
+     * @brief Gets the matrix of non-converged solutions and the DOF set
+     * @return A tuple containing the matrix of non-converged solutions and the DOF set
+     * @details This method returns a tuple where the first element is a matrix of non-converged solutions and the second element is the corresponding DOF set.
+     */
+    std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
+        return std::make_tuple(mNonconvergedSolutionsMatrix, this->GetBuilderAndSolver()->GetDofSet());
+    }
+
+    /**
+    * @brief Sets the state for storing non-converged solutions.
+    * @param state The state to set for storing non-converged solutions (true to enable, false to disable).
+    * @details This method enables or disables the storage of non-converged solutions at each iteration
+    * by setting the appropriate flag. When the flag is set to true, non-converged solutions will be stored.
+    */
+    void SetUpNonconvergedSolutionsFlag(bool state) {
+        mStoreNonconvergedSolutionsFlag = state;
+    }
+
+
+
     void FinalizeSolutionStep() override
     {
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -139,6 +177,26 @@ public:
             // error check
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
+
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+        auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+        if (mStoreNonconvergedSolutionsFlag) {
+            Vector initial;
+            GetCurrentSolution(r_dof_set,initial);
+            NonconvergedSolutions.push_back(initial);
+        }
+
+        if (mStoreNonconvergedSolutionsFlag) {
+            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), NonconvergedSolutions.size() );
+            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
+                block_for_each(r_dof_set, [&](const auto& r_dof) {
+                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = NonconvergedSolutions[i](r_dof.EquationId());
+                });
+            }
+        }
+
+        NonconvergedSolutions.clear();
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
@@ -327,6 +385,25 @@ private:
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
+
+
+    /**
+    * @brief Gets the current solution vector
+    * @param rDofSet The set of degrees of freedom (DOFs)
+    * @param this_solution The vector that will be filled with the current solution values
+    * @details This method retrieves the current solution values for the provided DOF set.
+    * The provided solution vector will be resized to match the size of the DOF set if necessary,
+    * and will be filled with the solution values corresponding to each DOF. Each value is accessed
+    * using the equation ID associated with each DOF.
+    */
+    void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
+        this_solution.resize(rDofSet.size());
+        block_for_each(rDofSet, [&](const auto& r_dof) {
+            this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
+        });
+    }
+
+
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
@@ -350,6 +427,14 @@ private:
             //{
             //    grow = false;
             //}
+            typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+            auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+            if (mStoreNonconvergedSolutionsFlag) {
+                Vector initial;
+                GetCurrentSolution(r_dof_set,initial);
+                NonconvergedSolutions.push_back(initial);
+            }
 
             if (converged) {
                 // Update depth of open piping Elements
