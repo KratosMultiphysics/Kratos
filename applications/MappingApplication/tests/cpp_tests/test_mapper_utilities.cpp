@@ -12,16 +12,18 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
-#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "utilities/variable_utils.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
+
+// Application includes
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
 namespace Kratos::Testing {
 
