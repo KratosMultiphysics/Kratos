@@ -34,8 +34,9 @@ double& TrussBackboneConstitutiveLaw::GetValue(const Variable<double>& rThisVari
     if (rThisVariable == ACCUMULATED_STRAIN) {
         rValue = mAccumulatedStrain;
     } else {
-        KRATOS_ERROR << "Can't get the specified value for " << rThisVariable << std::endl;
+        rValue = BaseType::GetValue(rThisVariable, rValue);
     }
+
     return rValue;
 }
 
@@ -46,7 +47,7 @@ void TrussBackboneConstitutiveLaw::SetValue(const Variable<double>& rThisVariabl
     if (rThisVariable == ACCUMULATED_STRAIN) {
         mAccumulatedStrain = rValue;
     } else {
-        KRATOS_ERROR << "Can't set the specified value for " << rThisVariable << std::endl;
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -63,8 +64,9 @@ double& TrussBackboneConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters
             rValue = BackboneStiffness(axial_strain);
         }
     } else {
-        KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
+        rValue = BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
+
     return rValue;
 }
 
