@@ -115,22 +115,6 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rP
     return c;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckYoung(const Element::PropertiesType& rProp)
-{
-    const auto young = mrModelPart.GetProperties(rProp.Id())[UMAT_PARAMETERS][0];
-    KRATOS_ERROR_IF(young < 0.) << "Positive value expected for Youngs modulus UMAT_PARAMETERS(1) "
-                                << young << std::endl;
-    return young;
-}
-
-double ApplyCPhiReductionProcess::GetAndCheckPoisson(const Element::PropertiesType& rProp)
-{
-    const auto nu = mrModelPart.GetProperties(rProp.Id())[UMAT_PARAMETERS][1];
-    KRATOS_ERROR_IF(nu < -1. || nu >= 0.5)
-        << "Value between -1.0 and 0.5 expected for Poissons ratio UMAT_PARAMETERS(2) " << nu << std::endl;
-    return nu;
-}
-
 void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const
 {
     // Get C/Phi material properties of this element

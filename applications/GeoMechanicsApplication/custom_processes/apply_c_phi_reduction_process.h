@@ -52,10 +52,6 @@ private:
 
     double GetAndCheckC(const Element::PropertiesType& rProp);
 
-    double GetAndCheckYoung(const Element::PropertiesType& rProp);
-
-    double GetAndCheckPoisson(const Element::PropertiesType& rProp);
-
     void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
 
     void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
