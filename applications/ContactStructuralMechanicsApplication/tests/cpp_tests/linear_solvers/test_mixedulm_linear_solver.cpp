@@ -13,18 +13,18 @@
 // System includes
 #include <limits>
 
-/* External includes */
+// External includes
 
-/* Project includes */
-#include "testing/testing.h"
-#include "containers/model.h"
-
-/* Utility includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 #include "includes/matrix_market_interface.h"
 #include "includes/kratos_filesystem.h"
+#include "spaces/ublas_space.h"
+#include "containers/model.h"
+
+// Application includes
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"

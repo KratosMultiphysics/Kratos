@@ -67,7 +67,7 @@ private:
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
-    mutable std::map<SizeType, Matrix>                mExtrapolationMatrixMap = {};
+    std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
     std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
@@ -99,7 +99,7 @@ private:
                                             const Variable<T>& rVariable,
                                             const Matrix&      rExtrapolationMatrix,
                                             SizeType           NumberOfIntegrationPoints,
-                                            const U&           rAtomicAddOperation)
+                                            const U&           rAtomicAddOperation) const
     {
         auto&          r_this_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
@@ -119,12 +119,12 @@ private:
         }
     }
 
-    const Matrix&      GetExtrapolationMatrix(const Element& rElement) const;
-    [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
-    void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
-    const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
+    void CacheExtrapolationMatricesForElements();
+    void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
+    [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
+    [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix);
+    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix) const;
 };
 
 } // namespace Kratos.

@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MeshingApplication         as MeshingApplication
-import run_cpp_unit_tests
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -104,10 +103,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

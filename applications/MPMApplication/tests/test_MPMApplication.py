@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -31,6 +30,8 @@ from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTe
 from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
+
+from mpm_test_factory import FrictionConformingTest as TFrictionConformingTest
 
 from mpm_test_factory import ExplicitOscillatingPointUSLTest as TExplicitOscillatingPointUSLTest
 from mpm_test_factory import ExplicitOscillatingPointUSFTest as TExplicitOscillatingPointUSFTest
@@ -108,6 +109,8 @@ def AssembleTestSuites():
     # TODO: Look further into this test as they are still failing for AMatrix
     smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:
 
+    smallSuite.addTest(TFrictionConformingTest('test_execution'))
+
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
@@ -157,10 +160,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

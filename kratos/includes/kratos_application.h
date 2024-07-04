@@ -132,8 +132,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     virtual ~KratosApplication() 
     {
         // This must be commented until tests have been fixed.
-        // DeregisterCommonComponents();
-        // DeregisterApplication();
+        DeregisterCommonComponents();
+        DeregisterApplication();
     }
 
     ///@}

@@ -12,8 +12,7 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
-#include "includes/checks.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

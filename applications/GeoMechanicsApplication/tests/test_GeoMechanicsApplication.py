@@ -6,8 +6,6 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import run_cpp_unit_tests
-
 # Import the tests o test_classes to create the suits
 from generalTests import KratosGeoMechanicsGeneralTests
 from test_excavation import KratosGeoMechanicsExcavationTests
@@ -160,7 +158,3 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
