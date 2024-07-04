@@ -307,29 +307,33 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
         if self.level_set_type == "iga":
-            # Calculate the required neighbours
+            # Calculate the required neighbors
             elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbours_process.Execute()
 
-            settings.AddEmptyValue("skin_model_part_name").SetString("skin")
+            settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
+            settings.AddEmptyValue("interpolate_boundary").SetBool(False)
+            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary point-based interface utility created.")
 
             # Add Kratos conditions for points at the boundary based on extension operators
-            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
             sbm_interface_utility.AddSkinIntegrationPointConditions()
 
         elif self.level_set_type == "discontinuous":
-            # Calculate the required neighbours
+            # Calculate the required neighbors
             elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbours_process.Execute()
 
+            #
             settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility for discontinuous level-set created.")
 
             # Add Kratos conditions for points at the boundary based on extension operators
             sbm_interface_utility.CalculateExtensionOperator()
 
         else:
-            # Calculate the required neighbours
+            # Calculate the required neighbors
             nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
             nodal_neighbours_process.Execute()
             elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
@@ -337,10 +341,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
             settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility for continuous level-set created.")
 
             # Add Kratos conditions for points at the boundary based on extension operators
             sbm_interface_utility.CalculateExtensionOperator()
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility initialized and extension operators were calculated.")
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
 
     def GetDistanceModificationProcess(self):
         if not hasattr(self, '_distance_modification_process'):

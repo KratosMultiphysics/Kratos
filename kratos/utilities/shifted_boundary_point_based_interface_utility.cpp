@@ -35,7 +35,9 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include <cstddef>
+#include <ostream>
 #include <utility>
+#include <vector>
 
 
 namespace Kratos
@@ -52,23 +54,20 @@ namespace Kratos
         const std::string skin_model_part_name = ThisParameters["skin_model_part_name"].GetString();
         const std::string boundary_sub_model_part_name = ThisParameters["boundary_sub_model_part_name"].GetString();
         mpModelPart = &rModel.GetModelPart(model_part_name);
-        //TODO error message if skin ModelPart does not exist - automatically?
         mpSkinModelPart = &rModel.GetModelPart(skin_model_part_name);
         if (mpModelPart->HasSubModelPart(boundary_sub_model_part_name)) {
             mpBoundarySubModelPart = &(mpModelPart->GetSubModelPart(boundary_sub_model_part_name));
-            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
-            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
-            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpBoundarySubModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
         } else {
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
         }
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
         mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
-
         // If true, the basis is created such that it is conforming with the linear FE space of the surrogate boundary
         mConformingBasis = ThisParameters["conforming_basis"].GetBool();
-
         // If true, the basis is created such that the surrogate boundary gradient is kept
         const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
         if (ext_op_type == "MLS") {
@@ -77,10 +76,13 @@ namespace Kratos
             KRATOS_ERROR << "Wrong 'extension_operator_type' provided. Only 'MLS' 'extension_operator_type' is supported by point based shifted boundary interface utility." << std::endl;
         }
 
-        // Set the SBD condition prototype to be used in the condition creation
+        // Set the shifted-boundary condition prototype to be used in the condition creation
         std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
         KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
         mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
+
+        // If true then elements will be declared BOUNDARY which are located directly in between elements in which boundary points were located
+        mInterpolateBoundary = ThisParameters["interpolate_boundary"].GetBool();
     };
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions()
@@ -97,7 +99,8 @@ namespace Kratos
             "sbm_interface_condition_name" : "",
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1
+            "mls_extension_operator_order" : 1,
+            "interpolate_boundary" : false
         })" );
 
         return default_parameters;
@@ -122,20 +125,24 @@ namespace Kratos
             default:
                 KRATOS_ERROR << "Wrong domain size.";
         }
+        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Skin points were mapped to volume mesh elements.");
 
         // Set the required interface flags (ACTIVE, BOUNDARY, INTERFACE)
         SetInterfaceFlags(skin_points_map);
+        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Interface flags were set.");
 
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
         SidesVectorToElementsMapType sides_vector_map;
         AverageSkinToElementsMapType avg_skin_map;
-        SetSidesVectorsAndSkinNormalForSplitElements(skin_points_map, sides_vector_map, avg_skin_map);
+        SetSidesVectorsAndSkinNormalsForSplitElements(skin_points_map, sides_vector_map, avg_skin_map);
+        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Sides vectors and skin normals were set.");
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         NodesCloudMapType ext_op_map;
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
+        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Extension operators were set.");
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -202,15 +209,20 @@ namespace Kratos
         const double point_locator_tolerance = 1.0e-5;
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
         point_locator.UpdateSearchDatabase();
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
 
-        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+
+        //const std::size_t n_gp_per_element = mpSkinModelPart->ElementsBegin()->GetGeometry().IntegrationPointsNumber(integration_method);
+        //const std::size_t n_skin_points = mpSkinModelPart->NumberOfElements() * n_gp_per_element;
+        std::vector<Element::Pointer> skin_point_located_elements;
+        std::vector<array_1d<double, 3>> skin_point_positions;
+        std::vector<array_1d<double, 3>> skin_point_normals;
 
         // Search the skin points (skin model part integration points) in the volume mesh elements
-        block_for_each(mpSkinModelPart->Elements(),
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType(point_locator_max_results),
-            [&](auto& rElement, auto& rSearchResults){
-
-            const auto& r_skin_geom = rElement.GetGeometry();
+        //TODO make parallel and push back into vectors unique?
+        for (Element& rSkinElement : mpSkinModelPart->Elements()) {
+            const auto& r_skin_geom = rSkinElement.GetGeometry();
             const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
             const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
 
@@ -229,27 +241,43 @@ namespace Kratos
                 Element::Pointer p_element = nullptr;
                 const bool is_found = point_locator.FindPointOnMesh(
                     skin_pt_position, aux_N, p_element,
-                    rSearchResults.begin(), point_locator_max_results, point_locator_tolerance);
+                    search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
-                // Add the skin point's position and area normal to the map for the element it was found in
+                // Add data to vectors
                 if (is_found){
-                    const std::size_t element_in_map = rSkinPointsMap.count(p_element);
-                    if (element_in_map) {
-                        rSkinPointsMap[p_element].push_back( std::make_pair(skin_pt_position, skin_pt_area_normal) );
-                    } else {
-                        SkinPointsDataVectorType skin_points_data_vector;
-                        skin_points_data_vector.push_back( std::make_pair(skin_pt_position, skin_pt_area_normal) );
-                        auto skin_points_key_data = std::make_pair(p_element, skin_points_data_vector);
-                        rSkinPointsMap.insert(skin_points_key_data);
-                    }
+                    skin_point_located_elements.push_back(p_element);
+                    skin_point_positions.push_back(skin_pt_position);
+                    skin_point_normals.push_back(skin_pt_area_normal);
                 } else {
-                    KRATOS_WARNING("FixedMeshALEUtilities")
+                    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility")
                         << "A skin point has not been found in any volume model part element. Point coordinates: (" << skin_pt_position[0] << " , " << skin_pt_position[1] << " , " << skin_pt_position[2] << ")" << std::endl;
+
                 }
             }
-            //TODO Get skin point position
-            //const array_1d<double, 3> skin_pt_position = rNode.Coordinates();
-        });
+        }
+
+        for (Element& rElement : mpModelPart->Elements()) {
+            // Find the indices of all skin points that are located in the volume mesh element
+            std::vector<std::size_t> skin_point_indices;
+            for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
+                Element::Pointer p_elem = skin_point_located_elements[i_skin_pt];
+                if (p_elem->Id() == rElement.Id()) {
+                    skin_point_indices.push_back(i_skin_pt);
+                }
+            }
+            // Add the position and area normal of all skin points located inside the element to the data vector of the element
+            std::size_t n_skin_pts_in_element = skin_point_indices.size();
+            if (n_skin_pts_in_element > 0) {
+                SkinPointsDataVectorType skin_points_data_vector(n_skin_pts_in_element);
+                for (std::size_t i_pt = 0; i_pt < n_skin_pts_in_element; ++i_pt) {
+                    const std::size_t skin_pt_index = skin_point_indices[i_pt];
+                    skin_points_data_vector[i_pt] = std::make_pair(skin_point_positions[skin_pt_index], skin_point_normals[skin_pt_index]);
+                }
+                // Add data vector of the element to the skin points map
+                auto skin_points_key_data = std::make_pair(&rElement, skin_points_data_vector);
+                rSkinPointsMap.insert(skin_points_key_data);
+            }
+        }
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags(
@@ -257,9 +285,9 @@ namespace Kratos
     {
         // Initialize flags to false
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-            //rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
-            //rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
-            //rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
+            rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
+            rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
+            rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
         });
         block_for_each(mpModelPart->Elements(), [](Element& rElement){
             rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
@@ -276,19 +304,140 @@ namespace Kratos
         }
 
         // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
-        for (auto& rElement : mpModelPart->Elements()) {
-            std::size_t n_boundary_neighbors = 0;
-            const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
-            auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-            for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                auto p_neigh_elem = r_neigh_elems(i_face).get();
-                if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
-                    n_boundary_neighbors++;
+        if (mInterpolateBoundary) {
+            //TODO can be made parallel if 'p_elem->Set(ACTIVE, false); p_elem->Set(BOUNDARY, true);' is made unique
+            if (mpModelPart->GetProcessInfo()[DOMAIN_SIZE] == 2) {
+                for (auto& rNode : mpModelPart->Nodes()) {
+                    auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
+                    const std::size_t n_neighs = r_neigh_elems.size();
+                    std::vector<std::size_t> boundary_indices;
+
+                    // Check which elements neighboring the node are part of the boundary
+                    for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
+                        auto p_neigh = r_neigh_elems(i_n).get();
+                        if (p_neigh->Is(BOUNDARY)) {
+                        //if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
+                            boundary_indices.push_back(i_n);
+                        }
+                    }
+
+                    // Continue with next iteration if there is only one or none boundary element neighboring the node
+                    if (boundary_indices.size() < 2) {
+                        continue;
+                    }
+
+                    // Sort neighboring elements around the node starting with index 0 (can be clockwise or anti-clockwise)
+                    //TODO how can this be done for 3D???
+                    std::vector<std::size_t> neigh_indices_sorted(n_neighs);
+                    neigh_indices_sorted[0] = 0;
+                    auto p_neigh_previous = r_neigh_elems(0).get();
+                    auto p_neigh_current = r_neigh_elems(0).get();
+                    for (std::size_t i_n = 1; i_n < n_neighs; ++i_n) {
+                        // Get neighboring elements of current neighbor of the node
+                        auto& r_elem_neigh_elems = p_neigh_current->GetValue(NEIGHBOUR_ELEMENTS);
+                        // Find the next element around the node
+                        bool next_neigh_found = false;
+                        for (std::size_t i_nn = 0; i_nn < r_elem_neigh_elems.size(); ++i_nn) {
+                            auto p_nn = r_elem_neigh_elems(i_nn).get();
+                            for (std::size_t j_n = 0; j_n < n_neighs; ++j_n) {
+                                // Check whether neighbor element's neighbor is a neighbor element and whether it is not the previous element
+                                if (p_nn->Id() == r_neigh_elems(j_n).get()->Id() && p_nn->Id() != p_neigh_previous->Id()) {
+                                    // Check if
+                                    neigh_indices_sorted[i_n] = j_n;
+                                    p_neigh_previous = p_neigh_current;
+                                    p_neigh_current = r_neigh_elems(j_n).get();
+                                    next_neigh_found = true;
+                                    break;
+                                }
+                            } //TODO use inline function with return for this??
+                            if (next_neigh_found) {
+                                break;
+                            }
+                        }
+                    }
+
+                    // Check if boundary elements are connected or isolated
+                    std::vector<std::vector<std::size_t>> non_boundary_groups;
+                    std::size_t n_groups = 0;
+                    std::size_t group_internal_counter = 0;
+                    for (std::size_t index_n : neigh_indices_sorted) {
+                        const bool is_boundary = std::find(boundary_indices.begin(), boundary_indices.end(), index_n) != boundary_indices.end();
+                        if (!is_boundary) {
+                            if (group_internal_counter == 0) {
+                                std::vector<std::size_t> new_group;
+                                new_group.push_back(index_n);
+                                non_boundary_groups.push_back(new_group);
+                                n_groups++;
+                                group_internal_counter++;
+                            } else {
+                                non_boundary_groups.back().push_back(index_n);
+                                group_internal_counter++;
+                            }
+                        } else {
+                            group_internal_counter = 0;
+                        }
+                    }
+
+                    // Continue with next iteration if there is only one or none non-boundary group
+                    if (n_groups < 2) {
+                        continue;
+                    }
+
+                    // Check if the first and last group are actually connected
+                    const std::size_t first_entry = non_boundary_groups[0][0];
+                    const std::size_t last_entry = non_boundary_groups.back().back();
+                    if (first_entry == neigh_indices_sorted[0] && last_entry == neigh_indices_sorted.back()) {
+                        //Check again if there is really only one non-boundary group
+                        if (n_groups == 2) {
+                            continue;
+                        }
+                        // Add last group to first group and delete last group
+                        auto& first_group = non_boundary_groups[0];
+                        const auto& last_group = non_boundary_groups.back();
+                        first_group.insert( first_group.end(), last_group.begin(), last_group.end() );
+                        non_boundary_groups.pop_back();
+                        n_groups--;
+                    }
+
+                    // Get the non-boundary group sizes
+                    std::vector<std::size_t> group_sizes(n_groups);
+                    for (std::size_t i_group = 0; i_group < n_groups; ++i_group) {
+                        group_sizes[i_group] = non_boundary_groups[i_group].size();
+                    }
+
+                    // As long as there is more than one non-boundary group make the smallest group boundary
+                    while (n_groups > 1) {
+                        // Find smallest sized group
+                        const auto it_smallest_group = std::min_element(std::begin(group_sizes), std::end(group_sizes));
+                        const std::size_t index_smallest_group = std::distance(std::begin(group_sizes), it_smallest_group);
+                        const auto& smallest_group = non_boundary_groups[index_smallest_group];
+                        // Deactivate all elements of the smallest group and make them BOUNDARY
+                        for (std::size_t index_n : smallest_group) {
+                            auto p_neigh = r_neigh_elems(index_n).get();
+                            p_neigh->Set(ACTIVE, false);
+                            p_neigh->Set(BOUNDARY, true);
+                        }
+                        group_sizes[index_smallest_group] = 100;
+                        n_groups--;
+                    }
+
                 }
-            }
-            if (n_boundary_neighbors > 1) {
-                rElement.Set(ACTIVE, false);
-                rElement.Set(BOUNDARY, true);
+            } else {
+                for (auto& rElement : mpModelPart->Elements()) {
+                    std::size_t n_boundary_neighbors = 0;
+                    const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
+                    auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+                    for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                        auto p_neigh_elem = r_neigh_elems(i_face).get();
+                        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
+                            n_boundary_neighbors++;
+                        }
+                    }
+                    if (n_boundary_neighbors > 1) {
+                        rElement.Set(ACTIVE, false);
+                        rElement.Set(BOUNDARY, true);
+                    }
+                }
             }
         }
 
@@ -313,7 +462,7 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::SetSidesVectorsAndSkinNormalForSplitElements(
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetSidesVectorsAndSkinNormalsForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap)
@@ -324,10 +473,10 @@ namespace Kratos
             std::size_t n_skin_points = 0;
             array_1d<double, 3> avg_position(3, 0.0);
             array_1d<double, 3> avg_normal(3, 0.0);
-            for (const auto& skin_points_data: skin_points_data_vector) {
+            for (const auto& skin_pt_data: skin_points_data_vector) {
                 n_skin_points++;
-                avg_position += std::get<0>(skin_points_data);
-                avg_normal += std::get<1>(skin_points_data);
+                avg_position += std::get<0>(skin_pt_data);
+                avg_normal += std::get<1>(skin_pt_data);
             }
             avg_normal /= norm_2(avg_normal);
             avg_position /= n_skin_points;
@@ -443,8 +592,12 @@ namespace Kratos
         std::vector<NodeType::Pointer> prev_layer_nodes;
         const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
 
+        // Check starting points
+        const std::size_t n_same_side_nodes = rSameSideNodes.size();
+        KRATOS_ERROR_IF(n_same_side_nodes == 0) << "No starting nodes given for computing the lateral support cloud." << std::endl;
+
         // Add first given nodes to cloud nodes set (1st layer of sampling points)
-        for (std::size_t i_node = 0; i_node < rSameSideNodes.size(); ++i_node) {
+        for (std::size_t i_node = 0; i_node < n_same_side_nodes; ++i_node) {
             const auto p_node = rSameSideNodes[i_node];
             aux_set.insert(p_node);
             prev_layer_nodes.push_back(p_node);
@@ -501,13 +654,17 @@ namespace Kratos
                         const auto& r_geom = p_elem_neigh->GetGeometry();
                         for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
                             NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                            p_neigh->Set(INTERFACE, true);
+                            if (ConsiderPositiveSide) {
+                                p_neigh->Set(INTERFACE, true);
+                            } else {
+                                p_neigh->Set(BOUNDARY, true);
+                            }
                             aux_extra_set.insert(p_neigh);
                         }
                     }
                 }
             }
-            KRATOS_WARNING("[SHIFTED-BOUNDARY-POINT-BASED-DISCONTINUOUS-INTERFACE-UTILITY] Extra set of points needed for MLS calculation!!");
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Extra set of points needed for MLS calculation!!" << std::endl;
             aux_set = aux_extra_set;
         }
 
@@ -684,7 +841,7 @@ namespace Kratos
         // Store the SBM BC data in the condition database
         p_cond->SetValue(ELEMENT_H, ElementSize);
         p_cond->SetValue(INTEGRATION_COORDINATES, rIntPtCoordinates);
-        const double skin_pt_weight = norm_2(rIntPtAreaNormal);  // TODO: not necessary? done in the condition anyway?!
+        const double skin_pt_weight = norm_2(rIntPtAreaNormal);
         p_cond->SetValue(NORMAL, rIntPtAreaNormal/ skin_pt_weight);
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);

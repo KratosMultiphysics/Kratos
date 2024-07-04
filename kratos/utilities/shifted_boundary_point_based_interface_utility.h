@@ -76,7 +76,7 @@ public:
 
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
-    using SkinPointsDataVectorType = std::vector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
+    using SkinPointsDataVectorType = DenseVector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
 
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
 
@@ -172,12 +172,12 @@ protected:
     ModelPart* mpBoundarySubModelPart = nullptr;
 
     bool mConformingBasis;
-
     ExtensionOperator mExtensionOperator;
-
     std::size_t mMLSExtensionOperatorOrder;
 
     const Condition* mpConditionPrototype;
+
+    bool mInterpolateBoundary;
 
     /// @brief Protected empty constructor for derived classes
     ShiftedBoundaryPointBasedInterfaceUtility() {}
@@ -220,7 +220,7 @@ protected:
     void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
 
     /**TODO*/
-    void SetSidesVectorsAndSkinNormalForSplitElements(
+    void SetSidesVectorsAndSkinNormalsForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
         SidesVectorToElementsMapType& rSidesVectorMap,
         AverageSkinToElementsMapType& rAvgSkinMap
