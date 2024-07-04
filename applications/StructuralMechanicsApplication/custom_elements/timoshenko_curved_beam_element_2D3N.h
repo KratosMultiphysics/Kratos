@@ -43,15 +43,18 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearTimoshenkoBeamElement2D2N
+ * @class LinearTimoshenkoCurvedBeamElement2D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Timoshenko beam element of 2 nodes. Reference: Felippa and Oñate,
- * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
- * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
- * DOI: https://doi.org/10.1007/s11831-020-09515-0
+ * @brief This is the Timoshenko curved beam element of 3 nodes. Reference:
+ * Connecting beams and continua: variational basis and mathematical analysis, Romero and Schenk, Meccanica, 2023
+ * DOI: https://doi.org/10.1007/s11012-023-01702-0
+ * 
+ * Ordering of the nodes:      0 ------ 2 ------- 1
+ * 
+ * Quadratic interpolation of the curved geometry, displacements and rotation. Reduced integration to avoid shear locking
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoCurvedBeamElement2D3N
     : public Element
 {
 
@@ -63,34 +66,40 @@ public:
     /// The base element type
     using BaseType = Element;
 
+    static constexpr SizeType SystemSize    = 9;
+    static constexpr SizeType NumberOfNodes = 3;
+    static constexpr SizeType DoFperNode    = 3;
+    static constexpr SizeType StrainSize    = 3;
+
+    using GlobalSizeVector = BoundedVector<double, 9>;
+    using array_3 = array_1d<double, 3>;
+
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement2D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoCurvedBeamElement2D3N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    LinearTimoshenkoBeamElement2D2N()
-    {
-    }
+    LinearTimoshenkoCurvedBeamElement2D3N() = default;
 
     // Constructor using an array of nodes
-    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Constructor using an array of nodes with properties
-    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Copy constructor
-    LinearTimoshenkoBeamElement2D2N(LinearTimoshenkoBeamElement2D2N const& rOther)
+    LinearTimoshenkoCurvedBeamElement2D3N(LinearTimoshenkoCurvedBeamElement2D3N const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod),
         mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -100,13 +109,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement2D3N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement2D3N>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -118,80 +127,10 @@ public:
     ///@{
 
     /**
-     * @brief Indicates the amount of DoFs per node (u0, v, theta)
+     * @brief Returns a 9 component vector including the values of the DoFs
+     * in GLOBAL beam axes
      */
-    IndexType GetDoFsPerNode() const
-    {
-        return 3;
-    }
-
-    /**
-     * @brief This method returns the angle of the FE axis
-     */
-    double GetAngle() const
-    {
-        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    }
-
-    /**
-     * @brief Returns a 6 component vector including the values of the DoFs
-     * in LOCAL beam axes
-     */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
-
-    /**
-     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-     * @param rNodalValues The vector containing the nodal values in local axes
-     */
-    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
-    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
-    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
-
-    /**
-     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-     * @param rNodalValues The vector containing the nodal values in local axes
-     */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
-
-    /**
-     * @brief Computes the length of the FE and returns it
-     */
-    double CalculateLength() const
-    {
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    }
-
-    /**
-     * @brief Modifies a vector to include the components of a local size vector to the global size
-     * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
-     * @param rLocalSizeVector The 4 local components of v and theta
-     */
-    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
-    {
-        rGlobalSizeVector.clear();
-        rGlobalSizeVector[1] = rLocalSizeVector[0];
-        rGlobalSizeVector[2] = rLocalSizeVector[1];
-        rGlobalSizeVector[4] = rLocalSizeVector[2];
-        rGlobalSizeVector[5] = rLocalSizeVector[3];
-    }
-
-    /**
-     * @brief Modifies a vector to include the components of a local size vector to the global size
-     * @param rGlobalSizeVector The global size vector including only the axial u terms
-     * @param rLocalSizeVector The 2 local components of u
-     */
-    virtual void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
-    {
-        rGlobalSizeVector.clear();
-        rGlobalSizeVector[0] = rLocalSizeVector[0];
-        rGlobalSizeVector[3] = rLocalSizeVector[1];
-    }
+    void GetNodalValuesVector(GlobalSizeVector &rNodalValues) const;
 
     /**
      * @brief Called to initialize the element.
@@ -267,69 +206,76 @@ public:
     }
 
     /**
-     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const {};
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetShapeFunctionsValues(const double xi) const;
 
     /**
-     * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
-     * Also its derivative
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions derivatives in the real space at each node
+     * xi: isoparametric coordinate
+     * J: Jacobian
+     */
+    array_3 GetFirstDerivativesShapeFunctionsValues(const double xi, const double J) const;
 
     /**
-     * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions second derivatives in the real space at each node
+     * xi: isoparametric coordinate
+     * J: Jacobian
+     */
+    array_3 GetSecondDerivativesShapeFunctionsValues(const double xi, const double J) const;
 
     /**
-     * @brief This function rotates the LHS from local to global coordinates
-     * @param rLHS the left hand side
-     * @param rGeometry the geometry of the FE
-    */
-    virtual void RotateLHS(
-        MatrixType &rLHS,
-        const GeometryType &rGeometry);
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions derivatives in the natural space at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetLocalFirstDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
-     * @brief This function rotates the RHS from local to global coordinates
-     * @param rRHS the right hand side
-     * @param rGeometry the geometry of the FE
-    */
-    virtual void RotateRHS(
-        VectorType &rRHS,
-        const GeometryType &rGeometry);
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions second derivatives in the natural space at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetLocalSecondDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
-     * @brief This function rotates the LHS and RHS from local to global coordinates
-     * @param rLHS the left hand side
-     * @param rRHS the right hand side
-     * @param rGeometry the geometry of the FE
+     * @brief This method fills the global vectors of shape functions
+     * in shuch a way that:
+     * u = Nu * U
+     * v = N * U
+     * theta = Ntheta * U
+     */
+    void GetShapeFunctionsValuesGlobalVectors(
+        const array_3 &rShapeFunctions,
+        GlobalSizeVector &rNshape,
+        GlobalSizeVector &rNu,
+        GlobalSizeVector &rNtheta) const;
+
+    /**
+     * @brief Returns the Jacobian of the isoparametric transformation of arc length s
+     *     J = sqrt((dx)^2 + (dy)^2)
+     */
+    double GetJacobian(const double xi) const;
+
+    /**
+     * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi
     */
-    virtual void RotateAll(
-        MatrixType &rLHS,
-        VectorType &rRHS,
-        const GeometryType &rGeometry);
+    void GetTangentandTransverseUnitVectors(
+        const double xi,
+        array_3 &rt,
+        array_3 &rn) const;
+
+    /**
+     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
+    */
+    BoundedMatrix<double, 2, 2> GetFrenetSerretMatrix(
+        const double xi,
+        const array_3 &rt,
+        const array_3 &rn) const;
 
     /**
      * @brief This function retrieves the body forces in local axes
@@ -337,7 +283,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    array_3 GetBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;
@@ -425,7 +371,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko 2N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Timoshenko 3N curved Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -447,7 +393,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3; /// Currently selected integration methods
+    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
@@ -530,7 +476,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class LinearTimoshenkoBeamElement2D2N.
+}; // class LinearTimoshenkoCurvedBeamElement2D3N.
 
 ///@}
 ///@name Type Definitions
