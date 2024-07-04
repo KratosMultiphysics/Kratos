@@ -17,11 +17,11 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Integrator
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -47,12 +47,8 @@
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the associated damage Constitutive laws...
-typedef Node NodeType;
 
 /**
     * Check the correct calculation of the integrated stress with the CL's
@@ -110,12 +106,12 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinea
 
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     stress_vector[0] = 5.40984e+06;
@@ -218,12 +214,12 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExpon
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     stress_vector[0] = 5.40984e+06;
@@ -309,5 +305,5 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExpon
     KRATOS_EXPECT_VECTOR_NEAR(Rres, TestR, 0.00001e+06);
     KRATOS_EXPECT_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

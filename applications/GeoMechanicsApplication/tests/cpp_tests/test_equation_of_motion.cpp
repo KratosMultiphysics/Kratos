@@ -12,7 +12,7 @@
 
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
