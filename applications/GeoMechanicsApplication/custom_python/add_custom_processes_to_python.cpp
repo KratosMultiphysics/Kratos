@@ -166,6 +166,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<GeoExtrapolateIntegrationPointValuesToNodesProcess, GeoExtrapolateIntegrationPointValuesToNodesProcess::Pointer, Process>(
         m, "GeoExtrapolateIntegrationPointValuesToNodesProcess")
         .def(py::init<ModelPart&, const Parameters&>());
+
+    //py::class_<ExtrapolateAndSmoothResultsProcess, ExtrapolateAndSmoothResultsProcess::Pointer, Process>
+    //        (m, "ExtrapolateAndSmoothResultsProcess")
+    //        .def(py::init<ModelPart&, const Parameters&>());
+
 }
 
 } // Namespace Kratos::Python.
