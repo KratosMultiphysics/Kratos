@@ -12,10 +12,10 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
-#include "testing/testing.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
