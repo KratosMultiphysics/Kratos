@@ -108,6 +108,15 @@ public:
         r_model_part.GetProcessInfo()[VELOCITY_PRESSURE_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
         r_model_part.GetProcessInfo()[ACCELERATION_PRESSURE_COEFFICIENT] = 1.0/(mBeta*mDeltaTime*mDeltaTime);
 
+        // Initialize INITIAL_STRESS_TENSOR
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
+                r_initial_stress.resize(3,3,false);
+            }
+            r_initial_stress.clear();
+        });
+
         BaseType::mSchemeIsInitialized = true;
 
         KRATOS_CATCH("")
