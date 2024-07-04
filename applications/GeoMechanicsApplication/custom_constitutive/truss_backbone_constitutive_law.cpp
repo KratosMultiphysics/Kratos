@@ -167,6 +167,8 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
 {
     ConstitutiveLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
+    mStressStrainTable.Clear();
+
     const auto& r_strains_of_piecewise_linear_law = rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW];
     const auto& r_stresses_of_piecewise_linear_law = rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW];
     for (auto i = std::size_t{0}; i < r_strains_of_piecewise_linear_law.size(); ++i) {
