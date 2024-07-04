@@ -148,6 +148,7 @@ void TrussBackboneConstitutiveLaw::save(Serializer& rSerializer) const
     rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
     rSerializer.save("PreviousAxialStrain", mPreviousAxialStrain);
     rSerializer.save("UnReload", mUnReLoadCenter);
+    rSerializer.save("StressStrainTable", mStressStrainTable);
 }
 
 void TrussBackboneConstitutiveLaw::load(Serializer& rSerializer)
@@ -156,6 +157,7 @@ void TrussBackboneConstitutiveLaw::load(Serializer& rSerializer)
     rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
     rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
     rSerializer.load("UnReload", mUnReLoadCenter);
+    rSerializer.load("StressStrainTable", mStressStrainTable);
 }
 
 void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
