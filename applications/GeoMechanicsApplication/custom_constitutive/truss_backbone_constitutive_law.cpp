@@ -77,16 +77,15 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
     auto&      axial_stress_vector = rValues.GetStressVector();
     const auto youngs_modulus      = rValues.GetMaterialProperties()[YOUNG_MODULUS];
     if (IsWithinUnReLoading(axial_strain, youngs_modulus)) {
-        // Un- or reloading
         axial_stress_vector[0] = youngs_modulus * (axial_strain - mUnReLoadCenter);
-    } else {
-        // backbone
-        axial_stress_vector[0] =
-            BackboneStress(mAccumulatedStrain + (std::abs(axial_strain - mUnReLoadCenter) -
-                                                 CalculateUnReLoadAmplitude(youngs_modulus)));
-        if (axial_strain - mUnReLoadCenter < 0.0) axial_stress_vector[0] *= -1.0;
+        return;
     }
-    rValues.SetStressVector(axial_stress_vector);
+
+    // backbone
+    axial_stress_vector[0] =
+        BackboneStress(mAccumulatedStrain + (std::abs(axial_strain - mUnReLoadCenter) -
+                                             CalculateUnReLoadAmplitude(youngs_modulus)));
+    if (axial_strain - mUnReLoadCenter < 0.0) axial_stress_vector[0] *= -1.0;
 }
 
 void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
