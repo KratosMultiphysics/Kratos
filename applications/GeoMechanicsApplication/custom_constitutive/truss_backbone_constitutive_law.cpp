@@ -200,13 +200,12 @@ void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rM
 
 void TrussBackboneConstitutiveLaw::CheckStrainValuesAreAscending(const Vector& rStrains)
 {
-    auto previous_strain = rStrains[0];
-    for (auto i = std::size_t{1}; i < rStrains.size(); ++i) {
-        KRATOS_ERROR_IF_NOT(rStrains[i] > previous_strain)
-            << "Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: " << rStrains[i] << " (at index "
-            << i + 1 << ") does not exceed " << previous_strain << " (at index " << i << ")" << std::endl;
-        previous_strain = rStrains[i];
-    }
+    auto first_ge_second = [](const auto& First, const auto& Second) { return First >= Second; };
+    auto pos             = std::adjacent_find(rStrains.cbegin(), rStrains.cend(), first_ge_second);
+    KRATOS_ERROR_IF(pos != rStrains.cend())
+        << "Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: " << *(pos + 1)
+        << " (at index " << std::distance(rStrains.begin(), pos) + 2 << ") does not exceed " << *pos
+        << " (at index " << std::distance(rStrains.begin(), pos) + 1 << ")" << std::endl;
 }
 
 void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,
