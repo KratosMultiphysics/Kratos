@@ -72,27 +72,18 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
     
     // TODO: Move from here
-    std::ofstream upwind_elements_list("upwind_elements_list.txt", std::ios::app);
-    if (!upwind_elements_list.is_open()) {
-        std::cerr << "No se pudo abrir el archivo." << std::endl;
-        return;
-    }
     size_t numColumns = rLeftHandSideMatrix.size2();
-    bool save_value = false;
+    bool mark_elem = false;
     if ( rLeftHandSideMatrix.size2() == TNumNodes + 1 ){ 
         for (size_t i = 0; i < numColumns; ++i) {
             if ( rLeftHandSideMatrix(i, numColumns - 1) != 0 ){
-                save_value = true;
+                mark_elem = true;
             }
         }
-        if (save_value){
-            upwind_elements_list << this->Id() << std::endl;
-            upwind_elements_list << pGetUpwindElement()->Id() << std::endl;
+        if (mark_elem){
             this->SetValue(ID_UPWIND_ELEMENT, pGetUpwindElement()->Id());
         }
     }
-    upwind_elements_list.close();
-
 }
 
 template <int TDim, int TNumNodes>
