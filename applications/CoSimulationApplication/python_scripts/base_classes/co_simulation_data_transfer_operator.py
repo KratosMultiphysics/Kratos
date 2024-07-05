@@ -63,5 +63,6 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
-            "echo_level" : 0
+            "echo_level" : 0,
+            "debug_vtk"  : false
         }""")
