@@ -331,6 +331,8 @@ namespace Kratos
     template<class TDataType>
     struct PointerComparor
     {
+        // Data type used in the comparison
+        using data_type = TDataType;
         /**
          * @brief The () operator
          * @param first  The first pointer
