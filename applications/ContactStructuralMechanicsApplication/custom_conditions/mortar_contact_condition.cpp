@@ -465,7 +465,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     slave_geometry.PointLocalCoordinates(center_local_coords, slave_geometry.Center());
 //     slave_geometry.ShapeFunctionsValues( N_slave, center_local_coords.Coordinates() );
 //
-//     MatrixType delta_disp_mat_slave;
+//     InitializeMaterialrixType delta_disp_mat_slave;
 //     if (dynamic) {
 //         delta_disp_mat_slave = DeltaTime * velocity_constant * (MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(slave_geometry, VELOCITY, 0) + MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(slave_geometry, VELOCITY, 1)) + std::pow(DeltaTime, 2) * acceleration_constant * MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(slave_geometry, ACCELERATION, 1);
 //     } else {

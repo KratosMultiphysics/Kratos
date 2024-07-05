@@ -1979,6 +1979,21 @@ public:
     }
 
     ///@}
+
+    ///@name Spans
+    ///@{
+
+    /* @brief Provides Domain interval of Nubrs/curves
+     */
+    virtual void DomainInterval(
+        Vector& interval) const
+    {
+        KRATOS_ERROR <<
+            "Calling DomainInterval of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
 

@@ -284,6 +284,15 @@ public:
         return mCurveNurbsInterval;
     }
 
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mCurveNurbsInterval.MinParameter();
+        domainInterval[1] = mCurveNurbsInterval.MaxParameter();
+
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -597,6 +606,11 @@ public:
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
+    }
+
+    array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    {
+        return mpCurveOnSurface->Normal(local_coord);
     }
 
     ///@}

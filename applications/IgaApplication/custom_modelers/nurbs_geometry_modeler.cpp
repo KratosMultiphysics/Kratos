@@ -244,11 +244,22 @@ namespace Kratos
 
         double knot_step_u; double knot_step_v;
         const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
+        Parameters refinements_parameters_model_part;
+        bool isDefined = false;
+        for (int i = 0; i < refinements_parameters["refinements"].size(); i++) {
+            if (refinements_parameters["refinements"][i]["model_part_name"].GetString() == iga_model_part_name) {
+                refinements_parameters_model_part = refinements_parameters["refinements"][i];
+                isDefined = true;
+                break;
+            }
+        }
+        KRATOS_ERROR_IF_NOT(isDefined) << "ERROR: NON MATCHING MODEL PART NAMES BETWEEN REFINEMENTS_IGA AND NURBS_GEOMETRY_MODELER";
+        
         if (initial_skin_model_part_in.Conditions().size() > 0 || initial_skin_model_part_out.Conditions().size() > 0) {
             SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_in, skin_model_part_out, 
                                                             initial_skin_model_part_in, initial_skin_model_part_out, 
                                                             mEchoLevel, knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, 
-                                                            refinements_parameters, mParameters, 
+                                                            refinements_parameters_model_part, mParameters, 
                                                             surrogate_model_part_inner, surrogate_model_part_outer) ;
         }
         //---------------------------------------------------------------------------------------------------------------------

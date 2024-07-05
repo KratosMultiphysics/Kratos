@@ -30,6 +30,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolid2DElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mConvDiffIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
@@ -70,6 +72,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportContact2DCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
 {
 }
 
@@ -114,10 +118,12 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadSolid2DCondition", mLoadSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
     KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
+    KRATOS_REGISTER_MODELER("ContactIgaModeler", mContactIgaModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)

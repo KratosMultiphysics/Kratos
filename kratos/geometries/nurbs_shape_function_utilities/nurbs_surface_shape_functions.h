@@ -265,15 +265,15 @@ public:
         mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
 
         // MODIFIED for printing also boundary GPs
-        std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
-        if (!outputFile.is_open())
-        {
-            std::cerr << "Failed to open the file for writing." << std::endl;
-            return;
-        }
-        outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << ParameterU << "  " << ParameterV <<"\n";
-        outputFile.close();
+        // std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
+        // if (!outputFile.is_open())
+        // {
+        //     std::cerr << "Failed to open the file for writing." << std::endl;
+        //     return;
+        // }
+        // outputFile << std::setprecision(14); // Set precision to 10^-14
+        // outputFile << ParameterU << "  " << ParameterV <<"\n";
+        // outputFile.close();
 
         // compute 2D shape functions
         for (IndexType i = 0; i <= DerivativeOrder(); i++) {

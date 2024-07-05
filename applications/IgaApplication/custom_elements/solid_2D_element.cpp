@@ -141,13 +141,13 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     Vector volume_force_local(2);
     /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
     Vector old_displacement(mat_size);
     GetValuesVector(old_displacement);
 
-    double factor = E/(1-nu*nu);
+    // double factor = E/(1-nu*nu);
 
     volume_force_local[0] = this->GetValue(BODY_FORCE_X);
     volume_force_local[1] = this->GetValue(BODY_FORCE_Y);
@@ -328,10 +328,10 @@ Element::IntegrationMethod Solid2DElement::GetIntegrationMethod() const
 
 void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    // ConstitutiveLaw::Parameters constitutive_law_parameters(
-    //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters constitutive_law_parameters(
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    // mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
 
     
 /////////////////////////
@@ -363,20 +363,52 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     }        
     // exit(0);
 
-    std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-    if (output_file.is_open()) {
-        output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-        output_file.close();
-    } 
+
+
+    // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
+    // if (output_file.is_open()) {
+    //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+    //     output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+    //     output_file.close();
+    // } 
+
+
+
+    if (x_coord_gauss_point <= 2.0) {
+        std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
+        if (output_file.is_open()) {
+            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+            output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file.close();
+        } 
+    } else {
+        std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
+        if (output_file.is_open()) {
+            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+            output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file.close();
+        } 
+    }
+    
+
+
+    std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "Failed to open the file for writing." << std::endl;
+        return;
+    }
+    outputFile << std::setprecision(14); // Set precision to 10^-14
+    outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
+    outputFile.close();
 }
 
 void Solid2DElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
 
-    // ConstitutiveLaw::Parameters constitutive_law_parameters(
-    //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters constitutive_law_parameters(
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    // mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
 }
 
 
@@ -420,7 +452,7 @@ void Solid2DElement::CalculateOnIntegrationPoints(
         mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
     } else {
             KRATOS_WATCH(rVariable);
-            KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
+            KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED IN THE IGA FRAMEWORK");
     }
 }
 

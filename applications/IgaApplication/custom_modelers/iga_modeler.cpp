@@ -366,9 +366,8 @@ namespace Kratos
 
                 Point gaussPoint = geometries[0].Center(); 
 
-                bool isOnExternalParameterSpace = false;         
-                if (is_SBM) {isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
-                if (name.substr(0, 3) == "SBM"  && !isOnExternalParameterSpace) { 
+                bool isCoincidentToExternalParameterSpace = false;         
+                if (name.substr(0, 3) == "SBM") { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
 
                         Point gaussPoint = geometries[j].Center(); 
@@ -391,6 +390,8 @@ namespace Kratos
                                 }
                         }
 
+                        // if (is_SBM) {isCoincidentToExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
+
                         if (obtainedResults == 0) {
                              KRATOS_WATCH("0 POINTS FOUND: EXIT")
                              KRATOS_WATCH(pointToSearch)
@@ -409,7 +410,7 @@ namespace Kratos
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
                     }
-                } else if (isOnExternalParameterSpace){
+                } else if (isCoincidentToExternalParameterSpace){
                     std::string nameBodyFittedCondition;
                     // The name of the condition starts with "SBM", need to check which type is it: Laplacian, ConvDiff, ...
                     if (name.substr(0, 7) == "Support") {

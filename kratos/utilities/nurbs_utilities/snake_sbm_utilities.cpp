@@ -34,8 +34,8 @@ namespace Kratos
         skin_model_part_out.AddProperties(p_cond_prop_out);
         
 
-        int insert_nb_per_span_u = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
-        int insert_nb_per_span_v = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_v"].GetInt();
+        int insert_nb_per_span_u = refinements_parameters["parameters"]["insert_nb_per_span_u"].GetInt();
+        int insert_nb_per_span_v = refinements_parameters["parameters"]["insert_nb_per_span_v"].GetInt();
 
         int insert_nb_per_span_u_refined_out = insert_nb_per_span_u;
         int insert_nb_per_span_v_refined_out = insert_nb_per_span_v; 
@@ -43,10 +43,10 @@ namespace Kratos
         int insert_nb_per_span_u_refined_in = insert_nb_per_span_u;
         int insert_nb_per_span_v_refined_in = insert_nb_per_span_v; 
 
-        // Additional refinement (LOCAL & TENSORIAL)
-        if (refinements_parameters["refinements"][0]["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
-            insert_nb_per_span_u_refined_in = (insert_nb_per_span_u+1) * refinements_parameters["refinements"][0]["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt() - 1 ;
-            insert_nb_per_span_v_refined_in = (insert_nb_per_span_v +1) * refinements_parameters["refinements"][0]["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt() - 1 ;
+        // Additional refinement (LOCAL & TENSORIAL) 
+        if (refinements_parameters["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
+            insert_nb_per_span_u_refined_in = (insert_nb_per_span_u+1) * refinements_parameters["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt() - 1 ;
+            insert_nb_per_span_v_refined_in = (insert_nb_per_span_v +1) * refinements_parameters["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt() - 1 ;
         }
         
         // Build the knot_vector without the repetitive knot values
@@ -93,6 +93,8 @@ namespace Kratos
         knot_vector_u_refined_out.push_back(knot_vector_u_complete[knot_vector_u_complete.size()-1]) ;
         knot_vector_v_refined_out.push_back(knot_vector_v_complete[knot_vector_v_complete.size()-1]) ;
 
+        const double starting_pos_u = knot_vector_u_complete[0];
+        const double starting_pos_v = knot_vector_v_complete[0];
 
         Vector parameterExternalCoordinates(4);
         parameterExternalCoordinates[0] = knot_vector_u_refined_out[0];
@@ -152,12 +154,15 @@ namespace Kratos
                 double y_true_boundary2 = i_cond.GetGeometry()[1].Y();
                 
                 // Find the intersections of the skin boundary with the knot values
-                int knot_span_u_1st_point = x_true_boundary1 / knot_step_u_refined_in ;
-                int knot_span_u_2nd_point = x_true_boundary2 / knot_step_u_refined_in ;
-                int knot_span_v_1st_point = y_true_boundary1 / knot_step_v_refined_in ;
-                int knot_span_v_2nd_point = y_true_boundary2 / knot_step_v_refined_in ;
+                int knot_span_u_1st_point = (x_true_boundary1-starting_pos_u) / knot_step_u_refined_in ;
+                int knot_span_u_2nd_point = (x_true_boundary2-starting_pos_u) / knot_step_u_refined_in ;
+                int knot_span_v_1st_point = (y_true_boundary1-starting_pos_v) / knot_step_v_refined_in ;
+                int knot_span_v_2nd_point = (y_true_boundary2-starting_pos_v) / knot_step_v_refined_in ;
 
-                SnakeStep(skin_model_part_in, knot_spans_available_inner, idMatrixKnotSpansAvailable, knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, knot_step_u_refined_in, knot_step_v_refined_in );
+                SnakeStep(skin_model_part_in, knot_spans_available_inner, idMatrixKnotSpansAvailable, 
+                         knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  
+                         x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, 
+                         knot_step_u_refined_in, knot_step_v_refined_in, starting_pos_u, starting_pos_v);
                 
                 if (i_cond.GetGeometry()[1].Id() == idFirstNode) {
                     idMatrixKnotSpansAvailable++;
@@ -172,8 +177,12 @@ namespace Kratos
         for (int i = 0; i < numberOfInnerLoops; i++) {
             int idInnerLoop = i;
             // Mark the knot_spans_available's for inner and outer loops
-            MarkKnotSpansAvailable(knot_spans_available_inner, idInnerLoop, testBins_in, initial_skin_model_part_in, lambda_inner, insert_nb_per_span_u_refined_in, insert_nb_per_span_v_refined_in, knot_step_u_refined_in, knot_step_v_refined_in);
-            CreateSurrogateBuondaryFromSnake_inner (knot_spans_available_inner,idInnerLoop, surrogate_model_part_inner, insert_nb_per_span_u_refined_in, insert_nb_per_span_v_refined_in, knot_vector_u_refined_in, knot_vector_v_refined_in);
+            MarkKnotSpansAvailable(knot_spans_available_inner, idInnerLoop, testBins_in, initial_skin_model_part_in, lambda_inner, 
+                                   insert_nb_per_span_u_refined_in, insert_nb_per_span_v_refined_in, knot_step_u_refined_in, knot_step_v_refined_in,
+                                   starting_pos_u, starting_pos_v );
+            CreateSurrogateBuondaryFromSnake_inner (knot_spans_available_inner,idInnerLoop, surrogate_model_part_inner, 
+                                    insert_nb_per_span_u_refined_in, insert_nb_per_span_v_refined_in, knot_vector_u_refined_in, 
+                                    knot_vector_v_refined_in, starting_pos_u, starting_pos_v );
             KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0) << "Inner-> Loop finished" << std::endl;
         }
         
@@ -255,28 +264,41 @@ namespace Kratos
                     else if (isPoint1Out && !isPoint2Out){
                         idConditionOuterIntersection.push_back(i_cond.Id());
                     }
+                    auto idNodeOut = skin_model_part_out.Nodes().size();
+                    skin_model_part_out.CreateNewNode(idNodeOut+1, x_true_boundary2, y_true_boundary2, 0.0);
+                    Properties::Pointer p_cond_prop = skin_model_part_out.pGetProperties(0);
+                    Condition::Pointer p_cond = skin_model_part_out.CreateNewCondition("LineCondition2D2N", idNodeOut, {{idNodeOut, idNodeOut+1}}, p_cond_prop );
+                    skin_model_part_out.AddCondition(p_cond);
                     continue;
                 }
                 // Find the intersections of the skin boundary with the knot values
-                int knot_span_u_1st_point = x_true_boundary1 / knot_step_u_refined_out ;
-                int knot_span_u_2nd_point = x_true_boundary2 / knot_step_u_refined_out ;
-                int knot_span_v_1st_point = y_true_boundary1 / knot_step_v_refined_out ;
-                int knot_span_v_2nd_point = y_true_boundary2 / knot_step_v_refined_out ;
-                SnakeStep(skin_model_part_out, knot_spans_available_outer, 0,  knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, knot_step_u_refined_out, knot_step_v_refined_out);
+                int knot_span_u_1st_point = (x_true_boundary1-starting_pos_u) / knot_step_u_refined_out ;
+                int knot_span_u_2nd_point = (x_true_boundary2-starting_pos_u) / knot_step_u_refined_out ;
+                int knot_span_v_1st_point = (y_true_boundary1-starting_pos_v) / knot_step_v_refined_out ;
+                int knot_span_v_2nd_point = (y_true_boundary2-starting_pos_v) / knot_step_v_refined_out ;
+                SnakeStep(skin_model_part_out, knot_spans_available_outer, 0,  
+                          knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  
+                          x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, 
+                          knot_step_u_refined_out, knot_step_v_refined_out, starting_pos_u, starting_pos_v);
             }      
             // Read lambda parameters: 0.0 -> External,  0.5 -> Optimal
             const double lambda_outer = mParameters["sbm_parameters"]["lambda_outer"].GetDouble();
             idMatrixKnotSpansAvailable = 0;
             if (initial_skin_model_part_out.Nodes().size() > 0) {
-                MarkKnotSpansAvailable(knot_spans_available_outer, idMatrixKnotSpansAvailable, testBins_out, initial_skin_model_part_out, lambda_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_step_u_refined_out, knot_step_v_refined_out);
-                CreateSurrogateBuondaryFromSnake_outer (testBins_out, initial_skin_model_part_out, knot_spans_available_outer, idMatrixKnotSpansAvailable, surrogate_model_part_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_vector_u_refined_out, knot_vector_v_refined_out);
+                MarkKnotSpansAvailable(knot_spans_available_outer, idMatrixKnotSpansAvailable, testBins_out, 
+                                       initial_skin_model_part_out, lambda_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, 
+                                       knot_step_u_refined_out, knot_step_v_refined_out, starting_pos_u, starting_pos_v );
+                CreateSurrogateBuondaryFromSnake_outer (testBins_out, initial_skin_model_part_out, knot_spans_available_outer, 
+                                    idMatrixKnotSpansAvailable, surrogate_model_part_outer, insert_nb_per_span_u_refined_out, 
+                                    insert_nb_per_span_v_refined_out, knot_vector_u_refined_out, knot_vector_v_refined_out,
+                                    starting_pos_u, starting_pos_v );
             }
         }
     }   
 
 
     void SnakeSBMUtilities::SnakeStep(ModelPart& skin_model_part, std::vector<std::vector<std::vector<int>>> &knot_spans_available, int idMatrix, int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point,
-                double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v) {
+                double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v, const double starting_pos_u, const double starting_pos_v) {
         bool isSplitted = false;
         if (knot_span_u_1st_point != knot_span_u_2nd_point || knot_span_v_1st_point != knot_span_v_2nd_point) { // INTERSECTION BETWEEN TRUE AND SURROGATE BOUNDARY
             // Check if we are jumping some cut knot spans. If yes we split the true segment
@@ -285,11 +307,17 @@ namespace Kratos
                 isSplitted = true;
                 double x_true_boundary_split = (x_true_boundary1+x_true_boundary2 ) / 2;
                 double y_true_boundary_split = (y_true_boundary1+y_true_boundary2 ) / 2;
-                int knot_span_u_point_split = x_true_boundary_split / knot_step_u ;
-                int knot_span_v_point_split = y_true_boundary_split / knot_step_v ;
+                int knot_span_u_point_split = (x_true_boundary_split-starting_pos_u) / knot_step_u ;
+                int knot_span_v_point_split = (y_true_boundary_split-starting_pos_v) / knot_step_v ;
                 // We do it recursively
-                SnakeStep(skin_model_part, knot_spans_available, idMatrix, knot_span_u_1st_point,   knot_span_u_point_split, knot_span_v_1st_point  , knot_span_v_point_split, x_true_boundary1     , x_true_boundary_split, y_true_boundary1     , y_true_boundary_split, knot_step_u, knot_step_v );
-                SnakeStep(skin_model_part, knot_spans_available, idMatrix, knot_span_u_point_split, knot_span_u_2nd_point,   knot_span_v_point_split, knot_span_v_2nd_point,   x_true_boundary_split, x_true_boundary2,      y_true_boundary_split, y_true_boundary2     , knot_step_u, knot_step_v );
+                SnakeStep(skin_model_part, knot_spans_available, idMatrix, 
+                         knot_span_u_1st_point,   knot_span_u_point_split, knot_span_v_1st_point  , knot_span_v_point_split, 
+                         x_true_boundary1     , x_true_boundary_split, y_true_boundary1     , y_true_boundary_split, 
+                         knot_step_u, knot_step_v, starting_pos_u, starting_pos_v );
+                SnakeStep(skin_model_part, knot_spans_available, idMatrix, 
+                         knot_span_u_point_split, knot_span_u_2nd_point,   knot_span_v_point_split, knot_span_v_2nd_point,
+                         x_true_boundary_split, x_true_boundary2,      y_true_boundary_split, y_true_boundary2     ,
+                         knot_step_u, knot_step_v, starting_pos_u, starting_pos_v);
             }
             // Check if the true boundary crosses an u or a v knot value
             else if (knot_span_u_1st_point != knot_span_u_2nd_point) { // u knot value is crossed
@@ -390,47 +418,48 @@ namespace Kratos
 
 
 
-    void SnakeSBMUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix,DynamicBins& testBin, ModelPart& skin_model_part, double lambda, int insert_nb_per_span_u, int insert_nb_per_span_v, double knot_step_u, double knot_step_v) {
-        
+    void SnakeSBMUtilities::MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix,DynamicBins& testBin, 
+                                                   ModelPart& skin_model_part, double lambda, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                                                   double knot_step_u, double knot_step_v,const double starting_pos_u, const double starting_pos_v ) {
         for (int i = 0; i < insert_nb_per_span_v+1; i++) {
             for (int j = 0; j < insert_nb_per_span_u+1; j++) {
                 if (knot_spans_available[idMatrix][i][j] == 2) {
                     // Check the 8 neighbor knot spans -> Is there any completely inside? Note that we can just check 1 point.
                     if (i != 0 && i != insert_nb_per_span_v) {
                         if (knot_spans_available[idMatrix][i+1][j] == 0) { // right node
-                            Point gaussPoint = Point((j+0.5)*knot_step_u, (i+1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j+0.5)*knot_step_u+starting_pos_u, (i+1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i+1][j] = 1;}
                         }
                         if (knot_spans_available[idMatrix][i-1][j] == 0) { // left node
-                            Point gaussPoint = Point((j+0.5)*knot_step_u, (i-1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j+0.5)*knot_step_u+starting_pos_u, (i-1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i-1][j] = 1;}
                         }
                     }
                     if (j != 0 && j != insert_nb_per_span_u) {
                         if (knot_spans_available[idMatrix][i][j+1] == 0) { // up node
-                            Point gaussPoint = Point((j+1+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j+1+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i][j+1] = 1;}
                         }
                         if (knot_spans_available[idMatrix][i][j-1] == 0) { //down node
-                            Point gaussPoint = Point((j-1+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j-1+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i][j-1] = 1;}
                         } 
                     }
                     if ((i != 0 && i != insert_nb_per_span_v) && (j != 0 && j != insert_nb_per_span_u)){
                         if (knot_spans_available[idMatrix][i+1][j-1] == 0) { // corner right-down node
-                            Point gaussPoint = Point((j-1+0.5)*knot_step_u, (i+1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j-1+0.5)*knot_step_u+starting_pos_u, (i+1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i+1][j-1] = 1;}
                         }
                         if (knot_spans_available[idMatrix][i-1][j-1] == 0) { // corner left-down node
-                            Point gaussPoint = Point((j-1+0.5)*knot_step_u, (i-1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j-1+0.5)*knot_step_u+starting_pos_u, (i-1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i-1][j-1] = 1;}
                         }
                         if (knot_spans_available[idMatrix][i+1][j+1] == 0) { // corner right-up node
-                            Point gaussPoint = Point((j+1+0.5)*knot_step_u, (i+1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j+1+0.5)*knot_step_u+starting_pos_u, (i+1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i+1][j+1] = 1;}
                         }
                         if (knot_spans_available[idMatrix][i-1][j+1] == 0) { // corner left-up node
-                            Point gaussPoint = Point((j+1+0.5)*knot_step_u, (i-1+0.5)*knot_step_v, 0);
+                            Point gaussPoint = Point((j+1+0.5)*knot_step_u+starting_pos_u, (i-1+0.5)*knot_step_v+starting_pos_v, 0);
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {knot_spans_available[idMatrix][i-1][j+1] = 1;}
                         }
                     }
@@ -439,12 +468,12 @@ namespace Kratos
                     const int numFakeGaussPoints = 4;
                     int numberOfInsideGaussianPoints = 0;
                     for (int i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
-                        double x_coord = j*knot_step_u + knot_step_u/(numFakeGaussPoints+1)*(i_GPx+1);
+                        double x_coord = j*knot_step_u + knot_step_u/(numFakeGaussPoints+1)*(i_GPx+1) + starting_pos_u;
 
                         // NOTE:: The v-knot spans are upside down in the matrix!!
                         for (int i_GPy = 0; i_GPy < numFakeGaussPoints; i_GPy++) 
                         {
-                            double y_coord = i*knot_step_v + knot_step_v/(numFakeGaussPoints+1)*(i_GPy+1);
+                            double y_coord = i*knot_step_v + knot_step_v/(numFakeGaussPoints+1)*(i_GPy+1) + starting_pos_v;
                             Point gaussPoint = Point(x_coord, y_coord, 0);  // GAUSSIAN POINT
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {
                                 // Sum over the number of numFakeGaussPoints per knot span
@@ -467,7 +496,10 @@ namespace Kratos
     }
 
 
-    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnake_inner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, ModelPart& surrogate_model_part_inner, int insert_nb_per_span_u, int insert_nb_per_span_v, std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v){
+    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnake_inner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, 
+                            ModelPart& surrogate_model_part_inner, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                            std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v,
+                            const double starting_pos_u, const double starting_pos_v){
         // Find the start of the Snake
         int start_i = 0;
         int start_j = 0;
@@ -682,7 +714,11 @@ namespace Kratos
     }
 
 
-    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnake_outer (DynamicBins& testBin_out, ModelPart& initial_skin_model_part_out, std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, ModelPart& surrogate_model_part_outer, int insert_nb_per_span_u, int insert_nb_per_span_v, std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v){
+    void SnakeSBMUtilities::CreateSurrogateBuondaryFromSnake_outer (DynamicBins& testBin_out, ModelPart& initial_skin_model_part_out, 
+                            std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idMatrix, 
+                            ModelPart& surrogate_model_part_outer, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                            std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v,
+                            const double starting_pos_u, const double starting_pos_v){
 
         KRATOS_WATCH("comincia Outer")
         // CHECK ALL THE EXTERNAL KNOT SPANS -> Better also an additional layer
@@ -692,7 +728,7 @@ namespace Kratos
         // int i = 0;
         for (int i = 0; i<2; i++) {
             for (int j = 0; j < (insert_nb_per_span_v+1); j++ ) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
                     knot_spans_available[idMatrix][i][j] = 1;
                     }
@@ -702,7 +738,7 @@ namespace Kratos
         // int j = knot_spans_available.size()-1;
         for (int j = knot_spans_available[idMatrix][0].size()-1; j > knot_spans_available[idMatrix][0].size()-3; j--) {
             for (int i = 0; i < (insert_nb_per_span_u+1); i++) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
                     knot_spans_available[idMatrix][i][j] = 1;
                     }
@@ -712,7 +748,7 @@ namespace Kratos
         // i = knot_spans_available[0].size()-1;
         for (int i = knot_spans_available[idMatrix][0].size()-1; i > knot_spans_available[idMatrix][0].size()-3; i--) {
             for (int j = insert_nb_per_span_v; j > -1; j-- ) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
                     knot_spans_available[idMatrix][i][j] = 1;
                     }
@@ -722,7 +758,7 @@ namespace Kratos
         // j = 0;
         for (int j = 0; j<2; j++) {
             for (int i = insert_nb_per_span_u; i > -1 ; i--) {
-                Point centroidKnotSpan = Point((j+0.5)*knot_step_u, (i+0.5)*knot_step_v, 0);
+                Point centroidKnotSpan = Point((j+0.5)*knot_step_u+starting_pos_u, (i+0.5)*knot_step_v+starting_pos_v, 0);
                 if (isPointInsideSkinBoundary(centroidKnotSpan, testBin_out, initial_skin_model_part_out) && knot_spans_available[idMatrix][i][j] != -1) {
                     knot_spans_available[idMatrix][i][j] = 1;
                     }
@@ -763,7 +799,7 @@ namespace Kratos
         }  
         //--------------------
 
-        std::ofstream outputFile("txt_files/Snake_coordinates_outer.txt");
+        std::ofstream outputFile("txt_files/Snake_coordinates_outer.txt", std::ofstream::app);
         outputFile << std::setprecision(16);
         outputFile << knot_vector_u[start_i] << " " << knot_vector_v[start_j] << std::endl;
         
@@ -950,6 +986,7 @@ namespace Kratos
         std::vector<ModelPart::IndexType> elem_nodes{1, idSnakeNode-1};
         surrogate_model_part_outer.CreateNewElement("Element2D2N", 1, elem_nodes, p_cond_prop);
         outputFile << knot_vector_u[i] << " " << knot_vector_v[j] << std::endl;
+        outputFile << "end_outer_loop" << std::endl; //DELETE
 
         outputFile.close();
         KRATOS_WATCH("Outer Snake process has finished")

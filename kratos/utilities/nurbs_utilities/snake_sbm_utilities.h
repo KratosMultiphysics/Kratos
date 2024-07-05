@@ -37,7 +37,10 @@ namespace Kratos
                                               const Parameters refinements_parameters, const Parameters mParameters, ModelPart& surrogate_model_part_inner, 
                                               ModelPart& surrogate_model_part_outer);
                                               
-        static void SnakeStep(ModelPart& skin_model_part, std::vector<std::vector<std::vector<int>>> &knot_spans_available, int idMatrixKnotSpansAvailable, int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point, double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v);
+        static void SnakeStep(ModelPart& skin_model_part, std::vector<std::vector<std::vector<int>>> &knot_spans_available, int idMatrixKnotSpansAvailable, 
+                              int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point, 
+                              double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, 
+                              double& knot_step_u, double& knot_step_v, const double starting_pos_u, const double starting_pos_v);
         
         static void SnakeStep3D(ModelPart& skin_model_part, std::vector<std::vector<std::vector<std::vector<int>>>> &knot_spans_available, int idMatrixKnotSpansAvailable, 
                             int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_u_3rd_point, 
@@ -62,11 +65,20 @@ namespace Kratos
 
         static bool isPointInsideSkinBoundary(Point& pointToSearch, DynamicBins& testBins, ModelPart& skin_model_part_in);
 
-        static void MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>>& knot_spans_available, int idInnerLoop, DynamicBins& testBins, ModelPart& skin_model_part, double lambda, int insert_nb_per_span_u, int insert_nb_per_span_v, double knot_step_u, double knot_step_v);
+        static void MarkKnotSpansAvailable(std::vector<std::vector<std::vector<int>>>& knot_spans_available, int idInnerLoop, DynamicBins& testBins, 
+                                           ModelPart& skin_model_part, double lambda, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                                           double knot_step_u, double knot_step_v, const double starting_pos_u, const double starting_pos_v);
 
-        static void CreateSurrogateBuondaryFromSnake_inner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idInnerLoop, ModelPart& surrogate_model_part_inner, int insert_nb_per_span_u, int insert_nb_per_span_v, std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v);
+        static void CreateSurrogateBuondaryFromSnake_inner (std::vector<std::vector<std::vector<int>>> & knot_spans_available, int idInnerLoop, 
+                            ModelPart& surrogate_model_part_inner, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                            std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v,
+                            const double starting_pos_u, const double starting_pos_v);
 
-        static void CreateSurrogateBuondaryFromSnake_outer (DynamicBins& testBin_out, ModelPart& skin_model_part_out, std::vector<std::vector<std::vector<int>>>& knot_spans_available, int idMatrixKnotSpansAvailable , ModelPart& surrogate_model_part_outer, int insert_nb_per_span_u, int insert_nb_per_span_v, std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v);
+        static void CreateSurrogateBuondaryFromSnake_outer (DynamicBins& testBin_out, ModelPart& skin_model_part_out, 
+                            std::vector<std::vector<std::vector<int>>>& knot_spans_available, int idMatrixKnotSpansAvailable , 
+                            ModelPart& surrogate_model_part_outer, int insert_nb_per_span_u, int insert_nb_per_span_v, 
+                            std::vector<double>& knot_vector_u, std::vector<double>&  knot_vector_v,
+                            const double starting_pos_u, const double starting_pos_v);
 
 
         static bool isPointInsideSkinBoundary3D(Point& pointToSearch, DynamicBins& testBins, ModelPart& skin_model_part_in);

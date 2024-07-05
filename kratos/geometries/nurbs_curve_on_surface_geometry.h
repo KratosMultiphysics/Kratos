@@ -745,6 +745,44 @@ public:
         }
     }
 
+    /*
+    * @brief computes the normal of the curve
+    *        laying on the underlying surface.
+    * @param rResult Normal to the curve lying on the surface in the physical space.
+    * @param rLocalCoord local point coordinate in the curve in which compute the normal.
+    */
+    array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    {
+        std::vector<CoordinatesArrayType> curve_global_space_derivatives(2);
+        this->GlobalSpaceDerivatives(
+            curve_global_space_derivatives, local_coord, 1);
+
+        std::vector<CoordinatesArrayType> surface_global_space_derivatives(2);
+        mpNurbsSurface->GlobalSpaceDerivatives(surface_global_space_derivatives, curve_global_space_derivatives[0],2);
+
+        // mpNurbsSurface->GlobalSpaceDerivatives()
+        Vector local_tangent = curve_global_space_derivatives[1];
+        array_1d<double, 3> normal_parameter_space;
+
+        double magnitude = std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+        normal_parameter_space[0] = + local_tangent[1] / magnitude;
+        normal_parameter_space[1] = - local_tangent[0] / magnitude; 
+        normal_parameter_space[2] = 0;
+
+
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = surface_global_space_derivatives[1][0];
+        Jacobian(0,1) = surface_global_space_derivatives[1][1];
+        Jacobian(1,0) = surface_global_space_derivatives[2][0];
+        Jacobian(1,1) = surface_global_space_derivatives[2][1];
+
+        array_1d<double, 3> normal_physical_space;
+        normal_physical_space = prod(Jacobian, normal_parameter_space);
+        normal_physical_space[2] = 0.0;
+
+        return normal_physical_space;
+    }
+
     ///@}
     ///@name Kratos Geometry Families
     ///@{

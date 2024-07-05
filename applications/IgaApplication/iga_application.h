@@ -48,11 +48,13 @@
 #include "custom_conditions/sbm_solid_2D_condition.h"
 #include "custom_conditions/load_solid_2D_condition.h"
 #include "custom_conditions/sbm_load_solid_2D_condition.h"
+#include "custom_conditions/support_contact_2D_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "custom_modelers/contact_iga_modeler.h"
 
 namespace Kratos {
 
@@ -156,11 +158,14 @@ private:
     const LoadSolid2DCondition mLoadSolid2DCondition;
     const SBMSolid2DCondition mSBMSolid2DCondition;
     const SBMLoadSolid2DCondition mSBMLoadSolid2DCondition;
+    const SupportContact2DCondition mSupportContact2DCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
+    const ContactIgaModeler mContactIgaModeler;
+
 
     ///@}
     ///@name Private methods

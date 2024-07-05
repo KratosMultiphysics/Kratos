@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SUPPORT_SOLID_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_SUPPORT_SOLID_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_CONTACT_2D_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_CONTACT_2D_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -27,18 +27,20 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
+#include "geometries/quadrature_point_coupling_geometry_2d.h"
+
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SupportSolid2DCondition
+    class SupportContact2DCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SupportSolid2DCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportSolid2DCondition);
+        /// Counted pointer definition of SupportContact2DCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportContact2DCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -51,26 +53,29 @@ namespace Kratos
         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Constructor with Id and geometry
-        SupportSolid2DCondition(
+        SupportContact2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SupportSolid2DCondition(
+        SupportContact2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties)
-            : Condition(NewId, pGeometry, pProperties)
+            PropertiesType::Pointer pPropMaster, 
+            PropertiesType::Pointer pPropSlave)
+            : Condition(NewId, pGeometry),
+              mpPropMaster(pPropMaster),
+              mpPropSlave(pPropSlave)
         {};
 
         /// Default constructor
-        SupportSolid2DCondition() : Condition()
+        SupportContact2DCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SupportSolid2DCondition() override
+        virtual ~SupportContact2DCondition() override
         {};
 
         ///@}
@@ -81,23 +86,38 @@ namespace Kratos
         Condition::Pointer Create(
             IndexType NewId,
             GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties
-        ) const override
+            PropertiesType::Pointer pPropMaster,
+            PropertiesType::Pointer pPropSlave
+        ) const
         {
-            return Kratos::make_intrusive<SupportSolid2DCondition>(
-                NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<SupportContact2DCondition>(
+                NewId, pGeom, pPropMaster, pPropSlave);
+        };
+
+        GeometryType const& GetSlaveGeometry() const
+        {
+            return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Slave);
+        };
+
+        /**
+         * @brief This method returns the paired geometry (constant version)
+         * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
+         */
+        GeometryType const& GetMasterGeometry() const
+        {
+            return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Master);
         };
 
         /// Create with Id, pointer to geometry and pointer to property
-        Condition::Pointer Create(
-            IndexType NewId,
-            NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties
-        ) const override
-        {
-            return Kratos::make_intrusive<SupportSolid2DCondition>(
-                NewId, GetGeometry().Create(ThisNodes), pProperties);
-        };
+        // Condition::Pointer Create(
+        //     IndexType NewId,
+        //     NodesArrayType const& ThisNodes,
+        //     PropertiesType::Pointer pProperties
+        // ) const override
+        // {
+        //     return Kratos::make_intrusive<SupportContact2DCondition>(
+        //         NewId, GetGeometry().Create(ThisNodes), pProperties);
+        // };
 
         ///@}
         ///@name Operations
@@ -203,11 +223,12 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
-        void GetValuesVector(Vector& rValues) const;
+        void GetValuesVector(Vector& rValues, IndexType index) const;
 
         void CalculateB(
             Matrix& rB, 
-            Matrix& r_DN_DX) const;
+            Matrix& r_DN_DX,
+            const SizeType number_of_control_points) const;
         ///@}
         ///@name Check
         ///@{
@@ -223,14 +244,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SupportSolid2DCondition\" #" << Id();
+            buffer << "\"SupportContact2DCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SupportSolid2DCondition\" #" << Id();
+            rOStream << "\"SupportContact2DCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -278,6 +299,22 @@ namespace Kratos
     ///@{
     void InitializeMaterial();
 
+    PropertiesType& GetPropertiesMaster()
+    {
+        KRATOS_DEBUG_ERROR_IF(mpPropMaster == nullptr)
+            << "Tryining to get the master properties of " << Info()
+            << ", which are uninitialized." << std::endl;
+        return *mpPropMaster;
+    }
+
+    PropertiesType& GetPropertiesSlave()
+    {
+        KRATOS_DEBUG_ERROR_IF(mpPropSlave == nullptr)
+            << "Tryining to get the slave properties of " << Info()
+            << ", which are uninitialized." << std::endl;
+        return *mpPropSlave;
+    }
+
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -285,7 +322,11 @@ namespace Kratos
     //@}
     ///@name Protected member Variables
     ///@{
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLawSlave; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLawMaster; /// The pointer containing the constitutive laws
+
+    PropertiesType::Pointer mpPropMaster;
+    PropertiesType::Pointer mpPropSlave;
 
     ///@}
 
@@ -311,4 +352,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // SupportSolid2DCondition  defined
+#endif // SupportContact2DCondition  defined
