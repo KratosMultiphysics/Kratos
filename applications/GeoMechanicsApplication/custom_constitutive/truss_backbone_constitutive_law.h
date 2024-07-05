@@ -46,15 +46,15 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     void SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-    using ConstitutiveLaw::SetValue;
+    using BaseType::SetValue;
 
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    using ConstitutiveLaw::GetValue;
+    using BaseType::GetValue;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>&      rThisVariable,
                            double&                      rValue) override;
-    using ConstitutiveLaw::CalculateValue;
+    using BaseType::CalculateValue;
 
     void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 

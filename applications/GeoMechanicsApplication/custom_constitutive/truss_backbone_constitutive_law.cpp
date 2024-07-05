@@ -95,11 +95,10 @@ void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValu
     if (const auto youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
         !IsWithinUnReLoading(axial_strain, youngs_modulus)) {
         // update accumulated backbone strain and un- reload center strain
-        auto pos_side = (axial_strain - mUnReLoadCenter) > 0.;
-        mAccumulatedStrain +=
-            std::abs(axial_strain - mUnReLoadCenter) - CalculateUnReLoadAmplitude(youngs_modulus);
-        mUnReLoadCenter = pos_side ? axial_strain - CalculateUnReLoadAmplitude(youngs_modulus)
-                                   : axial_strain + CalculateUnReLoadAmplitude(youngs_modulus);
+        const auto difference = axial_strain - mUnReLoadCenter;
+        mAccumulatedStrain += std::abs(difference) - CalculateUnReLoadAmplitude(youngs_modulus);
+        mUnReLoadCenter = difference > 0.0 ? axial_strain - CalculateUnReLoadAmplitude(youngs_modulus)
+                                           : axial_strain + CalculateUnReLoadAmplitude(youngs_modulus);
     }
     mPreviousAxialStrain = axial_strain;
 }
@@ -108,7 +107,7 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const ProcessInfo&  rCurrentProcessInfo) const
 {
-    if (const auto exit_code = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    if (const auto exit_code = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
         exit_code != 0)
         return exit_code;
 
@@ -124,7 +123,7 @@ double TrussBackboneConstitutiveLaw::BackboneStress(double Strain) const
     return mStressStrainTable.GetValue(Strain);
 }
 
-double TrussBackboneConstitutiveLaw::BackboneStiffness([[maybe_unused]] double Strain) const
+double TrussBackboneConstitutiveLaw::BackboneStiffness(double Strain) const
 {
     return mStressStrainTable.GetDerivative(Strain);
 }
@@ -165,7 +164,7 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
                                                       const ConstitutiveLaw::GeometryType& rElementGeometry,
                                                       const Vector& rShapeFunctionsValues)
 {
-    ConstitutiveLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+    BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
     mStressStrainTable.Clear();
 
