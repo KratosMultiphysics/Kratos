@@ -77,10 +77,6 @@ int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& 
     if ( DENSITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
-    //Interface variables
-    if ( INITIAL_JOINT_WIDTH.Key() == 0 || Prop.Has( INITIAL_JOINT_WIDTH ) == false || Prop[INITIAL_JOINT_WIDTH] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element", this->Id() )
-
     //verify that the dofs exist
     for ( unsigned int i = 0; i < Geom.size(); i++ )
     {
@@ -1120,11 +1116,11 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatr
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
 
-    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are
     // ordered counter-clockwise (GiD does so now), the rotation matrix is build like follows:
     rRotationMatrix(1,0) = -Vx[1];
     rRotationMatrix(1,1) = Vx[0];
-    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are
     // ordered clockwise, the rotation matrix is build like follows:
     // rRotationMatrix(1,0) = Vx[1];
     // rRotationMatrix(1,1) = -Vx[0];
