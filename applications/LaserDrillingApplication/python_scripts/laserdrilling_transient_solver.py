@@ -61,12 +61,16 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, 0.0)
             elem.SetValue(LaserDrillingApplication.ELEMENTAL_VOLUME, 0.0)
             elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
             elem.Set(KratosMultiphysics.ACTIVE, True)
 
         for node in self.main_model_part.Nodes:
             node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
             node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
 
     def SetParameters(self):
 
@@ -144,13 +148,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             mesh_type = project_parameters["problem_data"]["mesh_type"].GetString()
 
         #
-        '''light_lambda = 550e-6 # mm, light wavelength
+        light_lambda = 550e-6 # mm, light wavelength
         epoxy_n = 1.5
         n = epoxy_n
         A = 4.0 * n / ((n + 1)**2 + n**2)
         print(A)
         self.l_s = 0.25 * light_lambda * A / np.pi
-        print(self.l_s)'''
+        print(self.l_s)
         #
 
         self.decomposed_nodes_coords_filename = "hole_coords_l_s=" + str(self.l_s) + "_F_th=" + str(self.F_th) + "_H_ev=" + str(self.H_ev) + "_l_th=" + str(self.l_th) + "_alpha_ion=" + str(i_alpha) + "_" + mesh_type + "_" + mesh_size + ".txt"
@@ -368,7 +372,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                     self.some_elements_are_above_the_evap_temp = True
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     vol = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo)
-                    elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, vol[0])                    
+                    elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, vol[0])
                     element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
                     Y_centroid = elem.GetGeometry().Center().Y
                     evap_elements_centers_Y.append(Y_centroid)

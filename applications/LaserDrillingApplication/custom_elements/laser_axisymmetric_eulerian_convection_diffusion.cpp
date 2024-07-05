@@ -316,6 +316,72 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
         for (IndexType g = 0; g < n_gauss; ++g) {
             rOutput[g] = elemental_volume; // This is an elemental variable, and thus it is constant for all GPs
         }
+    } else if (rVariable == ENERGY_PER_VOLUME) {
+
+        double elem_energy_per_volume = 0.0;
+
+        // Initialize element data container
+        typename BaseType::ElementVariables Variables;
+        this->InitializeEulerianElement(Variables, rCurrentProcessInfo);
+
+        // Fill element data container with nodal data
+        this->GetNodalValues(Variables, rCurrentProcessInfo);
+
+        // Calculate kinematics
+        Vector det_J_vect;
+        ShapeFunctionsGradientsType DN_DX;
+        const auto N = r_geom.ShapeFunctionsValues(mMyIntegrationMethod);
+        r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mMyIntegrationMethod);
+
+        // Gauss points loop
+        array_1d<double,TNumNodes> N_g;
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            // Get Gauss point data
+            noalias(N_g) = row(N, g);
+            double energy_per_volume = 0.0;
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                energy_per_volume += N_g[i] * r_geom[i].GetValue(ENERGY_PER_VOLUME);
+            }
+            elem_energy_per_volume += energy_per_volume;
+        }
+
+        // Set elemental volume 
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            rOutput[g] = elem_energy_per_volume; // This is an elemental variable, and thus it is constant for all GPs
+        }
+    } else if (rVariable == ENTHALPY_ENERGY_PER_VOLUME) {
+
+        double elem_energy_per_volume = 0.0;
+
+        // Initialize element data container
+        typename BaseType::ElementVariables Variables;
+        this->InitializeEulerianElement(Variables, rCurrentProcessInfo);
+
+        // Fill element data container with nodal data
+        this->GetNodalValues(Variables, rCurrentProcessInfo);
+
+        // Calculate kinematics
+        Vector det_J_vect;
+        ShapeFunctionsGradientsType DN_DX;
+        const auto N = r_geom.ShapeFunctionsValues(mMyIntegrationMethod);
+        r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mMyIntegrationMethod);
+
+        // Gauss points loop
+        array_1d<double,TNumNodes> N_g;
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            // Get Gauss point data
+            noalias(N_g) = row(N, g);
+            double energy_per_volume = 0.0;
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                energy_per_volume += N_g[i] * r_geom[i].GetValue(ENTHALPY_ENERGY_PER_VOLUME);
+            }
+            elem_energy_per_volume += energy_per_volume;
+        }
+
+        // Set elemental volume 
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            rOutput[g] = elem_energy_per_volume; // This is an elemental variable, and thus it is constant for all GPs
+        }
     }
 }
 

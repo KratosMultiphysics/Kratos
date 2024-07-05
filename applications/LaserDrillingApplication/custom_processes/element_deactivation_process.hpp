@@ -108,16 +108,18 @@ public:
             GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
             unsigned int NumGPoints = rGeom.IntegrationPoints(MyIntegrationMethod).size();
             std::vector<double> ThermalEnergyPerVolumeVector(NumGPoints); // All components in this vector contain the same elemental thermal energy
-            std::vector<double> Temperature(NumGPoints); // All components in this vector contain the same elemental thermal energy
-            std::vector<double> ThermalDecomposition(NumGPoints); // All components in this vector contain the same elemental thermal energy
-            std::vector<double> DecomposedElementalVolume(NumGPoints); // All components in this vector contain the same elemental thermal energy
-            std::vector<double> ElementalVolume(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> Temperature(NumGPoints);
+            std::vector<double> ThermalDecomposition(NumGPoints);
+            std::vector<double> DecomposedElementalVolume(NumGPoints);
+            std::vector<double> ElementalVolume(NumGPoints);
+            //std::vector<double> EnergyPerVolumeVector(NumGPoints);
 
             itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME, ThermalEnergyPerVolumeVector, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(TEMPERATURE, Temperature, CurrentProcessInfo);
-            itElem->CalculateOnIntegrationPoints(THERMAL_DECOMPOSITION, ThermalDecomposition, CurrentProcessInfo);
+            //itElem->CalculateOnIntegrationPoints(THERMAL_DECOMPOSITION, ThermalDecomposition, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(DECOMPOSED_ELEMENTAL_VOLUME, DecomposedElementalVolume, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(ELEMENTAL_VOLUME, ElementalVolume, CurrentProcessInfo);
+            //itElem->CalculateOnIntegrationPoints(ENERGY_PER_VOLUME, EnergyPerVolumeVector, CurrentProcessInfo);
         }
 
         KRATOS_CATCH("");
