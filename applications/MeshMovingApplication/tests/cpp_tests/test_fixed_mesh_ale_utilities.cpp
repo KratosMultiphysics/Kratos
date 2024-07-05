@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(FixedMeshALEUtilities2D, MeshMovingApplicationFastSuit
     p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
     p_mesh_moving->UndoMeshMovement();
 
-    // GidIO<> gid_io_structure("/home/rzorrilla/Desktop/structure_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // GidIO<> gid_io_structure("./structure_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     // gid_io_structure.InitializeMesh(0.00);
     // gid_io_structure.WriteMesh(str_model_part.GetMesh());
     // gid_io_structure.FinalizeMesh();
@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(FixedMeshALEUtilities2D, MeshMovingApplicationFastSuit
     // gid_io_structure.WriteNodalResults(DISPLACEMENT, str_model_part.Nodes(), 0, 0);
     // gid_io_structure.FinalizeResults();
 
-    // GidIO<> gid_io_origin("/home/rzorrilla/Desktop/origin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // GidIO<> gid_io_origin("./origin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     // gid_io_origin.InitializeMesh(0.00);
     // gid_io_origin.WriteMesh(origin_model_part.GetMesh());
     // gid_io_origin.FinalizeMesh();
@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(FixedMeshALEUtilities2D, MeshMovingApplicationFastSuit
     // gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
     // gid_io_origin.FinalizeResults();
 
-    // GidIO<> gid_io_virtual("/home/rzorrilla/Desktop/virtual_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // GidIO<> gid_io_virtual("./virtual_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     // gid_io_virtual.InitializeMesh(0.00);
     // gid_io_virtual.WriteMesh(virtual_model_part.GetMesh());
     // gid_io_virtual.FinalizeMesh();
