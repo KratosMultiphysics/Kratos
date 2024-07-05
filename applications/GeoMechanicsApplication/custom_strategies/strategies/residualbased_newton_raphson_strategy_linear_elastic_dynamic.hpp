@@ -229,6 +229,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
      
+            // initialize the system matrices and the initial second derivative
             this->InititalizeSystemAndState();
 
             mInitializeWasPerformed = true;
@@ -285,20 +286,14 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
+		// only initialize solution step of conditions
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+            if (r_condition.IsActive()) {
+                r_condition.InitializeSolutionStep(r_current_process_info);
+            }});
 
-        if (!BaseType::mStiffnessMatrixIsBuilt) {
-            // Initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-        }
-        else {
-			// only initialize conditions of the stiffness matrix is built
-            const auto& r_current_process_info = r_model_part.GetProcessInfo();
-            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-                if (r_condition.IsActive()) {
-                    r_condition.InitializeSolutionStep(r_current_process_info);
-                }});
-
-        }
+        
 
         // Initialisation of the convergence criteria
         if (mpConvergenceCriteria->GetActualizeRHSflag())
@@ -394,7 +389,7 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
         bool residual_is_updated = false;
 
 
-        // only initialize conditions of the stiffness matrix is built
+        // only initialize conditions
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
         block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
             if (r_condition.IsActive()) {

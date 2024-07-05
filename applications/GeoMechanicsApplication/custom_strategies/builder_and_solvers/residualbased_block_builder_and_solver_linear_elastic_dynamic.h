@@ -162,6 +162,8 @@ public:
 
         Timer::Stop("Build");
 
+
+		// apply dirichlet conditions
         TSystemVectorType dummy_b(rA.size1(), 0.0);
         TSystemVectorType dummy_rDx(rA.size1(), 0.0);
 
@@ -330,14 +332,8 @@ public:
 
         BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
-		// add dirichlet conditions to RHS
-        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& r_dof) {
-            if (r_dof.IsFixed()) {
-                const std::size_t i = r_dof.EquationId();
-                rb[i]               = 0.0;
-            }
-        });
+        // add dirichlet conditions to RHS
+		this->ApplyDirichletConditionsRhs(rb);
 
         Timer::Stop("BuildRHS");
 
@@ -512,7 +508,7 @@ protected:
 
     void CalculateGlobalMatrices(const ElementsArrayType& rElements,
         TSystemMatrixType& rA,
-        ModelPart& rModelPart)
+        ModelPart& rModelPart) 
     {
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -579,7 +575,6 @@ protected:
                     BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
                 }
 
-
                 // Assemble the elemental contribution
                 BaseType::AssembleLHS(rA, lhs_contribution, equation_ids);
             }
@@ -593,12 +588,26 @@ protected:
 	{
 		const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
-		// add mass contribution to LHS
-        rA += mMassMatrix * (1.0 / (mBeta * delta_time * delta_time));
 
-		// add damping contribution to LHS
-		rA += mDampingMatrix * (mGamma / (mBeta * delta_time));
+		double* a_values = rA.value_data().begin();
+        double* m_values = mMassMatrix.value_data().begin();
+		double* c_values = mDampingMatrix.value_data().begin();
 
+        // add mass and damping contribution to LHS sparse matrix
+        // mass contribution: 1.0 / (mBeta * delta_time * delta_time) * M
+        // damping contribution: mGamma / (mBeta * delta_time) * C
+		for (std::size_t i = 0; i < rA.size1(); i++)
+		{
+			const std::size_t col_begin = rA.index1_data()[i];
+			const std::size_t col_end = rA.index1_data()[i + 1];
+
+			for (std::size_t j = col_begin; j < col_end; ++j)
+			{
+				const std::size_t col = rA.index2_data()[j];
+                a_values[j] += (1.0 / (mBeta * delta_time * delta_time)) * m_values[j];
+                a_values[j] += (mGamma / (mBeta * delta_time)) * c_values[j];
+			}
+		}
 	}
 
 
@@ -655,27 +664,30 @@ protected:
         auto& r_dof_set = this->GetDofSet();
 
 
-        block_for_each(r_dof_set, [&r_solution_step_values](Dof<double> dof) {
-            r_solution_step_values[dof.EquationId()] = dof.GetSolutionStepValue(0);
+        block_for_each(r_dof_set, [&r_solution_step_values](Dof<double>& r_dof) {
+            r_solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
             });
-
 
         this->GetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
 
-
-
         // calculate initial second derivative vector
-        TSystemVectorType& r_stiffness_contribution = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSystemVectorType& r_stiffness_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSparseSpace::Mult(rStiffnessMatrix, r_solution_step_values, r_stiffness_contribution);
 
-        TSystemVectorType& r_damping_contribution = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSystemVectorType& r_damping_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSparseSpace::Mult(mDampingMatrix, r_first_derivative_vector, r_damping_contribution);
 
-        TSystemVectorType initial_force_vector = rExternalForce - r_stiffness_contribution - r_damping_contribution;
 
-        BaseType::mpLinearSystemSolver->InitializeSolutionStep(mMassMatrix, r_second_derivative_vector, initial_force_vector);
-        BaseType::mpLinearSystemSolver->PerformSolutionStep(mMassMatrix, r_second_derivative_vector, initial_force_vector);
+        // initial_force_vector = rExternalForce - r_stiffness_contribution - r_damping_contribution;
+		TSystemVectorType& initial_force_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+		TSparseSpace::ScaleAndAdd(1.0, rExternalForce, -1.0, r_stiffness_contribution, initial_force_vector);
+		TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, r_damping_contribution);
 
+        // add dirichlet conditions to initial_force_vector
+        this->ApplyDirichletConditionsRhs(initial_force_vector);
+
+		// solve for initial second derivative vector
+		BaseType::mpLinearSystemSolver->Solve(mMassMatrix, r_second_derivative_vector, initial_force_vector);
 
         this->SetFirstAndSecondDerivativeVector(r_first_derivative_vector,
             r_second_derivative_vector, rModelPart);
@@ -697,7 +709,7 @@ private:
 	bool mCopyExternalForceVector = false;
 
     void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,
-                                 unsigned int                  MatrixSize,
+                                 std::size_t          MatrixSize,
                                  typename TSchemeType::Pointer pScheme,
                                  ModelPart&                    rModelPart)
     {
@@ -737,6 +749,19 @@ private:
         CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);
         CalculateAndAddDynamicContributionToRhs(first_derivative_vector, mDampingMatrix, rb);
     }
+
+
+	void ApplyDirichletConditionsRhs(TSystemVectorType& rb)
+    {
+		// add dirichlet conditions to RHS
+		// NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& r_dof) {
+            if (r_dof.IsFixed()) {
+				const std::size_t i = r_dof.EquationId();
+				rb[i] = 0.0;
+			}
+			});
+	}
 
 }; /* Class ResidualBasedBlockBuilderAndSolverLinearElasticDynamic */
 

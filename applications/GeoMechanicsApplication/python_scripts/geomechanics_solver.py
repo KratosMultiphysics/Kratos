@@ -512,7 +512,14 @@ class GeoMechanicalSolver(PythonSolver):
             # a direct solver is needed which can be pre-factorized
             linear_solver = KratosMultiphysics.python_linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
-            new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(linear_solver)
+            beta = self.settings["newmark_beta"].GetDouble()
+            gamma = self.settings["newmark_gamma"].GetDouble()
+            calculate_initial_acceleration = True
+
+            # delta time has to be initialized before solving solution steps
+            self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
+
+            new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(linear_solver, beta, gamma, calculate_initial_acceleration)
 
             solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
                                                                                          self.computing_model_part,
@@ -521,9 +528,10 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          self.convergence_criterion,
                                                                                          new_builder_and_solver,
                                                                                          self.strategy_params,
+                                                                                         beta,
+                                                                                         gamma,
                                                                                          max_iters,
                                                                                          compute_reactions,
-                                                                                         reform_step_dofs,
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")

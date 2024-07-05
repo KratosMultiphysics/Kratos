@@ -3,6 +3,11 @@ import os
 import sys
 
 sys.path.append(os.path.join('..','..','..'))
+sys.path.append(r"D:\software_development\Kratos4\bin\Debug")
+sys.path.append(r"D:\software_development\Kratos4\bin\Debug\libs")
+
+# sys.path.append(r"D:\software_development\Kratos4\bin\Release")
+# sys.path.append(r"D:\software_development\Kratos4\bin\Release\libs")
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -216,14 +221,18 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    self._CalculateIncrementalDisplacement(node)
+                incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
+                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+                incr_process.Execute()
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
 if __name__ == '__main__':
     from sys import argv
+
+    import cProfile
+    import pstats
 
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
@@ -234,14 +243,23 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
         raise Exception(err_msg)
 
+    os.chdir(r"D:\software_development\STEM\benchmark_tests\test_1d_wave_prop_drained_soil\inputs_kratos")
+
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "ProjectParameters.json"
+        parameter_file_name = "ProjectParameters_stage_1.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
     simulation = GeoMechanicsAnalysis(model,parameters)
-    simulation.Run()
+
+    #profile.run("simulation.Run()")
+    cProfile.run("simulation.Run()","profile_results.txt")
+
+    p = pstats.Stats("profile_results.txt")
+
+    p.strip_dirs().sort_stats("time").print_stats(20)
+    # simulation.Run()

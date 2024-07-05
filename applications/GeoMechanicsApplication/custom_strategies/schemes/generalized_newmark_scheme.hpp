@@ -115,12 +115,20 @@ protected:
         for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
             rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
                 1.0 / (GetTheta() * this->GetDeltaTime());
+
+			std::cout << "deltatime coefficient" << rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] << std::endl;
         }
 
         if (!this->GetSecondOrderVectorVariables().empty()) {
             rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] =
                 GetGamma() / (GetBeta() * this->GetDeltaTime());
+
+			std::cout << "VELOCITY_COEFFICIENT:" << rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] << std::endl;
         }
+		std::cout << "deltatime:" << this->GetDeltaTime() << std::endl;
+		std::cout << "theta:" << GetTheta() << std::endl;
+		std::cout << "gamma:" << GetGamma() << std::endl;
+		std::cout << "beta:" << GetBeta() << std::endl;
 
         KRATOS_CATCH("")
     }
