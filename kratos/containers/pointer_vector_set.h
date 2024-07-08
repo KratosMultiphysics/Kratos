@@ -1101,8 +1101,7 @@ private:
 
             // now add the left overs. At this moment, either both existing_data_it and new_data_it
             // reached the end, or one of them reached the end. In either case, we can safely add the remaining items
-            // using the push back. But first we need to add the new data because, in case all the lower_bound_first, lower_bound_last
-            // upper_bound_first, upper_bound_last are equal, then new data comes after the existing lower_bound_first items.
+            // using the push back.
             for (; new_data_it != last; ++new_data_it) {
                 aux_container.push_back(TPointerType(&GetReference(new_data_it)));
             }
