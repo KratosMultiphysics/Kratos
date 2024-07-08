@@ -105,10 +105,7 @@ public:
      */
     void WriteTransformationCoordinates(
         BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
-    void CalculateOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer> &rVariable,
-        std::vector<ConstitutiveLaw::Pointer> &rOutput,
-        const ProcessInfo &rCurrentProcessInfo) override;
+
     /**
      * @brief This function calculates the current linear-Lagrange strain
      */

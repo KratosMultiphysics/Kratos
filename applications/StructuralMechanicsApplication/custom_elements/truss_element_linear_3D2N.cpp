@@ -178,9 +178,8 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         Strain[1] = 0.00;
         Strain[2] = 0.00;
         rOutput[0] = Strain;
-        return;
     }
-    if (rVariable == PK2_STRESS_VECTOR) {
+    else if (rVariable == PK2_STRESS_VECTOR) {
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
@@ -292,22 +291,6 @@ void TrussElementLinear3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
     rSerializer.load("mConstitutiveLaw", mpConstitutiveLaw);
-}
-void Kratos::TrussElementLinear3D2N::CalculateOnIntegrationPoints(
-    const Kratos::Variable<Kratos::ConstitutiveLaw::Pointer> &rVariable,
-    std::vector<ConstitutiveLaw::Pointer> &rOutput,
-    const Kratos::ProcessInfo &rCurrentProcessInfo) {
-
-  if(rVariable == CONSTITUTIVE_LAW)
-  {
-    if ( rOutput.size() !=1 )
-    {
-      rOutput.resize(1);
-    }
-
-    rOutput[0] = mpConstitutiveLaw;
-  }
-
 }
 
 } // namespace Kratos.
