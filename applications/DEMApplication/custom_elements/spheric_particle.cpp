@@ -699,7 +699,8 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& my_ang_vel,
-                                                SphericParticle* p_neighbour)
+                                                SphericParticle* p_neighbour,
+                                                ParticleDataBuffer & data_buffer)
 {
     const auto& central_node = GetGeometry()[0];
     const auto& neighbour_node = p_neighbour->GetGeometry()[0];
@@ -717,6 +718,10 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
     const array_1d<double, 3>& coors = central_node.Coordinates();
     array_1d<double, 3> neigh_coors = neighbour_node.Coordinates();
+
+    if (data_buffer.mDomainIsPeriodic){
+        TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer, coors, neigh_coors);
+    }
 
     const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
     const double distance            = DEM_MODULUS_3(other_to_me_vect);
@@ -835,7 +840,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle, data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
@@ -1596,7 +1601,9 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
         //const array_1d<double, 3>& reaction_force=central_node.FastGetSolutionStepValue(FORCE_REACTION);
 
         //make a copy
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW) = (*mStressTensor);
+        if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
+            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW) = (*mStressTensor);
+        }
 
         //KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW))
 

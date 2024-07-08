@@ -342,7 +342,8 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternio
                                                                                 const double &other_radius,
                                                                                 const double &dt,
                                                                                 const array_1d<double, 3> &angl_vel,
-                                                                                SphericParticle* neighbour_iterator);
+                                                                                SphericParticle* neighbour_iterator,
+                                                                                ParticleDataBuffer & data_buffer);
 
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],

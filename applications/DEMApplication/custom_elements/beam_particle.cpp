@@ -237,7 +237,8 @@ namespace Kratos {
                                                                                      other_radius,
                                                                                      data_buffer.mDt,
                                                                                      ang_vel,
-                                                                                     neighbour_iterator);
+                                                                                     neighbour_iterator,
+                                                                                     data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info,
