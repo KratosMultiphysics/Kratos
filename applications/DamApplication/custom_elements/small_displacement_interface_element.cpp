@@ -77,6 +77,10 @@ int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& 
     if ( DENSITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
+    //Interface variables
+    if ( INITIAL_JOINT_WIDTH.Key() == 0 || Prop.Has( INITIAL_JOINT_WIDTH ) == false || Prop[INITIAL_JOINT_WIDTH] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element", this->Id() )
+
     //verify that the dofs exist
     for ( unsigned int i = 0; i < Geom.size(); i++ )
     {
@@ -759,7 +763,7 @@ template< >
 void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(2);
 
     array_1d<double,3> Vx;
@@ -786,7 +790,7 @@ template< >
 void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(3);
 
     array_1d<double,3> Vx;
@@ -821,7 +825,7 @@ template< >
 void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(4);
 
     array_1d<double,3> Vx;
