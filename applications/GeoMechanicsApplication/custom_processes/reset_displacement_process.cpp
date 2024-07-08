@@ -23,19 +23,6 @@ ResetDisplacementProcess::ResetDisplacementProcess(ModelPart& rModelPart, const 
 {
 }
 
-void ResetDisplacementProcess::ExecuteInitialize()
-{
-    // block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-    //     std::vector<Vector> test;
-    //     // rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, test, mrModelPart.GetProcessInfo());
-    //     KRATOS_INFO("ResetDisplacementProcess") << "Initial stress vector: " << test << std::endl;
-    //
-    //     Vector initial_stress_vector = ZeroVector(6);
-    //     initial_stress_vector[0]     = -1E10;
-    //     rElement.GetGeometry().SetValue(INITIAL_STRESS_VECTOR, initial_stress_vector);
-    // });
-}
-
 void ResetDisplacementProcess::ExecuteInitializeSolutionStep()
 {
     SetInitialStateProcess<3> set_initial_state_process(mrModelPart);
