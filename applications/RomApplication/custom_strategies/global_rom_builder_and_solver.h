@@ -367,17 +367,22 @@ public:
 
         Timer::Start("BuildRHS");
 
-        BuildRHSNoDirichlet(pScheme,rModelPart,b);
+        TSystemVectorType b_fom = b;
 
-        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-            const std::size_t i = rDof.EquationId();
+        BuildRHSNoDirichlet(pScheme,rModelPart,b_fom);
 
-            if (rDof.IsFixed())
-                b[i] = 0.0;
-        });
+        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+        //     const std::size_t i = rDof.EquationId();
+
+        //     if (rDof.IsFixed())
+        //         b_fom[i] = 0.0;
+        // });
 
         Timer::Stop("BuildRHS");
+
+        ProjectRHS_ROM(rModelPart,b_fom,b);
+
 
         KRATOS_CATCH("")
     }
@@ -888,6 +893,39 @@ protected:
 
         KRATOS_CATCH("")
     }
+
+
+
+    /**
+     * Projects the reduced system of equations
+     */
+    void ProjectRHS_ROM(
+        ModelPart &rModelPart,
+        TSystemVectorType &rb,
+        TSystemVectorType &rb_rom)
+    {
+        KRATOS_TRY
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
+
+        rb_rom.resize(GetNumberOfROMModes(), false);
+
+        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb_rom(rb_rom.data().begin(), rb_rom.size());
+
+        // Compute the matrix multiplication
+        eigen_rb_rom = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+
+        KRATOS_CATCH("")
+
+    }
+
 
     /**
      * Solves reduced system of equations and broadcasts it
