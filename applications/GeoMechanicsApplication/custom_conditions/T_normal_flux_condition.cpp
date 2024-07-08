@@ -41,9 +41,6 @@ GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType     
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTNormalFluxCondition<TDim, TNumNodes>::~GeoTNormalFluxCondition() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
