@@ -761,7 +761,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryT
     this->GetProperties().SetValue(INITIAL_JOINT_WIDTH, 0.0);
 
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(2);
 
     array_1d<double,3> Vx;
@@ -788,8 +788,9 @@ template< >
 void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
     this->GetProperties().SetValue(INITIAL_JOINT_WIDTH, 0.0);
+
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(3);
 
     array_1d<double,3> Vx;
@@ -823,8 +824,10 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryT
 template< >
 void SmallDisplacementInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
+    this->GetProperties().SetValue(INITIAL_JOINT_WIDTH, 0.0);
+
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
-    const double Tolerance = std::numeric_limits<double>::epsilon();
+    const double Tolerance = 1.0e-6;
     mInitialGap.resize(4);
 
     array_1d<double,3> Vx;
