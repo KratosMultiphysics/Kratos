@@ -32,9 +32,9 @@ void ResetDisplacementProcess::ExecuteInitializeSolutionStep()
 void ResetDisplacementProcess::ExecuteFinalize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-        std::vector<Vector> test;
-        rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, test, mrModelPart.GetProcessInfo());
-        rElement.GetGeometry().SetValue(INITIAL_STRESS_VECTOR, test[0]);
+        std::vector<Vector> stresses_on_integration_points;
+        rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
+        rElement.GetGeometry().SetValue(INITIAL_STRESS_VECTOR, stresses_on_integration_points[0]);
     });
 }
 
