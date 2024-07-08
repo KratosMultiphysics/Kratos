@@ -32,7 +32,6 @@ public:
 
 private:
     ModelPart& mrModelPart;
-    bool       mIsInitialized = false;
 };
 
 } // namespace Kratos
