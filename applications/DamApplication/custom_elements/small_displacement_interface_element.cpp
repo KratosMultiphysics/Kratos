@@ -758,6 +758,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
 template< >
 void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
+    this->GetProperties().SetValue(INITIAL_JOINT_WIDTH, 0.0);
+
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     const double Tolerance = std::numeric_limits<double>::epsilon();
     mInitialGap.resize(2);
@@ -785,6 +787,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateInitialGap(const GeometryT
 template< >
 void SmallDisplacementInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
+    this->GetProperties().SetValue(INITIAL_JOINT_WIDTH, 0.0);
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     const double Tolerance = std::numeric_limits<double>::epsilon();
     mInitialGap.resize(3);
