@@ -180,13 +180,8 @@ void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurr
     if (mIsInitialization) {
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
-            {
                 noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
-            }
-            else
-            {
-                noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
-            }
+            else noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
         } else {
             noalias(mInternalGlobalForcesFinalized)         = ZeroVector(msElementSize);
             noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
