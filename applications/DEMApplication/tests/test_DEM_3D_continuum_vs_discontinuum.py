@@ -16,6 +16,10 @@ def GetFilePath(fileName):
 
 class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
+    def Initialize(self):
+        super().Initialize()
+        self._GetSolver().cplusplus_strategy.BreakAllBonds()
+
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
