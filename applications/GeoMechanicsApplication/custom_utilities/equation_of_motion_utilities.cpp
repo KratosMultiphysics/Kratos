@@ -28,15 +28,12 @@ Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(std::size_t   dimension
 {
     const std::size_t block_element_size = number_U_nodes * dimension;
     Matrix            Nu                 = ZeroMatrix(dimension, block_element_size);
-    Matrix            aux_density_matrix = ZeroMatrix(dimension, block_element_size);
-    Matrix            density_matrix     = ZeroMatrix(dimension, dimension);
     Matrix            mass_matrix        = ZeroMatrix(block_element_size, block_element_size);
 
     for (unsigned int g_point = 0; g_point < NumberIntegrationPoints; ++g_point) {
-        GeoElementUtilities::AssembleDensityMatrix(density_matrix, rSolidDensities[g_point]);
         GeoElementUtilities::CalculateNuMatrix(dimension, number_U_nodes, Nu, Nu_container, g_point);
-        noalias(aux_density_matrix) = prod(density_matrix, Nu);
-        mass_matrix += prod(trans(Nu), aux_density_matrix) * rIntegrationCoefficients[g_point];
+
+        mass_matrix += rSolidDensities[g_point] * prod(trans(Nu), Nu) * rIntegrationCoefficients[g_point];
     }
     return mass_matrix;
 }
