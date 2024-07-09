@@ -22,7 +22,7 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
 
         # get the parameter file names for all stages
         file_path = test_helper.get_file_path('C-Phi_reduction_process')
-        stages = test_helper.run_stages(file_path, 2)
+        test_helper.run_stages(file_path, 2)
 
         # read results
         reader = test_helper.GiDOutputFileReader()
