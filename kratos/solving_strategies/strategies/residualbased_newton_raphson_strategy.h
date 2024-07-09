@@ -783,6 +783,10 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+        KRATOS_WATCH('FomStrategy')
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+
         // Pointers needed in the solution
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();

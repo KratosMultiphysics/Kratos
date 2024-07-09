@@ -98,4 +98,34 @@ def CreateSolver(cls, model, custom_settings):
             if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
+        def _CreateSolutionStrategy(self):
+            strategy_type = self._GetStrategyType()
+            if strategy_type == "linear":
+                solution_strategy = self._CreateLinearStrategy()
+            elif strategy_type == "non_linear":
+                # Create strategy
+                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+                    solution_strategy = self._CreateRomNewtonRaphsonStrategy()
+                # elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                #     solution_strategy = self._CreateLineSearchStrategy()
+            else:
+                err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
+                raise Exception(err_msg)
+            return solution_strategy
+
+        def _CreateRomNewtonRaphsonStrategy(self):
+            computing_model_part = self.GetComputingModelPart()
+            time_scheme = self._GetScheme()
+            convergence_criterion = self._GetConvergenceCriterion()
+            builder_and_solver = self._GetBuilderAndSolver()
+            return KratosROM.RomResidualBasedNewtonRaphsonStrategy(
+                computing_model_part,
+                time_scheme,
+                convergence_criterion,
+                builder_and_solver,
+                self.settings["maximum_iterations"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+
     return ROMSolver(model, custom_settings)

@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
-#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
@@ -63,7 +62,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class RomResidualBasedNewtonRaphsonStrategy
-    : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     ///@name Type Definitions
@@ -75,7 +74,9 @@ class RomResidualBasedNewtonRaphsonStrategy
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    typedef RomResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
@@ -555,7 +556,7 @@ class RomResidualBasedNewtonRaphsonStrategy
     void SetReformDofSetAtEachStepFlag(bool Flag)
     {
         mReformDofSetAtEachStep = Flag;
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);rDx
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
     }
 
     /**
@@ -745,16 +746,15 @@ class RomResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb = *mpb;
 
+        TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
+
         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             TSparseSpace::SetToZero(rb);
-            GetBuilderAndSolver()->GetRHS_ROM()
-            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb_rom);
-            if FOM
-                GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
+            BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
+        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, b_rom);
 
         KRATOS_CATCH("");
     }
@@ -784,6 +784,10 @@ class RomResidualBasedNewtonRaphsonStrategy
     void InitializeSolutionStep() override
     {
         KRATOS_TRY;
+
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+        KRATOS_WATCH('RomStrategy')
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
 
         // Pointers needed in the solution
         typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -1106,6 +1110,42 @@ class RomResidualBasedNewtonRaphsonStrategy
 
         return is_converged;
     }
+
+    /**
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRomRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb,
+        TSystemVectorType& rbRom)
+    {
+        KRATOS_TRY
+
+        Timer::Start("BuildRHS");
+
+        GetBuilderAndSolver()->BuildRHSNoDirichlet(pScheme,rModelPart,rb);
+
+        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+        //     const std::size_t i = rDof.EquationId();
+
+        //     if (rDof.IsFixed())
+        //         b_fom[i] = 0.0;
+        // });
+
+        Timer::Stop("BuildRHS");
+
+        GetBuilderAndSolver()->ProjectRHS_ROM(rModelPart,rb,rbRom);
+
+
+        KRATOS_CATCH("")
+    }
+
+
 
     /**
      * @brief Function to perform expensive checks.

@@ -358,10 +358,10 @@ public:
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
-    void BuildRHS(
+    void BuildRomRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b) override
+        TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -391,7 +391,7 @@ public:
     void BuildRHSNoDirichlet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b)
+        TSystemVectorType& rb)
     {
         KRATOS_TRY
 
@@ -434,7 +434,7 @@ public:
                     RHS_Contribution *= h_rom_weight;
 
                     // Assemble the elemental contribution
-                    BaseType::AssembleRHS( b, RHS_Contribution, EquationId);
+                    BaseType::AssembleRHS( rb, RHS_Contribution, EquationId);
                 }
 
             }
@@ -452,7 +452,7 @@ public:
                     RHS_Contribution *= h_rom_weight;
 
                     // Assemble the elemental contribution
-                    BaseType::AssembleRHS(b, RHS_Contribution, EquationId);
+                    BaseType::AssembleRHS(rb, RHS_Contribution, EquationId);
                 }
             }
         }
@@ -465,7 +465,6 @@ public:
         KRATOS_CATCH("")
 
     }
-
 
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
