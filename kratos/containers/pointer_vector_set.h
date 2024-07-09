@@ -1112,7 +1112,6 @@ private:
 
             // now do the swap
             mData.swap(aux_container);
-            mData.shrink_to_fit();
         }
 
         // TODO: To be removed once push back is removed.
