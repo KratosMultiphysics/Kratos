@@ -38,8 +38,6 @@ public:
 
     GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTNormalFluxCondition() override;
-
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoTNormalFluxCondition>(

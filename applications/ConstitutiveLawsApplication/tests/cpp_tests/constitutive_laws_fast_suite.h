@@ -12,18 +12,31 @@
 
 #pragma once
 
-#include "constitutive_laws_application.h"
+// Project includes
 #include "testing/testing.h"
+#include "constitutive_laws_application.h"
+#include "structural_mechanics_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite {
-public:
-  KratosConstitutiveLawsFastSuite();
+class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite 
+{
+  public:
+    KratosConstitutiveLawsFastSuite();
 
-private:
-  KratosConstitutiveLawsApplication::Pointer mpConstitutiveLawsApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  private:
+    KratosConstitutiveLawsApplication::Pointer mpConstitutiveLawsApp;
+};
+
+class KratosConstitutiveLawsWithStructuralElementsSuite : public KratosCoreFastSuite 
+{
+  public:
+    KratosConstitutiveLawsWithStructuralElementsSuite();
+
+  private:
+    KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
+    KratosConstitutiveLawsApplication::Pointer mpConstitutiveLawsApp;
 };
 
 } // namespace Kratos::Testing

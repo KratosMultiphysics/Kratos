@@ -62,7 +62,7 @@ file(GLOB_RECURSE KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI USE_CUSTOM_MAIN)
+    kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # ###############################################################

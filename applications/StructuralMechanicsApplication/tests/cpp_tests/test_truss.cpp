@@ -32,6 +32,8 @@ public:
         mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
     {}
 
+    StubBilinearLaw() = default;
+
     ConstitutiveLaw::Pointer Clone() const override
     {
         return std::make_shared<StubBilinearLaw>(*this);
@@ -50,10 +52,26 @@ public:
         return rValue;
     }
 
+    using ConstitutiveLaw::CalculateValue;
+
+    void InitializeMaterial(const Properties&,
+                            const GeometryType&,
+                            const Vector&) override
+    {
+        mIsInitialized = true;
+    }
+
+    [[nodiscard]] bool IsInitialized() const
+    {
+        return mIsInitialized;
+    }
+
 private:
     double mStrain = 0.0;
     array_1d<double, 2> mTangentModuli{2.0, 1.0};
+    bool mIsInitialized = false;
 };
+
 
 ModelPart& CreateTestModelPart(Model& rModel)
 {
@@ -307,6 +325,25 @@ namespace Testing
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
         KRATOS_EXPECT_DOUBLE_EQ(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2NInitializesConstitutiveLaw, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        constexpr auto length = 2.0;
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
+        AddDisplacementDofsElement(r_model_part);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubBilinearLaw>());
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+
+        p_element->Initialize(r_model_part.GetProcessInfo());
+        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+        p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, r_model_part.GetProcessInfo());
+        auto p_constitutive_law = dynamic_cast<const StubBilinearLaw*>(constitutive_laws[0].get());
+        KRATOS_EXPECT_TRUE(p_constitutive_law->IsInitialized())
     }
 
 }
