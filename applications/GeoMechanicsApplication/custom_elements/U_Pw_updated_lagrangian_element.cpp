@@ -14,196 +14,96 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new UPwUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwUpdatedLagrangianElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwUpdatedLagrangianElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwUpdatedLagrangianElement(NewId, pGeom, pProperties,
+                                                            this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-int UPwUpdatedLagrangianElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    // Base class checks for positive area and Id > 0
-    // Verify generic variables
-    int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-
-    return ierr;
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& rCurrentProcessInfo,
-                                                                const bool CalculateStiffnessMatrixFlag,
-                                                                const bool CalculateResidualVectorFlag)
+                                                                bool CalculateStiffnessMatrixFlag,
+                                                                bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                                                         rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                                                         CalculateResidualVectorFlag);
+    ElementVariables variables;
+    this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    // Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
-                                                       rCurrentProcessInfo);
-
-    // Stiffness matrix is always needed for Biot coefficient
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-
-    const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
-
-    // Computing in all integrations points
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // Compute element kinematics B, F, GradNpT ...
-        this->CalculateKinematics(Variables, GPoint);
-
-        // Cauchy strain: This needs to be investigated which strain measure should be used
-        // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        this->CalculateStrain(Variables, GPoint);
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // Compute Np, Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
-        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-
-        // Compute constitutive tensor and stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-
-        // Calculating weights for integration on the reference configuration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
-
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
-
-        if (CalculateStiffnessMatrixFlag) {
-            // Contributions to stiffness matrix calculated on the reference config
-            /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-
-            /* Geometric stiffness matrix */
-            if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
-        }
-
-        if (CalculateResidualVectorFlag) {
-            // Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+    if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
+        const auto& integration_points = this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(integration_points, variables.detJContainer);
+        for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
+            this->CalculateAndAddGeometricStiffnessMatrix(
+                rLeftHandSideMatrix, this->mStressVector[GPoint], variables.DN_DXContainer[GPoint],
+                integration_coefficients[GPoint]);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        if (rOutput.size() != mConstitutiveLawVector.size())
-            rOutput.resize(mConstitutiveLawVector.size());
-
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateDeformationGradient(Variables, GPoint);
-            rOutput[GPoint] = Variables.detF;
-        }
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
     } else {
         UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Defining necessary variables
-    const GeometryType& rGeom      = this->GetGeometry();
-    const unsigned int  NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-
-    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
+    rOutput.resize(this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod));
 
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateDeformationGradient(Variables, GPoint);
-
-            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
-
-            rOutput[GPoint] = Variables.F;
-        }
+        rOutput = this->CalculateDeformationGradients();
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
-        // Definition of variables
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Loop over integration points
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            // compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables, GPoint);
-
-            // Compute strain
-            this->CalculateDeformationGradient(Variables, GPoint);
-            Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
-
-            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
-
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
-        }
+        const auto deformation_gradients = this->CalculateDeformationGradients();
+        std::transform(deformation_gradients.begin(), deformation_gradients.end(), rOutput.begin(),
+                       [this](const Matrix& rDeformationGradient) {
+            return MathUtils<>::StrainVectorToTensor(this->CalculateGreenLagrangeStrain(rDeformationGradient));
+        });
     } else {
         UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
-//----------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
+{
+    return {};
+}
 
 template class UPwUpdatedLagrangianElement<2, 3>;
 template class UPwUpdatedLagrangianElement<2, 4>;

@@ -17,7 +17,8 @@
 #include "custom_utilities/condition_utilities.hpp"
 #include "utilities/math_utils.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition()
@@ -26,14 +27,13 @@ GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition()
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewId,
-                                                                  GeometryType::Pointer pGeometry)
+GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewId,
+GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType             NewId,
                                                                   GeometryType::Pointer pGeometry,
                                                                   PropertiesType::Pointer pProperties)
     : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
@@ -41,17 +41,14 @@ GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType NewI
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTNormalFluxCondition<TDim, TNumNodes>::~GeoTNormalFluxCondition() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
+void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& r_geom = this->GetGeometry();
+    const GeometryType&                             r_geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int num_integration_points = r_integration_points.size();
-    const unsigned int local_dim = r_geom.LocalSpaceDimension();
+    const unsigned int local_dim              = r_geom.LocalSpaceDimension();
 
     const Matrix& r_N_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType j_container(num_integration_points);
@@ -76,13 +73,10 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSi
 
         auto weighting_integration_coefficient =
             ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-                j_container[integration_point],
-                r_integration_points[integration_point].Weight());
+                j_container[integration_point], r_integration_points[integration_point].Weight());
 
         // Contributions to the right hand side
-        auto normal_flux_on_DOF = normal_flux_on_integration_point * N * weighting_integration_coefficient;
-        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,
-                                                                normal_flux_on_DOF);
+        rRightHandSideVector += (normal_flux_on_integration_point * N * weighting_integration_coefficient);
     }
 }
 

@@ -83,9 +83,9 @@
 #include "custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/continuum_laws/history_linear_elastic_3D_law.hpp"
-#include "custom_constitutive/continuum_laws/history_linear_elastic_plane_strain_2D_law.hpp"
-#include "custom_constitutive/continuum_laws/history_linear_elastic_plane_stress_2D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_3D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_plane_strain_2D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_plane_stress_2D_law.hpp"
 
 #include "custom_constitutive/continuum_laws/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "custom_constitutive/continuum_laws/custom_yield_criteria/simo_ju_yield_criterion.hpp"
@@ -260,10 +260,6 @@ const SimoJuNonlocalDamagePlaneStress2DLaw mSimoJuNonlocalDamagePlaneStress2DLaw
 const ModifiedMisesNonlocalDamage3DLaw mModifiedMisesNonlocalDamage3DLaw;
 const ModifiedMisesNonlocalDamagePlaneStrain2DLaw mModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ModifiedMisesNonlocalDamagePlaneStress2DLaw mModifiedMisesNonlocalDamagePlaneStress2DLaw;
-
-const HistoryLinearElastic3DLaw mHistoryLinearElastic3DLaw;
-const HistoryLinearElasticPlaneStrain2DLaw mHistoryLinearElasticPlaneStrain2DLaw;
-const HistoryLinearElasticPlaneStress2DLaw mHistoryLinearElasticPlaneStress2DLaw;
 
 const HyperElastic3DLaw                       mHyperElastic3DLaw;
 const LinearElastic3DLaw                      mLinearElastic3DLaw;

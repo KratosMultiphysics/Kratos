@@ -20,8 +20,9 @@
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -66,10 +67,8 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
-    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
+    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::mStressVector;
@@ -85,19 +84,24 @@ public:
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 
     /// Constructor using Geometry
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry)
+    UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
+                                         GeometryType::Pointer              pGeometry,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UpdatedLagrangianUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties)
+    UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
+                                         GeometryType::Pointer              pGeometry,
+                                         PropertiesType::Pointer            pProperties,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
     /// Destructor
-    ~UpdatedLagrangianUPwDiffOrderElement() override {}
+    ~UpdatedLagrangianUPwDiffOrderElement() override = default;
 
     /**
      * @brief Creates a new element
@@ -204,12 +208,10 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 unsigned int      GPoint);
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations
@@ -226,6 +228,11 @@ protected:
     ///@}
 
 private:
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                 const Vector& rStressVector,
+                                                 const Matrix& rDNuDx,
+                                                 const double  IntegrationCoefficient) const;
+
     ///@name Static Member Variables
     ///@{
 
@@ -259,18 +266,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UpdatedLagrangianUPwDiffOrderElement& operator=(const UpdatedLagrangianUPwDiffOrderElement& rOther);
-    /// Copy constructor.
-    // UpdatedLagrangianUPwDiffOrderElement(const UpdatedLagrangianUPwDiffOrderElement& rOther);
-    ///@}
-
 }; // Class UpdatedLagrangianUPwDiffOrderElement
 
 ///@}

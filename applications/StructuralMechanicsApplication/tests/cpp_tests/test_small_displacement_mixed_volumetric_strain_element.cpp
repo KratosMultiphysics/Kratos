@@ -15,7 +15,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 // #include "includes/gid_io.h"
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 #include "factories/linear_solver_factory.h"
@@ -456,6 +456,7 @@ namespace
             calculate_norm_dx);
 
         p_solving_strategy->Check();
+        p_solving_strategy->SetEchoLevel(0);
 
         // Fix the boundary nodes
         p_node_1->Fix(DISPLACEMENT_X);

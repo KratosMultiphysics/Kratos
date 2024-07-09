@@ -11,12 +11,12 @@
 //                   Richard Faasse
 //
 #include "three_dimensional_stress_state.h"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
 
-Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rGradNpT,
+Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
@@ -27,15 +27,15 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rGradNpT,
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_3D_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
-        result(INDEX_3D_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_ZZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
-        result(INDEX_3D_YZ, offset + INDEX_Y) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_YZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_XZ, offset + INDEX_X) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_XZ, offset + INDEX_Z) = rGradNpT(i, INDEX_X);
+        result(INDEX_3D_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
+        result(INDEX_3D_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_ZZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
+        result(INDEX_3D_YZ, offset + INDEX_Y) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_YZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_XZ, offset + INDEX_X) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_XZ, offset + INDEX_Z) = rDN_DX(i, INDEX_X);
     }
 
     return result;
@@ -56,6 +56,15 @@ Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& r
 std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
 {
     return std::make_unique<ThreeDimensionalStressState>();
+}
+
+const Vector& ThreeDimensionalStressState::GetVoigtVector() const { return VoigtVector3D; }
+
+SizeType ThreeDimensionalStressState::GetVoigtSize() const { return GetVoigtSize3D(); }
+
+SizeType ThreeDimensionalStressState::GetStressTensorSize() const
+{
+    return GetStressTensorSize3D();
 }
 
 } // namespace Kratos

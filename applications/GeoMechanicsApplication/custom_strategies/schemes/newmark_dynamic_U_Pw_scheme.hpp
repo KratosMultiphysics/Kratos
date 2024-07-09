@@ -17,13 +17,14 @@
 
 // Application includes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkDynamicUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>
+class NewmarkDynamicUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkDynamicUPwScheme);
@@ -36,7 +37,12 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              beta,
+              gamma,
+              theta)
     {
         // Allocate auxiliary memory
         int num_threads = ParallelUtilities::GetNumThreads();
@@ -75,15 +81,15 @@ public:
         const std::vector<std::string> components = {"X", "Y", "Z"};
 
         for (const auto& component : components) {
-            const auto& instance_component =
-                this->GetComponentFromVectorVariable(rSecondOrderVariables.instance, component);
+            const auto& instance_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.instance.Name(), component);
 
             if (!rNode.HasDofFor(instance_component)) continue;
 
-            const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
-                rSecondOrderVariables.first_time_derivative, component);
-            const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(
-                rSecondOrderVariables.second_time_derivative, component);
+            const auto& first_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.first_time_derivative.Name(), component);
+            const auto& second_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.second_time_derivative.Name(), component);
 
             const double previous_variable = rNode.FastGetSolutionStepValue(instance_component, 1);
             const double current_first_time_derivative =
@@ -94,7 +100,6 @@ public:
                 rNode.FastGetSolutionStepValue(second_time_derivative_component, 0);
             const double previous_second_time_derivative =
                 rNode.FastGetSolutionStepValue(second_time_derivative_component, 1);
-
             if (rNode.IsFixed(second_time_derivative_component)) {
                 rNode.FastGetSolutionStepValue(instance_component) =
                     previous_variable + this->GetDeltaTime() * previous_first_time_derivative +
@@ -327,11 +332,30 @@ protected:
         KRATOS_CATCH("")
     }
 
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
+            this->UpdateVectorSecondTimeDerivative(rNode);
+            this->UpdateVectorFirstTimeDerivative(rNode);
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
 private:
     std::vector<Matrix> mMassMatrix;
     std::vector<Vector> mAccelerationVector;
     std::vector<Matrix> mDampingMatrix;
     std::vector<Vector> mVelocityVector;
+
 }; // Class NewmarkDynamicUPwScheme
 
 } // namespace Kratos

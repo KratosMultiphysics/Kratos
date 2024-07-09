@@ -23,3 +23,6 @@ joints
 
 - Isotropic damage and plasticity constitutive laws for interface elements
 
+- GiD GUI available in [KratosPoroGiDInterface](https://github.com/ipouplana/KratosPoroGiDInterface)
+
+

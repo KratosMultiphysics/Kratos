@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "testing/testing.h"
 
 /* Processes */
@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindConditionsNeighboursProcessSphere, KratosCoreFastS
     CppTestsUtilities::CreateSphereTriangularMesh(r_model_part);
 
     // Execute process
-    auto process = FindConditionsNeighboursProcess(r_model_part,3, 10);
+    auto process = FindConditionsNeighboursProcess(r_model_part, 3, 10);
     process.Execute();
 
     // Check results
