@@ -1,0 +1,68 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+1	-1.000000000E+00	0.000000000E+00	0.0
+2	-9.807852804E-01	1.950903220E-01	0.0
+3	-9.238795325E-01	3.826834324E-01	0.0
+4	-8.314696123E-01	5.555702330E-01	0.0
+5	-7.071067812E-01	7.071067812E-01	0.0
+6	-5.555702330E-01	8.314696123E-01	0.0
+7	-3.826834324E-01	9.238795325E-01	0.0
+8	-1.950903220E-01	9.807852804E-01	0.0
+9	0.0             	1.000000000E+00	0.0
+End Nodes
+
+Begin Elements LinearTimoshenkoCurvedBeamElement2D3N// GUI group identifier: Beam Auto1
+        1  0    1 3 2
+        2  0    3 5 4
+		3  0    5 7 6
+		4  0    7 9 8
+End Elements
+
+Begin Conditions PointLoadCondition2D1N// GUI group identifier: Load on points Auto1
+    3 0 9
+End Conditions
+
+Begin SubModelPart Parts_Beam_Beam_Auto1 // Group Beam Auto1 // Subtree Parts_Beam
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+			6
+			7
+			8
+			9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+			3
+			4
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart ROTATION_Rotation_Auto1 // Group Rotation Auto1 // Subtree ROTATION
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart PointLoad2D_Load_on_points_Auto1 // Group Load on points Auto1 // Subtree PointLoad2D
+    Begin SubModelPartNodes
+           1
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            3
+    End SubModelPartConditions
+End SubModelPart
