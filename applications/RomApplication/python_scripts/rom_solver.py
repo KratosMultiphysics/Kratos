@@ -98,19 +98,32 @@ def CreateSolver(cls, model, custom_settings):
             if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
+        # def _CreateSolutionStrategy(self):
+        #     strategy_type = self._GetStrategyType()
+        #     if strategy_type == "linear":
+        #         solution_strategy = self._CreateLinearStrategy()
+        #     elif strategy_type == "non_linear":
+        #         # Create strategy
+        #         if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+        #             solution_strategy = self._CreateRomNewtonRaphsonStrategy()
+        #         # elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+        #         #     solution_strategy = self._CreateLineSearchStrategy()
+        #     else:
+        #         err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
+        #         raise Exception(err_msg)
+        #     return solution_strategy
+
         def _CreateSolutionStrategy(self):
-            strategy_type = self._GetStrategyType()
-            if strategy_type == "linear":
+            analysis_type = self.settings["analysis_type"].GetString()
+            if analysis_type == "linear":
                 solution_strategy = self._CreateLinearStrategy()
-            elif strategy_type == "non_linear":
-                # Create strategy
-                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
-                    solution_strategy = self._CreateRomNewtonRaphsonStrategy()
-                # elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
-                #     solution_strategy = self._CreateLineSearchStrategy()
+            elif analysis_type == "non_linear":
+                solution_strategy = self._CreateRomNewtonRaphsonStrategy()
             else:
-                err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
+                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+                err_msg += "Available options are: \"linear\", \"non_linear\""
                 raise Exception(err_msg)
+            solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
             return solution_strategy
 
         def _CreateRomNewtonRaphsonStrategy(self):
