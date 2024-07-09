@@ -23,9 +23,7 @@ public:
 
     CalculateIncrementalDisplacementProcess(ModelPart& rModelPart, const Parameters& rSettings);
 
-    ~CalculateIncrementalDisplacementProcess() override;
-
-    CalculateIncrementalDisplacementProcess(const CalculateIncrementalDisplacementProcess&)            = delete;
+    CalculateIncrementalDisplacementProcess(const CalculateIncrementalDisplacementProcess&) = delete;
     CalculateIncrementalDisplacementProcess& operator=(const CalculateIncrementalDisplacementProcess&) = delete;
 
     void Execute() override;
