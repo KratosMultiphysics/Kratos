@@ -67,19 +67,9 @@ int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& 
 
     //verify that the variables are correctly initialized
 
-    //Solid variables
-    if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-
-    if ( ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-    if ( DENSITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
-
     //Interface variables
-    if ( INITIAL_JOINT_WIDTH.Key() == 0 || Prop.Has( INITIAL_JOINT_WIDTH ) == false || Prop[INITIAL_JOINT_WIDTH] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( Prop.Has( INITIAL_JOINT_WIDTH ) == false || Prop[INITIAL_JOINT_WIDTH] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_JOINT_WIDTH is not defined or has an invalid value at element", this->Id() )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < Geom.size(); i++ )
@@ -114,9 +104,6 @@ int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check(const ProcessInfo& 
     {
         if ( Prop.Has( THICKNESS ) == false )
             KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-
-        if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered)", "" )
     }
 
 	Prop.GetValue( CONSTITUTIVE_LAW )->Check( Prop, Geom, rCurrentProcessInfo );
