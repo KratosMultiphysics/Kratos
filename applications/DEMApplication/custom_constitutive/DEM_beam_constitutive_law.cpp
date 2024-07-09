@@ -307,7 +307,6 @@ namespace Kratos {
                     double ViscoLocalRotationalMoment[3], 
                     double equiv_poisson, 
                     double indentation, 
-                    double LocalElasticContactForce[3],
                     double normalLocalContactForce,
                     double GlobalElasticContactForces[3],
                     double LocalCoordSystem_2[3],
@@ -328,8 +327,7 @@ namespace Kratos {
                                         ElasticLocalRotationalMoment, 
                                         ViscoLocalRotationalMoment, 
                                         equiv_poisson, 
-                                        indentation, 
-                                        LocalElasticContactForce);
+                                        indentation);
         }              
 
         DemContact::ComputeParticleContactMoments(normalLocalContactForce,
@@ -352,8 +350,7 @@ namespace Kratos {
                                                                   double ElasticLocalRotationalMoment[3],
                                                                   double ViscoLocalRotationalMoment[3],
                                                                   double equiv_poisson,
-                                                                  double indentation,
-                                                                  double LocalElasticContactForce[3]) {
+                                                                  double indentation) {
 
         KRATOS_TRY
 

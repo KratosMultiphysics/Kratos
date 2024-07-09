@@ -133,8 +133,7 @@ namespace Kratos {
                                       double ViscoLocalRotationalMoment[3], 
                                       double equiv_poisson, 
                                       double indentation,
-                                      double indentation_particle, 
-                                      double LocalElasticContactForce[3],
+                                      double indentation_particle,
                                       double normalLocalContactForce,
                                       double GlobalElasticContactForces[3],
                                       double LocalCoordSystem_2[3],
@@ -149,8 +148,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) override;
+                                                    double indentation) override;
 
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],
