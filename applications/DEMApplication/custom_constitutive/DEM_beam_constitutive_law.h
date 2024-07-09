@@ -116,7 +116,7 @@ namespace Kratos {
                                       double equiv_poisson, 
                                       double indentation,
                                       double normalLocalContactForce,
-                                      double GlobalElasticContactForces[3],
+                                      double GlobalContactForce[3],
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count);
 

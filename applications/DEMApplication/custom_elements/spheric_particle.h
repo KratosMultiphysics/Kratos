@@ -346,14 +346,14 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternio
                                                                                 ParticleDataBuffer & data_buffer);
 
 virtual void ComputeMoments(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
                             unsigned int i);
 
 virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             Condition* wall,
                             double indentation,

@@ -363,7 +363,7 @@ namespace Kratos {
                 double ViscoLocalRotationalMoment[3] = {0.0};
 
                 ComputeMoments(LocalContactForce[2],
-                               TotalGlobalElasticContactForce,
+                               GlobalContactForce,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
