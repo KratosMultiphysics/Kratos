@@ -15,7 +15,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "includes/gid_io.h"
 #include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
 #include "factories/linear_solver_factory.h"

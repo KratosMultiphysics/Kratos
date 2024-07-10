@@ -329,7 +329,19 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightH
             aux_projection[i_node * block_size + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
         }
     } else {
-        KRATOS_ERROR << "No 3D implementation yet." << std::endl;
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto& r_node = r_geometry[i_node];
+            const auto& r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+            const auto& r_disp_proj = r_node.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
+            aux_unk[i_node * block_size] = r_disp[0];
+            aux_unk[i_node * block_size + 1] = r_disp[1];
+            aux_unk[i_node * block_size + 2] = r_disp[2];
+            aux_unk[i_node * block_size + 3] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+            aux_projection[i_node * block_size] = r_disp_proj[0];
+            aux_projection[i_node * block_size + 1] = r_disp_proj[1];
+            aux_projection[i_node * block_size + 2] = r_disp_proj[2];
+            aux_projection[i_node * block_size + 3] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
+        }
     }
 
     // Calculate auxiliary arrays
@@ -351,11 +363,12 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
+    const auto& r_prop = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
+    // const SizeType matrix_size = block_size * n_nodes;
     const SizeType matrix_size_full = 2.0 * block_size * n_nodes;
 
     // Check LHS size and initialize
@@ -364,16 +377,39 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
     }
     rMassMatrix.clear();
 
-    // Call the base element to get the stiffness matrix
-    MatrixType aux_mass(matrix_size, matrix_size);
-    BaseType::CalculateMassMatrix(
-        aux_mass,
-        rCurrentProcessInfo);
+    // Calculate the consistent mass matrix
+    // Note that we cannot use the base element implementation as it includes some extra terms that are 0 in the OSS case
+    const double density = r_prop[DENSITY];
+    const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double aux_rho_thickness = density * thickness;
+    const bool compute_lumped_mass_matrix = r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
-    // Assemble the extended mass matrix
-    for (IndexType i = 0; i < matrix_size; ++i) {
-        for (IndexType j = 0; j < matrix_size; ++j) {
-            rMassMatrix(i,j) = aux_mass(i,j);
+    if (compute_lumped_mass_matrix) {
+        KRATOS_ERROR << "Lumped mass matrix is not implemented." << std::endl;
+    } else {
+        Matrix J0;
+        const auto& r_integration_method = this->GetIntegrationMethod();
+        const auto& r_N_container = r_geometry.ShapeFunctionsValues(r_integration_method);
+        const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+        const SizeType n_gauss = r_integration_points.size();
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate current integration point weight
+            // Note that this includes the density and the thickness
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[i_gauss], J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
+
+            const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
+
+            // Assemble nodal contributions
+            const auto &r_N = row(r_N_container, i_gauss);
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
+                    const double aux = w_gauss * r_N[i_node] * r_N[j_node];
+                    for (IndexType d = 0; d < dim; ++d) {
+                        rMassMatrix(i_node*block_size + d, j_node*block_size + d) += aux;
+                    }
+                }
+            }
         }
     }
 }
