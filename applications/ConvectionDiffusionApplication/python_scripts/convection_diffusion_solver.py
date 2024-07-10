@@ -136,6 +136,11 @@ class ConvectionDiffusionSolver(PythonSolver):
             "solution_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
+            "relaxation_factor" : 1.0,
+            "shock_capturing_settings" :{
+                "shock_capturing_intensity" : 0.0,
+                "use_anisotropic_diffusion" : true
+            },
             "max_iteration": 10,
             "linear_solver_settings":{
                 "solver_type": "amgcl",
