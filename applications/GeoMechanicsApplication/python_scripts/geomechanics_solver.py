@@ -210,15 +210,11 @@ class GeoMechanicalSolver(PythonSolver):
         self.computing_model_part_name = "porous_computational_model_part"
 
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
-        self.body_domain_sub_sub_model_part_list = []
-        for i in range(self.settings["body_domain_sub_model_part_list"].size()):
-            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["body_domain_sub_model_part_list"][i].GetString())
-        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"]]
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
-        self.loads_sub_sub_model_part_list = []
-        for i in range(self.settings["loads_sub_model_part_list"].size()):
-            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["loads_sub_model_part_list"][i].GetString())
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"]]
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
