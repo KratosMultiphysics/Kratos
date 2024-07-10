@@ -15,24 +15,20 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
-#include "utilities/math_utils.h"
 #include "includes/node.h"
 #include "containers/model.h"
+#include "utilities/math_utils.h"
 #include "geometries/triangle_2d_3.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
+
+// Application includes
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
-    // NodeType
-    typedef Node NodeType;
+// Tolerance
+static constexpr double tolerance = 1.0e-6;
 
 /**
 * Check the correct calculation of the CL utilities principal stress
@@ -183,21 +179,21 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosConstitutiveLawsF
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
 
-    // First we create the nodes
-    NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-    NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-    NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    // First we create the Nodes
+    Node::Pointer p_Node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    Node::Pointer p_Node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    Node::Pointer p_Node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
 
     // Now we create the "conditions"
-    std::vector<NodeType::Pointer> element_nodes (3);
-    element_nodes[0] = p_node_1;
-    element_nodes[1] = p_node_2;
-    element_nodes[2] = p_node_3;
-    Triangle2D3 <NodeType> triangle( PointerVector<NodeType>{element_nodes} );
+    std::vector<Node::Pointer> element_Nodes (3);
+    element_Nodes[0] = p_Node_1;
+    element_Nodes[1] = p_Node_2;
+    element_Nodes[2] = p_Node_3;
+    Triangle2D3 <Node> triangle( PointerVector<Node>{element_Nodes} );
 
     array_1d<double, 3> delta_disp = ZeroVector(3);
     delta_disp[0] = 1.0e-2;
-    p_node_1->Coordinates() += delta_disp;
+    p_Node_1->Coordinates() += delta_disp;
 
     // Compute CalculateCharacteristicLength
     const double length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
@@ -222,5 +218,5 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateSearModulus, KratosConstitutiveLawsFastSuite)
 
     KRATOS_EXPECT_NEAR(G,  2.0e9 / 2.4, tolerance);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing
