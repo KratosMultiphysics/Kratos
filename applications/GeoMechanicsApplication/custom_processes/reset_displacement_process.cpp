@@ -10,12 +10,14 @@
 //  Main authors:    Richard Faasse
 //
 #include "reset_displacement_process.h"
+#include "includes/constitutive_law.h"
 #include "includes/initial_state.h"
-#include "includes/mat_variables.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
-#include <boost/format/free_funcs.hpp>
+#include <vector>
 
 namespace Kratos
 {
