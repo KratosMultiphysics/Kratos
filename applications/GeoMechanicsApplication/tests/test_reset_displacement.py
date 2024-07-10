@@ -1,8 +1,9 @@
 import sys
 import os
 
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
+import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import test_helper
 
 class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
@@ -42,12 +43,23 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         n_stages = 4
 
         cwd = os.getcwd()
-        stages = test_helper.get_stages(project_path, n_stages)
+        parameter_file_names = [os.path.join(project_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
+                                range(n_stages)]
+
+        # set stage parameters
+        parameters_stages = [None] * n_stages
+        os.chdir(project_path)
+        for idx, parameter_file_name in enumerate(parameter_file_names):
+            with open(parameter_file_name, 'r') as parameter_file:
+                parameters_stages[idx] = KratosMultiphysics.Parameters(parameter_file.read())
+
+        model = KratosMultiphysics.Model()
         displacement_stages = [None]*n_stages
         nodal_coordinates_stages = [None]*n_stages
 
         # run stages and get results
-        for idx, stage in enumerate(stages):
+        for idx, stage_parameters in enumerate(parameters_stages):
+            stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper. get_nodal_coordinates(stage)

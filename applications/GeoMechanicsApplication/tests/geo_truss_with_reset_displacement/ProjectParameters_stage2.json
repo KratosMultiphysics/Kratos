@@ -12,8 +12,8 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_2"
+            "input_type":       "rest",
+            "input_filename":   ""
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -31,7 +31,7 @@
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                true,
+        "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -128,6 +128,13 @@
             "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
+        }
+    },{
+        "python_module" : "reset_displacement_process",
+        "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name"  : "ResetDisplacementProcess",
+        "Parameters"    : {
+            "model_part_name": "PorousDomain.Truss-auto-1"
         }
     }],
     "loads_process_list": [{

@@ -153,7 +153,12 @@ double TrussConstitutiveLaw::CalculateStressElastic(
     double tangent_modulus(0.0);
     CalculateValue(rParameterValues,TANGENT_MODULUS,tangent_modulus);
 
-    const double current_stress = tangent_modulus*current_strain[0];
+    double current_stress = tangent_modulus*current_strain[0];
+    if (this->HasInitialState())
+    {
+        current_stress += this->GetInitialState().GetInitialStressVector()[0];
+    }
+
     return current_stress;
 }
 
