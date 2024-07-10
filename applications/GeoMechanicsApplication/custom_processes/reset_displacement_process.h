@@ -21,13 +21,14 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ResetDisplacementProcess : public Process
 {
 public:
-     KRATOS_CLASS_POINTER_DEFINITION(ResetDisplacementProcess);
-     ResetDisplacementProcess(ModelPart& rModelPart, const Parameters&);
+    KRATOS_CLASS_POINTER_DEFINITION(ResetDisplacementProcess);
+    ResetDisplacementProcess(ModelPart& rModelPart, const Parameters&);
     ~ResetDisplacementProcess() override = default;
 
-                              ResetDisplacementProcess(const ResetDisplacementProcess&) = delete;
-    ResetDisplacementProcess& operator=(const ResetDisplacementProcess&)                = delete;
-    void                      ExecuteInitialize() override;
+    ResetDisplacementProcess(const ResetDisplacementProcess&)            = delete;
+    ResetDisplacementProcess& operator=(const ResetDisplacementProcess&) = delete;
+
+    void ExecuteInitialize() override;
 
 private:
     ModelPart& mrModelPart;
