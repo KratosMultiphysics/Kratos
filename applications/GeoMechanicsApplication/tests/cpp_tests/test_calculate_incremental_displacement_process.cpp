@@ -22,7 +22,7 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMechanicsFastSuite)
 {
     // set up model part
-    Model model        = Model();
+    Model model;
     auto& r_model_part = model.CreateModelPart("dummy", 2);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(INCREMENTAL_DISPLACEMENT);
@@ -46,18 +46,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMech
     p_node_2->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{11.0, 8.0, 14.0};
 
     // initialize process to be tested
-    CalculateIncrementalDisplacementProcess process =
-        CalculateIncrementalDisplacementProcess(r_model_part, Parameters(R"({})"));
+    auto process = CalculateIncrementalDisplacementProcess(r_model_part, {});
     process.Execute();
 
     const auto expected_incremental_displacement_1 = Kratos::array_1d<double, 3>{-3.0, -3.0, -3.0};
     const auto expected_incremental_displacement_2 = Kratos::array_1d<double, 3>{-4.0, 4.0, -5.0};
 
-    const auto actual_incremental_displacement_1 = p_node_1->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT);
-    const auto actual_incremental_displacement_2 = p_node_2->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT);
-
-    KRATOS_CHECK_VECTOR_NEAR(actual_incremental_displacement_1, expected_incremental_displacement_1, 1e-12)
-    KRATOS_CHECK_VECTOR_NEAR(actual_incremental_displacement_2, expected_incremental_displacement_2, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement_1, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement_2, 1e-12)
 }
 
 } // namespace Kratos::Testing
