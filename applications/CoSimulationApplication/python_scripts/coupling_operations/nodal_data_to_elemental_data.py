@@ -5,16 +5,14 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 from KratosMultiphysics.CoSimulationApplication import ConversionUtilities
 
-import KratosMultiphysics.OptimizationApplication as KratosOA
-
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(*args):
-    return ElementalToNodalData(*args)
+    return NodalToElementalData(*args)
 
-class ElementalToNodalData(CoSimulationCouplingOperation):
-    """This operation maps the Elemental Data to Nodal Data for a given ModelPart
+class NodalToElementalData(CoSimulationCouplingOperation):
+    """This operation maps the Nodal Data to Elemental Data for a given ModelPart consistently. The elemental value is an averaged value of Nodal values.
     """
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
@@ -22,11 +20,11 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
         self.variable = self.interface_data.variable
+        self.dimension = self.interface_data.dimension
         self.consistent = self.settings["consistent"].GetBool()
 
-        if self.consistent:
-            raise RuntimeError("Consistent mapper from elements to nodes is not implemented!")
-
+        if not self.consistent:
+            raise RuntimeError("Conservative mapper from nodes on elements is not implemented!")
 
     def Execute(self):
         if not self.interface_data.IsDefinedOnThisRank(): return
@@ -39,11 +37,23 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
                 cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Skipped, not in interval")
             return
 
-        model_part_interface = self.interface_data.GetModelPart()
-        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, self.variable, self.variable) 
-
+        self.ConvertNodalDataToElementalData()
         if self.echo_level > 0:
-            cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Done")
+            cs_tools.cs_print_info("ConvertNodalDataToElementalData", "Done")
+
+    def ConvertNodalDataToElementalData(self):
+        model_part_interface:KM.ModelPart = self.interface_data.GetModelPart()
+        for element in model_part_interface.Elements:
+            num_of_nodes = len(element.GetNodes())
+            if self.dimension == 1:
+                value = 0.0
+                for node in element.GetNodes():
+                    value += node.GetValue(self.variable) / num_of_nodes
+            elif self.dimension == 3:
+                value = KM.Array3()
+                for node in element.GetNodes():
+                    value += node.GetValue(self.variable) / num_of_nodes
+            element.SetValue(self.variable, value)
 
     def PrintInfo(self):
         pass
@@ -57,7 +67,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
-            "consistent": false,
+            "consistent": true,
             "interval"  : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())

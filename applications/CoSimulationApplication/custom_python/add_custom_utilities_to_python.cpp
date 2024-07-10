@@ -56,8 +56,8 @@ namespace Kratos::Python {
             ;
 
         pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def_static("ConvertElementalDataToNodalData",
-                &ConversionUtilities::ConvertElementalDataToNodalData)
+            .def_static("ConvertElementalDataToNodalData", &ConversionUtilities::ConvertElementalDataToNodalData<double>)
+            .def_static("ConvertElementalDataToNodalData", &ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>)
             ;
 
     }
