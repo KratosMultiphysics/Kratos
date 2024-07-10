@@ -145,17 +145,8 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
 
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
-        temp_strain[0] = CalculateLinearStrain();
-        Values.SetStrainVector(temp_strain);
-        Values.SetStressVector(temp_stress);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
-
-
-
-        truss_forces[0] = (temp_stress[0] + prestress) * A;
+        const auto temp_stress = CalculateStress(rCurrentProcessInfo);
+        truss_forces[0] = (temp_stress + prestress) * A;
 
         rOutput[0] = truss_forces;
     }
@@ -180,17 +171,9 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput[0] = Strain;
     }
     else if (rVariable == PK2_STRESS_VECTOR) {
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
-        temp_strain[0] = CalculateLinearStrain();
-        Values.SetStrainVector(temp_strain);
-        Values.SetStressVector(temp_stress);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
-
-        Vector test = ZeroVector(msDimension);
-        test[0]= temp_stress[0];
-        rOutput[0] = test;
+        Vector result = ZeroVector(msDimension);
+        result[0] = CalculateStress(rCurrentProcessInfo);
+        rOutput[0] = result;
     }
 
     KRATOS_CATCH("")
@@ -240,15 +223,10 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
-    temp_strain[0] = CalculateLinearStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
+    const auto temp_stress = CalculateStress(rCurrentProcessInfo);
 
-    temp_internal_stresses[0] = -1.0*temp_stress[0];
-    temp_internal_stresses[3] = temp_stress[0];
+    temp_internal_stresses[0] = -1.0 * temp_stress;
+    temp_internal_stresses[3] = temp_stress;
 
     rInternalForces = temp_internal_stresses*GetProperties()[CROSS_AREA];
 
@@ -282,6 +260,19 @@ double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurren
     KRATOS_CATCH("")
 }
 
+double TrussElementLinear3D2N::CalculateStress(const ProcessInfo &rCurrentProcessInfo)
+{
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+    temp_strain[0] = CalculateLinearStrain();
+    Values.SetStrainVector(temp_strain);
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
+
+    return temp_stress[0];
+}
 
 void TrussElementLinear3D2N::save(Serializer& rSerializer) const
 {

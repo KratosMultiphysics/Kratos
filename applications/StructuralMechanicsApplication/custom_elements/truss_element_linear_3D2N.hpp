@@ -126,6 +126,7 @@ public:
     using TrussElement3D2N::ReturnTangentModulus1D;
 
 private:
+    double CalculateStress(const ProcessInfo &rCurrentProcessInfo);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
