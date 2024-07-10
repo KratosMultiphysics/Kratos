@@ -78,8 +78,11 @@ public:
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
-
-    std::vector<Vector> NonconvergedSolutions;
+    /**
+     * @brief std vector containing non-converged solutions.
+     * @details Each entry in the std vector is a Kratos Vector containing the solution at a specific non-converged iteration.
+     */
+    std::vector<Vector> mNonconvergedSolutions;
 
 
     /**
