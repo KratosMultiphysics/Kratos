@@ -58,9 +58,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
             self.__PostProcessVTK(inverse_identifier_tuple, from_solver_data, to_solver_data, transfer_options, False)
         else:
-            # Generate VTK output for debugging
-            self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
-
             # Get the model parts
             model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
             model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
@@ -332,9 +329,25 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             pre_map (bool): Flag to indicate if the processing is done before or after mapping.
         """
         if self.debug_vtk:
+            # Define __debug_vtk if not defined
+            if not hasattr(self, "__debug_vtk"):
+                self.__debug_vtk = {}
+            # Generate VTK output for debugging if not already done
+            if not identifier_tuple in self.__debug_vtk:
+                # Generate VTK output for debugging
+                self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
+
+            # Get the current post process identifier
+            if identifier_tuple in self.__debug_vtk_variables:
+                current_post_process_identifier = identifier_tuple
+            elif (identifier_tuple[1], identifier_tuple[0]) in self.__debug_vtk_variables:
+                current_post_process_identifier = (identifier_tuple[1], identifier_tuple[0])
+            else:
+                raise Exception('Definition not found in the VTK output processes!')
+
             # Prepare the solver data
-            current_post_process_identifier = identifier_tuple
             model_part_origin, model_part_destination, model_part_origin_name, model_part_destination_name, variable_origin, variable_destination, mapper_flags, identifier_origin, identifier_destination, identifier_tuple, inverse_identifier_tuple = self.__PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
+
             if (variable_origin, variable_destination) in self.__debug_vtk_variables[current_post_process_identifier]:
                 if pre_map:
                     self.__debug_vtk[current_post_process_identifier][0].ExecuteFinalizeSolutionStep()
