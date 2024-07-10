@@ -29,15 +29,16 @@ KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress, Kr
     parameters.SetMaterialProperties(properties);
     law.CalculateMaterialResponsePK2(parameters);
 
-    const double expected_stress = 5000; // = Strain * Young's Modulus
+    constexpr double expected_stress = 5000; // = Strain * Young's Modulus
     KRATOS_EXPECT_EQ(expected_stress, parameters.GetStressVector()[0]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress_WithInitialStress, KratosStructuralMechanicsFastSuite) {
     TrussConstitutiveLaw law;
-    ConstitutiveLaw::Parameters parameters;
     Vector temp_strain = ScalarVector(1, 0.005);
     Vector temp_stress = ZeroVector(1);
+
+    ConstitutiveLaw::Parameters parameters;
     parameters.SetStrainVector(temp_strain);
     parameters.SetStressVector(temp_stress);
 

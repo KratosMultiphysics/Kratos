@@ -358,9 +358,9 @@ namespace Kratos::Testing
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
         // Create the test element
-        constexpr double length = 2.0;
+        constexpr double directional_length = 2.0;
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, length, length, length);
+        auto p_node_2 = r_model_part.CreateNewNode(2, directional_length, directional_length, directional_length);
 
         AddDisplacementDofsElement(r_model_part);
 
@@ -369,8 +369,8 @@ namespace Kratos::Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
         p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
-        // Introduce a strain
-        p_element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, 0.1 * length);
+        // Introduce a strain of 0.1
+        p_element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, 0.1 * directional_length);
 
         std::vector<Vector> stress_vector;
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);

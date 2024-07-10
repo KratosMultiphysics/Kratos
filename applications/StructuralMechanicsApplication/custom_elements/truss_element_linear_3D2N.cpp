@@ -145,8 +145,8 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
 
-        const auto temp_stress = CalculateStress(rCurrentProcessInfo);
-        truss_forces[0] = (temp_stress + prestress) * A;
+        const auto stress = CalculateStress(rCurrentProcessInfo);
+        truss_forces[0] = (stress + prestress) * A;
 
         rOutput[0] = truss_forces;
     }
@@ -176,9 +176,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
             stress += GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        Vector result = ZeroVector(msDimension);
-        result[0] = stress;
-        rOutput[0] = result;
+        rOutput[0] = ScalarVector(1, stress);
     }
 
     KRATOS_CATCH("")
@@ -228,10 +226,10 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-    const auto temp_stress = CalculateStress(rCurrentProcessInfo);
+    const auto stress = CalculateStress(rCurrentProcessInfo);
 
-    temp_internal_stresses[0] = -1.0 * temp_stress;
-    temp_internal_stresses[3] = temp_stress;
+    temp_internal_stresses[0] = -1.0 * stress;
+    temp_internal_stresses[3] = stress;
 
     rInternalForces = temp_internal_stresses*GetProperties()[CROSS_AREA];
 
