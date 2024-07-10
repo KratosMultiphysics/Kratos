@@ -179,6 +179,20 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         Strain[2] = 0.00;
         rOutput[0] = Strain;
     }
+    else if (rVariable == PK2_STRESS_VECTOR) {
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        Vector temp_strain = ZeroVector(1);
+        Vector temp_stress = ZeroVector(1);
+        temp_strain[0] = CalculateLinearStrain();
+        Values.SetStrainVector(temp_strain);
+        Values.SetStressVector(temp_stress);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
+
+        Vector test = ZeroVector(msDimension);
+        test[0]= temp_stress[0];
+        rOutput[0] = test;
+    }
+
     KRATOS_CATCH("")
 }
 
