@@ -77,8 +77,6 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_solver.Convection
         anisotropic_diffusion = shock_capturing_settings["use_anisotropic_diffusion"].GetBool()
         self.GetComputingModelPart().ProcessInfo.SetValue(ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY, sc_intensity)
         self.GetComputingModelPart().ProcessInfo.SetValue(ConvectionDiffusionApplication.USE_ANISOTROPIC_DISC_CAPTURING, anisotropic_diffusion)
-        print(self.GetComputingModelPart().ProcessInfo)
-        print(self.settings["max_iteration"].GetInt())
 
         # As the (no) time integration is managed by the element, we set a "fake" scheme to perform the solution update
         if not self.main_model_part.IsDistributed():
