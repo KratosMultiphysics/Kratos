@@ -187,19 +187,19 @@ public:
         if (mStoreNonconvergedSolutionsFlag) {
             Vector initial;
             GetCurrentSolution(r_dof_set,initial);
-            NonconvergedSolutions.push_back(initial);
+            mNonconvergedSolutions.push_back(initial);
         }
 
         if (mStoreNonconvergedSolutionsFlag) {
-            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), NonconvergedSolutions.size() );
-            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
+            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), mNonconvergedSolutions.size() );
+            for (std::size_t i = 0; i < mNonconvergedSolutions.size(); ++i) {
                 block_for_each(r_dof_set, [&](const auto& r_dof) {
-                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = NonconvergedSolutions[i](r_dof.EquationId());
+                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = mNonconvergedSolutions[i](r_dof.EquationId());
                 });
             }
         }
 
-        NonconvergedSolutions.clear();
+        mNonconvergedSolutions.clear();
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
@@ -436,7 +436,7 @@ private:
             if (mStoreNonconvergedSolutionsFlag) {
                 Vector initial;
                 GetCurrentSolution(r_dof_set,initial);
-                NonconvergedSolutions.push_back(initial);
+                mNonconvergedSolutions.push_back(initial);
             }
 
             if (converged) {
