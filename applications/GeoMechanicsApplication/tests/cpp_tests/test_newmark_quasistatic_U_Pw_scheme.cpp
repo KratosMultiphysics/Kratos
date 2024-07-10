@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"

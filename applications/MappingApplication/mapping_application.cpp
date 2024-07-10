@@ -61,6 +61,11 @@
         (dummy_model_part, dummy_model_part));                                                        \
     }
 
+Kratos::KratosApplication* CreateApplication()
+{
+    return new Kratos::KratosMappingApplication();
+}
+
 namespace Kratos
 {
 

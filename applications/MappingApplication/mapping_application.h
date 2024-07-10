@@ -25,6 +25,9 @@
 #include "custom_searching/interface_object.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 
+/// @brief Helper method to initialize the application when loading the library directly
+/// @return An application instance
+extern "C" KRATOS_API(MAPPING_APPLICATION) Kratos::KratosApplication* CreateApplication();
 namespace Kratos
 {
 

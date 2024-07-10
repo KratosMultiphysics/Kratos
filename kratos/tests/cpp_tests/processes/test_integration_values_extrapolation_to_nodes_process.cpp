@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
