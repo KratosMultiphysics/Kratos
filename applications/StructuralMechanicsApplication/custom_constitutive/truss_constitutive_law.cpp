@@ -141,6 +141,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
     stress_vector[0] = this->CalculateStressElastic(rValues);
+    AddInitialStressVectorContribution(stress_vector);
 }
 //************************************************************************************
 //************************************************************************************
@@ -153,12 +154,7 @@ double TrussConstitutiveLaw::CalculateStressElastic(
     double tangent_modulus(0.0);
     CalculateValue(rParameterValues,TANGENT_MODULUS,tangent_modulus);
 
-    double current_stress = tangent_modulus*current_strain[0];
-    if (this->HasInitialState())
-    {
-        current_stress += this->GetInitialState().GetInitialStressVector()[0];
-    }
-
+    const double current_stress = tangent_modulus*current_strain[0];
     return current_stress;
 }
 
