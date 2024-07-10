@@ -27,8 +27,7 @@ public:
 
                               ResetDisplacementProcess(const ResetDisplacementProcess&) = delete;
     ResetDisplacementProcess& operator=(const ResetDisplacementProcess&)                = delete;
-    void                      ExecuteInitializeSolutionStep() override;
-    void                      ExecuteFinalize() override;
+    void                      ExecuteInitialize() override;
 
 private:
     ModelPart& mrModelPart;

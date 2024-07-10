@@ -15,6 +15,8 @@
 #include "includes/ublas_interface.h"
 #include "processes/set_initial_state_process.h"
 
+#include <boost/format/free_funcs.hpp>
+
 namespace Kratos
 {
 
@@ -23,19 +25,18 @@ ResetDisplacementProcess::ResetDisplacementProcess(ModelPart& rModelPart, const 
 {
 }
 
-void ResetDisplacementProcess::ExecuteInitializeSolutionStep()
-{
-    SetInitialStateProcess<3> set_initial_state_process(mrModelPart);
-    set_initial_state_process.ExecuteInitializeSolutionStep();
-}
-
-void ResetDisplacementProcess::ExecuteFinalize()
+void ResetDisplacementProcess::ExecuteInitialize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         std::vector<Vector> stresses_on_integration_points;
-        rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
+        rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
+                                              mrModelPart.GetProcessInfo());
+        KRATOS_ERROR_IF(stresses_on_integration_points.size() != 1);
         rElement.GetGeometry().SetValue(INITIAL_STRESS_VECTOR, stresses_on_integration_points[0]);
     });
+
+    SetInitialStateProcess<3> set_initial_state_process(mrModelPart);
+    set_initial_state_process.ExecuteInitializeSolutionStep();
 }
 
 } // namespace Kratos
