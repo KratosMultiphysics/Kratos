@@ -382,134 +382,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             kinematic_variables,
             constitutive_variables,
             gauss_point_auxiliary_variables);
-
-        // // Calculate tau_1 stabilization constant
-        // const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rCurrentProcessInfo);
-
-        // // Calculate tau_2 stabilization constant
-        // const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
-        // const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
-        // const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
-
-        // // Calculate and add the LHS contributions
-        // const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-        // const Vector C_invT_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), invT_m);
-        // const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
-        // const Vector tau_1_body = tau_1 * body_force;
-
-        // // Calculate the dynamic subscale terms for current Gauss point
-        // Vector aux_u_s_acc;
-        // if (mIsDynamic) {
-        //     aux_u_s_acc = (density / std::pow(dt, 2)) *(2.0 * mDisplacementSubscale1[i_gauss] - mDisplacementSubscale2[i_gauss]);
-        // }
-
-        // for (IndexType i = 0; i < n_nodes; ++i) {
-        //     const double N_i = kinematic_variables.N[i];
-        //     noalias(G_i) = row(kinematic_variables.DN_DX, i);
-        //     for (IndexType k = 0;  k < strain_size; ++k) {
-        //         for (IndexType l = 0; l < dim; ++l) {
-        //             B_i(k,l) = kinematic_variables.B(k, i * dim + l);
-        //         }
-        //     }
-        //     noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
-        //     noalias(transBi_C_invT_m) = prod(trans(B_i), C_invT_m_voigt);
-
-        //     // Add momentum body force RHS contribution
-        //     noalias(rhs_mom_i) = w_gauss * N_i * body_force;
-        //     // Add momentum internal force RHS contribution
-        //     // Note that this includes both the deviatoric and volumetric internal force RHS contributions
-        //     noalias(rhs_mom_i) -= w_gauss * prod(trans(B_i), cons_law_values.GetStressVector());
-        //     // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol)) to the RHS
-        //     rhs_mass_i = w_gauss * std::pow(bulk_modulus, 2) * tau_1 * inner_prod(G_i, grad_eps);
-        //     // Add the divergence mass stabilization term (grad(eps_vol) x body_force) to the RHS
-        //     // rhs_mass_i -= w_gauss * bulk_modulus * inner_prod(G_i, tau_1_body);
-        //     rhs_mass_i += w_gauss * bulk_modulus * inner_prod(G_i, tau_1_body); //TODO: Cross-check this sign with Ramon and Ricc
-
-        //     // Add the dynamic subscale terms to the RHS
-        //     if (mIsDynamic) {
-        //         noalias(rhs_mom_i) += w_gauss * (1.0 - tau_1 * density / std::pow(dt, 2)) * N_i * aux_u_s_acc;
-        //         noalias(rhs_mom_i) -= w_gauss * (density / std::pow(dt, 2)) * N_i * tau_1_body;
-        //         noalias(rhs_mom_i) -= w_gauss * bulk_modulus * tau_1 * (density / std::pow(dt, 2)) * N_i * grad_eps;
-        //         rhs_mass_i += w_gauss * bulk_modulus * tau_1 * inner_prod(G_i, aux_u_s_acc);
-        //     }
-
-        //     // Add the OSS projection terms
-        //     if (oss_switch) {
-        //         // Get OSS projection values at current Gauss point
-        //         double eps_proj_gauss = 0.0;
-        //         Vector u_proj_gauss = ZeroVector(dim);
-        //         for (IndexType j = 0; j < n_nodes; ++j) {
-        //             const double N_j = kinematic_variables.N[j];
-        //             // const auto& r_u_s_proj = r_geometry[j].GetValue(DISPLACEMENT_PROJECTION);
-        //             // eps_proj_gauss += N_j * r_geometry[j].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
-        //             const auto& r_u_s_proj = GetNodeDisplacementProjectionValue(j);
-        //             eps_proj_gauss += N_j * GetNodeVolumetricStrainProjectionValue(j);
-        //             for (IndexType d = 0; d < dim; ++d) {
-        //                 u_proj_gauss[d] += N_j * r_u_s_proj[d];
-        //             }
-        //         }
-        //         // Substract the projection values to current residual
-        //         rhs_mass_i -= w_gauss * bulk_modulus * tau_1 * inner_prod(G_i, u_proj_gauss);
-        //         rhs_mass_i -= w_gauss * N_i * bulk_modulus * tau_2 * eps_proj_gauss;
-        //         noalias(rhs_mom_i) -= w_gauss * bulk_modulus * tau_2 * psi_i * eps_proj_gauss;
-        //         if (mIsDynamic) {
-        //             noalias(rhs_mom_i) += w_gauss * tau_1 * (density / std::pow(dt, 2)) * N_i * u_proj_gauss;
-        //         }
-        //     }
-
-        //     for (IndexType j = 0; j < n_nodes; ++j) {
-        //         const double N_j = kinematic_variables.N[j];
-        //         noalias(G_j) = row(kinematic_variables.DN_DX, j);
-        //         for (IndexType k = 0;  k < strain_size; ++k) {
-        //             for (IndexType l = 0; l < dim; ++l) {
-        //                 B_j(k,l) = kinematic_variables.B(k, j * dim + l);
-        //             }
-        //         }
-        //         noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
-
-        //         // Add the extra terms in the RHS momentum equation
-        //         Vector disp_j(dim);
-        //         for (unsigned int d = 0; d < dim; ++d) {
-        //             disp_j[d] = kinematic_variables.Displacements[j * dim + d];
-        //         }
-        //         const double aux_vol_j = (N_j * kinematic_variables.VolumetricNodalStrains[j] - inner_prod(psi_j, disp_j));
-        //         noalias(rhs_mom_i) += (w_gauss / dim) * transBi_C_invT_m * aux_vol_j;
-        //         noalias(rhs_mom_i) -= w_gauss * (1 - tau_2) * bulk_modulus * psi_i * aux_vol_j;
-
-        //         rhs_mass_i += w_gauss * (1 - tau_2) * bulk_modulus * N_i * aux_vol_j;
-
-        //         // Add momentum internal force LHS contribution
-        //         noalias(lhs_uu_ij) = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
-        //         noalias(lhs_uu_ij) -= w_gauss * (1 - tau_2) * bulk_modulus * outer_prod(psi_i, trans(psi_j));
-        //         // Add momentum volumetric strain LHS contribution
-        //         noalias(lhs_ue_ij) = w_gauss * (1 - tau_2) * bulk_modulus * psi_i * N_j;
-        //         // Add mass conservation displacement divergence LHS contribution
-        //         noalias(lhs_eu_ij) = w_gauss * (1 - tau_2) * bulk_modulus * N_i * trans(psi_j);
-        //         // Add mass conservation volumetric strain LHS contribution
-        //         lhs_ee_ij = - w_gauss * (1 - tau_2) * bulk_modulus * N_i * N_j;
-        //         lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * tau_1 * inner_prod(G_i, G_j);
-        //         // Add the dynamic subscale terms to the LHS
-        //         if (mIsDynamic) {
-        //             noalias(lhs_ue_ij) += w_gauss * bulk_modulus * tau_1 * (density / std::pow(dt, 2)) * N_i * G_j;
-        //         }
-
-        //         // Assemble the LHS contributions
-        //         rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) += lhs_ee_ij;
-        //         for (IndexType d = 0; d < dim; ++d) {
-        //             rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += lhs_ue_ij[d];
-        //             rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += lhs_eu_ij[d];
-        //             for (IndexType d2 = 0; d2 < dim; ++d2) {
-        //                 rLeftHandSideMatrix(i * block_size + d, j * block_size + d2) += lhs_uu_ij(d, d2);
-        //             }
-        //         }
-        //     }
-
-        //     // Assemble the RHS contributions
-        //     rRightHandSideVector[i * block_size + dim] += rhs_mass_i;
-        //     for (IndexType d = 0; d < dim; ++d) {
-        //         rRightHandSideVector[i * block_size + d] += rhs_mom_i[d];
-        //     }
-        // }
     }
 }
 
@@ -1012,6 +884,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
     const SizeType n_nodes = r_geom.PointsNumber();
     const SizeType block_size = dim + 1;
     const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Clear matrix
     if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
@@ -1019,35 +892,85 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
     }
     rMassMatrix.clear();
 
+    // Create the kinematics container and fill the nodal data
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_disp = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        for (IndexType d = 0; d < dim; ++d) {
+            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        }
+        kinematic_variables.VolumetricNodalStrains[i_node] = r_geom[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+    }
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geom, GetProperties(), rCurrentProcessInfo);
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Set the auxiliary Gauss point variable container
+    GaussPointAuxiliaryVariables gauss_point_auxiliary_variables(this, dim, strain_size);
+
     // Calculate the consistent mass matrix
     const double density = r_prop[DENSITY];
     const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
-    const double aux_rho_thickness = density * thickness;
     const bool compute_lumped_mass_matrix = r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     if (compute_lumped_mass_matrix) {
         KRATOS_ERROR << "Mass matrix is not symmetric and cannot be lumped." << std::endl;
     } else {
         Matrix J0;
-        const auto& r_integration_method = this->GetIntegrationMethod();
-        const auto& r_N_container = r_geom.ShapeFunctionsValues(r_integration_method);
-        const auto& r_integration_points = r_geom.IntegrationPoints(r_integration_method);
-        const SizeType n_gauss = r_integration_points.size();
+        Vector G_i(dim);
+        const SizeType n_gauss = r_geom.IntegrationPointsNumber(GetIntegrationMethod());
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-            // Calculate current integration point weight
-            // Note that this includes the density and the thickness
-            GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_integration_points[i_gauss], J0);
-            const double detJ0 = MathUtils<double>::Det(J0);
 
-            const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
+            // Calculate kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Calculate the constitutive response
+            // Note that this is required in order to get the effective bulk modulus
+            CalculateConstitutiveVariables(
+                kinematic_variables,
+                constitutive_variables,
+                cons_law_values,
+                i_gauss,
+                r_geom.IntegrationPoints(this->GetIntegrationMethod()),
+                ConstitutiveLaw::StressMeasure_Cauchy);
+
+            // Calculate the auxiliary Gauss point variables
+            CalculateGaussPointAuxiliaryVariables(
+                gauss_point_auxiliary_variables,
+                kinematic_variables,
+                constitutive_variables,
+                rCurrentProcessInfo,
+                i_gauss);
+
+            // Get required data
+            const double tau_1 = gauss_point_auxiliary_variables.Tau1;
+            const double w_gauss = thickness * gauss_point_auxiliary_variables.Weight;
+            const double bulk_modulus = gauss_point_auxiliary_variables.BulkModulus;
+
+            // Check if the problem is dynamic to add the dynamic subscale component
+            // Note that this check avoids this contribution to be added to the eigenvalue problem mass matrix
+            double mass_factor = 1.0;
+            if (mIsDynamic) {
+                const double dt = gauss_point_auxiliary_variables.Dt;
+                mass_factor -= tau_1 / std::pow(dt,2);
+            }
 
             // Assemble nodal contributions
-            const auto &r_N = row(r_N_container, i_gauss);
             for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                const double N_i = kinematic_variables.N[i_node];
+                noalias(G_i) = row(kinematic_variables.DN_DX, i_node);
                 for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
-                    const double aux = w_gauss * r_N[i_node] * r_N[j_node];
+                    const double N_j = kinematic_variables.N[j_node];
+                    const double aux_1 = density * mass_factor * w_gauss * N_i * N_j;
+                    const double aux_2 = bulk_modulus * tau_1 * w_gauss * N_j;
                     for (IndexType d = 0; d < dim; ++d) {
-                        rMassMatrix(i_node*block_size + d, j_node*block_size + d) += aux;
+                        rMassMatrix(i_node*block_size + d, j_node*block_size + d) += aux_1;
+                        rMassMatrix(i_node*block_size + dim, j_node*block_size + d) += aux_2 * G_i[d]; // Consistent (but not symmetric) mass matrix contribution
                     }
                 }
             }
@@ -1438,16 +1361,18 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau1(
         }
         noalias(aux) += prod(trans(B_i), Matrix(prod(rThisConstitutiveVariables.D, B_i)));
     }
-    // double det;
+    double det;
     const double c_1 = 1.0;
-    // Matrix tau_1_mat(dim, dim);
-    // MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-    // const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
-    // const double m_T_tau_1 = c_1*inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
+    Matrix tau_1_mat(dim, dim);
+    MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
+    const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+    const double m_T_tau_1 = c_1*inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
 
-    const double G = CalculateShearModulus(rThisConstitutiveVariables.D);
-    const double h = n_nodes == 3 ? ElementSizeCalculator<2, 3>::AverageElementSize(this->GetGeometry()) : ElementSizeCalculator<2, 4>::AverageElementSize(this->GetGeometry());
-    const double m_T_tau_1 = c_1 * std::pow(h,2) / G;
+    // Uncomment this to use the stabilisation parameters defined in the paper
+    // const double c_1 = 1.0;
+    // const double G = CalculateShearModulus(rThisConstitutiveVariables.D);
+    // const double h = n_nodes == 3 ? ElementSizeCalculator<2, 3>::AverageElementSize(this->GetGeometry()) : ElementSizeCalculator<2, 4>::AverageElementSize(this->GetGeometry());
+    // const double m_T_tau_1 = c_1 * std::pow(h,2) / G;
 
     double tau_1;
     if (mIsDynamic) {
@@ -1470,8 +1395,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau2(const Consti
     const double max_tau_2 = 1.0e-2;
     const double bulk_modulus = CalculateBulkModulus(rThisConstitutiveVariables.D);
     const double shear_modulus = CalculateShearModulus(rThisConstitutiveVariables.D);
-    // return std::min(max_tau_2, c_2 * shear_modulus / bulk_modulus);
-    return c_2 * shear_modulus / (shear_modulus + bulk_modulus);
+    return std::min(max_tau_2, c_2 * shear_modulus / bulk_modulus);
+    // return c_2 * shear_modulus / (shear_modulus + bulk_modulus); // Uncomment this to use the stabilisation parameters defined in the paper
 }
 
 /***********************************************************************************/
@@ -1784,11 +1709,11 @@ const Parameters SmallDisplacementMixedVolumetricStrainElement::GetSpecification
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
             "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-            "nodal_non_historical"   : ["DISPLACEMENT_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION"],
+            "nodal_non_historical"   : [],
             "entity"                 : ["DISPLACEMENT_SUBSCALE", "VOLUMETRIC_STRAIN_SUBSCALE"]
         },
         "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-        "required_dofs"              : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+        "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
         "element_integrates_in_time" : false,
