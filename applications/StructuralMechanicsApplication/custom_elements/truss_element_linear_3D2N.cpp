@@ -188,7 +188,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-        Vector test = ZeroVector(msDimension);
+        Vector test = ZeroVector(1);
         test[0]= temp_stress[0];
         rOutput[0] = test;
     }
