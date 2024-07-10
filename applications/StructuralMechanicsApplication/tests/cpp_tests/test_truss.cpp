@@ -100,9 +100,7 @@ std::shared_ptr<StubBilinearLaw> CreateStubBilinearLaw(double Elongation, double
 }
 
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
     void AddDisplacementDofsElement(ModelPart& rModelPart){
@@ -379,7 +377,10 @@ namespace Testing
 
         constexpr double expected_stress = -2.0e5; // = Strain * Young's Modulus
         KRATOS_EXPECT_DOUBLE_EQ(expected_stress, stress_vector[0][0]);
-    }
 
-}
+        p_element->GetProperties().SetValue(TRUSS_PRESTRESS_PK2, 1.0e5);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
+        constexpr double expected_stress_with_pre_stress = -1.0e5; // = expected_stress + pre stress
+        KRATOS_EXPECT_DOUBLE_EQ(expected_stress_with_pre_stress, stress_vector[0][0]);
+    }
 }

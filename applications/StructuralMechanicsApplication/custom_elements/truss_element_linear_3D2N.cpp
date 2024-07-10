@@ -171,8 +171,13 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput[0] = Strain;
     }
     else if (rVariable == PK2_STRESS_VECTOR) {
+        auto stress = CalculateStress(rCurrentProcessInfo);
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            stress += GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
         Vector result = ZeroVector(msDimension);
-        result[0] = CalculateStress(rCurrentProcessInfo);
+        result[0] = stress;
         rOutput[0] = result;
     }
 
