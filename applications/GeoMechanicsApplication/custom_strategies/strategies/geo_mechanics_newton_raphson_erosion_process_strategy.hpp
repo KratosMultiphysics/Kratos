@@ -181,16 +181,9 @@ public:
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
 
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
-        auto& r_dof_set = p_builder_and_solver->GetDofSet();
-
         if (mStoreNonconvergedSolutionsFlag) {
-            Vector initial;
-            GetCurrentSolution(r_dof_set,initial);
-            mNonconvergedSolutions.push_back(initial);
-        }
-
-        if (mStoreNonconvergedSolutionsFlag) {
+            CollectCurrentSolution();
+            auto& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
             mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), mNonconvergedSolutions.size() );
             for (std::size_t i = 0; i < mNonconvergedSolutions.size(); ++i) {
                 block_for_each(r_dof_set, [&](const auto& r_dof) {
@@ -391,19 +384,19 @@ private:
 
 
     /**
-    * @brief Gets the current solution vector
-    * @param rDofSet The set of degrees of freedom (DOFs)
-    * @param this_solution The vector that will be filled with the current solution values
-    * @details This method retrieves the current solution values for the provided DOF set.
-    * The provided solution vector will be resized to match the size of the DOF set if necessary,
-    * and will be filled with the solution values corresponding to each DOF. Each value is accessed
-    * using the equation ID associated with each DOF.
-    */
-    void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
-        this_solution.resize(rDofSet.size());
+     * @brief Collects the current solution vector for the degrees of freedom (DOFs).
+     * @details This method retrieves the current solution values for the provided DOF set.
+     * The solution vector will be resized to match the size of the DOF set if necessary,
+     * and will be filled with the solution values corresponding to each DOF. Each value is accessed
+     * using the equation ID associated with each DOF.
+     */
+    void CollectCurrentSolution() {
+        auto& rDofSet = this->GetBuilderAndSolver()->GetDofSet();
+        Vector this_solution(rDofSet.size());
         block_for_each(rDofSet, [&](const auto& r_dof) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         });
+        mNonconvergedSolutions.push_back(this_solution);
     }
 
 
@@ -430,13 +423,9 @@ private:
             //{
             //    grow = false;
             //}
-            typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
-            auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
             if (mStoreNonconvergedSolutionsFlag) {
-                Vector initial;
-                GetCurrentSolution(r_dof_set,initial);
-                mNonconvergedSolutions.push_back(initial);
+                CollectCurrentSolution();
             }
 
             if (converged) {
