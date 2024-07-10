@@ -548,6 +548,14 @@ protected:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
         ) const;
 
+    /**
+     * @brief Calculates the Gauss point data
+     * @param rThisGaussPointAuxiliaryVariables The Gauss point data container to be filled
+     * @param rThisKinematicVariables The kinematic variables to be used to fill the data
+     * @param rThisConstitutiveVariables The constitutive variables to be used to fill the data
+     * @param rProcessInfo Reference to the current ProcessInfo container
+     * @param PointNumber Gauss point index
+     */
     void CalculateGaussPointAuxiliaryVariables(
         GaussPointAuxiliaryVariables &rThisGaussPointAuxiliaryVariables,
         const KinematicVariables &rThisKinematicVariables,
@@ -596,6 +604,14 @@ protected:
      */
     double CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
+    /**
+     * @brief Calculates the current Gauss point local system (LHS and RHS) contributions
+     * @param rRightHandSideVector The elemental right hand side vector
+     * @param rLeftHandSideMatrix The elemental left hand side matrix
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
     virtual void CalculateLocalSystemGaussPointContribution(
         VectorType& rRightHandSideVector,
         MatrixType& rLeftHandSideMatrix,
@@ -603,18 +619,39 @@ protected:
         const ConstitutiveVariables& rThisConstitutiveVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
 
+    /**
+     * @brief Calculates the current Gauss point RHS contribution
+     * @param rRightHandSideVector The elemental right hand side vector
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
     virtual void CalculateRightHandSideGaussPointContribution(
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ConstitutiveVariables& rThisConstitutiveVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
 
+    /**
+     * @brief Calculates the current Gauss point LHS contribution
+     * @param rLeftHandSideMatrix The elemental left hand side matrix
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
     virtual void CalculateLeftHandSideGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
         const KinematicVariables& rThisKinematicVariables,
         const ConstitutiveVariables& rThisConstitutiveVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
 
+    /**
+     * @brief Updates the subscale historical values for the dynamic case
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rProcessInfo Reference to the current ProcessInfo container
+     * @param PointIndex Gauss point index
+     */
     virtual void UpdateGaussPointDisplacementSubscaleHistory(
         const KinematicVariables& rThisKinematicVariables,
         const ConstitutiveVariables& rThisConstitutiveVariables,
@@ -625,6 +662,10 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief Get the Anisotropy Tensor object
+     * @return const Matrix& Reference to the anisotropy tensor
+     */
     const Matrix& GetAnisotropyTensor() const
     {
         return mAnisotropyTensor;
@@ -634,6 +675,12 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
+    /**
+     * @brief Returns a bool variable indicating if the problem is dynamic
+     * The variable is set in the Initialize function according to the presence of the ACCELERATION variable
+     * @return true If the problem is dynamic
+     * @return false If the problem is not dynamic (e.g., static or eigenvalue analysis)
+     */
     const bool IsDynamic() const
     {
         return mIsDynamic;
@@ -651,9 +698,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mIsDynamic;
-    Matrix mAnisotropyTensor;
-    Matrix mInverseAnisotropyTensor;
+    bool mIsDynamic; // Bool variable to indicate if the problem is dynamic
+
+    Matrix mAnisotropyTensor; // The anisotropy transformation tensor
+
+    Matrix mInverseAnisotropyTensor; // The inverse of the anisotropy transformation tensor
 
     ///@}
     ///@name Private Operators

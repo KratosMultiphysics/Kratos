@@ -1724,7 +1724,7 @@ const Parameters SmallDisplacementMixedVolumetricStrainElement::GetSpecification
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy. Note that the resulting mass matrix is not symmetric."
     })");
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
