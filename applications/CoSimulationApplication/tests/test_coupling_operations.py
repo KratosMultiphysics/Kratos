@@ -254,7 +254,6 @@ class TestConversionOperation(KratosUnittest.TestCase):
         }""")
 
         nodal_data_output = CouplingInterfaceData(nodal_data_output_setting,  self.model)
-        print(nodal_data_output.GetData())
 
         expected_nodal_values = [3, 7, 7, 3, 4, 4]
 
