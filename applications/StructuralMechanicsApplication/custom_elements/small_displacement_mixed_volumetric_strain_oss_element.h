@@ -139,10 +139,14 @@ public:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -223,29 +227,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Calculates the operator to be applied to the OSS projections
+     * @param rOrthogonalSubScalesOperator Matrix to store the OSS projection operator
+     * @param rThisKinematicVariables Reference to the kinematics container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
     void CalculateOssStabilizationOperatorGaussPointContribution(
         MatrixType &rOrthogonalSubScalesOperator,
         const KinematicVariables &rThisKinematicVariables,
         const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
-
-    // void CalculateOssLumpedProjectionGaussPointContribution(
-    //     MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
-    //     const KinematicVariables &rThisKinematicVariables,
-    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables,
-    //     const ProcessInfo& rProcessInfo) const;
-
-    // void CalculateLocalSystemGaussPointContribution(
-    //     VectorType& rRightHandSideVector,
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const KinematicVariables& rThisKinematicVariables,
-    //     const ConstitutiveVariables& rThisConstitutiveVariables,
-    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
-
-    // void CalculateRightHandSideGaussPointContribution(
-    //     VectorType& rRightHandSideVector,
-    //     const KinematicVariables& rThisKinematicVariables,
-    //     const ConstitutiveVariables& rThisConstitutiveVariables,
-    //     const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const override;
 
     void UpdateGaussPointDisplacementSubscaleHistory(
         const KinematicVariables& rThisKinematicVariables,

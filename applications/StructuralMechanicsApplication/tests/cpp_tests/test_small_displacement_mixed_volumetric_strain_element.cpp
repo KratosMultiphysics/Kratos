@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3NDynam
     p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
     p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
 
-    // Compute RHS and LHS
+    // Compute RHS, LHS and mass matrix
     Vector RHS = ZeroVector(9);
     Matrix LHS = ZeroMatrix(9,9);
     Matrix MassMatrix = ZeroMatrix(9,9);
@@ -278,7 +278,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D4NDynam
     p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
     p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.03;
 
-    // Compute RHS and LHS
+    // Compute RHS, LHS and mass matrix
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
     Matrix MassMatrix = ZeroMatrix(9,9);
@@ -414,7 +414,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8NDynam
     p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
     p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.03;
 
-    // Compute RHS and LHS
+    // Compute RHS, LHS and mass matrix
     Vector RHS = ZeroVector(32);
     Matrix LHS = ZeroMatrix(32,32);
     Matrix MassMatrix = ZeroMatrix(9,9);

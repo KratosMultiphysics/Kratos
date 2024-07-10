@@ -264,6 +264,63 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
     rRightHandSideVector += prod(oss_proj_op, proj_vect);
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainOssElement::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    const auto& r_prop = GetProperties();
+    const auto& r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+
+    // Check LHS size and initialize
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
+        rMassMatrix.resize(matrix_size, matrix_size, false);
+    }
+    rMassMatrix.clear();
+
+    // Calculate the consistent mass matrix
+    // Note that we cannot use the base element implementation as it includes some extra terms that are 0 in the OSS case
+    const double density = r_prop[DENSITY];
+    const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double aux_rho_thickness = density * thickness;
+    const bool compute_lumped_mass_matrix = r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
+
+    if (compute_lumped_mass_matrix) {
+        KRATOS_ERROR << "Lumped mass matrix is not implemented." << std::endl;
+    } else {
+        Matrix J0;
+        const auto& r_integration_method = this->GetIntegrationMethod();
+        const auto& r_N_container = r_geometry.ShapeFunctionsValues(r_integration_method);
+        const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+        const SizeType n_gauss = r_integration_points.size();
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate current integration point weight
+            // Note that this includes the density and the thickness
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[i_gauss], J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
+            const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
+
+            // Assemble nodal contributions
+            const auto &r_N = row(r_N_container, i_gauss);
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
+                    const double aux = w_gauss * r_N[i_node] * r_N[j_node];
+                    for (IndexType d = 0; d < dim; ++d) {
+                        rMassMatrix(i_node*block_size + d, j_node*block_size + d) += aux;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -322,10 +379,6 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
                 }
                 const double N_j = kinematic_variables.N[j_node];
                 noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(GetAnisotropyTensor(), B_j)));
-                // aux_res += N_j * kinematic_variables.VolumetricNodalStrains[j_node];
-                // for (IndexType d = 0; d < dim; ++d) {
-                //     aux_res -= psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
-                // }
                 for (IndexType d = 0; d < dim; ++d) {
                     aux_res += psi_j[d] * kinematic_variables.Displacements[j_node*dim + d];
                 }
@@ -458,23 +511,21 @@ void SmallDisplacementMixedVolumetricStrainOssElement::UpdateGaussPointDisplacem
     const double dt = rProcessInfo[DELTA_TIME];
     const double density = GetProperties()[DENSITY];
     Vector aux_u_s = (density / std::pow(dt, 2)) * (2.0 * mDisplacementSubscale1[PointIndex] - mDisplacementSubscale2[PointIndex]);
-    for (IndexType d = 0; d < dim; ++d)
-    {
+    for (IndexType d = 0; d < dim; ++d) {
         aux_u_s[d] += body_force[d];
         aux_u_s[d] += bulk_modulus * grad_eps[d];
     }
 
     // Calculate the displacement residual projection at current Gauss point
     array_1d<double, 3> us_proj_gauss = ZeroVector(3);
-    for (IndexType i = 0; i < n_nodes; ++i)
-    {
+    for (IndexType i = 0; i < n_nodes; ++i) {
         const double N_i = rThisKinematicVariables.N[i];
         const auto &r_u_proj_i = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
         noalias(us_proj_gauss) += N_i * r_u_proj_i;
     }
+
     // Substract the nodal projection to get the orthogonal subscale value
-    for (IndexType d = 0; d < dim; ++d)
-    {
+    for (IndexType d = 0; d < dim; ++d) {
         aux_u_s[d] -= us_proj_gauss[d];
     }
 
@@ -527,90 +578,6 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssStabilization
         }
     }
 }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssLumpedProjectionGaussPointContribution(
-//     MatrixType &rOrthogonalSubScalesLumpedProjectionOperator,
-//     const ProcessInfo &rProcessInfo) const
-// {
-//     const auto &r_geometry = GetGeometry();
-//     const SizeType dim = r_geometry.WorkingSpaceDimension();
-//     const SizeType n_nodes = r_geometry.PointsNumber();
-//     const SizeType block_size = dim + 1;
-//     const SizeType matrix_size = block_size * n_nodes;
-//     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-
-//     // Check LHS size
-//     if (rOrthogonalSubScalesLumpedProjectionOperator.size1() != matrix_size || rOrthogonalSubScalesLumpedProjectionOperator.size2() != matrix_size) {
-//         rOrthogonalSubScalesLumpedProjectionOperator.resize(matrix_size, matrix_size, false);
-//     }
-
-//     // Initialize the OSS operator with zeros
-//     rOrthogonalSubScalesLumpedProjectionOperator.clear();
-
-//     // Create the kinematics container
-//     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-
-//     // Create the constitutive variables and values containers
-//     ConstitutiveVariables constitutive_variables(strain_size);
-//     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rProcessInfo);
-//     auto& r_cons_law_options = cons_law_values.GetOptions();
-//     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-//     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-//     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-//     // Set auxiliary arrays
-//     Vector voigt_identity =  ZeroVector(strain_size);
-//     for (IndexType d = 0; d < dim; ++d) {
-//         voigt_identity[d] = 1.0;
-//     }
-
-//     // Calculate the anisotropy tensor products
-//     const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
-
-//     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-//     const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
-//     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-//     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-//         // Calculate kinematics
-//         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-//         const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
-
-//         // Calculate the constitutive response
-//         CalculateConstitutiveVariables(
-//             kinematic_variables,
-//             constitutive_variables,
-//             cons_law_values,
-//             i_gauss,
-//             r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
-//             ConstitutiveLaw::StressMeasure_Cauchy);
-
-//         // Calculate tau_1 stabilization constant
-//         const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
-
-//         // Calculate tau_2 stabilization constant
-//         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
-//         const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
-//         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
-
-//         double sum_N_j;
-//         const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
-//         const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
-//         for (IndexType i = 0; i < n_nodes; ++i) {
-//             sum_N_j = 0.0;
-//             const double N_i = kinematic_variables.N[i];
-//             for (IndexType j = 0; j < n_nodes; ++j) {
-//                 sum_N_j += kinematic_variables.N[j];
-//             }
-//             for (IndexType d = 0; d < dim; ++d) {
-//                 rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) -= aux_w_kappa_tau_1 * N_i * sum_N_j;
-//             }
-//             rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) -= aux_w_kappa_tau_2 * N_i * sum_N_j;
-//         }
-//     }
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -848,7 +815,7 @@ const Parameters SmallDisplacementMixedVolumetricStrainOssElement::GetSpecificat
             "entity"                 : ["DISPLACEMENT_SUBSCALE", "VOLUMETRIC_STRAIN_SUBSCALE"]
         },
         "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN","DISPLACEMENT_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION"],
-        "required_dofs"              : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+        "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
         "element_integrates_in_time" : false,
@@ -859,7 +826,7 @@ const Parameters SmallDisplacementMixedVolumetricStrainOssElement::GetSpecificat
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization.This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy. As a difference to the base element, this element uses an OSS stabilization approach with linearised projections (note that this requires the corresponding scheme to calculate the projections at the end of the iteration). Thanks to the OSS approach, the resulting mass matrix is symmetric. However, this element cannot be used for the eigenvalue analysis (use the non-linear OSS instead)."
     })");
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
