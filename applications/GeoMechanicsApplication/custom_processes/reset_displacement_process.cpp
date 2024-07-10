@@ -10,10 +10,10 @@
 //  Main authors:    Richard Faasse
 //
 #include "reset_displacement_process.h"
+#include "includes/initial_state.h"
 #include "includes/mat_variables.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
-#include "processes/set_initial_state_process.h"
 
 #include <boost/format/free_funcs.hpp>
 
@@ -31,12 +31,16 @@ void ResetDisplacementProcess::ExecuteInitialize()
         std::vector<Vector> stresses_on_integration_points;
         rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
                                               mrModelPart.GetProcessInfo());
-        KRATOS_ERROR_IF(stresses_on_integration_points.size() != 1);
-        rElement.GetGeometry().SetValue(INITIAL_STRESS_VECTOR, stresses_on_integration_points[0]);
-    });
 
-    SetInitialStateProcess<3> set_initial_state_process(mrModelPart);
-    set_initial_state_process.ExecuteInitializeSolutionStep();
+        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+        rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
+
+        for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
+            auto p_initial_state = make_intrusive<InitialState>();
+            p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
+            constitutive_laws[i]->SetInitialState(p_initial_state);
+        }
+    });
 }
 
 } // namespace Kratos
