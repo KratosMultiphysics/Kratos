@@ -1,11 +1,10 @@
-// KRATOS___
-//     //   ) )
-//    //         ___      ___
-//   //  ____  //___) ) //   ) )
-//  //    / / //       //   / /
-// ((____/ / ((____   ((___/ /  MECHANICS
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:         geo_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Richard Faasse
 //
