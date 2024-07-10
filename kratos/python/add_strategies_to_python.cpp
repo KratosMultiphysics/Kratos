@@ -46,6 +46,8 @@
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
+#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
+
 
 // sensitivity builder schemes
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
@@ -269,6 +271,14 @@ namespace Kratos:: Python
             .def(py::init<Parameters >() )
             .def(py::init< >()
             );
+
+        py::class_< ResidualBasedIncrementalAitkenStaticScheme< SparseSpaceType, LocalSpaceType>,
+            typename ResidualBasedIncrementalAitkenStaticScheme< SparseSpaceType, LocalSpaceType>::Pointer,
+            ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
+            (m, "ResidualBasedIncrementalAitkenStaticScheme")
+            .def(py::init<Parameters >() )
+            .def(py::init<double >())
+            ;
 
         typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
 
