@@ -31,9 +31,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+add_app ${KRATOS_APP_DIR}/HDF5Application
 
 # Clean
 clear
@@ -43,7 +41,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DUSE_MPI=OFF                                                       \
+-DUSE_MPI=ON                                                       \
 -DUSE_EIGEN_MKL=OFF                                                 \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
