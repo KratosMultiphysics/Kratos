@@ -43,6 +43,9 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON                                                       \
 -DUSE_EIGEN_MKL=OFF                                                 \
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build
