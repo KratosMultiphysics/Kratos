@@ -465,7 +465,7 @@ public:
 	virtual void Rotate(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-        RotateRHSAux(rLocalVector, rGeometry);
+            RotateRHSAux(rLocalVector, rGeometry);
 	}
 
 	/// Apply slip boundary conditions to the rotated local contributions.
