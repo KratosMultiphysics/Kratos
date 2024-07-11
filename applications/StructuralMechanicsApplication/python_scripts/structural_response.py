@@ -4,6 +4,7 @@ from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjoint_dynamic_analysis import StructuralMechanicsAdjointDynamicAnalysis
 
 import time as timer
 
@@ -219,7 +220,6 @@ class MassResponseFunction(ResponseFunctionInterface):
 
     def GetElementalGradient(self, variable):
         raise NotImplementedError("GetElementalGradient needs to be implemented for MassResponseFunction")
-
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionInterface):
     """Linear static adjoint strain energy response function.
@@ -435,3 +435,106 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type] + "Response"
+
+# ==============================================================================
+class TransientAdjointResponseFunction(ResponseFunctionInterface):
+    """Transient adjoint response function.
+    - runs the primal analysis (writes the primal results to an .h5 file)
+    - reads the primal results from the .h5 file into the adjoint model part
+    - uses primal results to calculate value by integration (rectangular rule)
+    - uses primal results to calculate gradient by running the adjoint analysis
+
+    Attributes
+    ----------
+    primal_analysis : Primal analysis object of the response function
+    adjoint_analysis : Adjoint analysis object of the response function
+    """    
+    def __init__(self, identifier, response_settings, model):
+        self.identifier = identifier
+        self.response_settings = response_settings
+
+        # Create the primal solver
+        with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
+            primal_parameters = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
+
+        self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
+
+        # Get Delta time
+        self.delta_time = primal_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+
+        # Create the adjoint solver
+        # TODO auto creation of adjoint parameters
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters = Parameters( parameter_file.read() )
+        
+        self.response_type = adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].GetString()
+        adjoint_model = KratosMultiphysics.Model()
+        # TODO find out why it is not possible to use the same model_part
+        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
+
+        self.adjoint_analysis = StructuralMechanicsAdjointDynamicAnalysis(adjoint_model, adjoint_parameters)
+
+    def RunCalculation(self, calculate_gradient):
+        self.Initialize()
+        self.InitializeSolutionStep()
+        if calculate_gradient:
+            self.CalculateGradient()
+        self.FinalizeSolutionStep()
+        self.Finalize()
+
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+        self.adjoint_analysis.Initialize()
+
+    def InitializeSolutionStep(self):
+        # Run the primal analysis.
+        Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
+        startTime = timer.time()
+
+        while self.primal_analysis.KeepAdvancingSolutionLoop():
+            self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+            self.primal_analysis.InitializeSolutionStep()
+            self.primal_analysis._GetSolver().Predict()
+            self.primal_analysis._GetSolver().SolveSolutionStep()
+            self.CalculateValue()
+            self.primal_analysis.FinalizeSolutionStep()
+            self.primal_analysis.OutputSolutionStep()
+
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+
+    def CalculateValue(self):
+        
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] += value * self.delta_time
+
+    def CalculateGradient(self):
+        startTime = timer.time()
+        Logger.PrintInfo(self._GetLabel(), "Starting adjoint analysis for response:", self.identifier)
+        self.adjoint_analysis.RunSolutionLoop()
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+
+    def GetValue(self):
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+
+    def GetElementalGradient(self, variable):
+        gradient = {}
+        for element in self.adjoint_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+        self.adjoint_analysis.Finalize()
+
+    def _GetResponseFunctionUtility(self):
+        return self.adjoint_analysis._GetSolver().response_function
+
+    def _GetLabel(self):
+        type_labels = {
+            "adjoint_nodal_square_integral" : "NodalSquareIntegral",
+            "adjoint_damping_energy_dissipation" : "DampingEnergyDissipation"
+        }
+        return "TransientAdjoint" + type_labels[self.response_type] + "Response"
+
