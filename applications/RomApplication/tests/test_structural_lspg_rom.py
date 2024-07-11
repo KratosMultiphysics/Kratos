@@ -183,6 +183,13 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+        with KratosUnittest.WorkFolderScope("structural_static_test_files/LSPGROM_ANN", __file__):
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/NodeIds.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/RightBasisMatrix.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/SingularValuesVector.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/RomParameters.json'))
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database/xlsx_files'))
+
 
 ##########################################################################################
 

@@ -205,6 +205,12 @@ class TestStructuralRom(KratosUnittest.TestCase):
         for workfolder in workfolders:
             with KratosUnittest.WorkFolderScope(workfolder, __file__):
                 kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database'))
+        with KratosUnittest.WorkFolderScope("structural_static_test_files/ROM_ANN", __file__):
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/NodeIds.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/RightBasisMatrix.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/SingularValuesVector.npy'))
+            kratos_utilities.DeleteFileIfExisting(Path('./rom_data/RomParameters.json'))
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database/xlsx_files'))
 
 ##########################################################################################
 
