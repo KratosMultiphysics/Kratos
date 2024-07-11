@@ -183,7 +183,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
                 aux++;
             }
         }
-        mIsDynamic = (aux == r_geom.PointsNumber()) ? true : false;
+        mIsDynamic = (aux == r_geom.PointsNumber());
 
         // Initialize the displacement subscale containers
         if (mIsDynamic) {
