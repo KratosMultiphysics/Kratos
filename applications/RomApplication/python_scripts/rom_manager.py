@@ -426,7 +426,14 @@ class RomManager(object):
 
     def _LoadSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
-        if not in_database:
+        basis_directory = self.data_base.database_root_directory.parent
+        basis_path = basis_directory / 'RightBasisMatrix.npy'
+        basis_exists_in_parent_directory = basis_path.exists()
+
+        if not in_database and basis_exists_in_parent_directory:
+            err_msg = f'ROM basis not in RomDatabase, using the one in the working directory {basis_path}'
+            KratosMultiphysics.Logger.PrintWarning(err_msg)
+        elif not in_database and not basis_exists_in_parent_directory:
             err_msg = f'ROM basis not found for indicated training snapshots. Please run the Train method() to create it.'
             raise Exception(err_msg)
         else:
