@@ -236,6 +236,8 @@ class RomManager(object):
     def RunROM(self, mu_train=[None], mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        nn_rom_interface = None
+        self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -266,7 +268,6 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LoadSolutionBasis(mu_train)
         self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
 
 
@@ -275,6 +276,7 @@ class RomManager(object):
     def RunHROM(self, mu_train=[None], mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -302,7 +304,6 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LoadSolutionBasis(mu_train)
         self._LaunchRunHROM(mu_run, use_full_model_part)
 
 
