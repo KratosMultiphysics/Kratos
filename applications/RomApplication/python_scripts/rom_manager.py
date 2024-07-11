@@ -236,9 +236,6 @@ class RomManager(object):
     def RunROM(self, mu_train=[None], mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
-
-        self._LoadSolutionBasis(mu_train)
-
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -246,7 +243,6 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                 NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
@@ -256,10 +252,8 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                 NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                self._LaunchRunROM(mu_run)
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
@@ -268,13 +262,15 @@ class RomManager(object):
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                self._LaunchRunROM(mu_run)
         #########################################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-            
-            
+        self._LoadSolutionBasis(mu_train)
+        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
+
+
+
 
     def RunHROM(self, mu_train=[None], mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -1180,7 +1176,7 @@ class RomManager(object):
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
             raise Exception(err_msg)
-    
+
     def _TryImportNNInterface(self):
         try:
             from KratosMultiphysics.RomApplication.rom_nn_trainer import NN_ROM_Interface
