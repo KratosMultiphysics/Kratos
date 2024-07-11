@@ -3,10 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    
+//  Main authors:    Jonas Hillenbrand, https://github.com/JonasHill
 //
 
 // System includes
@@ -21,55 +21,56 @@ namespace Kratos
 {
     AdjointNodalRootMeanSquareResponseFunction::AdjointNodalRootMeanSquareResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
-    { 
-        mTimeDomain = ResponseSettings["time_domain"].GetDouble();
+    {
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
+        mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
-        mTracedDofDirection = ResponseSettings["direction"].GetString();
-        mTracedDofTimeDerivativeOrder = ResponseSettings["time_derivative_order"].GetInt();
+
+        // Check if response direction is valid and normalize it
+        if ( norm_2( mResponseDirection ) > 1.0e-7 ) {
+            mResponseDirection /= norm_2( mResponseDirection );
+        } else {
+            KRATOS_ERROR << "AdjointNodalRootMeanSquareResponseFunction: 'response_direction' must not have a norm of 0.0." << std::endl;
+        }
 
         // Check if variable for traced dof is valid
-        KRATOS_ERROR_IF_NOT( KratosComponents<ArrayVariableType>::Has(mTracedDofLabel) && (mTracedDofLabel == "DISPLACEMENT" || mTracedDofLabel == "ROTATION") )
+        KRATOS_ERROR_IF_NOT( KratosComponents<ArrayVariableType>::Has(mTracedDofLabel) )
             << "AdjointNodalRootMeanSquareResponseFunction: Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
 
-        // Check if time derivative order for traced dof is valid
-        KRATOS_ERROR_IF_NOT((mTracedDofTimeDerivativeOrder == 0 || mTracedDofTimeDerivativeOrder == 1 || mTracedDofTimeDerivativeOrder == 2))
-            << "AdjointNodalRootMeanSquareResponseFunction: Specified time derivative order is not available. Use 0, 1 or 2 as derivative order." << std::endl;
-
-        if (mTracedDofLabel == "DISPLACEMENT"){
-            switch (mTracedDofTimeDerivativeOrder) {
-                case 0:
-                    mTracedDynDofLabel = "DISPLACEMENT";
-                    break;
-                case 1:
-                    mTracedDynDofLabel = "VELOCITY";
-                    break;
-                case 2:
-                    mTracedDynDofLabel = "ACCELERATION";
-            }
+        if (mTracedDofLabel == "DISPLACEMENT") {
+            mTracedDofType = "DISPLACEMENT";
+            mTracedDofTimeDerivativeOrder = 0;
         }
-        else if (mTracedDofLabel == "ROTATION"){
-            switch (mTracedDofTimeDerivativeOrder) {
-                case 0:
-                    mTracedDynDofLabel = "ROTATION";
-                    break;
-                case 1:
-                    mTracedDynDofLabel = "ANGULAR_VELOCITY";
-                    break;
-                case 2:
-                    mTracedDynDofLabel = "ANGULAR_ACCELERATION";
-            }
+        else if (mTracedDofLabel == "ROTATION") {
+            mTracedDofType = "ROTATION";
+            mTracedDofTimeDerivativeOrder = 0;
+        }
+        else if (mTracedDofLabel == "VELOCITY") {
+            mTracedDofType = "DISPLACEMENT";
+            mTracedDofTimeDerivativeOrder = 1;
+        }
+        else if (mTracedDofLabel == "ANGULAR_VELOCITY") {
+            mTracedDofType = "ROTATION";
+            mTracedDofTimeDerivativeOrder = 1;
+        }
+        else if (mTracedDofLabel == "ACCELERATION") {
+            mTracedDofType = "DISPLACEMENT";
+            mTracedDofTimeDerivativeOrder = 2;
+        }
+        else if (mTracedDofLabel == "ANGULAR_ACCELERATION") {
+            mTracedDofType = "ROTATION";
+            mTracedDofTimeDerivativeOrder = 2;
         }
 
-        // Check if direction for traced dof is valid
-        KRATOS_ERROR_IF_NOT((mTracedDofDirection == "X" || mTracedDofDirection == "Y" || mTracedDofDirection == "Z"))
-            << "AdjointNodalDisplacementResponseFunction: Specified direction is not available. Use X, Y or Z as direction." << std::endl;
+        // Check if variable for traced adjoint dof is valid
+        KRATOS_ERROR_IF_NOT( KratosComponents<ArrayVariableType>::Has(std::string("ADJOINT_") + mTracedDofType) )
+            << "AdjointNodalRootMeanSquareResponseFunction: Specified traced adjoint DOF is not available." << mTracedDofType << std::endl;
 
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         const ArrayVariableType& r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
         for(auto& node_i : response_part.Nodes()){
             KRATOS_ERROR_IF_NOT( node_i.SolutionStepsDataHas(r_traced_dof) )
-                << "AdjointNodalDisplacementResponseFunction: Specified DOF is not available at node" << node_i.Id() << "." << std::endl;
+                << "AdjointNodalRootMeanSquareResponseFunction: Specified DOF is not available at traced node." << std::endl;
         }
 
         this->ComputeNeighboringElementNodeMap();
@@ -84,32 +85,33 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (mTracedDofTimeDerivativeOrder == 0) {
-            if (rResponseGradient.size() != rResidualGradient.size1())
-                rResponseGradient.resize(rResidualGradient.size1(), false);
-
+        if (rResponseGradient.size() != rResidualGradient.size1())
+            rResponseGradient.resize(rResidualGradient.size1(), false);
             rResponseGradient.clear();
-            const Variable<double>& r_traced_dyn_dof = KratosComponents<Variable<double>>::Get(mTracedDynDofLabel + "_" + mTracedDofDirection);
-            const Variable<double>& r_traced_adjoint_dof = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_" + mTracedDofDirection);
+
+        if (mTracedDofTimeDerivativeOrder == 0){
+            const ArrayVariableType& r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
+            const Variable<double>& r_adjoint_solution_variable = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofType + "_X");
             DofsVectorType dofs_of_element;
+
             auto it_map = mElementNodeMap.find(rAdjointElement.Id());
             if (it_map != mElementNodeMap.end()) {
                 rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
                 for(auto const& node_id: it_map->second) {
                     for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                         if (dofs_of_element[i]->Id() == node_id &&
-                            dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof) {
-                            rResponseGradient[i]   = 2 / mTimeDomain * mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dyn_dof, 0);
+                            dofs_of_element[i]->GetVariable() == r_adjoint_solution_variable) {
+                            Vector traced_dof = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0);
+                            rResponseGradient[i]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[0];
+                            rResponseGradient[i+1]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[1];
+                            rResponseGradient[i+2]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[2];
                             break;
                         }
                     }
                 }
             }
         }
-        else {
-            rResponseGradient = ZeroVector(rResidualGradient.size1());
-        }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -121,37 +123,33 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (mTracedDofTimeDerivativeOrder == 1) {
-            if (rResponseGradient.size() != rResidualGradient.size1())
-                rResponseGradient.resize(rResidualGradient.size1(), false);
-
+        if (rResponseGradient.size() != rResidualGradient.size1())
+            rResponseGradient.resize(rResidualGradient.size1(), false);
             rResponseGradient.clear();
-            const Variable<double>& r_traced_dyn_dof = KratosComponents<Variable<double>>::Get(mTracedDynDofLabel + "_" + mTracedDofDirection);
-            const Variable<double>& r_traced_adjoint_dof = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_" + mTracedDofDirection);
+
+        if (mTracedDofTimeDerivativeOrder == 1){
+            const ArrayVariableType& r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
+            const Variable<double>& r_adjoint_solution_variable = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofType + "_X");
             DofsVectorType dofs_of_element;
+
             auto it_map = mElementNodeMap.find(rAdjointElement.Id());
             if (it_map != mElementNodeMap.end()) {
                 rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
                 for(auto const& node_id: it_map->second) {
                     for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                         if (dofs_of_element[i]->Id() == node_id &&
-                            dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof) {
-                            rResponseGradient[i]   = 2 / mTimeDomain * mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dyn_dof, 0);
-                            KRATOS_WATCH(rAdjointElement.Id())
-                            KRATOS_WATCH(mTimeDomain)
-                            KRATOS_WATCH(mTracedDynDofLabel + "_" + mTracedDofDirection)
-                            KRATOS_WATCH(mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dyn_dof, 0))
+                            dofs_of_element[i]->GetVariable() == r_adjoint_solution_variable) {
+                            Vector traced_dof = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0);
+                            rResponseGradient[i]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[0];
+                            rResponseGradient[i+1]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[1];
+                            rResponseGradient[i+2]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[2];
                             break;
                         }
                     }
                 }
             }
-            KRATOS_WATCH(rResponseGradient)
         }
-        else {
-            rResponseGradient = ZeroVector(rResidualGradient.size1());
-        }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -159,7 +157,7 @@ namespace Kratos
         const Condition& rAdjointCondition,
         const Matrix& rResidualGradient,
         Vector& rResponseGradient,
-        const ProcessInfo& rProcessInfo)
+       const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
         rResponseGradient = ZeroVector(rResidualGradient.size1());
@@ -174,32 +172,32 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (mTracedDofTimeDerivativeOrder == 2) {
-            if (rResponseGradient.size() != rResidualGradient.size1())
-                rResponseGradient.resize(rResidualGradient.size1(), false);
-
+        if (rResponseGradient.size() != rResidualGradient.size1())
+            rResponseGradient.resize(rResidualGradient.size1(), false);
             rResponseGradient.clear();
-            const Variable<double>& r_traced_dyn_dof = KratosComponents<Variable<double>>::Get(mTracedDynDofLabel + "_" + mTracedDofDirection);
-            const Variable<double>& r_traced_adjoint_dof = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_" + mTracedDofDirection);
+
+        if (mTracedDofTimeDerivativeOrder == 2){
+            const ArrayVariableType& r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
+            const Variable<double>& r_adjoint_solution_variable = KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofType + "_X");
             DofsVectorType dofs_of_element;
-            auto it_map = mElementNodeMap.find(rAdjointElement.Id());
+
+                auto it_map = mElementNodeMap.find(rAdjointElement.Id());
             if (it_map != mElementNodeMap.end()) {
                 rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
                 for(auto const& node_id: it_map->second) {
                     for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                         if (dofs_of_element[i]->Id() == node_id &&
-                            dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof) {
-                            rResponseGradient[i]   = 2 / mTimeDomain * mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dyn_dof, 0);
+                            dofs_of_element[i]->GetVariable() == r_adjoint_solution_variable) {
+                            Vector traced_dof = mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0);
+                            rResponseGradient[i]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[0];
+                            rResponseGradient[i+1]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[1];
+                            rResponseGradient[i+2]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[2];
                             break;
                         }
                     }
                 }
             }
         }
-        else {
-            rResponseGradient = ZeroVector(rResidualGradient.size1());
-        }
-        
         KRATOS_CATCH("");
     }
 
@@ -262,25 +260,22 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const Variable<double>& r_traced_dyn_dof = KratosComponents<Variable<double>>::Get(mTracedDynDofLabel + "_" + mTracedDofDirection);
-        ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
+        const ArrayVariableType& r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
 
-        double value = 0;
-        double x_i;
+        double response_value = 0.0;
+        ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         for(auto& node_i : response_part.Nodes()){
-            x_i = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(r_traced_dyn_dof , 0);
-            value += x_i * x_i * 1/ mTimeDomain;
-            KRATOS_WATCH(node_i.Id())
-            KRATOS_WATCH(mTracedDynDofLabel + "_" + mTracedDofDirection)
-            KRATOS_WATCH(x_i)
+            // project displacement vector in the traced direction. As mResponseDirection is a normalized vector
+            // the result of the inner product is already the displacement value in the traced direction.
+            response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0)) * inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
         }
 
-        return value;
+        return response_value;
 
         KRATOS_CATCH("");
     }
 
-    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
+    /// Find one element which is bounded by one of the traced nodes. The elements are needed for assembling the adjoint load.
     void AdjointNodalRootMeanSquareResponseFunction::ComputeNeighboringElementNodeMap()
     {
         KRATOS_TRY;
@@ -291,7 +286,7 @@ namespace Kratos
 
         for(auto& node_i : response_part.Nodes()) {
             auto const& r_neighbours = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-            KRATOS_ERROR_IF(r_neighbours.size() == 0) << "AdjointNodalDisplacementResponseFunction: Node " << node_i.Id() << " has no neighbouring element" << std::endl;
+            KRATOS_ERROR_IF(r_neighbours.size() == 0) << "AdjointNodalRootMeanSquareResponseFunction: Node " << node_i.Id() << " has no neighbouring element" << std::endl;
             // take the first element since only one neighbour element is required
             auto it_map = mElementNodeMap.find(r_neighbours[0].Id());
             if (it_map == mElementNodeMap.end()) {
@@ -306,7 +301,4 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    
 } // namespace Kratos.
-
-

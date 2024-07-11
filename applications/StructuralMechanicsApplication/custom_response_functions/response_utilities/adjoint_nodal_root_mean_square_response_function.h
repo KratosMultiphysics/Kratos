@@ -192,11 +192,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mTimeDomain;
-    std::string mTracedDofLabel; // displacement or rotation
-    int mTracedDofTimeDerivativeOrder; // 0, 1, 2 -> displacement, velocity, acceleration
-    std::string mTracedDynDofLabel;
-    std::string mTracedDofDirection; // X, Y or Z
+    std::string mTracedDofLabel; 
+    std::string mTracedDofType;
+    size_t mTracedDofTimeDerivativeOrder; 
+    array_1d<double,3> mResponseDirection;
     std::string mResponsePartName;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
