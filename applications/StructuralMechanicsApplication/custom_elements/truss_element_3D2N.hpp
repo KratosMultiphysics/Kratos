@@ -126,6 +126,11 @@ namespace Kratos
             std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            std::vector<ConstitutiveLaw::Pointer>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
         /**
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
@@ -246,7 +251,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
+        virtual double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -256,6 +261,9 @@ namespace Kratos
         bool HasSelfWeight() const;
 
         const Parameters GetSpecifications() const override;
+
+protected:
+    double ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     /**

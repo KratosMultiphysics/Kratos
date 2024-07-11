@@ -24,6 +24,7 @@ from test_nn_trainer_class import TestNeuralNetworkTrainerClass
 from test_save_rom_coefficients_process import TestSaveRomCoefficientsProcess
 from test_hrom_training_utility_rom import TestHromTrainingUtilityRom
 from test_rom_manager import TestRomManager
+from test_rom_database import TestRomDatabase
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -63,6 +64,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaveRomCoefficientsProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHromTrainingUtilityRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomManager]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomDatabase]))
+
 
     # - testNightly
     nightlySuite = suites['nightly']

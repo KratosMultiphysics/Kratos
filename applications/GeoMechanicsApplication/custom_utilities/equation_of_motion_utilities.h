@@ -23,14 +23,14 @@
 namespace Kratos
 {
 
-class GeoEquationOfMotionUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoEquationOfMotionUtilities
 {
 public:
     static Matrix CalculateMassMatrix(std::size_t                dimension,
                                       std::size_t                number_U_nodes,
                                       std::size_t                NumberIntegrationPoints,
                                       const Matrix&              Nu_container,
-                                      const Vector&              rSolidDensities,
+                                      const std::vector<double>& rSolidDensities,
                                       const std::vector<double>& rIntegrationCoefficients);
 
     static Vector CalculateDetJsInitialConfiguration(const Geometry<Node>& rGeom,

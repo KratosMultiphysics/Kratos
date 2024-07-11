@@ -256,5 +256,4 @@ class TestLineSearch(kratos_unittest.TestCase):
         self.assertEqual(alpha[1], 3.0)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

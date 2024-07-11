@@ -44,7 +44,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
@@ -109,8 +108,8 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo&) override;
+    void FinalizeSolutionStep(const ProcessInfo&) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rValues,
@@ -146,29 +145,29 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                              InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                              const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                           InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                           const InterfaceElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    void CalculateAndAddCompressibilityFlow(VectorType&                rRightHandSideVector,
-                                            InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityFlow(VectorType&                      rRightHandSideVector,
+                                            const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityFlow(VectorType&                rRightHandSideVector,
-                                         InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityFlow(VectorType&                      rRightHandSideVector,
+                                         const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddFluidBodyFlow(VectorType&                rRightHandSideVector,
-                                      InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddFluidBodyFlow(VectorType&                      rRightHandSideVector,
+                                      const InterfaceElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const override;
+    std::size_t GetNumberOfDOF() const override;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
+    [[nodiscard]] DofsVectorType GetDofs() const override;
 
     /// Serialization
     friend class Serializer;

@@ -19,10 +19,10 @@
 #include <cmath>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
-#include "includes/serializer.h"
+#include "includes/define.h"
 #include "includes/process_info.h"
+#include "includes/serializer.h"
 
 // Application includes
 #include "custom_utilities/condition_utilities.hpp"
@@ -31,31 +31,29 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PwCondition : public Condition
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PwCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PwCondition );
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     PwCondition() : PwCondition(0, nullptr, nullptr) {}
 
-    PwCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+    PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : PwCondition(NewId, pGeometry, nullptr)
-    {}
+    {
+    }
 
-    PwCondition( IndexType               NewId,
-                 GeometryType::Pointer   pGeometry,
-                 PropertiesType::Pointer pProperties )
+    PwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
-    {}
+    {
+    }
 
     ~PwCondition() override = default;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -65,49 +63,45 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
-    
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
-    
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-    
 };
 
 // class PwCondition.

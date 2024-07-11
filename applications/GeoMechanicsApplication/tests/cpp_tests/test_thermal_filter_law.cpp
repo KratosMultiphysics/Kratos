@@ -12,8 +12,8 @@
 
 #include "custom_constitutive/thermal_filter_law.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/ublas_interface.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {
@@ -27,9 +27,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
     p_cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 1000.0);
 
     GeoThermalFilterLaw geo_thermal_filter_law;
-    ProcessInfo         info;
 
-    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*p_cond_prop, info);
+    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*p_cond_prop);
 
     Matrix expected_solution = ScalarMatrix(1, 1, 1000.0);
 
