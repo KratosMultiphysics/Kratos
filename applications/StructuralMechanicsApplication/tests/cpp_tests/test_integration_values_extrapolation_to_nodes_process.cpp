@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -15,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
@@ -39,9 +38,9 @@ using GeometryType = Geometry<Node>;
 //     gid_io.WriteMesh(rModelPart.GetMesh());
 //     gid_io.FinalizeMesh();
 //     gid_io.InitializeResults(label, rModelPart.GetMesh());
-//     auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-//     gid_io.PrintOnGaussPoints(this_var, rModelPart, label);
-//     gid_io.WriteNodalResultsNonHistorical(this_var, rModelPart.Nodes(), label);
+//     auto r_variable = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+//     gid_io.PrintOnGaussPoints(r_variable, rModelPart, label);
+//     gid_io.WriteNodalResultsNonHistorical(r_variable, rModelPart.Nodes(), label);
 //     gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
 // }
 
@@ -100,10 +99,8 @@ void CreateQuadratic3DModelPartForExtrapolation(ModelPart& rModelPart)
 * Checks the correct work of the internal variable extrapolation process
 * Test triangle
 */
-KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosStructuralMechanicsFastSuite)
 {
-    KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
-
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
     ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
@@ -130,9 +127,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriang
     // GiDIODebugInternalExtrapolation(r_model_part, "1");
 
     const double tolerance = 1.0e-8;
-    const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-    for (auto& node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+    const auto& r_variable = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_LE(std::abs(r_node.GetValue(r_variable) - 1.0), tolerance);
     }
 
     extrapolation_process.ExecuteFinalize();
@@ -142,10 +139,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriang
 * Checks the correct work of the internal variable extrapolation process
 * Test tetrahedra
 */
-KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosStructuralMechanicsFastSuite)
 {
-    KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
-
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
     ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
@@ -172,9 +167,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra,
     // GiDIODebugInternalExtrapolation(r_model_part, "2");
 
     const double tolerance = 1.0e-8;
-    const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-    for (auto& node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+    const auto& r_variable = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_LE(std::abs(r_node.GetValue(r_variable) - 1.0), tolerance);
     }
 
     extrapolation_process.ExecuteFinalize();
@@ -184,10 +179,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra,
 * Checks the correct work of the internal variable extrapolation process
 * Test quadratic tetrahedra
 */
-KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTetra, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTetra, KratosStructuralMechanicsFastSuite)
 {
-    KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
-
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
     ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
@@ -214,9 +207,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTe
     // GiDIODebugInternalExtrapolation(r_model_part, "3");
 
     const double tolerance = 1.0e-6;
-    const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-    for (auto& node : r_model_part.Nodes()) {
-        KRATOS_EXPECT_LE(std::abs(node.GetValue(this_var) - 1.0), tolerance);
+    const auto& r_variable = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_LE(std::abs(r_node.GetValue(r_variable) - 1.0), tolerance);
     }
 
     extrapolation_process.ExecuteFinalize();
