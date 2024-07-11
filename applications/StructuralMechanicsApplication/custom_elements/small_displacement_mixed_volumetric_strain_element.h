@@ -681,7 +681,7 @@ protected:
      * @return true If the problem is dynamic
      * @return false If the problem is not dynamic (e.g., static or eigenvalue analysis)
      */
-    const bool IsDynamic() const
+    bool IsDynamic() const
     {
         return mIsDynamic;
     }
