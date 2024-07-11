@@ -91,7 +91,7 @@ class DamageDetectionResponse(ResponseFunction):
             self.sensor_name_dict[sensor.GetName()] = sensor
 
     def Check(self) -> None:
-        KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
+        KratosOA.ResponseUtils.DamageDetectionResponse.Check(self.model_part)
 
     def Finalize(self) -> None:
         self.adjoint_analysis.Finalize()
