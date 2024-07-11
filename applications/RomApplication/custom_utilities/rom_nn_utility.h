@@ -40,6 +40,8 @@ class RomNNUtility
 {
 public:
 
+    using SizeType = std::size_t;
+
     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
@@ -74,7 +76,7 @@ public:
         EigenDynamicVector layerOutTemp = eigen_sig_inv_inf*eigen_rom_unknowns;
         EigenDynamicVector layerOut = layerOutTemp;
 
-        int i=0;
+        SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
             Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
@@ -98,7 +100,7 @@ public:
         EigenDynamicMatrix intermediateGradientsTemp = mGradientLayers[0];
         EigenDynamicMatrix intermediateGradients = intermediateGradientsTemp;
 
-        for (int i = 0; i < mGradientLayers.size()-1; i++)
+        for (SizeType i = 0; i < mGradientLayers.size()-1; i++)
         {
             intermediateGradientsTemp = intermediateGradients*mGradientLayers[i+1];
             intermediateGradients = intermediateGradientsTemp;
@@ -136,7 +138,7 @@ public:
         EigenDynamicVector layerOutTemp = eigen_sig_inv_inf*eigen_rom_unknowns;
         EigenDynamicVector layerOut = layerOutTemp;
 
-        int i=0;
+        SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
             Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
@@ -185,7 +187,7 @@ public:
         EigenDynamicVector layerOutTemp = eigen_sig_inv_inf*eigen_rom_unknowns;
         EigenDynamicVector layerOut = layerOutTemp;
 
-        int i=0;
+        SizeType i=0;
         for(auto& layers_item : rNNLayers)
         {   
             Eigen::Map<EigenDynamicMatrix> eigen_layer_item(layers_item.data().begin(), layers_item.size1(), layers_item.size2());
@@ -209,7 +211,7 @@ public:
         EigenDynamicMatrix intermediateGradientsTemp = mGradientLayers[0];
         EigenDynamicMatrix intermediateGradients = intermediateGradientsTemp;
 
-        for (int i = 0; i < mGradientLayers.size()-1; i++)
+        for (SizeType i = 0; i < mGradientLayers.size()-1; i++)
         {
             intermediateGradientsTemp = intermediateGradients*mGradientLayers[i+1];
             intermediateGradients = intermediateGradientsTemp;
