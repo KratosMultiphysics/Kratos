@@ -78,7 +78,7 @@
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 #include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_modal_analysis_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 #include "custom_elements/timoshenko_beam_element_2D2N.h"

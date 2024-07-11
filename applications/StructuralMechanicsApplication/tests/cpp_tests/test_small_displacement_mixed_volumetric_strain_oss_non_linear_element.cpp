@@ -25,7 +25,7 @@
 
 // Application includes
 #include "structural_mechanics_fast_suite.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_modal_analysis_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 
 namespace Kratos::Testing
 {
