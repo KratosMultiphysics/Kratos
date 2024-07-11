@@ -282,8 +282,11 @@ class PrimalBossakOutput(VariableIO):
 
     def __init__(self, settings):
         super(PrimalBossakOutput, self).__init__(settings)
-        settings.SetDefault('alpha_bossak', -0.3)
+        settings.SetDefault('alpha_bossak', 0)
         self.alpha_bossak = settings['alpha_bossak']
+        print("----------------------------------------")
+        print("AlphaBossak : ", self.alpha_bossak)
+        print("----------------------------------------")
 
     def __call__(self, model_part, hdf5_file):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(
