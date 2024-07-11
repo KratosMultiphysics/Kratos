@@ -18,7 +18,6 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION);
     const auto& component = VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "X");
 
     KRATOS_EXPECT_EQ(component, ACCELERATION_X);
@@ -26,8 +25,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeo
 
 KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION);
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
         "Error: The component \"ACCELERATION_?\" is not registered!")
