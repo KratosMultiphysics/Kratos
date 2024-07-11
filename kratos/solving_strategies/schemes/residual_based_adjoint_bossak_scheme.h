@@ -83,6 +83,7 @@ public:
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
+        KRATOS_WATCH(mBossak.Alpha)
     }
 
     /// Destructor.
@@ -186,7 +187,21 @@ public:
 
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
+        
+        std::string function = "InitializeSolutionStep"; 
+        KRATOS_WATCH(function)
+        KRATOS_WATCH(mBossak.Alpha)
+        KRATOS_WATCH(mBossak.Beta)
+        KRATOS_WATCH(mBossak.Gamma)
+        KRATOS_WATCH(mBossak.C1)
+        KRATOS_WATCH(mBossak.C2)
+        KRATOS_WATCH(mBossak.C3)
+        KRATOS_WATCH(mBossak.C4)
+        KRATOS_WATCH(mBossak.C5)
+        KRATOS_WATCH(mBossak.C6)
+        KRATOS_WATCH(mBossak.C7)
 
+        
         this->CalculateNodeNeighbourCount(rModelPart);
 
         KRATOS_CATCH("");
@@ -202,6 +217,9 @@ public:
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
         this->UpdateAuxiliaryVariable(rModelPart);
+        
+        std::string function = "FinalizeSolutionStep";
+        KRATOS_WATCH(function)
 
         KRATOS_CATCH("");
     }
@@ -221,6 +239,9 @@ public:
         // Update adjoint variables associated to time integration.
         this->UpdateTimeSchemeAdjoints(rModelPart);
 
+        std::string function = "Update";
+        KRATOS_WATCH(function)
+
         KRATOS_CATCH("");
     }
 
@@ -232,6 +253,9 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
+
+        std::string function = "CalculateSystemContributions(Element)";
+        KRATOS_WATCH(function)
 
         const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_elem_ref = rCurrentElement;
@@ -250,15 +274,23 @@ public:
 
         this->CalculateGradientContributions(rCurrentElement, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculateFirstDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculateSecondDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculatePreviousTimeStepContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculateResidualLocalContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
@@ -290,6 +322,9 @@ public:
     {
         KRATOS_TRY;
 
+        std::string function = "CalculateSystemContributions(Condition)";
+        KRATOS_WATCH(function)
+
         const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_cond_ref = rCurrentCondition;
         r_const_cond_ref.GetValuesVector(mAdjointValuesVector[k]);
@@ -306,12 +341,18 @@ public:
 
         this->CalculateGradientContributions(rCurrentCondition, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculateFirstDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         this->CalculateSecondDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
 
         // It is not required to call CalculatePreviousTimeStepContributions here again
         // since, the previous time step contributions from conditions are stored in variables
@@ -800,6 +841,10 @@ private:
             r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
+            KRATOS_WATCH(mAdjointIndirectVector2[k])
+            KRATOS_WATCH(mAdjointIndirectVector3[k])
+            KRATOS_WATCH(mAuxAdjointIndirectVector1[k])
+
             for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
             {
                 rRHS_Contribution[local_index] +=
@@ -945,6 +990,34 @@ private:
                 return rExtensions.GetAuxiliaryVariables(rVec);
             });
 
+        for (auto p_variable_data : lambda2_vars)
+        {
+            const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(p_variable_data->Name());
+            block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& node_i){
+                KRATOS_WATCH(node_i.Id())
+                KRATOS_WATCH(p_variable_data->Name())
+                KRATOS_WATCH(node_i.FastGetSolutionStepValue(r_variable))
+            });
+        }
+        for (auto p_variable_data : lambda3_vars)
+        {
+            const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(p_variable_data->Name());
+            block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& node_i){
+                KRATOS_WATCH(node_i.Id())
+                KRATOS_WATCH(p_variable_data->Name())
+                KRATOS_WATCH(node_i.FastGetSolutionStepValue(r_variable))
+            });
+        }
+        for (auto p_variable_data : auxiliary_vars)
+        {
+            const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(p_variable_data->Name());
+            block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& node_i){
+                KRATOS_WATCH(node_i.Id())
+                KRATOS_WATCH(p_variable_data->Name())
+                KRATOS_WATCH(node_i.FastGetSolutionStepValue(r_variable))
+            });
+        }
+        
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
 
