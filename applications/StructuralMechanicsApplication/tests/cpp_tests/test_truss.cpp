@@ -34,12 +34,12 @@ public:
 
     StubBilinearLaw() = default;
 
-    ConstitutiveLaw::Pointer Clone() const override
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
     {
         return std::make_shared<StubBilinearLaw>(*this);
     }
 
-    SizeType GetStrainSize() const override
+    [[nodiscard]] SizeType GetStrainSize() const override
     {
         return 1;
     }
