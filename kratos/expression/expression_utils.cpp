@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <cmath>
 
 // Project includes

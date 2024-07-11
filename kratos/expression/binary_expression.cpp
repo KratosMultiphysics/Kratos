@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <sstream>
 #include <vector>
 

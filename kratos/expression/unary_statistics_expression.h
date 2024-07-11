@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <string>
 #include <limits>
 
