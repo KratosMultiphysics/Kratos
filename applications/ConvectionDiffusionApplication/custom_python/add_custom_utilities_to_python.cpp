@@ -116,6 +116,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ComputeFlux > (m,"ComputeFlux")
     .def(py::init< ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def("ComputeSurfaceIntegral",  &ComputeFlux::ComputeSurfaceIntegral)
     ;
 
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")

@@ -99,7 +99,6 @@ namespace Kratos
                     
                     // Unit normal
                     Vector unit_normal = r_geometry.UnitNormal(i_gauss);
-                    unit_normal = unit_normal * (-1.0);
                     
                     // Sum the contribution of the flux of each gauss point for each space component
                     // detJ0mean += detJ0[i_gauss];

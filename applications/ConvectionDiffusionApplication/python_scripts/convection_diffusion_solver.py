@@ -241,6 +241,20 @@ class ConvectionDiffusionSolver(PythonSolver):
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
             if convention_diffusion_settings.IsDefinedReactionGradientVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionGradientVariable())
+
+            step_solution_variable = self.settings["convection_diffusion_variables"]["step_solution"].GetString()
+            if (step_solution_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.STEP_SOLUTION)
+            trunc_solution_variable = self.settings["convection_diffusion_variables"]["trunc_solution"].GetString()
+            if (trunc_solution_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION)
+            step_solution_error_variable = self.settings["convection_diffusion_variables"]["step_solution_error"].GetString()
+            if (step_solution_error_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.STEP_SOLUTION_ERROR)
+            trunc_solution_error_variable = self.settings["convection_diffusion_variables"]["trunc_solution_error"].GetString()
+            if (trunc_solution_error_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION_ERROR)
+
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 

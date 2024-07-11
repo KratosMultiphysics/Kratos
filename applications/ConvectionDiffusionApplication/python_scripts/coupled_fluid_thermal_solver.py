@@ -136,6 +136,9 @@ class CoupledFluidThermalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+        # for node in self.fluid_solver.main_model_part.Nodes:
+        #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [1.0, -2., 0.])
+        # fluid_is_converged = True
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
         return (fluid_is_converged and thermal_is_converged)

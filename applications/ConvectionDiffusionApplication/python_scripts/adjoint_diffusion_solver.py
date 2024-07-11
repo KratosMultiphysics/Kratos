@@ -87,9 +87,18 @@ class AdjointDiffusionSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(convdiff.ADJOINT_HEAT_TRANSFER)
         self.model_part.AddNodalSolutionStepVariable(kratos.SHAPE_SENSITIVITY)
 
+        self.model_part.AddNodalSolutionStepVariable(convdiff.STEP_SOLUTION)
+        self.model_part.AddNodalSolutionStepVariable(convdiff.TRUNC_SOLUTION)
+        self.model_part.AddNodalSolutionStepVariable(convdiff.STEP_SOLUTION_ERROR)
+        self.model_part.AddNodalSolutionStepVariable(convdiff.TRUNC_SOLUTION_ERROR)
+
     def AddDofs(self):
         variable_utils = kratos.VariableUtils()
         variable_utils.AddDof(convdiff.ADJOINT_HEAT_TRANSFER, self.model_part)
+        variable_utils.AddDof(convdiff.STEP_SOLUTION, self.model_part)
+        variable_utils.AddDof(convdiff.TRUNC_SOLUTION, self.model_part)
+        variable_utils.AddDof(convdiff.STEP_SOLUTION_ERROR, self.model_part)
+        variable_utils.AddDof(convdiff.TRUNC_SOLUTION_ERROR, self.model_part)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
