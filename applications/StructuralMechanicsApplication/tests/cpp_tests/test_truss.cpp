@@ -353,7 +353,8 @@ namespace Kratos::Testing
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        constexpr auto youngs_modulus = 2.0e+06;
+        p_elem_prop->SetValue(YOUNG_MODULUS, youngs_modulus);
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("TrussConstitutiveLaw");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
@@ -369,18 +370,18 @@ namespace Kratos::Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
         p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
-        // Introduce a strain of 0.1
-        p_element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, 0.1 * directional_length);
+        constexpr auto induced_strain = 0.1;
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length);
 
         std::vector<Vector> stress_vector;
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
 
-        constexpr double expected_stress = -2.0e5; // = Strain * Young's Modulus
+        constexpr auto expected_stress = induced_strain * youngs_modulus;
         KRATOS_EXPECT_DOUBLE_EQ(expected_stress, stress_vector[0][0]);
 
-        p_element->GetProperties().SetValue(TRUSS_PRESTRESS_PK2, 1.0e5);
+        constexpr auto pre_stress = 1.0e5;
+        p_element->GetProperties().SetValue(TRUSS_PRESTRESS_PK2, pre_stress);
         p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
-        constexpr double expected_stress_with_pre_stress = -1.0e5; // = expected_stress + pre stress
-        KRATOS_EXPECT_DOUBLE_EQ(expected_stress_with_pre_stress, stress_vector[0][0]);
+        KRATOS_EXPECT_DOUBLE_EQ(expected_stress + pre_stress, stress_vector[0][0]);
     }
 }
