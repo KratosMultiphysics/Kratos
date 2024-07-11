@@ -15,29 +15,26 @@
 
 // Project includes
 #include "containers/model.h"
-#include "structural_mechanics_fast_suite.h"
 #include "includes/gid_io.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
-#include "factories/linear_solver_factory.h"
 #include "includes/cfd_variables.h"
+#include "factories/linear_solver_factory.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
+// Application includes
+#include "structural_mechanics_fast_suite.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_modal_analysis_element.h"
+
 namespace Kratos::Testing
 {
-
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
 
     /**
     * Checks the Small Displacement Mixed Strain Element
     * Simple test
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssModalAnalysisElement2D4N, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -63,7 +60,7 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D4N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N", 1, element_nodes, p_elem_prop);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         array_1d<double, 3> aux_disp = ZeroVector(3);
@@ -103,8 +100,12 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     * Checks the Small Displacement Mixed Strain Element
     * Zienkiewicz patch test
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssModalAnalysisElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
     {
+        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
+
         Model current_model;
         auto& r_model_part = current_model.CreateModelPart("ModelPart",1);
         auto& r_process_info = r_model_part.GetProcessInfo();
@@ -131,8 +132,8 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
         auto p_node_4 = r_model_part.CreateNewNode(4, 1.0 , 0.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes_1 {1,3,2};
         std::vector<ModelPart::IndexType> element_nodes_2 {1,4,3};
-        auto p_element_1 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N", 1, element_nodes_1, p_elem_prop);
-        auto p_element_2 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainModalAnalysisElement2D3N", 2, element_nodes_2, p_elem_prop);
+        auto p_element_1 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 1, element_nodes_1, p_elem_prop);
+        auto p_element_2 = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 2, element_nodes_2, p_elem_prop);
 
         // Create the load condition
         auto p_cond_prop = r_model_part.CreateNewProperties(0);

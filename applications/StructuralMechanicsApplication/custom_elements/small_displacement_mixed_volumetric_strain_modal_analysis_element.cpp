@@ -28,12 +28,12 @@
 namespace Kratos
 {
 
-Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Create(
+Element::Pointer SmallDisplacementMixedVolumetricStrainOssNonLinearElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainModalAnalysisElement>(
+    return Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainOssNonLinearElement>(
         NewId,
         GetGeometry().Create(ThisNodes),
         pProperties);
@@ -42,12 +42,12 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Cre
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Create(
+Element::Pointer SmallDisplacementMixedVolumetricStrainOssNonLinearElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainModalAnalysisElement>(
+    return Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainOssNonLinearElement>(
         NewId,
         pGeom,
         pProperties);
@@ -56,13 +56,13 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Cre
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Clone(
+Element::Pointer SmallDisplacementMixedVolumetricStrainOssNonLinearElement::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes) const
 {
     KRATOS_TRY
 
-    SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainModalAnalysisElement>(
+    SmallDisplacementMixedVolumetricStrainOssNonLinearElement::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementMixedVolumetricStrainOssNonLinearElement>(
         NewId,
         GetGeometry().Create(rThisNodes),
         pGetProperties());
@@ -83,7 +83,7 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Clo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::EquationIdVector(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -136,7 +136,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::EquationIdVecto
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetDofList(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -182,7 +182,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalSystem(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -192,7 +192,6 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
     const SizeType block_size_full = 2.0 * block_size;
-    // const SizeType matrix_size = block_size * n_nodes;
     const SizeType matrix_size_full = block_size_full * n_nodes;
 
     // Check RHS size
@@ -206,8 +205,6 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
     }
     rLeftHandSideMatrix.clear();
 
-    //TODO: Update these two to avoid building the LHS matrices twice
-
     // Calculate the LHS matrix
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
@@ -218,7 +215,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHandSide(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -275,7 +272,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightHandSide(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -291,9 +288,6 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightH
     if (rRightHandSideVector.size() != matrix_size_full) {
         rRightHandSideVector.resize(matrix_size_full, false);
     }
-
-    // MatrixType aux_LHS(matrix_size_full, matrix_size_full);
-    // CalculateLocalSystem(aux_LHS, rRightHandSideVector, rCurrentProcessInfo);
 
     // Call the base element to get the standard residual matrix
     VectorType aux_rhs(block_size * n_nodes);
@@ -359,7 +353,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightH
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMatrix(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -368,7 +362,6 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
     const SizeType dim = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
-    // const SizeType matrix_size = block_size * n_nodes;
     const SizeType matrix_size_full = 2.0 * block_size * n_nodes;
 
     // Check LHS size and initialize
@@ -378,7 +371,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
     rMassMatrix.clear();
 
     // Calculate the consistent mass matrix
-    // Note that we cannot use the base element implementation as it includes some extra terms that are 0 in the OSS case
+    // Note that we cannot use the base element implementation as this needs to include the zeros in the projections rows
     const double density = r_prop[DENSITY];
     const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
     const double aux_rho_thickness = density * thickness;
@@ -397,7 +390,6 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
             // Note that this includes the density and the thickness
             GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[i_gauss], J0);
             const double detJ0 = MathUtils<double>::Det(J0);
-
             const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
 
             // Assemble nodal contributions
@@ -417,7 +409,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateMassMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetSecondDerivativesVector(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::GetSecondDerivativesVector(
     Vector &rValues,
     int Step) const
 {
@@ -445,7 +437,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetSecondDeriva
 /***********************************************************************************/
 /***********************************************************************************/
 
-int SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int SmallDisplacementMixedVolumetricStrainOssNonLinearElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -473,7 +465,7 @@ int SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Check(const Proc
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SmallDisplacementMixedVolumetricStrainModalAnalysisElement::GetSpecifications() const
+const Parameters SmallDisplacementMixedVolumetricStrainOssNonLinearElement::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static","dynamic"],
@@ -487,7 +479,7 @@ const Parameters SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Get
             "entity"                 : ["DISPLACEMENT_SUBSCALE", "VOLUMETRIC_STRAIN_SUBSCALE"]
         },
         "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN","DISPLACEMENT_PROJECTION","VOLUMETRIC_STRAIN_PROJECTION"],
-        "required_dofs"              : ["DISPLACEMENT","VOLUMETRIC_STRAIN","DISPLACEMENT_PROJECTION","VOLUMETRIC_STRAIN_PROJECTION"],
+        "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
         "element_integrates_in_time" : true,
@@ -516,7 +508,7 @@ const Parameters SmallDisplacementMixedVolumetricStrainModalAnalysisElement::Get
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesOperator(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogonalSubScalesOperator(
     MatrixType &rOrthogonalSubScalesOperator,
     const ProcessInfo &rProcessInfo) const
 {
@@ -597,13 +589,10 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
 
             for (IndexType i = 0; i < n_nodes; ++i) {
                 const double N_i = kinematic_variables.N[i];
-                // rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += w_gauss * N_i * N_j;
-                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
+                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j; // Note that we multiply by kappa*tau_2 to symmetrize
                 for (IndexType d = 0; d < dim; ++d) {
-                    // rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= w_gauss * bulk_modulus * N_i * G_j[d] ;
-                    // rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= w_gauss * N_i * psi_j[d];
-                    rOrthogonalSubScalesOperator(i * block_size + d, j * block_size + dim) -= aux_w_kappa_tau_1 * N_i * G_j[d];
-                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) -= aux_w_kappa_tau_2 * N_i * psi_j[d];
+                    rOrthogonalSubScalesOperator(i * block_size + d, j * block_size + dim) -= aux_w_kappa_tau_1 * N_i * G_j[d]; // Note that we multiply by tau_1 to symmetrize
+                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) -= aux_w_kappa_tau_2 * N_i * psi_j[d]; // Note that we multiply by kappa*tau_2 to symmetrize
                 }
             }
         }
@@ -613,7 +602,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesStabilizationOperator(
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogonalSubScalesStabilizationOperator(
     MatrixType &rOrthogonalSubScalesStabilizationOperator,
     const ProcessInfo &rProcessInfo) const
 {
@@ -646,25 +635,11 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
     // Set the auxiliary Gauss point variable container
     GaussPointAuxiliaryVariables gauss_point_auxiliary_variables(this, dim, strain_size);
 
-    // // Set auxiliary arrays
-    // Vector voigt_identity =  ZeroVector(strain_size);
-    // for (IndexType d = 0; d < dim; ++d) {
-    //     voigt_identity[d] = 1.0;
-    // }
-    // Vector G_i(dim);
-    // Vector psi_i(dim);
-    // Matrix B_i(strain_size, dim);
-
-    // // Calculate the anisotropy tensor products
-    // const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
-
+    // Calculate and assemble the integration points contribution
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    // const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
-    // const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        // const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -688,45 +663,15 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
             rOrthogonalSubScalesStabilizationOperator,
             kinematic_variables,
             gauss_point_auxiliary_variables);
-
-        // // Calculate tau_1 stabilization constant
-        // const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
-
-        // // Calculate tau_2 stabilization constant
-        // const double tau_2 = CalculateTau2(constitutive_variables);
-
-        // const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
-        // const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
-        // const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
-
-        // for (IndexType i = 0; i < n_nodes; ++i) {
-        //     const double N_i = kinematic_variables.N[i];
-        //     noalias(G_i) = row(kinematic_variables.DN_DX, i);
-        //     for (IndexType k = 0;  k < strain_size; ++k) {
-        //         for (IndexType l = 0; l < dim; ++l) {
-        //             B_i(k,l) = kinematic_variables.B(k, i * dim + l);
-        //         }
-        //     }
-        //     noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
-
-        //     for (IndexType j = 0; j < n_nodes; ++j) {
-        //         const double N_j = kinematic_variables.N[j];
-        //         rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
-        //         for (IndexType d = 0; d < dim; ++d) {
-        //             rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) += aux_w_kappa_tau_1 * G_i[d] * N_j;
-        //             rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
-        //         }
-        //     }
-        // }
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthogonalSubScalesLumpedProjectionOperator(
-        MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
-        const ProcessInfo& rProcessInfo) const
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogonalSubScalesLumpedProjectionOperator(
+    MatrixType& rOrthogonalSubScalesLumpedProjectionOperator,
+    const ProcessInfo& rProcessInfo) const
 {
     const auto &r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -798,11 +743,9 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
                 sum_N_j += kinematic_variables.N[j];
             }
             for (IndexType d = 0; d < dim; ++d) {
-                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += aux_w_tau_1 * N_i * sum_N_j;
-                // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += w_gauss * N_i * sum_N_j;
+                rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + d, i * block_size + d) += aux_w_tau_1 * N_i * sum_N_j; // Note that we multiply by tau_1 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
             }
-            rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j;
-            // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += w_gauss * N_i * sum_N_j;
+            rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + dim, i * block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j; // Note that we multiply by kappa*tau_2 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
         }
     }
 }
@@ -810,17 +753,17 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::save(Serializer& rSerializer) const
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainModalAnalysisElement::BaseType);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainOssNonLinearElement::BaseType);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::load(Serializer& rSerializer)
+void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainModalAnalysisElement::BaseType);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainOssNonLinearElement::BaseType);
 }
 
 } // Namespace Kratos

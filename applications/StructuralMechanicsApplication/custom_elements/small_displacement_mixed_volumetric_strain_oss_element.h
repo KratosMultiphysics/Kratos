@@ -210,6 +210,7 @@ public:
     ///@name Friends
     ///@{
 
+    ///@}
 protected:
 
     ///@name Protected static Member Variables
@@ -256,6 +257,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -290,6 +292,7 @@ private:
 
     void load( Serializer& rSerializer ) override;
 
+    ///@}
 }; // class SmallDisplacementMixedVolumetricStrainOssElement.
 
 ///@}
