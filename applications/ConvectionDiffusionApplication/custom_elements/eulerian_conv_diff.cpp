@@ -112,17 +112,32 @@ namespace Kratos
             }
         }
 
+        // Computing the gradient of phi
+        for (unsigned int k=0; k < TDim; ++k){
+            double grad_phi_k = 0.0;
+            for (unsigned int i=0; i < TNumNodes; ++i){
+                grad_phi_k += DN_DX(i,k)*(Variables.phi[i] * Variables.theta +
+                                          Variables.phi[i] * (1.0 - Variables.theta));
+            }
+
+            Variables.gradient_of_phi[k] = grad_phi_k;
+        }
+
+        const double norm_grad_phi = norm_2(Variables.gradient_of_phi);
+        const bool shock_capturing_active = (norm_grad_phi > std::numeric_limits<double>::epsilon()
+                                          && Variables.discontinuity_capturing_constant > 0.0);
+
         //Some auxilary definitions
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
-
+        BoundedMatrix<double, TDim, TDim> k_nonlinear_contribution;
         // Gauss points and Number of nodes coincides in this case.
         for(unsigned int igauss=0; igauss<TNumNodes; igauss++)
         {
             noalias(N) = row(Ncontainer,igauss);
 
-            //obtain the velocity in the middle of the tiem step
+            //obtain the velocity in the middle of the time step
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
@@ -143,6 +158,14 @@ namespace Kratos
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
+
+            // discontinuity-capturing diffusion
+
+            if (shock_capturing_active && norm_vel > std::numeric_limits<double>::epsilon()){
+                this->CalculateNonlinearDiffusionMatrix(Variables, h, vel_gauss, k_nonlinear_contribution);
+                noalias(Variables.nonlinear_diffusion_matrix) += k_nonlinear_contribution;
+            }
+
         }
 
         //adding the second and third term in the formulation
@@ -150,8 +173,15 @@ namespace Kratos
         noalias(rRightHandSideVector) = (Variables.dt_inv*Variables.density*Variables.specific_heat - (1.0-Variables.theta)*Variables.beta*Variables.div_v)*prod(aux1,Variables.phi_old);
 
         //adding the diffusion
+        // physical term
         noalias(rLeftHandSideMatrix)  += (Variables.conductivity * Variables.theta * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
         noalias(rRightHandSideVector) -= prod((Variables.conductivity * (1.0-Variables.theta) * prod(DN_DX, trans(DN_DX))),Variables.phi_old)*static_cast<double>(TNumNodes) ;
+
+        // discontinuity-capturing term
+        if (shock_capturing_active){
+            const BoundedMatrix<double, TDim, TNumNodes> k_DN_DX = prod(Variables.nonlinear_diffusion_matrix, trans(DN_DX));
+            noalias(rLeftHandSideMatrix) += prod(DN_DX, k_DN_DX);
+        }
 
         //terms in aux2
         noalias(rLeftHandSideMatrix) += Variables.density*Variables.specific_heat*Variables.theta*aux2;
@@ -179,6 +209,8 @@ namespace Kratos
         rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         rVariables.stationary = rCurrentProcessInfo[STATIONARY];
+        rVariables.discontinuity_capturing_constant = rCurrentProcessInfo[SHOCK_CAPTURING_INTENSITY];
+        rVariables.use_anisotropic_disc_capturing = rCurrentProcessInfo[USE_ANISOTROPIC_DISC_CAPTURING];
         if (rVariables.stationary == true) {
             rVariables.dt_inv = 0.0;
         } else {
@@ -192,7 +224,8 @@ namespace Kratos
         rVariables.density = 0.0;
         rVariables.beta = 0.0;
         rVariables.div_v = 0.0;
-
+        rVariables.gradient_of_phi = ZeroVector(TDim);
+        rVariables.nonlinear_diffusion_matrix = ZeroMatrix(TDim, TDim);
 
         KRATOS_CATCH( "" )
     }
@@ -348,6 +381,42 @@ namespace Kratos
     }
 
 //----------------------------------------------------------------------------------------
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void EulerianConvectionDiffusionElement< TDim, TNumNodes >::CalculateNonlinearDiffusionMatrix(const ElementVariables& rVariables,
+                                                                                                  const double h,
+                                                                                                  const array_1d<double, TDim >& velocity,
+                                                                                                  BoundedMatrix<double, TDim, TDim>& diffusion_matrix)
+    {
+        const array_1d<double, TDim >& grad_phi = rVariables.gradient_of_phi;
+        const double C_SC = rVariables.discontinuity_capturing_constant;
+        const double k = rVariables.conductivity;
+
+        double celerity_2 = 0.0;
+        double v_grad_phi = 0.0;
+
+        for (unsigned int k=0; k<TDim; k++){
+            celerity_2 += velocity[k] * velocity[k];
+            v_grad_phi += velocity[k] * rVariables.gradient_of_phi[k];
+        }
+
+        const double norm_vel_grad_phi = std::abs(v_grad_phi);
+        const double norm_grad_phi = norm_2(grad_phi);
+        const double Pe_parallel = norm_vel_grad_phi * h / (2 * celerity_2 * norm_grad_phi * k);
+        const double alpha_c = std::max(0.0, C_SC - 1.0 / Pe_parallel);
+
+        noalias(diffusion_matrix) = celerity_2 * IdentityMatrix(TDim, TDim);
+
+        if (rVariables.use_anisotropic_disc_capturing){
+            for (unsigned int k=0; k < TDim; ++k){
+                for (unsigned int l=0; l < TDim; ++l){
+                    diffusion_matrix(k, l) -= velocity[k] * velocity[l];
+                }
+            }
+        }
+
+        noalias(diffusion_matrix) = 0.5 * alpha_c * h * norm_vel_grad_phi / (norm_grad_phi * celerity_2) * diffusion_matrix;
+    }
 
 
 template class EulerianConvectionDiffusionElement<2,3>;

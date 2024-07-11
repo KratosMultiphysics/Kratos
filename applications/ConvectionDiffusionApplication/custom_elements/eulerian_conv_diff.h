@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -65,14 +65,14 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create(
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override
     {
         return Kratos::make_intrusive<EulerianConvectionDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -119,13 +119,17 @@ protected:
         double density;
         double beta;
         double div_v;
+        double discontinuity_capturing_constant;
         bool stationary;
+        bool use_anisotropic_disc_capturing;
 
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;
+        array_1d<double, TDim> gradient_of_phi;
         array_1d<double,TNumNodes> volumetric_source;
         array_1d< array_1d<double,3 >, TNumNodes> v;
         array_1d< array_1d<double,3 >, TNumNodes> vold;
+        BoundedMatrix<double, TDim, TDim> nonlinear_diffusion_matrix;
     };
 
     void InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -138,6 +142,11 @@ protected:
 
     double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
 
+    void CalculateNonlinearDiffusionMatrix(const ElementVariables& rVariables,
+                                           const double h,
+                                           const array_1d<double, TDim >& velocity,
+                                           BoundedMatrix<double, TDim, TDim>& diffusion_matrix);
+
     // Member Variables
 
 
@@ -146,6 +155,7 @@ protected:
 private:
 
         // Serialization
+
 
     friend class Serializer;
 
