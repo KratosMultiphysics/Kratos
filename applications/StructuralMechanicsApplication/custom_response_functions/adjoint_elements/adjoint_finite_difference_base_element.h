@@ -20,6 +20,7 @@
 #include "includes/element.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/adjoint_extensions.h"
 
 namespace Kratos
 {
@@ -54,7 +55,7 @@ class AdjointFiniteDifferencingBaseElement : public Element
 {
     class ThisExtensions : public AdjointExtensions
     {
-        Element* mpPrimalElement;
+        Element* mpElement;
         bool mHasRotationDofs = false;
 
     public:

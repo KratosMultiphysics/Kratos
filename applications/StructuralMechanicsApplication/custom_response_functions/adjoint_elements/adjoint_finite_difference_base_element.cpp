@@ -24,6 +24,7 @@
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/spring_damper_element.hpp"
+#include "utilities/indirect_scalar.h"
 
 
 namespace Kratos
