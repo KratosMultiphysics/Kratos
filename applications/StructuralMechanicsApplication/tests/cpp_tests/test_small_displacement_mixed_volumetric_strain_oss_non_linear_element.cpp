@@ -94,10 +94,91 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,4), expected_LHS_row_4, tolerance)
 }
 
-/**
-* Checks the Small Displacement Mixed Strain Element
-* Zienkiewicz patch test
-*/
+KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4NDynamic, KratosStructuralMechanicsFastSuite)
+{
+    Model current_model;
+    auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info[DELTA_TIME] = 0.1;
+
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_PROJECTION);
+    r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN_PROJECTION);
+
+    // Set the element properties
+    auto p_elem_prop = r_model_part.CreateNewProperties(0);
+    p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e6);
+    p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+    p_elem_prop->SetValue(DENSITY, 1.0e3);
+    const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+    // Create the test element
+    auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+    auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N", 1, element_nodes, p_elem_prop);
+
+    // Set a fake displacement, volumetric strain and acceleration fields to compute the residual
+    array_1d<double, 3> aux_disp = ZeroVector(3);
+    noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+    noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+    aux_disp[1] = 0.1;
+    noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+    noalias(p_node_4->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+
+    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+    p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+    p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
+    p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.03;
+
+    array_1d<double,3> aux_acc = ZeroVector(3);
+    p_node_1->FastGetSolutionStepValue(ACCELERATION) = aux_acc;
+    aux_acc[0] = 100.0;
+    p_node_2->FastGetSolutionStepValue(ACCELERATION) = aux_acc;
+    aux_acc[1] = 200.0;
+    p_node_3->FastGetSolutionStepValue(ACCELERATION) = aux_acc;
+    p_node_4->FastGetSolutionStepValue(ACCELERATION) = aux_acc;
+
+    // Set fake projection values to calculate the residual
+    p_node_1->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    p_node_2->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    p_node_4->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
+    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 1e-3;
+    p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
+    p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
+    p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 4e-3;
+
+    // Compute RHS and LHS
+    Vector RHS = ZeroVector(24);
+    Matrix LHS = ZeroMatrix(24,24);
+    Matrix MassMatrix = ZeroMatrix(9,9);
+
+    p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+    p_element->FinalizeSolutionStep(r_process_info); // Fake call to the FinalizeSolutionStep in order to upgrade the subscales dynamic component
+    p_element->FinalizeSolutionStep(r_process_info); // Fake call to the FinalizeSolutionStep in order to upgrade the subscales dynamic component
+    p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
+    p_element->CalculateMassMatrix(MassMatrix, r_process_info);
+
+    // Check RHS and LHS results
+    const double tolerance = 1.0e-5;
+    const std::vector<double> expected_RHS({-23229.2769584, 56915.6143768, -51141.4304126, 23213.0307339, 55320.952803, -54407.5577499, 18445.292237, -55255.9702739, -33131.2088772, -18477.7846861, -56834.3856232, -18387.1106526, -0.000678139787215, 0.00339068835709, 401.175213675, -0.000678139787215, 0.00271254856988, 401.709401709, -0.00135627957443, 0.00271254856988, 375.534188034, -0.00135627957443, 0.00339068835709, 360.042735043});
+    const std::vector<double> expected_LHS_row_0({519230.769231, 4807.69230769, -330870.488052, -134615.384615, -379807.692308, -303744.896563, -259615.384615, -4807.69230769, -151872.448282, -125000, 379807.692308, -165435.244026, 0, 0, 3205.12820513, 0, 0, 3205.12820513, 0, 0, 1602.56410256, 0, 0, 1602.56410256});
+    const std::vector<double> expected_mass_row_0({111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 55.5555555556, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    const std::vector<double> expected_mass_row_4({0, 55.5555555556, 0, 0, 111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,0), expected_mass_row_0, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(MassMatrix,4), expected_mass_row_4, tolerance)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
 {
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;

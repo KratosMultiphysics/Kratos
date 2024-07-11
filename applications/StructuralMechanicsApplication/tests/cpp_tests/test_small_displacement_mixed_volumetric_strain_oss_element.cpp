@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, 
     p_node_2->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
     p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 1e-3;
-    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
-    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
+    p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
+    p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(9);
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, 
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({51163.4615385, 51163.4615385, -1817.34190893, -12701.9230769, -38461.5384615, 10550.5450862, -38461.5384615, -12701.9230769, 3968.71989967});
+    const std::vector<double> expected_RHS({51173.0769231, 51173.0769231, -1816.54062688, -12711.5384615, -38461.5384615, 10555.3527785, -38461.5384615, -12711.5384615, 3972.72630992});
     const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -317307.692308, -394230.769231, -384615.384615, -317307.692308, -384615.384615, 375000, -317307.692308});
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -146,8 +146,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3NDy
     p_node_2->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
     p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = aux_disp;
     p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 1e-3;
-    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
-    p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
+    p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 2e-3;
+    p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 3e-3;
 
     // Compute RHS, LHS and mass matrix
     Vector RHS = ZeroVector(9);
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3NDy
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({51171.9623396, 51163.4609884, -1832.69444655, -12693.4222758, -38461.5390116, 10565.8977036, -38453.0376604, -12701.923627, 3968.71981983});
+    const std::vector<double> expected_RHS({51181.5777242, 51173.076373, -1831.8931645, -12703.0376604, -38461.5390116, 10570.705396, -38453.0376604, -12711.5390116, 3972.72623009});
     const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -327036.58062, -394230.769231, -384615.384615, -307578.803995, -384615.384615, 375000, -317307.692308});
     const std::vector<double> expected_mass_row_0({83.3333333333, 0, 0, 41.6666666667, 0, 0, 41.6666666667, 0, 0});
     const std::vector<double> expected_mass_row_2({0, 0, 0, 0, 0, 0, 0, 0, 0});
