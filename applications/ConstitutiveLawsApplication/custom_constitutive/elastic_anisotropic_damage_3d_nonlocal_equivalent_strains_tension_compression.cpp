@@ -227,34 +227,21 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         ComputePrincipalDamageIncrement(principal_damage_increment_vector, rParametersValues, rModelParameters, principal_strains);
         TransformPrincipalDamageIncrementToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
         total_damage_tensor += damage_increment_tensor;
-        KRATOS_WATCH(principal_damage_increment_vector)
-        KRATOS_WATCH(damage_increment_tensor)
-        KRATOS_WATCH(total_damage_tensor)
         GetTotalPrincipalDamageVector(principal_damage_vector,total_damage_tensor);
-        KRATOS_WATCH(principal_damage_vector)
         if(principal_damage_increment_vector[0] > 0.0 || principal_damage_increment_vector[1] > 0.0 || principal_damage_increment_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, principal_damage_vector);
             GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
             MathUtils<double>::InvertMatrix(transformed_damage_effect_tensor, Inv_M, det_M);
             const BoundedMatrixVoigtType temp = prod(r_elasticity_matrix,trans(Inv_M));
-            KRATOS_WATCH(transformed_damage_effect_tensor)
-            KRATOS_WATCH(temp)
             noalias(r_elasticity_matrix) = prod(Inv_M, temp);
             noalias(r_stress_vector)  = prod(r_elasticity_matrix, r_strain_vector);
             Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, rModelParameters, principal_damage_vector, principal_strains);
             Calculate_tangent_HNLu(H_NL1u, H_NL2u, rParametersValues, principal_strains);
         }
-        KRATOS_WATCH(r_elasticity_matrix)
-        KRATOS_WATCH(H_uNL1)
-        KRATOS_WATCH(H_uNL2)
-        KRATOS_WATCH(H_NL1u)
-        KRATOS_WATCH(H_NL2u)
         Matrix dHdE1 =ZeroMatrix(6,6);
         Matrix dHdE2 =ZeroMatrix(6,6);
         TensorProduct6(dHdE1, H_uNL1,H_NL1u);
         TensorProduct6(dHdE2, H_uNL2, H_NL2u);
-        KRATOS_WATCH(dHdE1)
-        KRATOS_WATCH(dHdE2)
         AssembleConstitutiveMatrix(r_constitutive_matrix, r_elasticity_matrix, H_NL1u, H_NL2u, H_uNL1, H_uNL2, H_NLNL);
         KRATOS_WATCH(r_constitutive_matrix)
         rInternalDamageVariables.DamageMatrix = total_damage_tensor;
@@ -768,7 +755,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::Calculate_tangent_HN
         }
     }
     H_NL1u /= (Local_Equivalent_Strain_tension +eps) ;
-    H_NL1u /= (Local_Equivalent_Strain_compression +eps) ;
+    H_NL2u /= (Local_Equivalent_Strain_compression +eps) ;
     KRATOS_CATCH("")
 }
 

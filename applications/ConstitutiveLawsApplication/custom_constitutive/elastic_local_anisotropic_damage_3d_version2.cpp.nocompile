@@ -9,7 +9,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Author:    athira vadakkekkara
-// Note: M - new  one, Principle of strain equivalence
+//  note : tangent modulus: both analytical and numerical, dEpsprdEps- all three methods, M- is the old one
 
 
 // Project includes
@@ -201,7 +201,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
     rStrainVariables = mStrainVariables;
     // If we compute the tangent moduli or the stress
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS))
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
@@ -241,7 +241,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
             k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
         }else{
-            k0c = (10/3)* ft/E;
+            k0c = (10./3.) * ft/E;
         }
         BoundedVectorType principal_strains = ZeroVector(3);
         GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate prinicpal strains
@@ -269,10 +269,15 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         KRATOS_WATCH(damage_vector)
         if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
             CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
-            noalias(r_stress_vector) = prod(EffStiffnessMatrix,r_strain_vector);
+            if(damage_vector[0] > 0.0){
+                 noalias(r_stress_vector) = prod(EffStiffnessMatrix,r_strain_vector);
+            }else{
+                noalias(r_stress_vector) = prod(EffStiffnessMatrix,r_strain_vector);
+            }
+            KRATOS_WATCH(EffStiffnessMatrix)
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rParametersValues);
-
+                // KRATOS_WATCH(rParametersValues.GetConstitutiveMatrix())
                 // CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
                 // const BoundedMatrix3x6Type dkdE = prod(dkdEpr, dEprdE);
                 // array_1d<BoundedMatrix<double, 6, 6>, 6> dHdE;
@@ -282,9 +287,9 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
                 // GetdHdE(dHdE, dHdk, dkdE);
                 // BoundedMatrixVoigtType dSdE = ZeroMatrix(6,6);
                 // MultiplyTensors(dSdE, dHdE, r_strain_vector);
+                // KRATOS_WATCH(EffStiffnessMatrix + dSdE);
                 // noalias(r_constitutive_matrix) = EffStiffnessMatrix + dSdE;
-                // KRATOS_WATCH(dSdE)
-                // KRATOS_WATCH(r_constitutive_matrix)
+            // KRATOS_WATCH(r_constitutive_matrix)
             }
         }
         rDamageVector = damage_vector;
@@ -426,16 +431,13 @@ void ElasticAnisotropicDamage::CalculateParameters(
     BoundedMatrixVoigtType M     = ZeroMatrix(6,6);
     BoundedMatrixVoigtType Inv_M = ZeroMatrix(6,6);
     BoundedVectorType principal_strains = ZeroVector(3);
+    double det_M;
     CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
-    Inv_M(0,0) = 1 -DamageVector[0];
-    Inv_M(1,1) = 1 -DamageVector[1];
-    Inv_M(2,2) = 1 -DamageVector[2];
-    Inv_M(3,3) = sqrt ((1-DamageVector[0])*(1-DamageVector[1]));
-    Inv_M(4,4) = sqrt ((1-DamageVector[1])*(1-DamageVector[2]));
-    Inv_M(5,5) = sqrt ((1-DamageVector[0])*(1-DamageVector[2]));
-    // const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
-    // EffStiffnessMatrix = prod(Inv_M,a);
-    EffStiffnessMatrix = prod(Inv_M, r_constitutive_matrix);
+    GetDamageEffectTensor(M, DamageVector);
+    //KRATOS_WATCH(M)
+    MathUtils<double>::InvertMatrix(M, Inv_M, det_M);
+    const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
+    EffStiffnessMatrix = prod(Inv_M,a);
     GetEigenValues(principal_strains, STRAIN, r_strain_vector);
     CalculateDerivativesofEigenvalues(dEprdE, principal_strains, r_strain_vector, STRAIN);
     for(SizeType i = 0; i < Dimension; ++i){
@@ -473,43 +475,25 @@ void ElasticAnisotropicDamage::CalculatePartialDerivatives(
         dHdD[i] = ZeroMatrix(6,6);
     }
     for(SizeType i =0; i < Dimension; ++i){
-        if(DamageVector[i]>0){
-            dDdkappa(i,i)   =  (1- DamageVector[i]) * (Beta1[i]/Kappa[i] + Beta2[i]/Kappa0[i]);
-        }
+        dDdkappa(i,i)   =  (1- DamageVector[i]) * (Beta1[i]/Kappa[i] + Beta2[i]/Kappa0[i]);
     }
-    // for(SizeType i =0; i < Dimension; ++i){
-    //     for(SizeType j = 0; j < Dimension; ++j){
-    //         for(SizeType k = 0; k < Dimension; ++k){
-    //             dHdD[i](i,i) = E_factor * (-2 * (1-DamageVector[i]) * (1-nu));
-    //             if(j != k && (i==j ||i ==k)){
-    //                 SizeType m = (i==j) ? k : j;
-    //                 dHdD[i](j,k) = -E_factor * nu * (1 - DamageVector[m]);
-    //             }
-    //         }
-    //     }
-    // }
-    // dHdD[0](3,3) = E_factor * 0.5 * (1-2*nu) * (DamageVector[1]-1) ;
-    // dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * (DamageVector[2]-1) ;
-    // dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * (DamageVector[0]-1) ;
-    // dHdD[1](4,4) = E_factor * 0.5 * (1-2*nu) * (DamageVector[2]-1) ;
-    // dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * (DamageVector[1]-1) ;
-    // dHdD[2](5,5) = E_factor * 0.5 * (1-2*nu) * (DamageVector[0]-1) ;
     for(SizeType i =0; i < Dimension; ++i){
         for(SizeType j = 0; j < Dimension; ++j){
             for(SizeType k = 0; k < Dimension; ++k){
-                dHdD[i](i,i) = -E_factor * (1-nu);
-                if(j != k && (i==j )){
-                    dHdD[i](j,k) = -E_factor * nu ;
+                dHdD[i](i,i) = E_factor * (-2 * (1-DamageVector[i]) * (1-nu));
+                if(j != k && (i==j ||i ==k)){
+                    SizeType m = (i==j) ? k : j;
+                    dHdD[i](j,k) = -E_factor * nu * (1 - DamageVector[m]);
                 }
             }
         }
     }
-    dHdD[0](3,3) = E_factor * 0.5 * (1-2*nu) * (DamageVector[1]-1) ;
-    dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * (DamageVector[2]-1) ;
-    dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * (DamageVector[0]-1) ;
-    dHdD[1](4,4) = E_factor * 0.5 * (1-2*nu) * (DamageVector[2]-1) ;
-    dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * (DamageVector[1]-1) ;
-    dHdD[2](5,5) = E_factor * 0.5 * (1-2*nu) * (DamageVector[0]-1) ;
+    dHdD[0](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[1]))-1) ;
+    dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[2]))-1) ;
+    dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[1]))-1) ;
+    dHdD[1](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[2]))-1) ;
+    dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[2]))-1) ;
+    dHdD[2](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[2]))-1) ;
     GetdHdk(dHdk, dHdD, dDdkappa);
 
     KRATOS_CATCH("")
@@ -568,7 +552,13 @@ void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
         DerivativesofEigenvalues(i,4) = DerivativesMatrix(1,2);
         DerivativesofEigenvalues(i,5) = DerivativesMatrix(2,0);
     }
-
+    // for(SizeType i = 0; i < Dimension; ++i){
+    //     for(SizeType j = 0; j < Dimension; ++j){
+    //         if(i != j && Matrixform(i,j)< eps){
+    //             Matrixform(i,j) = eps;
+    //         }
+    //     }
+    // }
     // if( (fabs(EigenvaluesVector(0)-EigenvaluesVector(1)) < 2.0*eps ) && ( fabs(EigenvaluesVector(0)-EigenvaluesVector(2)) < 2.0*eps ) && ( fabs(EigenvaluesVector(1)-EigenvaluesVector(2)) < 2.0*eps ) ){
     //     EigenvaluesVector(0) = EigenvaluesVector(0) + 1.1*eps;
     //     EigenvaluesVector(1) = EigenvaluesVector(1) + 0.75*eps;
@@ -606,14 +596,6 @@ void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
     //     }
     //     for(int k=3; k<6; ++k){
     //         DerivativesofEigenvalues(i,k) *= 2.;
-    //     }
-    // }
-    // BoundedMatrixType DerivtivesMatrix;
-    // for(SizeType i = 0; i < Dimension; ++i){
-    //     for(SizeType j = 0; j < Dimension; ++j){
-    //         if(i != j && Matrixform(i,j)< eps){
-    //             Matrixform(i,j) = eps;
-    //         }
     //     }
     // }
     // for(SizeType i = 0; i < Dimension; ++i){

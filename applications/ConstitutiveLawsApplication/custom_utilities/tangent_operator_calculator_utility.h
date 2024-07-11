@@ -254,7 +254,7 @@ public:
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
             }
         }
-        noalias(r_tangent_tensor) = auxiliar_tensor;
+        noalias(r_tangent_tensor) = 0.5*(auxiliar_tensor + trans(auxiliar_tensor));
     }
 
     /**

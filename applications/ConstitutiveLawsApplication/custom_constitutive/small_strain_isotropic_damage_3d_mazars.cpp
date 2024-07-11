@@ -17,6 +17,8 @@
 
 // Project includes
 #include "small_strain_isotropic_damage_3d_mazars.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
@@ -193,7 +195,7 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
-
+        KRATOS_WATCH(r_strain_vector)
         BoundedMatrix3x6Type derivatives_of_eigen_values;
         BoundedVectorType Spr = ZeroVector(3);
         BoundedVectorType principal_strains = ZeroVector(3);
@@ -239,26 +241,56 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
             D                     = 1.0 - var1 * var2;
             const double DN       = pow((1.0 - D),2);
             r_stress_vector      *= DN;
-            const double factor   = 2.0*(D - 1.0);
+            const double factor   = 2.0*(1.0 - D);
             BoundedVectorVoigtType dsde           = factor * prod(r_constitutive_matrix, r_strain_vector) ;
             const double dDdKappa                 = (1.0- D) * (beta1/kappa + beta2/k0);
             BoundedVectorVoigtType dKappadEpsilon;
             CalculateDerivativesofEigenvalues(derivatives_of_eigen_values, principal_strains, r_strain_vector, STRAIN);
+
+
+            const double dKappadEpseq = 1.0;
+            BoundedVectorType dEpseqdEpspr = ZeroVector(3);
             for(SizeType i = 0; i < Dimension; ++i){
-                if (MacaulayBrackets(principal_strains[i])!=0.0){
-                    for (SizeType j = 0; j < VoigtSize; ++j){
-                        dKappadEpsilon[j]   +=  principal_strains[i] * derivatives_of_eigen_values(i,j);
-                    }
-                }
+             dEpseqdEpspr[i] = MacaulayBrackets(principal_strains[i]) /local_equivalent_strain;
             }
-            dKappadEpsilon /= local_equivalent_strain ;
-            BoundedMatrixVoigtType product(6,6);
-            TensorProduct6(product,dsde,dKappadEpsilon);
-            //r_constitutive_matrix = DN * r_constitutive_matrix + dDdKappa * prod(product,r_constitutive_matrix);
-            r_constitutive_matrix = DN * r_constitutive_matrix;
+            BoundedVectorVoigtType dEpseqdEps = prod(dEpseqdEpspr,derivatives_of_eigen_values);
+            dKappadEpsilon = dKappadEpseq * dEpseqdEps;
+            BoundedVectorVoigtType dDdEpsilon = dDdKappa * dKappadEpsilon;
+            BoundedMatrixVoigtType product = ZeroMatrix(6,6);
+            TensorProduct6(product, dsde, dDdEpsilon);
+            KRATOS_WATCH(DN * r_constitutive_matrix )
+            r_constitutive_matrix = DN * r_constitutive_matrix - product;
+
+            KRATOS_WATCH(product)
+            KRATOS_WATCH(dsde)
+            KRATOS_WATCH(dDdKappa)
+            KRATOS_WATCH(dEpseqdEpspr)
+            KRATOS_WATCH(derivatives_of_eigen_values)
+            KRATOS_WATCH(dEpseqdEps)
+
+            KRATOS_WATCH(r_constitutive_matrix)
+
+            // for(SizeType i = 0; i < Dimension; ++i){
+            //     if (MacaulayBrackets(principal_strains[i])!=0.0){
+            //         for (SizeType j = 0; j < VoigtSize; ++j){
+            //             dKappadEpsilon[j]   +=  principal_strains[i] * derivatives_of_eigen_values(i,j);
+            //         }
+            //     }
+            // }
+            // dKappadEpsilon /= local_equivalent_strain ;
+            // BoundedMatrixVoigtType product(6,6);
+            // TensorProduct6(product,dsde,dKappadEpsilon);
+            // r_constitutive_matrix = DN * r_constitutive_matrix + dDdKappa * prod(product,r_constitutive_matrix);
+            // if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            //     this->CalculateTangentTensor(rParametersValues);
+            //     KRATOS_WATCH(rParametersValues.GetConstitutiveMatrix())
+            // }
         }else{
             KRATOS_ERROR << "check the damage loading function" << std::endl;
         }
+
+        KRATOS_WATCH(D)
+        KRATOS_WATCH(r_stress_vector)
         if(D < 0.0) D = 0.0;
         rInternalVariables[0] = max_e;
         rInternalVariables[1] = D;
@@ -271,6 +303,28 @@ void SmallStrainIsotropicDamage3DMazars::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
+void SmallStrainIsotropicDamage3DMazars::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+{
+    KRATOS_TRY
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    }
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
 
 double& SmallStrainIsotropicDamage3DMazars::CalculateValue(
     ConstitutiveLaw::Parameters& rParametersValues,
@@ -350,6 +404,7 @@ void SmallStrainIsotropicDamage3DMazars::GetEigenValues(
     BoundedMatrixType EigenValues = ZeroMatrix(3,3);
     VectorToTensor(MatrixForm, VectorForm, rThisVariable);
     MathUtils<double>::GaussSeidelEigenSystem(MatrixForm, EigenVectors, EigenValues);
+    KRATOS_WATCH(EigenVectors)
     Principal_Values_vector[0] = EigenValues(0,0);
     Principal_Values_vector[1] = EigenValues(1,1);
     Principal_Values_vector[2] = EigenValues(2,2);
@@ -426,13 +481,13 @@ void SmallStrainIsotropicDamage3DMazars::VectorToTensor(
 )
 {
     if(rThisVariable == STRESSES){
-        TensorForm(0,1)= TensorForm(1,0)= VectorForm[5];
-        TensorForm(0,2)= TensorForm(2,0)= VectorForm[4];
-        TensorForm(2,1)= TensorForm(1,2)= VectorForm[3];
+        TensorForm(0,1)= TensorForm(1,0)= VectorForm[3];
+        TensorForm(0,2)= TensorForm(2,0)= VectorForm[5];
+        TensorForm(2,1)= TensorForm(1,2)= VectorForm[4];
     }else if(rThisVariable == STRAIN){
-        TensorForm(0,1)= TensorForm(1,0)= 0.5 * VectorForm[5];
-        TensorForm(0,2)= TensorForm(2,0)= 0.5 * VectorForm[4];
-        TensorForm(2,1)= TensorForm(1,2)= 0.5 * VectorForm[3];
+        TensorForm(0,1)= TensorForm(1,0)= 0.5 * VectorForm[3];
+        TensorForm(0,2)= TensorForm(2,0)= 0.5 * VectorForm[5];
+        TensorForm(2,1)= TensorForm(1,2)= 0.5 * VectorForm[4];
     }
     for(SizeType i = 0; i < Dimension; ++i){
         TensorForm(i,i) = VectorForm[i];
@@ -462,7 +517,7 @@ void SmallStrainIsotropicDamage3DMazars::GetStressWeightFactor(
 
 void SmallStrainIsotropicDamage3DMazars::CalculateDerivativesofEigenvalues(
      BoundedMatrix3x6Type &DerivativesofEigenvalues,
-     const BoundedVectorType &EigenvaluesVector,
+     BoundedVectorType &EigenvaluesVector,
      const BoundedVectorVoigtType &Voigtform,
      const Variable<Vector>& rThisVariable
     )
@@ -470,26 +525,85 @@ void SmallStrainIsotropicDamage3DMazars::CalculateDerivativesofEigenvalues(
     BoundedMatrixType Matrixform;
     const double eps = 1e-8;
     VectorToTensor(Matrixform, Voigtform, rThisVariable);
-    BoundedMatrixType DerivtivesMatrix;
+    BoundedMatrixType EigenVectors;
+    BoundedMatrixType EigenValues = ZeroMatrix(3,3);
+    MathUtils<double>::GaussSeidelEigenSystem(Matrixform, EigenVectors, EigenValues);
+    BoundedVectorType Eigen_vector_column = ZeroVector (3) ;
+    BoundedMatrixType DerivativesMatrix = ZeroMatrix(3,3);
     for(SizeType i = 0; i < Dimension; ++i){
-        for(SizeType j = 0; j < Dimension; ++j){
-            if(i != j && Matrixform(i,j)< eps){
-                Matrixform(i,j) = eps;
-            }
-        }
+        Eigen_vector_column = column(EigenVectors,i);
+        DerivativesMatrix = outer_prod(Eigen_vector_column, Eigen_vector_column);
+        DerivativesofEigenvalues(i,0) = DerivativesMatrix(0,0);
+        DerivativesofEigenvalues(i,1) = DerivativesMatrix(1,1);
+        DerivativesofEigenvalues(i,2) = DerivativesMatrix(2,2);
+        DerivativesofEigenvalues(i,3) = DerivativesMatrix(0,1);
+        DerivativesofEigenvalues(i,4) = DerivativesMatrix(1,2);
+        DerivativesofEigenvalues(i,5) = DerivativesMatrix(2,0);
     }
-    for(SizeType i = 0; i < Dimension; ++i){
-        BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
-        BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
-        const double trace = cofactor_matrix(0,0) + cofactor_matrix(1,1) + cofactor_matrix(2,2);
-        DerivtivesMatrix= (1/trace) * cofactor_matrix;
-        DerivativesofEigenvalues(i,0) = DerivtivesMatrix(0,0);
-        DerivativesofEigenvalues(i,1) = DerivtivesMatrix(1,1);
-        DerivativesofEigenvalues(i,2) = DerivtivesMatrix(2,2);
-        DerivativesofEigenvalues(i,3) = DerivtivesMatrix(1,2);
-        DerivativesofEigenvalues(i,4) = DerivtivesMatrix(0,2);
-        DerivativesofEigenvalues(i,5) = DerivtivesMatrix(0,1);
-    }
+
+    // Method 1
+    // for(SizeType i = 0; i < Dimension; ++i){
+    //     for(SizeType j = 0; j < Dimension; ++j){
+    //         if(i != j && Matrixform(i,j)< eps){
+    //             Matrixform(i,j) = eps;
+    //         }
+    //     }
+    // }
+    // for(SizeType i = 0; i < Dimension; ++i){
+    //     BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
+    //     BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
+    //     const double trace = cofactor_matrix(0,0) + cofactor_matrix(1,1) + cofactor_matrix(2,2);
+    //     DerivativesMatrix= (1/trace) * cofactor_matrix;
+    //     DerivativesofEigenvalues(i,0) = DerivativesMatrix(0,0);
+    //     DerivativesofEigenvalues(i,1) = DerivativesMatrix(1,1);
+    //     DerivativesofEigenvalues(i,2) = DerivativesMatrix(2,2);
+    //     DerivativesofEigenvalues(i,3) = DerivativesMatrix(1,2);
+    //     DerivativesofEigenvalues(i,4) = DerivativesMatrix(0,2);
+    //     DerivativesofEigenvalues(i,5) = DerivativesMatrix(0,1);
+    // }
+
+
+    // Method 2
+    // if( (fabs(EigenvaluesVector(0)-EigenvaluesVector(1)) < 2.0*eps ) && ( fabs(EigenvaluesVector(0)-EigenvaluesVector(2)) < 2.0*eps ) && ( fabs(EigenvaluesVector(1)-EigenvaluesVector(2)) < 2.0*eps ) ){
+    //     EigenvaluesVector(0) = EigenvaluesVector(0) + 1.1*eps;
+    //     EigenvaluesVector(1) = EigenvaluesVector(1) + 0.75*eps;
+    //     EigenvaluesVector(2) = EigenvaluesVector(2) + 0.5*eps;
+    //     DerivativesofEigenvalues(0,0) = 1.0;
+    //     DerivativesofEigenvalues(1,1) = 1.0;
+    //     DerivativesofEigenvalues(2,2) = 1.0;
+    // }else{
+    //     if( fabs(EigenvaluesVector(0)-EigenvaluesVector(1)) < eps ) EigenvaluesVector(1) = EigenvaluesVector(1) - eps;
+    //     if( fabs(EigenvaluesVector(1)-EigenvaluesVector(2)) < eps ) EigenvaluesVector(2) = EigenvaluesVector(2) - eps;
+
+    // }
+    // Matrix indx = ZeroMatrix(3, 3);
+    // Vector Vectorform_squared(6);
+    // Vector dSprdS_entries(6);
+    // Vector dI1dS = ZeroVector(6);
+    // dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
+
+    // indx(0,1)= indx(1,0)= indx(2,2)=1.0;
+    // indx(0,2)= indx(1,1)= indx(2,0)=2.0;
+    // Matrix Matrixform_squared = ZeroMatrix(3,3);
+    // Matrixform_squared = prod(Matrixform, Matrixform);
+    // Vectorform_squared[0]= Matrixform_squared(0,0);
+    // Vectorform_squared[1]= Matrixform_squared(1,1);
+    // Vectorform_squared[2]= Matrixform_squared(2,2);
+    // Vectorform_squared[3]= Matrixform_squared(1,2);
+    // Vectorform_squared[4]= Matrixform_squared(0,2);
+    // Vectorform_squared[5]= Matrixform_squared(0,1);
+
+    // for(int i=0; i<3; ++i){
+    //     dSprdS_entries  = Vectorform_squared - ( EigenvaluesVector(indx(1,i)) + EigenvaluesVector(indx(2,i)) )*(Voigtform) + EigenvaluesVector(indx(1,i)) * EigenvaluesVector(indx(2,i)) * dI1dS;
+    //     dSprdS_entries /=  (EigenvaluesVector(indx(0,i)) - EigenvaluesVector(indx(1,i)) ) * ( EigenvaluesVector(indx(0,i)) - EigenvaluesVector(indx(2,i)) );
+    //     for(int j=0; j<6; ++j){
+    //         DerivativesofEigenvalues(i,j)= dSprdS_entries[j];
+    //     }
+    //     for(int k=3; k<6; ++k){
+    //         DerivativesofEigenvalues(i,k) *= 2.;
+    //     }
+    // }
+
 }
 
 //************************************************************************************

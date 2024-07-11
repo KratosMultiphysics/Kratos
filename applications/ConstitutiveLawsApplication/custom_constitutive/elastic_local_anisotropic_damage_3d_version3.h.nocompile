@@ -8,11 +8,10 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Marcelo Raschi
+//  Main authors:   athira vadakkekkara
 //  Collaborator:
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_MAZARS_LAW_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_MAZARS_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -43,7 +42,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SmallStrainIsotropicDamage3DMazars
+ * @class ElasticAnisotropicDamage
  * @ingroup StructuralMechanicsApplication
  * @brief Defines a damage with hardening constitutive law in 3D
  * @details This material law is defined by the parameters:
@@ -57,7 +56,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainIsotropicDamage3DMazars
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage
     : public ElasticIsotropic3D
 {
 public:
@@ -67,7 +66,6 @@ public:
     typedef ProcessInfo ProcessInfoType;
     typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
-
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
 
@@ -93,7 +91,7 @@ public:
     typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
     // Counted pointer
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamage3DMazars);
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage);
 
     ///@}
     ///@name Lyfe Cycle
@@ -102,17 +100,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    SmallStrainIsotropicDamage3DMazars();
+    ElasticAnisotropicDamage();
 
     /**
      * @brief Copy constructor.
      */
-    SmallStrainIsotropicDamage3DMazars(const SmallStrainIsotropicDamage3DMazars& rOther);
+    ElasticAnisotropicDamage(const ElasticAnisotropicDamage& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~SmallStrainIsotropicDamage3DMazars() override;
+    ~ElasticAnisotropicDamage() override;
 
     /**
      * @brief Clone function
@@ -154,9 +152,9 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValues
         ) override;
 
     /**
@@ -166,8 +164,8 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValues,
         const ProcessInfo& rProcessInfo
         ) override;
 
@@ -187,8 +185,15 @@ public:
      * @param rValues The norm of the deviation stress
      * @param rStrainVariable
      */
-    void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
-                                 Vector& rInternalVariables) override;
+    void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
+                                 Vector& rDamageVector,
+                                 Vector& rStrainVariables);
+
+    void TensorProduct6(Matrix& rOutput,
+                        const Vector& rVector1,
+                        const Vector& rVector2);
+
+
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
@@ -222,16 +227,16 @@ public:
      */
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
-    /**
-     * @brief calculates the value of a specified variable (double)
-     * @param rValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
+    // /**
+    //  * @brief calculates the value of a specified variable (double)
+    //  * @param rValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // double& CalculateValue(Parameters& rValues,
+    //                        const Variable<double>& rThisVariable,
+    //                        double& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable (Vector)
@@ -243,6 +248,14 @@ public:
      Vector& CalculateValue(Parameters& rValues,
                             const Variable<Vector>& rThisVariable,
                             Vector& rValue) override;
+
+    /**
+     * @brief calculates the damage effect tensor M
+     * @return damage effect tensor M
+     */
+    void GetDamageEffectTensor(BoundedMatrixVoigtType& DamageEffectTensor,
+                               const BoundedVectorType& DamageVector
+                               );
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -274,11 +287,13 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+        const double eps = 1e-8;
     ///@}
 
     ///@name Protected member Variables
     ///@{
-    Vector mInternalVariables =ZeroVector(2);
+    Vector mDamageVector;
+    Vector mStrainVariables = ZeroVector(3);
     ///@}
 
     ///@name Protected Operators
@@ -289,60 +304,38 @@ protected:
     ///@{
     /**
 
-     * @brief This method computes derivatives of invariants
-     * @param StressVector Stresses in vector form
-     * @param dI1dS
-     * @param dJ2ddS
-     * @param dJ2dS
-     */
-    void GetDerivatives(const Vector StressVector,
-                        Vector& dI1dS,
-                        Matrix& dJ2ddS,
-                        Vector& dJ2dS);
-    /**
-
      * @brief This method computes principal values of stresses/strains
-     * @param StressVector Stresses in vector form
+     * @param VectorForm Stresses/Strains in vector form
      * @param Pri_Values principal values in vector form
-     * @param MaxValue maximum of the principal values
      * @param MinValue minimum of the principal values
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
-                        double& MaxValue,
                         const Variable<Vector>& rThisVariable,
                         const Vector& VectorForm);
 
     ///@}
 
     /**
-     * @brief This method computes dSprdS
-     * @param StressVector Stresses in vector form
-     * @param Spr principal values
+     * @brief This method calculates the linearized tangent operator
      */
-    void ComputedSprdS(const Vector StressVector,
-                       const Vector Spr,
-                       Matrix& dSprdS);
+    void CalculateParameters(BoundedMatrixVoigtType& EffStiffnessMatrix,
+                             BoundedMatrix3x6Type& dEprdE,
+                             BoundedMatrixType& dkdEpr,
+                             ConstitutiveLaw::Parameters& rParametersValues,
+                             const Vector& DamageVector
+                             );
     /**
-     * @brief This method computes the invariants of stress matrix
-     * @param StressVector Stresses in vector form
-     * @param I1 first invariant of stress
-     * @param J2 second invariant of deviator stress
+     * @brief This method calculates the linearized tangent operator
      */
-    void GetInvariants(const Vector& StressVector,
-                       double& I1,
-                       double& J2);
-    /**
-     * @brief This method evaluates the Macaulay brackets
-     */
-    double MacaulayBrackets(const double Number)
-    {
-        return (Number > 0.0) ? Number : 0.0;
-    }
-    /**
-     * @brief This method computes stress weight factor
-     */
-    void GetStressWeightFactor(double &w,
-                               const BoundedVectorType &s_pr) const ;
+
+    void CalculatePartialDerivatives(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                                    const Properties& rMaterialProperties,
+                                    const Vector& DamageVector,
+                                    const BoundedVectorType& Kappa0,
+                                    const BoundedVectorType& Beta1,
+                                    const BoundedVectorType& Beta2,
+                                    const BoundedVectorType& Kappa
+                                    );
 
     /**
      * @brief This method converts stress or strain vectors to tensors
@@ -361,12 +354,28 @@ protected:
                                            BoundedVectorType &EigenvaluesVector,
                                            const BoundedVectorVoigtType &Voigtform,
                                            const Variable<Vector>& rThisVariable);
+
+
+    void MultiplyTensors(BoundedMatrixVoigtType& dSdE,
+                        const array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                        const Vector& StrainVector);
+    void GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const BoundedMatrix3x6Type& dkdE);
+    void GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+                const BoundedMatrixType& dDdkappa);
         /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
 
+    /**
+     * @brief This method computes the secant tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
 private:
 
     ///@name Static Member Variables
@@ -380,18 +389,6 @@ private:
     ///@}
 
     ///@name Private Operators
-    ///@{
-
-    ///@}
-    void TensorProduct6(
-        BoundedMatrixVoigtType& rOutput,
-        const Vector& rVector1,
-        const Vector& rVector2);
-
-
-    ///@name Private Operations
-    ///@{
-
     ///@}
 
     ///@name Private  Access
@@ -407,6 +404,5 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class SmallStrainIsotropicDamage3DMazars
+}; // class ElasticAnisotropicDamage
 } // namespace Kratos
-#endif

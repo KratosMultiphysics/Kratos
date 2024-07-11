@@ -376,6 +376,14 @@ protected:
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
+/**
+     * @brief This method evaluates the Macaulay brackets
+     */
+    double MacaulayBrackets(const double Number)
+    {
+        return (Number > 0.0) ? Number : 0.0;
+    }
+
 private:
 
     ///@name Static Member Variables
