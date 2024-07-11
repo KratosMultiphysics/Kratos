@@ -63,7 +63,7 @@ namespace Kratos
         }
 
         // Check if variable for traced adjoint dof is valid
-        KRATOS_ERROR_IF_NOT( KratosComponents<ArrayVariableType>::Has(std::string("ADJOINT_") + mTracedDofLabel) )
+        KRATOS_ERROR_IF_NOT( KratosComponents<ArrayVariableType>::Has(std::string("ADJOINT_") + mTracedDofType) )
             << "TransientAdjointNodalSquareIntegralResponseFunction: Specified traced adjoint DOF is not available." << mTracedDofLabel << std::endl;
 
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
@@ -263,8 +263,6 @@ namespace Kratos
         double response_value = 0.0;
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         for(auto& node_i : response_part.Nodes()){
-            // project displacement vector in the traced direction. As mResponseDirection is a normalized vector
-            // the result of the inner product is already the displacement value in the traced direction.
             response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0)) * inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
         }
 
