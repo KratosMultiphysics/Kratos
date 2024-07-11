@@ -93,6 +93,10 @@ void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
             mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            const auto& N_values =
+                GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+            mpConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(),
+                row(N_values , 0));
         } else {
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
         }
@@ -504,6 +508,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         temp_internal_stresses[0] = array_output[0][0];
 
         rOutput[0] = temp_internal_stresses*GetProperties()[CROSS_AREA];
+    }
+}
+
+void TrussElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rVariable == CONSTITUTIVE_LAW)
+    {
+        rOutput.resize(1);
+        rOutput[0] = mpConstitutiveLaw;
     }
 }
 
@@ -1042,17 +1058,24 @@ void TrussElement3D2N::CalculateLumpedMassVector(
 
 double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+    return ReturnTangentModulus1D(CalculateGreenLagrangeStrain(), rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+double TrussElement3D2N::ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
     double tangent_modulus(0.00);
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateGreenLagrangeStrain();
+    strain_vector[0] = Strain;
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Values.SetStrainVector(strain_vector);
 
     mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
     return tangent_modulus;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 

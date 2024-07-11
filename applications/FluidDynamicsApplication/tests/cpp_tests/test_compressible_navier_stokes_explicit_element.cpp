@@ -17,10 +17,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 #include "containers/model.h"
+
+// Application includes
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 
 namespace Kratos {

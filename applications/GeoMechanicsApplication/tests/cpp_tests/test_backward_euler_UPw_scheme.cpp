@@ -12,20 +12,21 @@
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
 class BackwardEulerUPwSchemeTester
 {
 public:
     Model mModel;
+
     BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType> mScheme;
 
     BackwardEulerUPwSchemeTester() { CreateValidModelPart(); }
@@ -46,12 +47,9 @@ public:
         p_node->AddDof(WATER_PRESSURE);
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
-        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) =
-            Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
-        p_node->FastGetSolutionStepValue(VELOCITY, 1) =
-            Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
-        p_node->FastGetSolutionStepValue(ACCELERATION, 1) =
-            Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
+        p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
+        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
+        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
@@ -60,8 +58,7 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerUPwScheme_ReturnsZeroForValidModelPart,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerUPwScheme_ReturnsZeroForValidModelPart, KratosGeoMechanicsFastSuite)
 {
     BackwardEulerUPwSchemeTester tester;
     KRATOS_EXPECT_EQ(tester.mScheme.Check(tester.GetModelPart()), 0);
@@ -75,55 +72,61 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, Krat
 
     // These are the expected numbers according to the SetTimeFactors function
     constexpr double expected_dt_pressure_coefficient = 1.0 / 4.0;
-    constexpr double expected_velocity_coefficient = 1.0 / 4.0;
+    constexpr double expected_velocity_coefficient    = 1.0 / 4.0;
     KRATOS_EXPECT_TRUE(tester.mScheme.SchemeIsInitialized())
+
+    CompressedMatrix A;
+    Vector           Dx;
+    Vector           b;
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[DT_PRESSURE_COEFFICIENT],
                             expected_dt_pressure_coefficient);
     KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().GetProcessInfo()[VELOCITY_COEFFICIENT],
                             expected_velocity_coefficient);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivatives,
-                          KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
 {
     BackwardEulerUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto expected_acceleration = Kratos::array_1d<double, 3>{-0.6875, -1.0, -1.3125};
-    const auto expected_velocity = Kratos::array_1d<double, 3>{-1.75, -2.0, -2.25};
+    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-0.6875, -1.0, -1.3125};
+    const auto     expected_velocity          = Kratos::array_1d<double, 3>{-1.75, -2.0, -2.25};
     constexpr auto expected_dt_water_pressure = 0.25;
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
-    const auto actual_velocity =
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
 
     constexpr auto absolute_tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration, actual_acceleration, absolute_tolerance)
     KRATOS_EXPECT_VECTOR_NEAR(expected_velocity, actual_velocity, absolute_tolerance)
 
-    KRATOS_EXPECT_DOUBLE_EQ(
-        tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
-        expected_dt_water_pressure);
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
+                            expected_dt_water_pressure);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuite)
 {
     BackwardEulerUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix         A;
     Vector                   Dx;
     Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
     tester.GetModelPart().Nodes()[0].Fix(DT_WATER_PRESSURE);
 
     tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
@@ -141,11 +144,13 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedSecondD
 {
     BackwardEulerUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix         A;
     Vector                   Dx;
     Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
     tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_X);
     tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_Z);
 
@@ -164,11 +169,13 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedFirstDe
 {
     BackwardEulerUPwSchemeTester tester;
 
-    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix         A;
     Vector                   Dx;
     Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
     tester.GetModelPart().Nodes()[0].Fix(VELOCITY_Y);
 
     tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);

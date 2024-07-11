@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-class KeyPlaneGenerationFactory: public VoxelMesherComponentFactory<VoxelMesherKeyPlaneGeneration> {
+class KRATOS_API(KRATOS_CORE) KeyPlaneGenerationFactory: public VoxelMesherComponentFactory<VoxelMesherKeyPlaneGeneration> {
 public:
     VoxelMesherKeyPlaneGeneration::Pointer Create(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringSettings) const;
 

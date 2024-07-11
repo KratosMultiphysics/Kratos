@@ -14,11 +14,12 @@
 #pragma once
 
 #include "time_incrementor.h"
+#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
 
-class AdaptiveTimeIncrementor : public TimeIncrementor
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AdaptiveTimeIncrementor : public TimeIncrementor
 {
 public:
     AdaptiveTimeIncrementor(double      StartTime,
