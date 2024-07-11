@@ -448,16 +448,12 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
 
+        self.response_type = adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].GetString()
         adjoint_model = KratosMultiphysics.Model()
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
 
         self.adjoint_analysis = StructuralMechanicsAdjointDynamicAnalysis(adjoint_model, adjoint_parameters)
-
-        self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
-        if primal_parameters["solver_settings"].Has("rotation_dofs"):
-            if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
-                self.primal_state_variables.append(KratosMultiphysics.ROTATION)
 
     def RunCalculation(self, calculate_gradient):
         self.Initialize()
@@ -525,6 +521,5 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
             "adjoint_nodal_root_mean_square" : "NodalRootMeanSquare",
             "adjoint_damping_energy_dissipation" : "DampingEnergyDissipation"
         }
-        response_type = self.response_settings["response_type"].GetString()
-        return "Adjoint" + type_labels[response_type] + "Response"
+        return "Adjoint" + type_labels[self.response_type] + "Response"
 
