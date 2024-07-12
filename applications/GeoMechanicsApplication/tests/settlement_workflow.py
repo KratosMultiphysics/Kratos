@@ -35,8 +35,27 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
                 "DISPLACEMENT", times_to_check[i], expected_data, node_ids)
 
             self.assertEqual(len(actual_nodal_values), len(expected_nodal_values))
-            for (actual_displacement, expected_displacement) in zip(actual_nodal_values, expected_nodal_values):
+            for actual_displacement, expected_displacement in zip(actual_nodal_values, expected_nodal_values):
                 self.assertVectorAlmostEqual(actual_displacement, expected_displacement, 3)
+
+            if i > 2:
+                self.check_stress_values(expected_result_file_name, times_to_check[i], node_ids, reader,
+                                         result_file_name, "TOTAL_STRESS_TENSOR")
+                self.check_stress_values(expected_result_file_name, times_to_check[i], node_ids, reader,
+                                         result_file_name, "CAUCHY_STRESS_TENSOR")
+
+    def check_stress_values(self, expected_result_file_name, time_to_check, node_ids, reader, result_file_name,
+                            variable_name):
+        actual_data = reader.read_output_from(result_file_name)
+        actual_nodal_stress_values = reader.nodal_values_at_time(variable_name, time_to_check, actual_data, node_ids)
+        expected_data = reader.read_output_from(expected_result_file_name)
+        expected_nodal_stress_values = reader.nodal_values_at_time(
+            variable_name, time_to_check, expected_data, node_ids)
+        self.assertEqual(len(actual_nodal_stress_values), len(expected_nodal_stress_values))
+        for actual_total_stress, expected_total_stress in zip(actual_nodal_stress_values, expected_nodal_stress_values):
+            # Although the values are matrices, they are read as lists,
+            # meaning we can use assertVectorAlmostEqual
+            self.assertVectorAlmostEqual(actual_total_stress, expected_total_stress, 3)
 
 
 if __name__ == '__main__':

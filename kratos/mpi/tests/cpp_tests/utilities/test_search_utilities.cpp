@@ -16,9 +16,11 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
-#include "geometries/point.h"
+#include "mpi/testing/mpi_testing.h"
 #include "utilities/search_utilities.h"
+#include "geometries/point.h"
+
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Testing 
 {

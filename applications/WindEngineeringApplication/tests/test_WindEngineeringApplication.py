@@ -2,7 +2,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.WindEngineeringApplication.test_suite import SuiteFlags, TestSuite
-import run_cpp_tests
 
 # STL imports
 import pathlib

@@ -10,9 +10,9 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
-#include "custom_utilities/solving_strategy_factory.hpp"
 #include "containers/model.h"
+#include "custom_utilities/solving_strategy_factory.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
