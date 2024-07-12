@@ -122,7 +122,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
       mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {
-        
+
         Registry::SetCurrentSource(mApplicationName);
 
         for (auto component : {"geometries", "elements", "conditions", "constraints", "modelers", "constitutive_laws"}) {
@@ -355,7 +355,7 @@ void KratosApplication::DeregisterComponent(std::string const & rComponentName) 
     }
 }
 
-void KratosApplication::DeregisterCommonComponents() 
+void KratosApplication::DeregisterCommonComponents()
 {
     KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
 
@@ -368,8 +368,23 @@ void KratosApplication::DeregisterCommonComponents()
 }
 
 void KratosApplication::DeregisterApplication() {
+    DeregisterMappers();
     // DeregisterLinearSolvers();
     // DeregisterPreconditioners();
+}
+
+void KratosApplication::DeregisterMappers() {
+    const std::string path = "mappers."+mApplicationName;
+    if (Registry::HasItem(path)) {
+        auto& r_mappers = Registry::GetItem(path);
+        // Iterate over items at path. For each item, remove it from the mappers.all branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            KRATOS_INFO("") << "Deregistering mappers.all." << *i_key << std::endl;
+            Registry::RemoveItem("mappers.all."+*i_key);
+        }
+        KRATOS_INFO("") << "Deregistering " << mApplicationName << " mappers" << std::endl;
+        Registry::RemoveItem(path);
+    }
 }
 
 }  // namespace Kratos.

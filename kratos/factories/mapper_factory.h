@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "includes/registry.h"
 #include "containers/model.h"
 
 #include "mappers/mapper.h"
@@ -74,27 +75,27 @@ public:
         KRATOS_ERROR_IF(TSparseSpace::IsDistributed() && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
 
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
+        const std::string mapper_path = GetPath(mapper_name);
 
-        const auto& mapper_list = GetRegisteredMappersList();
+        if (Registry::HasItem(mapper_path)) {
 
-        if (mapper_list.find(mapper_name) != mapper_list.end()) {
             // Removing Parameters that are not needed by the Mapper
             MapperSettings.RemoveValue("mapper_type");
             MapperSettings.RemoveValue("interface_submodel_part_origin");
             MapperSettings.RemoveValue("interface_submodel_part_destination");
 
-            // TODO check why this works, Clone currently returns a unique ptr!!!
-            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
-                                                      r_interface_model_part_destination,
-                                                      MapperSettings);
+            return Registry::GetValue<Mapper<TSparseSpace, TDenseSpace>>(mapper_path).Clone(
+                r_interface_model_part_origin, r_interface_model_part_destination, MapperSettings);
         }
         else {
             std::stringstream err_msg;
             err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
                     << "The following Mappers are available:" << std::endl;
 
-            for (auto const& registered_mapper : mapper_list)
-                err_msg << "\t" << registered_mapper.first << "\n";
+            auto& r_mappers = Registry::GetItem(GetPath());
+            for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+                err_msg << "\t" << *i_key << "\n";
+            }
 
             KRATOS_ERROR << err_msg.str() << std::endl;
         }
@@ -156,6 +157,18 @@ private:
 
     /// Default constructor.
     MapperFactory() {}
+
+    static std::string GetPath() {
+        if constexpr (TSparseSpace::IsDistributed()) {
+            return std::string("mappers.all.mpi");
+        }
+        return std::string("mappers.all");
+    }
+
+    static std::string GetPath(const std::string& rName)
+    {
+        return GetPath() + "." + rName;
+    }
 
     static ModelPart& GetInterfaceModelPart(ModelPart& rModelPart,
                                             const Parameters InterfaceParameters,

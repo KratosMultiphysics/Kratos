@@ -48,6 +48,14 @@
         (MapperName, Kratos::make_shared<MapperType<                                                  \
         MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
         (dummy_model_part, dummy_model_part));                                                        \
+    using TMapperType = Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;  \
+    using MapperPointer = typename TMapperType::Pointer;                                                \
+    MapperPointer p_mapper = Kratos::make_shared<MapperType<                                            \
+            MapperDefinitions::SparseSpaceType,                                                         \
+            MapperDefinitions::DenseSpaceType                                                           \
+        >>(dummy_model_part, dummy_model_part);                                                         \
+    Registry::AddItem<TMapperType>("mappers."+Registry::GetCurrentSource()+"."+MapperName, p_mapper);   \
+    Registry::AddItem<TMapperType>("mappers.all."+std::string(MapperName), p_mapper);                   \
     }
 
 #define KRATOS_REGISTER_MAPPER_WITH_BACKEND(MapperType, MapperName)                                   \
@@ -59,6 +67,15 @@
         MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType,MapperBackend<           \
                 MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>>               \
         (dummy_model_part, dummy_model_part));                                                        \
+    using TMapperType = Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;  \
+    using MapperPointer = typename TMapperType::Pointer;                                                \
+    MapperPointer p_mapper = Kratos::make_shared<MapperType<                                            \
+            MapperDefinitions::SparseSpaceType,                                                         \
+            MapperDefinitions::DenseSpaceType,                                                          \
+            MapperBackend<MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>         \
+        >>(dummy_model_part, dummy_model_part);                                                         \
+    Registry::AddItem<TMapperType>("mappers."+Registry::GetCurrentSource()+"."+MapperName, p_mapper);   \
+    Registry::AddItem<TMapperType>("mappers.all."+std::string(MapperName), p_mapper);                   \
     }
 
 Kratos::KratosApplication* CreateApplication()
