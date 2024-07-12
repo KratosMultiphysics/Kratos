@@ -174,8 +174,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
                 # set new_time and delta_time in the nonlinear solver
                 new_time = t + self.delta_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]       = new_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]             = new_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]       = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NUMBER_OF_CYCLES] = number_cycle
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
@@ -215,8 +216,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                self._CalculateIncrementalDisplacement(node)
+            if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
+                for node in self._GetSolver().GetComputingModelPart().Nodes:
+                    self._CalculateIncrementalDisplacement(node)
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()

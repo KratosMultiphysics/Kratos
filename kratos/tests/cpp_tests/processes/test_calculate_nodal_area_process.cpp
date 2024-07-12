@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"

@@ -102,6 +102,7 @@ class PwSolver(GeoSolver):
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosGeo.DT_WATER_PRESSURE, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "DOFs added correctly.")
 

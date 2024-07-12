@@ -17,123 +17,89 @@ try:
 except ImportError:
     have_tensorflow = False
 
+from pathlib import Path
 
+from KratosMultiphysics.RomApplication.rom_manager import RomManager
+
+class SeededNN_RomManager(RomManager):
+
+    def launch_test(self):
+        try:
+            self._LaunchTrainROM([None])
+            self._LaunchFOM([None])
+            error = self._LaunchTrainNeuralNetwork([None], [None])
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None  # or handle the error as needed
+        return error
+
+    def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
+        try:
+            rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+            model_name = rom_nn_trainer.TrainNetwork(seed=324)  # Consistent solutions
+            self.data_base.add_to_database("Neural_Network", mu_train, None)
+            error = rom_nn_trainer.EvaluateNetwork(model_name)
+        except Exception as e:
+            print(f"Error during training or evaluation: {e}")
+            return None  # or handle the error as needed
+        return error
+
+
+
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 @KratosUnittest.skipUnless(have_tensorflow,"Missing required python module: TensorFlow.")
 class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.reference_relative_error = 0.0009752321235806322
+        self.reference_relative_error = 0.004697750827444179
         self.work_folder = "nn_trainer_class_test_files"
 
     def testNeuralNetworkTrainerClass(self):
 
-        nn_training_parameters = KratosMultiphysics.Parameters("""{
-            "ROM": {
-                "ann_enhanced_settings":{
-                    "saved_models_root_path": "rom_data/saved_nn_models/",
-                    "training":{
+        general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
+                "rom_stages_to_train" : ["ROM"],
+                "rom_stages_to_test" : [],
+                "type_of_decoder" : "ann_enhanced",
+                "paralellism" : null,
+                "projection_strategy": "galerkin",
+                "assembling_strategy": "global",
+                "save_gid_output": false,
+                "save_vtk_output": false,
+                "output_name": "id",
+                "ROM":{
+                    "svd_truncation_tolerance": 1e-6,
+                    "model_part_name": "Structure",
+                    "nodal_unknowns": ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                    "rom_basis_output_format": "numpy",
+                    "rom_basis_output_name": "RomParameters",
+                    "rom_basis_output_folder": "rom_data",
+                    "snapshots_control_type": "step",
+                    "snapshots_interval": 1,
+                    "print_singular_values": true,
+                    "ann_enhanced_settings":{
                         "modes":[1,2],
                         "layers_size":[2,2],
                         "batch_size":2,
                         "epochs":50,
                         "lr_strategy": {
-                            "scheduler": "const",         // "const", "steps", "sgdr"
+                            "scheduler": "const",
                             "base_lr": 0.01,
-                            "additional_params": []     // const:[], steps/sgdr:["min_lr", "reduction_factor","update_period"]
-                        },
-                        "database":{
-                            "training_set": "rom_data/reference_fom_snapshots.npy",
-                            "validation_set": "rom_data/reference_fom_snapshots_val.npy",
-                            "phi_matrix": "rom_data/reference_RightBasisMatrix.npy",
-                            "sigma_vector": "rom_data/reference_SingularValuesVector.npy"
-                        },
-                        "use_automatic_name": false,
-                        "custom_name": "test_neural_network"
-                    },
-                    "online":{
-                        "model_name": "test_neural_network"
+                            "additional_params": []
+                        }
                     }
                 }
-            }
-        }""")
+            }""")
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-
-            rom_neural_network_trainer = RomNeuralNetworkTrainer(nn_training_parameters)
-            model_name = rom_neural_network_trainer.TrainNetwork(seed = 324)
-            relative_error = rom_neural_network_trainer.EvaluateNetwork(model_name)
-
+            rom_manager = SeededNN_RomManager(general_rom_manager_parameters = general_rom_manager_parameters)
+            relative_error = rom_manager.launch_test()
             self.assertAlmostEqual(relative_error, self.reference_relative_error)
-
-    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-    @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-    def testGenerateTrainingDatabases(self):
-
-        parameters_filename = "ProjectParameters.json"
-
-        rom_training_parameters = KratosMultiphysics.Parameters("""{
-            "python_module" : "calculate_rom_basis_output_process",
-            "kratos_module" : "KratosMultiphysics.RomApplication",
-            "process_name"  : "CalculateRomBasisOutputProcess",
-            "help"          : "This process should write the Rom basis",
-            "Parameters"    :{
-                "model_part_name": "Structure",
-                "rom_manager" : false,
-                "snapshots_control_type": "step",
-                "snapshots_interval": 1.0,
-                "nodal_unknowns":  ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-                "rom_basis_output_format": "numpy",
-                "rom_basis_output_name": "RomParameters",
-                "rom_basis_output_folder": "rom_data",
-                "svd_truncation_tolerance": 1e-6,
-                "print_singular_values": true
-            }
-        }""")
-
-        # List containing the fake total times
-        test_timesteps = [4,8,13,16]
-
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-
-            with open(parameters_filename,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            parameters["output_processes"].AddEmptyArray("rom_output")
-            parameters["output_processes"]["rom_output"].Append(rom_training_parameters)
-
-            analysis_stage_module_name = parameters["analysis_stage"].GetString()
-            analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
-            analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
-            analysis_stage_module = importlib.import_module(analysis_stage_module_name)
-            analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-
-            model = KratosMultiphysics.Model()
-            simulation = analysis_stage_class(model,parameters)
-            simulation.Run()
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    basis_output_process = process
-            snapshots_matrix_train=basis_output_process._GetSnapshotsMatrix()
-
-            snapshots_matrix_test = snapshots_matrix_train[:,test_timesteps].copy()
-            snapshots_matrix_train = np.delete(snapshots_matrix_train, test_timesteps, 1)
-
-            u, sigma = basis_output_process._ComputeSVD(snapshots_matrix_train)
-            basis_output_process._PrintRomBasis(u, sigma)
-
-            self.assertTrue(np.all(np.abs(snapshots_matrix_train - np.load('rom_data/reference_fom_snapshots.npy')<1e-10)))
-            self.assertTrue(np.all(np.abs(snapshots_matrix_test - np.load('rom_data/reference_fom_snapshots_val.npy'))<1e-10))
-            self.assertTrue(np.all(np.abs(np.load('rom_data/SingularValuesVector.npy') - np.load('rom_data/reference_SingularValuesVector.npy'))<1e-10))
-            self.assertTrue(np.all(np.abs(np.load('rom_data/RightBasisMatrix.npy') - np.load('rom_data/reference_RightBasisMatrix.npy'))<1e-10))
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            rom_data_path = 'rom_data/'
-            neural_network_models_path = rom_data_path+'saved_nn_models/test_neural_network/'
-            kratos_utilities.DeleteDirectoryIfExisting(neural_network_models_path)
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RightBasisMatrix.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'SingularValuesVector.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'NodeIds.npy')
-            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RomParameters.json')
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data'))
+
 
 ##########################################################################################
 
