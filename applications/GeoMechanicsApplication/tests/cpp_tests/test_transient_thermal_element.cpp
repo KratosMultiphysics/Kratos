@@ -85,11 +85,12 @@ void ValidateThermalElement(ModelPart& rModelPart)
 
 Element::Pointer GenerateTransientThermalElementWithZeroDomainSize()
 {
-    auto node_1                    = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto node_2                    = make_intrusive<Node>(2, 0.0, 0.0, 0.0);
-    auto node_3                    = make_intrusive<Node>(3, 0.0, 0.0, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 3>>(
-        1, Kratos::make_shared<Triangle2D3<Node>>(node_1, node_2, node_3));
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes));
 
     return transient_thermal_element;
 }
@@ -105,11 +106,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeo
 void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1                    = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2                    = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3                    = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 3>>(
-        1, Kratos::make_shared<Triangle2D3<Node>>(node_1, node_2, node_3), rModelPart.CreateNewProperties(0));
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
 
@@ -177,11 +179,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMe
 void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1                    = rModelPart.CreateNewNode(1, 0.0, 0.0, 1.0);
-    auto node_2                    = rModelPart.CreateNewNode(2, 1.0, 0.0, -1.0);
-    auto node_3                    = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 1.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, -1.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 3>>(
-        1, Kratos::make_shared<Triangle2D3<Node>>(node_1, node_2, node_3), rModelPart.CreateNewProperties(0));
+        1, Kratos::make_shared<Triangle2D3<Node>>(nodes), rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
 
@@ -275,12 +278,13 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeo
 void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1                    = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2                    = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3                    = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4                    = rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.6666, 0.3333, 0.0));
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 4>>(
-        1, Kratos::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4),
+        1, Kratos::make_shared<Quadrilateral2D4<Node>>(nodes),
         rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
@@ -301,15 +305,16 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D4N, KratosGeo
 void GenerateTransientThermalElement2D6N(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-    auto node_5 = rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-    auto node_6 = rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0));
 
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 6>>(
-        1, Kratos::make_shared<Triangle2D6<Node>>(node_1, node_2, node_3, node_4, node_5, node_6),
+        1, Kratos::make_shared<Triangle2D6<Node>>(nodes),
         rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
@@ -330,17 +335,18 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D6N, KratosGeo
 void GenerateTransientThermalElement2D8N(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-    auto node_5 = rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-    auto node_6 = rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-    auto node_7 = rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-    auto node_8 = rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0));
 
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 8>>(
-        1, Kratos::make_shared<Quadrilateral2D8<Node>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8),
+        1, Kratos::make_shared<Quadrilateral2D8<Node>>(nodes),
         rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
@@ -361,21 +367,19 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D8N, KratosGeo
 void GenerateTransientThermalElement2D9N(ModelPart& rModelPart)
 {
     // Geometry creation
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-    auto node_5 = rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0);
-    auto node_6 = rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0);
-    auto node_7 = rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-    auto node_8 = rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0);
-    auto node_9 = rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0);
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(5, 1.0, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(6, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(8, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(9, 0.5, 0.5, 0.0));
 
     auto transient_thermal_element = make_intrusive<TransientThermalElement<2, 9>>(
-        1,
-        Kratos::make_shared<Quadrilateral2D9<Node>>(node_1, node_2, node_3, node_4, node_5, node_6,
-                                                    node_7, node_8, node_9),
-        rModelPart.CreateNewProperties(0));
+        1, Kratos::make_shared<Quadrilateral2D9<Node>>(nodes), rModelPart.CreateNewProperties(0));
     rModelPart.AddElement(transient_thermal_element);
 }
 
