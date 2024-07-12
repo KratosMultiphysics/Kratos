@@ -147,15 +147,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             mesh_type = project_parameters["problem_data"]["mesh_type"].GetString()
 
-        #
-        light_lambda = 550e-6 # mm, light wavelength
-        epoxy_n = 1.5
-        n = epoxy_n
-        A = 4.0 * n / ((n + 1)**2 + n**2)
-        print(A)
-        self.l_s = 0.25 * light_lambda * A / np.pi
-        print(self.l_s)
-        #
+        if not project_parameters["problem_data"].Has("print_hole_geometry_file"):
+            self.print_hole_geometry_file = False
+        else:
+            self.print_hole_geometry_file = project_parameters["problem_data"]["print_hole_geometry_file"].GetBool()
 
         self.decomposed_nodes_coords_filename = "hole_coords_l_s=" + str(self.l_s) + "_F_th=" + str(self.F_th) + "_H_ev=" + str(self.H_ev) + "_l_th=" + str(self.l_th) + "_alpha_ion=" + str(i_alpha) + "_" + mesh_type + "_" + mesh_size + ".txt"
 
@@ -732,10 +727,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.list_of_decomposed_nodes_coords_Y = np.array([coord[1] for coord in list_of_decomposed_nodes_coords])
         if os.path.exists(self.decomposed_nodes_coords_filename):
             os.remove(self.decomposed_nodes_coords_filename)
-        self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, "a")
-        for coord in list_of_decomposed_nodes_coords:
-            self.decomposed_nodes_coords_file.write(str(coord[0]) + " " + str(coord[1]) + "\n")
-        self.decomposed_nodes_coords_file.close()
+
+        if self.print_hole_geometry_file:
+            self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, "a")
+            for coord in list_of_decomposed_nodes_coords:
+                self.decomposed_nodes_coords_file.write(str(coord[0]) + " " + str(coord[1]) + "\n")
+            self.decomposed_nodes_coords_file.close()
 
     def PenetrationDepthEstimation(self):
         F_th = self.F_th

@@ -13,7 +13,8 @@
         "compute_vaporisation" : true,
         "mesh_size" : "coarse",
         "mesh_type" : "structured",
-        "time_jump_between_pulses": 5e-6
+        "time_jump_between_pulses": 5e-6,
+        "print_hole_geometry_file": false
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",

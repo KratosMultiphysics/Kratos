@@ -3,6 +3,8 @@
         "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
         "properties_id"   : 1,
         "Material"        : {
+            "compute_optical_penetration_depth_using_refractive_index": true,
+            "compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization": true,
             "Variables" : {
                 "DENSITY"       : 1.72E-06,
                 "CONDUCTIVITY"  : 3.00E-04,
@@ -13,9 +15,10 @@
                 "THERMAL_DEPTH": 0.00025,
                 "ENTHALPY": 4e5,
                 "OPTICAL_PENETRATION_DEPTH": 5e-4,
-                "IONIZATION_ENERGY_PER_VOLUME_THRESHOLD": 10.0
+                "ENERGY_PER_VOLUME_THRESHOLD": 10.0,
+                "REFRACTIVE_INDEX": 1.5
             },
-            "Tables"    : null
+            "Tables" : null
         }
     }]
 }

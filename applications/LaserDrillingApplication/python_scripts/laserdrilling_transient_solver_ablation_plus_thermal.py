@@ -28,25 +28,46 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             self.delta_pen = 5e-4 # mm
         else:
             self.delta_pen = self.material_settings['Variables']['OPTICAL_PENETRATION_DEPTH'].GetDouble()
-        if not self.material_settings["Variables"].Has("IONIZATION_ENERGY_PER_VOLUME_THRESHOLD"):
+
+        if not self.material_settings["Variables"].Has("ENERGY_PER_VOLUME_THRESHOLD"):
             self.q_ast = 10.0 # J/mm3
         else:
-            self.q_ast = self.material_settings['Variables']['IONIZATION_ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
+            self.q_ast = self.material_settings['Variables']['ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
 
-        self.minimum_of_two_energies_per_volume = self.q_ast
+        if not self.material_settings["Variables"].Has("REFRACTIVE_INDEX"):
+            self.refractive_index_n = 1.5
+        else:
+            self.refractive_index_n = self.material_settings['Variables']['REFRACTIVE_INDEX'].GetDouble()
 
-        ##
-        #self.delta_pen = self.l_s
+        if self.material_settings['compute_optical_penetration_depth_using_refractive_index'].GetBool():
+            self.ComputeOpticalPenetrationDepth()
+            self.delta_pen = self.l_s
+
+        if self.material_settings['compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization'].GetBool():
+            self.energy_per_volume_threshold = self.ComputeEnergyPerUnitVolumeThreshold()
+            self.use_enthalpy_and_ionization = True
+        else:
+            self.use_enthalpy_and_ionization = False
+
         self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
-
+    
+    def ComputeEnergyPerUnitVolumeThreshold(self):
         # Compute ionization energy per volume of C11H12O3
         E_m_H = 1312e3 #  J/mol (1st level ionization energy)
         E_m_C = 4621e3 #  J/mol (3rd level ionization energy)
         E_m_O = 3388e3 #  J/mol (2nd level ionization energy)
         W_m   = 192e-3 # Kg/mol (molecular weight)
-        self.ionization_energy_per_volume_threshold = self.rho * (E_m_H + E_m_C + E_m_O) / W_m # J/mm3
+        return self.rho * (E_m_H + E_m_C + E_m_O) / W_m # J/mm3
 
-    def ImposeTemperatureIncreaseDueTo1DConduction(self):
+    def ComputeOpticalPenetrationDepth(self):
+        light_lambda = 550e-6 # mm, light wavelength
+        epoxy_n = self.refractive_index_n
+        n = epoxy_n
+        A = 4.0 * n / ((n + 1)**2 + n**2)
+        self.l_s = 0.25 * light_lambda * A / np.pi
+        return self.l_s
+
+    def ImposeTemperatureIncreaseDueToLaser(self):
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
         for node in self.main_model_part.Nodes:
@@ -54,7 +75,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
             distance_to_surface = F(radius)
             z = node.X - distance_to_surface
-            delta_temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
+            delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
@@ -77,7 +98,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
 
-    def TemperatureVariationInZDueToLaser1D(self, radius, z):        
+    def TemperatureVariationDueToLaser(self, radius, z):        
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
@@ -101,7 +122,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         '''initial_system_energy = self.MonitorEnergy()
         print("\n\nEnergy before laser:", initial_system_energy)'''
 
-        self.ImposeTemperatureIncreaseDueTo1DConduction()
+        self.ImposeTemperatureIncreaseDueToLaser()
 
         '''expected_energy_after_laser = initial_system_energy + self.Q
         initial_system_energy = self.MonitorEnergy()
@@ -130,8 +151,11 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             for elem in self.main_model_part.Elements:
                 q_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENERGY_PER_VOLUME)
                 enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
-                ionization_energy_per_volume_threshold = self.ionization_energy_per_volume_threshold
-                energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
+                if self.use_enthalpy_and_ionization:
+                    energy_per_volume_threshold = self.energy_per_volume_threshold
+                    energy_threshold = min(enthalpy_energy_per_volume, energy_per_volume_threshold)
+                else:
+                    energy_threshold = self.q_ast
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
