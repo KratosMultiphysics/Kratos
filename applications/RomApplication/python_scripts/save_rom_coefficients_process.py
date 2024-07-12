@@ -87,7 +87,7 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         If 'snapshot_solution_type' is set to 'total', the cumulative sum of q is saved, representing the total solution up to the current time step.
         If 'snapshot_solution_type' is 'incremental', only the solution increment (Δq) for the current time step is saved.
         """
-        delta_q = self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)
+        delta_q = self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_CURRENT_SOLUTION_TOTAL)
         if self.snapshot_solution_type == "total":
             if self.cumulative_rom_state is None:
                 self.cumulative_rom_state = numpy.zeros_like(delta_q)

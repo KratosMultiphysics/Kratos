@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(PetrovGalerkinROMBuilderAndSolver, RomApplicationFastS
     auto romBnS = PetrovGalerkinROMBuilderAndSolverType(plinear_solver, parameters);
 
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
-    const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
+    const auto& dq = model_part.GetValue(ROM_CURRENT_SOLUTION_TOTAL);
 
     KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
     KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);

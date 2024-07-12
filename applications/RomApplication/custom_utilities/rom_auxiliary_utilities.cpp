@@ -995,7 +995,7 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
 
     // Project the ROM solution increment onto the nodal basis and append it to the current value
     // Note that the ROM solution increment is retrieved from the root model part
-    const auto& r_rom_sol_incr = rModelPart.GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+    const auto& r_rom_sol_incr = rModelPart.GetRootModelPart().GetValue(ROM_CURRENT_SOLUTION_TOTAL);
     block_for_each(rModelPart.Nodes(), [&rom_var_list, &r_rom_sol_incr](NodeType& rNode){
         const auto& r_rom_basis = rNode.GetValue(ROM_BASIS);
         IndexType i_var = 0;

@@ -315,7 +315,7 @@ public:
 
     /**
      * @brief Project the ROM solution increment onto the nodal basis
-     * For a given model part this function takes the ROM_SOLUTION_INCREMENT, which is assumed to be
+     * For a given model part this function takes the ROM_CURRENT_SOLUTION_TOTAL, which is assumed to be
      * stored in the root model part, and projects it with the nodal ROM_BASIS to calculate the solution increment
      * @param rRomVariableNames Vector containing the names of the ROM variables
      * @param rModelPart Model part onto which the projection is to be performed
