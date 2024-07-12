@@ -12,8 +12,8 @@
 
 #include "containers/model.h"
 #include "custom_elements/three_dimensional_stress_state.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 

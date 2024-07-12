@@ -6,6 +6,10 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.MPMApplication.python_solvers_wrapper_mpm import CreateSolver
 
+# Import utilities
+import itertools
+
+
 class MPMAnalysis(AnalysisStage):
     """
     This class is the main-script of the MPMApplication put in a class
@@ -16,7 +20,7 @@ class MPMAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
 
         # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
+        # has to be done before the base-class constructor is called (in which the solver is constructed)
         # TODO: currently MPI parallelization is not present in MPMApplication
         # TODO: the following import lines will be kept here for future reference
         if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
@@ -25,9 +29,37 @@ class MPMAnalysis(AnalysisStage):
             # import KratosMultiphysics.MetisApplication as MetisApplication
             # import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
+        # add auxiliary variables required by friction automatically to the project_parameters
+        self._AddFrictionAuxiliaryVariables(project_parameters)
+
         super(MPMAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
+    def _AddFrictionAuxiliaryVariables(self, project_parameters):
+        """ Adds nodal variables required by friction to auxiliary variable list, if needed """
+        aux_var_friction = ["FRICTION_STATE",
+                            "STICK_FORCE"]
+
+        # check if friction BC is set
+        friction_active = False
+
+        for proc_list in project_parameters["processes"].values():
+            for proc in proc_list:
+                if proc.Has("process_name") and proc["process_name"].GetString() == "ApplyMPMSlipBoundaryProcess":
+                    proc_params = proc["Parameters"]
+
+                    if proc_params.Has("friction_coefficient") and proc_params["friction_coefficient"].GetDouble() > 0:
+                        friction_active = True
+                        break
+
+        if friction_active:
+            aux_var_list = project_parameters["solver_settings"]["auxiliary_variables_list"].GetStringArray()
+
+            aux_var_list_new = list(set(aux_var_list + aux_var_friction))
+
+            project_parameters["solver_settings"]["auxiliary_variables_list"].SetStringArray(aux_var_list_new)
+
+
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
