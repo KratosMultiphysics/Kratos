@@ -20,11 +20,11 @@ int GetMajorVersion() {
 }
 
 int GetMinorVersion() {
-    return 2;
+    return 3;
 }
 
 std::string GetPatchVersion() {
-    return "0";
+    return "1";
 }
 
 } // namespace CoSimIO

@@ -37,13 +37,21 @@ KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
         "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe following sub model parts are available:");
 
-    // TODO this should throw in the future
-    // KRATOS_EXPECT_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),
-    //     "Error: The ModelPart named : \"Inlet1\" was not found as root-ModelPart. The total input string was \"Inlet1\"");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),
+        "Error: The ModelPart named : \"Inlet1\" was not found as root-ModelPart. The total input string was \"Inlet1\"");
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         model.GetModelPart("Maiiiiin"),
-        "Error: The ModelPart named : \"Maiiiiin\" was not found either as root-ModelPart or as a flat name. The total input string was \"Maiiiiin\"");
+        "Error: The ModelPart named : \"Maiiiiin\" was not found as root-ModelPart. The total input string was \"Maiiiiin\"");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ModelDataValueContainer, KratosCoreFastSuite)
+{
+    Model model;
+    model.GetDataValueContainer().SetValue(DENSITY,1.0);
+    KRATOS_EXPECT_TRUE(model.GetDataValueContainer().Has(DENSITY));
+    KRATOS_EXPECT_FALSE(model.GetDataValueContainer().Has(TEMPERATURE));
+    KRATOS_EXPECT_DOUBLE_EQ(model.GetDataValueContainer().GetValue(DENSITY),1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)

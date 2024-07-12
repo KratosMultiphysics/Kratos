@@ -24,7 +24,13 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "mkl_service.h"
 #endif
+
+Kratos::KratosApplication* CreateApplication()
+{
+    return new Kratos::KratosLinearSolversApplication();
+}
 
 namespace Kratos
 {
@@ -37,6 +43,15 @@ void KratosLinearSolversApplication::Register()
                     << "           | |___| | | | |  __/ (_| | |   ___) | (_) | |\\ V /  __/ |  \\__ \\\n"
                     << "           |_____|_|_| |_|\\___|\\__,_|_|  |____/ \\___/|_| \\_/ \\___|_|  |___/\n"
                     << "Initializing KratosLinearSolversApplication..." << std::endl;
+
+    #if defined USE_EIGEN_MKL
+    MKLVersion mkl_version;
+    mkl_get_version(&mkl_version);
+    KRATOS_INFO("") << "Using Intel MKL version "
+                    << mkl_version.MajorVersion << "." << mkl_version.MinorVersion << "." << mkl_version.UpdateVersion
+                    << " build " << mkl_version.Build << std::endl
+                    << "MKL processor: " << mkl_version.Processor << std::endl;
+    #endif
 
     RegisterDenseLinearSolvers();
 

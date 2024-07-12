@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Philipp Bucher
@@ -17,12 +17,9 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "utilities/auxiliar_model_part_utilities.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
-namespace Kratos {
-  namespace Testing {
-
-    typedef Node NodeType;
+namespace Kratos::Testing {
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
@@ -35,21 +32,21 @@ namespace Kratos {
         rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
 
-        std::vector<NodeType::Pointer> condition_nodes_3 (2);
+        std::vector<Node::Pointer> condition_nodes_3 (2);
         condition_nodes_3[0] = rModelPart.pGetNode(5);
         condition_nodes_3[1] = rModelPart.pGetNode(6);
 
         rModelPart.CreateNewGeometry("Line2D2", 1, {{1,2}});
         rModelPart.CreateNewGeometry("Line2D2", 2, rModelPart.pGetCondition(1)->pGetGeometry());
         rModelPart.CreateNewGeometry("Line2D2", 3, rModelPart.pGetCondition(2)->pGetGeometry());
-        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<NodeType>{condition_nodes_3});
+        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<Node>{condition_nodes_3});
 
-        std::vector<NodeType::Pointer> element_nodes_0 (3);
+        std::vector<Node::Pointer> element_nodes_0 (3);
         element_nodes_0[0] = rModelPart.pGetNode(1);
         element_nodes_0[1] = rModelPart.pGetNode(2);
         element_nodes_0[2] = rModelPart.pGetNode(3);
 
-        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<Node>{element_nodes_0});
         rModelPart.CreateNewGeometry("Triangle2D3", rModelPart.pGetElement(1)->pGetGeometry());
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", {{2,5,3}});
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
@@ -64,12 +61,12 @@ namespace Kratos {
         KRATOS_EXPECT_FALSE(r_model_part.Has(TEMPERATURE));
         KRATOS_EXPECT_DOUBLE_EQ(r_model_part.GetValue(DENSITY),1.0);
     }
-    
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartFlag, KratosCoreFastSuite)
     {
         Model model;
         ModelPart& r_model_part = model.CreateModelPart("Main");
-        
+
         r_model_part.Set(ACTIVE);
         KRATOS_EXPECT_TRUE(r_model_part.Is(ACTIVE));
         KRATOS_EXPECT_FALSE(r_model_part.Is(BOUNDARY));
@@ -183,17 +180,29 @@ namespace Kratos {
 
         // Generate submodelpart (I)
         auto& r_sub_model_1 = r_model_part.CreateSubModelPart("Sub1");
+        auto& r_sub_sub_model_1 = r_sub_model_1.CreateSubModelPart("SubSub1");
         KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 0);
 
         // Copy one
         r_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 8);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 0);
+
+        // Copy one
+        r_sub_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 8);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 8);
 
         // Generate submodelpart (II)
         auto& r_sub_model_2 = r_model_part.CreateSubModelPart("Sub2");
+        auto& r_sub_sub_model_2 = r_sub_model_2.CreateSubModelPart("SubSub2");
         KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 0);
 
         // Copy one
         const std::vector<std::size_t> indexes = {1,2,3,4};
@@ -201,6 +210,14 @@ namespace Kratos {
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 0);
+
+        // Copy one
+        r_sub_sub_model_2.AddGeometries(indexes);
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
@@ -263,6 +280,48 @@ namespace Kratos {
         KRATOS_EXPECT_TRUE(r_model_part.NumberOfNodes() == 6);
         KRATOS_EXPECT_TRUE(r_model_part.NumberOfElements() == 2);
         KRATOS_EXPECT_TRUE(r_model_part.NumberOfConditions() == 4);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddElementsWithNodes, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubMain");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
+        std::vector<std::size_t> list_elements {{1, 2}};
+        aux_util.AddElementsWithNodes(list_elements);
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfElements() == 2);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfConditions() == 0);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddConditionsWithNodes, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubMain");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
+        std::vector<std::size_t> list_conditions {{1, 2}};
+        aux_util.AddConditionsWithNodes(list_conditions);
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 3);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfElements() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfConditions() == 2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongings, KratosCoreFastSuite)
@@ -521,5 +580,4 @@ namespace Kratos {
             model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet.test"),
             "Error: There is no sub model part with name \"sub_sub_inlet\" in model part \"Main.Inlet1.sub_inlet\"");
     }
-  }  // namespace Testing.
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.

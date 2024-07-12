@@ -43,13 +43,24 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
+    .def("GetProjectedResidualsOntoJPhi",&RomResidualsUtility::GetProjectedResidualsOntoJPhi) //
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
+        .def_static("SetHRomComputingModelPartWithLists", &RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists)
+        .def_static("SetHRomComputingModelPartWithNeighbours", &RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
-        .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
+        .def_static("GetHRomConditionParentsIds", [](ModelPart& rModelPart, const std::vector<IndexType>& rConditionIds) {
+                return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rConditionIds);})
+        .def_static("GetHRomConditionParentsIds", [](const ModelPart& rModelPart, const std::map<std::string, std::map<IndexType, double>>& rHRomWeights) {
+                return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rHRomWeights);})
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
+        .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, Kratos::ModelPart& rGivenModelPart) {
+                return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rGivenModelPart);})
+        .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, const std::vector<Kratos::IndexType>& rNodeIds, bool retrieveSingleNeighbour) {
+                return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rNodeIds, retrieveSingleNeighbour);})
+        .def_static("GetNodalNeighbouringConditionIds", &RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds)
         .def_static("GetConditionIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart)
         .def_static("GetElementIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)

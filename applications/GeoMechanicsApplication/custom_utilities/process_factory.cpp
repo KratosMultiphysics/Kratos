@@ -14,7 +14,6 @@
 #include "custom_utilities/process_factory.hpp"
 #include "includes/kratos_parameters.h"
 
-
 namespace Kratos
 {
 
@@ -23,6 +22,10 @@ ProcessFactory::ProductType ProcessFactory::Create(const std::string& rProcessCl
 {
     auto pos = mCreatorMap.find(rProcessClassName);
     if (pos == mCreatorMap.end()) {
+        if (mCallBackIfProcessIsUnknown != nullptr) {
+            mCallBackIfProcessIsUnknown(rProcessClassName);
+        }
+
         return nullptr;
     }
 
@@ -35,4 +38,9 @@ void ProcessFactory::AddCreator(const std::string&                            rP
     mCreatorMap[rProcessClassName] = std::move(Creator);
 }
 
+void ProcessFactory::SetCallBackWhenProcessIsUnknown(const std::function<void(const std::string&)>& function)
+{
+    mCallBackIfProcessIsUnknown = function;
 }
+
+} // namespace Kratos

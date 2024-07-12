@@ -64,14 +64,17 @@ class PetrovGalerkinTrainingUtility(object):
         if self.basis_strategy=="jacobian":
             snapshots_matrix = self.GetJacobianPhiMultiplication(computing_model_part)
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
-        elif self.basis_strategy=="residuals":
+        elif self.basis_strategy=="residuals" or self.basis_strategy=="reactions":
             snapshots_matrix = []
             files_to_read_and_delete = glob('*.res.mm')#TODO: Stop writing to disk.
             for to_erase_file in files_to_read_and_delete:
                 non_converged_iteration_snapshot = KratosMultiphysics.Vector()
                 KratosMultiphysics.ReadMatrixMarketVector(to_erase_file, non_converged_iteration_snapshot)
                 snapshots_matrix.append(non_converged_iteration_snapshot)
-            snapshots_matrix = np.array(snapshots_matrix).T
+            if self.basis_strategy == "residuals":
+                snapshots_matrix = np.array(snapshots_matrix).T
+            elif self.basis_strategy == "reactions":
+                snapshots_matrix = -np.array(snapshots_matrix).T # Negate for 'reactions' as they are residuals with opposite sign.
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generating matrix of residuals.")
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either 'jacobian' or 'residuals'."
@@ -84,12 +87,12 @@ class PetrovGalerkinTrainingUtility(object):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
         residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
         delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
-        
+
         self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
-        
+
         right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
-        self.solver._GetBuilderAndSolver().GetRightRomBasis(computing_model_part, right_rom_basis)
-        
+        self.solver._GetBuilderAndSolver().GetRightROMBasis(computing_model_part, right_rom_basis)
+
         jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
         jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
 
@@ -98,8 +101,8 @@ class PetrovGalerkinTrainingUtility(object):
 
     def CalculateAndSaveBasis(self, snapshots_matrix = None):
         # Calculate the new basis and save
-        snapshots_basis = self.__CalculateResidualBasis(snapshots_matrix)
-        self.__AppendNewBasisToRomParameters(snapshots_basis)
+        snapshots_basis = self._CalculateResidualBasis(snapshots_matrix)
+        self._AppendNewBasisToRomParameters(snapshots_basis)
 
 
     @classmethod
@@ -115,7 +118,7 @@ class PetrovGalerkinTrainingUtility(object):
         }""")
         return default_settings
 
-    def __CalculateResidualBasis(self, snapshots_matrix):
+    def _CalculateResidualBasis(self, snapshots_matrix):
         if snapshots_matrix is None:
             snapshots_matrix = self._GetSnapshotsMatrix()
         u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
@@ -132,7 +135,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         return u
 
-    def __AppendNewBasisToRomParameters(self, u):
+    def _AppendNewBasisToRomParameters(self, u):
         petrov_galerkin_number_of_rom_dofs= np.shape(u)[1]
         n_nodal_unknowns = len(self.rom_settings["nodal_unknowns"].GetStringArray())
         petrov_galerkin_nodal_modes = {}
@@ -158,24 +161,22 @@ class PetrovGalerkinTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def __GetPrettyFloat(self, number):
-        float_format = "{:.12f}"
-        pretty_number = float(float_format.format(number))
-        return pretty_number
-
     def __GetGalerkinBasis(self):
-        with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
-            galerkin_rom_parameters = json.load(f)
-            N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
-            N_nodes = len(galerkin_rom_parameters["nodal_modes"])
-            N_Dofs = int(N_Dof_per_node*N_nodes)
-            N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
-            u = np.zeros((N_Dofs,N_Dofs_rom))
-            counter_in = 0
-            for key in galerkin_rom_parameters["nodal_modes"].keys():
-                counter_fin = counter_in + N_Dof_per_node
-                u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
-                counter_in = counter_fin
+        if self.rom_format == "json":
+            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
+                galerkin_rom_parameters = json.load(f)
+                N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
+                N_nodes = len(galerkin_rom_parameters["nodal_modes"])
+                N_Dofs = int(N_Dof_per_node*N_nodes)
+                N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
+                u = np.zeros((N_Dofs,N_Dofs_rom))
+                counter_in = 0
+                for key in galerkin_rom_parameters["nodal_modes"].keys():
+                    counter_fin = counter_in + N_Dof_per_node
+                    u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
+                    counter_in = counter_fin
+        elif self.rom_format == "numpy":
+            u = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
 
         return u
 
@@ -189,10 +190,3 @@ class PetrovGalerkinTrainingUtility(object):
             snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
         return snapshots_matrix
 
-
-    @classmethod
-    def __OrthogonalProjector(self, A, B):
-        # A - B @(B.T @ A)
-        BtA = B.T@A
-        A -= B @ BtA
-        return A

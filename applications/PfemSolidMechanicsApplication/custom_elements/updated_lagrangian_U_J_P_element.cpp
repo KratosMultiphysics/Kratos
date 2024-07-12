@@ -158,7 +158,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -181,7 +181,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -312,7 +312,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUJPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUJPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -336,15 +336,6 @@ namespace Kratos
    //**********************************GET DOUBLE VALUE**********************************
    //************************************************************************************
 
-
-   void UpdatedLagrangianUJPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo )
-   {
-
-      UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-   }
 
    void UpdatedLagrangianUJPElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
@@ -454,27 +445,6 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-   }
-
-   //**********************************GET TENSOR VALUE**********************************
-   //************************************************************************************
-
-   void UpdatedLagrangianUJPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      if ( rVariable == CAUCHY_STRESS_TENSOR)
-      {
-         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-      else {
-
-         UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-
-   }
 
 
    //************* STARTING - ENDING  METHODS

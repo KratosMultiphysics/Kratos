@@ -46,18 +46,26 @@ namespace Testing {
 
         auto& model_part_no_lines = model_part.CreateSubModelPart("NoLines");
 
+        auto& model_part_sub_1 = model_part.CreateSubModelPart("sub_1");
+        auto& model_part_sub_2 = model_part.CreateSubModelPart("sub_2");
+        auto& model_part_sub_sub_1 = model_part_sub_1.CreateSubModelPart("subsub_1");
+        auto& model_part_sub_sub_2 = model_part_sub_2.CreateSubModelPart("subsub_2");
+
         auto p_line_1 = GenerateLineModelPartGeometryContainer();
         p_line_1->SetId(1);
 
         model_part_lines.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 1);
+        model_part_lines.AddGeometry(p_line_1); // adding same geomerty does not fail
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 1);
 
         auto p_line_2 = GenerateLineModelPartGeometryContainer();
         p_line_2->SetId(1);
 
-        // check correct error if multiple geometries with sam id are added
+        // check correct error if multiple geometries with same id are added
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             model_part_lines.AddGeometry(p_line_2),
-            "Geometry with Id: 1 exists already.");
+            "Error: Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists!");
 
         p_line_2->SetId(2);
         model_part_lines.AddGeometry(p_line_2);
@@ -66,6 +74,20 @@ namespace Testing {
         KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 2);
         KRATOS_EXPECT_EQ(model_part.NumberOfGeometries(), 2);
         KRATOS_EXPECT_EQ(model_part_no_lines.NumberOfGeometries(), 0);
+
+        // check adding to SubModelPart and SubSubModelPart
+        // first to SubSub
+        model_part_sub_sub_1.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(model_part_sub_1.NumberOfGeometries(), 1);
+        KRATOS_EXPECT_EQ(model_part_sub_sub_1.NumberOfGeometries(), 1);
+
+        // first to Sub then to SubSub
+        model_part_sub_2.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(model_part_sub_2.NumberOfGeometries(), 1);
+        KRATOS_EXPECT_EQ(model_part_sub_sub_2.NumberOfGeometries(), 0);
+        model_part_sub_sub_2.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(model_part_sub_2.NumberOfGeometries(), 1);
+        KRATOS_EXPECT_EQ(model_part_sub_sub_2.NumberOfGeometries(), 1);
 
         // check adding with string
         auto p_line_3 = GenerateLineModelPartGeometryContainer();

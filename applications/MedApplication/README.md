@@ -19,3 +19,14 @@ Packages related to *Salome* and *MED* for arch-based distros can be installed f
 ```
 sudo pacman -S med-serial med-openmpi
 ```
+
+## Usage
+- In Salome, mesh groups are translated into SubModelParts. Different geometries and nodes can be added.
+- SubSub ... Modelparts can be created by specifying a name with `.`. I.e. like it usually works in Kratos
+- The number of characters is restricted in Med: 64 for main mesh name, and 80 for groups. Everything beyond these limits is cut.
+
+
+## Development
+- Use [HDFView](https://www.hdfgroup.org/downloads/hdfview/) to inspect the med-files.
+- Make sure to check the return value of every med-library function call.
+- The med library does not check if wrong data is written to the file. This must be ensured by the user, the med-library is a thin wrapper around HDF.
