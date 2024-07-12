@@ -331,7 +331,8 @@ public:
 
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+        r_root_mp.GetValue(ROM_CURRENT_SOLUTION_TOTAL) = ZeroVector(GetNumberOfROMModes());
+        r_root_mp.GetValue(ROM_CURRENT_NON_LINEAR_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
 
@@ -357,14 +358,33 @@ public:
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
-    void BuildRHS(
+    void BuildRomRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b) override
+        TSystemVectorType& b)
     {
         KRATOS_TRY
 
         Timer::Start("BuildRHS");
+
+        TSystemVectorType b_fom = b;
+
+        BuildRHSNoDirichlet(pScheme,rModelPart,b_fom);
+
+        Timer::Stop("BuildRHS");
+
+        ProjectRHS_ROM(rModelPart,b_fom,b);
+
+        KRATOS_CATCH("")
+    }
+
+
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb)
+    {
+        KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
@@ -403,7 +423,7 @@ public:
                     RHS_Contribution *= h_rom_weight;
 
                     // Assemble the elemental contribution
-                    BaseType::AssembleRHS(b, RHS_Contribution, EquationId);
+                    BaseType::AssembleRHS( rb, RHS_Contribution, EquationId);
                 }
 
             }
@@ -421,26 +441,14 @@ public:
                     RHS_Contribution *= h_rom_weight;
 
                     // Assemble the elemental contribution
-                    BaseType::AssembleRHS(b, RHS_Contribution, EquationId);
+                    BaseType::AssembleRHS(rb, RHS_Contribution, EquationId);
                 }
             }
         }
 
-        // BuildRHSNoDirichlet(pScheme,rModelPart,b);
-
-        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-        //     const std::size_t i = rDof.EquationId();
-
-        //     if (rDof.IsFixed())
-        //         b[i] = 0.0;
-        // });
-
-        Timer::Stop("BuildRHS");
-
         KRATOS_CATCH("")
     }
-
+    
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType &pA,
@@ -477,6 +485,63 @@ public:
         }
 
         TSparseSpace::SetToZero(r_b);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * Projects the reduced system of equations
+     */
+    void ProjectRHS_ROM(
+        ModelPart &rModelPart,
+        TSystemVectorType &rb,
+        TSystemVectorType &rb_rom)
+    {
+        KRATOS_TRY
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
+
+        rb_rom.resize(GetNumberOfROMModes(), false);
+
+        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb_rom(rb_rom.data().begin(), rb_rom.size());
+
+        // Compute the matrix multiplication
+        eigen_rb_rom = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+
+        KRATOS_CATCH("")
+
+    }
+
+    /**
+     * Projects the reduced system of equations
+     */
+    void ProjectToFullSpace(
+        ModelPart &rModelPart,
+        TSystemVectorType &rDq,
+        TSystemVectorType &rDx)
+    {
+        KRATOS_TRY
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
+
+        Eigen::Map<EigenDynamicVector> eigen_rDq(rDq.data().begin(), rDq.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rDx(rDx.data().begin(), rDx.size());
+
+        // Compute the matrix multiplication
+        eigen_rDx = eigen_mPhiGlobal * eigen_rDq; //TODO: Make it in parallel.
 
         KRATOS_CATCH("")
     }
@@ -892,8 +957,9 @@ protected:
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
+        noalias(r_root_mp.GetValue(ROM_CURRENT_NON_LINEAR_INCREMENT))  = dxrom;
+        noalias(r_root_mp.GetValue(ROM_CURRENT_SOLUTION_TOTAL      )) += dxrom;
+ 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);

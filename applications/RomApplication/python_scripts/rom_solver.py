@@ -98,4 +98,80 @@ def CreateSolver(cls, model, custom_settings):
             if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
+        def _CreateSolutionStrategy(self):
+            strategy_type = self._GetStrategyType()
+            if strategy_type == "linear":
+                solution_strategy = self._CreateLinearStrategy()
+            elif strategy_type == "non_linear":
+                # Create strategy
+                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+                    solution_strategy = self._CreateRomNewtonRaphsonStrategy()
+                elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                    solution_strategy = self._CreateLineSearchStrategy()
+            else:
+                err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
+                raise Exception(err_msg)
+            return solution_strategy
+
+        # def _CreateSolutionStrategy(self):
+        #     analysis_type = self.settings["analysis_type"].GetString()
+        #     if analysis_type == "linear":
+        #         solution_strategy = self._CreateLinearStrategy()
+        #     elif analysis_type == "non_linear":
+        #         solution_strategy = self._CreateRomNewtonRaphsonStrategy()
+        #     else:
+        #         err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+        #         err_msg += "Available options are: \"linear\", \"non_linear\""
+        #         raise Exception(err_msg)
+        #     solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        #     return solution_strategy
+
+        def _CreateRomNewtonRaphsonStrategy(self):
+            computing_model_part = self.GetComputingModelPart()
+            time_scheme = self._GetScheme()
+            convergence_criterion = self._GetConvergenceCriterion()
+            builder_and_solver = self._GetBuilderAndSolver()
+            return KratosROM.RomResidualBasedNewtonRaphsonStrategy(
+                computing_model_part,
+                time_scheme,
+                convergence_criterion,
+                builder_and_solver,
+                self.settings["maximum_iterations"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+
+        def _CreateLineSearchStrategy(self):
+            if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+                settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+                settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+            else:
+                settings = self._GetDefaultLineSearchParameters()
+            settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+            settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+            settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+            settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+            computing_model_part = self.GetComputingModelPart()
+            time_scheme = self._GetScheme()
+            convergence_criterion = self._GetConvergenceCriterion()
+            builder_and_solver = self._GetBuilderAndSolver()
+            solution_strategy = KratosROM.RomLineSearchStrategy(computing_model_part,
+                time_scheme,
+                convergence_criterion,
+                builder_and_solver,
+                settings)
+            return solution_strategy
+
+        @classmethod
+        def _GetDefaultLineSearchParameters(self):
+            default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                    "max_line_search_iterations" : 5,
+                    "first_alpha_value"          : 0.5,
+                    "second_alpha_value"         : 1.0,
+                    "min_alpha"                  : 0.1,
+                    "max_alpha"                  : 2.0,
+                    "line_search_tolerance"      : 0.5
+                }""")
+            return default_line_search_parameters
+        
     return ROMSolver(model, custom_settings)

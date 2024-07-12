@@ -447,7 +447,7 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
                 model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
-                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_CURRENT_SOLUTION_TOTAL)).reshape(-1,1))
                 self.data_base.add_to_database("ROM_q", mu, q)
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -584,7 +584,7 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
                 model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
-                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_CURRENT_SOLUTION_TOTAL)).reshape(-1,1))
                 self.data_base.add_to_database("HROM_q", mu, q)
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -621,7 +621,7 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
                 model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
-                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_CURRENT_SOLUTION_TOTAL)).reshape(-1,1))
                 self.data_base.add_to_database("HHROM_q", mu, q)
                 self.data_base.add_to_database("QoI_HHROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
