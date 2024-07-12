@@ -163,18 +163,18 @@ ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
 
 Triangle2D3<Node> Create2D3NTriangleGeometry()
 {
-    const auto              node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto              node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
-    const auto              node_3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    const auto node_3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
     return {node_1, node_2, node_3};
 }
 
 Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry()
 {
-    const auto              node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto              node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
-    const auto              node_3 = make_intrusive<Node>(3, 0.0, 1.0, 0.0);
-    const auto              node_4 = make_intrusive<Node>(3, 0.0, 0.0, 1.0);
+    const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    const auto node_3 = make_intrusive<Node>(3, 0.0, 1.0, 0.0);
+    const auto node_4 = make_intrusive<Node>(3, 0.0, 0.0, 1.0);
     return {node_1, node_2, node_3, node_4};
 }
 
