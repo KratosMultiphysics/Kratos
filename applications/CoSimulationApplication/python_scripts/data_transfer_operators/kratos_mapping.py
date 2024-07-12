@@ -18,6 +18,9 @@ import KratosMultiphysics.vtk_output_process as vtk_output_process
 # Import the time module
 from time import time
 
+# Import the copy module
+import copy
+
 def Create(*args):
     return KratosMappingDataTransferOperator(*args)
 
@@ -50,14 +53,17 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         model_part_origin, model_part_destination, model_part_origin_name, model_part_destination_name, variable_origin, variable_destination, mapper_flags, identifier_origin, identifier_destination, identifier_tuple, inverse_identifier_tuple = self.__PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
 
         if identifier_tuple in self.__mappers:
-            self.__PostProcessVTK(identifier_tuple, from_solver_data, to_solver_data, transfer_options, True)
+            self.__PostProcessVTKPre(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
-            self.__PostProcessVTK(identifier_tuple, from_solver_data, to_solver_data, transfer_options, False)
+            self.__PostProcessVTKPost(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
         elif inverse_identifier_tuple in self.__mappers:
-            self.__PostProcessVTK(inverse_identifier_tuple, from_solver_data, to_solver_data, transfer_options, True)
+            self.__PostProcessVTKPre(inverse_identifier_tuple, from_solver_data, to_solver_data, transfer_options)
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
-            self.__PostProcessVTK(inverse_identifier_tuple, from_solver_data, to_solver_data, transfer_options, False)
+            self.__PostProcessVTKPost(inverse_identifier_tuple, from_solver_data, to_solver_data, transfer_options)
         else:
+            # Generate VTK output for debugging
+            self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
+
             # Get the model parts
             model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
             model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
@@ -79,9 +85,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             if self.echo_level > 2:
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
-            self.__PostProcessVTK(identifier_tuple, from_solver_data, to_solver_data, transfer_options, True)
+            self.__PostProcessVTKPre(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
-            self.__PostProcessVTK(identifier_tuple, from_solver_data, to_solver_data, transfer_options, False)
+            self.__PostProcessVTKPost(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
@@ -159,7 +165,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             "Parameters" : {
                 "model_part_name"                    : "",
                 "file_format"                        : "ascii",
-                "entity_type"                        : "element",
                 "nodal_solution_step_data_variables" : [],
                 "nodal_data_value_variables"         : [],
                 "output_interval"                    : 1,
@@ -226,8 +231,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             origin_settings["Parameters"]["nodal_data_value_variables"].Append(variable_origin.Name())
         else:
             origin_settings["Parameters"]["nodal_solution_step_data_variables"].Append(variable_origin.Name())
-        if model_part_origin.NumberOfElements() == 0:
-            origin_settings["Parameters"]["entity_type"].SetString("condition")
 
         # Create VTK output settings for the destination model part
         destination_settings = self.__DefaultVTKSettings()
@@ -237,10 +240,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             destination_settings["Parameters"]["nodal_data_value_variables"].Append(variable_destination.Name())
         else:
             destination_settings["Parameters"]["nodal_solution_step_data_variables"].Append(variable_destination.Name())
-        if model_part_destination.NumberOfElements() == 0:
-            destination_settings["Parameters"]["entity_type"].SetString("condition")
 
-        return model_origin, model_destination, origin_settings, destination_settings, identifier_tuple
+        return model_origin, model_destination, origin_settings, destination_settings, variable_origin.Name(), variable_destination.Name(), identifier_tuple, inverse_identifier_tuple
 
     def __GenerateProcessVTK(self, from_solver_data, to_solver_data, transfer_options):
         """
@@ -253,19 +254,34 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             transfer_options (KM.Flags): The flags to be used for the mapping.
         """
         if self.debug_vtk:
-            model_origin, model_destination, origin_settings, destination_settings, identifier_tuple = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
+            model_origin, model_destination, origin_settings, destination_settings, variable_origin_name, variable_destination_name, identifier_tuple, inverse_identifier_tuple = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
+            variable_identifier_tuple = (variable_origin_name, variable_destination_name)
+
+            # Define __debug_vtk_pre if not defined
+            if not hasattr(self, "_KratosMappingDataTransferOperator__debug_vtk_pre"):
+                self.__debug_vtk_pre = {}
+
+            # Define __debug_vtk_post if not defined
+            if not hasattr(self, "_KratosMappingDataTransferOperator__debug_vtk_post"):
+                self.__debug_vtk_post = {}
+
+            # Check if the VTK output processes are already defined
+            current_identifier = None
+            if identifier_tuple in self.__debug_vtk_pre:
+                current_identifier = identifier_tuple
+            elif inverse_identifier_tuple in self.__debug_vtk_pre:
+                current_identifier = inverse_identifier_tuple
+            if current_identifier is None:
+                self.__debug_vtk_pre[identifier_tuple] = {}
+                self.__debug_vtk_post[identifier_tuple] = {}
+                current_identifier = identifier_tuple
 
             # Get the output paths
             origin_output_path = origin_settings["Parameters"]["output_path"].GetString()
             destination_output_path = destination_settings["Parameters"]["output_path"].GetString()
 
-            # Copy settings for pre and post mapping
-            pre_origin_settings = KM.Parameters(origin_settings.PrettyPrintJsonString())
-            post_origin_settings = KM.Parameters(origin_settings.PrettyPrintJsonString())
-            pre_destination_settings = KM.Parameters(destination_settings.PrettyPrintJsonString())
-            post_destination_settings = KM.Parameters(destination_settings.PrettyPrintJsonString())
-
             # Set the output paths
+            pre_origin_settings = copy.deepcopy(origin_settings)
             pre_origin_settings["Parameters"]["output_path"].SetString(origin_output_path + "_pre_map")
 
             # Create a VTK output process object with the provided settings and the current model
@@ -275,6 +291,20 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             pre_process_origin.ExecuteInitializeSolutionStep()
 
             # Set the output paths
+            pre_destination_settings = copy.deepcopy(destination_settings)
+            pre_destination_settings["Parameters"]["output_path"].SetString(destination_output_path + "_pre_map")
+
+            # Create a VTK output process object with the provided settings and the current model
+            pre_process_destination = vtk_output_process.Factory(pre_destination_settings, model_destination)
+            # Initialize and execute the VTK output process
+            pre_process_destination.ExecuteInitialize()
+            pre_process_destination.ExecuteInitializeSolutionStep()
+
+            # Store the VTK output processes for debugging
+            self.__debug_vtk_pre[current_identifier][variable_identifier_tuple] = (pre_process_origin, pre_process_destination)
+
+            # Set the output paths
+            post_origin_settings = copy.deepcopy(origin_settings)
             post_origin_settings["Parameters"]["output_path"].SetString(origin_output_path + "_post_map")
 
             # Create a VTK output process object with the provided settings and the current model
@@ -284,15 +314,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             post_process_origin.ExecuteInitializeSolutionStep()
 
             # Set the output paths
-            pre_destination_settings["Parameters"]["output_path"].SetString(destination_output_path + "_pre_map")
-
-            # Create a VTK output process object with the provided settings and the current model
-            pre_process_destination = vtk_output_process.Factory(pre_destination_settings, model_destination)
-            # Initialize and execute the VTK output process
-            pre_process_destination.ExecuteInitialize()
-            pre_process_destination.ExecuteInitializeSolutionStep()
-
-            # Set the output paths
+            post_destination_settings = copy.deepcopy(destination_settings)
             post_destination_settings["Parameters"]["output_path"].SetString(destination_output_path + "_post_map")
 
             # Create a VTK output process object with the provided settings and the current model
@@ -301,16 +323,12 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             post_process_destination.ExecuteInitialize()
             post_process_destination.ExecuteInitializeSolutionStep()
 
-            # Define __debug_vtk if not defined
-            if not hasattr(self, "__debug_vtk"):
-                self.__debug_vtk = {}
-
             # Store the VTK output processes for debugging
-            self.__debug_vtk[identifier_tuple] = (pre_process_origin, post_process_origin, pre_process_destination, post_process_destination)
+            self.__debug_vtk_post[current_identifier][variable_identifier_tuple] = (post_process_origin, post_process_destination)
 
-    def __PostProcessVTK(self, identifier_tuple, from_solver_data, to_solver_data, transfer_options, pre_map = False):
+    def __GetIdentifier(self, identifier_tuple, from_solver_data, to_solver_data, transfer_options):
         """
-        Execute VTK output processing using provided settings on the specified model part.
+        Gets the identifier used for the postprocess.
 
         Args:
             self: The instance of the class.
@@ -318,33 +336,67 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             from_solver_data (CoSimulationData): The data from the solver to transfer from.
             to_solver_data (CoSimulationData): The data from the solver to transfer to.
             transfer_options (KM.Flags): The flags to be used for the mapping.
-            pre_map (bool): Flag to indicate if the processing is done before or after mapping.
+        """
+        variable_origin = from_solver_data.variable
+        variable_destination = to_solver_data.variable
+        variable_identifier_tuple = (variable_origin.Name(), variable_destination.Name())
+
+        inverse_identifier_tuple = (identifier_tuple[1], identifier_tuple[0])
+        if identifier_tuple in self.__debug_vtk_pre:
+            current_identifier = identifier_tuple
+        elif inverse_identifier_tuple in self.__debug_vtk_pre:
+            current_identifier = inverse_identifier_tuple
+        else:
+            # Generate VTK output for debugging
+            self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
+            if identifier_tuple in self.__debug_vtk_pre:
+                current_identifier = identifier_tuple
+            elif inverse_identifier_tuple in self.__debug_vtk_pre:
+                current_identifier = inverse_identifier_tuple
+            else:
+                raise Exception("Could not generate VTK output for debugging!")
+
+        # Generate VTK output for debugging if not already done
+        if not variable_identifier_tuple in self.__debug_vtk_pre[current_identifier]:
+            # Generate VTK output for debugging
+            self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
+
+        return current_identifier, variable_identifier_tuple
+
+    def __PostProcessVTKPre(self, identifier_tuple, from_solver_data, to_solver_data, transfer_options):
+        """
+        Execute VTK output processing using provided settings on the specified model part. Pre mapping.
+
+        Args:
+            self: The instance of the class.
+            identifier_tuple (tuple): Tuple containing the identifiers of the model parts to be processed.
+            from_solver_data (CoSimulationData): The data from the solver to transfer from.
+            to_solver_data (CoSimulationData): The data from the solver to transfer to.
+            transfer_options (KM.Flags): The flags to be used for the mapping.
         """
         if self.debug_vtk:
-            # Define __debug_vtk if not defined
-            if not hasattr(self, "__debug_vtk"):
-                self.__debug_vtk = {}
-            # Generate VTK output for debugging if not already done
-            inverse_identifier_tuple = (identifier_tuple[1], identifier_tuple[0])
-            if not identifier_tuple in self.__debug_vtk or not inverse_identifier_tuple in self.__debug_vtk:
-                # Generate VTK output for debugging
-                self.__GenerateProcessVTK(from_solver_data, to_solver_data, transfer_options)
+            current_identifier, variable_identifier_tuple = self.__GetIdentifier(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
 
-            # Get the current post process identifier
-            if identifier_tuple in self.__debug_vtk:
-                current_post_process_identifier = identifier_tuple
-            elif inverse_identifier_tuple in self.__debug_vtk:
-                current_post_process_identifier = inverse_identifier_tuple
-            else:
-                raise Exception('Definition not found in the VTK output processes!')
+            self.__debug_vtk_pre[current_identifier][variable_identifier_tuple][0].ExecuteFinalizeSolutionStep()
+            self.__debug_vtk_pre[current_identifier][variable_identifier_tuple][0].PrintOutput()
+            self.__debug_vtk_pre[current_identifier][variable_identifier_tuple][1].ExecuteFinalizeSolutionStep()
+            self.__debug_vtk_pre[current_identifier][variable_identifier_tuple][1].PrintOutput()
 
-            if pre_map:
-                self.__debug_vtk[current_post_process_identifier][0].ExecuteFinalizeSolutionStep()
-                self.__debug_vtk[current_post_process_identifier][0].PrintOutput()
-                self.__debug_vtk[current_post_process_identifier][2].ExecuteFinalizeSolutionStep()
-                self.__debug_vtk[current_post_process_identifier][2].PrintOutput()
-            else:
-                self.__debug_vtk[current_post_process_identifier][1].ExecuteFinalizeSolutionStep()
-                self.__debug_vtk[current_post_process_identifier][1].PrintOutput()
-                self.__debug_vtk[current_post_process_identifier][3].ExecuteFinalizeSolutionStep()
-                self.__debug_vtk[current_post_process_identifier][3].PrintOutput()
+    def __PostProcessVTKPost(self, identifier_tuple, from_solver_data, to_solver_data, transfer_options):
+        """
+        Execute VTK output processing using provided settings on the specified model part. Post mapping.
+
+        Args:
+            self: The instance of the class.
+            identifier_tuple (tuple): Tuple containing the identifiers of the model parts to be processed.
+            from_solver_data (CoSimulationData): The data from the solver to transfer from.
+            to_solver_data (CoSimulationData): The data from the solver to transfer to.
+            transfer_options (KM.Flags): The flags to be used for the mapping.
+        """
+        if self.debug_vtk:
+            current_identifier, variable_identifier_tuple = self.__GetIdentifier(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
+
+            self.__debug_vtk_post[current_identifier][variable_identifier_tuple][0].ExecuteFinalizeSolutionStep()
+            self.__debug_vtk_post[current_identifier][variable_identifier_tuple][0].PrintOutput()
+            self.__debug_vtk_post[current_identifier][variable_identifier_tuple][1].ExecuteFinalizeSolutionStep()
+            self.__debug_vtk_post[current_identifier][variable_identifier_tuple][1].PrintOutput()
