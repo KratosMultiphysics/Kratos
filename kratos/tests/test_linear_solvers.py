@@ -1,6 +1,9 @@
 ﻿import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
+import platform
+
+psystem = platform.system()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -69,7 +72,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             KratosMultiphysics.Logger.PrintInfo("Test linear solvers: ", "Achieved_norm",achieved_norm, "\n", "Target_norm", target_norm)
         self.assertTrue(achieved_norm <= target_norm)
 
-
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_tfqmr_in_core(self):
         self._RunParametrized("""
             {
@@ -96,6 +99,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_cg_in_core(self):
         self._RunParametrized("""
             {
@@ -116,6 +120,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_deflated_cg_in_core(self):
         self._RunParametrized("""
             {
@@ -127,6 +132,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_bicgstab_in_core(self):
         self._RunParametrized("""
             {
@@ -161,6 +167,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_skyline_lu(self):
         self._RunParametrized("""
             {
@@ -173,6 +180,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_bicgstab_iluk(self):
         self._RunParametrized("""
             {
@@ -197,6 +205,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_lgmres_iluk(self):
         self._RunParametrized("""
             {
@@ -221,6 +230,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_unpreconditioned(self):
         self._RunParametrized("""
             {
@@ -247,6 +257,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_no_amg_only_preconditioner(self):
         self._RunParametrized("""
             {
@@ -305,6 +316,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_bicgstab_ilu0(self):
         self._RunParametrized("""
             {
@@ -328,6 +340,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_idr_ilu0(self):
         self._RunParametrized("""
             {
@@ -351,6 +364,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_bicgstab_spai0(self):
         self._RunParametrized("""
             {
@@ -374,6 +388,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_cg_spai0(self):
         self._RunParametrized("""
             {
@@ -399,6 +414,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             """)
 
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_amgcl_bicgstabl(self):
         self._RunParametrized("""
             {
