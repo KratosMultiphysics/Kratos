@@ -81,9 +81,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-      // Adding the membrane element
+      // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mMembraneElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the SPRISM element
       mSolidShellElementSprism3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       // Adding the nodal concentrated element
@@ -545,6 +546,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
     KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
+    KRATOS_REGISTER_ELEMENT("MembraneElement2D2N", mMembraneElement2D2N)
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SolidShellElementSprism3D6N", mSolidShellElementSprism3D6N);
