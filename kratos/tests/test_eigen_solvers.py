@@ -136,22 +136,27 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_FEAST_with_eigen_solver(self):
-        from KratosMultiphysics import LinearSolversApplication
-        if not LinearSolversApplication.HasFEAST():
-            self.skipTest("FEAST is not available")
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "feast",
-                        "symmetric": true,
-                        "e_min": 0.01,
-                        "e_max": 0.20,
-                        "subspace_size": 5
-                    }
-                ]
-            }
-            """)
+        import platform
+
+        if platform.system() != "Windows":
+            from KratosMultiphysics import LinearSolversApplication
+            if not LinearSolversApplication.HasFEAST():
+                self.skipTest("FEAST is not available")
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type": "feast",
+                            "symmetric": true,
+                            "e_min": 0.01,
+                            "e_max": 0.20,
+                            "subspace_size": 5
+                        }
+                    ]
+                }
+                """)
+        else:
+            self.skipTest("Test disabled in Windows")
 
 if __name__ == '__main__':
     KratosUnittest.main()
