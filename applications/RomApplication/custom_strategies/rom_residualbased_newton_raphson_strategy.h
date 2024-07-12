@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY)
-#define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
+#if !defined(KRATOS_ROM_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY)
+#define KRATOS_ROM_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
 // System includes
 #include <iostream>
@@ -53,7 +53,7 @@ namespace Kratos
 
 /**
  * @class RomResidualBasedNewtonRaphsonStrategy
- * @ingroup KratosCore
+ * @ingroup RomApplication
  * @brief This is the base Newton Raphson strategy
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
  * @author Riccardo Rossi
@@ -760,9 +760,9 @@ class RomResidualBasedNewtonRaphsonStrategy
             BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
-        TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+        TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_CURRENT_SOLUTION_TOTAL);
 
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDq, b_rom);
+        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
 
         KRATOS_CATCH("");
     }
@@ -850,7 +850,7 @@ class RomResidualBasedNewtonRaphsonStrategy
             BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
-        mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, b_rom);
+        mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         if (mpConvergenceCriteria->GetActualizeRHSflag()) {
             TSparseSpace::SetToZero(rb);
@@ -1009,9 +1009,9 @@ class RomResidualBasedNewtonRaphsonStrategy
                 BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
             }
 
-            TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+            TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_CURRENT_SOLUTION_TOTAL);
 
-            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDq, b_rom);
+            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
         //Iteration Cycle... performed only for NonLinearProblems
@@ -1092,9 +1092,9 @@ class RomResidualBasedNewtonRaphsonStrategy
                     residual_is_updated = true;
                 }
 
-                TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+                TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_CURRENT_SOLUTION_TOTAL);
 
-                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDq, b_rom);
+                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
         }
 
@@ -1151,19 +1151,11 @@ class RomResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
 
-        Timer::Start("BuildRHS");
+        Timer::Start("BuildRomRHS");
 
         GetBuilderAndSolver()->BuildRHSNoDirichlet(pScheme,rModelPart,rb);
 
-        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-        //     const std::size_t i = rDof.EquationId();
-
-        //     if (rDof.IsFixed())
-        //         b_fom[i] = 0.0;
-        // });
-
-        Timer::Stop("BuildRHS");
+        Timer::Stop("BuildRomRHS");
 
         GetBuilderAndSolver()->ProjectRHS_ROM(rModelPart,rb,rbRom);
 
@@ -1567,4 +1559,4 @@ class RomResidualBasedNewtonRaphsonStrategy
 
 } /* namespace Kratos. */
 
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */
+#endif /* KRATOS_ROM_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */
