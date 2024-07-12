@@ -9,8 +9,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Author:    athira vadakkekkara
-// Note: M - new  one, Principle of strain equivalence, damage driving variables in compression is changed from absolute values of
-// principal strain to absolute values of deviatoric strains
+// Note: M - new  one, Principle of strain equivalence
 
 
 // Project includes
@@ -206,7 +205,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
-        //KRATOS_WATCH(r_strain_vector)
+        KRATOS_WATCH(r_strain_vector)
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
@@ -245,18 +244,14 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             k0c = (10/3)* ft/E;
         }
         BoundedVectorType principal_strains = ZeroVector(3);
-        BoundedVectorType deviatoric_strains = ZeroVector(3);
-        BoundedVectorType damage_driving_variable = ZeroVector(3);
         GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate prinicpal strains
-        GetPrincipalDeviatoricStrains(deviatoric_strains, r_strain_vector, principal_strains);
         for(SizeType i = 0; i < Dimension; ++i) {
             k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
             beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
             beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
-            damage_driving_variable[i] =  (principal_strains[i] > eps) ? principal_strains[i] : fabs(deviatoric_strains[i]);
-            max_history_e[i] = std::max(mStrainVariables[i], damage_driving_variable[i]);
+            max_history_e[i] = std::max(mStrainVariables[i], fabs(principal_strains[i]));
             kappa[i]       = std::max(max_history_e[i], k0[i]);
-            F[i]           = damage_driving_variable[i]-kappa[i];
+            F[i]           = fabs(principal_strains[i])-kappa[i];
         }
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
@@ -271,7 +266,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
                 damage_vector[i] = 0.0;
             }
         }
-        //KRATOS_WATCH(damage_vector)
+        KRATOS_WATCH(damage_vector)
         if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
             CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
             noalias(r_stress_vector) = prod(EffStiffnessMatrix,r_strain_vector);
@@ -294,9 +289,9 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         }
         rDamageVector = damage_vector;
         rStrainVariables = max_history_e;
-        //KRATOS_WATCH(r_stress_vector)
-        //KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
-        //KRATOS_WATCH("-------------------------------------------");
+        KRATOS_WATCH(r_stress_vector)
+        KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
+        KRATOS_WATCH("-------------------------------------------");
         }
     KRATOS_CATCH("")
 }
@@ -344,28 +339,8 @@ void ElasticAnisotropicDamage::GetEigenValues(
     Pri_Values[2] = EigenValues(2,2);
     KRATOS_CATCH("")
 }
-
 /***********************************************************************************/
 /***********************************************************************************/
-
-void ElasticAnisotropicDamage::GetPrincipalDeviatoricStrains(
-    BoundedVectorType& PrincipalDeviatoricStrains,
-    const Vector& StrainVector,
-    const BoundedVectorType& PrincipalStrains
-    )
-{
-    KRATOS_TRY
-    const double trace = StrainVector[0] + StrainVector[1] + StrainVector[2];
-    const double hydrostatic_strain = trace/3;
-    for (SizeType i = 0; i < Dimension; ++i){
-        PrincipalDeviatoricStrains[i] = PrincipalStrains[i] - hydrostatic_strain;
-    }
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ElasticAnisotropicDamage::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY

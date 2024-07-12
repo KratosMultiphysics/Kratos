@@ -314,14 +314,7 @@ protected:
                         const Vector& VectorForm);
 
     ///@}
-    /**
-     * @brief
-     *
-     */
-    void GetPrincipalDeviatoricStrains(BoundedVectorType& PrincipalDeviatoricStrains,
-                                         const Vector& StrainVector,
-                                         const BoundedVectorType& PrincipalStrains
-                                         );
+
     /**
      * @brief This method calculates the linearized tangent operator
      */
