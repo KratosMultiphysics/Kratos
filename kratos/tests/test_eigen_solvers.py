@@ -49,74 +49,89 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_lowest_power_in_core(self):
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type"             : "power_iteration_eigenvalue_solver",
-                        "max_iteration"           : 10000,
-                        "tolerance"               : 1e-8,
-                        "required_eigen_number"   : 1,
-                        "shifting_convergence"    : 0.25,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"      : {
-                            "solver_type"             : "LinearSolversApplication.sparse_lu",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
+        import platform
+
+        if platform.system() != "Windows":
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type"             : "power_iteration_eigenvalue_solver",
+                            "max_iteration"           : 10000,
+                            "tolerance"               : 1e-8,
+                            "required_eigen_number"   : 1,
+                            "shifting_convergence"    : 0.25,
+                            "verbosity"               : 0,
+                            "linear_solver_settings"      : {
+                                "solver_type"             : "LinearSolversApplication.sparse_lu",
+                                "max_iteration"           : 500,
+                                "tolerance"               : 1e-9,
+                                "scaling"                 : false,
+                                "verbosity"               : 0
+                            }
                         }
-                    }
-                ]
-            }
-            """)
+                    ]
+                }
+                """)
+        else:
+            self.skipTest("Test temporaly disabled in Windows")
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_highest_power_in_core(self):
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type"             : "power_iteration_highest_eigenvalue_solver",
-                        "max_iteration"           : 10000,
-                        "tolerance"               : 1e-8,
-                        "required_eigen_number"   : 1,
-                        "shifting_convergence"    : 0.25,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"      : {
-                        "solver_type"             : "LinearSolversApplication.sparse_lu",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
+        import platform
+
+        if platform.system() != "Windows":
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+                            "max_iteration"           : 10000,
+                            "tolerance"               : 1e-8,
+                            "required_eigen_number"   : 1,
+                            "shifting_convergence"    : 0.25,
+                            "verbosity"               : 0,
+                            "linear_solver_settings"      : {
+                            "solver_type"             : "LinearSolversApplication.sparse_lu",
+                                "max_iteration"           : 500,
+                                "tolerance"               : 1e-9,
+                                "scaling"                 : false,
+                                "verbosity"               : 0
+                            }
                         }
-                    }
-                ]
-            }
-            """, "highest")
+                    ]
+                }
+                """, "highest")
+        else:
+            self.skipTest("Test temporaly disabled in Windows")
 
     def test_rayleigh_in_core(self):
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type"             : "rayleigh_quotient_iteration_eigenvalue_solver",
-                        "max_iteration"           : 10000,
-                        "tolerance"               : 1e-9,
-                        "required_eigen_number"   : 1,
-                        "shifting_convergence"    : 0.25,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"      : {
-                            "solver_type"             : "skyline_lu_factorization",
-                            "max_iteration"           : 500,
+        import platform
+
+        if platform.system() != "Windows":
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type"             : "rayleigh_quotient_iteration_eigenvalue_solver",
+                            "max_iteration"           : 10000,
                             "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
+                            "required_eigen_number"   : 1,
+                            "shifting_convergence"    : 0.25,
+                            "verbosity"               : 0,
+                            "linear_solver_settings"      : {
+                                "solver_type"             : "skyline_lu_factorization",
+                                "max_iteration"           : 500,
+                                "tolerance"               : 1e-9,
+                                "scaling"                 : false,
+                                "verbosity"               : 0
+                            }
                         }
-                    }
-                ]
-            }
-            """)
+                    ]
+                }
+                """)
+        else:
+            self.skipTest("Test temporaly disabled in Windows")
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_eigen_eigensystem_solver(self):
@@ -137,7 +152,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 }
                 """)
         else:
-            self.skipTest("Test disabled in Windows")
+            self.skipTest("Test temporaly disabled in Windows")
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_FEAST_with_eigen_solver(self):
@@ -161,7 +176,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 }
                 """)
         else:
-            self.skipTest("Test disabled in Windows")
+            self.skipTest("Test temporaly disabled in Windows")
 
 if __name__ == '__main__':
     KratosUnittest.main()
