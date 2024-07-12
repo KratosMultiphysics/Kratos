@@ -178,7 +178,8 @@ void GeoOutputWriter::CalculateNodalHydraulicHead(ModelPart& rModelPart)
             rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
         }
     }
-    mGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), 0);
+
+    mGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), rModelPart.GetProcessInfo()[TIME]);
 }
 
 void GeoOutputWriter::FinalizeResults() { mGidIO.FinalizeResults(); }

@@ -18,8 +18,8 @@
 #include "custom_workflows/custom_workflow_factory.h"
 #include "custom_workflows/dgeosettlement.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
 #include "test_utilities.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 

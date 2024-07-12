@@ -48,6 +48,7 @@ namespace Kratos
  * @brief This is the Timoshenko beam element of 2 nodes. Reference: Felippa and Oñate,
  * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
  * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
+ * DOI: https://doi.org/10.1007/s11831-020-09515-0
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
@@ -77,7 +78,7 @@ public:
     // Constructor using an array of nodes
     LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Constructor using an array of nodes with properties
@@ -85,7 +86,7 @@ public:
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Copy constructor
@@ -125,10 +126,18 @@ public:
     }
 
     /**
-     * @brief Returns a 6 component vector including the values of the DoFs
-     * in LOCAL axes
+     * @brief This method returns the angle of the FE axis
      */
-    void GetNodalValuesVector(VectorType& rNodalValue);
+    double GetAngle() const
+    {
+        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    }
+
+    /**
+     * @brief Returns a 6 component vector including the values of the DoFs
+     * in LOCAL beam axes
+     */
+    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -137,9 +146,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
@@ -148,12 +157,12 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    virtual double CalculateLength()
+    double CalculateLength() const
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
@@ -163,7 +172,7 @@ public:
      * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
      * @param rLocalSizeVector The 4 local components of v and theta
      */
-    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[1] = rLocalSizeVector[0];
@@ -265,10 +274,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const {};
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
@@ -278,8 +288,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -289,15 +299,15 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateLHS(
+    virtual void RotateLHS(
         MatrixType &rLHS,
         const GeometryType &rGeometry);
 
@@ -306,7 +316,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateRHS(
+    virtual void RotateRHS(
         VectorType &rRHS,
         const GeometryType &rGeometry);
 
@@ -316,7 +326,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateAll(
+    virtual void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
         const GeometryType &rGeometry);
@@ -330,7 +340,7 @@ public:
     array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber);
+        const IndexType PointNumber) const;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -415,7 +425,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Timoshenko 2N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -437,7 +447,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
+    IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
