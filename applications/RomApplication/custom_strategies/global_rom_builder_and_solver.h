@@ -209,6 +209,9 @@ public:
             auto dof_iterator = r_dof_set.begin() + Index;
             dof_iterator->SetEquationId(Index);
         });
+
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.GetValue(NUMBER_OF_ROM_MODES) = mNumberOfRomModes;
     }
 
     // Vector ProjectToReducedBasis(
@@ -230,6 +233,10 @@ public:
     //     return rom_unknowns;
 	// }
 
+    /**
+     * @brief Function to get the number of modes being used in the ROM solver.
+     * @details It returns the information from the private mNumberOfRomModes global variable.
+     */
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
@@ -351,7 +358,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
     /**
      * @brief Function to perform the build of the RHS.
      * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
@@ -361,15 +367,14 @@ public:
     void BuildRomRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b)
+        TSystemVectorType& rb,
+        TSystemVectorType& rbRom)
     {
         KRATOS_TRY
 
         Timer::Start("BuildRHS");
 
-        TSystemVectorType b_fom = b;
-
-        BuildRHSNoDirichlet(pScheme,rModelPart,b_fom);
+        BuildRHSNoDirichlet(pScheme,rModelPart,rb);
 
         // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
@@ -381,91 +386,12 @@ public:
 
         Timer::Stop("BuildRHS");
 
-        ProjectRHS_ROM(rModelPart,b_fom,b);
+        ProjectRHS_ROM(rModelPart,rb,rbRom);
 
 
         KRATOS_CATCH("")
     }
-
-
-    void BuildRHSNoDirichlet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& rb)
-    {
-        KRATOS_TRY
-
-        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
-
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        // // Getting the elements from the model
-        const int nelements = mHromSimulation ? mSelectedElements.size() : rModelPart.Elements().size();
-
-        // // Getting the array of the conditions
-        const int nconditions = mHromSimulation ? mSelectedConditions.size() : rModelPart.Conditions().size();
-
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = mHromSimulation ? mSelectedElements.begin() : rModelPart.Elements().begin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = mHromSimulation ? mSelectedConditions.begin() : rModelPart.Conditions().begin();
-
-        //contributions to the system
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // Assemble all elements
-        const auto timer = BuiltinTimer();
-
-        #pragma omp parallel firstprivate(nelements,nconditions, RHS_Contribution, EquationId )
-        {
-            # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++) {
-                auto it_elem = el_begin + k;
-
-                if (it_elem->IsActive()) {
-                    // Calculate elemental contribution
-                    pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
-                    RHS_Contribution *= h_rom_weight;
-
-                    // Assemble the elemental contribution
-                    BaseType::AssembleRHS( rb, RHS_Contribution, EquationId);
-                }
-
-            }
-
-            #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++) {
-                auto it_cond = cond_begin + k;
-
-                if (it_cond->IsActive()) {
-                    // Calculate elemental contribution
-                    pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //Get HROM weight and multiply it by its contribution
-                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
-                    RHS_Contribution *= h_rom_weight;
-
-                    // Assemble the elemental contribution
-                    BaseType::AssembleRHS(rb, RHS_Contribution, EquationId);
-                }
-            }
-        }
-
-        //TODO fix promts
-        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
-
-        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
-
-        KRATOS_CATCH("")
-
-    }
-
+    
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType &pA,
@@ -593,6 +519,7 @@ protected:
 
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
+
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
 
@@ -893,7 +820,88 @@ protected:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Function to perform the build of the RHS without applying Dirichlet conditions yet.
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb)
+    {
+        KRATOS_TRY
 
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // // Getting the elements from the model
+        const int nelements = mHromSimulation ? mSelectedElements.size() : rModelPart.Elements().size();
+
+        // // Getting the array of the conditions
+        const int nconditions = mHromSimulation ? mSelectedConditions.size() : rModelPart.Conditions().size();
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = mHromSimulation ? mSelectedElements.begin() : rModelPart.Elements().begin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = mHromSimulation ? mSelectedConditions.begin() : rModelPart.Conditions().begin();
+
+        //contributions to the system
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // Assemble all elements
+        const auto timer = BuiltinTimer();
+
+        #pragma omp parallel firstprivate(nelements,nconditions, RHS_Contribution, EquationId )
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++) {
+                auto it_elem = el_begin + k;
+
+                if (it_elem->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //Get HROM weight and multiply it by its contribution
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    RHS_Contribution *= h_rom_weight;
+
+                    // Assemble the elemental contribution
+                    BaseType::AssembleRHS( rb, RHS_Contribution, EquationId);
+                }
+
+            }
+
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++) {
+                auto it_cond = cond_begin + k;
+
+                if (it_cond->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //Get HROM weight and multiply it by its contribution
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    RHS_Contribution *= h_rom_weight;
+
+                    // Assemble the elemental contribution
+                    BaseType::AssembleRHS(rb, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        //TODO fix promts
+        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+
+        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+
+        KRATOS_CATCH("")
+
+    }
 
     /**
      * Projects the reduced system of equations

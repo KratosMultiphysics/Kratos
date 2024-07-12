@@ -26,6 +26,8 @@
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
 #include "custom_strategies/global_rom_builder_and_solver.h"
 
 namespace Kratos
@@ -83,8 +85,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
     typedef RomResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
-    typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
-    // typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -106,7 +107,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    // typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> GlobalROMBuilderAndSolverType;
+    typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> GlobalROMBuilderAndSolverType;
 
     ///@}
     ///@name Life Cycle
@@ -194,7 +195,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
+            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -334,7 +335,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
+            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -763,7 +764,7 @@ class RomResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rb);
             TSparseSpace::SetToZero(b_rom);
 
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            dynamic_cast<GlobalROMBuilderAndSolverType*>(GetBuilderAndSolver().get())->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
         TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
@@ -853,7 +854,7 @@ class RomResidualBasedNewtonRaphsonStrategy
         {
             TSparseSpace::SetToZero(rb);
             TSparseSpace::SetToZero(b_rom);
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            dynamic_cast<GlobalROMBuilderAndSolverType*>(GetBuilderAndSolver().get())->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
         mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, b_rom);
@@ -984,7 +985,7 @@ class RomResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rb);
 
             TSparseSpace::SetToZero(b_rom);
-            GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+            dynamic_cast<GlobalROMBuilderAndSolverType*>(GetBuilderAndSolver().get())->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
         // Debugging info
@@ -1011,7 +1012,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
                 TSparseSpace::SetToZero(b_rom);
 
-                GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+                dynamic_cast<GlobalROMBuilderAndSolverType*>(GetBuilderAndSolver().get())->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
             }
 
             TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
@@ -1093,7 +1094,7 @@ class RomResidualBasedNewtonRaphsonStrategy
 
                     TSparseSpace::SetToZero(b_rom);
 
-                    GetBuilderAndSolver()->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
+                    dynamic_cast<GlobalROMBuilderAndSolverType*>(GetBuilderAndSolver().get())->BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
                     residual_is_updated = true;
                 }
 

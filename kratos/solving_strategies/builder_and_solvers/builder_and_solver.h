@@ -286,26 +286,6 @@ public:
     {
     }
 
-    virtual SizeType GetNumberOfROMModes() const noexcept
-    {
-    }
-
-    virtual void ProjectRHS_ROM(
-        ModelPart &rModelPart,
-        TSystemVectorType &rb,
-        TSystemVectorType &rb_rom)
-    {
-    }
-
-
-    virtual void BuildRHSNoDirichlet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& rb)
-    {
-
-    }
-
     /**
      * @brief equivalent (but generally faster) then performing BuildLHS and BuildRHS
      * @param pScheme The pointer to the integration scheme
