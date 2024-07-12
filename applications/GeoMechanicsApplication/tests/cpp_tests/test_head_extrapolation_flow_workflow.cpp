@@ -18,7 +18,6 @@
 #include "flow_stubs.h"
 #include "geo_mechanics_fast_suite.h"
 #include "test_utilities.h"
-#include "testing/testing.h"
 
 namespace
 {
