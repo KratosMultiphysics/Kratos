@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_1"
+            "input_filename":   "geo_truss_with_reset_displacement"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
