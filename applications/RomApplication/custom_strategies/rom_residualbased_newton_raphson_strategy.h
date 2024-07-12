@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "rom_application_variables.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
@@ -51,7 +52,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedNewtonRaphsonStrategy
+ * @class RomResidualBasedNewtonRaphsonStrategy
  * @ingroup KratosCore
  * @brief This is the base Newton Raphson strategy
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
@@ -61,7 +62,7 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class ResidualBasedNewtonRaphsonStrategy
+class RomResidualBasedNewtonRaphsonStrategy
     : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
@@ -70,13 +71,13 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
     // Counted pointer of ClassName
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedNewtonRaphsonStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(RomResidualBasedNewtonRaphsonStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
     typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    typedef RomResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
@@ -107,7 +108,7 @@ class ResidualBasedNewtonRaphsonStrategy
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedNewtonRaphsonStrategy() : BaseType()
+    explicit RomResidualBasedNewtonRaphsonStrategy() : BaseType()
     {
     }
 
@@ -116,8 +117,8 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart)
-        : ResidualBasedNewtonRaphsonStrategy(rModelPart, ResidualBasedNewtonRaphsonStrategy::GetDefaultParameters())
+    explicit RomResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart)
+        : RomResidualBasedNewtonRaphsonStrategy(rModelPart, RomResidualBasedNewtonRaphsonStrategy::GetDefaultParameters())
     {
     }
 
@@ -126,7 +127,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+    explicit RomResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -145,7 +146,7 @@ class ResidualBasedNewtonRaphsonStrategy
             // be reshaped at each step or not
             p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
         } else {
-            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
+            KRATOS_WARNING("RomResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
         }
 
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
@@ -164,7 +165,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    explicit ResidualBasedNewtonRaphsonStrategy(
+    explicit RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -219,7 +220,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    explicit ResidualBasedNewtonRaphsonStrategy(
+    explicit RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -276,7 +277,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
     KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    explicit ResidualBasedNewtonRaphsonStrategy(
+    explicit RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -286,11 +287,11 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+        : RomResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY
 
-        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
+        KRATOS_WARNING("RomResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
 
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
@@ -310,7 +311,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param Settings Settings used in the strategy
      */
-    ResidualBasedNewtonRaphsonStrategy(
+    RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -357,7 +358,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewBuilderAndSolver The builder and solver employed
      * @param Settings Settings used in the strategy
      */
-    ResidualBasedNewtonRaphsonStrategy(
+    RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -407,18 +408,18 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param Parameters Settings used in the strategy
      */
     KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    ResidualBasedNewtonRaphsonStrategy(
+    RomResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters Settings)
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, Settings)
+        : RomResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, Settings)
     {
         KRATOS_TRY
 
-        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
+        KRATOS_WARNING("RomResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
 
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
@@ -434,7 +435,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~ResidualBasedNewtonRaphsonStrategy() override
+    ~RomResidualBasedNewtonRaphsonStrategy() override
     {
         // If the linear solver has not been deallocated, clean it before
         // deallocating mpA. This prevents a memory error with the the ML
@@ -746,13 +747,22 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb = *mpb;
 
+        TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
+        TSparseSpace::SetToZero(b_rom);
+
         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             TSparseSpace::SetToZero(rb);
-            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
+
+            TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
+            TSparseSpace::SetToZero(b_rom);
+
+            BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
+        TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+
+        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDq, b_rom);
 
         KRATOS_CATCH("");
     }
@@ -784,7 +794,7 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_TRY;
 
         KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
-        KRATOS_WATCH('FomStrategy')
+        KRATOS_WATCH('RomStrategy')
         KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
 
         // Pointers needed in the solution
@@ -800,29 +810,31 @@ class ResidualBasedNewtonRaphsonStrategy
             // Setting up the list of the DOFs to be solved
             BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
+            KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
                 << setup_dofs_time << std::endl;
 
             // Shaping correctly the system
             BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
+            KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
                 << setup_system_time << std::endl;
 
             // Setting up the Vectors involved to the correct size
             BuiltinTimer system_matrix_resize_time;
             p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                 r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
+            KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
                 << system_matrix_resize_time << std::endl;
         }
 
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
+        KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
             << system_construction_time << std::endl;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
+        TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
+
 
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
@@ -834,10 +846,11 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mpConvergenceCriteria->GetActualizeRHSflag())
         {
             TSparseSpace::SetToZero(rb);
-            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+            TSparseSpace::SetToZero(b_rom);
+            BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
-        mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+        mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, b_rom);
 
         if (mpConvergenceCriteria->GetActualizeRHSflag()) {
             TSparseSpace::SetToZero(rb);
@@ -939,6 +952,7 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
+        TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
 
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
@@ -963,7 +977,9 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            TSystemVectorType b_rom(GetBuilderAndSolver()->GetNumberOfROMModes());
+            TSparseSpace::SetToZero(b_rom);
+            BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
         }
 
         // Debugging info
@@ -982,13 +998,20 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         if (is_converged) {
+
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+
                 TSparseSpace::SetToZero(rb);
 
-                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+
+                TSparseSpace::SetToZero(b_rom);
+
+                BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
             }
 
-            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+            TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+
+            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDq, b_rom);
         }
 
         //Iteration Cycle... performed only for NonLinearProblems
@@ -1062,11 +1085,16 @@ class ResidualBasedNewtonRaphsonStrategy
                 {
                     TSparseSpace::SetToZero(rb);
 
-                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+
+                    TSparseSpace::SetToZero(b_rom);
+
+                    BuildRomRHS(GetScheme(), BaseType::GetModelPart(), rb, b_rom);
                     residual_is_updated = true;
                 }
 
-                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+                TSystemVectorType rDq = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+
+                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDq, b_rom);
             }
         }
 
@@ -1074,7 +1102,7 @@ class ResidualBasedNewtonRaphsonStrategy
         if (iteration_number >= mMaxIterationNumber) {
             MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
@@ -1108,6 +1136,42 @@ class ResidualBasedNewtonRaphsonStrategy
 
         return is_converged;
     }
+
+    /**
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRomRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb,
+        TSystemVectorType& rbRom)
+    {
+        KRATOS_TRY
+
+        Timer::Start("BuildRHS");
+
+        GetBuilderAndSolver()->BuildRHSNoDirichlet(pScheme,rModelPart,rb);
+
+        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+        //     const std::size_t i = rDof.EquationId();
+
+        //     if (rDof.IsFixed())
+        //         b_fom[i] = 0.0;
+        // });
+
+        Timer::Stop("BuildRHS");
+
+        GetBuilderAndSolver()->ProjectRHS_ROM(rModelPart,rb,rbRom);
+
+
+        KRATOS_CATCH("")
+    }
+
+
 
     /**
      * @brief Function to perform expensive checks.
@@ -1239,7 +1303,7 @@ class ResidualBasedNewtonRaphsonStrategy
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualBasedNewtonRaphsonStrategy";
+        return "RomResidualBasedNewtonRaphsonStrategy";
     }
 
     /// Print information about this object.
@@ -1421,7 +1485,7 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     virtual void MaxIterationsExceeded()
     {
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+        KRATOS_INFO_IF("RomResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
     }
@@ -1488,11 +1552,11 @@ class ResidualBasedNewtonRaphsonStrategy
      * Copy constructor.
      */
 
-    ResidualBasedNewtonRaphsonStrategy(const ResidualBasedNewtonRaphsonStrategy &Other){};
+    RomResidualBasedNewtonRaphsonStrategy(const RomResidualBasedNewtonRaphsonStrategy &Other){};
 
     ///@}
 
-}; /* Class ResidualBasedNewtonRaphsonStrategy */
+}; /* Class RomResidualBasedNewtonRaphsonStrategy */
 
 ///@}
 

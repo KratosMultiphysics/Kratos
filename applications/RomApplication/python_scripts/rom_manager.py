@@ -50,7 +50,7 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
+                if self.general_rom_manager_parameters["ROM"]["Parameters"]["print_singular_values"].GetBool() == False:
                     err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
                     raise Exception(err_msg)
                 self._LaunchTrainROM(mu_train)
@@ -442,7 +442,7 @@ class RomManager(object):
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-            self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
+            self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
             if simulation is None:
                 HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             else:
@@ -618,14 +618,14 @@ class RomManager(object):
 
 
     def _AddHromParametersToRomParameters(self,f):
-        f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
-        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
-        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.hrom_training_parameters["create_hrom_visualization_model_part"].GetBool()
-        f["hrom_settings"]["echo_level"] = self.hrom_training_parameters["echo_level"].GetInt()
-        f["hrom_settings"]["include_condition_parents"] = self.hrom_training_parameters["include_condition_parents"].GetBool()
-        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.hrom_training_parameters["initial_candidate_elements_model_part_list"].GetStringArray()
-        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.hrom_training_parameters["initial_candidate_conditions_model_part_list"].GetStringArray()
-        f["hrom_settings"]["constraint_sum_weights"] = self.hrom_training_parameters["constraint_sum_weights"].GetBool()
+        f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
+        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
+        f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool()
+        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray()
+        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_conditions_model_part_list"].GetStringArray()
+        f["hrom_settings"]["constraint_sum_weights"] = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
@@ -767,7 +767,11 @@ class RomManager(object):
     def _AddBasisCreationToProjectParameters(self, parameters):
         #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.rom_training_parameters
         parameters["output_processes"].AddEmptyArray("rom_output")
-        parameters["output_processes"]["rom_output"].Append(self.rom_training_parameters)
+        rom_basis_parameters = self._SetUpRomBasisParameters()
+        if self.general_rom_manager_parameters["ROM"]["analysis_stage"].GetString() == "":
+            current_analysis_stage = parameters["analysis_stage"].GetString()
+            self.general_rom_manager_parameters["ROM"]["analysis_stage"].SetString(current_analysis_stage)
+        parameters["output_processes"]["rom_output"].Append(rom_basis_parameters)
 
         return parameters
 
@@ -819,6 +823,7 @@ class RomManager(object):
             "output_name": "id",                         // "id" , "mu"
             "store_nonconverged_fom_solutions": false,
             "ROM":{
+                "analysis_stage" : "",
                 "svd_truncation_tolerance": 1e-5,
                 "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
                 "nodal_unknowns": ["DISPLACEMENT_X","DISPLACEMENT_Y"],     // Main unknowns. Snapshots are taken from these
@@ -862,18 +867,24 @@ class RomManager(object):
                 }
             },
             "HROM":{
+                "hrom_format": "numpy",
                 "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 0,
+                "element_selection_svd_truncation_tolerance": 1.0e-6,
+                "echo_level" : 0,
                 "create_hrom_visualization_model_part" : true,
-                "echo_level" : 0
+                "projection_strategy": "galerkin",
+                "include_conditions_model_parts_list": [],
+                "include_elements_model_parts_list": [],
+                "initial_candidate_elements_model_part_list" : [],
+                "initial_candidate_conditions_model_part_list" : [],
+                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_minimum_condition": false,
+                "include_condition_parents": false,
+                "constraint_sum_weights": true
             }
         }""")
 
         self.general_rom_manager_parameters.RecursivelyValidateAndAssignDefaults(default_settings)
-
-        self.rom_training_parameters = self._SetRomTrainingParameters()
-        self.hrom_training_parameters = self.SetHromTrainingParameters()
-
 
     def DefaultCustomizeSimulation(self, cls, global_model, parameters):
         # Default function that does nothing special
@@ -927,13 +938,15 @@ class RomManager(object):
         #     json.dump(data, f, indent=4)
         #     f.truncate()
 
-    def _SetRomTrainingParameters(self):
+    def _SetUpRomBasisParameters(self):
         defaults = self._GetDefaulRomBasisOutputParameters()
         defaults["Parameters"]["rom_manager"].SetBool(True)  # Set the flag to true when inside the RomManager to trigger particular behavior for multiple parameters
+
 
         rom_params = self.general_rom_manager_parameters["ROM"]
 
         keys_to_copy = [
+            "analysis_stage",
             "svd_truncation_tolerance",
             "model_part_name",
             "rom_basis_output_format",
@@ -993,7 +1006,8 @@ class RomManager(object):
                 "help"          : "This process should write the Rom basis",
                 "Parameters"    :
                 {
-                    "model_part_name": "",
+                    "analysis_stage" : "",     // can we get this automatically?
+                    "model_part_name": "",    // if so, we might not need to ask for this
                     "rom_manager" : false,      // set to false for manual manipulation of ROM via flags in the RomParameters
                     "snapshots_control_type": "step",
                     "snapshots_interval": 1.0,
@@ -1006,26 +1020,6 @@ class RomManager(object):
                 }
             }""")
         return rom_training_parameters
-
-
-    def _GetDefaulHromTrainingParameters(self):
-        hrom_training_parameters = KratosMultiphysics.Parameters("""{
-                "hrom_format": "numpy",
-                "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 1.0e-6,
-                "echo_level" : 0,
-                "create_hrom_visualization_model_part" : true,
-                "projection_strategy": "galerkin",
-                "include_conditions_model_parts_list": [],
-                "include_elements_model_parts_list": [],
-                "initial_candidate_elements_model_part_list" : [],
-                "initial_candidate_conditions_model_part_list" : [],
-                "include_nodal_neighbouring_elements_model_parts_list":[],
-                "include_minimum_condition": false,
-                "include_condition_parents": false,
-                "constraint_sum_weights": true
-            }""")
-        return hrom_training_parameters
 
 
     def SetUpQuantityOfInterestContainers(self):

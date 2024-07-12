@@ -28,6 +28,7 @@
 
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
+#include "custom_strategies/rom_residualbased_newton_raphson_strategy.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
@@ -51,6 +52,42 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+
+    //********************************************************************
+    //********************************************************************
+
+    typedef RomResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > RomResidualBasedNewtonRaphsonStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ImplicitSolvingStrategyType;
+    typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
+
+    py::class_< RomResidualBasedNewtonRaphsonStrategyType, typename RomResidualBasedNewtonRaphsonStrategyType::Pointer, ImplicitSolvingStrategyType >
+        (m,"RomResidualBasedNewtonRaphsonStrategy")
+        .def(py::init<ModelPart&, Parameters >() )
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters>())
+        .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+                KRATOS_WARNING("RomResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                return std::shared_ptr<RomResidualBasedNewtonRaphsonStrategyType>(new RomResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+            }))
+        .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, Parameters Settings) {
+                KRATOS_WARNING("RomResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                return std::shared_ptr<RomResidualBasedNewtonRaphsonStrategyType>(new RomResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, Settings));
+            }))
+        .def("SetMaxIterationNumber", &RomResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+        .def("GetMaxIterationNumber", &RomResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+        .def("SetKeepSystemConstantDuringIterations", &RomResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+        .def("GetKeepSystemConstantDuringIterations", &RomResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+        .def("SetInitializePerformedFlag", &RomResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+        .def("GetInitializePerformedFlag", &RomResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+        .def("SetUseOldStiffnessInFirstIterationFlag", &RomResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+        .def("GetUseOldStiffnessInFirstIterationFlag", &RomResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+        .def("SetReformDofSetAtEachStepFlag", &RomResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
+        .def("GetReformDofSetAtEachStepFlag", &RomResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
+        .def("GetNonconvergedSolutions", &RomResidualBasedNewtonRaphsonStrategyType::GetNonconvergedSolutions)
+        .def("SetUpNonconvergedSolutionsFlag", &RomResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsFlag)
+        ;
 
     //********************************************************************
     //********************************************************************

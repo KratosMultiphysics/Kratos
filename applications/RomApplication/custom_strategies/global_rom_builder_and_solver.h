@@ -351,6 +351,121 @@ public:
         KRATOS_CATCH("")
     }
 
+
+    /**
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRomRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        Timer::Start("BuildRHS");
+
+        TSystemVectorType b_fom = b;
+
+        BuildRHSNoDirichlet(pScheme,rModelPart,b_fom);
+
+        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+        //     const std::size_t i = rDof.EquationId();
+
+        //     if (rDof.IsFixed())
+        //         b_fom[i] = 0.0;
+        // });
+
+        Timer::Stop("BuildRHS");
+
+        ProjectRHS_ROM(rModelPart,b_fom,b);
+
+
+        KRATOS_CATCH("")
+    }
+
+
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb)
+    {
+        KRATOS_TRY
+
+        KRATOS_WATCH('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // // Getting the elements from the model
+        const int nelements = mHromSimulation ? mSelectedElements.size() : rModelPart.Elements().size();
+
+        // // Getting the array of the conditions
+        const int nconditions = mHromSimulation ? mSelectedConditions.size() : rModelPart.Conditions().size();
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = mHromSimulation ? mSelectedElements.begin() : rModelPart.Elements().begin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = mHromSimulation ? mSelectedConditions.begin() : rModelPart.Conditions().begin();
+
+        //contributions to the system
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // Assemble all elements
+        const auto timer = BuiltinTimer();
+
+        #pragma omp parallel firstprivate(nelements,nconditions, RHS_Contribution, EquationId )
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++) {
+                auto it_elem = el_begin + k;
+
+                if (it_elem->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //Get HROM weight and multiply it by its contribution
+                    const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    RHS_Contribution *= h_rom_weight;
+
+                    // Assemble the elemental contribution
+                    BaseType::AssembleRHS( rb, RHS_Contribution, EquationId);
+                }
+
+            }
+
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++) {
+                auto it_cond = cond_begin + k;
+
+                if (it_cond->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //Get HROM weight and multiply it by its contribution
+                    const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    RHS_Contribution *= h_rom_weight;
+
+                    // Assemble the elemental contribution
+                    BaseType::AssembleRHS(rb, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        //TODO fix promts
+        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+
+        // KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+
+        KRATOS_CATCH("")
+
+    }
+
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType &pA,
@@ -777,6 +892,39 @@ protected:
 
         KRATOS_CATCH("")
     }
+
+
+
+    /**
+     * Projects the reduced system of equations
+     */
+    void ProjectRHS_ROM(
+        ModelPart &rModelPart,
+        TSystemVectorType &rb,
+        TSystemVectorType &rb_rom)
+    {
+        KRATOS_TRY
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
+
+        rb_rom.resize(GetNumberOfROMModes(), false);
+
+        Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicVector> eigen_rb_rom(rb_rom.data().begin(), rb_rom.size());
+
+        // Compute the matrix multiplication
+        eigen_rb_rom = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+
+        KRATOS_CATCH("")
+
+    }
+
 
     /**
      * Solves reduced system of equations and broadcasts it
