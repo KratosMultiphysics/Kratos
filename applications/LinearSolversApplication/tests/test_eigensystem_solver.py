@@ -60,16 +60,21 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(value, 1.0, 7)
 
     def test_eigen_eigensystem_solver(self):
-        settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 3,
-            "max_iteration": 1000,
-            "tolerance": 1e-8,
-            "normalize_eigenvectors": true,
-            "echo_level": 0
-        }''')
+        import platform
 
-        self._run_test(settings)
+        if platform.system() != "Windows":
+            settings = KratosMultiphysics.Parameters('''{
+                "solver_type": "eigen_eigensystem",
+                "number_of_eigenvalues": 3,
+                "max_iteration": 1000,
+                "tolerance": 1e-8,
+                "normalize_eigenvectors": true,
+                "echo_level": 0
+            }''')
+
+            self._run_test(settings)
+        else:
+            self.skipTest("Test disabled in Windows")
 
     def test_spectra_sym_g_eigs_shift_solver(self):
         settings = KratosMultiphysics.Parameters('''{

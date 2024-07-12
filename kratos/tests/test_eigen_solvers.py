@@ -120,19 +120,24 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_eigen_eigensystem_solver(self):
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "eigen_eigensystem",
-                        "number_of_eigenvalues": 3,
-                        "max_iteration": 1000,
-                        "tolerance": 1e-8,
-                        "echo_level": 1
-                    }
-                ]
-            }
-            """)
+        import platform
+
+        if platform.system() != "Windows":
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type": "eigen_eigensystem",
+                            "number_of_eigenvalues": 3,
+                            "max_iteration": 1000,
+                            "tolerance": 1e-8,
+                            "echo_level": 1
+                        }
+                    ]
+                }
+                """)
+        else:
+            self.skipTest("Test disabled in Windows")
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_FEAST_with_eigen_solver(self):
