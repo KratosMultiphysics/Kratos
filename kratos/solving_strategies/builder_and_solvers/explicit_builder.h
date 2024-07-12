@@ -330,14 +330,8 @@ public:
             // Assemble all elements
             for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
                 auto it_elem = r_elements_array.begin() + i_elem;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE)) {
-                    element_is_active = it_elem->Is(ACTIVE);
-                }
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental explicit residual contribution
                     // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
                     it_elem->AddExplicitContribution(r_process_info);
@@ -348,14 +342,8 @@ public:
 #pragma omp for schedule(guided, 512)
             for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
                 auto it_cond = r_conditions_array.begin() + i_cond;
-                // Detect if the condition is active or not. If the user did not make any choice the condition is active by default
-                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE)) {
-                    condition_is_active = it_cond->Is(ACTIVE);
-                }
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate condition explicit residual contribution
                     // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
                     it_cond->AddExplicitContribution(r_process_info);
@@ -403,7 +391,7 @@ public:
     }
 
     /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
+     * @brief It applies certain operations at the system of equations at the beginning of the solution step
      * @param rModelPart The model part to compute
      */
     virtual void InitializeSolutionStep(ModelPart& rModelPart)
@@ -491,9 +479,9 @@ public:
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      * - 4: Print of stiffness matrix, b to Matrix Market
      */
     void SetEchoLevel(int Level)
@@ -586,7 +574,7 @@ protected:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details The list of dofs is stores insde the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
+     * @details The list of dofs is stores inside the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
      */
     virtual void SetUpDofSet(const ModelPart& rModelPart)

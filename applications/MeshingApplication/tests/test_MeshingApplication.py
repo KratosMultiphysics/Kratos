@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MeshingApplication         as MeshingApplication
-import run_cpp_unit_tests
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -15,7 +14,11 @@ from meshing_application_test_factory  import TwoDDynamicBeamTest          as TT
 from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
 from meshing_application_test_factory  import ThreeDShellTest              as TThreeDShellTest
 from meshing_application_test_factory  import ThreeDDynamicBeamTest        as TThreeDDynamicBeamTest
-
+from test_local_refine_parallel_to_boundaries import TestLocalRefineParallelToBoundaries as TTestRefineOnBoundaries
+from test_local_refine_triangle_conditions import TestLocalRefineTriangleMeshConditions as TTestLocalRefineTriangleMeshConditions
+from test_local_refine_only_on_boundaries import TestLocalRefineOnlyOnBoundaries as TTestLocalRefineOnlyOnBoundaries
+from test_gradual_variable_interpolation_process import TestGradualVariableInterpolationProcess as TTestGradualVariableInterpolationProcess
+from test_convert_linear_tetrahedra_to_quadratic_modeler import TestConvertLinearTetrahedraToQuadraticModeler
 ## NIGHTLY TESTS
 
 ## VALIDATION TESTS
@@ -36,6 +39,12 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(TTestRefineOnBoundaries('test_refine_boundary_elems'))
+    smallSuite.addTest(TTestLocalRefineTriangleMeshConditions('test_refine_condition_mesh'))
+    smallSuite.addTest(TTestLocalRefineOnlyOnBoundaries('test_refine_on_boundary_edges'))
+    smallSuite.addTest(TTestGradualVariableInterpolationProcess('test_gradual_variable_interpolation_process'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TestConvertLinearTetrahedraToQuadraticModeler]))
     if  hasattr(MeshingApplication,  "TetrahedraReconnectUtility") :
         smallSuite.addTest(TTestRedistance('test_refine_all'))
         smallSuite.addTest(TTestRedistance('test_refine_half'))
@@ -64,6 +73,10 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
+    allSuite.addTest(TTestRefineOnBoundaries('test_refine_boundary_elems'))
+    allSuite.addTest(TTestLocalRefineTriangleMeshConditions('test_refine_condition_mesh'))
+    allSuite.addTest(TTestLocalRefineOnlyOnBoundaries('test_refine_on_boundary_edges'))
+    allSuite.addTest(TTestGradualVariableInterpolationProcess('test_gradual_variable_interpolation_process'))
     if  hasattr(MeshingApplication, "TetrahedraReconnectUtility"):
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
@@ -90,10 +103,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

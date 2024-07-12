@@ -840,7 +840,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -865,7 +865,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -890,7 +890,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -2854,7 +2854,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2869,7 +2869,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG3D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2884,7 +2884,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMGS_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -3578,6 +3578,10 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
     for(IndexType i = 0; i < r_elements_array.size(); ++i)
         (it_elem_begin + i)->SetId(i + 1);
 
+    r_nodes_array.Unique();
+    r_conditions_array.Unique();
+    r_elements_array.Unique();
+
     KRATOS_CATCH("");
 }
 
@@ -3776,7 +3780,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     /* Nodes */
     IndexType counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
-    [](Node<3>& r_node){
+    [](Node& r_node){
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             return 1;
@@ -3800,6 +3804,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    r_nodes_array.Unique();
 
     /* Conditions */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
@@ -3829,6 +3835,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
+    r_conditions_array.Unique();
+
     /* Elements */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_elements_array,
@@ -3856,6 +3864,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    r_elements_array.Unique();
 
     // Now we compute the colors
     rColors.clear();

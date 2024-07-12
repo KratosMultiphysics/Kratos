@@ -245,12 +245,7 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
 
     // Adding mrModelPart2 to the octree
     for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        mpOctree->Insert(it_node->Coordinates().data());
-
-#else
         mpOctree->Insert(it_node->Coordinates().data().data());
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
     // Add entities
@@ -314,11 +309,7 @@ void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox()
     }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    mpOctree->SetBoundingBox(low.data(), high.data());
-#else
     mpOctree->SetBoundingBox(low.data().data(), high.data().data());
-#endif // ifdef KRATOS_USE_AMATRIX
 }
 
 /***********************************************************************************/

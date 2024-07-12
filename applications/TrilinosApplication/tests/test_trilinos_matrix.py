@@ -15,4 +15,5 @@ class TestTrilinosMatrix(KratosUnittest.TestCase):
         self.assertEqual(n,2)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

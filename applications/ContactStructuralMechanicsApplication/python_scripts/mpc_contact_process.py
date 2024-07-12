@@ -56,8 +56,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the contact using a mortar MPC formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                         : 0,
+            "help"                            : "This class is used in order to compute the contact using a mortar MPC formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "model_part_name"                 : "Structure",
             "contact_model_part"              : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"             : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -110,17 +109,10 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
 
         # We transfer the parameters to the base class
         base_process_settings = KM.Parameters("""{}""")
-        base_process_settings.AddValue("mesh_id", self.contact_settings["mesh_id"])
-        base_process_settings.AddValue("model_part_name", self.contact_settings["model_part_name"])
         base_process_settings.AddValue("search_model_part", self.contact_settings["contact_model_part"])
-        base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
-        base_process_settings.AddValue("interval", self.contact_settings["interval"])
-        base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
-        base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
-        base_process_settings.AddValue("consider_tessellation", self.contact_settings["consider_tessellation"])
-        base_process_settings.AddValue("normal_check_proportion", self.contact_settings["normal_check_proportion"])
-        base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
+        parameter_list = ["model_part_name", "assume_master_slave", "interval", "zero_tolerance_factor", "integration_order", "consider_tessellation", "normal_check_proportion", "search_parameters"]
+        base_process_settings.CopyValuesFromExistingParameters(self.contact_settings, parameter_list)
 
         # Construct the base process.
         super().__init__(Model, base_process_settings)
@@ -322,22 +314,6 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
 
         return condition_name
 
-    def _get_final_string(self, key = "0"):
-        """ This method returns the final string of the condition name
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        key -- The key to identify the current pair
-        """
-        # Determine the geometry of the element
-        super()._get_final_string(key)
-        # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super()._compute_number_nodes()
-        if number_nodes != number_nodes_master:
-            return str(number_nodes_master) + "N"
-        else:
-            return ""
-
     def _get_problem_name(self):
         """ This method returns the problem name to be solved
 
@@ -399,9 +375,6 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super()._initialize_problem_parameters()
-
-        # We call the process info
-        process_info = self.main_model_part.ProcessInfo
 
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values

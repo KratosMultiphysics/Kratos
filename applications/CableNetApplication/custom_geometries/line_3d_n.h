@@ -864,8 +864,8 @@ const GeometryData Line3DN<TPointType>::msGeometryData(
 
 
 template<class TPointType>
-const GeometryDimension Line3DN<TPointType>::msGeometryDimension(
-    3, 3, 1);
+const GeometryDimension Line3DN<TPointType>::msGeometryDimension(3, 1);
+
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_3D_3_H_INCLUDED  defined

@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -27,76 +25,74 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFaceLoadCondition : public UPwCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFaceLoadCondition : public UPwCondition<TDim, TNumNodes>
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwNormalFaceLoadCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwNormalFaceLoadCondition );
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwNormalFaceLoadCondition() : UPwCondition<TDim,TNumNodes>() {}
+    UPwNormalFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
 
     // Constructor 1
-    UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
 
     // Constructor 2
-    UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
-    // Destructor
-    ~UPwNormalFaceLoadCondition() override {}
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    struct NormalFaceLoadVariables
-    {
-        array_1d<double,TNumNodes> NormalStressVector;
-        array_1d<double,TNumNodes> TangentialStressVector;
+    struct NormalFaceLoadVariables {
+        array_1d<double, TNumNodes> NormalStressVector;
+        array_1d<double, TNumNodes> TangentialStressVector;
     };
 
     // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom);
 
-    void CalculateTractionVector(array_1d<double,TDim>& rTractionVector,
-                                 const Matrix& Jacobian,
-                                 const Matrix& NContainer,
+    void CalculateTractionVector(array_1d<double, TDim>&        rTractionVector,
+                                 const Matrix&                  Jacobian,
+                                 const Matrix&                  NContainer,
                                  const NormalFaceLoadVariables& Variables,
-                                 const unsigned int& GPoint);
+                                 const unsigned int&            GPoint);
 
     virtual double CalculateIntegrationCoefficient(const IndexType PointNumber,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-
     // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
 
@@ -104,16 +100,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
 
 }; // class UPwNormalFaceLoadCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED defined

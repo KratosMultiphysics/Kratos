@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED)
-#define KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -225,4 +224,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

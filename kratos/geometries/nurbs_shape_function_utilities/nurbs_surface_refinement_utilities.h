@@ -30,7 +30,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
     typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;

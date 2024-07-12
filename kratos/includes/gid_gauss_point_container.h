@@ -133,7 +133,7 @@ public:
             std::vector<bool> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -145,7 +145,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
+                    if(it->IsActive())
                     {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
@@ -170,7 +170,7 @@ public:
             std::vector<int> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -182,7 +182,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -207,7 +207,7 @@ public:
             std::vector<double> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -219,7 +219,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -243,7 +243,7 @@ public:
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -257,7 +257,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -283,7 +283,7 @@ public:
             std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
+                    if(it->IsActive())
                     {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
@@ -299,7 +299,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -329,7 +329,7 @@ public:
             std::vector<Vector> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -346,7 +346,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -375,7 +375,7 @@ public:
             std::vector<Matrix> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
@@ -422,7 +422,7 @@ public:
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                    if(it->IsActive()) {
                         it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
 

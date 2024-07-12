@@ -17,9 +17,9 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 
 // Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Yields
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
@@ -28,14 +28,14 @@
 #include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
+
 // Plastic Potentials
 #include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node<3> NodeType;
+
+typedef Node NodeType;
 typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> MC;
 typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> VM;
 typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> DP;
@@ -107,12 +107,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosConstitutiveLawsFas
     SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, aux_param);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.001e6);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001e6);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.001e6);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001e6);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001e6);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 0.01);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.001e6);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001e6);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.001e6);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001e6);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 0.01);
 }
 
 /**
@@ -150,10 +150,10 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSu
 
     // Check the results!
     for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(Tres[comp], TestT[comp], 1.0e-3);
     }
 }
 
@@ -189,12 +189,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosConstitut
     SJ::GetInitialUniaxialThreshold(aux_param, TestSJ);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001e6);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001e6);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.0001e6);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001e6);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001e6);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.0001e6);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001e6);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001e6);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 1.0e-3);
 }
 
 /**
@@ -230,12 +230,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosConstitutiv
     SJ::CalculateDamageParameter(aux_param, TestSJ, characteristic_length);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.001);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.1);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.001);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.001);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.001);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 0.1e8);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.001);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.1);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.001);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.001);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.001);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 0.1e8);
 }
 
 /**
@@ -272,11 +272,11 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosConsti
     T::CalculateDamageParameter(aux_param, TestT, characteristic_length);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.0001);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.0001);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.0001);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

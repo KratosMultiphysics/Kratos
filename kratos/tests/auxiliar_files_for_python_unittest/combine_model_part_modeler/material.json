@@ -1,0 +1,34 @@
+{
+    "properties": [
+        {
+            "model_part_name": "main_model_part.submodelpart_liquid",
+            "properties_id": 0,
+            "Material": {
+                "name": "A7075",
+                "Variables": {
+                    "DENSITY": 2700
+                }
+            }
+        },
+        {
+            "model_part_name": "main_model_part.submodelpart_solid.chiller.chiller_62",
+            "properties_id": 1,
+            "Material": {
+                "name": "Steel",
+                "Variables": {
+                    "DENSITY": 7800
+                }
+            }
+        },
+        {
+            "model_part_name": "main_model_part.submodelpart_solid.mold.mold_158",
+            "properties_id": 2,
+            "Material": {
+                "name": "1,2344",
+                "Variables": {
+                    "DENSITY": 7800
+                }
+            }
+        }
+    ]
+}

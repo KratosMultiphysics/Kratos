@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_VAN_GENUCHTEN_LAW_H_INCLUDED)
-#define  KRATOS_VAN_GENUCHTEN_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -29,25 +28,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
 /**
  * @class VanGenuchtenLaw
  * @ingroup GeoMechanicsApplication
@@ -59,52 +39,19 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) VanGenuchtenLaw
     : public RetentionLaw
 {
 public:
-
-    ///@name Type Definitions
-    ///@{
-
     /// The base class RetentionLaw type definition
-    typedef RetentionLaw         BaseType;
+    using BaseType = RetentionLaw;
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Counted pointer of VanGenuchtenLaw
     KRATOS_CLASS_POINTER_DEFINITION( VanGenuchtenLaw );
 
-    ///@}
-    ///@name Lyfe Cycle
-    ///@{
-
-    /**
-     * @brief Default constructor.
-     */
-    VanGenuchtenLaw();
-
-    /**
-     * @brief Clone method
-     */
     RetentionLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    VanGenuchtenLaw(const VanGenuchtenLaw& rOther);
-
-    /**
-     * @brief Destructor.
-     */
-    ~VanGenuchtenLaw() override;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
@@ -113,15 +60,15 @@ public:
 
     void InitializeSolutionStep(Parameters &rParameters) override;
 
-    double CalculateSaturation(Parameters &rParameters) override;
+    double CalculateSaturation(Parameters &rParameters) const override;
 
-    double CalculateEffectiveSaturation(Parameters &rParameters) override;
+    double CalculateEffectiveSaturation(Parameters &rParameters) const override;
 
-    double CalculateDerivativeOfSaturation(Parameters &rParameters) override;
+    double CalculateDerivativeOfSaturation(Parameters &rParameters) const override;
 
-    double CalculateRelativePermeability(Parameters &rParameters) override;
+    double CalculateRelativePermeability(Parameters &rParameters) const override;
 
-    double CalculateBishopCoefficient(Parameters &rParameters) override;
+    double CalculateBishopCoefficient(Parameters &rParameters) const override;
 
     void Finalize(Parameters &rParameters) override;
 
@@ -150,52 +97,7 @@ public:
     int Check(const Properties& rMaterialProperties,
               const ProcessInfo& rCurrentProcessInfo) override;
 
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -210,4 +112,3 @@ private:
 
 }; // Class VanGenuchtenLaw
 }  // namespace Kratos.
-#endif // KRATOS_VAN_GENUCHTEN_LAW_H_INCLUDED  defined

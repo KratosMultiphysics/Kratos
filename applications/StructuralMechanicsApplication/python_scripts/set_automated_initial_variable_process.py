@@ -62,7 +62,7 @@ def Factory(settings, Model):
             component_number = int(layer_list[i].stem.split("_")[1][-1])
             if  0 < component_number < 7:
                 component_list.append(component_number)
-                table_id = int(layer_name[-1] + str(component_number - 1))
+                table_id = int("".join(layer_number for layer_number in layer_name if layer_number.isdigit()) + str(component_number - 1))
                 table_id_list.append(table_id)
                 process_settings["initial_variable_table"]["filename"].SetString(layer_list[i].as_posix())
                 process_settings["initial_variable_table"]["table_id"].SetInt(table_id)

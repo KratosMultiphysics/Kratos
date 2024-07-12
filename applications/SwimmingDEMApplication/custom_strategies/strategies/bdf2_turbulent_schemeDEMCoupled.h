@@ -162,7 +162,7 @@ public:
                 rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
-        //this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
     void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
@@ -334,7 +334,7 @@ public:
         const Vector& BDFcoefs = r_current_process_info[BDF_COEFFICIENTS];
         double step = r_current_process_info[STEP];
 
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_model_part.Nodes(), [&](Node& rNode)
         {
             double& fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
             double& fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);

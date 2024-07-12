@@ -495,6 +495,20 @@ public:
         return 0.5*detJ;
     }
 
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle2D3:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
     /**
      * @brief Detect if this triangle is intersected with another geometry
      * @param  ThisGeometry Geometry to intersect with
@@ -506,7 +520,7 @@ public:
         if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
             return IntersectionUtilities::TriangleLineIntersection2D(
                 *this, rThisGeometry[0], rThisGeometry[1]);
-        }  // Both geometries are 2D 
+        }  // Both geometries are 2D
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
         return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
@@ -1190,12 +1204,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        PrintInfo( rOStream );
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -2226,8 +2244,7 @@ GeometryData Triangle2D3<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(
-    2, 2, 2);
+GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.
 

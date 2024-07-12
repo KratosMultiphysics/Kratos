@@ -21,34 +21,15 @@
 
 namespace Kratos
 {
-//-------------------------------------------------------------------------------------------------
-SaturatedLaw::SaturatedLaw()
-    : RetentionLaw()
-{
-}
 
-//-------------------------------------------------------------------------------------------------
-SaturatedLaw::SaturatedLaw(const SaturatedLaw& rOther)
-    : RetentionLaw(rOther)
-{
-}
-
-//-------------------------------------------------------------------------------------------------
 RetentionLaw::Pointer SaturatedLaw::Clone() const
 {
     return Kratos::make_shared<SaturatedLaw>(*this);
 }
 
-//-------------------------------------------------------------------------------------------------
-SaturatedLaw::~SaturatedLaw()
+double SaturatedLaw::CalculateSaturation(Parameters &rParameters) const
 {
-}
-
-//-------------------------------------------------------------------------------------------------
-double SaturatedLaw::
-    CalculateSaturation(Parameters &rParameters)
-{
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
 
@@ -64,51 +45,28 @@ double SaturatedLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedLaw::
-    CalculateEffectiveSaturation(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
+double SaturatedLaw::CalculateEffectiveSaturation(Parameters &rParameters) const {
     return 1.0;
-
-    KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedLaw::
-    CalculateDerivativeOfSaturation(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
+double SaturatedLaw::CalculateDerivativeOfSaturation(Parameters &rParameters) const {
     return 0.0;
-
-    KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedLaw::
-    CalculateRelativePermeability(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
+double SaturatedLaw::CalculateRelativePermeability(Parameters &rParameters) const {
     return 1.0;
-
-    KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 double SaturatedLaw::
-    CalculateBishopCoefficient(Parameters &rParameters)
+    CalculateBishopCoefficient(Parameters &rParameters) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     return CalculateEffectiveSaturation(rParameters);
 
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
                                      const Variable<double>& rThisVariable,
                                      double& rValue)
@@ -137,45 +95,34 @@ double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
     return rValue;
 }
 
-
 //------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
-//-------------------------------------------------------------------------------------------------
-void SaturatedLaw::
-    InitializeMaterial(const Properties& rMaterialProperties,
-                       const GeometryType& rElementGeometry,
-                       const Vector& rShapeFunctionsValues)
+void SaturatedLaw::InitializeMaterial(const Properties& rMaterialProperties,
+                                      const GeometryType& rElementGeometry,
+                                      const Vector& rShapeFunctionsValues)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedLaw::
-    Initialize(Parameters &rParameters)
-{
-    // nothing is needed
-}
-//-------------------------------------------------------------------------------------------------
-void SaturatedLaw::
-    InitializeSolutionStep(Parameters &rParameters)
+void SaturatedLaw::Initialize(Parameters &rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedLaw::
-    Finalize(Parameters &rParameters)
+void SaturatedLaw::InitializeSolutionStep(Parameters &rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedLaw::
-    FinalizeSolutionStep(Parameters &rParameters)
+void SaturatedLaw::Finalize(Parameters &rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
+void SaturatedLaw::FinalizeSolutionStep(Parameters &rParameters)
+{
+    // nothing is needed
+}
+
 int SaturatedLaw::Check(const Properties& rMaterialProperties,
                         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -191,4 +138,4 @@ int SaturatedLaw::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
-} // Namespace Kratos
+}

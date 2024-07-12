@@ -100,7 +100,7 @@ public:
         MathUtils<double>::BDBtProductOperation(mumat, metric2_matrix, emat);
 
         for (std::size_t i = 0; i < TDim; ++i) {
-            auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
+            auxmat(i, i) = std::max(lambdamat(i, i), mumat(i, i));
         }
 
         MatrixType invemat;

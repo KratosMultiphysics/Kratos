@@ -403,23 +403,23 @@ int EmbeddedSkinVisualizationProcess::Check()
 
 template<>
 void EmbeddedSkinVisualizationProcess::SetPartitionIndexFromOriginNode<true>(
-    const Node<3>& rOriginNode,
-    Node<3>& rVisualizationNode)
+    const Node& rOriginNode,
+    Node& rVisualizationNode)
 {
     rVisualizationNode.FastGetSolutionStepValue(PARTITION_INDEX) = rOriginNode.FastGetSolutionStepValue(PARTITION_INDEX);
 }
 
 template<>
 void EmbeddedSkinVisualizationProcess::SetPartitionIndexFromOriginNode<false>(
-    const Node<3>& rOriginNode,
-    Node<3>& rVisualizationNode)
+    const Node& rOriginNode,
+    Node& rVisualizationNode)
 {
 }
 
 template<>
 void EmbeddedSkinVisualizationProcess::SetPartitionIndex<true>(
     const int PartitionIndex,
-    Node<3>& rVisualizationNode)
+    Node& rVisualizationNode)
 {
     rVisualizationNode.FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
 }
@@ -427,7 +427,7 @@ void EmbeddedSkinVisualizationProcess::SetPartitionIndex<true>(
 template<>
 void EmbeddedSkinVisualizationProcess::SetPartitionIndex<false>(
     const int PartitionIndex,
-    Node<3>& rVisualizationNode)
+    Node& rVisualizationNode)
 {
 }
 
@@ -458,7 +458,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
             if (cut_node_info != mCutNodesMap.end()){
 
                 // Get the cut node info from the map tuple iterator
-                Node<3>::Pointer p_edge_node_i, p_edge_node_j;
+                Node::Pointer p_edge_node_i, p_edge_node_j;
                 double weight_edge_node_i, weight_edge_node_j;
                 std::tie(p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j) = std::get<1>(*cut_node_info);
 
@@ -488,9 +488,9 @@ void EmbeddedSkinVisualizationProcess::CopyVariablesListValues(
 
 template<class TDataType, bool IsHistorical>
 void EmbeddedSkinVisualizationProcess::InterpolateVariablesListValues(
-    const Node<3>::Pointer& rpNode,
-    const Node<3>::Pointer& rpNodeI,
-    const Node<3>::Pointer& rpNodeJ,
+    const Node::Pointer& rpNode,
+    const Node::Pointer& rpNodeI,
+    const Node::Pointer& rpNodeJ,
     const double WeightI,
     const double WeightJ,
     const std::vector<const Variable<TDataType>*>& rVariablesList)
@@ -506,7 +506,7 @@ void EmbeddedSkinVisualizationProcess::InterpolateVariablesListValues(
 
 template<>
 double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
-    Node<3>& rNode,
+    Node& rNode,
     const Variable<double>& rVariable)
 {
     return rNode.FastGetSolutionStepValue(rVariable);
@@ -514,7 +514,7 @@ double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
 
 template<>
 double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
-    Node<3>& rNode,
+    Node& rNode,
     const Variable<double>& rVariable)
 {
     return rNode.GetValue(rVariable);
@@ -522,7 +522,7 @@ double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
 
 template<>
 array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
-    Node<3>& rNode,
+    Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     return rNode.FastGetSolutionStepValue(rVariable);
@@ -530,7 +530,7 @@ array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
 
 template<>
 array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
-    Node<3>& rNode,
+    Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     return rNode.GetValue(rVariable);
@@ -604,7 +604,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     // Note that these are duplicated among intersected elements so there is no sync required
     const auto& r_comm = mrModelPart.GetCommunicator();
     const int my_pyd = r_comm.MyPID();
-    std::function<void(const int, Node<3>&)> set_partition_index_func;
+    std::function<void(const int, Node&)> set_partition_index_func;
     if (r_comm.IsDistributed()) {
         set_partition_index_func = &(this->SetPartitionIndex<true>);
     } else {
@@ -631,7 +631,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
 
         // Get element geometry and nodal distances
-        const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
+        const Geometry<Node>::Pointer p_geometry = it_elem->pGetGeometry();
         const unsigned int n_nodes = p_geometry->PointsNumber();
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
 
@@ -658,7 +658,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             }
 
             // Compute the splitting pattern
-            DivideGeometry<Node<3>>::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
+            DivideGeometry<Node>::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
             std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
@@ -668,7 +668,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             const auto& r_neg_subdivisions = p_split_utility->GetNegativeSubdivisions();
             const unsigned int n_pos_split_geom = r_pos_subdivisions.size();
             const unsigned int n_neg_split_geom = r_neg_subdivisions.size();
-            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_geometries;
+            std::vector<DivideGeometry<Node>::IndexedPointGeometryPointerType> split_geometries;
             split_geometries.reserve(n_pos_split_geom + n_neg_split_geom);
             split_geometries.insert(split_geometries.end(), r_pos_subdivisions.begin(), r_pos_subdivisions.end());
             split_geometries.insert(split_geometries.end(), r_neg_subdivisions.begin(), r_neg_subdivisions.end());
@@ -676,14 +676,14 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
                 const bool pos_side = i_geom < n_pos_split_geom ? true : false;
-                const DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
+                const DivideGeometry<Node>::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
                 const unsigned int sub_geom_n_nodes = p_sub_geom->PointsNumber();
 
                 // Fill the new element nodes array
                 Element::NodesArrayType sub_geom_nodes_array;
                 for (unsigned int i_sub_geom_node = 0; i_sub_geom_node < sub_geom_n_nodes; ++i_sub_geom_node){
 
-                    DivideGeometry<Node<3>>::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
+                    DivideGeometry<Node>::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
                     const unsigned int local_id = sub_geom_node.Id();
 
                     // Non-intersection node. Get the copied original geometry nodes
@@ -703,14 +703,14 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
 
                         // Create a new node based in the indexed point auxiliar node
                         const array_1d<double, 3> point_coords = sub_geom_node.Coordinates();
-                        Node<3>::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(temp_node_id, point_coords[0], point_coords[1], point_coords[2]);
+                        Node::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(temp_node_id, point_coords[0], point_coords[1], point_coords[2]);
                         sub_geom_nodes_array.push_back(p_new_node);
                         new_nodes_vect.push_back(p_new_node);
                         set_partition_index_func(my_pyd, *p_new_node);
 
                         // Add the new node info to the hash map
-                        const Node<3>::Pointer p_node_i = p_geometry->operator()(node_i);
-                        const Node<3>::Pointer p_node_j = p_geometry->operator()(node_j);
+                        const Node::Pointer p_node_i = p_geometry->operator()(node_i);
+                        const Node::Pointer p_node_j = p_geometry->operator()(node_j);
 
                         Matrix edge_N_values;
                         if (i_geom < n_pos_split_geom){
@@ -753,7 +753,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             const unsigned int n_pos_interface_geom = r_pos_interfaces.size();
             const unsigned int n_neg_interface_geom = r_neg_interfaces.size();
 
-            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_interface_geometries;
+            std::vector<DivideGeometry<Node>::IndexedPointGeometryPointerType> split_interface_geometries;
             split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
             split_interface_geometries.insert(split_interface_geometries.end(), r_pos_interfaces.begin(), r_pos_interfaces.end());
             split_interface_geometries.insert(split_interface_geometries.end(), r_neg_interfaces.begin(), r_neg_interfaces.end());
@@ -761,7 +761,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             // Create the split interface geometries in the visualization model part
             for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
                 const bool int_pos_side = (i_int_geom < n_pos_interface_geom) ? true : false;
-                DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
+                DivideGeometry<Node>::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
                 GeometryData::KratosGeometryType p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
                 const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
@@ -769,7 +769,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                 Condition::NodesArrayType sub_int_geom_nodes_array;
                 for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
 
-                    DivideGeometry<Node<3>>::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
+                    DivideGeometry<Node>::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
                     const unsigned int local_id = sub_int_geom_node.Id();
 
                     // Get the global id from the intersection nodes map
@@ -787,7 +787,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                 }
 
                 // Set the new condition geometry
-                Geometry< Node<3> >::Pointer p_new_geom = SetNewConditionGeometry(
+                Geometry< Node >::Pointer p_new_geom = SetNewConditionGeometry(
                     p_int_sub_geom_type,
                     sub_int_geom_nodes_array);
 
@@ -889,7 +889,7 @@ void EmbeddedSkinVisualizationProcess::InitializeNonHistoricalVariables(const st
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
-    Geometry<Node<3>>::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -906,7 +906,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
-    const Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -972,7 +972,7 @@ const inline Vector EmbeddedSkinVisualizationProcess::SetEdgeDistancesExtrapolat
 }
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
-    const Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node>::Pointer pGeometry,
     const Vector& rNodalDistances)
 {
     // Get the geometry type
@@ -1004,7 +1004,7 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
 }
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetAusasIncisedModifiedShapeFunctionsUtility(
-    const Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node>::Pointer pGeometry,
     const Vector& rNodalDistancesWithExtra,
     const Vector& rEdgeDistancesExtrapolated)
 {
@@ -1022,15 +1022,15 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetAusasIncise
     }
 }
 
-Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
+Geometry< Node >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
     const GeometryData::KratosGeometryType &rOriginGeometryType,
     const Condition::NodesArrayType &rNewNodesArray)
 {
     switch(rOriginGeometryType){
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
-            return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
+            return Kratos::make_shared<Line2D2< Node > >(rNewNodesArray);
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-            return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
+            return Kratos::make_shared<Triangle3D3< Node > >(rNewNodesArray);
         default:
             KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << static_cast<int>(rOriginGeometryType);
     }

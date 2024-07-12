@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_LINEAR_3D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_LINEAR_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -73,6 +70,8 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -110,11 +109,15 @@ public:
 
 private:
 
+    /**
+    * @brief This function calculates a matrix which is used to reduce rigidity at the beam connections
+    */
+    void CalculateRigidityReductionMatrix(
+        BoundedMatrix<double, msElementSize, msElementSize>& rReductionMatrix) const;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };
 
 }
-
-#endif

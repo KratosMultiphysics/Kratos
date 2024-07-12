@@ -42,6 +42,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_implicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_cut_fem_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
@@ -62,6 +63,8 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/bingham_temperature_dependent_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/frictional_viscoplastic_temperature_dependent_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/frictional_viscoplastic_temperature_dependent_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/mu_I_rheology_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/mu_I_rheology_temperature_dependent_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/temperature_dependent/newtonian_temperature_dependent_2D_law.cpp

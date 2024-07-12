@@ -13,8 +13,7 @@
 //
 
 
-#if !defined(KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED )
-#define  KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -120,6 +119,73 @@ public:
      distance_calculator.Execute()
      */
 
+    /**
+     * @brief Construct a new Variational Distance Calculation Process object
+     * This process recomputes the distance function mantaining the zero of the existing distance distribution, stored in DISTANCE
+     * For this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
+     * Alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
+     * respecting that zero
+     * @param rModel The model container
+     * @param pLinearSolver Pointer to the linear solver to be used internally
+     * @param ThisParameters Process settings to be validated
+     */
+    VariationalDistanceCalculationProcess(
+        Model& rModel,
+        typename TLinearSolver::Pointer pLinearSolver,
+        Parameters ThisParameters)
+        : VariationalDistanceCalculationProcess(
+            rModel,
+            pLinearSolver,
+            Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver),
+            ThisParameters)
+    {
+    }
+
+    /**
+     * @brief Construct a new Variational Distance Calculation Process object
+     * This process recomputes the distance function mantaining the zero of the existing distance distribution, stored in DISTANCE
+     * For this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
+     * Alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
+     * respecting that zero
+     * Note that this constructor with custom builder and solver is to be used in the trilinos version, since the trilinos builder and
+     * solver needs additional data (the EpetraComm).
+     * @param rModel The model container
+     * @param pLinearSolver Pointer to the linear solver to be used internally
+     * @param pBuilderAndSolver Pointer to the custom linear and solver to be used internally
+     * @param ThisParameters Process settings to be validated
+     */
+    VariationalDistanceCalculationProcess(
+        Model& rModel,
+        typename TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver,
+        Parameters ThisParameters)
+        : mDistancePartIsInitialized(false)
+        , mrModel(rModel)
+        , mrBaseModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
+    {
+        // Check and assign settings
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        if (ThisParameters["calculate_exact_distances_to_plane"].GetBool()) {
+            mOptions = CALCULATE_EXACT_DISTANCES_TO_PLANE;
+        } else {
+            mOptions = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse();
+        }
+        mMaxIterations = ThisParameters["max_iterations"].GetInt();
+        mAuxModelPartName = ThisParameters["auxiliary_model_part_name"].GetString();
+        mCoefficient1 = ThisParameters["variational_redistance_coefficient_1"].GetDouble();
+        mCoefficient2 = ThisParameters["variational_redistance_coefficient_2"].GetDouble();
+
+        // Check that the process input is valid
+        ValidateInput();
+
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        ReGenerateDistanceModelPart(mrBaseModelPart);
+
+        // Set provided builder and solver and initialize the solution strategy
+        InitializeSolutionStrategy(pBuilderAndSolver);
+        mpSolvingStrategy->SetEchoLevel(ThisParameters["echo_level"].GetInt());
+    }
+
     VariationalDistanceCalculationProcess(
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
@@ -139,6 +205,8 @@ public:
         mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
+
+        KRATOS_WARNING("VariationalDistanceCalculationProcess") << "This constructor is deprecated, please use the Parameters-based one." << std::endl;
 
         ValidateInput();
 
@@ -181,6 +249,8 @@ public:
         mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
+
+        KRATOS_WARNING("VariationalDistanceCalculationProcess") << "This constructor is deprecated, please use the Parameters-based one." << std::endl;
 
         ValidateInput();
 
@@ -228,7 +298,7 @@ public:
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [](Node& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
 
             // Free the DISTANCE values
@@ -324,7 +394,7 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node& rNode){
             if(!rNode.IsFixed(DISTANCE)){
                 double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
@@ -358,6 +428,21 @@ public:
 
         mpSolvingStrategy->Clear();
 
+    }
+
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"({
+            "model_part_name" : "",
+            "auxiliary_model_part_name" : "RedistanceCalculationPart",
+            "echo_level" : 0,
+            "max_iterations" : 10,
+            "calculate_exact_distances_to_plane" : false,
+            "variational_redistance_coefficient_1" : 0.01,
+            "variational_redistance_coefficient_2" : 0.1
+        })");
+
+        return default_parameters;
     }
 
     ///@}
@@ -495,7 +580,7 @@ protected:
         // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = rBaseModelPart.ConditionsBegin(); it_cond != rBaseModelPart.ConditionsEnd(); ++it_cond){
-            Geometry< Node<3> >& geom = it_cond->GetGeometry();
+            Geometry< Node >& geom = it_cond->GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].Set(BOUNDARY,true);
             }
@@ -673,4 +758,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined

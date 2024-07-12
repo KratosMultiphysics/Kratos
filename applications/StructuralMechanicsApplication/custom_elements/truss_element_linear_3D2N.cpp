@@ -3,12 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
 // System includes
@@ -261,6 +259,13 @@ void TrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentPro
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->FinalizeMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("");
+}
+
+double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    return ReturnTangentModulus1D(CalculateLinearStrain(), rCurrentProcessInfo);
+    KRATOS_CATCH("")
 }
 
 

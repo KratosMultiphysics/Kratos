@@ -4,14 +4,13 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -293,4 +292,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED  defined

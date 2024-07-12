@@ -353,7 +353,7 @@ namespace Kratos
          ///@name Private Operations
          ///@{
 
-         ConditionType::Pointer FindPointConditionHM(ModelPart & rModelPart, Node<3>::Pointer pPoint, bool rHydraulic)
+         ConditionType::Pointer FindPointConditionHM(ModelPart & rModelPart, Node::Pointer pPoint, bool rHydraulic)
          {
             KRATOS_TRY
 

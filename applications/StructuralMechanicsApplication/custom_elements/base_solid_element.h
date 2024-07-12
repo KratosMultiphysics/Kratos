@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -152,7 +151,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef Element BaseType;
@@ -915,7 +914,7 @@ protected:
      * @brief This method checks is an element has to be rotated
      * according to a set of local axes
      */
-    bool IsElementRotated() const;
+    virtual bool IsElementRotated() const;
 
     /**
      * @brief This method rotates the F or strain according to local axis from
@@ -1052,7 +1051,7 @@ private:
             // Compute element kinematics B, F, DN_DX ...
             this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-            // Compute material reponse
+            // Compute material response
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F
@@ -1093,5 +1092,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED  defined

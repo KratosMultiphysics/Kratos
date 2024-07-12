@@ -111,7 +111,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);
@@ -354,7 +354,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);

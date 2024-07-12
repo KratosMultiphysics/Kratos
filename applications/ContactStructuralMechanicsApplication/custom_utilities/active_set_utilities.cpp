@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -36,7 +36,7 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
-        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
                 const double augmented_normal_pressure = epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -93,7 +93,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
 
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const bool is_slip = rNode.Is(SLIP);
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
@@ -184,7 +184,7 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
-        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
                 const double augmented_normal_pressure = scale_factor * rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -227,7 +227,7 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
 
-        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
 
@@ -295,7 +295,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const bool is_slip = rNode.Is(SLIP);
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;

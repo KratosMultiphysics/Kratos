@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -54,17 +54,14 @@ public:
     /// Pointer definition of ComputeDynamicFactorProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeDynamicFactorProcess);
 
-    /// Node type
-    typedef Node<3>                                          NodeType;
-
     /// Geometry type
-    typedef Geometry<NodeType>                           GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Nodes array type
-    typedef ModelPart::NodesContainerType              NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// Conditions array type
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle

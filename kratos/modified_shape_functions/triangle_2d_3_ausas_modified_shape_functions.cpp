@@ -24,7 +24,7 @@ namespace Kratos
 /// Default constructor
 Triangle2D3AusasModifiedShapeFunctions::Triangle2D3AusasModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
     AusasModifiedShapeFunctions(pInputGeometry, rNodalDistances),
-    mpTriangleSplitter(Kratos::make_shared<DivideTriangle2D3<Node<3>>>(*pInputGeometry, rNodalDistances)) {
+    mpTriangleSplitter(Kratos::make_shared<DivideTriangle2D3<Node>>(*pInputGeometry, rNodalDistances)) {
 
     // Perform the element splitting
     mpTriangleSplitter->GenerateDivision();
@@ -60,7 +60,7 @@ void Triangle2D3AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream) c
 };
 
 // Returns a pointer to the splitting utility
-const DivideGeometry<Node<3>>::Pointer Triangle2D3AusasModifiedShapeFunctions::pGetSplittingUtil() const {
+const DivideGeometry<Node>::Pointer Triangle2D3AusasModifiedShapeFunctions::pGetSplittingUtil() const {
     return mpTriangleSplitter;
 };
 

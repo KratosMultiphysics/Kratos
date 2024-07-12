@@ -56,19 +56,19 @@ namespace Kratos
                                                 const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
             << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for BinghamTemperatureDependent3DLaw: "
             << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] < 0.0)
             << "Incorrect or missing YIELD_SHEAR provided in process info for BinghamTemperatureDependent3DLaw: "
             << rMaterialProperties[YIELD_SHEAR] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
             << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for BinghamTemperatureDependent3DLaw: "
             << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
             << "Incorrect or missing BULK_MODULUS provided in process info for BinghamTemperatureDependent3DLaw: "
             << rMaterialProperties[BULK_MODULUS] << std::endl;
 

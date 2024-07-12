@@ -48,15 +48,8 @@ class DamAnalysis(AnalysisStage):
         self.SetSolver()
 
     def DefineParallelType(self):
-        #self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-        parallel=KratosMultiphysics.OpenMPUtils()
-        parallel.SetNumThreads(self.project_parameters["problem_data"]["number_of_threads"].GetInt())
-        #if self.parallel_type == "MPI":
-            #import KratosMultiphysics.mpi as KratosMPI
-            #import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            #print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
-        #else:
-        print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+        KratosMultiphysics.ParallelUtilities.SetNumThreads(self.project_parameters["problem_data"]["number_of_threads"].GetInt())
+        print("OpenMP parallel configuration. OMP_NUM_THREADS =",KratosMultiphysics.ParallelUtilities.GetNumThreads())
 
     def DefineVariables(self):
         self.domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
@@ -226,16 +219,23 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["constraints_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
-        self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
+
+        self.list_of_output_processes = KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["output_device_list"] )
 
         # Print list of constructed processes
         if(self.echo_level>1):
             for self.process in self.list_of_processes:
                 print(self.process)
 
+            for self.output_process in self.list_of_output_processes:
+                print(self.output_process)
+
         # Initialize processes
         for self.process in self.list_of_processes:
             self.process.ExecuteInitialize()
+
+        for self.output_process in self.list_of_output_processes:
+            self.output_process.ExecuteInitialize()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
         self.time = self.time - (self.buffer_size-1)*self.delta_time
@@ -253,7 +253,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 
@@ -269,7 +269,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Thermo-Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 
@@ -306,6 +306,9 @@ class DamAnalysis(AnalysisStage):
         # ExecuteBeforeSolutionLoop
         for self.process in self.list_of_processes:
             self.process.ExecuteBeforeSolutionLoop()
+
+        for self.output_process in self.list_of_output_processes:
+            self.output_process.ExecuteBeforeSolutionLoop()
 
         self.gid_output.ExecuteBeforeSolutionLoop() # Set results when they are written in a single file
 
@@ -347,6 +350,9 @@ class DamAnalysis(AnalysisStage):
             for self.process in self.list_of_processes:
                 self.process.ExecuteInitializeSolutionStep()
 
+            for self.output_process in self.list_of_output_processes:
+                self.output_process.ExecuteInitializeSolutionStep()
+
             # ExecuteInitializeSolutionStep
             self.gid_output.ExecuteInitializeSolutionStep()
             self.solver.Solve() # Solve step
@@ -355,10 +361,18 @@ class DamAnalysis(AnalysisStage):
             if self.UseStreamlineUtility:
                 self.streamline_utility.ComputeOutputStep(self.main_model_part, self.domain_size)
             self.gid_output.ExecuteFinalizeSolutionStep()
+
             for self.process in self.list_of_processes:
                 self.process.ExecuteFinalizeSolutionStep()
+
+            for self.output_process in self.list_of_output_processes:
+                self.output_process.ExecuteFinalizeSolutionStep()
+
             for self.process in self.list_of_processes:
                 self.process.ExecuteBeforeOutputStep()
+
+            for self.output_process in self.list_of_output_processes:
+                self.output_process.ExecuteBeforeOutputStep()
 
             # selfweight utility
             if self.consider_selfweight:
@@ -374,8 +388,15 @@ class DamAnalysis(AnalysisStage):
             # Write GiD results
             if self.gid_output.IsOutputStep():
                 self.PrintOutput()
+
             for self.process in self.list_of_processes:
                 self.process.ExecuteAfterOutputStep()
+
+            for self.output_process in self.list_of_output_processes:
+                self.output_process.ExecuteAfterOutputStep()
+                if self.output_process.IsOutputStep():
+                    self.output_process.PrintOutput()
+
             if self.consider_construction:
                 #  After initialize solution
                 self.construction_utilities.AfterOutputStep()
@@ -406,6 +427,9 @@ class DamAnalysis(AnalysisStage):
 
         for self.process in self.list_of_processes:
             self.process.ExecuteFinalize()
+
+        for self.output_process in self.list_of_output_processes:
+            self.output_process.ExecuteFinalize()
 
         # Finalizing strategy
         #if self.parallel_type == "OpenMP":

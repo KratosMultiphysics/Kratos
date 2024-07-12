@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_UTILITIES_H_INCLUDED)
-#define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <array>
@@ -36,7 +35,7 @@ namespace MapperUtilities {
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
@@ -194,9 +193,9 @@ void UpdateModelPartFromSystemVector(
 * @param rModelPartCommunicator The Modelpart-Communicator to be used
 * @author Philipp Bucher
 */
-void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
-void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+void KRATOS_API(MAPPING_APPLICATION) CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                        const Communicator& rModelPartCommunicator,
                                        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
 
@@ -238,18 +237,11 @@ double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModel
 
 void CheckInterfaceModelParts(const int CommRank);
 
-BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
+BoundingBoxType KRATOS_API(MAPPING_APPLICATION) ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
-BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
-
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance);
+BoundingBoxType KRATOS_API(MAPPING_APPLICATION) ComputeGlobalBoundingBox(const ModelPart& rModelPart);
 
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
-
-bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
-                              const array_1d<double, 3>& rCoords);
 
 void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
 void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
@@ -259,20 +251,20 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         rNode.GetData().Erase(rVariable);
     });
 
     KRATOS_CATCH("");
 }
 
-void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+void KRATOS_API(MAPPING_APPLICATION) FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
                                  std::vector<int>& rSendSizes);
 
-void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
+void KRATOS_API(MAPPING_APPLICATION) CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                           const int CommRank,
                                           MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
@@ -327,5 +319,3 @@ private:
 }  // namespace MapperUtilities.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_UTILITIES_H_INCLUDED  defined

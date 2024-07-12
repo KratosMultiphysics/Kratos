@@ -13,6 +13,7 @@
 
 // System includes
 #include <vector>
+#include <numeric>
 
 // External includes
 
@@ -27,7 +28,7 @@
 
 namespace Kratos
 {
-StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters& TheParameters)
+StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryType& rGeometry, ModelPart& rOutputModelPart, Parameters TheParameters)
     : Process()
     , mrGeometry(rGeometry)
     , mrOutputModelPart(rOutputModelPart) {
@@ -45,7 +46,14 @@ StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryTyp
     mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
     mElementName = TheParameters["element_name"].GetString();
     mConditionName = TheParameters["condition_name"].GetString();
+    mCreateBodySubModelPart = TheParameters["create_body_sub_model_part"].GetBool();
     mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
+    if (mCreateBodySubModelPart) {
+        mBodySubModelPartName = TheParameters["body_sub_model_part_name"].GetString();
+    }
+    if (mCreateSkinSubModelPart) {
+        mSkinSubModelPartName = TheParameters["skin_sub_model_part_name"].GetString();
+    }
 
     Check();
 }
@@ -66,13 +74,29 @@ void StructuredMeshGeneratorProcess::Execute()
         KRATOS_ERROR << "Not supported geometry is given" << std::endl;
     }
 
+    // Generate body model part if required
+    if (mCreateBodySubModelPart) {
+        // Create the body model part
+        auto& r_body_sub_model_part = mrOutputModelPart.CreateSubModelPart(mBodySubModelPartName);
+        // Set the nodal ids array
+        std::vector<ModelPart::IndexType> ids_nodes(mrOutputModelPart.NumberOfNodes());
+        std::iota(ids_nodes.begin(), ids_nodes.end(), mStartNodeId);
+        r_body_sub_model_part.AddNodes(ids_nodes);
+        // Set the element ids array
+        std::vector<ModelPart::IndexType> ids_elems(mrOutputModelPart.NumberOfElements());
+        std::iota(ids_elems.begin(), ids_elems.end(), mStartElementId);
+        r_body_sub_model_part.AddElements(ids_elems);
+    }
+
     // Generate skin if required
     if (mCreateSkinSubModelPart) {
         const Parameters skin_parameters = Parameters(R"(
         {
-            "name_auxiliar_model_part"              : "Skin",
-            "name_auxiliar_condition"               : "Condition"
+            "name_auxiliar_model_part" : "",
+            "name_auxiliar_condition"  : "Condition"
         })" );
+        skin_parameters["name_auxiliar_model_part"].SetString(mSkinSubModelPartName);
+
         if (mConditionName != "PLEASE SPECIFY IT") {
             skin_parameters["name_auxiliar_condition"].SetString(mConditionName);
         } else {
@@ -92,6 +116,9 @@ const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
     const Parameters default_parameters(R"(
     {
         "create_skin_sub_model_part" : true,
+        "create_body_sub_model_part" : false,
+        "skin_sub_model_part_name"   : "Skin",
+        "body_sub_model_part_name"   : "Body",
         "start_node_id"              : 1,
         "start_element_id"           : 1,
         "start_condition_id"         : 1,

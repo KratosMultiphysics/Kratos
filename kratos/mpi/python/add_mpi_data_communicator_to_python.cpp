@@ -19,9 +19,7 @@
 #include "includes/data_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 void AddMPIDataCommunicatorToPython(pybind11::module &m)
 {
@@ -30,6 +28,4 @@ void AddMPIDataCommunicatorToPython(pybind11::module &m)
     py::class_<MPIDataCommunicator, MPIDataCommunicator::Pointer, DataCommunicator>(m,"MPIDataCommunicator");
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

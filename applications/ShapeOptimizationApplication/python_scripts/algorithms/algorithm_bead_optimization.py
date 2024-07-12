@@ -349,6 +349,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_factor"] = penalty_factor
                 additional_values_to_log["max_norm_objective_gradient"] = max_norm_objective_gradient
 
+                self.data_logger.LogSensitivityHeatmap(total_iteration, self.mapper)
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)
 

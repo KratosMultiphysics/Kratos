@@ -9,42 +9,62 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_ATOMIC_UTILITIES_H_INCLUDED )
-#define  KRATOS_ATOMIC_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
+#include <atomic>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
 
+#if !defined(__cpp_lib_atomic_ref) && defined(KRATOS_SMP_CXX11)
+#include <boost/atomic/atomic_ref.hpp>
+#endif
+
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
 
-namespace Kratos
-{
+namespace Kratos {
+
+#if defined(KRATOS_SMP_CXX11)
+    #if defined(__cpp_lib_atomic_ref) // C++20
+        template <class T>
+        using AtomicRef = std::atomic_ref<T>;
+    #else
+        template <class T>
+        using AtomicRef = boost::atomic_ref<T>;
+    #endif //__cpp_lib_atomic_ref
+#endif // KRATOS_SMP_CXX11
+
 ///@addtogroup KratosCore
 /**
  * collection of utilities for atomic updates of simple types. (essentially mimics the omp atomic)
  */
 
-/** 
+/**
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
  */
 template<class TDataType>
 inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
+#ifdef KRATOS_SMP_OPENMP
     #pragma omp atomic
     target += value;
+#elif defined(KRATOS_SMP_CXX11)
+    AtomicRef<TDataType>{target} += value;
+#else
+    target += value;
+#endif
 }
 
-/** 
+/**
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
  * Specialization for array_1d
@@ -58,7 +78,7 @@ inline void AtomicAdd(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
     }
 }
 
-/** 
+/**
  * @param target vector variable being atomically updated by doing target += value
  * @param value vector value being added
  * Note that the update is not really atomic, but rather is done component by component
@@ -73,7 +93,7 @@ inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
     }
 }
 
-/** 
+/**
  * @param target matrix variable being atomically updated by doing target -= value
  * @param value matrix value being subtracted
  * Note that the update is not really atomic, but rather is done component by component
@@ -90,18 +110,24 @@ inline void AtomicAddMatrix(TMatrixType1& target, const TMatrixType2& value)
     }
 }
 
-/** 
+/**
  * @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
  */
 template<class TDataType>
 inline void AtomicSub(TDataType& target, const TDataType& value)
 {
+#ifdef KRATOS_SMP_OPENMP
     #pragma omp atomic
     target -= value;
+#elif defined(KRATOS_SMP_CXX11)
+    AtomicRef<TDataType>{target} -= value;
+#else
+    target -= value;
+#endif
 }
 
-/** 
+/**
  * @param target variable being atomically updated by doing target -= value
  * @param value value being subtracted
  * Specialization for array_1d
@@ -115,7 +141,7 @@ inline void AtomicSub(array_1d<TDataType,ArraySize>& target, const array_1d<TDat
     }
 }
 
-/** 
+/**
  * @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
  * Note that the update is not really atomic, but rather is done component by component
@@ -129,7 +155,7 @@ inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
     }
 }
 
-/** 
+/**
  * @param target matrix variable being atomically updated by doing target -= value
  * @param value matrix value being subtracted
  * Note that the update is not really atomic, but rather is done component by component
@@ -152,8 +178,15 @@ inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value)
 {
+#ifdef KRATOS_SMP_OPENMP
     #pragma omp atomic
     target *= value;
+#elif defined(KRATOS_SMP_CXX11)
+    AtomicRef<TDataType> at_ref{target};
+    at_ref = at_ref*value;
+#else
+    target *= value;
+#endif
 }
 
 /** @param target variable being atomically updated by doing target *= value
@@ -183,7 +216,7 @@ inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
     }
 }
 
-/** 
+/**
  * @param target matrix variable being atomically updated by doing target *= value
  * @param value matrix value being multiplied
  * Note that the update is not really atomic, but rather is done component by component
@@ -236,7 +269,7 @@ inline void AtomicDivVector(TVectorType1& target, const TVectorType2& value)
     }
 }
 
-/** 
+/**
  * @param target matrix variable being atomically updated by doing target *= 1.0/value
  * @param value matrix value being divided
  * Note that the update is not really atomic, but rather is done component by component
@@ -252,7 +285,5 @@ inline void AtomicDivMatrix(TMatrixType1& target, const TMatrixType2& value)
         }
     }
 }
-    
-}  // namespace Kratos.
 
-#endif // KRATOS_ATOMIC_UTILITIES_H_INCLUDED  defined
+}  // namespace Kratos.

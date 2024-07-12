@@ -204,7 +204,6 @@ bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
-
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -344,15 +343,17 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue = 0.0;
+    double aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        const double factor = mCombinationFactors[i_layer];
 
-        double aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        // we average over the layers
+        if (p_law->Has(rThisVariable)) {
+            p_law->GetValue(rThisVariable, aux_value);
+            rValue += aux_value * factor;
+        }
     }
-
     return rValue;
 }
 
@@ -366,14 +367,17 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     )
 {
     // We combine the values of the layers
+    rValue.resize(VoigtSize, false);
     rValue.clear();
+    Vector aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        Vector aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        if (p_law->Has(rThisVariable)) {
+            p_law->GetValue(rThisVariable, aux_value);
+            rValue += aux_value * factor;
+        }
     }
 
     return rValue;
@@ -476,7 +480,6 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     )
 {
     // We set the value in all layers
-
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -492,12 +495,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+    // We set the value in all layers
+    for (auto& p_law : mConstitutiveLaws) {
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -511,12 +511,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+    // We set the value in all layers
+    for (auto& p_law : mConstitutiveLaws) {
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -530,12 +527,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+    // We set the value in all layers
+    for (auto& p_law : mConstitutiveLaws) {
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -549,12 +543,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+    // We set the value in all layers
+    for (auto& p_law : mConstitutiveLaws) {
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -568,12 +559,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+    // We set the value in all layers
+    for (auto& p_law : mConstitutiveLaws) {
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -589,19 +577,30 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     )
 {
     const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+    const Vector strain_vector = rParameterValues.GetStrainVector();
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
     // We combine the value of each layer
     rValue = 0.0;
+    double aux_value = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
 
+        Properties& r_prop = *(it_prop_begin + i_layer);
         rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
+        // We rotate to local axes the strain
+        noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+        aux_value = 0.0;
+        p_law->CalculateValue(rParameterValues, rThisVariable, aux_value);
         rValue += factor * aux_value;
+
+        // We reset the strain to its original global axes
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
     }
 
     // Reset properties
@@ -681,24 +680,39 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
+        if (rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_ONE && rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const Vector strain_vector = rParameterValues.GetStrainVector();
 
         // We combine the value of each layer
+        rValue.resize(VoigtSize, false);
         rValue.clear();
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
             const double factor = mCombinationFactors[i_layer];
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
             Properties& r_prop = *(it_prop_begin + i_layer);
 
+            // We rotate to local axes the strain
+            noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
             rParameterValues.SetMaterialProperties(r_prop);
             Vector aux_value;
             p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
+            // we return the aux_value to the global coordinates
+            aux_value = prod(trans(voigt_rotation_matrix), aux_value);
+
             noalias(rValue) += factor * aux_value;
+
+            noalias(rParameterValues.GetStrainVector()) = strain_vector;
         }
 
         // Reset properties
         rParameterValues.SetMaterialProperties(r_material_properties);
+        }
     }
 
     return( rValue );
@@ -1495,7 +1509,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
             AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }

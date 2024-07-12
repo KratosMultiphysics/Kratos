@@ -18,6 +18,7 @@ file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
@@ -28,9 +29,10 @@ file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE
 ## define compressible potential application test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosCompressiblePotentialFlowCore SOURCES "${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosCompressiblePotentialFlowCore SHARED ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE} ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_TESTING_SOURCES})
+add_library(KratosCompressiblePotentialFlowCore SHARED ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE})
 target_link_libraries(KratosCompressiblePotentialFlowCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES COMPILE_DEFINITIONS "COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=EXPORT,API")
 

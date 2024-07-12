@@ -7,11 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-
+//  Main authors:    Philipp Bucher
+//
 
 // Project includes
 #include "mapping_geometries_modeler.h"
-
 
 namespace Kratos
 {

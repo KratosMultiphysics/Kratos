@@ -44,6 +44,18 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                          analyzer,
                                          communicator,
                                          model_part_controller)
+    elif algorithm_name == "relaxed_gradient_projection":
+        from .algorithm_relaxed_gradient_projection import AlgorithmRelaxedGradientProjection
+        return AlgorithmRelaxedGradientProjection(optimization_settings,
+                                                  analyzer,
+                                                  communicator,
+                                                  model_part_controller)
+    elif algorithm_name == "shape_fraction_optimization":
+        from .algorithm_shape_fraction_optimization import AlgorithmShapeFractionOptimization
+        return AlgorithmShapeFractionOptimization(optimization_settings,
+                                         analyzer,
+                                         communicator,
+                                         model_part_controller)
     else:
         raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 

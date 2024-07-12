@@ -35,7 +35,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(SymmetryBase);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer NodeTypePointer;
     typedef std::vector<NodeTypePointer> NodeVectorType;
     typedef array_1d<double,3> array_3d;

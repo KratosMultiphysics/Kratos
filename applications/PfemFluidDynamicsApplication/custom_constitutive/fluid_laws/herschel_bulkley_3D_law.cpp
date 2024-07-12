@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() const { return 6; }
 
     void HerschelBulkley3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -81,7 +81,7 @@ namespace Kratos
         else
         {
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate, flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
+            effective_dynamic_viscosity = dynamic_viscosity * std::pow(equivalent_strain_rate, flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
@@ -105,26 +105,26 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                    const ProcessInfo &rCurrentProcessInfo)
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
             << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBulkley3DLaw: "
             << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] < 0.0)
             << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBulkley3DLaw: "
             << rMaterialProperties[YIELD_SHEAR] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[FLOW_INDEX] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[FLOW_INDEX] < 0.0)
             << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley3DLaw: "
             << rMaterialProperties[FLOW_INDEX] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
             << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBulkley3DLaw: "
             << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
             << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBulkley3DLaw: "
             << rMaterialProperties[BULK_MODULUS] << std::endl;
 

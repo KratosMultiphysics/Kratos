@@ -58,6 +58,26 @@ if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
     f.close()
+       
+package_classifiers = [
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Physics",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Natural Language :: English",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "Intended Audience :: Developers",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console"
+    ]
 
 if "licence" in conf:
     for tag in conf["licence"]:
@@ -68,8 +88,6 @@ if "licence" in conf:
         else:
             print("[WARNING] Unknown licence tag: {}".format(tag))
             kratos_classifiers.append("License :: Other/Proprietary License")
-else:
-    kratos_classifiers.append("License :: OSI Approved :: BSD License")
 
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
@@ -95,7 +113,7 @@ setuptools.setup(
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )

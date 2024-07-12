@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -98,7 +98,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
 
     // We compute now the normal gap and set the nodes under certain threshold as active
     struct auxiliary {bool auxiliary_check = false; bool has_weighted_gap = false; double auxiliary_length = 0.0;};
-    block_for_each(r_nodes_array, auxiliary(), [this, &reference_auxiliary_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](NodeType& rNode, auxiliary& aux) {
+    block_for_each(r_nodes_array, auxiliary(), [this, &reference_auxiliary_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](Node& rNode, auxiliary& aux) {
         if (rNode.Is(SLAVE) == this->IsNotInvertedSearch()) {
             aux.auxiliary_check = false;
             aux.auxiliary_length = reference_auxiliary_length;
@@ -184,7 +184,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
     // We compute now the normal gap and set the nodes under certain threshold as active
     using FiveReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<SizeType>>;
-    std::tie(sum_x,sum_xsq,sum_y,sum_xy,n) = block_for_each<FiveReduction>(r_nodes_array, AuxValues(), [&](NodeType& rNode, AuxValues& aux_values) {
+    std::tie(sum_x,sum_xsq,sum_y,sum_xy,n) = block_for_each<FiveReduction>(r_nodes_array, AuxValues(), [&](Node& rNode, AuxValues& aux_values) {
         // We get the condition geometry
         if (rNode.Is(ACTIVE)) {
             aux_values.xi = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -236,7 +236,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithRegression(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -303,7 +303,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNo
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectScalarMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -316,7 +316,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectScal
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -329,7 +329,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectComp
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -379,7 +379,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -431,7 +431,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionalMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -450,7 +450,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictScalarMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -463,7 +463,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictScal
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -476,7 +476,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictComp
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -511,7 +511,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -548,7 +548,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionalMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )

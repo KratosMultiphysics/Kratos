@@ -1,7 +1,6 @@
 #!/bin/bash
-PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-# PYTHONS=("cp38")
-export KRATOS_VERSION="9.2.1"
+PYTHONS=("cp38" "cp39" "cp310" "cp311" "cp312")
+export KRATOS_VERSION="9.5"
 
 source /opt/intel/oneapi/setvars.sh
 
@@ -31,7 +30,6 @@ build_core_wheel () {
 
     cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
-    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
 
     cd $WHEEL_ROOT
 
@@ -155,7 +153,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo "Starting core build"
-build_core python3.6 ${KRATOS_ROOT}/bin/core
+build_core python3.8 ${KRATOS_ROOT}/bin/core
 echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"

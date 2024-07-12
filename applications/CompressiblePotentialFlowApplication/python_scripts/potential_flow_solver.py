@@ -93,7 +93,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -106,7 +106,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -119,7 +119,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
 
 def CreateSolver(model, custom_settings):
@@ -144,14 +144,22 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "incompressible"
             },
+            "element_replace_settings": {
+                "condition_name":  "",
+                "element_name": ""
+            },
             "maximum_iterations": 10,
             "echo_level": 0,
             "potential_application_echo_level": 0,
+            "convergence_criterion": "residual_criterion",
+            "solving_strategy_settings": {
+                "type" : "newton_raphson",
+                "advanced_settings" : {}
+            },
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "calculate_solution_norm": false,
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
@@ -177,7 +185,8 @@ class PotentialFlowSolver(FluidSolver):
     def __init__(self, model, custom_settings):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
+        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
@@ -194,6 +203,8 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_AUXILIARY_VELOCITY_POTENTIAL)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -204,8 +215,10 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["VELOCITY_POTENTIAL", "REACTION_VELOCITY_POTENTIAL"])
+        dofs_and_reactions_to_add.append(["AUXILIARY_VELOCITY_POTENTIAL", "REACTION_AUXILIARY_VELOCITY_POTENTIAL"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalElementalNeighbours()
@@ -247,43 +260,69 @@ class PotentialFlowSolver(FluidSolver):
         return scheme
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
+        criterion = self.settings["convergence_criterion"].GetString()
+        if criterion == "solution_criterion":
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif criterion == "residual_criterion":
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            err_msg =  "The requested convergence criterion \"" + criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\""
+            raise Exception(err_msg)
+        convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
     def _CreateSolutionStrategy(self):
         strategy_type = self._GetStrategyType()
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
-        builder_and_solver = self._GetBuilderAndSolver()
         if strategy_type == "linear":
-            solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
-                computing_model_part,
-                time_scheme,
-                linear_solver,
-                builder_and_solver,
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["calculate_solution_norm"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
+            solution_strategy = self._CreateLinearStrategy()
         elif strategy_type == "non_linear":
-            convergence_criterion = self._GetConvergenceCriterion()
-            solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                computing_model_part,
-                time_scheme,
-                linear_solver,
-                convergence_criterion,
-                builder_and_solver,
-                self.settings["maximum_iterations"].GetInt(),
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
+            # Create strategy
+            if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+                solution_strategy = self._CreateNewtonRaphsonStrategy()
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                solution_strategy = self._CreateLineSearchStrategy()
         else:
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
+
+    def _CreateLineSearchStrategy(self):
+        if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+            settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+            settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+        else:
+            settings = self._GetDefaultLineSearchParameters()
+        settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+        settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+        settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+        settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        solution_strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
+            time_scheme,
+            convergence_criterion,
+            builder_and_solver,
+            settings)
+        return solution_strategy
+
+    @classmethod
+    def _GetDefaultLineSearchParameters(self):
+        default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                "max_line_search_iterations" : 5,
+                "first_alpha_value"          : 0.5,
+                "second_alpha_value"         : 1.0,
+                "min_alpha"                  : 0.1,
+                "max_alpha"                  : 2.0,
+                "line_search_tolerance"      : 0.5
+            }""")
+        return default_line_search_parameters
 
     def _SetPhysicalProperties(self):
         # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py

@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosTrilinosApplication ****")
+message("**** Configuring KratosTrilinosApplication ****")
 
 include(pybind11Tools)
 
@@ -40,30 +40,35 @@ endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
 # Including the amgcl, which is header only
 include_directories("../../external_libraries")
 
+# CHecking MPI is included
+IF (NOT ${USE_MPI} OR NOT DEFINED USE_MPI)
+    MESSAGE(FATAL_ERROR "TrilinosApplication requires MPI, please ser ON USE_MPI")
+ENDIF (NOT ${USE_MPI} OR NOT DEFINED USE_MPI)
+
 # Sources for the Trilinos application core
-set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
+file(GLOB_RECURSE KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/trilinos_solver_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 # Sources for the Python module
-file(
-    GLOB_RECURSE
-    KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
+file(GLOB_RECURSE KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
-add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES} )
-target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} )
+add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} )
+target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} )
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosTrilinosCore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})

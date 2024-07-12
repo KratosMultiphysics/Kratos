@@ -51,7 +51,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Create vertices
         self.vertices = HDF5Application.VertexContainer()
-        for i_vertex, position in enumerate(parameters["positions"]):
+        for i_vertex, position in enumerate(parameters["positions"].values()):
             vertex = HDF5Application.Vertex.MakeShared(
                 position.GetVector(),
                 locator,

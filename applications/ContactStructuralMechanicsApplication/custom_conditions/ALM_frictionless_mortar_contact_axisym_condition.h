@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED )
-#define  KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -30,12 +29,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -67,40 +65,58 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation> MortarBaseType;
+    /// Base type for the mortar contact condition
+    using MortarBaseType = MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation>;
 
-    typedef AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    /// Base type for the condition
+    using BaseType = AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>;
 
-    typedef typename MortarBaseType::MortarConditionMatrices                                                     MortarConditionMatrices;
+    /// Type for the matrices used in the mortar contact condition
+    using MortarConditionMatrices = typename MortarBaseType::MortarConditionMatrices;
 
-    typedef typename MortarBaseType::GeneralVariables                                                                   GeneralVariables;
+    /// Type for the general variables used in the mortar contact condition
+    using GeneralVariables = typename MortarBaseType::GeneralVariables;
 
-    typedef typename MortarBaseType::AeData                                                                                       AeData;
+    /// Type for the AeData used in the mortar contact condition
+    using AeData = typename MortarBaseType::AeData;
 
-    typedef Condition                                                                                                  ConditionBaseType;
+    /// Type for the base condition type
+    using ConditionBaseType = Condition;
 
-    typedef typename ConditionBaseType::VectorType                                                                            VectorType;
+    /// Type for the vector used in the condition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                            MatrixType;
+    /// Type for the matrix used in the condition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                              IndexType;
+    /// Type for the index used in the condition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                        GeometryPointerType;
+    /// Pointer type for the geometry used in the condition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                                    NodesArrayType;
+    /// Type for the array of nodes used in the condition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                                    PropertiesPointerType;
+    /// Pointer type for the properties used in the condition
+    using PropertiesPointerType = typename ConditionBaseType::PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                        EquationIdVectorType;
+    /// Type for the vector of equation IDs used in the condition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                                    DofsVectorType;
+    /// Type for the vector of DOFs used in the condition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef typename std::vector<array_1d<PointType,2>>                                                           ConditionArrayListType;
+    /// Type for the array list of conditions with points
+    using ConditionArrayListType = std::vector<array_1d<PointType,2>>;
 
-    typedef Line2D2<Point>                                                                                             DecompositionType;
+    /// Type for the line in 2D
+    using DecompositionType = Line2D2<Point>;
 
-    typedef DerivativeData<2, TNumNodes>                                                                              DerivativeDataType;
+    /// Type for the derivative data based on the dimension and number of nodes
+    using DerivativeDataType = DerivativeData<2, TNumNodes>;
 
+    /// Constant expression for matrix size
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 
     ///@}
@@ -348,5 +364,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED  defined

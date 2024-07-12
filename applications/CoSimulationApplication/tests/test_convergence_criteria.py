@@ -62,7 +62,7 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
 
         with patch('KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper.CreateConvergenceCriterion') as p:
             p.return_value = conv_crit_mock
-            conv_crit_wrapper = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+            conv_crit_wrapper = ConvergenceCriteriaWrapper(conv_crit_settings, self.interface_data, KM.Testing.GetDefaultDataCommunicator())
 
         self.assertEqual(conv_crit_wrapper.executing_rank, self.my_pid == 0) # only rank zero is the executing one
 
@@ -116,7 +116,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.interface_data, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -140,7 +140,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.interface_data, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -166,7 +166,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.interface_data, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -190,7 +190,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.interface_data, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),

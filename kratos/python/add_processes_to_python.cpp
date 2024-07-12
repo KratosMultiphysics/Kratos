@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -32,9 +31,11 @@
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
+#include "processes/calculate_distance_to_path_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -42,6 +43,7 @@
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
+#include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
 #include "processes/check_skin_process.h"
@@ -55,6 +57,7 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/apply_ray_casting_process.h"
+#include "processes/apply_ray_casting_interface_recognition_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
@@ -67,17 +70,14 @@
 #include "processes/split_internal_interfaces_process.h"
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
-
+#include "processes/check_same_modelpart_using_skin_distance_process.h"
+#include "processes/calculate_nodal_distance_to_skin_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
-
-namespace Python
-{
-typedef Node<3> NodeType;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -117,13 +117,32 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
+template <std::size_t TDim, std::size_t TNumNodes, class TVariableType, const SizeType TNumNodesMaster = TNumNodes>
+void DefineSimpleMortarMapperProcess(pybind11::module& m, const std::string& className)
+{
+    using ProcessType = SimpleMortarMapperProcess<TDim, TNumNodes, TVariableType, TNumNodesMaster>;
+
+    pybind11::class_<ProcessType, typename ProcessType::Pointer, Process>(m, className.c_str())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&>())
+    .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &ProcessType::Map)
+    ;
+}
 
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<Process, Process::Pointer>(m,"Process")
+    py::class_<Process, Process::Pointer, Flags>(m,"Process")
     .def(py::init<>())
     .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
@@ -137,11 +156,11 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Check",&Process::Check)
     .def("Clear",&Process::Clear)
     .def("GetDefaultParameters",&Process::GetDefaultParameters)
+    .def("Info",&Process::Info)
     .def("__str__", PrintObject<Process>)
     ;
 
-    py::class_<OutputProcess, OutputProcess::Pointer, Process>
-        (m,"OutputProcess")
+    py::class_<OutputProcess, OutputProcess::Pointer, Process>(m,"OutputProcess")
     .def(py::init<>())
     .def("IsOutputStep",&OutputProcess::IsOutputStep)
     .def("PrintOutput",&OutputProcess::PrintOutput)
@@ -220,8 +239,9 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
-            .def(py::init<ModelPart&, int, unsigned int>())
-    .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, const int, const unsigned int>())
+        .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
@@ -234,7 +254,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
-    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
+    py::class_<EntitiesEraseProcess<Node>, EntitiesEraseProcess<Node>::Pointer, Process>(m,"NodeEraseProcess")
     .def(py::init<ModelPart&>())
     ;
 
@@ -254,6 +274,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     ;
 
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathNonHistoricalProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
             .def(py::init<ModelPart&, ModelPart&>())
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
@@ -270,7 +298,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
-            .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
+            .def(py::init<const Geometry< Node >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
 
     auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
@@ -283,11 +311,8 @@ void  AddProcessesToPython(pybind11::module& m)
     orientation_check_interface.attr("COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_NODAL_NORMALS;
     orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
     py::class_<VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess2D")
+            .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
@@ -297,6 +322,7 @@ void  AddProcessesToPython(pybind11::module& m)
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
     py::class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
+            .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
@@ -328,10 +354,19 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
     ;
 
+    py::class_<FluxCorrectedTransportConvectionProcess<2>, FluxCorrectedTransportConvectionProcess<2>::Pointer, Process>(m,"FluxCorrectedTransportConvectionProcess2D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<FluxCorrectedTransportConvectionProcess<3>, FluxCorrectedTransportConvectionProcess<3>::Pointer, Process>(m,"FluxCorrectedTransportConvectionProcess3D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
+            .def(py::init<Model&, Parameters>())
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
-            .def(py::init< ModelPart&, Parameters& >())
+            .def(py::init< ModelPart&, Parameters >())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
@@ -339,9 +374,10 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ApplyConstantVectorValueProcess, ApplyConstantVectorValueProcess::Pointer, Process>(m,"ApplyConstantVectorValueProcess")
+            .def(py::init<Model&, Parameters>())
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
-            .def(py::init< ModelPart&, Parameters& >())
+            .def(py::init< ModelPart&, Parameters >())
             .def_readonly_static("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
             .def_readonly_static("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
             .def_readonly_static("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
@@ -370,6 +406,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Historical */
     py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -383,6 +420,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -408,11 +446,19 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
     ;
 
+    // Check the same model part using skin distance
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<2>, CheckSameModelPartUsingSkinDistanceProcess<2>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+    py::class_<CheckSameModelPartUsingSkinDistanceProcess<3>, CheckSameModelPartUsingSkinDistanceProcess<3>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess3D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -423,7 +469,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -435,7 +481,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -443,7 +489,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -452,14 +498,28 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyRayCastingProcess<2>, ApplyRayCastingProcess<2>::Pointer, Process>(m,"ApplyRayCastingProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
     py::class_<ApplyRayCastingProcess<3>, ApplyRayCastingProcess<3>::Pointer, Process>(m,"ApplyRayCastingProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
-//     // Calculate embedded variable from skin processes
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>, 
+      ApplyRayCastingInterfaceRecognitionProcess<2>::Pointer, Process>
+      (m,"ApplyRayCastingInterfaceRecognitionProcess2D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<3>,
+       ApplyRayCastingInterfaceRecognitionProcess<3>::Pointer, Process>
+       (m,"ApplyRayCastingInterfaceRecognitionProcess3D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    // Calculate embedded variable from skin processes
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
         .def(py::init<Model &, Parameters>())
@@ -474,27 +534,36 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             ;
 
-    py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
+    py::class_<AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
+    .def(py::init<Model&, Parameters >())
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarVariableHistoricalToNodesProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
+    py::class_<AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputHistoricalToNodesProcess")
+    py::class_<AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputHistoricalToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
@@ -506,15 +575,23 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
+    py::class_<AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
+    .def(py::init<Model&, Parameters >())
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarFieldHistoricalToNodesProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
+    .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
     ;
 
@@ -526,119 +603,24 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     // 2D
-    py::class_<SimpleMortarMapperProcess<2, 2, Variable<double>>, SimpleMortarMapperProcess<2, 2, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDouble")
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<double>>::Map)
-    ;
-
-    py::class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVector")
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Map)
-    ;
+    DefineSimpleMortarMapperProcess<2, 2, Variable<double>>(m, "SimpleMortarMapperProcess2D2NDouble");
+    DefineSimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>>(m, "SimpleMortarMapperProcess2D2NVector");
 
     // 3D - Triangle
-    py::class_<SimpleMortarMapperProcess<3, 3, Variable<double>>, SimpleMortarMapperProcess<3, 3, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDouble")
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>>::Map)
-    ;
-
-    py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVector")
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Map)
-    ;
+    DefineSimpleMortarMapperProcess<3, 3, Variable<double>>(m, "SimpleMortarMapperProcess3D3NDouble");
+    DefineSimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>>(m, "SimpleMortarMapperProcess3D3NVector");
 
     // 3D - Quadrilateral
-    py::class_<SimpleMortarMapperProcess<3, 4, Variable<double>>, SimpleMortarMapperProcess<3, 4, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDouble")
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>>::Map)
-    ;
-
-    py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVector")
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Map)
-    ;
+    DefineSimpleMortarMapperProcess<3, 4, Variable<double>>(m, "SimpleMortarMapperProcess3D4NDouble");
+    DefineSimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>(m, "SimpleMortarMapperProcess3D4NVector");
 
     // 3D - Triangle - Quadrilateral
-    py::class_<SimpleMortarMapperProcess<3, 3, Variable<double>, 4>, SimpleMortarMapperProcess<3, 3, Variable<double>, 4>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3N4NDouble")
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>, 4>::Map)
-    ;
-
-    py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3N4NVector")
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Map)
-    ;
+    DefineSimpleMortarMapperProcess<3, 3, Variable<double>, 4>(m, "SimpleMortarMapperProcess3D3N4NDouble");
+    DefineSimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, 4>(m, "SimpleMortarMapperProcess3D3N4NVector");
 
     // 3D - Quadrilateral - Triangle
-    py::class_<SimpleMortarMapperProcess<3, 4, Variable<double>, 3>, SimpleMortarMapperProcess<3, 4, Variable<double>, 3>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4N3NDouble")
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>, 3>::Map)
-    ;
-
-    py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4N3NVector")
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Map)
-    ;
+    DefineSimpleMortarMapperProcess<3, 4, Variable<double>, 3>(m, "SimpleMortarMapperProcess3D4N3NDouble");
+    DefineSimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, 3>(m, "SimpleMortarMapperProcess3D4N3NVector");
 
     // Transfer between model parts
     py::class_<FastTransferBetweenModelPartsProcess, FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
@@ -661,22 +643,20 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
-        .def(py::init<ModelPart&>())
-        .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
-        .def(py::init<ModelPart&>())
-        .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<SubModelPartSkinDetectionProcess<2>, SubModelPartSkinDetectionProcess<2>::Pointer, SkinDetectionProcess<2>>
-    (m, "SubModelPartSkinDetectionProcess2D")
+    .def(py::init<ModelPart&>())
     .def(py::init< ModelPart&, Parameters >())
     ;
 
-    py::class_<SubModelPartSkinDetectionProcess<3>, SubModelPartSkinDetectionProcess<3>::Pointer, SkinDetectionProcess<3>>
-    (m, "SubModelPartSkinDetectionProcess3D")
+    py::class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
+    .def(py::init<ModelPart&>())
+    .def(py::init< ModelPart&, Parameters >())
+    ;
+
+    py::class_<SubModelPartSkinDetectionProcess<2>, SubModelPartSkinDetectionProcess<2>::Pointer, SkinDetectionProcess<2>>(m, "SubModelPartSkinDetectionProcess2D")
+    .def(py::init< ModelPart&, Parameters >())
+    ;
+
+    py::class_<SubModelPartSkinDetectionProcess<3>, SubModelPartSkinDetectionProcess<3>::Pointer, SkinDetectionProcess<3>>(m, "SubModelPartSkinDetectionProcess3D")
     .def(py::init< ModelPart&, Parameters >())
     ;
 
@@ -726,8 +706,10 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
     ;
+
+    py::class_<CalculateNodalDistanceToSkinProcess, CalculateNodalDistanceToSkinProcess::Pointer, Process> (m, "CalculateNodalDistanceToSkinProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

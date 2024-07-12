@@ -1,15 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
-
 
 // System includes
 
@@ -70,7 +68,7 @@ namespace Kratos
     void FiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -121,7 +119,7 @@ namespace Kratos
     void FiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)

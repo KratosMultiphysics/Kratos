@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
@@ -1122,10 +1122,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
 
             // Call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
             } else {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
             }
 

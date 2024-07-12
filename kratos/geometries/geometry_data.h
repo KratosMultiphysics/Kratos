@@ -126,10 +126,14 @@ public:
         Kratos_Tetrahedra3D4,
         Kratos_Triangle2D3,
         Kratos_Triangle2D6,
+        Kratos_Triangle2D10,
+        Kratos_Triangle2D15,
         Kratos_Triangle3D3,
         Kratos_Triangle3D6,
         Kratos_Line2D2,
         Kratos_Line2D3,
+        Kratos_Line2D4,
+        Kratos_Line2D5,
         Kratos_Line3D2,
         Kratos_Line3D3,
         Kratos_Point2D,
@@ -360,18 +364,6 @@ public:
     ///@name Informations
     ///@{
 
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    SizeType Dimension() const
-    {
-        return mpGeometryDimension->Dimension();
-    }
-
     /** Working space dimension. for example a triangle is a 2
     dimensional shape but can be used in 3 dimensional space.
 
@@ -421,7 +413,7 @@ public:
     ///@name Integration
     ///@{
 
-    /** Number of integtation points for default integration
+    /** Number of integration points for default integration
     method. This method just call IntegrationPointsNumber(enum
     IntegrationMethod ThisMethod) with default integration
     method.
@@ -738,8 +730,7 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
-        rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
+        rOStream << "    Working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 

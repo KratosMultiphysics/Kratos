@@ -1,0 +1,88 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+1 -0.2 0.2414 0.2
+2 -0.2 0.2414 -0.2
+3 0.2 0.2414 -0.2
+4 0.2 0.2414 0.2
+5 -0.2 -0.2414 0.2
+6 -0.2 -0.2414 -0.2
+7 0.2 -0.2414 -0.2
+8 0.2 -0.2414 0.2
+End Nodes
+
+
+Begin Conditions RigidFace3D4N// GUI group identifier: TOP
+1001 0 1 2 3 4
+End Conditions
+
+Begin Conditions RigidFace3D4N// GUI group identifier: BOTTOM
+2001 0 5 6 7 8
+End Conditions
+
+Begin SubModelPart DEM-FEM-Wall_TOP // DEM-FEM-Wall - group identifier: TOP
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: TOP
+    LINEAR_VELOCITY [3] (-0.0, -0.05, -0.0)
+    VELOCITY_PERIOD 0.0
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 100.0
+    FIXED_MESH_OPTION 0
+    RIGID_BODY_MOTION 1
+    FREE_BODY_MOTION 0
+    IS_GHOST 0
+    IDENTIFIER TOP
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+  End SubModelPartNodes
+
+Begin SubModelPartConditions
+      1001
+End SubModelPartConditions
+
+End SubModelPart
+
+Begin SubModelPart DEM-FEM-Wall_BOTTOM // DEM-FEM-Wall - group identifier: BOTTOM
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: BOTTOM
+    LINEAR_VELOCITY [3] (0.0, 0.05, 0.0)
+    VELOCITY_PERIOD 0.0
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 100.0
+    FIXED_MESH_OPTION 0
+    RIGID_BODY_MOTION 1
+    FREE_BODY_MOTION 0
+    IS_GHOST 0
+    IDENTIFIER BOTTOM
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         5
+         6
+         7
+         8
+  End SubModelPartNodes
+Begin SubModelPartConditions
+      2001
+End SubModelPartConditions
+
+End SubModelPart
+

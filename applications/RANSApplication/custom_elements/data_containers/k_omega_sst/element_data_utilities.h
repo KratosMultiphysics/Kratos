@@ -33,11 +33,12 @@ double CalculateBlendedPhi(
     const double Phi2,
     const double F1);
 
+template<unsigned int TDim>
 double CalculateCrossDiffusionTerm(
     const double SigmaTurbulentSpecificEnergyDissipationRate2,
     const double TurbulentSpecificEnergyDissipationRate,
-    const array_1d<double, 3>& rTurbulentKineticEnergyGradient,
-    const array_1d<double, 3>& rTurbulentSpecificEnergyDissipationRate);
+    const array_1d<double, TDim>& rTurbulentKineticEnergyGradient,
+    const array_1d<double, TDim>& rTurbulentSpecificEnergyDissipationRate);
 
 double CalculateF1(
     const double TurbulentKineticEnergy,
@@ -61,10 +62,6 @@ double CalculateTurbulentKinematicViscosity(
     const double VorticityNorm,
     const double F2,
     const double A1);
-
-template <unsigned int TDim>
-array_1d<double, 3> CalculateVorticity(
-    const BoundedMatrix<double, TDim, TDim>& rVelocityGradient);
 
 double CalculateGamma(
     const double Beta,

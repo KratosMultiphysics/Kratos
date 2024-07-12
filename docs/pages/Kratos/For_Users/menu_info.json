@@ -1,0 +1,13 @@
+{
+    "side_bar_name": "kratos_for_users",
+    "landing_page": "Project_Information/Overview.md",
+    "additional_menu_options": {
+        "product": "For Users"
+    },
+    "custom_entries": [
+        "Project_Information",
+        "Getting_Started",
+        "Tutorials",
+        "Conventions"
+    ]
+}

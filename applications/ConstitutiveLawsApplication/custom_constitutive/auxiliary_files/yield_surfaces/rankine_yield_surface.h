@@ -9,8 +9,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_RANKINE_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_RANKINE_YIELD_SURFACE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -125,7 +124,7 @@ public:
         array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
         // The rEquivalentStress is the maximum principal stress
-        if (Dimension == 3)  // TODO: Add constexpr with C++17
+        if constexpr (Dimension == 3)
             rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
         else // 2D
             rEquivalentStress = std::max(principal_stress_vector[0], principal_stress_vector[1]);
@@ -343,4 +342,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

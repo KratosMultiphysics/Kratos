@@ -70,12 +70,6 @@ public:
         KRATOS_ERROR_IF_NOT(mrDataComm.IsDistributed()) << "DataCommunicator must be distributed!" << std::endl;
     }
 
-    /// Copy constructor.
-    MetisDivideHeterogeneousInputInMemoryProcess(MetisDivideHeterogeneousInputInMemoryProcess const& rOther):
-        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions), mrSerialIO(rOther.mrSerialIO), mrDataComm(rOther.mrDataComm)
-    {
-    }
-
     /// Destructor.
     virtual ~MetisDivideHeterogeneousInputInMemoryProcess()
     {

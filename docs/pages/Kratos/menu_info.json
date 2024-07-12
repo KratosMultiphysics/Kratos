@@ -1,0 +1,17 @@
+{
+    "custom_entries":[
+        "For_Users",
+        "For_Developers",
+        "Processes",
+        "Utilities",
+        "Debugging",
+        "Documentation_Guide",
+        "Sequence_Diagrams",
+        "Expressions",
+        {
+            "type": "external",
+            "title": "Source Documentation",
+            "url": "https://kratos-docs.onrender.com"
+        }
+    ]
+}

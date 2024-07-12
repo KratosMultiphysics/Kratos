@@ -9,8 +9,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -365,4 +364,3 @@ class SimoJuYieldSurface
 ///@}
 
 } // namespace Kratos.
-#endif

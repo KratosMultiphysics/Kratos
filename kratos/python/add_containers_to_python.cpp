@@ -5,8 +5,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -16,24 +16,18 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
+#include "containers/variable.h"
+#include "includes/define_python.h"
 #include "includes/kratos_flags.h"
-#include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
-#include "utilities/timer.h"
 #include "utilities/quaternion.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -90,16 +84,16 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddContainersToPython(pybind11::module& m)
 {
-    typedef Variable<array_1d<double, 3> > Array1DVariable3;
-    typedef Variable<array_1d<double, 4> > Array1DVariable4;
-    typedef Variable<array_1d<double, 6> > Array1DVariable6;
-    typedef Variable<array_1d<double, 9> > Array1DVariable9;
+    using Array1DVariable3 = Variable<array_1d<double, 3> >;
+    using Array1DVariable4 = Variable<array_1d<double, 4> >;
+    using Array1DVariable6 = Variable<array_1d<double, 6> >;
+    using Array1DVariable9 = Variable<array_1d<double, 9> >;
 
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
     .def("GetSourceVariable", &VariableData::GetSourceVariable)
-    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;
@@ -247,6 +241,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,BLOCKED);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,MARKER);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,PERIODIC);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(m,WALL);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_DEFINED);
@@ -304,6 +299,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VISCOSITY_WATER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_STEPS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_COEFFICIENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_LAGRANGE_MULTIPLIER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_THETA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTIONS_VECTOR)
@@ -672,5 +668,4 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
 }
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

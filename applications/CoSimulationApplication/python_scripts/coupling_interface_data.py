@@ -7,6 +7,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 import numpy as np
 
+# STD imports
+import typing
+
 class BaseCouplingInterfaceData:
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
@@ -155,7 +158,7 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
         else:
             return {}
 
-    def GetData(self, solution_step_index=0):
+    def GetData(self, solution_step_index=0) -> "np.ndarray[typing.Union[bool,np.intc,np.uintc,np.double]]":
         self.__CheckBufferSize(solution_step_index)
 
         if self.location == "node_historical":

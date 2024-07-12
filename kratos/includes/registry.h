@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/registry_item.h"
-#include "includes/registry_value_item.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/string_utilities.h"
 
@@ -31,22 +30,6 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -83,11 +66,12 @@ public:
     ///@name Operations
     ///@{
 
-    template< typename TItemType, class... TArgumentsList >
+    template<typename TItemType, class... TArgumentsList >
     static RegistryItem& AddItem(
         std::string const& rItemFullName,
         TArgumentsList&&... Arguments)
     {
+        KRATOS_TRY
 
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
@@ -116,6 +100,15 @@ public:
         }
 
         return *p_current_item;
+
+        KRATOS_CATCH("")
+    }
+
+    template<typename... Types>
+    static std::string RegistryTemplateToString(Types&&... args) {
+        std::string f_name = (... += ("," + std::to_string(args)));
+        f_name.erase(0,1);
+        return f_name;
     }
 
     ///@}
@@ -150,7 +143,25 @@ public:
         return GetItem(rItemFullName).GetValue<TDataType>();
     }
 
+    template<typename TDataType, typename TCastType>
+    static typename std::enable_if<std::is_base_of<TDataType, TCastType>::value, TCastType>::type const GetValueAs(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).GetValueAs<TDataType, TCastType>();
+    }
+
     static void RemoveItem(std::string const& ItemName);
+
+    /** Sets the current source of the registry
+     *  This function is used to keep track of which application is adding items to the registry
+     *  @param rCurrentSource The current source of the registry
+    */
+    static void SetCurrentSource(std::string const & rCurrentSource);
+
+    /** Gets the current source of the registry
+     *  This function is used to keep track of which application is adding items to the registry
+     *  @param return The current source of the registry
+    */
+    static std::string GetCurrentSource();
 
     ///@}
     ///@name Inquiry

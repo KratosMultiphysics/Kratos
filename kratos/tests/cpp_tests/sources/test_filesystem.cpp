@@ -13,6 +13,7 @@
 
 // System includes
 #include <fstream>
+#include <tuple>
 
 // External includes
 
@@ -20,7 +21,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_filesystem.h"
 #include "utilities/parallel_utilities.h"
-#include "testing/scoped_file.h"
+#include "tests/test_utilities/scoped_file.h"
 
 namespace Kratos {
 namespace Testing {
@@ -36,9 +37,9 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     const std::filesystem::path file_name_1(dir_name / raw_file_name_1);
     const std::filesystem::path file_name_2(dir_name / raw_file_name_2);
 
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(dir_name));
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(sub_dir));
-    KRATOS_CHECK(std::filesystem::create_directories(sub_dir));
+    KRATOS_EXPECT_FALSE(std::filesystem::exists(dir_name));
+    KRATOS_EXPECT_FALSE(std::filesystem::exists(sub_dir));
+    KRATOS_EXPECT_TRUE(std::filesystem::create_directories(sub_dir));
 
     std::ofstream output_file;
     output_file.open(file_name_1);
@@ -46,14 +47,14 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     output_file.open(file_name_2);
     output_file.close();
 
-    KRATOS_CHECK(std::filesystem::exists(file_name_1));
-    KRATOS_CHECK(std::filesystem::exists(file_name_2));
-    KRATOS_CHECK(std::filesystem::exists(sub_dir));
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_name_1));
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(file_name_2));
+    KRATOS_EXPECT_TRUE(std::filesystem::exists(sub_dir));
 
     const std::vector<std::filesystem::path>& list_of_dirs = Kratos::FilesystemExtensions::ListDirectory(dir_name);
     const std::vector<std::filesystem::path> check_list{sub_dir, file_name_1, file_name_2};
 
-    KRATOS_CHECK_EQUAL(check_list.size(), list_of_dirs.size());
+    KRATOS_EXPECT_EQ(check_list.size(), list_of_dirs.size());
 
     for (const auto& r_dir : list_of_dirs) {
         bool found_check_dir = false;
@@ -64,29 +65,29 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
                 break;
             }
         }
-        KRATOS_CHECK(found_check_dir);
+        KRATOS_EXPECT_TRUE(found_check_dir);
     }
 
     std::filesystem::remove_all(dir_name);
 
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(dir_name));
+    KRATOS_EXPECT_FALSE(std::filesystem::exists(dir_name));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPISafeCreateDirectories, KratosCoreFastSuite)
 {
     auto create_dir_test_fct = [](const std::filesystem::path& rDirName){
         // make sure the dir does not exist already
-        KRATOS_CHECK_IS_FALSE(std::filesystem::exists(rDirName));
+        KRATOS_EXPECT_FALSE(std::filesystem::exists(rDirName));
 
         IndexPartition(100).for_each([&rDirName](std::size_t i){
             FilesystemExtensions::MPISafeCreateDirectories(rDirName);
         });
 
-        KRATOS_CHECK(std::filesystem::exists(rDirName));
+        KRATOS_EXPECT_TRUE(std::filesystem::exists(rDirName));
 
         // cleanup afterwards
         std::filesystem::remove_all(rDirName);
-        KRATOS_CHECK_IS_FALSE(std::filesystem::exists(rDirName));
+        KRATOS_EXPECT_FALSE(std::filesystem::exists(rDirName));
     };
 
     const std::filesystem::path base_dir_name("MyCustomDir2");
@@ -102,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPISafeCreateDirectories, KratosCoreFastSuite)
 
     // final cleanup after test
     std::filesystem::remove_all(base_dir_name);
-    KRATOS_CHECK_IS_FALSE(std::filesystem::exists(base_dir_name));
+    KRATOS_EXPECT_FALSE(std::filesystem::exists(base_dir_name));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
@@ -123,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
     {
         // Level 0-2 indirections to a non-existent path
         for (const auto& r_symlink : symlinks) {
-            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
+            KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
         }
     }
 
@@ -131,23 +132,23 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
         // Level 0-2 indirections to an existing path
         const ScopedFile file(file_path);
         for (const auto& r_symlink : symlinks) {
-            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
+            KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
         }
 
         // Input is a file
-        KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(file), file_path);
+        KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(file), file_path);
     }
 
     {
         // Cyclic indirections 2-4 cycles
         for (const auto& r_symlink : symlinks) {
             ScopedSymlink loopback(file_path, r_symlink);
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+            KRATOS_EXPECT_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
         }
 
         // 1-cycle
         ScopedSymlink loopback(file_path, file_path);
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
     }
 }
 
@@ -169,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToDirectory, KratosCoreFastSuite)
     {
         // Level 0-2 indirections to a non-existent path
         for (const auto& r_symlink : symlinks) {
-            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
+            KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
         }
     }
 
@@ -177,23 +178,23 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToDirectory, KratosCoreFastSuite)
         // Level 0-2 indirections to an existing directory
         const ScopedDirectory directory(directory_path);
         for (const auto& r_symlink : symlinks) {
-            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
+            KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
         }
 
         // Input is a directory
-        KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(directory), directory_path);
+        KRATOS_EXPECT_EQ(FilesystemExtensions::ResolveSymlinks(directory), directory_path);
     }
 
     {
         // Cyclic indirections 2-4 cycles
         for (const auto& r_symlink : symlinks) {
             ScopedSymlink loopback(directory_path, r_symlink);
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+            KRATOS_EXPECT_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
         }
 
         // 1-cycle
         ScopedSymlink loopback(directory_path, directory_path);
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(std::ignore=FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
     }
 }
 

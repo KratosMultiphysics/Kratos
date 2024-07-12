@@ -219,37 +219,12 @@ def  AuxiliaryCreateConvergenceParameters(main_model_part, settings, contact_set
         table.SetOnProcessInfo(main_model_part.ProcessInfo)
 
     conv_params = KM.Parameters("{}")
-    conv_params.AddValue("convergence_criterion", settings["convergence_criterion"])
-    conv_params.AddValue("rotation_dofs", settings["rotation_dofs"])
-    conv_params.AddValue("echo_level", settings["echo_level"])
-    conv_params.AddValue("displacement_relative_tolerance", settings["displacement_relative_tolerance"])
-    conv_params.AddValue("displacement_absolute_tolerance", settings["displacement_absolute_tolerance"])
-    conv_params.AddValue("residual_relative_tolerance", settings["residual_relative_tolerance"])
-    conv_params.AddValue("residual_absolute_tolerance", settings["residual_absolute_tolerance"])
-    conv_params.AddValue("rotation_relative_tolerance", contact_settings["rotation_relative_tolerance"])
-    conv_params.AddValue("rotation_absolute_tolerance", contact_settings["rotation_absolute_tolerance"])
-    conv_params.AddValue("rotation_residual_relative_tolerance", contact_settings["rotation_residual_relative_tolerance"])
-    conv_params.AddValue("rotation_residual_absolute_tolerance", contact_settings["rotation_residual_absolute_tolerance"])
-    conv_params.AddValue("contact_displacement_relative_tolerance", contact_settings["contact_displacement_relative_tolerance"])
-    conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
-    conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
-    conv_params.AddValue("frictional_stick_contact_displacement_relative_tolerance", contact_settings["frictional_stick_contact_displacement_relative_tolerance"])
-    conv_params.AddValue("frictional_stick_contact_displacement_absolute_tolerance", contact_settings["frictional_stick_contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("frictional_stick_contact_residual_relative_tolerance", contact_settings["frictional_stick_contact_residual_relative_tolerance"])
-    conv_params.AddValue("frictional_stick_contact_residual_absolute_tolerance", contact_settings["frictional_stick_contact_residual_absolute_tolerance"])
-    conv_params.AddValue("frictional_slip_contact_displacement_relative_tolerance", contact_settings["frictional_slip_contact_displacement_relative_tolerance"])
-    conv_params.AddValue("frictional_slip_contact_displacement_absolute_tolerance", contact_settings["frictional_slip_contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("frictional_slip_contact_residual_relative_tolerance", contact_settings["frictional_slip_contact_residual_relative_tolerance"])
-    conv_params.AddValue("frictional_slip_contact_residual_absolute_tolerance", contact_settings["frictional_slip_contact_residual_absolute_tolerance"])
-    conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
-    conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
-    conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
-    conv_params.AddValue("print_convergence_criterion", contact_settings["print_convergence_criterion"])
-    conv_params.AddValue("ensure_contact", contact_settings["ensure_contact"])
-    conv_params.AddValue("frictional_decomposed", contact_settings["frictional_decomposed"])
-    conv_params.AddValue("compute_dynamic_factor", contact_settings["compute_dynamic_factor"])
-    conv_params.AddValue("gidio_debug", contact_settings["gidio_debug"])
+    
+    parameter_list = ["convergence_criterion", "rotation_dofs", "echo_level", "displacement_relative_tolerance", "displacement_absolute_tolerance", "residual_relative_tolerance", "residual_absolute_tolerance"]
+    conv_params.CopyValuesFromExistingParameters(settings, parameter_list)
+    
+    parameter_list = ["rotation_relative_tolerance", "rotation_absolute_tolerance", "rotation_residual_relative_tolerance", "rotation_residual_absolute_tolerance", "contact_displacement_relative_tolerance", "contact_displacement_absolute_tolerance", "contact_residual_relative_tolerance", "contact_residual_absolute_tolerance", "frictional_stick_contact_displacement_relative_tolerance", "frictional_stick_contact_displacement_absolute_tolerance", "frictional_stick_contact_residual_relative_tolerance", "frictional_stick_contact_residual_absolute_tolerance", "frictional_slip_contact_displacement_relative_tolerance", "frictional_slip_contact_displacement_absolute_tolerance", "frictional_slip_contact_residual_relative_tolerance", "frictional_slip_contact_residual_absolute_tolerance", "ratio_normal_tangent_threshold", "mortar_type", "condn_convergence_criterion", "print_convergence_criterion", "ensure_contact", "frictional_decomposed", "compute_dynamic_factor", "gidio_debug"]
+    conv_params.CopyValuesFromExistingParameters(contact_settings, parameter_list)
 
     return conv_params
 
@@ -325,10 +300,8 @@ def  AuxiliaryLineSearch(computing_model_part, mechanical_scheme, linear_solver,
 
 def  AuxiliaryNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
-    newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
-    newton_parameters.AddValue("split_factor", contact_settings["split_factor"])
-    newton_parameters.AddValue("max_number_splits", contact_settings["max_number_splits"])
-    newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
+    parameter_list = ["adaptative_strategy", "split_factor", "max_number_splits", "inner_loop_iterations"]
+    newton_parameters.CopyValuesFromExistingParameters(contact_settings, parameter_list)
     return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                             mechanical_scheme,
                                                             mechanical_convergence_criterion,
@@ -344,9 +317,8 @@ def  AuxiliaryNewton(computing_model_part, mechanical_scheme, mechanical_converg
 
 def  AuxiliaryMPCNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
     newton_parameters = KM.Parameters("""{}""")
-    newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
-    newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])
-    newton_parameters.AddValue("enforce_ntn", contact_settings["enforce_ntn"])
+    parameter_list = ["inner_loop_iterations", "update_each_nl_iteration", "enforce_ntn"]
+    newton_parameters.CopyValuesFromExistingParameters(contact_settings, parameter_list)
     return CSMA.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
                                                                 mechanical_scheme,
                                                                 mechanical_convergence_criterion,

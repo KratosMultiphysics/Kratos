@@ -30,6 +30,8 @@
 #include "custom_processes/dam_uplift_circular_condition_load_process.hpp"
 #include "custom_processes/dam_westergaard_condition_load_process.hpp"
 #include "custom_processes/dam_nodal_young_modulus_process.hpp"
+#include "custom_processes/dam_input_table_nodal_young_modulus_process.hpp"
+#include "custom_processes/dam_random_fields_variable_process.hpp"
 #include "custom_processes/dam_chemo_mechanical_aging_young_process.hpp"
 #include "custom_processes/dam_temperature_by_device_process.hpp"
 #include "custom_processes/dam_added_mass_condition_process.hpp"
@@ -86,12 +88,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Uplift Condition
     py::class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftConditionLoadProcess")
-    .def(py::init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, ModelPart&, Parameters&>());
 
     // Uplift Condition for arch dams
     py::class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftCircularConditionLoadProcess")
-    .def(py::init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, ModelPart&, Parameters&>());
 
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)
     py::class_<DamWestergaardConditionLoadProcess, DamWestergaardConditionLoadProcess::Pointer, Process>
@@ -136,6 +138,16 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Nodal Reference Temperature Process
     py::class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
     (m, "DamNodalReferenceTemperatureProcess")
+    .def(py::init < ModelPart&, TableType&, Parameters&>());
+
+    // DamInputTableNodalYoungModulusProcess
+    py::class_< DamInputTableNodalYoungModulusProcess, DamInputTableNodalYoungModulusProcess::Pointer, Process >
+    (m, "DamInputTableNodalYoungModulusProcess")
+    .def(py::init < ModelPart&, TableType&, Parameters&>());
+
+    // DamRandomFieldsVariableProcess
+    py::class_< DamRandomFieldsVariableProcess, DamRandomFieldsVariableProcess::Pointer, Process >
+    (m, "DamRandomFieldsVariableProcess")
     .def(py::init < ModelPart&, TableType&, Parameters&>());
 
     // Grouting Reference Temperature Process

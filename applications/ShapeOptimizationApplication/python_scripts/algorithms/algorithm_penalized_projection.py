@@ -195,6 +195,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["correction_scaling"] = self.correction_scaling
         additional_values_to_log["step_size"] = self.step_size
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

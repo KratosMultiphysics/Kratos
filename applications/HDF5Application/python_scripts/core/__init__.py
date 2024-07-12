@@ -9,36 +9,33 @@ license: HDF5Application/license.txt
 __all__ = ["Factory"]
 
 
+# --- Core Imports ---
 import KratosMultiphysics
+
+# --- HDF5 Imports ---
 from . import processes
 from . import controllers
 from . import operations
-from . import file_io
 from .utils import ParametersWrapper
+
+# --- STD Imports ---
+import typing
 
 
 ##!@addtogroup HDF5Application
 ##!@{
-def CreateControllerWithFileIO(settings, model):
-    settings.SetDefault('model_part_name', 'PLEASE_SPECIFY_MODEL_PART_NAME')
-    settings.SetDefault('process_step', 'initialize')
-    settings.SetDefault('controller_settings')
-    settings.SetDefault('io_settings')
-    settings.SetDefault('list_of_operations', [])
-    if len(settings['list_of_operations']) == 0:
-        settings['list_of_operations'].Append(KratosMultiphysics.Parameters())
-    model_part = model[settings['model_part_name']]
-    data_comm = model_part.GetCommunicator().GetDataCommunicator()
-    return controllers.Factory(
-        model_part, file_io.Create(settings['io_settings'], data_comm),
-        settings['controller_settings'])
-
-
-def AssignOperationsToController(settings, controller):
-    if not settings.IsArray():
-        raise ValueError('Expected settings as an array')
-    for i in settings:
-        controller.Add(operations.Create(settings[i]))
+def CreateController(parameters: KratosMultiphysics.Parameters,
+                     model: KratosMultiphysics.Model,
+                     operation: operations.AggregateOperation) -> controllers.Controller:
+    parameters.AddMissingParameters(KratosMultiphysics.Parameters("""{
+        "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "process_step" : "initialize",
+        "controller_settings" : {},
+        "io_settings" : {},
+        "list_of_operations" : []
+    }"""))
+    model_part = model[parameters['model_part_name'].GetString()]
+    return controllers.Factory(model_part, operation, parameters['controller_settings'])
 
 
 def AssignControllerToProcess(settings, controller, process):
@@ -65,11 +62,10 @@ def AssignControllerToProcess(settings, controller, process):
             raise TypeError("Processes assigned to 'output' must have a DefaultController that executes on each call. The specified controller instead is: {}".format(type(controller)))
         process.AddOutput(controller)
     else:
-        raise ValueError(
-            '"process_step" has invalid value "' + process_step + '"')
+        raise ValueError(f'"process_step" has invalid value "{process_step}"')
 
 
-def Factory(settings: ParametersWrapper, model: KratosMultiphysics.Model, process_base: type):
+def Factory(settings: ParametersWrapper, model: KratosMultiphysics.Model, process_base: type) -> typing.Union[KratosMultiphysics.Process, KratosMultiphysics.OutputProcess]:
     """Return an HDF5 IO process specified by json settings."""
     if not settings.IsArray():
         raise ValueError('Expected settings as an array')
@@ -77,9 +73,8 @@ def Factory(settings: ParametersWrapper, model: KratosMultiphysics.Model, proces
         settings.Append(KratosMultiphysics.Parameters())
     process = processes.Factory(process_base)
     for i in settings:
-        controller = CreateControllerWithFileIO(settings[i], model)
-        AssignOperationsToController(
-            settings[i]['list_of_operations'], controller)
+        operation = operations.AggregateOperation(model, settings[i].Get())
+        controller = CreateController(settings[i].Get(), model, operation)
         AssignControllerToProcess(settings[i], controller, process)
     return process
 ##!@}

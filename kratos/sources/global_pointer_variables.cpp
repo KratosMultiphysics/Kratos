@@ -26,9 +26,9 @@
 
 namespace Kratos
 {
-    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_NODES)
-    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_CONDITION_NODES)
-    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node<3> >, FATHER_NODES)
+    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node >, NEIGHBOUR_NODES)
+    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node >, NEIGHBOUR_CONDITION_NODES)
+    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node >, FATHER_NODES)
 
   void KratosApplication::RegisterGlobalPointerVariables()
   {

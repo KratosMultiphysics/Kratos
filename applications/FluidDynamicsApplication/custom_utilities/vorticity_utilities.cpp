@@ -21,7 +21,7 @@ VorticityUtilities<TDim>::~VorticityUtilities() {}
 
 template<std::size_t TDim>
 void VorticityUtilities<TDim>::CalculateQValue(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
     std::vector<double>& rQValues)
 {
@@ -60,7 +60,7 @@ void VorticityUtilities<TDim>::CalculateQValue(
 
 template<std::size_t TDim>
 void VorticityUtilities<TDim>::CalculateVorticityMagnitude(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
     std::vector<double>& rVorticityMagnitudes)
 {
@@ -86,7 +86,7 @@ void VorticityUtilities<TDim>::CalculateVorticityMagnitude(
 
 template<std::size_t TDim>
 void VorticityUtilities<TDim>::CalculateVorticityVector(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
     std::vector<array_1d<double,3>>& rVorticities)
 {

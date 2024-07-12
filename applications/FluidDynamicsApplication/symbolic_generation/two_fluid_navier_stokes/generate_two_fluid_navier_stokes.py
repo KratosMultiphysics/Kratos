@@ -95,6 +95,7 @@ for dim in dim_vector:
     stab_c1 = sympy.Symbol('stab_c1', positive = True)
     stab_c2 = sympy.Symbol('stab_c2', positive = True)
     volume_error_ratio = sympy.Symbol('volume_error_ratio')
+    art_dyn_visc_coeff = sympy.Symbol('art_dyn_visc_coeff')
 
     ## Convective velocity definition
     if (linearisation == "Picard"):
@@ -312,10 +313,13 @@ for dim in dim_vector:
     Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
     rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
 
+    #  Calculate artificial dynamic viscosity in each Gauss point
+    vel_residual_norm = vel_residual.norm()
+    grad_v_norm = grad_v.norm()
+    artificial_mu = 0.5*h*art_dyn_visc_coeff*(vel_residual_norm/grad_v_norm)
 
-
-
-
+    grad_v_norm_out = OutputScalar(grad_v_norm, "grad_v_norm", mode)
+    artificial_mu_out = OutputScalar(artificial_mu, "artificial_mu", mode)
 
     #####################################################################
     #####################################################################
@@ -329,6 +333,9 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
 
+        outstring = outstring.replace("//substitute_artificial_mu_2D_3N", artificial_mu_out)
+        outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_2D_3N", grad_v_norm_out)
+
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
@@ -337,6 +344,9 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_H_3D", H_out)
         outstring = outstring.replace("//substitute_enrichment_Kee_3D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
+
+        outstring = outstring.replace("//substitute_artificial_mu_3D_4N", artificial_mu_out)
+        outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_3D_4N", grad_v_norm_out)
 
 #We write in the file
 out = open(output_filename,'w')

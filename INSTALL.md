@@ -6,11 +6,11 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [GNU/Linux](#gnulinux)
+    - [Linux/WSL](#gnulinux)
     - [Windows](#windows)
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
-      - [MinGW](#mingw)
+    - [MinGW](#mingw)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -59,7 +59,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 
 Additionaly, Visual Studio is required to compile in *Windows*.
 
-- #### GNU/Linux installation
+- #### Linux/WSL installation
 
     The command below will install all the packages needed.
 
@@ -72,42 +72,43 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
 - #### Windows installation
 
-  - #####  Microsoft Visual Studio compiler
+    - Visual Studio
 
-      - Visual Studio
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2019* or higher (please ensure that version is at least 16.8 or MSVC version is at least 19.24).
 
-          *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2017*, but we recommend to use *Visual Studio 2019* or higher.
+        * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
-          * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
 
-          Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
+        When compiling *Kratos* in *Windows*, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
-          When compiling *Kratos* in *Windows*, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
+    - CMake
+        * [Download CMake](http://cmake.org/download/)
 
-      - CMake
-          * [Download CMake](http://cmake.org/download/)
+        Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
 
-          Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
+        Minimum required version: CMake 3.20
 
-          Minimum required version: CMake 3.14
+    - Python
 
-      - Python
+        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
-          You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+        * [Download Python](http://www.python.org/downloads/)
 
-          * [Download Python](http://www.python.org/downloads/)
+        Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
 
-          Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+    - Boost
 
-      - Boost
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
 
-          The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+        * [Download Boost](http://www.boost.org/users/download/)
 
-          * [Download Boost](http://www.boost.org/users/download/)
+        Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
-          Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
-
-  - #####  MinGW
+- #### MinGW
+  MingGw compilation details are hidden by default to avoid confusion, please click the button below to show them.
+  <details>
+    <summary>Show MinGW compilation details</summary>
 
     *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
 
@@ -143,7 +144,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
         ```
 
-    - Python 
+    - Python
         You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
@@ -158,6 +159,20 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         ```Shell
         pacman -S mingw64/mingw-w64-x86_64-boost
         ```
+
+    ##### Using UCRT64
+
+    UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+
+    - Better compatibility with MSVC, both at build time and at run time.
+    - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+
+    If using UCRT64 the dependencies will be like:
+
+    ```Shell
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+    ```
+  </details>
 
 ### Specific Application Dependencies
 
@@ -207,6 +222,8 @@ Then, these scripts can be launched through the system terminal.
 sh /path_to_kratos/scripts/configure.sh
 ```
 
+**NOTE**: In case the compiler runs out of memory, try increasing the swap size to at least 16 GB and re-starting the compilation process.
+
 *Windows*
 
 ```Shell
@@ -219,7 +236,7 @@ The example scripts for every system are shown next.
 
 ### GNU/Linux
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -356,7 +373,7 @@ sh %KRATOS_BUILD%\configure_MINGW.sh
 
 And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -400,7 +417,7 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(npr
 ```
 ### MacOS
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -471,7 +488,7 @@ For *Windows* with *MinGW* it works in the same way as in *GNU/Linux* as it work
 As *Kratos* is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the *Kratos* install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
 ### GNU/Linux
-```bash
+```console
 export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
 ```
@@ -501,11 +518,11 @@ from KratosMultiphysics import *
 The result should be:
 
 ```
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.2."0"-4afb88094a-Release-ARM64
+           Multi-Physics 9.X.Y-4afb88094a-Release-ARM64
            Compiled for GNU/Linux and Python3.8 with GCC-8.5
 Compiled with threading and MPI support.
 Maximum number of threads: 1.
@@ -613,11 +630,11 @@ Root directory for boost. Overrided by `BOOST_ROOT` environmental variable if de
 `-DPYTHON_EXECUTABLE=String`
 Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by `PYTHON_EXECUTABLE` environmental variable if defined.
 
-`-DINSTALL_RUNKRATOS=ON/OFF`
-Enables(Default) or Disables the compilation of the embedded python interpreter (aka Runkratos).
-
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
+
+`-DKRATOS_NO_TRY_CATCH=ON/OFF`
+Enables or Disables(Default) the prevention of code generation in `KRATOS_TRY` and `KRATOS_CATCH` macros to allow direct debug of the code through gdb without having to break at `__cxa_throw`.
 
 ### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`

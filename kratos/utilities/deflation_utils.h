@@ -17,10 +17,6 @@
 /* System includes */
 
 /* External includes */
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
-#include "boost/numeric/ublas/matrix.hpp" // for the vector used here.
-#else
-#endif // KRATOS_USE_AMATRIX
 
 /* Project includes */
 #include "includes/define.h"

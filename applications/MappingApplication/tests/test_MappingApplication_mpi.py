@@ -7,10 +7,10 @@ if not KratosMultiphysics.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
-import run_cpp_mpi_unit_tests
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
 import test_barycentric_mapper
+import test_projection_3d_2d_mapper
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -32,6 +32,7 @@ def AssembleTestSuites():
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BasicTestsVolume]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BladeMappingSerialModelPart]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BladeMappingUnevenRanks]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.CornerCaseNearestNeighbor]))
 
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsLine]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsVolume]))
@@ -42,6 +43,11 @@ def AssembleTestSuites():
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsVolume]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BladeMappingSerialModelPart]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BladeMappingUnevenRanks]))
+
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighborOrigin2D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementOrigin2D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighborDestination2D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementDestination2D]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
@@ -77,6 +83,4 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    run_cpp_mpi_unit_tests.run() # Application-MPI tests are currently not run automatically, hence this hack is temporarily required
     KratosUnittest.runTests(AssembleTestSuites())

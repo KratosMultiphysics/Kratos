@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License          BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iomanip>
@@ -28,6 +27,7 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/geometry_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/intersection_utilities.h"
 
@@ -470,20 +470,14 @@ public:
         return std::sqrt(2.0 * Area());
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double Area() const override
     {
@@ -496,19 +490,27 @@ public:
         return std::sqrt(s*(s-a)*(s-b)*(s-c));
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle3D3:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double DomainSize() const override
     {
@@ -969,6 +971,149 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
+
+        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Local coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+	noalias(rProjectionPointLocalCoordinates) = rPointLocalCoordinates;
+        double sum_coordinates = 0.0;
+        for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
+            if (rProjectionPointLocalCoordinates[i] < 0.0) { // Clipping to zero
+                rProjectionPointLocalCoordinates[i] = 0.0;
+            }
+            sum_coordinates += rProjectionPointLocalCoordinates[i];
+        }
+        
+        // Clipping to line y=1-x
+        if (sum_coordinates>1.0){
+            for(unsigned int i = 0 ; i < 2 ; i++){ 
+                rProjectionPointLocalCoordinates[i] /= sum_coordinates;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Global coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Calculate the point of interest global coordinates
+        // Note that rProjectionPointLocalCoordinates is used as initial guess
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
+
+        // Calculate the projection point local coordinates from the input point local coordinates
+        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
+        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
+    }
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
+    }
+
+    ///@}
     ///@name Jacobian
     ///@{
     /**
@@ -1188,88 +1333,6 @@ public:
         return 2.0*(this->Area());
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates inverse of jacobians matrices
-     * in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which inverse of jacobians has to
-     * be calculated in it.
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculates inverse of jacobian
-     * matrix in given point.
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
     ///@}
     ///@name Edge
     ///@{
@@ -1445,25 +1508,6 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -1506,11 +1550,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1681,85 +1730,6 @@ public:
         }
 
         return rResult;
-    }
-
-    ///@}
-    ///@name Spatial Operations
-    ///@{
-
-    /**
-    * @brief Projects a certain point on the geometry, or finds
-    *        the closest point, depending on the provided
-    *        initial guess. The external point does not necessary
-    *        lay on the geometry.
-    *        It shall deal as the interface to the mathematical
-    *        projection function e.g. the Newton-Raphson.
-    *        Thus, the breaking criteria does not necessarily mean
-    *        that it found a point on the surface, if it is really
-    *        the closest if or not. It shows only if the breaking
-    *        criteria, defined by the tolerance is reached.
-    *
-    *        This function requires an initial guess, provided by
-    *        rProjectedPointLocalCoordinates.
-    *        This function can be a very costly operation.
-    *
-    * @param rPointGlobalCoordinates the point to which the
-    *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
-    * @param rProjectedPointLocalCoordinates the location of the
-    *        projection in local coordinates.
-    *        The variable is as initial guess!
-    * @param Tolerance accepted of orthogonal error to projection.
-    * @return It is chosen to take an int as output parameter to
-    *         keep more possibilities within the interface.
-    *         0 -> failed
-    *         1 -> converged
-    */
-    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
-    int ProjectionPoint(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
-
-        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
-
-        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
-
-        return 1;
-    }
-
-    int ProjectionPointLocalToLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        for (std::size_t  i = 0; i < 3; ++i) {
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] < 0.0) ? 0.0 : rPointLocalCoordinates[i];
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] > 1.0) ? 1.0 : rPointLocalCoordinates[i];
-        }
-
-        return 1;
-    }
-
-    int ProjectionPointGlobalToLocalSpace(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        // Calculate the point of interest global coordinates
-        // Note that rProjectionPointLocalCoordinates is used as initial guess
-        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
-
-        // Calculate the projection point local coordinates from the input point local coordinates
-        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
-        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
     }
 
     ///@}
@@ -2582,9 +2552,6 @@ GeometryData Triangle3D3<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

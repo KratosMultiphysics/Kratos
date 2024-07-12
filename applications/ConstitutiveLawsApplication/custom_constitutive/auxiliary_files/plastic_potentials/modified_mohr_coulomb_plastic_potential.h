@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED)
-#define KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -296,4 +295,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

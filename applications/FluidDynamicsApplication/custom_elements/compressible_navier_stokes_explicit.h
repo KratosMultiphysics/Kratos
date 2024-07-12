@@ -713,7 +713,7 @@ namespace CompressibleNavierStokesExplicitInternal
     // Specialization for simplex geometries
     template<unsigned int TDim, unsigned int TNumNodes>
     static typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-        const Geometry<Node<3>> & rGeometry,
+        const Geometry<Node> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
         GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
@@ -727,7 +727,7 @@ namespace CompressibleNavierStokesExplicitInternal
      */
     template<unsigned int TDim, unsigned int TNumNodes>
     static typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-        const Geometry<Node<3>> & rGeometry,
+        const Geometry<Node> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
         rData.volume = rGeometry.DomainSize();
@@ -842,7 +842,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
@@ -867,7 +867,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
@@ -931,7 +931,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVeloc
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 

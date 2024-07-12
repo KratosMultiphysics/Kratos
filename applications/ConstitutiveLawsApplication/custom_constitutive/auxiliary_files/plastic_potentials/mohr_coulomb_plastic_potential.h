@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED)
-#define KRATOS_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -250,4 +249,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

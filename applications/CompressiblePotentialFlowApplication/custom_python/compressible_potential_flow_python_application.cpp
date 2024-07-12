@@ -21,6 +21,7 @@
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_operations_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -40,12 +41,17 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomOperationsToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_POTENTIAL);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIARY_VELOCITY_POTENTIAL);
+
+    // Reaction variables (Degrees of freedom)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REACTION_VELOCITY_POTENTIAL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REACTION_AUXILIARY_VELOCITY_POTENTIAL);
 
     //Embedded variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEOMETRY_DISTANCE)

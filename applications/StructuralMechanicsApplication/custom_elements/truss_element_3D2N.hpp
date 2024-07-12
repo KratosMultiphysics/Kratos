@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -127,6 +124,11 @@ namespace Kratos
         void CalculateOnIntegrationPoints(
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            std::vector<ConstitutiveLaw::Pointer>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
@@ -249,7 +251,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
+        virtual double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -259,6 +261,9 @@ namespace Kratos
         bool HasSelfWeight() const;
 
         const Parameters GetSpecifications() const override;
+
+protected:
+    double ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     /**
@@ -276,6 +281,3 @@ private:
 
 
 }
-
-
-#endif

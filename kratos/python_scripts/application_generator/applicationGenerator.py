@@ -212,7 +212,7 @@ class ApplicationGenerator(TemplateRule):
             entityType='Variables',
             fromContainer=self._variables)
 
-    # Interal goes here
+    # Internal goes here
     def _applyTemplateRulesToFile(self, src, dst, rules):
         ''' Creates a 'dst' file by iterating over all pairs of [token,value]
             in 'rules' and replacing all ocurrences of 'token' by its 'value' in

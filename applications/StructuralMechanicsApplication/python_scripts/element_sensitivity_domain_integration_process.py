@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-import sys
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):

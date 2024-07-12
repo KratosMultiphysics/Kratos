@@ -34,7 +34,7 @@ double CalculateTurbulentViscosity(
 }
 
 template <unsigned int TDim>
-double CalculateSourceTerm(
+double CalculateProductionTerm(
     const BoundedMatrix<double, TDim, TDim>& rVelocityGradient,
     const double TurbulentKinematicViscosity)
 {
@@ -71,8 +71,8 @@ double CalculateGamma(
 
 // template instantiations
 
-template double CalculateSourceTerm<2>(const BoundedMatrix<double, 2, 2>&, const double);
-template double CalculateSourceTerm<3>(const BoundedMatrix<double, 3, 3>&, const double);
+template double CalculateProductionTerm<2>(const BoundedMatrix<double, 2, 2>&, const double);
+template double CalculateProductionTerm<3>(const BoundedMatrix<double, 3, 3>&, const double);
 
 } // namespace KEpsilonElementData
 

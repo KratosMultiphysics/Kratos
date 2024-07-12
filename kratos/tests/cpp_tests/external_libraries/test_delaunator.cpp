@@ -89,7 +89,7 @@ inline void validatewithtolerance(
     }
     const double triangles_area = std::accumulate(triangles_areas.begin(), triangles_areas.end(), 0.0);
     
-    KRATOS_CHECK_LESS_EQUAL((triangles_area - HullArea)/HullArea, Tolerance);
+    KRATOS_EXPECT_LE((triangles_area - HullArea)/HullArea, Tolerance);
 
 //     // Save filled debug model part
 //     if (fill_model_part) {

@@ -1,5 +1,3 @@
-import sys
-
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
 from classes.processCreator import ProcessCreator

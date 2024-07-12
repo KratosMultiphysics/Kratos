@@ -8,7 +8,13 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "includes/global_pointer.h"
 #include "includes/global_pointer_variables.h"
@@ -17,10 +23,7 @@
 #include "includes/model_part.h" 
 #include "includes/mpi_serializer.h" 
 
-
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
 {
@@ -32,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
     mp.CreateNewNode(2,1.0,2.0,3.0);
     mp.CreateNewNode(3,1.0,2.0,3.0);
 
-    GlobalPointersVector<Node<3>> global_pointers_container;
+    GlobalPointersVector<Node> global_pointers_container;
     global_pointers_container.FillFromContainer(mp.Nodes());
 
     MpiSerializer serializer;
@@ -40,12 +43,12 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
 
     serializer.save("global_pointers_container", global_pointers_container);
 
-    GlobalPointersVector<Node<3>> new_global_pointers;
+    GlobalPointersVector<Node> new_global_pointers;
     serializer.load("global_pointers_container",new_global_pointers);
 
     for(std::size_t i=0; i<global_pointers_container.size(); ++i)
     {
-        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
+        KRATOS_EXPECT_EQ(&new_global_pointers[i], &global_pointers_container[i]);
     }
 }
 
@@ -63,9 +66,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
     auto target_node = mp.CreateNewNode(4,1.0,2.0,4.0);
     auto& global_pointers_container = target_node->GetValue(NEIGHBOUR_NODES);
 
-    global_pointers_container.push_back(GlobalPointer<Node<3>>(&*node_1));
-    global_pointers_container.push_back(GlobalPointer<Node<3>>(&*node_2));
-    global_pointers_container.push_back(GlobalPointer<Node<3>>(&*node_3));
+    global_pointers_container.push_back(GlobalPointer<Node>(&*node_1));
+    global_pointers_container.push_back(GlobalPointer<Node>(&*node_2));
+    global_pointers_container.push_back(GlobalPointer<Node>(&*node_3));
 
     MpiSerializer serializer;
     serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
@@ -77,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
 
     for(std::size_t i = 0; i < global_pointers_container.size(); i++)
     {
-        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
+        KRATOS_EXPECT_EQ(&new_global_pointers[i], &global_pointers_container[i]);
     }
 }
 
@@ -92,9 +95,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableWithRecursion, Kratos
     const auto& node_2 = mp.CreateNewNode(2,1.0,2.0,3.0);
     const auto& node_3 = mp.CreateNewNode(3,1.0,2.0,3.0);
 
-    node_1->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node<3>>(&*node_2));
-    node_2->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node<3>>(&*node_3));
-    node_3->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node<3>>(&*node_1));
+    node_1->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node>(&*node_2));
+    node_2->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node>(&*node_3));
+    node_3->GetValue(NEIGHBOUR_NODES).push_back(GlobalPointer<Node>(&*node_1));
 
     MpiSerializer serializer;
     serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
@@ -102,19 +105,18 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableWithRecursion, Kratos
     serializer.save("model", current_model);
     serializer.load("model", loaded_model);
 
-    KRATOS_CHECK_EQUAL(current_model.GetModelPart("test").NumberOfNodes(), loaded_model.GetModelPart("test").NumberOfNodes());
+    KRATOS_EXPECT_EQ(current_model.GetModelPart("test").NumberOfNodes(), loaded_model.GetModelPart("test").NumberOfNodes());
 
     for(std::size_t i = 1; i <= loaded_model.GetModelPart("test").NumberOfNodes(); i++) {
         auto& old_global_pointers = current_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
         auto& new_global_pointers = loaded_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
 
-        KRATOS_CHECK_EQUAL(old_global_pointers.size(), new_global_pointers.size());
+        KRATOS_EXPECT_EQ(old_global_pointers.size(), new_global_pointers.size());
 
         for(std::size_t j = 0; j < new_global_pointers.size(); j++) {
-            KRATOS_CHECK_EQUAL(&old_global_pointers[j], &new_global_pointers[j]);
+            KRATOS_EXPECT_EQ(&old_global_pointers[j], &new_global_pointers[j]);
         }
     }
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

@@ -2,7 +2,7 @@ BOOK: Parts
 
 CONDITION: Body_Part
 CONDTYPE: over groups
-CONDMESHTYPE: over body elements
+CONDMESHTYPE: over body elements nodes
 GROUPALLOW: volumes elements
 QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb

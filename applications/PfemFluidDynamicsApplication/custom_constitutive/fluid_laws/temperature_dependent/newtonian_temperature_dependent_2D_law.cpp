@@ -49,11 +49,11 @@ namespace Kratos
                                                   const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
             << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for NewtonianTemperatureDependent2DLaw: "
             << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
             << "Incorrect or missing BULK_MODULUS provided in process info for Newtonian3DLaw: "
             << rMaterialProperties[BULK_MODULUS] << std::endl;
 

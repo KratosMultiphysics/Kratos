@@ -31,26 +31,41 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalResults1, KratosHDF5TestSuite)
 {
-    Parameters settings(R"({
-        "prefix": "/Results",
-        "list_of_variables": ["DENSITY",
-                              "VELOCITY",
-                              "DOMAIN_SIZE",
-                              "EXTERNAL_FORCES_VECTOR",
-                              "CONSTITUTIVE_MATRIX"]
-        })");
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     TestModelPartFactory::CreateModelPart(r_write_model_part);
+
+    std::vector<std::string> variables_list = {
+        "DENSITY",
+        "VELOCITY",
+        "DOMAIN_SIZE",
+        "EXTERNAL_FORCES_VECTOR",
+        "CONSTITUTIVE_MATRIX"
+    };
+
+    // "shuffle" the list of variables to check whether it's handled
+    // without deadlocks.
+    std::rotate(
+        variables_list.begin(),
+        variables_list.begin() + (r_read_model_part.GetCommunicator().GetDataCommunicator().Rank() % variables_list.size()),
+        variables_list.end()
+    );
+
+    Parameters settings(R"({
+        "prefix": "/Results",
+        "list_of_variables": []
+    })");
+    settings["list_of_variables"].SetStringArray(variables_list);
+
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
         r_write_model_part,
-        {{"DENSITY"}, {"VELOCITY"}, {"DOMAIN_SIZE"}, {"EXTERNAL_FORCES_VECTOR"}, {"CONSTITUTIVE_MATRIX"}});
+        variables_list);
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::NodalDataValueIO nodal_value_io(settings, p_file);
     nodal_value_io.WriteNodalResults(r_write_model_part.Nodes());
-    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     model_part_io.ReadNodes(r_read_model_part.Nodes());
     nodal_value_io.ReadNodalResults(r_read_model_part.Nodes(),
                                     r_read_model_part.GetCommunicator());

@@ -77,26 +77,45 @@ Element::Pointer DVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointe
 }
 
 template <class TElementData>
-void DVMS<TElementData>::Calculate(const Variable<double>& rVariable,
-    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void DVMS<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void DVMS<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    array_1d<double, 3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
     // Lumped projection terms
     if (rVariable == ADVPROJ) {
         this->CalculateProjections(rCurrentProcessInfo);
+    } else {
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void DVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void DVMS<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void DVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void DVMS<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void DVMS<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
@@ -736,7 +755,7 @@ void DVMS<TElementData>::SubscalePressure(
     // Old mass residual for dynamic pressure subscale
     // Note: Residual is defined as -Div(u) [- Projection (if OSS)]
     double old_residual = 0.0;
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
     for (unsigned int a = 0; a < NumNodes; a++) {
         const array_1d<double,3>& r_old_velocity = r_geometry[a].FastGetSolutionStepValue(VELOCITY,1);
         double old_divergence_projection = r_geometry[a].FastGetSolutionStepValue(DIVPROJ,1);
@@ -904,6 +923,9 @@ template class DVMS< QSVMSDEMCoupledData<2,3> >;
 template class DVMS< QSVMSDEMCoupledData<3,4> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,4> >;
+template class DVMS< QSVMSDEMCoupledData<2,6> >;
+template class DVMS< QSVMSDEMCoupledData<2,9> >;
 template class DVMS< QSVMSDEMCoupledData<3,8> >;
+template class DVMS< QSVMSDEMCoupledData<3,27> >;
 
 } // namespace Kratos

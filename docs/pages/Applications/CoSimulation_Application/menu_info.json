@@ -1,0 +1,19 @@
+{
+    "side_bar_name": "cosimulation_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "CoSimulation Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Coupling_Strategy",
+        "Solver_Wrappers",
+        "Convergence_Criteria",
+        "Convergence_Accelerators",
+        "Predictors",
+        "Data_Transfer_Operators",
+        "Coupling_Operations",
+        "Examples"
+    ]
+}

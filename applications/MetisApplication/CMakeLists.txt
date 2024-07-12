@@ -21,14 +21,14 @@ file( GLOB KRATOS_METIS_APPLICATION_CORE
 ## Metis python interface sources
 file(GLOB_RECURSE KRATOS_METIS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-## define test sources (cpp tests)
+## Metis Testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB KRATOS_METIS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file(GLOB KRATOS_METIS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosMetisCore SOURCES "${KRATOS_METIS_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-
-add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
+add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE})
+target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARIES})
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################

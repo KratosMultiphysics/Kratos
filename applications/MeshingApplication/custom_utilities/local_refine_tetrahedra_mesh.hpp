@@ -5,16 +5,15 @@
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:      Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
-#define  KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH
+#pragma once
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,14 +56,13 @@ public:
     ///@{
 
     /// Default constructors
-    LocalRefineTetrahedraMesh(ModelPart& model_part) : LocalRefineGeometryMesh(model_part)
+    LocalRefineTetrahedraMesh(ModelPart& rModelPart) : LocalRefineGeometryMesh(rModelPart)
     {
 
     }
 
     /// Destructor
-    ~LocalRefineTetrahedraMesh()
-    = default;
+    ~LocalRefineTetrahedraMesh() = default;
 
     ///@}
     ///@name Operators
@@ -80,7 +78,7 @@ public:
     * @return model_part: The model part of the model (it is the input too)
     */
 
-    unsigned int CreateCenterNode(Geometry<Node < 3 > >& geom, ModelPart& model_part)
+    unsigned int CreateCenterNode(Geometry<Node >& geom, ModelPart& model_part)
     {
         // Determine a new unique id
         unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
@@ -100,7 +98,7 @@ public:
         double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
 
         // Generate the new node
-        Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
+        Node ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
 
         unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
         pnode->SetBufferSize(buffer_size);
@@ -110,13 +108,13 @@ public:
         pnode->Z0() = Z0;
 
         // Add the dofs
-        Node < 3 > ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
         unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
 
-        for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+        for (Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
         {
-            Node < 3 > ::DofType& rDof = **iii;
-            Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+            Node::DofType& rDof = **iii;
+            Node::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
             (p_new_dof)->FreeDof();
@@ -139,10 +137,10 @@ public:
         }
 
         pnode->GetValue(FATHER_NODES).resize(0);
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(0) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(1) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(2) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(3) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(0) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(1) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(2) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(3) ) );
 
         return new_id;
     }
@@ -223,7 +221,11 @@ public:
 
 	  }
 
-	  if (create_element == true)
+      //TODO: CHANGE RESPECT TO BASE CLASS: ( FLUID SOLVER MIGHT HAVE CHANGED THIS)
+      //probably it'd be good to move this to github
+      it->SetValue(SPLIT_ELEMENT,false);
+
+	  if (create_element)
 	  {
 	      to_be_deleted++;
 
@@ -243,7 +245,7 @@ public:
 		  unsigned int i2 = aux[t[base + 2]];
 		  unsigned int i3 = aux[t[base + 3]];
 
-		  Tetrahedra3D4<Node < 3 > > geom(
+		  Tetrahedra3D4<Node > geom(
 		      this_model_part.Nodes()(i0),
 		      this_model_part.Nodes()(i1),
 		      this_model_part.Nodes()(i2),
@@ -300,10 +302,22 @@ public:
       // Now update the elements in SubModelParts
       if (NewElements.size() > 0)
       {
+          UpdateSubModelPartElements(this_model_part, NewElements);
+      }
+
+    }
+
+    /**
+    * Updates recursively the elements in the submodelpars
+    * @param NewElements: list of elems
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartElements(ModelPart& this_model_part, PointerVector< Element >& NewElements)
+      {
           for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                   iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
           {
-              to_be_deleted = 0;
+              unsigned int to_be_deleted = 0;
               NewElements.clear();
 
               // Create list of new elements in SubModelPart
@@ -335,15 +349,23 @@ public:
               // Delete old elements
               iSubModelPart->Elements().Sort();
               iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
-
+              /*
               KRATOS_WATCH(iSubModelPart->Info());
               KRATOS_WATCH(to_be_deleted);
               KRATOS_WATCH(iSubModelPart->Elements().size());
               KRATOS_WATCH(this_model_part.Elements().size());
+              */
+
+            //NEXT LEVEL
+            if (NewElements.size() > 0)
+            {
+               ModelPart &rSubModelPart = *iSubModelPart;
+               UpdateSubModelPartElements(rSubModelPart,NewElements);
+            }
+
+
           }
       }
-    }
-
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -407,7 +429,7 @@ public:
                             unsigned int i1   = aux[t[base+1]];
                             unsigned int i2   = aux[t[base+2]];
 
-                            Triangle3D3<Node<3> > newgeom(
+                            Triangle3D3<Node > newgeom(
                                     this_model_part.Nodes()(i0),
                                     this_model_part.Nodes()(i1),
                                     this_model_part.Nodes()(i2)
@@ -451,61 +473,54 @@ public:
                 this_model_part.Conditions().push_back( *iCond );
             }
 
-            /* Renumber id */
-            unsigned int my_index = 1;
-            for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
-            {
-                it->SetId(my_index++);
-            }
 
 
             // Now update the conditions in SubModelParts
             if (NewConditions.size() > 0)
             {
-                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                        iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
-                {
-                    to_be_deleted = 0;
-                    NewConditions.clear();
-
-                    // Create list of new conditions in SubModelPart
-                    // Count how many conditions will be removed
-                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
-                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
-                    {
-                        if( iCond->GetValue(SPLIT_ELEMENT) )
-                        {
-                            to_be_deleted++;
-                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
-
-                            for ( auto iChild = rChildConditions.ptr_begin();
-                                    iChild != rChildConditions.ptr_end(); iChild++ )
-                            {
-                                NewConditions.push_back((*iChild)->shared_from_this());
-                            }
-                        }
-                    }
-
-                    // Add new conditions to SubModelPart
-                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
-                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
-                            it_new != NewConditions.end(); it_new++)
-                    {
-                        iSubModelPart->Conditions().push_back(*(it_new.base()));
-                    }
-
-                    // Delete old conditions
-                    iSubModelPart->Conditions().Sort();
-                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-
-                    KRATOS_WATCH(iSubModelPart->Info());
-                    KRATOS_WATCH(to_be_deleted);
-                    KRATOS_WATCH(iSubModelPart->Conditions().size());
-                    KRATOS_WATCH(this_model_part.Conditions().size());
-                }
+                UpdateSubModelPartConditions(this_model_part, NewConditions);
             }
         }
         KRATOS_CATCH("");
+    }
+
+
+    /**
+    * Updates recursively the conditions in the submodelpars
+    * @param rNewConditions: list of conds
+    * @return rModelPart: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartConditions(ModelPart& rModelPart, PointerVector< Condition >& rNewConditions) {
+        for (auto it_sub_model_part = rModelPart.SubModelPartsBegin(); it_sub_model_part != rModelPart.SubModelPartsEnd(); it_sub_model_part++) {
+            unsigned int to_be_deleted = 0;
+            rNewConditions.clear();
+
+            // Create list of new conditions in SubModelPart
+            // Count how many conditions will be removed
+            for (auto it_cond = it_sub_model_part->ConditionsBegin(); it_cond != it_sub_model_part->ConditionsEnd(); it_cond++) {
+                if( it_cond->GetValue(SPLIT_ELEMENT) ) {
+                    to_be_deleted++;
+                    auto& rChildConditions = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                    for ( auto iChild = rChildConditions.ptr_begin(); iChild != rChildConditions.ptr_end(); iChild++ ) {
+                        rNewConditions.push_back((*iChild)->shared_from_this());
+                    }
+                }
+            }
+
+            // Add new conditions to SubModelPart
+            it_sub_model_part->Conditions().reserve( it_sub_model_part->Conditions().size() + rNewConditions.size() );
+            for (auto it_new = rNewConditions.begin(); it_new != rNewConditions.end(); it_new++) {
+                it_sub_model_part->Conditions().push_back(*(it_new.base()));
+            }
+
+            // Delete old conditions
+            it_sub_model_part->Conditions().Sort();
+            it_sub_model_part->Conditions().erase(it_sub_model_part->Conditions().end() - to_be_deleted, it_sub_model_part->Conditions().end());
+            if (rNewConditions.size() > 0) {
+                ModelPart &rSubModelPart = *it_sub_model_part;
+                UpdateSubModelPartConditions(rSubModelPart, rNewConditions);
+            }
+        }
     }
 
     /***********************************************************************************/
@@ -529,10 +544,10 @@ public:
     {
       aux.resize(11, false);
 
-      int index_0 = geom[0].Id() - 1;
-      int index_1 = geom[1].Id() - 1;
-      int index_2 = geom[2].Id() - 1;
-      int index_3 = geom[3].Id() - 1;
+      int index_0 = mMapNodeIdToPos[geom[0].Id()];
+      int index_1 = mMapNodeIdToPos[geom[1].Id()];
+      int index_2 = mMapNodeIdToPos[geom[2].Id()];
+      int index_3 = mMapNodeIdToPos[geom[3].Id()];
 
       // Put the global ids in aux
       aux[0] = geom[0].Id();
@@ -594,103 +609,9 @@ public:
 	  aux[9] = Coord(index_2, index_3);
       }
 
-      // Edge 01
-      if (aux[4] < 0)
-      {
-	  if (index_0 > index_1)
-	  {
-	    edge_ids[0] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[0] = 1;
-	  }
-      }
-      else
-      {
-	  edge_ids[0] = 4;
-      }
-
-      // Edge 02
-      if (aux[5] < 0)
-	  if (index_0 > index_2)
-	  {
-	    edge_ids[1] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[1] = 2;
-	  }
-      else
-      {
-	  edge_ids[1] = 5;
-      }
-
-      // Edge 03
-      if (aux[6] < 0)
-      {
-	  if (index_0 > index_3)
-	  {
-	    edge_ids[2] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[2] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[2] = 6;
-      }
-
-      // Edge 12
-      if (aux[7] < 0)
-      {
-	  if (index_1 > index_2)
-	  {
-	    edge_ids[3] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[3] = 2;
-	  }
-      }
-      else
-      {
-	  edge_ids[3] = 7;
-      }
-
-      // Edge 13
-      if (aux[8] < 0)
-	  if (index_1 > index_3)
-	  {
-	    edge_ids[4] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[4] = 3;
-	  }
-      else
-      {
-	  edge_ids[4] = 8;
-      }
-
-      // Edge 23
-      if (aux[9] < 0)
-      {
-	  if (index_2 > index_3)
-	  {
-	    edge_ids[5] = 2;
-	  }
-	  else
-	  {
-	    edge_ids[5] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[5] = 9;
-      }
+      TetrahedraSplit::TetrahedraSplitMode(
+        aux.data(),
+        edge_ids);
     }
 
     /***********************************************************************************/
@@ -711,9 +632,9 @@ public:
 		      array_1d<int, 6>& aux
 		      )
     {
-        int index_0 = geom[0].Id() - 1;
-        int index_1 = geom[1].Id() - 1;
-        int index_2 = geom[2].Id() - 1;
+        int index_0 = mMapNodeIdToPos[geom[0].Id()];
+        int index_1 = mMapNodeIdToPos[geom[1].Id()];
+        int index_2 = mMapNodeIdToPos[geom[2].Id()];
 
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();
@@ -861,5 +782,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH  defined

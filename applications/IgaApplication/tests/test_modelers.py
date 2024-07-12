@@ -98,8 +98,10 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh",
-                "lower_point": [0.0,0.0,0.0],
-                "upper_point": [1.0,1.0,0.0],
+                "lower_point_xyz": [0.0,0.0,0.0],
+                "upper_point_xyz": [1.0,1.0,0.0],
+                "lower_point_uvw": [0.0,0.0,0.0],
+                "upper_point_uvw": [1.0,1.0,0.0],
                 "polynomial_order" : [4, 1],
                 "number_of_knot_spans" : [3,2]
             }
@@ -157,16 +159,20 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_01",
-                "lower_point": [-1.0,-0.5,0.0],
-                "upper_point": [1.0,0.5,0.0],
+                "lower_point_xyz": [-1.0,-0.5,0.0],
+                "upper_point_xyz": [1.0, 0.5,0.0],
+                "lower_point_uvw": [0.0, 0.0, 0.0],
+                "upper_point_uvw": [1.0, 1.0, 0.0],
                 "polynomial_order" : [4, 5],
                 "number_of_knot_spans" : [3,6]
             } }, {
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_02",
-                "lower_point": [-1.0,-0.5,0.0],
-                "upper_point": [1.0,0.5,0.0],
+                "lower_point_xyz": [-1.0,-0.5,0.0],
+                "upper_point_xyz": [1.0,0.5,0.0],
+                "lower_point_uvw": [0.0, 0.0, 0.0],
+                "upper_point_uvw": [1.0, 1.0, 0.0],
                 "polynomial_order" : [1, 1],
                 "number_of_knot_spans" : [1,1]
             }
@@ -237,6 +243,82 @@ class TestModelers(KratosUnittest.TestCase):
             param[1] -= 0.1
             param[2] = 0.0
 
+    def test_nurbs_geometry_2d_modeler_parameter_space(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [{
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_01",
+                "lower_point_xyz": [-1.0,-0.5,0.0],
+                "upper_point_xyz": [1.0, 0.5,0.0],
+                "lower_point_uvw": [0.0, 0.0, 0.0],
+                "upper_point_uvw": [1.0, 1.0, 0.0],
+                "polynomial_order" : [4, 5],
+                "number_of_knot_spans" : [3 ,6]
+            } }, {
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_02",
+                "lower_point_xyz": [-1.0,-0.5,0.0],
+                "upper_point_xyz": [1.0,0.5,0.0],
+                "lower_point_uvw": [-2.22, -5.5, 0.0],
+                "upper_point_uvw": [5.0, 5.5, 0.0],
+                "polynomial_order" : [4, 5],
+                "number_of_knot_spans" : [3, 6]
+            }
+        }]
+        """)
+
+        run_modelers(current_model, modeler_settings)
+        model_part_01 = current_model.GetModelPart("Mesh_01")
+        model_part_02 = current_model.GetModelPart("Mesh_02")
+
+        geometry_01 = model_part_01.GetGeometry(1)
+        geometry_02 = model_part_02.GetGeometry(1)
+
+        ## Check knots
+        knots_u_01 = geometry_01.KnotsU()
+        knots_u_02 = geometry_02.KnotsU()
+        self.assertVectorAlmostEqual(knots_u_01,
+            [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
+        for u_01, u_02 in zip(knots_u_01, knots_u_02):
+            u_02_mapped = (u_02 + 2.22) / (5.0 + 2.22)
+            self.assertAlmostEqual(u_01, u_02_mapped)
+
+        knots_v_01 = geometry_01.KnotsV()
+        knots_v_02 = geometry_02.KnotsV()
+        self.assertVectorAlmostEqual(knots_v_01,
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0/6.0, 1.0/3.0, 1.0/2.0, 2.0/3.0, 5.0/6.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        for v_01, v_02 in zip(knots_v_01, knots_v_02):
+            v_02_mapped = (v_02 + 5.5) / (5.5 + 5.5)
+            self.assertAlmostEqual(v_01, v_02_mapped)
+
+        ## Check control points.
+        for node_1, node_2 in zip(geometry_01, geometry_02):
+            self.assertAlmostEqual(node_1.X, node_2.X)
+            self.assertAlmostEqual(node_1.Y, node_2.Y)
+            self.assertAlmostEqual(node_1.Z, node_2.Z)
+
+        # Check if geoemtry is similar.
+        param = KratosMultiphysics.Vector(3)
+        param[0] = 0.0
+        param[1] = 1.0
+        param[2] = 0.0
+        param2 = KratosMultiphysics.Vector(3)
+        param2[2] = 0.0
+        for _ in range(11):
+            for _ in range(11):
+                coord_01 = geometry_01.GlobalCoordinates(param)
+                param2[0] = param[0]*(5.0 + 2.22) - 2.22
+                param2[1] = param[1]*(5.5 + 5.5) - 5.5
+                coord_02 = geometry_02.GlobalCoordinates(param2)
+                param[2] += 0.1
+                self.assertVectorAlmostEqual(coord_01, coord_02)
+            param[0] += 0.1
+            param[1] -= 0.1
+            param[2] = 0.0
+
     def test_nurbs_geometry_3d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
@@ -244,8 +326,10 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh",
-                "lower_point": [0.0,0.0,0.0],
-                "upper_point": [1.0,1.0,1.0],
+                "lower_point_xyz": [0.0,0.0,0.0],
+                "upper_point_xyz": [1.0,1.0,1.0],
+                "lower_point_uvw": [0.0,0.0,0.0],
+                "upper_point_uvw": [1.0,1.0,1.0],
                 "polynomial_order" : [4, 1, 1],
                 "number_of_knot_spans" : [3,1,1]
             }
@@ -307,16 +391,20 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_01",
-                "lower_point": [-1.0,-0.5,1.0],
-                "upper_point": [1.0,0.5,3.0],
+                "lower_point_xyz": [-1.0,-0.5,1.0],
+                "upper_point_xyz": [1.0,0.5,3.0],
+                "lower_point_uvw": [0.0,0.0,0.0],
+                "upper_point_uvw": [1.0,1.0,1.0],
                 "polynomial_order" : [4, 5, 2],
                 "number_of_knot_spans" : [3,6,7]
             } }, {
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_02",
-                "lower_point": [-1.0,-0.5,1.0],
-                "upper_point": [1.0,0.5,3.0],
+                "lower_point_xyz": [-1.0,-0.5,1.0],
+                "upper_point_xyz": [1.0,0.5,3.0],
+                "lower_point_uvw": [0.0,0.0,0.0],
+                "upper_point_uvw": [1.0,1.0,1.0],
                 "polynomial_order" : [1, 1, 1],
                 "number_of_knot_spans" : [1,1,1]
             }
@@ -382,17 +470,108 @@ class TestModelers(KratosUnittest.TestCase):
         # Check if geoemtry is similar.
         param = KratosMultiphysics.Vector(3)
         param[0] = 0.0
-        param[1] = 1.0
+        param[1] = 0.0
         param[2] = 0.0
         for _ in range(11):
             for _ in range(11):
-                coord_01 = geometry_01.GlobalCoordinates(param)
-                coord_02 = geometry_02.GlobalCoordinates(param)
-                param[2] += 0.1
-                self.assertVectorAlmostEqual(coord_01, coord_02)
+                for _ in range(11):
+                    coord_01 = geometry_01.GlobalCoordinates(param)
+                    coord_02 = geometry_02.GlobalCoordinates(param)
+                    param[2] += 0.1
+                    self.assertVectorAlmostEqual(coord_01, coord_02)
+                param[1] += 0.1
+                param[2] = 0.0
             param[0] += 0.1
-            param[1] -= 0.1
-            param[2] = 0.0
+            param[1] = 0.0
+
+    def test_nurbs_geometry_3d_modeler_parameter_space(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [{
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_01",
+                "lower_point_xyz": [-1.0,-0.5,1.0],
+                "upper_point_xyz": [1.0,0.5,3.0],
+                "lower_point_uvw": [0.0, 0.0, 0.0],
+                "upper_point_uvw": [1.0, 1.0, 1.0],
+                "polynomial_order" : [4, 5, 2],
+                "number_of_knot_spans" : [3,6,7]
+            } }, {
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_02",
+                "lower_point_xyz": [-1.0, -0.5, 1.0],
+                "upper_point_xyz": [1.0, 0.5, 3.0],
+                "lower_point_uvw": [-2.22, -5.5, 1.0],
+                "upper_point_uvw": [5.0, 5.5, 3.0],
+                "polynomial_order" : [4, 5, 2],
+                "number_of_knot_spans" : [3,6,7]
+            }
+        }]
+        """)
+
+        run_modelers(current_model, modeler_settings)
+        model_part_01 = current_model.GetModelPart("Mesh_01")
+        model_part_02 = current_model.GetModelPart("Mesh_02")
+
+        geometry_01 = model_part_01.GetGeometry(1)
+        geometry_02 = model_part_02.GetGeometry(1)
+
+        ## Check knots
+        knots_u_01 = geometry_01.KnotsU()
+        knots_u_02 = geometry_02.KnotsU()
+        self.assertVectorAlmostEqual(knots_u_01,
+            [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
+        for u_01, u_02 in zip(knots_u_01, knots_u_02):
+            u_02_mapped = (u_02 + 2.22) / (5.0 + 2.22)
+            self.assertAlmostEqual(u_01, u_02_mapped)
+
+        knots_v_01 = geometry_01.KnotsV()
+        knots_v_02 = geometry_02.KnotsV()
+        self.assertVectorAlmostEqual(knots_v_01,
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0/6.0, 1.0/3.0, 1.0/2.0, 2.0/3.0, 5.0/6.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        for v_01, v_02 in zip(knots_v_01, knots_v_02):
+            v_02_mapped = (v_02 + 5.5) / (5.5 + 5.5)
+            self.assertAlmostEqual(v_01, v_02_mapped)
+
+        knots_w_01 = geometry_01.KnotsW()
+        knots_w_02 = geometry_02.KnotsW()
+        self.assertVectorAlmostEqual(knots_w_01,
+            [0.0, 0.0, 1.0/7.0, 2.0/7.0, 3.0/7.0, 4.0/7.0, 5.0/7.0, 6.0/7.0, 1.0, 1.0])
+        for w_01, w_02 in zip(knots_w_01, knots_w_02):
+            w_02_mapped = (w_02 - 1.0) / (3.0 - 1.0)
+            self.assertAlmostEqual(w_01, w_02_mapped)
+
+        ## Check control points.
+        for node_1, node_2 in zip(geometry_01, geometry_02):
+            self.assertAlmostEqual(node_1.X, node_2.X)
+            self.assertAlmostEqual(node_1.Y, node_2.Y)
+            self.assertAlmostEqual(node_1.Z, node_2.Z)
+
+        # Check if geoemtry is similar.
+        param = KratosMultiphysics.Vector(3)
+        param[0] = 0.0
+        param[1] = 0.0
+        param[2] = 0.0
+        param2 = KratosMultiphysics.Vector(3)
+        for _ in range(11):
+            for _ in range(11):
+                for _ in range(11):
+                    coord_01 = geometry_01.GlobalCoordinates(param)
+                    param2[0] = param[0]*(5.0 + 2.22) - 2.22
+                    param2[1] = param[1]*(5.5 + 5.5) - 5.5
+                    param2[2] = param[2]*(3.0 - 1.0) + 1.0
+                    coord_02 = geometry_02.GlobalCoordinates(param2)
+                    param[2] += 0.1
+                    self.assertVectorAlmostEqual(coord_01, coord_02)
+                param[1] += 0.1
+                param[2] = 0.0
+            param[0] += 0.1
+            param[1] = 0.0
+
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

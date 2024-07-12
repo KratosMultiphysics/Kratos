@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -171,4 +170,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainKinematicPlasticityFa
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

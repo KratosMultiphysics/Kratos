@@ -234,7 +234,7 @@ four_levels_defaults = """{
 json_with_includes = """
 {
    "bool_value" : true, "double_value": 2.0, "int_value" : 10,
-   "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+   "@include_json" : "test_utilities/test_included_parameters.json"
 }
 """
 
@@ -243,8 +243,31 @@ more_levels_json_with_includes = """
    "bool_value" : true, "double_value": 2.0, "int_value" : 10,
    "level1":
    {
-     "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+     "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
    },
+   "string_value" : "hello"
+}
+"""
+
+vector_json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "level1": [
+    {
+         "@include_json" : "test_utilities/more_levels_test_included_parameters.json",
+         "vector": [
+            {
+                "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
+            }
+         ]
+    },
+    {
+        "hello": 0
+    },
+    {
+         "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
+    }
+   ],
    "string_value" : "hello"
 }
 """
@@ -283,6 +306,13 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(
             param.WriteJsonString(),
             self.compact_expected_output
+        )
+
+    def test_vector_json_with_include_parameters(self):
+        param = Parameters(vector_json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            '{"bool_value":true,"double_value":2.0,"int_value":10,"level1":[{"list_value":[3,"hi",false],"tmp":5.0,"vector":[{"list_value":[3,"hi",false],"tmp":5.0}]},{"hello":0},{"list_value":[3,"hi",false],"tmp":5.0}],"string_value":"hello"}'
         )
 
     def test_kratos_change_parameters(self):
@@ -459,12 +489,6 @@ class TestParameters(KratosUnittest.TestCase):
     def test_iterators(self):
         kp = Parameters(json_string)
 
-        #iteration by range
-        nitems = 0
-        for iterator in kp:
-            nitems = nitems + 1
-        self.assertEqual(nitems, 5)
-
         #iteration by items
         for key,value in kp.items():
             #print(value.PrettyPrintJsonString())
@@ -493,6 +517,23 @@ class TestParameters(KratosUnittest.TestCase):
 
         kp.RemoveValue("int_value")
         kp.RemoveValue("level1")
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+
+    def test_remove_values(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1", "You_ll_never_take_me_alive"]
+        success = kp.RemoveValues(list_remove)
+        self.assertFalse(success)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1"]
+        kp.RemoveValues(list_remove)
 
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
@@ -541,6 +582,7 @@ class TestParameters(KratosUnittest.TestCase):
             "double_value": 2.0, // This is comment too, but using another comment
             "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
             "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
+            "string_array_value" : ["hello", "world"],
             "vector_value" : [5,3,4],
             "matrix_value" : [[1,2],[3,6]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
@@ -567,6 +609,11 @@ class TestParameters(KratosUnittest.TestCase):
                 self.assertTrue(tmp[key].IsString())
             else:
                 self.assertFalse(tmp[key].IsString())
+
+            if val_type == "string_array":
+                self.assertTrue(tmp[key].IsStringArray())
+            else:
+                self.assertFalse(tmp[key].IsStringArray())
 
             if val_type == "vector":
                 self.assertTrue(tmp[key].IsVector())
@@ -1010,6 +1057,25 @@ class TestParameters(KratosUnittest.TestCase):
         new_string_array = initial["parameter"].GetStringArray()
 
         self.assertListEqual(new_string_array, string_array)
+
+    def test_copy_values_from_existing_parameters(self):
+        initial = Parameters("""{
+            "parameter1": ["foo", "bar"],
+            "parameter2": true,
+            "parameter3": "Hello",
+            "parameter4": 15
+        } """)
+        parameter_list = ["parameter2", "parameter3"]
+
+        new_param = Parameters()
+        new_param.CopyValuesFromExistingParameters(initial, parameter_list)
+
+        self.assertFalse(new_param.Has("parameter1"))
+        self.assertTrue(new_param.Has("parameter2"))
+        self.assertEqual(new_param["parameter2"].GetBool(), True)
+        self.assertTrue(new_param.Has("parameter3"))
+        self.assertEqual(new_param["parameter3"].GetString(),"Hello")
+        self.assertFalse(new_param.Has("parameter4"))
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):

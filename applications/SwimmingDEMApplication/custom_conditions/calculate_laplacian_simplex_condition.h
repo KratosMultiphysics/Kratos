@@ -69,7 +69,7 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeLaplacianSimplexCondition);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

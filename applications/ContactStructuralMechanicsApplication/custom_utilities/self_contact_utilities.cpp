@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -328,7 +328,7 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
     block_for_each(r_conditions_array, [&](Condition& rCond) {
         if (rCond.Is(SLAVE)) {
             GeometryType& r_geometry = rCond.GetGeometry();
-            for (NodeType& r_node : r_geometry) {
+            for (Node& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(SLAVE, true);
                 r_node.UnSetLock();
@@ -336,7 +336,7 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
         }
         if (rCond.Is(MASTER)) {
             GeometryType& r_geometry = rCond.GetGeometry();
-            for (NodeType& r_node : r_geometry) {
+            for (Node& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(MASTER, true);
                 r_node.UnSetLock();

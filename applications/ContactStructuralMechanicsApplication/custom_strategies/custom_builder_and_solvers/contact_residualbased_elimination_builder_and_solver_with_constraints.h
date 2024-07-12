@@ -4,22 +4,22 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
-#if !defined(KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_WITH_CONSTRAINTS )
-#define  KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_WITH_CONSTRAINTS
 
-/* System includes */
+#pragma once
+
+// System includes
 #include <unordered_set>
 #include <unordered_map>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 
 namespace Kratos
@@ -69,52 +69,51 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedEliminationBuilderAndSolverWithConstraints);
 
     /// Builder and solver base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+    using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    /// Definitions dependent of the base class
-    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
+    /// Definitions dependent on the base class
+    using BaseType = ResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// The definition of the current class
-    typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    using ClassType = ContactResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Base types definitions
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::NodeType NodeType;
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using TDataType = typename BaseType::TDataType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ElementsArrayType = typename BaseType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
 
     /// General containers type definitions
-    typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;
+    using ConstraintContainerType = ModelPart::MasterSlaveConstraintContainerType;
 
     /// Additional definitions
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
-    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef typename BaseType::DofsVectorType DofsVectorType;
+    using ElementsContainerType = typename BaseType::ElementsContainerType;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+    using DofsVectorType = typename BaseType::DofsVectorType;
 
     /// DoF types definition
-    typedef typename BaseType::DofType DofType;
-    typedef typename BaseType::DofPointerType DofPointerType;
+    using DofType = typename BaseType::DofType;
+    using DofPointerType = typename BaseType::DofPointerType;
 
     /// The DoF pointer vector type definition
-    typedef std::vector<typename DofType::Pointer> DofPointerVectorType;
+    using DofPointerVectorType = std::vector<typename DofType::Pointer>;
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Index set definition
-    typedef std::unordered_set<IndexType> IndexSetType;
+    using IndexSetType = std::unordered_set<IndexType>;
 
     ///@}
     ///@name Enum's
@@ -596,5 +595,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_WITH_CONSTRAINTS  defined */

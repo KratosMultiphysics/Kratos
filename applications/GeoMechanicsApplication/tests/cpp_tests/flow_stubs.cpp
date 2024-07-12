@@ -15,7 +15,7 @@
 namespace flow_stubs
 {
     void emptyProgress(double progress) {}
-    void emptyLog(char* log) {}
+    void emptyLog(const char* log) {}
     bool emptyCancel() {
         return false;
     }

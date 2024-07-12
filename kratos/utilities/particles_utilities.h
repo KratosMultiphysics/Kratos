@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -16,9 +16,7 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -49,9 +47,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Collection of utilities to compute statistic of particles
-/** Detail class definition.
-*/
+/** 
+ * @class ParticlesUtilities
+ * @brief Collection of utilities to compute statistic of particles
+ * @ingroup KratosCore
+ * @author Riccardo Rossi
+ */
 class ParticlesUtilities
 {
 public:
@@ -68,15 +69,14 @@ public:
     /// Default constructor.
     ParticlesUtilities() = delete;
 
-    /**@brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within
-    the volume identified in rVolumeModelPart. Then they add one to all the nodes of the element in which the particle
-    is inside
-    @param rLocator this is a search structure for rVolumeModelPart
-    @param rVolumeModelPart: model part on the top of which we will find the particles
-    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
-    @param rCounterVariable: this is the variable which will be used to store the count (has to be present in the nodes of rVolumeModelPart)
-    @param SearchTolerance: search tolerance used in the spatial search
-    */
+    /**
+     * @brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within the volume identified in rVolumeModelPart. Then they add one to all the nodes of the element in which the particle is inside
+     * @param rLocator this is a search structure for rVolumeModelPart
+     * @param rVolumeModelPart: model part on the top of which we will find the particles
+     * @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+     * @param rCounterVariable: this is the variable which will be used to store the count (has to be present in the nodes of rVolumeModelPart)
+     * @param SearchTolerance: search tolerance used in the spatial search
+     */
     template<unsigned int TDim, bool CounterHasHistory=false >
     static void CountParticlesInNodes(
         BinBasedFastPointLocator<TDim>& rLocator,
@@ -131,17 +131,15 @@ public:
 
     }
 
-/**@brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within
-    the volume identified in rVolumeModelPart. Particles are then classified in the "ClassificationVariable" of type vector, adding 1.0
-    to the entry which corresponds to the "type" of particle, intended as an integer between 0 and NumberOfTypes identifying the particle
-    @param rLocator this is a search structure for rVolumeModelPart
-    @param rVolumeModelPart: model part on the top of which we will find the particles
-    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
-    @param NumberOfTypes number of admissible types of particles (note that the particle type will be interpreted as integer)
-    @param rParticleTypeVariable: this is an integer identifying the "type" of particle.
-                                  Numbers lesser than 0 or higher than NumberofTypes will be silently ignored
-    @param SearchTolerance: search tolerance used in the spatial search
-    */
+    /**
+     * @brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within the volume identified in rVolumeModelPart. Particles are then classified in the "ClassificationVariable" of type vector, adding 1.0 to the entry which corresponds to the "type" of particle, intended as an integer between 0 and NumberOfTypes identifying the particle
+     * @param rLocator this is a search structure for rVolumeModelPart
+     * @param rVolumeModelPart: model part on the top of which we will find the particles
+     * @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+     * @param NumberOfTypes number of admissible types of particles (note that the particle type will be interpreted as integer)
+     * @param rParticleTypeVariable: this is an integer identifying the "type" of particle. Numbers lesser than 0 or higher than NumberofTypes will be silently ignored
+     * @param SearchTolerance: search tolerance used in the spatial search
+     */
     template<unsigned int TDim, class TScalarType, bool ParticleTypeVariableHasHistory=false>
     static void ClassifyParticlesInElements(
         BinBasedFastPointLocator<TDim>& rLocator,
@@ -193,12 +191,13 @@ public:
     }
 
 
-    /**@brief: this function looks if particle is found in the locator. If it is not, "rVariable" is marked with the value "OutsiderValue"
-    @param rLocator this is a search structure for the volume
-    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
-    @param rVariable: variable whose value will be modified on the nodes in rParticlesModelPart
-    @param SearchTolerance: search tolerance used in the spatial search
-    */
+    /**
+     * @brief: this function looks if particle is found in the locator. If it is not, "rVariable" is marked with the value "OutsiderValue"
+     * @param rLocator this is a search structure for the volume
+     * @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+     * @param rVariable: variable whose value will be modified on the nodes in rParticlesModelPart
+     * @param SearchTolerance: search tolerance used in the spatial search
+     */
     template<unsigned int TDim, class TDataType, bool VariableHasHistory >
     static void MarkOutsiderParticles(
         BinBasedFastPointLocator<TDim>& rLocator,
@@ -229,35 +228,34 @@ public:
         });
     }
 
-    /**@brief: this function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable
+    /**
+     * @brief This function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable
     at those positions. Note that the value is only initialized if the particle is found
-    @param rLocator this is a search structure for the volume
-    @param rCoordinates positions at which we want to retrieve the interpolation values
-    @param rInterpolationVariable: variable whose value that will be interpolated
-    @param SearchTolerance: search tolerance used in the spatial search
-
-    the function returns:
-    @param is_inside a vector of bools telling if the given coordinate falls within the volume
-    @param values the interpolated values (only valid if the corresponding value of is_inside is true)
+     * @param rLocator this is a search structure for the volume
+     * @param rCoordinates positions at which we want to retrieve the interpolation values
+     * @param rInterpolationVariable: variable whose value that will be interpolated
+     * @param SearchTolerance: search tolerance used in the spatial search
+     * @return the function returns:
+           - is_inside a vector of bools telling if the given coordinate falls within the volume
+           - values the interpolated values (only valid if the corresponding value of is_inside is true)
     */
     template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
-    static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
+    static std::pair< DenseVector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
         BinBasedFastPointLocator<TDim>& rLocator,
         const Matrix& rCoordinates,
         const Variable<TDataType>& rInterpolationVariable,
         const double SearchTolerance
-    )
+        )
     {
         unsigned int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
-        auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
+        auto interpolations = std::make_pair(DenseVector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
 
-        //for every interface node (nodes in cut elements)
+        // For every interface node (nodes in cut elements)
         const auto zero = rInterpolationVariable.Zero();
         IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable, &zero, SearchTolerance](const auto& i, auto& rTLS)
         {
-
             Vector shape_functions;
             Element::Pointer p_element;
             const bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
@@ -265,7 +263,6 @@ public:
             (interpolations.first)[i] = is_found;
             if(is_found)
             {
-
                 auto& r_geom = p_element->GetGeometry();
                 (interpolations.second)[i] = zero;
                 for(unsigned int k=0; k<r_geom.size(); ++k)
@@ -276,25 +273,19 @@ public:
                         (interpolations.second)[i] += shape_functions[k]*r_geom[k].GetValue(rInterpolationVariable);
 
                 }
-
             }
-
         });
 
         return interpolations;
-
     }
-
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
-
 
     ///@}
     ///@name Access
@@ -303,7 +294,6 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -326,75 +316,30 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -406,9 +351,7 @@ private:
     /// Copy constructor.
     ParticlesUtilities(ParticlesUtilities const& rOther) = delete;
 
-
     ///@}
-
 }; // Class ParticlesUtilities
 
 ///@}
@@ -416,11 +359,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,

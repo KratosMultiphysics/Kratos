@@ -3,15 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //                   Salman Yousaf
 //
 
-#if !defined(KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS)
-#define KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS
+#pragma once
 
 // System includes
 
@@ -247,4 +246,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS defined */

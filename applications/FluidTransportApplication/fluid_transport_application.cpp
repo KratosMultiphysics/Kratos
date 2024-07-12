@@ -33,25 +33,25 @@ namespace Kratos
 
 KratosFluidTransportApplication::KratosFluidTransportApplication():
     KratosApplication("FluidTransportApplication"),
-    mSteadyConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mSteadyConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
-    mSteadyConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mSteadyConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+    mSteadyConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mSteadyConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mSteadyConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mSteadyConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
 
-    mTransientConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mTransientConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
-    mTransientConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+    mTransientConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mTransientConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mTransientConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTransientConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
 
-    mTransientConvectionDiffusionFICExplicitElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mTransientConvectionDiffusionFICExplicitElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
-    mTransientConvectionDiffusionFICExplicitElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientConvectionDiffusionFICExplicitElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+    mTransientConvectionDiffusionFICExplicitElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mTransientConvectionDiffusionFICExplicitElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mTransientConvectionDiffusionFICExplicitElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTransientConvectionDiffusionFICExplicitElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
 
-    mTransientConvectionDiffusionPFEM2FICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mTransientConvectionDiffusionPFEM2FICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
-    mTransientConvectionDiffusionPFEM2FICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientConvectionDiffusionPFEM2FICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
+    mTransientConvectionDiffusionPFEM2FICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mTransientConvectionDiffusionPFEM2FICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mTransientConvectionDiffusionPFEM2FICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mTransientConvectionDiffusionPFEM2FICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8))))
 
     {}
 

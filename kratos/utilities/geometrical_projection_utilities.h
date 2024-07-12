@@ -34,26 +34,36 @@ namespace Kratos
  * @brief This is a class that provides auxiliar utilities for projections
  * @details This is a class that provides auxiliar utilities for the projections. Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
- * Contact: vmataix@cimne.upc.edu
  */
-class GeometricalProjectionUtilities
+class KRATOS_API(KRATOS_CORE) GeometricalProjectionUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * @brief How the distance is computed enum
+     */
+    enum class DistanceComputed
+    {
+        NO_RADIUS,
+        PROJECTION_ERROR,
+        RADIUS_PROJECTED,
+        RADIUS_NOT_PROJECTED_OUTSIDE,
+        RADIUS_NOT_PROJECTED_INSIDE
+    };
+
     /// Pointer definition of GeometricalProjectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
 
     // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
-    typedef Point                                               PointType;
+    using PointType = Point;
 
     /// Index type definition
-    typedef std::size_t                                         IndexType;
+    using IndexType = std::size_t;
 
     /// Size type definition
-    typedef std::size_t                                          SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -133,11 +143,8 @@ public:
         rDistance = inner_prod(vector_points, rNormal);
 
         TPointClass3 point_projected;
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        point_projected = rPointToProject - rNormal * rDistance;
-    #else
+
         noalias(point_projected) = rPointToProject - rNormal * rDistance;
-    #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
     }
@@ -228,6 +235,24 @@ public:
     }
 
     /**
+     * @brief Computes the minimal distance to a line with radius contribution
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @param rDistance The distance
+     * @param rSegment The line segment
+     * @param rPoint The point to compute distance
+     * @param Radius The radius
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return The Distance computation type
+     */
+    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
+        double& rDistance,
+        const Geometry<Node>& rSegment,
+        const Point& rPoint,
+        const double Radius,
+        const double Tolerance = 1.0e-9
+        );
+
+    /**
      * @brief Project a point over a line (2D only)
      * @tparam TGeometryType The type of the line
      * @tparam TPointClass1 The type of point (I)
@@ -284,7 +309,7 @@ public:
         double DeltaXi = 0.5
         )
     {
-//         rResultingPoint.clear();
+        //rResultingPoint.clear();
 
         double old_delta_xi = 0.0;
 
@@ -330,15 +355,9 @@ public:
             Matrix ShapeFunctionsGradients;
             ShapeFunctionsGradients = rGeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, rResultingPoint );
 
-        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            DN = prod(X,ShapeFunctionsGradients);
-
-            J = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-        #else
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-        #endif // ifdef KRATOS_USE_AMATRIX
 
             const Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
 
