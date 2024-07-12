@@ -190,13 +190,15 @@ void TrussElementLinear3D2N::WriteTransformationCoordinates(
     & rReferenceCoordinates)
 {
     KRATOS_TRY
-    rReferenceCoordinates = ZeroVector(msLocalSize);
-    rReferenceCoordinates[0] = GetGeometry()[0].X0();
-    rReferenceCoordinates[1] = GetGeometry()[0].Y0();
-    rReferenceCoordinates[2] = GetGeometry()[0].Z0();
-    rReferenceCoordinates[3] = GetGeometry()[1].X0();
-    rReferenceCoordinates[4] = GetGeometry()[1].Y0();
-    rReferenceCoordinates[5] = GetGeometry()[1].Z0();
+    const auto& r_initial_position_node_1 =  GetGeometry()[0].GetInitialPosition();
+    rReferenceCoordinates[0] = r_initial_position_node_1.X();
+    rReferenceCoordinates[1] = r_initial_position_node_1.Y();
+    rReferenceCoordinates[2] = r_initial_position_node_1.Z();
+
+    const auto& r_initial_position_node_2 = GetGeometry()[1].GetInitialPosition();
+    rReferenceCoordinates[3] = r_initial_position_node_2.X();
+    rReferenceCoordinates[4] = r_initial_position_node_2.Y();
+    rReferenceCoordinates[5] = r_initial_position_node_2.Z();
     KRATOS_CATCH("")
 }
 

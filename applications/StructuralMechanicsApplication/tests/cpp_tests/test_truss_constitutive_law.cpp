@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress, Kr
     KRATOS_EXPECT_EQ(expected_stress, parameters.GetStressVector()[0]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress_WithInitialStress, KratosStructuralMechanicsFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress_WithInitialState, KratosStructuralMechanicsFastSuite) {
     TrussConstitutiveLaw law;
     constexpr auto induced_strain = 0.005;
     Vector temp_strain = ScalarVector(1, induced_strain);
@@ -49,14 +49,16 @@ KRATOS_TEST_CASE_IN_SUITE(TrussConstitutiveLaw_CalculatesLinearElasticStress_Wit
     properties[YOUNG_MODULUS] = youngs_modulus;
     parameters.SetMaterialProperties(properties);
 
-    InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>();
     constexpr auto initial_stress = 5000.0;
-    p_initial_state->SetInitialStressVector(ScalarVector(1, initial_stress));
+    constexpr auto initial_strain = 0.01;
+    const auto p_initial_state = Kratos::make_intrusive<InitialState>(
+        ScalarVector(1, initial_strain), ScalarVector(1, initial_stress));
     law.SetInitialState(p_initial_state);
 
     law.CalculateMaterialResponsePK2(parameters);
 
-    constexpr double expected_stress = induced_strain * youngs_modulus + initial_stress;
+    constexpr double expected_stress =
+        (induced_strain - initial_strain) * youngs_modulus + initial_stress;
     KRATOS_EXPECT_EQ(expected_stress, parameters.GetStressVector()[0]);
 }
 
