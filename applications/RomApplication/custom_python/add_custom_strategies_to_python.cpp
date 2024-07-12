@@ -29,6 +29,7 @@
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/rom_residualbased_newton_raphson_strategy.h"
+#include "custom_strategies/rom_line_search_strategy.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
@@ -87,6 +88,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetReformDofSetAtEachStepFlag", &RomResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
         .def("GetNonconvergedSolutions", &RomResidualBasedNewtonRaphsonStrategyType::GetNonconvergedSolutions)
         .def("SetUpNonconvergedSolutionsFlag", &RomResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsFlag)
+        ;
+
+    typedef RomLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > RomLineSearchStrategyType;
+    py::class_< RomLineSearchStrategyType, typename RomLineSearchStrategyType::Pointer, RomResidualBasedNewtonRaphsonStrategyType >
+        (m,"RomLineSearchStrategy")
+        .def(py::init<ModelPart&, Parameters >() )
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+        .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+                KRATOS_WARNING("RomLineSearchStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                return std::shared_ptr<RomLineSearchStrategyType>(new RomLineSearchStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+            }))
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
         ;
 
     //********************************************************************
