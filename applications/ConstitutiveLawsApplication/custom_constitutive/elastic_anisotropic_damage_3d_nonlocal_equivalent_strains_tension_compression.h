@@ -70,6 +70,16 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
 
+    /// Definition of the zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+    // Definition of the perturbation coefficients
+    static constexpr double PerturbationCoefficient1 = 1.0e-5;
+    static constexpr double PerturbationCoefficient2 = 1.0e-10;
+
+    // Definition of the perturbation threshold
+    static constexpr double PerturbationThreshold = 1.0e-8;
+
     // The definition of the bounded vector type
     typedef BoundedVector<double, Dimension > BoundedVectorType;
 
@@ -356,7 +366,52 @@ protected:
                         const Variable<Vector>& rThisVariable
                         );
 
+    void Calculate_tangent_Huu(
+    Matrix& r_elasticity_matrix,
+    ConstitutiveLaw::Parameters& rParametersValues);
 
+    void CalculatePerturbation(
+    const Vector& rStrainVector,
+    const IndexType Component,
+    double& rPerturbation);
+
+    void GetMinAbsValue(
+    const Vector& rArrayValues,
+    double& rMinValue);
+    void GetMaxAbsValue(
+    const Vector& rArrayValues,
+    double& rMaxValue);
+
+    void PerturbStrainVector(
+    Vector& rPerturbedStrainVector,
+    const Vector& rStrainVectorGP,
+    const double Perturbation,
+    const IndexType Component
+    );
+
+    void IntegratePerturbedStrain(
+    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveLaw* pConstitutiveLaw,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2);
+
+    void CalculateComponentsToTangentTensorSecondOrder(
+    Matrix& rTangentTensor,
+    const Vector& rVectorStrainPlus,
+    const Vector& rVectorStrainMinus,
+    const Vector& rStressPlus,
+    const Vector& rStressMinus,
+    const IndexType Component
+    );
+    void PerturbNonlocalEquivalentStrains(
+    double& rPerturbedNonlocalEquivalentStrainComponent,
+    const double& rUnperturbedNonlocalEquivalentStrainComponent,
+    const double Perturbation);
+
+    void IntegratePerturbedNonlocalEquivalentStrains(
+        Vector& r_perturbed_integrated_stress,
+    const Vector& r_perturbed_nonlocal_equivalent_strains,
+    ConstitutiveLaw::Parameters& rParametersValues,
+    ModelParameters& rModelParameters);
     /**
      * @brief calculates the damage effect tensor M
      * @return damage effect tensor M
@@ -386,7 +441,7 @@ protected:
                                         ConstitutiveLaw::Parameters& rParametersValues,
                                         const BoundedVectorType& Principal_Strains,
                                         const Vector& Nonlocal_Equivalent_Strains,
-                                        const Vector& Local_Equivalent_Strains
+                                        Vector& Local_Equivalent_Strains
                                        );
 
 
@@ -437,13 +492,15 @@ protected:
     void ComputePrincipalDamageIncrement(BoundedVectorType& PrincipalDamageIncrement,
                                        ConstitutiveLaw::Parameters& rParametersValues,
                                        ModelParameters& rModelParameters,
-                                       const BoundedVectorType& PrincipalStrains
+                                       const BoundedVectorType& PrincipalStrains,
+                                        const Vector& nonlocal_equivalent_strains
                                        );
     void CheckDamageCriteria(
     BoundedVectorType& PrincipalDamageIncrement,
     const ModelParameters& rModelParameters,
     const BoundedVectorType& PrincipalDamageVector_n
     );
+
     /**
      * @brief
      * @param H_uNL
@@ -455,7 +512,7 @@ protected:
     void Calculate_tangent_HuNL(BoundedVectorVoigtType& H_uNL1,
                                 BoundedVectorVoigtType& H_uNL2,
                                 ConstitutiveLaw::Parameters& rParametersValues,
-                                const ModelParameters& rModelParameters,
+                                 ModelParameters& rModelParameters,
                                 const Vector& Damage_Vector,
                                 const BoundedVectorType& Principal_Strains
                                 );
