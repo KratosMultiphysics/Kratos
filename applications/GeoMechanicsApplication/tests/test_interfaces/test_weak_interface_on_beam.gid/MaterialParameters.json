@@ -8,7 +8,6 @@
           },
           "Variables": {
               "IGNORE_UNDRAINED"         :  true,
-              "CONSTITUTIVE_LAW_NAME"	 : "GeoLinearElasticPlaneStrain2DLaw",
               "YOUNG_MODULUS"            :  30000000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.0e3,
@@ -32,9 +31,8 @@
               "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw" 
           },
           "Variables": {
-			  "CONSTITUTIVE_LAW_NAME"	 : "KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw",
-              "YOUNG_MODULUS"    		 :  1.00E+14,
-              "POISSON_RATIO"    :  0.0,
+              "YOUNG_MODULUS"    :  2.07E+13,
+              "POISSON_RATIO"    :  0.29,
               "DENSITY"          :  7850.0,
               "CROSS_AREA"       :  0.01,
               "I33"              :  8.33333E-08
@@ -61,14 +59,14 @@
               "UDSM_NAME"                :  "../../MohrCoulomb64.dll",
               "UDSM_NUMBER"              :  1,
               "IS_FORTRAN_UDSM"          :  true,
-              "UMAT_PARAMETERS"          :  [1.00E+02,
-                                            0.0,
-                                            0,
-                                            0,
-                                            0.0,
-                                            0,
-                                            1,
-                                            0.0]
+              "UMAT_PARAMETERS"          :  [1E02,
+                                             0.0,
+                                             0,
+                                             0,
+                                             0.0,
+                                             0,
+                                             1,
+                                             0.0]
          },
          "Tables": {}
       }
@@ -92,7 +90,7 @@
               "UDSM_NAME"                :  "../../MohrCoulomb64.dll",
               "UDSM_NUMBER"              :  1,
               "IS_FORTRAN_UDSM"          :  true,
-              "UMAT_PARAMETERS"          :  [1.00E+02,
+              "UMAT_PARAMETERS"          :  [1E02,
                                             0.0,
                                             0,
                                             0,
