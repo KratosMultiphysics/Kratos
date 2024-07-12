@@ -104,8 +104,9 @@ public:
     static void Register(const std::string& rMapperName,
                   typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
     {
-        GetRegisteredMappersList().insert(
-            std::make_pair(rMapperName, pMapperPrototype));
+        using MapperType = Mapper<TSparseSpace, TDenseSpace>;
+        Registry::AddItem<MapperType>("mappers."+Registry::GetCurrentSource()+"."+rMapperName, pMapperPrototype);
+        Registry::AddItem<MapperType>("mappers.all."+rMapperName, pMapperPrototype);
     }
 
     static bool HasMapper(const std::string& rMapperName)
