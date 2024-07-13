@@ -122,8 +122,8 @@ namespace Kratos
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix phi_elemental
                         const auto& r_geom = it_el->GetGeometry();
-                        if(phi_elemental.size1() != elem_dofs.size() || phi_elemental.size2() != mRomDofs)
-                            phi_elemental.resize(elem_dofs.size(), mRomDofs,false);
+                        if(phi_elemental.size1() != rhs_contribution.size() || phi_elemental.size2() != mRomDofs)
+                            phi_elemental.resize(rhs_contribution.size(), mRomDofs,false);
                         RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, elem_dofs, r_geom, mMapPhi);
                         noalias(row(matrix_residuals, k)) = prod(trans(phi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
@@ -190,8 +190,8 @@ namespace Kratos
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix phi_elemental
                         const auto& r_geom = it_el->GetGeometry();
-                        if(psi_elemental.size1() != elem_dofs.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
-                            psi_elemental.resize(elem_dofs.size(), mPetrovGalerkinRomDofs,false);
+                        if(psi_elemental.size1() != rhs_contribution.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
+                            psi_elemental.resize(rhs_contribution.size(), mPetrovGalerkinRomDofs,false);
                         RomAuxiliaryUtilities::GetPsiElemental(psi_elemental, elem_dofs, r_geom, mMapPhi);
                         noalias(row(matrix_residuals, k)) = prod(trans(psi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
