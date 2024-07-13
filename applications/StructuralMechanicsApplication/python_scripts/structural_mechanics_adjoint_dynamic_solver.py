@@ -29,9 +29,9 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         super().AddVariables()
         self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_VECTOR_2)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_VECTOR_3)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AUX_ADJOINT_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_2)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_3)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_VECTOR_1)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_2)
