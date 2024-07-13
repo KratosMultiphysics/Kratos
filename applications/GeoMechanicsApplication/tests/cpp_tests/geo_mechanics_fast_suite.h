@@ -30,6 +30,10 @@ namespace Kratos::Testing
      KratosLinearSolversApplication::Pointer mpLinearSolversApp;
  };
 
+class KratosGeoMechanicsFastSuiteWithoutKernel : public KratosCoreFastSuiteWithoutKernel
+{
+};
+
  class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
  {
  public:
