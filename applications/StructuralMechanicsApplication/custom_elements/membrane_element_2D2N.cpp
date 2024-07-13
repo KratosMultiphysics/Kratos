@@ -238,7 +238,7 @@ void MembraneElement2D2N::CalculateLocalSystem(
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double strain = (l - l_0) / l_0;
-    const double stress = young * h * strain + stress_0;
+    const double stress = (young * strain + stress_0) * h;
 
     // Check RHS size
     if (rRightHandSideVector.size() != n_nodes) {
