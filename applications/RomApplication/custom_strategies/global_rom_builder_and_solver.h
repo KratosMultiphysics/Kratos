@@ -365,6 +365,28 @@ public:
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
+    void BuildRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        Timer::Start("BuildRHS");
+
+        BuildRHSNoDirichlet(pScheme,rModelPart,rb);
+
+        Timer::Stop("BuildRHS");
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
     void BuildRomRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -373,22 +395,13 @@ public:
     {
         KRATOS_TRY
 
-        Timer::Start("BuildRHS");
+        Timer::Start("BuildRomRHS");
 
         BuildRHSNoDirichlet(pScheme,rModelPart,rb);
 
-        // //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        // block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-        //     const std::size_t i = rDof.EquationId();
-
-        //     if (rDof.IsFixed())
-        //         b_fom[i] = 0.0;
-        // });
-
-        Timer::Stop("BuildRHS");
+        Timer::Stop("BuildRomRHS");
 
         ProjectRHS_ROM(rModelPart,rb,rbRom);
-
 
         KRATOS_CATCH("")
     }

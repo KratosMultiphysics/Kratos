@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_operations_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos
 {
@@ -43,6 +44,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
     AddCustomProcessesToPython(m);
     AddCustomOperationsToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomStrategiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
@@ -118,6 +120,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DEACTIVATED_WAKE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALL_TRAILING_EDGE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ZERO_VELOCITY_CONDITION);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ID_UPWIND_ELEMENT);
 }
 
 } // namespace Python.
