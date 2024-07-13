@@ -12,14 +12,18 @@
 //
 
 // System includes
+
 // External includes
+
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+
+// Application includes
 #include "custom_elements/stokes_3D_twofluid.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
     namespace Testing {

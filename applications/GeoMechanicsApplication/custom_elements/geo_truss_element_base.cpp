@@ -1094,7 +1094,7 @@ void GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInf
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

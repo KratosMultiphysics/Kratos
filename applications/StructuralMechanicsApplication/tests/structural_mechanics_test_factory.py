@@ -79,6 +79,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 class TimoshenkoBeam2D2NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test"
 
+class TimoshenkoBeam2D3NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/2D3N_straight/timoshenko_beam_2d3N_test"
+
+class TimoshenkoCurvedBeam2D3NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/2D3N_curved/timoshenko_curved_beam_2d3N_test"
+
 class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
     file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"
 
@@ -232,6 +238,9 @@ class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
 
 class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/linear_3D2NBeamCr_test"
+
+class SimpleSemiRigid3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
+    file_name = "beam_test/semi_rigid_linear_3D2NBeamCr_test"
 
 class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"

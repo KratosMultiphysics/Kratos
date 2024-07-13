@@ -20,7 +20,11 @@ from test_fluid_pg_rom import TestFluidPGRom
 from test_thermal_pg_rom import TestThermalPGRom
 from test_structural_pg_rom import TestStructuralPGRom
 from test_monotonicity_preserving_rom import TestMonotonicityPreservingRom
+from test_nn_trainer_class import TestNeuralNetworkTrainerClass
 from test_save_rom_coefficients_process import TestSaveRomCoefficientsProcess
+from test_hrom_training_utility_rom import TestHromTrainingUtilityRom
+from test_rom_manager import TestRomManager
+from test_rom_database import TestRomDatabase
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -56,7 +60,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMonotonicityPreservingRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNeuralNetworkTrainerClass]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaveRomCoefficientsProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHromTrainingUtilityRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomManager]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomDatabase]))
+
 
     # - testNightly
     nightlySuite = suites['nightly']

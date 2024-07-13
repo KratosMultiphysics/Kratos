@@ -18,39 +18,45 @@
 #include "custom_workflows/custom_workflow_factory.h"
 #include "custom_workflows/dgeosettlement.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
 #include "test_utilities.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-//KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
+// KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
 [[maybe_unused]] void TestSettlement()
 {
-    const auto working_directory = std::filesystem::path{
-        "./applications/GeoMechanicsApplication/tests/"
-        "test_settlement_workflow"};
+    const auto temporary_working_directory = std::filesystem::path{"."} / "applications" /
+                                             "GeoMechanicsApplication" / "tests" / "test_settlement_workflow_cpp";
+    const auto source_directory = std::filesystem::path{"."} / "applications" /
+                                  "GeoMechanicsApplication" / "tests" / "test_settlement_workflow";
+
+    std::filesystem::remove_all(temporary_working_directory);
+    std::filesystem::create_directory(temporary_working_directory);
+
+    std::filesystem::copy(
+        source_directory, temporary_working_directory,
+        std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
 
     auto settlement = CustomWorkflowFactory::CreateKratosGeoSettlement();
-    for (int i = 0; i < 4; ++i)
-    {
-        const auto project_file =
-            "ProjectParameters_stage" + std::to_string(i + 1) + ".json";
-        const int status = settlement->RunStage(
-            working_directory, project_file, &flow_stubs::emptyLog,
-            &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+    for (int i = 0; i < 4; ++i) {
+        const auto project_file = "ProjectParameters_stage" + std::to_string(i + 1) + ".json";
+        const int  status       = settlement->RunStage(temporary_working_directory, project_file,
+                                                       &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-        const std::string original_file =
-            "test_model_stage" + std::to_string(i + 1) + ".post.orig.res";
-        const std::string result_file =
-            "test_model_stage" + std::to_string(i + 1) + ".post.res";
+        const std::string original_file = "test_model_stage" + std::to_string(i + 1) + ".post.orig.res";
+        const std::string result_file = "test_model_stage" + std::to_string(i + 1) + ".post.res";
 
         KRATOS_EXPECT_EQ(status, 0);
-        KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(
-            working_directory / original_file, working_directory / result_file))
+        KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(temporary_working_directory / original_file,
+                                                       temporary_working_directory / result_file))
     }
+
+    std::filesystem::remove_all(temporary_working_directory);
 }
 
 } // namespace Kratos::Testing

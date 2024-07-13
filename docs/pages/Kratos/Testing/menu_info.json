@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "kratos_testing",
+    "landing_page": "testing.md",
+    "additional_menu_options": {
+        "product": "Testing",
+        "title": "sidebar"
+    }
+}

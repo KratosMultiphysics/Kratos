@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <chrono>
 
 // External includes
 
@@ -21,7 +22,7 @@
 
 // Utilities
 #include "utilities/model_part_utils.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos::Testing {
 
@@ -120,6 +121,68 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElements, Kratos
         KRATOS_EXPECT_EQ(connectivities[i][1], r_geom[1].Id());
         KRATOS_EXPECT_EQ(connectivities[i][2], r_geom[2].Id());
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElementsBenchmark, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Adding STL chrono
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+
+    // Generate a huge number of consecutive points
+    std::size_t number_of_points = 4e5;
+    for (std::size_t i = 0; i < number_of_points; ++i) {
+        r_model_part.CreateNewNode(i + 1, 1.0 * i, 0.0, 0.0);
+    }
+
+    // Generate line elements
+    r_model_part.CreateNewProperties(1);
+    std::size_t number_of_elements = number_of_points - 1;
+    std::vector<std::size_t> properties_ids(number_of_elements);
+    std::vector<std::size_t> elements_ids(number_of_elements);
+    std::vector<std::vector<std::size_t>> connectivities(number_of_elements);
+    for (std::size_t i = 0; i < number_of_elements; ++i) {
+        elements_ids[i] = i + 1;
+        properties_ids[i] = 1;
+        connectivities[i].resize(2);
+        connectivities[i][0] = i + 1;
+        connectivities[i][1] = i + 2;
+    }
+
+    // Define start
+    start = std::chrono::high_resolution_clock::now();
+
+    ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(
+        "Element2D2N",
+        connectivities,
+        r_model_part.Nodes(),
+        r_model_part.Elements(),
+        nullptr
+    );
+
+    // Define end
+    end = std::chrono::high_resolution_clock::now();
+
+    // Measure time
+    const double duration = std::chrono::duration<double>(end - start).count();
+    KRATOS_INFO("ModelPartUtilsFromConnectivityGenerateElementsBenchmark") << "Duration = " << duration << " s" << std::endl;
+
+    // Now create manually the elements
+    r_model_part.Elements().clear();
+    start = std::chrono::high_resolution_clock::now();
+    for (std::size_t i = 0; i < number_of_elements; ++i) {
+        r_model_part.CreateNewElement("Element2D2N", elements_ids[i], connectivities[i], r_model_part.pGetProperties(1));
+    }
+    end = std::chrono::high_resolution_clock::now();
+
+    // Measure time
+    const double duration_manual = std::chrono::duration<double>(end - start).count();
+    KRATOS_INFO("ModelPartUtilsFromConnectivityGenerateElementsBenchmark") << "Duration manual = " << duration_manual << " s" << std::endl;
+
+    // Check
+    KRATOS_EXPECT_LT(duration, duration_manual);
 }
 
 } // namespace Kratos::Testing.
