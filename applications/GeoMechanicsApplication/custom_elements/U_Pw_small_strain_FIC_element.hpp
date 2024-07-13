@@ -42,11 +42,11 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
-    
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
+
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -187,38 +187,38 @@ protected:
                                          ElementVariables&    rVariables,
                                          FICElementVariables& rFICVariables);
 
-    void CalculateAndAddStrainGradientMatrix(MatrixType&          rLeftHandSideMatrix,
-                                             ElementVariables&    rVariables,
-                                             FICElementVariables& rFICVariables);
+    void CalculateAndAddStrainGradientMatrix(MatrixType&                rLeftHandSideMatrix,
+                                             const ElementVariables&    rVariables,
+                                             const FICElementVariables& rFICVariables);
 
-    void CalculateAndAddDtStressGradientMatrix(MatrixType&          rLeftHandSideMatrix,
-                                               ElementVariables&    rVariables,
-                                               FICElementVariables& rFICVariables);
+    void CalculateAndAddDtStressGradientMatrix(MatrixType&             rLeftHandSideMatrix,
+                                               const ElementVariables& rVariables,
+                                               FICElementVariables&    rFICVariables);
 
     void CalculateConstitutiveTensorGradients(FICElementVariables&    rFICVariables,
                                               const ElementVariables& Variables);
 
-    void CalculateAndAddPressureGradientMatrix(MatrixType&          rLeftHandSideMatrix,
-                                               ElementVariables&    rVariables,
-                                               FICElementVariables& rFICVariables);
+    void CalculateAndAddPressureGradientMatrix(MatrixType&                rLeftHandSideMatrix,
+                                               const ElementVariables&    rVariables,
+                                               const FICElementVariables& rFICVariables);
 
     void CalculateAndAddRHSStabilization(VectorType&          rRightHandSideVector,
                                          ElementVariables&    rVariables,
                                          FICElementVariables& rFICVariables);
 
-    void CalculateAndAddStrainGradientFlow(VectorType&          rRightHandSideVector,
-                                           ElementVariables&    rVariables,
-                                           FICElementVariables& rFICVariables);
+    void CalculateAndAddStrainGradientFlow(VectorType&                rRightHandSideVector,
+                                           const ElementVariables&    rVariables,
+                                           const FICElementVariables& rFICVariables);
 
-    void CalculateAndAddDtStressGradientFlow(VectorType&          rRightHandSideVector,
-                                             ElementVariables&    rVariables,
-                                             FICElementVariables& rFICVariables);
+    void CalculateAndAddDtStressGradientFlow(VectorType&             rRightHandSideVector,
+                                             const ElementVariables& rVariables,
+                                             FICElementVariables&    rFICVariables);
 
     void CalculateDtStressGradients(FICElementVariables& rFICVariables, const ElementVariables& Variables);
 
-    void CalculateAndAddPressureGradientFlow(VectorType&          rRightHandSideVector,
-                                             ElementVariables&    rVariables,
-                                             FICElementVariables& rFICVariables);
+    void CalculateAndAddPressureGradientFlow(VectorType&                rRightHandSideVector,
+                                             const ElementVariables&    rVariables,
+                                             const FICElementVariables& rFICVariables);
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

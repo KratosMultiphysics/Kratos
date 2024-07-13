@@ -114,7 +114,7 @@ target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructura
 ###############################################################################
 ## PoromechanicsApplication core library (C++ parts)
 #add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-#target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+#target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties( KratosPoromechanicsCore PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 
 ## PoromechanicsApplication python module

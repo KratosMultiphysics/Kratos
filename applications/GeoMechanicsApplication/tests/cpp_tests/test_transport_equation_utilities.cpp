@@ -11,7 +11,7 @@
 //
 
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace

@@ -152,20 +152,20 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Projection3D2DMapper);
 
     /// BaseType definitions
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
-    typedef Kratos::unique_ptr<BaseType> BaseMapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
+    using BaseType = InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>;
+    using BaseMapperUniquePointerType = Kratos::unique_ptr<BaseType>;
+    using TMappingMatrixType = typename BaseType::TMappingMatrixType;
+    using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
 
     /// Interface definitions
-    typedef typename TMapperBackend::InterfaceCommunicatorType InterfaceCommunicatorType;
-    typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+    using InterfaceCommunicatorType = typename TMapperBackend::InterfaceCommunicatorType;
+    using MapperInterfaceInfoUniquePointerType = typename InterfaceCommunicatorType::MapperInterfaceInfoUniquePointerType;
 
     /// Other mappers definition
-    typedef NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend> NearestNeighborMapperType;
-    typedef NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>   NearestElementMapperType;
-    typedef BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>         BarycentricMapperType;
-    
+    using NearestNeighborMapperType = NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend>;
+    using NearestElementMapperType = NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>;
+    using BarycentricMapperType = BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>;
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -179,7 +179,7 @@ public:
         CONDITIONS,
         ELEMENTS
     };
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -214,6 +214,11 @@ public:
 
         // Checking if the 2D modelpart is the origin model part
         CheckOriginIs2D();
+        if (mOriginIs2D) {
+            KRATOS_INFO("Projection3D2DMapper") << "The 2D model part is the origin model part" << std::endl;
+        } else {
+            KRATOS_INFO("Projection3D2DMapper") << "The 3D model part is the origin model part" << std::endl;
+        }
 
         // Type of metamapper considered
         mMetaMapperType = mCopiedParameters["base_mapper"].GetString();
@@ -223,7 +228,7 @@ public:
             // Type of mesh entity considered
             GetEntityMeshType();
 
-            // Getting the normal and reference plane 
+            // Getting the normal and reference plane
             GetNormalAndReferencePlane();
 
             // Move mesh
@@ -264,7 +269,7 @@ public:
 
     /**
      * @brief Updates the mapping-system after the geometry/mesh has changed
-     * After changes in the topology (e.g. remeshing or sliding interfaces)
+     * @details After changes in the topology (e.g. remeshing or sliding interfaces)
      * the relations for the mapping have to be recomputed. This means that
      * the search has to be conducted again and the mapping-system has to be
      * rebuilt, hence this is expensive
@@ -277,7 +282,7 @@ public:
         ) override
     {
         KRATOS_TRY;
-        
+
         // Pre mapper creation operations when model part of origin is 2D
         if (mOriginIs2D) {
             // Move mesh
@@ -331,7 +336,7 @@ public:
 
     /**
      * @brief This method returns the 2D model part
-     * @return The 2D model part 
+     * @return The 2D model part
      */
     ModelPart& Get2DModelPart()
     {
@@ -340,7 +345,7 @@ public:
 
     /**
      * @brief This method returns the 3D model part
-     * @return The 3D model part 
+     * @return The 3D model part
      */
     ModelPart& Get3DModelPart()
     {
@@ -579,7 +584,7 @@ private:
      */
     void UnMoveModelParts()
     {
-        KRATOS_TRY; 
+        KRATOS_TRY;
 
         // The 3D model part
         auto& r_3d_model_part = this->Get3DModelPart();

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "containers/model.h"
 #include "mpi/tests/test_utilities/mpi_cpp_test_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
@@ -23,7 +23,7 @@
 namespace Kratos::Testing 
 {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuite)
 {
     // The model part
     Model current_model;
