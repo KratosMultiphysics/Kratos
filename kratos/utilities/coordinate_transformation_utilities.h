@@ -468,7 +468,7 @@ public:
             RotateRHSAux(rLocalVector, rGeometry, false);
 	}
 
-	/// RHS only version of Rotate which reverts the rotation to the global frame
+	/// RHS only version of Rotate which reverts the rotation to the original frame
 	virtual void RevertRotate(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
@@ -672,7 +672,7 @@ protected:
 	///@name Protected Operations
 	///@{
 
-	template<unsigned int TDim, unsigned int TBlockSize, unsigned int TSkip = 0, bool TRevertRotate = false>
+	template<unsigned int TDim, unsigned int TBlockSize, unsigned int TSkip = 0, bool TRevertRotation = false>
 	void RotateAux(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
@@ -697,7 +697,7 @@ protected:
 				if constexpr (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 
-                if constexpr (TRevertRotate)
+                if constexpr (TRevertRotation)
                 {
                     noalias(tmp) = trans(rRot[j]);
                     rRot[j] = tmp;
@@ -988,7 +988,7 @@ private:
 	///@{
 
     void RotateRHSAux(TLocalVectorType& rLocalVector,
-                      GeometryType& rGeometry, bool revert_rotation) const
+                      GeometryType& rGeometry, const bool revert_rotation) const
     {
         if (rLocalVector.size() > 0)
         {
