@@ -52,7 +52,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
     
     def ComputeEnergyPerUnitVolumeThreshold(self):
-        # Compute ionization energy per volume of C11H12O3
+        # Compute ionization energy per volume of C11_H12_O3
         E_m_H = 1312e3 #  J/mol (1st level ionization energy)
         E_m_C = 4621e3 #  J/mol (3rd level ionization energy)
         E_m_O = 3388e3 #  J/mol (2nd level ionization energy)

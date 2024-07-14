@@ -10,11 +10,11 @@
         "energy"        : 25e-6,
         "mask_aperture_diameter" : 0.025,
         "vaporisation_temperature" : 1000.0,
-        "compute_vaporisation" : true,
-        "mesh_size" : "coarse",
-        "mesh_type" : "structured",
         "time_jump_between_pulses": 5e-6,
-        "print_hole_geometry_file": false
+        "print_hole_geometry_file": false,
+        "compute_vaporisation" : false,
+        "mesh_size" : "coarse",
+        "mesh_type" : "structured"
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",
