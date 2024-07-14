@@ -424,46 +424,7 @@ public:
     ///@name Friends
     ///@{
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * @brief Sets the used integration method
-     * @param ThisIntegrationMethod Integration method used
-     */
-    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
-    {
-         mThisIntegrationMethod = ThisIntegrationMethod;
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -472,6 +433,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -479,6 +442,17 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Sets the used integration method
+     * @param ThisIntegrationMethod Integration method used
+     */
+    void SetIntegrationMethod(const IntegrationMethod &ThisIntegrationMethod)
+    {
+        mThisIntegrationMethod = ThisIntegrationMethod;
+    }
+
+    double GetMembranePrestress() const;
 
     ///@}
     ///@name Private  Access

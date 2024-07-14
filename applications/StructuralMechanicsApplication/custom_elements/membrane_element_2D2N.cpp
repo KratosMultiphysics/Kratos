@@ -232,9 +232,9 @@ void MembraneElement2D2N::CalculateLocalSystem(
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
-    const double stress_0 = 1.0e3; //TODO: Properly get the prestress
 
     // Calculate linearised tensile stress (note that we are assuming it constant in the element)
+    const double stress_0 = GetMembranePrestress();
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double strain = (l - l_0) / l_0;
@@ -308,9 +308,9 @@ void MembraneElement2D2N::CalculateLeftHandSide(
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
-    const double stress_0 = 0.0; //TODO: Properly get the prestress
 
     // Calculate linearised tensile stress (note that we are assuming it constant in the element)
+    const double stress_0 = GetMembranePrestress();
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double strain = (l - l_0) / l_0;
@@ -372,9 +372,9 @@ void MembraneElement2D2N::CalculateRightHandSide(
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
-    const double stress_0 = 0.0; //TODO: Properly get the prestress
 
     // Calculate linearised tensile stress (note that we are assuming it constant in the element)
+    const double stress_0 = GetMembranePrestress();
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double strain = (l - l_0) / l_0;
@@ -498,6 +498,18 @@ int  MembraneElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     int check = Element::Check(rCurrentProcessInfo);
 
+    // Check that the required material data is present
+    const auto& r_prop = GetProperties();
+    KRATOS_ERROR_IF_NOT(r_prop.Has(THICKNESS)) << "THICKNESS value needs to be provided by properties." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_prop.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS value needs to be provided by properties." << std::endl;
+    if (r_prop.Has(PRESTRESS_VECTOR)) {
+        const auto& r_prestress = r_prop.GetValue(PRESTRESS_VECTOR);
+        KRATOS_ERROR_IF(r_prestress[0] < 0.0) << "Prestress needs to be positive." << std::endl;
+        for (IndexType i = 1; i < r_prestress.size(); ++i) {
+            KRATOS_ERROR_IF(r_prestress[i] > 1.0e-12) << "Only first component of PRESTRESS_VECTOR can be considered." << std::endl;
+        }
+    }
+
     return check;
 
     KRATOS_CATCH( "" );
@@ -534,6 +546,19 @@ const Parameters MembraneElement2D2N::GetSpecifications() const
     })");
 
     return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double MembraneElement2D2N::GetMembranePrestress() const
+{
+    const auto& r_prop = GetProperties();
+    if (r_prop.Has(PRESTRESS_VECTOR)) {
+        return r_prop.GetValue(PRESTRESS_VECTOR)[0];
+    } else {
+        return 0.0;
+    }
 }
 
 /***********************************************************************************/
