@@ -49,7 +49,7 @@ This test uses the same setting as the previous test except the interface stiffn
 
 This very small value of the stiffness leads to a large movement of the beam against the soil. The following picture shows that the beam is bended as in the previous test but the beam affects the soil displacement very little. The brown lines depict the interfaces' horizontal lines.
 
-![Displacement](week-interface_on_beam_deformation.svg)
+![Displacement](week_interface_on_beam_deformation.svg)
 
 ### Assertions
 
