@@ -25,6 +25,7 @@
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/fast_filling_creator.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h"
@@ -202,6 +203,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
         .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
         .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
+        ;
+
+    py::class_<Fast_Filling_Creator, Fast_Filling_Creator::Pointer>(m, "Fast_Filling_Creator")
+        .def(py::init<const int>())
+        .def(py::init<Parameters&, const int>())
+        .def("GetRandomParticleRadius", &Fast_Filling_Creator::GetRandomParticleRadius, py::arg("creator_destructor"))
+        .def("CheckHasIndentationOrNot", &Fast_Filling_Creator::CheckHasIndentationOrNot)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")

@@ -114,6 +114,15 @@ class ExplicitStrategy():
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
+        elif DEM_parameters["DeltaOption"].GetString() == "Relative":
+            # "Relative" means you will set a added_search_distance = DEM_parameters["SearchToleranceMultiplier"] * particle_radius
+            self.delta_option = 3  ##this variable is not so important
+            self.search_increment = DEM_parameters["SearchToleranceMultiplier"].GetDouble()
+            if not "SearchToleranceForBondsCreationMultiplier" in DEM_parameters.keys():
+                self.search_increment_for_bonds_creation  = self.search_increment
+            else:
+                self.search_increment_for_bonds_creation = DEM_parameters["SearchToleranceForBondsCreationMultiplier"].GetDouble()
+
         self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
 
         # TIME RELATED PARAMETERS
