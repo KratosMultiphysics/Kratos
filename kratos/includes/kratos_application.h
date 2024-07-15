@@ -58,6 +58,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/coupling_geometry.h"
 
 // Elements
 #include "elements/mesh_element.h"
@@ -421,6 +422,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Quadrilateral3D4<NodeType> mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
     const Quadrilateral3D8<NodeType> mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Quadrilateral3D9<NodeType> mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Coupling
+    const CouplingGeometry<NodeType> mCouplingGeometry = CouplingGeometry<NodeType>();
     //Tetrahedra:
     const Tetrahedra3D4<NodeType> mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
     const Tetrahedra3D10<NodeType> mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));

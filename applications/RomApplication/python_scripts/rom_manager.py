@@ -9,12 +9,6 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
-try:
-    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
-    have_tensorflow = True
-except ImportError:
-    have_tensorflow = False
-
 
 
 class RomManager(object):
@@ -50,15 +44,20 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
-                    err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
+                if any(item == "ROM" for item in training_stages):
+                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
+                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
+                        raise Exception(err_msg)
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                    NN_ROM_Interface = self._TryImportNNInterface()
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
-                self._LaunchTrainROM(mu_train)
-                self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
-                self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                #TODO implement online stage for ann_enhanced
-                #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
-                #rom_snapshots = self._LaunchROM(mu_train)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -76,8 +75,20 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom for the moment'
-                raise Exception(err_msg)
+                if any(item == "ROM" for item in training_stages):
+                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
+                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
+                        raise Exception(err_msg)
+                    self._LaunchTrainROM(mu_train)
+                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
+                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                    NN_ROM_Interface = self._TryImportNNInterface()
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                if any(item == "HROM" for item in training_stages):
+                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train)
@@ -96,7 +107,7 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom for the moment'
+                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
             ##########################
@@ -117,9 +128,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        if not type_of_decoder=="ann_enhanced":
-            #TODO implement online stage of ann_enhanced
-            self.ComputeErrors(mu_train)
+        self.ComputeErrors(mu_train)
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
@@ -140,47 +149,79 @@ class RomManager(object):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
 
-    def Test(self, mu_test=[None]):
+    def Test(self, mu_train=[None], mu_test=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
-            if any(item == "HROM" for item in testing_stages):
-                #FIXME there will be an error if we only test HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+            if type_of_decoder =="ann_enhanced":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                    NN_ROM_Interface = self._TryImportNNInterface()
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
+                if any(item == "HROM" for item in testing_stages):
+                    #FIXME there will be an error if we only test HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
 
         #######################
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                self._ChangeRomFlags(simulation_to_run = "lspg")
-                self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
-            if any(item == "HROM" for item in testing_stages):
-                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+            if type_of_decoder =="ann_enhanced":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                    NN_ROM_Interface = self._TryImportNNInterface()
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                if any(item == "HROM" for item in testing_stages):
+                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "lspg")
+                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                if any(item == "HROM" for item in testing_stages):
+                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
         #######################################
 
 
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                self._ChangeRomFlags(simulation_to_run = "PG")
-                self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
-            if any(item == "HROM" for item in testing_stages):
-                #FIXME there will be an error if we only train HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in testing_stages):
+                    self._LoadSolutionBasis(mu_train)
+                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                    self._ChangeRomFlags(simulation_to_run = "PG")
+                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                if any(item == "HROM" for item in testing_stages):
+                    #FIXME there will be an error if we only train HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -192,39 +233,74 @@ class RomManager(object):
         self._LaunchRunFOM(mu_run)
 
 
-    def RunROM(self, mu_run=[None]):
+    def RunROM(self, mu_train=[None], mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        nn_rom_interface = None
+        self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+            if type_of_decoder =="ann_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                NN_ROM_Interface = self._TryImportNNInterface()
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            self._ChangeRomFlags(simulation_to_run = "lspg")
+            if type_of_decoder =="ann_enhanced":
+                self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                NN_ROM_Interface = self._TryImportNNInterface()
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "lspg")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            self._ChangeRomFlags(simulation_to_run = "PG")
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "PG")
+        #########################################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self._LaunchRunROM(mu_run)
+        self._LaunchRunROM(mu_run, nn_rom_interface=nn_rom_interface)
 
-    def RunHROM(self, mu_run=[None], use_full_model_part = False):
+
+
+
+    def RunHROM(self, mu_train=[None], mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        self._LoadSolutionBasis(mu_train)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
-            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
-            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
@@ -336,17 +412,36 @@ class RomManager(object):
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
-            BasisOutputProcess._PrintRomBasis(u, None) #Calling the RomOutput Process for creating the RomParameter.json
+            BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), None ) #this updates the RomParameters.json
+            _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+        self.GenerateDatabaseSummary()
+
+    def _LoadSolutionBasis(self, mu_train):
+        in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        basis_directory = self.data_base.database_root_directory.parent
+        basis_path = basis_directory / 'RightBasisMatrix.npy'
+        basis_exists_in_parent_directory = basis_path.exists()
+
+        if not in_database and basis_exists_in_parent_directory:
+            err_msg = f'ROM basis not in RomDatabase, using the one in the working directory {basis_path}'
+            KratosMultiphysics.Logger.PrintWarning(err_msg)
+        elif not in_database and not basis_exists_in_parent_directory:
+            err_msg = f'ROM basis not found for indicated training snapshots. Please run the Train method() to create it.'
+            raise Exception(err_msg)
+        else:
+            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+            _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
 
-    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit'):
+    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None):
         """
         This method should be parallel capable
         """
@@ -362,8 +457,9 @@ class RomManager(object):
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+
                 simulation.Run()
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -517,8 +613,7 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
-
-    def _LaunchRunROM(self, mu_run):
+    def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
         """
         This method should be parallel capable
         """
@@ -531,7 +626,7 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
@@ -559,24 +654,17 @@ class RomManager(object):
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
-        if not have_tensorflow:
-            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
-            raise Exception(err_msg)
-
+        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        model_name = rom_nn_trainer.TrainNetwork()
+        rom_nn_trainer.TrainNetwork()
         self.data_base.add_to_database("Neural_Network", mu_train , None)
-        rom_nn_trainer.EvaluateNetwork(model_name)
+        rom_nn_trainer.EvaluateNetwork()
 
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
-        if not have_tensorflow:
-            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
-            raise Exception(err_msg)
-
+        RomNeuralNetworkTrainer = self._TryImportNNTrainer()
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
-        rom_nn_trainer.EvaluateNetwork(model_name)
+        rom_nn_trainer.EvaluateNetwork()
 
     def InitializeDummySimulationForBasisOutputProcess(self):
         with open(self.project_parameters_name,'r') as parameter_file:
@@ -696,6 +784,16 @@ class RomManager(object):
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
                 f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
+            elif simulation_to_run=='GalerkinROM_ANN':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="galerkin_ann"
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=='lspg_ANN':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="lspg_ann"
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -848,6 +946,7 @@ class RomManager(object):
                     "layers_size":[200,200],
                     "batch_size":2,
                     "epochs":800,
+                    "NN_gradient_regularisation_weight": 0.0,
                     "lr_strategy":{
                         "scheduler": "sgdr",
                         "base_lr": 0.001,
@@ -1070,3 +1169,19 @@ class RomManager(object):
 
     def GenerateDatabaseCompleteDump(self):
         self.data_base.dump_database_as_excel()
+
+    def _TryImportNNTrainer(self):
+        try:
+            from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
+            return RomNeuralNetworkTrainer
+        except ImportError:
+            err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
+            raise Exception(err_msg)
+
+    def _TryImportNNInterface(self):
+        try:
+            from KratosMultiphysics.RomApplication.rom_nn_trainer import NN_ROM_Interface
+            return NN_ROM_Interface
+        except ImportError:
+            err_msg = f'Failed to import the NN_ROM_Interface class. Make sure TensorFlow is properly installed.'
+            raise Exception(err_msg)
