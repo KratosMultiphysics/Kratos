@@ -79,15 +79,12 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function adds forces from prestressing to the force vector
      * @param rRightHandSideVector The right hand side of the problem
      */
-    void AddPrestressLinear(VectorType& rRightHandSideVector);
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
@@ -102,12 +99,6 @@ public:
      */
     void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief This function calculates the original nodal postion for the transformation matrix
-     * @param rReferenceCoordinates The original coordinates
-     */
-    void WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates) override;
 
     /**
      * @brief This function calculates the current linear-Lagrange strain

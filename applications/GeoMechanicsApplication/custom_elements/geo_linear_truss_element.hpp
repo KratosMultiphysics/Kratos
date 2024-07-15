@@ -85,6 +85,10 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates) override;
+
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
@@ -100,6 +104,8 @@ public:
     void ResetConstitutiveLaw() override;
 
 private:
+    void AddPrestressLinear(VectorType& rRightHandSideVector);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
