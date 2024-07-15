@@ -11,8 +11,7 @@ This test models the beam movement in the soil. The beam is fixed on the bottom 
 
 ![MeshStructure](interface_on_beam.svg)
 
-All nodes on the sides are fixed in the horizontal direction. The bottom nodes are fixed in both the horizontal and the vertical
-directions. In the middle of the domain a vertical beam is placed. It is shown in red color. The beam bottom has a fixed support and a horizontal constant load with a magnitude of $q=10.0 \quad \mathrm{[N/m]}$ is applied to the beam top. 
+All nodes on the vertical sides and the bottom are fixed in both the horizontal and the vertical directions. In the middle of the domain a vertical beam is placed. It is shown in red color. The beam bottom has a fixed support and a horizontal constant load with a magnitude of $q=10.0 \quad \mathrm{[N/m]}$ is applied to the beam top. 
 
 
 The soil is described with GeoLinearElasticPlaneStrain2DLaw:
