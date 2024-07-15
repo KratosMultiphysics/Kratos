@@ -200,12 +200,33 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        void CalculateAllDirichlet(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        );
+
+        void CalculateAllNeumann(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        );
+
+
         ///@}
         ///@name Check
         ///@{
 
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+        std::vector<Matrix> mShapeFunctionDerivatives;
+
+        int mbasisFunctionsOrder;
 
         unsigned long long factorial(int n); 
 

@@ -35,7 +35,7 @@ namespace Kratos
                 CurveTessellation<PointerVector<Node>> curve_tesselation;
                 auto geometry_outer = *(rOuterLoops[i_outer_loops][j].get());
                 curve_tesselation.Tessellate(
-                    geometry_outer, 1e-6, 1, true); ////// Tolerance of the polygon
+                    geometry_outer, 1e-10, 1, true); ////// Tolerance of the polygon
                 auto tesselation = curve_tesselation.GetTessellation();
                 for (IndexType u = 0; u < tesselation.size(); ++u) {
                     auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
@@ -55,7 +55,7 @@ namespace Kratos
                     CurveTessellation<PointerVector<Node>> curve_tesselation;
                     auto geometry_inner = *(rInnerLoops[i_inner_loops][j].get());
                     curve_tesselation.Tessellate(
-                        geometry_inner, 0.001, 1, true);
+                        geometry_inner, 1e-10, 1, true);
                     auto tesselation = curve_tesselation.GetTessellation();
                     for (IndexType u = 0; u < tesselation.size(); ++u) {
                         auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);

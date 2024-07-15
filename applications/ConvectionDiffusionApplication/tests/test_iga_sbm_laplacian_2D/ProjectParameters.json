@@ -1,0 +1,113 @@
+{
+  "problem_data": {
+    "problem_name": "example_1_kratos",
+    "echo_level": 0,
+    "parallel_type": "OpenMP",
+    "start_time": 0,
+    "end_time": 0.1
+  },
+  "solver_settings"  : {
+    "solver_type"                        : "iga_stationary",
+    "analysis_type"                      : "linear",
+    "model_part_name"                    : "IgaModelPart",
+    "domain_size"                        : 2,
+    "model_import_settings": { "input_type": "use_input_model_part" },
+    "material_import_settings": { "materials_filename": "materials.json" },
+    "linear_solver_settings":{
+      "solver_type": "LinearSolversApplication.sparse_lu"
+    }, 
+    "line_search"                        : false,
+    "echo_level"                         : 0,
+    "compute_reactions"                  : false,
+    "max_iteration"                      : 100,
+    "convergence_criterion"              : "residual_criterion",
+    "solution_relative_tolerance"        : 1e-14,
+    "solution_absolute_tolerance"        : 1e-14,
+    "residual_relative_tolerance"        : 1e-14,
+    "residual_absolute_tolerance"        : 1e-14,
+    "time_stepping"                      : {
+        "time_step" : 1e20
+    } 
+},
+  "modelers": [
+    {
+      "modeler_name" : "import_mdpa_modeler",
+      "kratos_module" : "KratosMultiphysics",
+      "Parameters" : {
+        "input_filename" : "diamond",
+        "model_part_name" : "initial_skin_model_part_in"
+        }
+    },
+    {
+      "modeler_name": "NurbsGeometryModeler",
+      "Parameters": {
+        "echo_level": 0,
+        "model_part_name": "IgaModelPart",
+        "sbm_parameters": {
+                "lambda_inner": 0.5,
+                "lambda_outer": 0.5,
+                "number_of_inner_loops": 1
+              },
+        "lower_point_xyz": [0, 0, 0],
+        "upper_point_xyz": [2, 2, 0],
+        "lower_point_uvw": [0, 0, 0],
+        "upper_point_uvw": [2, 2, 0],
+        "polynomial_order":     [1, 1],
+        "number_of_knot_spans": [1, 1],
+        "initial_skin_model_part_name": "initial_skin_model_part",
+        "skin_model_part_name": "skin_model_part",
+        "surrogate_model_part_name": "surrogate_model_part"
+        }
+    },
+    {
+      "modeler_name": "RefinementModeler",
+      "Parameters": {
+        "echo_level": 0,
+        "physics_file_name": "refinements.iga.json"
+      }
+    },
+    {
+      "modeler_name": "IgaModeler",
+      "Parameters": {
+        "echo_level": 0,
+        "cad_model_part_name": "IgaModelPart",
+        "analysis_model_part_name": "IgaModelPart",
+        "physics_file_name": "physics.iga.json",
+        "skin_model_part_name": "skin_model_part",
+        "surrogate_model_part_name": "surrogate_model_part",
+
+        "integrate_on_true_boundary" : false,
+        "precision_order_on_integration": 0
+      }
+    }
+  ],
+  "processes": {
+    "additional_processes": [],
+    "dirichlet_process_list": [
+       {
+        "kratos_module": "KratosMultiphysics",
+        "python_module": "assign_scalar_variable_to_nodes_process",
+        "Parameters": {
+          "model_part_name": "skin_model_part_out",
+          "variable_name": "TEMPERATURE",
+          "value"           : "sin(x)*sinh(y)"
+        }
+      },
+      {
+        "kratos_module": "KratosMultiphysics",
+        "python_module": "assign_scalar_variable_to_nodes_process",
+        "Parameters": {
+          "model_part_name": "skin_model_part_in",
+          "variable_name": "TEMPERATURE",
+          "value"           : "sin(x)*sinh(y)"
+        }
+      }
+    ],
+    "constraints_process_list"        : []
+},
+  "output_processes": {
+    "output_process_list": []
+  }
+}
+
+

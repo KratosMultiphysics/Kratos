@@ -1,0 +1,23 @@
+{
+    "refinements": [
+        {
+            "brep_ids": [
+                1
+            ],
+            "geometry_type": "NurbsVolume",
+            "model_part_name": "IgaModelPart",
+            "parameters": {
+                "insert_nb_per_span_u": 7,
+                "insert_nb_per_span_v": 7,
+                "insert_nb_per_span_w": 7,
+                "increase_degree_u": 1,
+                "increase_degree_v": 1,
+                "increase_degree_w": 1
+            },
+            "local_refinement_parameters": {
+                "do_you_want_to_refine_inner": false,
+                "how_many_times_refine_inner": 0
+            }
+        }
+    ]
+}

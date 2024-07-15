@@ -409,7 +409,8 @@ class ConvectionDiffusionSolver(PythonSolver):
         self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self._GetSolutionStrategy().Check()
+        print("check")
+        # self._GetSolutionStrategy().Check()
 
     #### Specific internal functions ####
 

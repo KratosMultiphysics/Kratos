@@ -106,57 +106,44 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         rRightHandSideVector.resize(number_of_points,false);
     noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
 
-    
     // Initialize DN_DX
     Matrix DN_DX(number_of_points,dim);
-    Matrix InvJ0(dim,dim);
     Vector temp(number_of_points);
 
     // Initialize Jacobian
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    // Matrix InvJ0(dim,dim);
+    // GeometryType::JacobiansType J0;
+    // r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
+    const double heat_flux = this->GetValue(r_volume_source_var);
+    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
-    Vector heat_flux_local(number_of_points);
-    Vector nodal_conductivity(number_of_points);
-    for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
-    {
-        heat_flux_local[node_element] = this->GetValue(HEAT_FLUX);
-        nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
-    }
+    // double DetJ0;
+    // Matrix Jacobian = ZeroMatrix(dim,dim);
+    // Jacobian(0,0) = J0[0](0,0);
+    // Jacobian(0,1) = J0[0](0,1);
+    // Jacobian(1,0) = J0[0](1,0);
+    // Jacobian(1,1) = J0[0](1,1);
 
-    const double heat_flux_scalar = this->GetValue(HEAT_FLUX);
-
-    double DetJ0;
-    Matrix Jacobian = ZeroMatrix(dim,dim);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-
-    if (dim > 2) {
-        Jacobian(0,2) = J0[0](0,2);
-        Jacobian(1,2) = J0[0](1,2);
-        Jacobian(2,0) = J0[0](2,0);
-        Jacobian(2,1) = J0[0](2,1);
-        Jacobian(2,2) = J0[0](2,2);
-    }
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    // if (dim > 2) {
+    //     Jacobian(0,2) = J0[0](0,2);
+    //     Jacobian(1,2) = J0[0](1,2);
+    //     Jacobian(2,0) = J0[0](2,0);
+    //     Jacobian(2,1) = J0[0](2,1);
+    //     Jacobian(2,2) = J0[0](2,2);
+    // }
+    // // Calculating inverse jacobian and jacobian determinant
+    // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
     for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
     {
-        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
+        noalias(DN_DX) = DN_De[i_point] ; //prod(DN_De[i_point],InvJ0);
 
-        auto N = row(N_gausspoint,i_point); // these are the N which correspond to the gauss point "i_point"
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * std::abs(DetJ0);
+        auto N = row(N_gausspoint,i_point);
+        const double IntToReferenceWeight = integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
-        // Also the conductivity is multiplied by the value of the shape function at the GaussPoint
-        const double conductivity_gauss = inner_prod(N, nodal_conductivity);
-        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity_gauss * prod(DN_DX, trans(DN_DX)); //
-
-        noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux_scalar * N;
+        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity * prod(DN_DX, trans(DN_DX));
+        noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux * N;
     }
 
 

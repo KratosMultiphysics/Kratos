@@ -453,16 +453,18 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {   
-        // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
-        std::ifstream file("txt_files/input_data.txt");
-        std::string line;
-        int SBM_technique;
-        std::getline(file, line);
-        std::getline(file, line); // Read the second line
-        SBM_technique = std::stoi(line);
-        file.close();
-        // (SBM_technique == 0) 
-        if (SBM_technique == 1) {
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+
+        // // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+        // std::ifstream file("txt_files/input_data.txt");
+        // std::string line;
+        // int SBM_technique;
+        // std::getline(file, line);
+        // std::getline(file, line); // Read the second line
+        // SBM_technique = std::stoi(line);
+        // file.close();
+        // // (SBM_technique == 0) 
+        if (is_sbm == 0) {
             if (!mIsTrimmed) {
                 mpNurbsSurface->CreateIntegrationPoints(
                     rIntegrationPoints, rIntegrationInfo);

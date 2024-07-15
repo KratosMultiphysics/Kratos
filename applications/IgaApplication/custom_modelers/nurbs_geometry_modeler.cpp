@@ -27,6 +27,10 @@ namespace Kratos
         //  READ LOCAL REFINEMENT FILE AND CREATE BOUNDARY B-REPS
         //-----------------------------------------------------------------------------------------------------
         
+        // TIME
+        // Inizia il timer
+        auto start = std::chrono::high_resolution_clock::now();
+        
         // Read the refinements.iga.json
         // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
         
@@ -117,6 +121,15 @@ namespace Kratos
         else {
             KRATOS_ERROR << "Nurbs Geometry Modeler is only available for surfaces and volumes." << std::endl;
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<long double> duration = end - start;
+        long double elapsedTime = duration.count();
+
+        std::ofstream outputFile("time_txt_files/nurbs_modeler_time.txt", std::ios::app);
+        outputFile << std::scientific << std::setprecision(20); // Imposta la precisione a 10^-20
+        outputFile << elapsedTime << "\n";
+        outputFile.close();
 
     }
 

@@ -189,8 +189,10 @@ namespace Kratos
         const double tau = this->CalculateTau(Variables,norm_vel,h);
         // const double tau = this->CalculateTauHigherOrder(Variables,norm_vel,h,basisFunctionsOrder);
         // const double tau = 0.0;
-
         // KRATOS_WATCH(tau)
+        // KRATOS_WATCH(h)
+        // KRATOS_WATCH(norm_vel)
+        // KRATOS_WATCH(h/2/norm_vel)
 
 
         // Terms (w, v \cdot ...)
@@ -205,24 +207,32 @@ namespace Kratos
         noalias(auxLaplacian)            += tau * laplacian_of_N;
 
 
+
         // Diffusion term (no tau)
         noalias(rLeftHandSideMatrix)  += prod(DN_DX, trans(DN_DX)); 
 
         // Convective term (no tau)
         noalias(rLeftHandSideMatrix)  += auxN_a_dot_grad;
 
+        // volume source terms (affecting the RHS)
+        noalias(rRightHandSideVector)  += N * volumetric_source_scalar; // (N,N)
+
+        // SUBSCALE MODEL
         // Terms containing the tau (STABILIZATION)
         noalias(rLeftHandSideMatrix)  -= auxLaplacianLaplacian;       // laplacian 1
         noalias(rLeftHandSideMatrix)  += auxLaplacian_a_dot_grad;     // laplacian 3
         noalias(rLeftHandSideMatrix)  -= aux_a_dot_grad_Laplacian;    // grad 1
         noalias(rLeftHandSideMatrix)  += aux_a_dot_grad_a_dot_grad;   // grad 3
-        
-        // volume source terms (affecting the RHS)
-        noalias(rRightHandSideVector)  += N * volumetric_source_scalar; // (N,N)
-        
-        // volume source terms (STABILIZATION)
+        // Volume source terms (STABILIZATION)
         noalias(rRightHandSideVector)  += auxLaplacian * volumetric_source_scalar ;          // laplacian 2
         noalias(rRightHandSideVector)  += aux_a_dot_grad * volumetric_source_scalar;         // grad 2
+
+        // // SUPG MODEL
+        // // Terms containing the tau (STABILIZATION)
+        // noalias(rLeftHandSideMatrix)  -= aux_a_dot_grad_Laplacian;    // grad 1
+        // noalias(rLeftHandSideMatrix)  += aux_a_dot_grad_a_dot_grad;   // grad 3
+        // noalias(rRightHandSideVector) += aux_a_dot_grad * volumetric_source_scalar;         // grad 2
+
 
         rRightHandSideVector *= Volume;
         rLeftHandSideMatrix *= Volume;
@@ -484,7 +494,7 @@ namespace Kratos
         std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
         if (output_file.is_open()) {
             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << integration_points[0].Weight() << std::endl;
+            output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight() << std::endl;
             output_file.close();
         }
     }

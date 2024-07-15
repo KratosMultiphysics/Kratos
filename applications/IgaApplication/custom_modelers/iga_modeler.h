@@ -193,9 +193,11 @@ private:
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
         std::string& rConditionName,
+        std::string& rBoundaryConditionType,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
-        bool isInner) const;
+        bool isInner,
+        Vector mesh_size) const;
 
     ///@}
     ///@name Get Points at Boundaries

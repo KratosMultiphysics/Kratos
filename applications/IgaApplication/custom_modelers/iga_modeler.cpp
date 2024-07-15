@@ -35,10 +35,23 @@ namespace Kratos
 
         const Parameters iga_physics_parameters = ReadParamatersFile(rDataFileName);
 
+        
+        // TIME
+        auto start = std::chrono::high_resolution_clock::now();
+        
         CreateIntegrationDomain(
             cad_model_part,
             analysis_model_part,
             iga_physics_parameters);
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<long double> duration = end - start;
+        long double elapsedTime = duration.count();
+
+        std::ofstream outputFile("time_txt_files/iga_modeler_time.txt", std::ios::app);
+        outputFile << std::scientific << std::setprecision(20); // Imposta la precisione a 10^-20
+        outputFile << elapsedTime << "\n";
+        outputFile.close();
 
         const std::vector<std::string> sub_model_part_names = analysis_model_part.GetSubModelPartNames();
 
@@ -305,6 +318,12 @@ namespace Kratos
         const int numberOfResults = 1e6; 
         ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
         std::vector<double> list_of_distances(numberOfResults);
+
+        // TIME
+        long double searching_time = 0.0;
+        static long double basis_functions_time = 0.0;
+        long double element_pushback_time = 0.0;
+
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
@@ -339,14 +358,20 @@ namespace Kratos
             }
             else
             {
+                auto start = std::chrono::high_resolution_clock::now();
                 rGeometryList[i].CreateQuadraturePointGeometries(
                     geometries, shape_function_derivatives_order, integration_info);
+                
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<long double> duration = end - start;
+                basis_functions_time += duration.count();
             }
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
             if (type == "element" || type == "Element") {
+                auto start = std::chrono::high_resolution_clock::now();
                 SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
@@ -354,6 +379,10 @@ namespace Kratos
                 this->CreateElements(
                     geometries.ptr_begin(), geometries.ptr_end(),
                     rModelPart, name, id, PropertiesPointerType());
+                
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<long double> duration = end - start;
+                element_pushback_time += duration.count();
             }
             else if (type == "condition" || type == "Condition") {
                 SizeType id = 1;
@@ -361,7 +390,23 @@ namespace Kratos
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
                 std::vector<int> listIdClosestCondition(geometries.size());
 
+                // Condition is a GP
                 Point gaussPoint = geometries[0].Center(); 
+
+                // Get the type of condition: dirichlet or neumann
+                std::string boundary_condition_type = rParameters.Has("boundary_condition_type")
+                ? rParameters["boundary_condition_type"].GetString()
+                : KRATOS_ERROR << "boundary_condition_type non provided in the physics.iga.json" << std::endl;  
+
+                // Check if you miss splelled the boundary_condition_type
+                if (boundary_condition_type == "dirichlet" || boundary_condition_type == "neumann" ){}
+                else if (boundary_condition_type == "Dirichlet" || boundary_condition_type == "DIRICHLET") boundary_condition_type = "dirichlet";      
+                else if (boundary_condition_type == "Neumann" || boundary_condition_type == "NEUMANN") boundary_condition_type = "neumann";
+                else {KRATOS_ERROR << "boundary_condition_type provided in the physics.iga.json are not available." << std::endl 
+                        <<  "boundary conditions available are 'dirichlet' or 'neumann' " << std::endl;}
+                
+                auto start = std::chrono::high_resolution_clock::now();
+
 
                 bool isOnExternalParameterSpace = false;         
                 if (is_SBM) {isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
@@ -399,12 +444,12 @@ namespace Kratos
                     if (is_inner) {
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                        rModelPart, skin_model_part_in, listIdClosestCondition, name, boundary_condition_type, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                     else{
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                        rModelPart, skin_model_part_out, listIdClosestCondition, name, boundary_condition_type, id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                 } else if (isOnExternalParameterSpace){
                     std::string nameBodyFittedCondition;
@@ -424,11 +469,33 @@ namespace Kratos
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, name, id, PropertiesPointerType());
                 }
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<long double> duration = end - start;
+                searching_time += duration.count();
             }
             else {
                 KRATOS_ERROR << "\"type\" does not exist: " << type
                     << ". Possible types are \"element\" and \"condition\"." << std::endl;
             }
+        }
+
+        if (searching_time > 1e-13) {
+            std::ofstream outputFile("time_txt_files/searching_time.txt", std::ios::app);
+            outputFile << std::scientific << std::setprecision(20);
+            outputFile << searching_time << "\n";
+            outputFile.close();
+        }
+        if (basis_functions_time > 1e-13) {
+            std::ofstream outputFile("time_txt_files/basis_functions_time.txt", std::ios::app);
+            outputFile << std::scientific << std::setprecision(20); 
+            outputFile << basis_functions_time << "\n";
+            outputFile.close();
+        }
+        if (element_pushback_time > 1e-13) {
+            std::ofstream outputFile("time_txt_files/element_pushback_time.txt", std::ios::app);
+            outputFile << std::scientific << std::setprecision(20); 
+            outputFile << element_pushback_time << "\n";
+            outputFile.close();
         }
     }
 
@@ -573,9 +640,11 @@ namespace Kratos
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
         std::string& rConditionName,
+        std::string& rBoundaryConditionType,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
-        bool isInner) const
+        bool isInner,
+        Vector mesh_size) const
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
@@ -608,6 +677,10 @@ namespace Kratos
                 } else {
                     new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
                 }
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(MARKER_MESHES, mesh_size);
+
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(BOUNDARY_CONDITION_TYPE, rBoundaryConditionType);
+
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
                     // rModelPart.AddNode((*it)->pGetPoint(i));
@@ -630,6 +703,9 @@ namespace Kratos
                 } else {
                     new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
                 }
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(MARKER_MESHES, mesh_size);
+
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(BOUNDARY_CONDITION_TYPE, rBoundaryConditionType);
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
                     // rModelPart.AddNode((*it)->pGetPoint(i));
@@ -881,6 +957,7 @@ namespace Kratos
 
         const double meshSize= std::max(std::max(std::max(meshSizes_uv_inner[0], meshSizes_uv_inner[1]), meshSizes_uv_outer[0]), meshSizes_uv_outer[1]);
         const double radius = 2*sqrt(2)*(meshSize);
+        // const double radius = 30*sqrt(2)*(meshSize);
         KRATOS_WATCH(radius)
 
         const int numberOfResults = 1e6; 

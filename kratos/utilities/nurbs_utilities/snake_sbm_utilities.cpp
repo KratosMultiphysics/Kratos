@@ -436,7 +436,7 @@ namespace Kratos
                     }
 
                     // Create 25 "fake" GaussPoints to check if the majority are inside or outside
-                    const int numFakeGaussPoints = 4;
+                    const int numFakeGaussPoints = 8;
                     int numberOfInsideGaussianPoints = 0;
                     for (int i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
                         double x_coord = j*knot_step_u + knot_step_u/(numFakeGaussPoints+1)*(i_GPx+1);

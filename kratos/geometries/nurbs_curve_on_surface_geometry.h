@@ -366,7 +366,7 @@ public:
         //     rSpans,
         //     *(mpNurbsCurve.get()), Start, End,
         //     surface_spans_u, surface_spans_v,
-        //     1e-6);
+        //     1e-12);
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
@@ -570,16 +570,17 @@ public:
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
             }
             else {
-                // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
-                std::ifstream file("txt_files/input_data.txt");
-                std::string line;
-                int SBM_technique;
-                std::getline(file, line);
-                std::getline(file, line); // Read the second line
-                SBM_technique = std::stoi(line);
-                file.close();
+                // // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+                // std::ifstream file("txt_files/input_data.txt");
+                // std::string line;
+                // int SBM_technique;
+                // std::getline(file, line);
+                // std::getline(file, line); // Read the second line
+                // SBM_technique = std::stoi(line);
+                // file.close();
 
-                // MODIFIED
+                bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+
                 bool is_surrogate_boundary = true; 
                 const double threshold = 1e-14 ;
                 // At this point all the true are boundary GPs
@@ -588,7 +589,7 @@ public:
                 if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
                 if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
                 
-                if (SBM_technique==1) {is_surrogate_boundary=false;}
+                if (is_sbm == false) {is_surrogate_boundary=false;}
 
                 // If it is 1 -> the current GP is a surrogate GP otherwise it is an external GP
                 if (is_surrogate_boundary) {

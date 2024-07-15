@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nicolò Antonelli
-//                   
+//                   Andrea Gorgi
 //
 
 // System includes
@@ -29,8 +29,42 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
+        std::string boundaryConditionType = this->GetValue(BOUNDARY_CONDITION_TYPE);
+        
+        if (boundaryConditionType == "dirichlet")
+        {
+            this-> CalculateAllDirichlet(   rLeftHandSideMatrix,
+                                            rRightHandSideVector,
+                                            rCurrentProcessInfo,
+                                            CalculateStiffnessMatrixFlag,
+                                            CalculateResidualVectorFlag);
+        }
+        else if (boundaryConditionType == "neumann"){
+            this-> CalculateAllNeumann(     rLeftHandSideMatrix,
+                                            rRightHandSideVector,
+                                            rCurrentProcessInfo,
+                                            CalculateStiffnessMatrixFlag,
+                                            CalculateResidualVectorFlag);
+        }
+        else{
+            KRATOS_ERROR << "error in SBM_LAPLACIAN_CONDITION, no BOUNDARY_CONDITION_TYPE available" << std::endl;
+        }
+    }
+
+
+    //_________________________________________________________________________________________________________________________________________
+    // DIRICHLET CONDITION
+    //_________________________________________________________________________________________________________________________________________
+
+    void SBMLaplacianCondition::CalculateAllDirichlet(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+    )
+    {
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        // Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
 
         KRATOS_TRY
         const auto& r_geometry = this->GetGeometry();
@@ -47,37 +81,34 @@ namespace Kratos
 
         double penalty = GetProperties()[PENALTY_FACTOR];
 
-        // Read the refinements.iga.json
-        const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
-        int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
-        double h = 2.0/(insertions+1) ; //!!  TO DO : generalize !!!!!!!!!!!!!!!!!!!!!!!!!
-
-        int basisFunctionsOrder = refinements_parameters["refinements"][0]["parameters"]["increase_degree_u"].GetInt()+1;
-
-        // Modify the penalty factor: penalty/h
-        penalty = penalty/(h);
-
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-        // Determine the integration: conservative -> initial; non-conservative -> current
-        Vector determinant_jacobian_vector(integration_points.size());
-        
-        r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);  // = 1
-
-        // Initialize Jacobian
-        GeometryType::JacobiansType J0;
-
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
         
         // Initialize DN_DX
         const unsigned int dim = DN_De[0].size2();
         Matrix DN_DX(number_of_nodes,dim);
-        Matrix InvJ0(dim,dim);
-
         
-        r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
+        if (dim == 3) {h = std::min(h,  meshSize_uv[2]);}
 
-        double DetJ0;
+        // Compute basis function order (Note: it is not allow to use different orders in different directions)
+        if (dim == 3) {
+            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+        } else {
+            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+        }
+
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
+
+        // Matrix InvJ0(dim,dim);
+        // Vector determinant_jacobian_vector(integration_points.size());
+        // r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);  // = 1
+        // GeometryType::JacobiansType J0;
+        // r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
+        // double DetJ0;
 
         // Obtaining the projection from the closest skin segment
 
@@ -85,7 +116,6 @@ namespace Kratos
         auto GP_parameter_coord = r_geometry.Center();
         int closestNodeId;
         if (dim > 2) {
-            // Vector curr_point(3);
             double incumbent_dist = 1e16;
             for (int i = 0; i < dim; i++) {
                 if (norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-GP_parameter_coord) < incumbent_dist) {
@@ -116,50 +146,35 @@ namespace Kratos
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
-        Matrix Jacobian = ZeroMatrix(dim,dim);
-        Jacobian(0,0) = J0[0](0,0);
-        Jacobian(0,1) = J0[0](0,1);
-        Jacobian(1,0) = J0[0](1,0);
-        Jacobian(1,1) = J0[0](1,1);
-        if (dim > 2) {
-            Jacobian(0,2) = J0[0](0,2);
-            Jacobian(1,2) = J0[0](1,2);
-            Jacobian(2,0) = J0[0](2,0);
-            Jacobian(2,1) = J0[0](2,1);
-            Jacobian(2,2) = J0[0](2,2);
-        }
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        // Matrix Jacobian = ZeroMatrix(dim,dim);
+        // Jacobian(0,0) = J0[0](0,0);
+        // Jacobian(0,1) = J0[0](0,1);
+        // Jacobian(1,0) = J0[0](1,0);
+        // Jacobian(1,1) = J0[0](1,1);
+        // if (dim > 2) {
+        //     Jacobian(0,2) = J0[0](0,2);
+        //     Jacobian(1,2) = J0[0](1,2);
+        //     Jacobian(2,0) = J0[0](2,0);
+        //     Jacobian(2,1) = J0[0](2,1);
+        //     Jacobian(2,2) = J0[0](2,2);
+        // }
+        // // Calculating inverse jacobian and jacobian determinant
+        // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(DetJ0);
+        double penalty_integration = penalty * integration_points[0].Weight() ; // * std::abs(DetJ0);
 
         // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+        noalias(DN_DX) = DN_De[0]; // prod(DN_De[0],InvJ0);
 
         // Compute the normals
         // array_1d<double, 3> tangent_parameter_space;
         array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
 
-        // if (dim == 2) {
-        //     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        //     double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-            
-        //     // NEW FOR GENERAL JACOBIAN
-        //     normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        //     normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
-        // } 
-
         r_geometry.Calculate(NORMAL, normal_parameter_space);
 
-
-        normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
-
-        // KRATOS_WATCH("---------------------")
-        // KRATOS_WATCH(GP_parameter_coord)
-        // KRATOS_WATCH(normal_parameter_space)
+        normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
         
         // Collins, Lozinsky & Scovazzi innovation
         double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
@@ -173,14 +188,12 @@ namespace Kratos
         Vector H_vec = ZeroVector(number_of_nodes);
         Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
         Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
-        Matrix DN_dot_n_parameter = ZeroMatrix(1, number_of_nodes);
 
         Vector H_sum_vec = ZeroVector(number_of_nodes);
 
         // Compute all the derivatives of the basis functions involved
-        std::vector<Matrix> nShapeFunctionDerivatives;
-        for (int n = 1; n <= basisFunctionsOrder; n++) {
-            nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
+        for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+            mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
         }
 
         for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -195,9 +208,9 @@ namespace Kratos
             double H_taylor_term = 0.0; 
 
             if (dim == 2) {
-                for (int n = 1; n <= basisFunctionsOrder; n++) {
+                for (int n = 1; n <= mbasisFunctionsOrder; n++) {
                     // Retrieve the appropriate derivative for the term
-                    Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                    Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     for (int k = 0; k <= n; k++) {
                         int n_k = n - k;
                         double derivative = shapeFunctionDerivatives(i,k); 
@@ -207,8 +220,8 @@ namespace Kratos
                 }
             } else {
                 // 3D
-                for (int n = 1; n <= basisFunctionsOrder; n++) {
-                    Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+                    Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     
                     int countDerivativeId = 0;
                     // Loop over blocks of derivatives in x
@@ -233,9 +246,9 @@ namespace Kratos
 
         // Assembly
         // Termine -(GRAD_w * n, u + GRAD_u * d + ...)
-        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_points[0].Weight() * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // Termine -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_points[0].Weight() * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
         noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
 
@@ -255,7 +268,7 @@ namespace Kratos
 
             noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
             // Dirichlet BCs
-            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() * std::abs(DetJ0) ;
+            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
 
             Vector temp(number_of_nodes);
             // RHS = ExtForces - K*temp;
@@ -275,6 +288,281 @@ namespace Kratos
         // }
         KRATOS_CATCH("")
     }
+
+    //_________________________________________________________________________________________________________________________________________
+    // NEUMANN CONDITION
+    //_________________________________________________________________________________________________________________________________________
+
+    void SBMLaplacianCondition::CalculateAllNeumann(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+    )
+    {
+        Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+
+        // loopIdentifier is inner or outer
+        std::string loopIdentifier = this->GetValue(IDENTIFIER);
+
+        KRATOS_TRY
+        const auto& r_geometry = this->GetGeometry();
+        const SizeType number_of_nodes = r_geometry.PointsNumber();
+        if (rRightHandSideVector.size() != number_of_nodes) {
+            rRightHandSideVector.resize(number_of_nodes, false);
+        }
+        if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
+            rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
+        }
+        noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+        
+        // Initialize DN_DX
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        const unsigned int dim = DN_De[0].size2();
+        Matrix DN_DX(number_of_nodes,dim);
+
+        // Compute basis function order (Note: it is not allow to use different orders in different directions)
+        if (dim == 3) {
+            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+        } else {
+            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+        }
+
+        // Integration
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+
+        // Vector determinant_jacobian_vector(integration_points.size());
+        // r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);  // = 1
+        // // Initialize Jacobian
+        // GeometryType::JacobiansType J0;
+        // Matrix InvJ0(dim,dim);
+        // r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        // double DetJ0;
+        // Matrix Jacobian = ZeroMatrix(2,2);
+        // Jacobian(0,0) = J0[point_number](0,0);
+        // Jacobian(0,1) = J0[point_number](0,1);
+        // Jacobian(1,0) = J0[point_number](1,0);
+        // Jacobian(1,1) = J0[point_number](1,1);
+        // MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+        {
+            // Obtaining the projection from the closest skin segment
+            Vector projection(3);
+            projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
+            projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
+            projection[2] = candidateClosestSkinSegment1.GetGeometry()[0].Z() ;
+
+            Vector d(3);
+            d[0] = projection[0] - r_geometry.Center().X();
+            d[1] = projection[1] - r_geometry.Center().Y();
+            d[2] = projection[2] - r_geometry.Center().Z();
+            // d[0] = 0;
+            // d[1] = 0;
+            // d[2] = 0;
+
+            const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+            noalias(DN_DX) = DN_De[0]; // prod(DN_De[point_number],InvJ0);
+
+            // Compute the normal
+            array_1d<double, 3> normal_parameter_space;
+            r_geometry.Calculate(NORMAL, normal_parameter_space);
+
+            // Neumann BC, the true normal is needed
+            array_1d<double, 3> true_n;
+            if (dim == 2) {
+                // Need also the second closest condition in 2D
+                Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
+                array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
+                array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
+                array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
+                vectorOutOfPlane[2] = 1.0;
+                
+                array_1d<double,3> crossProductSkinSegment1;
+                array_1d<double,3> crossProductSkinSegment2; 
+                MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
+                MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
+                
+                true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
+                if (loopIdentifier == "inner") {
+                    true_n = true_n / MathUtils<double>::Norm(true_n) ;
+                } else { // outer
+                    true_n = - true_n / MathUtils<double>::Norm(true_n) ;
+                }
+            }
+            else {
+                // 3D CASE
+                array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
+                array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment1.GetGeometry()[2] - candidateClosestSkinSegment1.GetGeometry()[1];
+                MathUtils<double>::CrossProduct(true_n, vectorSkinSegment1, vectorSkinSegment2);
+
+                if (loopIdentifier == "inner") {
+                    true_n = true_n / MathUtils<double>::Norm(true_n) ;
+                } else { // outer
+                    true_n = - true_n / MathUtils<double>::Norm(true_n) ;
+                }
+            }
+
+            // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+            std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+            outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " "
+                                        << true_n[0] << " " << true_n[1]  << " " << true_n[2] << "\n";
+            outputFile.close();
+
+            // Compute all the derivatives of the basis functions involved
+            std::vector<Matrix> nShapeFunctionDerivatives;
+            for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+                nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
+            }
+
+            // Neumann (Taylor expansion of the gradient)
+            Matrix H = ZeroMatrix(1, number_of_nodes);
+            Matrix HgradX = ZeroMatrix(1, number_of_nodes);
+            Matrix HgradY = ZeroMatrix(1, number_of_nodes);
+            Matrix HgradZ = ZeroMatrix(1, number_of_nodes);
+
+            Matrix DN_dot_n_tilde = ZeroMatrix(1, number_of_nodes);
+            for (IndexType i = 0; i < number_of_nodes; ++i)
+            {
+                H(0, i) = N(point_number, i);
+                // grad N cdot n_tilde
+                for (IndexType idim = 0; idim < dim; idim++) {
+                    DN_dot_n_tilde(0, i)  += DN_DX(i, idim) * normal_parameter_space[idim];
+                } 
+                // Reset for each control point
+                double H_taylor_term_X = 0.0; 
+                double H_taylor_term_Y = 0.0; 
+                double H_taylor_term_Z = 0.0; 
+
+                if (dim == 2) {
+                    for (int n = 2; n <= mbasisFunctionsOrder; n++) {
+                        // Retrieve the appropriate derivative for the term
+                        Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                        for (int k = 0; k <= n-1; k++) {
+                            int n_k = n - 1 - k;
+                            double derivative = shapeFunctionDerivatives(i,k); 
+                            // Compute the Taylor term for this derivative
+                            H_taylor_term_X += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                        }
+                        for (int k = 0; k <= n-1; k++) {
+                            int n_k = n - 1 - k;
+                            double derivative = shapeFunctionDerivatives(i,k+1); 
+                            // Compute the Taylor term for this derivative
+                            H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                        }
+                    }
+                } else {
+                    // 3D
+                    for (int n = 2; n <= mbasisFunctionsOrder; n++) {
+                        Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                    
+                        int countDerivativeId = 0;
+                        // Loop over blocks of derivatives in x
+                        for (int k_x = n; k_x >= 0; k_x--) {
+                            // Loop over the possible derivatives in y
+                            for (int k_y = n - k_x; k_y >= 0; k_y--) {
+        
+                                // derivatives in z
+                                int k_z = n - k_x - k_y;
+                                double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
+                                
+                                if (k_x >= 1) {
+                                    H_taylor_term_X += computeTaylorTerm3D(derivative, d[0], k_x-1, d[1], k_y, d[2], k_z);
+                                    KRATOS_WATCH(k_x)
+                                    KRATOS_WATCH(k_y)
+                                    KRATOS_WATCH(k_z)
+                                    KRATOS_WATCH(countDerivativeId)
+                                }
+                                if (k_y >= 1) {
+                                    H_taylor_term_Y += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y-1, d[2], k_z);
+                                    KRATOS_WATCH(k_x)
+                                    KRATOS_WATCH(k_y)
+                                    KRATOS_WATCH(k_z)
+                                    KRATOS_WATCH(countDerivativeId)
+                                }
+                                if (k_z >= 1) {
+                                    H_taylor_term_Z += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y, d[2], k_z-1);
+                                    KRATOS_WATCH(k_x)
+                                    KRATOS_WATCH(k_y)
+                                    KRATOS_WATCH(k_z)
+                                    KRATOS_WATCH(countDerivativeId)
+                                }     
+                                countDerivativeId++;
+                            }
+                        }
+                    }
+                }
+                
+                HgradX(0,i) = H_taylor_term_X + DN_DX(i, 0);
+                HgradY(0,i) = H_taylor_term_Y + DN_DX(i, 1);
+                HgradZ(0,i) = H_taylor_term_Z + DN_DX(i, 2);
+            }    
+
+            // dot product n cdot n_tilde
+            double n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1] + true_n[2] * normal_parameter_space[2];
+
+            // dot product grad cdot n
+            Matrix HgradNdot_n = ZeroMatrix(1, number_of_nodes);
+            HgradNdot_n = HgradX * true_n[0] + HgradY * true_n[1] + HgradZ * true_n[2];
+
+            // compute Neumann contributions
+            noalias(rLeftHandSideMatrix) += prod(trans(H), HgradNdot_n)  * n_ntilde   * integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n_tilde)            * integration_points[point_number].Weight() ; // * std::abs(DetJ0) ;
+
+            if (CalculateResidualVectorFlag) {
+                
+                // FINAL ONE:
+                // const double temperature = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(TEMPERATURE);
+                
+                Vector t_N(number_of_nodes);
+
+                for (IndexType i = 0; i < number_of_nodes; ++i)
+                {
+                    // Fundamental for use Manufactured solution -> how to change this?
+                    // t_N[i] = cos(projection[0]) * sinh(projection[1]) * true_n[0] + sin(projection[0]) * cosh(projection[1])  * true_n[1] ;
+                    
+                    // 3D flux  
+                    // true sol: sin(sqrt(2)*x)*sinh(y)*cosh(z)"
+                    t_N[i] = sqrt(2) * cos(sqrt(2)*projection[0]) * sinh(projection[1]) *  cosh(projection[2]) * true_n[0] + 
+                                       sin(sqrt(2)*projection[0]) * cosh(projection[1]) *  cosh(projection[2]) * true_n[1] +
+                                       sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
+
+                    // true sol: x+y+z
+                    // t_N[i] = true_n[0]+true_n[1]+true_n[2];
+
+                    // t_N[i] = 2*projection[0] * true_n[0] + 2*projection[1]  * true_n[1] ;
+                    // t_N[i] = 1 * true_n[0] -1  * true_n[1] ;
+
+                    // double x = r_geometry.Center().X(); double y = r_geometry.Center().Y();
+                    // t_N[i] = cos(x) * sinh(y) * true_n[0] + sin(x) * cosh(y)  * true_n[1] ;
+                }
+                // Neumann Contributions
+                noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * n_ntilde * integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+
+                Vector temp(number_of_nodes);
+                // RHS = ExtForces - K*temp;
+                for (unsigned int i = 0; i < number_of_nodes; i++) {
+                    temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
+                }
+                // RHS -= K*temp
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+            }
+        }
+
+        // for (unsigned int i = 0; i < number_of_nodes; i++) {
+        //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
+        //     outputFile.close();
+        //     // KRATOS_WATCH(r_geometry[i].GetDof(TEMPERATURE).EquationId() )
+        // }
+        KRATOS_CATCH("")
+    }
+    
+    
+    
 
 
     unsigned long long SBMLaplacianCondition::factorial(int n) 
@@ -359,92 +647,60 @@ namespace Kratos
     void SBMLaplacianCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = GetGeometry();
-        // const SizeType nb_nodes = r_geometry.size();
-        // const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-        // // Shape function values
-        // const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-        // const ProcessInfo& r_process_info = rCurrentProcessInfo;
-        // const Variable<double>& r_unknown_var = TEMPERATURE;
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        // double rOutput = 0;
-        // for (IndexType i = 0; i < r_geometry.size(); ++i)
-        // {
-        //     double output_solution_step_value = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-        //     rOutput = rOutput + H_sum(0,i)*output_solution_step_value;
-        // }
+        double sol_on_surrogate = 0.0;
+
+        for (IndexType i = 0; i < r_geometry.size(); ++i)
+        {
+            // KRATOS_WATCH(r_geometry[i])
+            double output_solution_step_value = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
+            sol_on_surrogate += r_N(0, i) * output_solution_step_value;
+        }      
+
+        double rOutput = 0;
+        std::vector<Vector> integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
+        std::vector<double> integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
         
-        // // the true normal is needed
-        // Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        // Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
-        // array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
-        // array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
-        // array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
-        // vectorOutOfPlane[2] = 1.0;
-        // array_1d<double,3> crossProductSkinSegment1;
-        // array_1d<double,3> crossProductSkinSegment2; 
-        // MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
-        // MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
-        
-        // array_1d<double, 3> true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
-        // std::string loopIdentifier = this->GetValue(IDENTIFIER);
-        // if (loopIdentifier == "inner") {
-        //     true_n = true_n / MathUtils<double>::Norm(true_n) ;
-        // } else { // outer
-        //     true_n = - true_n / MathUtils<double>::Norm(true_n) ;
-        // }
-        // // dot product n cdot n_tilde
-        // double n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
-        // // KRATOS_WATCH('\n')
-        // // KRATOS_WATCH(r_geometry.Center())
-        // // KRATOS_WATCH(true_n)
-        // // KRATOS_WATCH(normal_parameter_space)
-        // // // double n_x_ntilde = std::abs(true_n[0] * normal_parameter_space[1] - true_n[1] * normal_parameter_space[0]);
-        // // KRATOS_WATCH(n_ntilde)
-        // // KRATOS_WATCH(std::sqrt(1-n_ntilde*n_ntilde))
-        // // rOutput = rOutput*n_ntilde;
+        std::ofstream output_file("txt_files/results_on_true_boundary.txt", std::ios::app);
+        output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+        // Loop over the number of skin boundary integration points
+        for (int i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); i_gauss++){
+            // For each of them we compute the solution at the true boundary reversing the Taylor expansion
+            Vector curr_gauss_point_on_true = integration_point_list_on_true_boundary[i_gauss];
+            Vector d = curr_gauss_point_on_true - r_geometry.Center();
 
-        // double x1 = candidateClosestSkinSegment2.GetGeometry()[0].X();
-        // double y1 = candidateClosestSkinSegment2.GetGeometry()[0].Y();
-        // double x2 = candidateClosestSkinSegment2.GetGeometry()[1].X();
-        // double y2 = candidateClosestSkinSegment2.GetGeometry()[1].Y();
-        // double x3 = candidateClosestSkinSegment1.GetGeometry()[1].X();
-        // double y3 = candidateClosestSkinSegment1.GetGeometry()[1].Y();
-        // // double x1 = 1.25;
-        // // double y1 = 1.0;
-        // // double x2 = 1.0;
-        // // double y2 = 1.25;
-        // // double x3 = 0.75;
-        // // double y3 = 1.0;
-        // KRATOS_WATCH(candidateClosestSkinSegment2.GetGeometry()[0])
-        // KRATOS_WATCH(candidateClosestSkinSegment2.GetGeometry()[1])
-        // KRATOS_WATCH(candidateClosestSkinSegment1.GetGeometry()[1])
+            double solution_on_true = 0.0; 
 
-        // double numA = (x1*x1 + y1*y1) * (y2 - y3) + (x2*x2 + y2*y2) * (y3 - y1) + (x3*x3 + y3*y3) * (y1 - y2);
-        // double numB = (x1*x1 + y1*y1) * (x3 - x2) + (x2*x2 + y2*y2) * (x1 - x3) + (x3*x3 + y3*y3) * (x2 - x1);
-        // double den = 2 * (x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2);
-        
-        // KRATOS_WATCH(den)
-        // double curvature;
-        // if (std::abs(den) < 1e-15) {
-        //     curvature = 0;
-        // }
-        // else {
-        //     double x_c = numA / den;
-        //     double y_c = numB / den;
-        //     KRATOS_WATCH(x_c)
-        //     KRATOS_WATCH(y_c)
-        //     curvature = 1/(std::sqrt((x2-x_c)*(x2-x_c)+(y2-y_c)*(y2-y_c))) ;
-        // }
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                double output_solution_step_value = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
 
-        // double factor = n_ntilde / (1+norm_2(d)*curvature);
-        
-        // KRATOS_WATCH(1/curvature)
+                double H_taylor_term = 0.0; // Reset for each node
+                for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+                    // Retrieve the appropriate derivative for the term
+                    Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
+                    for (int k = 0; k <= n; k++) {
+                        int n_k = n - k;
+                        double derivative = shapeFunctionDerivatives(i,k); 
+                        // Compute the Taylor term for this derivative
+                        H_taylor_term += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                    }
+                }
 
-        std::ofstream output_file("txt_files/boundary_GPs_3D.txt", std::ios::app);
-        if (output_file.is_open()) {
-            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z()  << std::endl;
-            output_file.close();
+                solution_on_true += (r_N(0,i) + H_taylor_term) * output_solution_step_value;
+            } 
+            output_file << solution_on_true << " "<< integration_weight_list_on_true_boundary[i_gauss] << " " 
+                        << curr_gauss_point_on_true[0] << " " << curr_gauss_point_on_true[1]  << " " << curr_gauss_point_on_true[2]  << " "
+                        << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() 
+                        << std::endl;
+        }
+        output_file.close();
+
+        std::ofstream output_file2("txt_files/boundary_GPs_3D.txt", std::ios::app);
+        if (output_file2.is_open()) {
+            output_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+            output_file2 << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z()  << std::endl;
+            output_file2.close();
         }
 
         // std::ofstream output_file("txt_files/boundary_results_GPs.txt", std::ios::app);

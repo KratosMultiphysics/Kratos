@@ -154,6 +154,8 @@ private:
         bool case2 = rSurrogateModelPart_inner.Nodes().size() > 0;
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
 
+        if (case1 || case2) p_surface->SetValue(IS_SBM, true);
+
         // WITHOUT CLIPPER
         auto p_brep_surface =
             Kratos::make_shared<BrepSurfaceType>(
