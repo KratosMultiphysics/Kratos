@@ -374,6 +374,19 @@ void KratosApplication::DeregisterApplication() {
 }
 
 void KratosApplication::DeregisterMappers() {
+    // Unload the mpi branch first to avoid having a special case later
+    const std::string mpi_path = "mappers."+mApplicationName+".mpi";
+    if (Registry::HasItem(mpi_path)) {
+        auto& r_mappers = Registry::GetItem(mpi_path);
+        // Iterate over items at path. For each item, remove it from the mappers.all.mpi branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            KRATOS_INFO("") << "Deregistering mappers.all.mpi." << *i_key << std::endl;
+            Registry::RemoveItem("mappers.all.mpi."+*i_key);
+        }
+        KRATOS_INFO("") << "Deregistering " << mApplicationName << " MPI mappers" << std::endl;
+        Registry::RemoveItem(mpi_path);
+    }
+
     const std::string path = "mappers."+mApplicationName;
     if (Registry::HasItem(path)) {
         auto& r_mappers = Registry::GetItem(path);
