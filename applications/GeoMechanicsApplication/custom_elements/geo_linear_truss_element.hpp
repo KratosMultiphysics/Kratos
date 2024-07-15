@@ -31,16 +31,8 @@ namespace Kratos
  */
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement
-    : public GeoTrussElementBase<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement : public GeoTrussElementBase<TDim, TNumNodes>
 {
-protected:
-    // const values
-    static constexpr int mStressVectorSize                  = 1;
-    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
-    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
-    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
-
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoLinearTrussElement);
 
@@ -112,7 +104,7 @@ public:
 
 private:
     double CalculateLinearStrain();
-    void AddPrestressLinear(VectorType& rRightHandSideVector);
+    void   AddPrestressLinear(VectorType& rRightHandSideVector);
 
     friend class Serializer;
 
@@ -131,6 +123,11 @@ private:
         rSerializer.load("InternalStressesFinalized", mInternalStressesFinalized);
         rSerializer.load("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
     }
+
+    static constexpr int mStressVectorSize                  = 1;
+    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 };
 } // namespace Kratos
 
