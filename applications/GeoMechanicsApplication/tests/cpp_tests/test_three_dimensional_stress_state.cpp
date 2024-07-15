@@ -12,8 +12,8 @@
 
 #include "containers/model.h"
 #include "custom_elements/three_dimensional_stress_state.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -110,6 +110,31 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
     const auto calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
     KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
+
+    Vector expected_voigt_vector(6);
+    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_3D);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_3D);
 }
 
 } // namespace Kratos::Testing

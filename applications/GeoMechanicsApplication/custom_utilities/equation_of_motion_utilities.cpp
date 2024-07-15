@@ -23,7 +23,7 @@ Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(std::size_t   dimension
                                                          std::size_t   number_U_nodes,
                                                          std::size_t   NumberIntegrationPoints,
                                                          const Matrix& Nu_container,
-                                                         const Vector& rSolidDensities,
+                                                         const std::vector<double>& rSolidDensities,
                                                          const std::vector<double>& rIntegrationCoefficients)
 {
     const std::size_t block_element_size = number_U_nodes * dimension;
@@ -33,7 +33,7 @@ Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(std::size_t   dimension
     Matrix            mass_matrix        = ZeroMatrix(block_element_size, block_element_size);
 
     for (unsigned int g_point = 0; g_point < NumberIntegrationPoints; ++g_point) {
-        GeoElementUtilities::AssembleDensityMatrix(density_matrix, rSolidDensities(g_point));
+        GeoElementUtilities::AssembleDensityMatrix(density_matrix, rSolidDensities[g_point]);
         GeoElementUtilities::CalculateNuMatrix(dimension, number_U_nodes, Nu, Nu_container, g_point);
         noalias(aux_density_matrix) = prod(density_matrix, Nu);
         mass_matrix += prod(trans(Nu), aux_density_matrix) * rIntegrationCoefficients[g_point];
@@ -56,6 +56,33 @@ Vector GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(const Ge
         MathUtils<double>::InvertMatrix(J0, inv_J0, det_Js_initial_configuration(g_point));
     }
     return det_Js_initial_configuration;
+}
+
+Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        RayleighAlpha,
+                                                            double        RayleighBeta,
+                                                            const Matrix& rMassMatrix,
+                                                            const Matrix& rStiffnessMatrix)
+{
+    return RayleighAlpha * rMassMatrix + RayleighBeta * rStiffnessMatrix;
+}
+
+Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(const Matrix& rB,
+                                                                    const Matrix& rConstitutiveMatrix,
+                                                                    double IntegrationCoefficient)
+{
+    return prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB))) * IntegrationCoefficient;
+}
+
+Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
+                                                              const std::vector<Matrix>& rConstitutiveMatrices,
+                                                              const std::vector<double>& rIntegrationCoefficients)
+{
+    Matrix result = ZeroMatrix(rBs[0].size2(), rBs[0].size2());
+    for (unsigned int GPoint = 0; GPoint < rBs.size(); ++GPoint) {
+        result += CalculateStiffnessMatrixGPoint(rBs[GPoint], rConstitutiveMatrices[GPoint],
+                                                 rIntegrationCoefficients[GPoint]);
+    }
+    return result;
 }
 
 } /* namespace Kratos.*/

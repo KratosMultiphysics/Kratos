@@ -262,6 +262,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition2D1N", mPwPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition3D1N", mPwPointFluxCondition3D1N)
+
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N)
@@ -351,9 +354,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw",  mTrussBackboneConstitutiveLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -378,6 +380,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+    KRATOS_REGISTER_VARIABLE( THERMAL_LAW_NAME)
 
     // Variables for Micro-Climate boundary
     KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
@@ -401,6 +404,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( OCR )
     KRATOS_REGISTER_VARIABLE( POISSON_UNLOADING_RELOADING )
 
+    KRATOS_REGISTER_VARIABLE( ACCUMULATED_STRAIN )
 
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_XX )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_YY )
@@ -574,6 +578,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_48 )
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_49 )
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_50 )
+
+    KRATOS_REGISTER_VARIABLE( STRAINS_OF_PIECEWISE_LINEAR_LAW )
+    KRATOS_REGISTER_VARIABLE( STRESSES_OF_PIECEWISE_LINEAR_LAW )
 
    }
 }  // namespace Kratos.

@@ -10,9 +10,9 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //
 
-#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
