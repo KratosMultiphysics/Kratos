@@ -358,6 +358,7 @@ class SwimmingDEMSolver(PythonSolver):
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
+        # exit(1)
 
         return True
 

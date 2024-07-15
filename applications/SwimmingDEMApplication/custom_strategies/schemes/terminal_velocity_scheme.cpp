@@ -57,7 +57,10 @@ namespace Kratos {
             i.FastGetSolutionStepValue(DENSITY) = rho_p;
             const double drag_coeff = 6.0 * Globals::Pi * mu * rad;
 
-            std::cout << "rho_p = " << rho_p << ", drag_coef = " << drag_coeff << ", disp_volume " << disp_volume << std::endl;
+            double& nodal_density = i.FastGetSolutionStepValue(NODAL_DENSITY);
+            nodal_density = rho_p;
+
+            // std::cout << "rho_p = " << rho_p << ", drag_coef = " << drag_coeff << ", disp_volume " << disp_volume << std::endl;
             for (int k = 0; k < 3; k++){
                 if (Fix_vel[k] == false){
 //                    vel[k] = 0.5 * (- vel[k]  + 3 * (fluid_vel[k] + drag_coefficient_inv * contact_force[k])); // all forces are always in equilibrium with the drag force
@@ -86,7 +89,7 @@ namespace Kratos {
                 }
             } // dimensions
 
-            std::cout << "particle at " << initial_coor << " will have v = " << vel << std::endl;
+            // std::cout << "particle at " << initial_coor << " will have v = " << vel << std::endl;
             // std::cout << "f_contact = " << contact_force << ", f_old = " << force_old << ", fluid_vel = " << fluid_vel << std::endl;
 
             array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);

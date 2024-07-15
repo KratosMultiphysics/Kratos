@@ -407,6 +407,7 @@ class VariablesManager:
 
         # Nodal density
         self.coupling_dem_vars += [SDEM.NODAL_DENSITY_PROJECTED]
+        self.coupling_dem_vars += [SDEM.NODAL_DENSITY]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() > 0:
             self.coupling_dem_vars += [Kratos.FLUID_VEL_PROJECTED]

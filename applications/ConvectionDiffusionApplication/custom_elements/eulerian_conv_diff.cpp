@@ -163,7 +163,7 @@ namespace Kratos
 
             if (shock_capturing_active && norm_vel > std::numeric_limits<double>::epsilon()){
                 this->CalculateNonlinearDiffusionMatrix(Variables, h, vel_gauss, k_nonlinear_contribution);
-                noalias(Variables.nonlinear_diffusion_matrix) += k_nonlinear_contribution;
+                noalias(Variables.nonlinear_diffusion_matrix) += k_nonlinear_contribution * Variables.specific_heat * Variables.density;
             }
 
         }

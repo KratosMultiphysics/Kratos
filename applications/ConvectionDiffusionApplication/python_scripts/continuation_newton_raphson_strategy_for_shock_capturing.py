@@ -52,7 +52,7 @@ class ResidualBasedNewtonRaphsonStrategyPython():
         self.UseOldStiffnessInFirstIteration = False
 
 
-        self.NumberOfContinuationIterations = 100
+        self.NumberOfContinuationIterations = 1
         self.final_shock_capturing_constant = self.main_model_part.ProcessInfo[ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY]
 
     def Initialize(self):
