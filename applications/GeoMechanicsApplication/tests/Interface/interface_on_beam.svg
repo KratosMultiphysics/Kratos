@@ -21,8 +21,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.5755895"
-     inkscape:cx="716.23987"
-     inkscape:cy="355.10519"
+     inkscape:cx="638.17384"
+     inkscape:cy="344.31557"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
@@ -30149,23 +30149,6 @@ CreationDate: Tue Jul  9 19:28:30 2024
        baseline-shift="0px"
        font-family="Courier"
        id="text8401" />
-    <polygon
-       fill="#000000"
-       points="1402,664 1442,640 1402,640"
-       id="polygon8402" />
-    <polygon
-       fill="#000000"
-       points="1402,664 1442,664 1442,640"
-       id="polygon8403" />
-    <text
-       fill="#ffff00"
-       x="1409.21"
-       y="654.987"
-       font-size="18"
-       text-anchor="start"
-       baseline-shift="0"
-       font-family="Helvetica"
-       id="text8403">GiD</text>
     <path
        style="fill:none;stroke:#919191;stroke-width:2.65607;stroke-opacity:1"
        d="m 444.45954,475.80077 -11.41914,17.3598"
