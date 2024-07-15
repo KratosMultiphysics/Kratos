@@ -198,6 +198,27 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoLinearTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                          std::vector<Vector>& rOutput,
+                                                                          const ProcessInfo&)
+{
+    KRATOS_TRY
+
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        this->GetGeometry().IntegrationPoints();
+    if (rOutput.size() != integration_points.size()) {
+        rOutput.resize(integration_points.size());
+    }
+    if (rVariable == STRAIN) {
+        Vector Strain = ZeroVector(TDim);
+        Strain[0]     = this->CalculateLinearStrain();
+        rOutput[0]    = Strain;
+    }
+
+    KRATOS_CATCH("")
+}
+
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,

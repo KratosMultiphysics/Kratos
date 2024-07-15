@@ -94,63 +94,6 @@ void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixTyp
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-{
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        this->GetGeometry().IntegrationPoints();
-
-    if (rOutput.size() != integration_points.size()) {
-        rOutput.resize(integration_points.size());
-    }
-
-    if (rVariable == FORCE) {
-        BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
-        const double                A            = this->GetProperties()[CROSS_AREA];
-
-        double prestress = 0.00;
-        if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-            prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
-        }
-
-        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
-        temp_strain[0]     = CalculateLinearStrain();
-        Values.SetStrainVector(temp_strain);
-        Values.SetStressVector(temp_stress);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
-        truss_forces[0] = (temp_stress[0] + prestress) * A;
-
-        rOutput[0] = truss_forces;
-    }
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                              std::vector<Vector>& rOutput,
-                                                                              const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        this->GetGeometry().IntegrationPoints();
-    if (rOutput.size() != integration_points.size()) {
-        rOutput.resize(integration_points.size());
-    }
-    if (rVariable == STRAIN) {
-        Vector Strain = ZeroVector(TDim);
-        Strain[0]     = CalculateLinearStrain();
-        rOutput[0]    = Strain;
-    }
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
 {
     Vector current_disp = ZeroVector(TDim * TNumNodes);

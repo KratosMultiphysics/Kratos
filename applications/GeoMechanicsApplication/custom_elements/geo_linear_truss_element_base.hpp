@@ -82,19 +82,6 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This function adds forces from prestressing to the force vector
-     * @param rRightHandSideVector The right hand side of the problem
-     */
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>&    rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
-
-    /**
      * @brief This function calculates the total stiffness matrix for the element
      */
     void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
