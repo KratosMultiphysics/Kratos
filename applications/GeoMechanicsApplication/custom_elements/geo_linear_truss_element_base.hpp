@@ -114,13 +114,6 @@ public:
      */
     double CalculateLinearStrain();
 
-    /**
-     * @brief This function updates the internal forces
-     * @param rinternalForces The internal forces
-     */
-
-    void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
-
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:

@@ -264,36 +264,6 @@ double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementLinearBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,
-                                                                      const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
-    temp_strain[0]     = CalculateLinearStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
-    Vector temp_internal_stresses = ZeroVector(TDim * TNumNodes);
-    temp_internal_stresses[0]     = -1.0 * temp_stress[0];
-    temp_internal_stresses[TDim]  = temp_stress[0];
-
-    rInternalForces = temp_internal_stresses * this->GetProperties()[CROSS_AREA];
-
-    FullDofMatrixType transformation_matrix;
-    this->CreateTransformationMatrix(transformation_matrix);
-
-    rInternalForces = prod(transformation_matrix, rInternalForces);
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementLinearBase<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
