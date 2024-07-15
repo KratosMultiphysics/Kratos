@@ -99,6 +99,20 @@ void GeoLinearTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurr
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void GeoLinearTrussElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // resizing the matrices + create memory for LHS
+    rLeftHandSideMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
+    // creating LHS
+    this->CreateElementStiffnessMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -117,6 +131,18 @@ void GeoLinearTrussElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& 
     FullDofVectorType GlobalBodyForces;
     this->CalculateBodyForces(GlobalBodyForces);
     noalias(rRightHandSideVector) += GlobalBodyForces;
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoLinearTrussElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
+
+{
+    KRATOS_TRY
+
+    this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

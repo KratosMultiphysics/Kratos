@@ -85,7 +85,11 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates) override;
 

@@ -66,34 +66,6 @@ GeoTrussElementLinearBase<TDim, TNumNodes>::~GeoTrussElementLinearBase()
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementLinearBase<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
-                                                                              const ProcessInfo& rCurrentProcessInfo)
-
-{
-    KRATOS_TRY
-
-    this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                       const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // resizing the matrices + create memory for LHS
-    rLeftHandSideMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
-    // creating LHS
-    this->CreateElementStiffnessMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementLinearBase<TDim, TNumNodes>::CalculateLinearStrain()
 {
     Vector current_disp = ZeroVector(TDim * TNumNodes);

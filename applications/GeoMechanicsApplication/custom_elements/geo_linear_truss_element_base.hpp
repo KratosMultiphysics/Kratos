@@ -79,14 +79,6 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief This function calculates the total stiffness matrix for the element
-     */
-    void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * @brief This function calculates the current linear-Lagrange strain
      */
