@@ -61,12 +61,6 @@ Element::Pointer GeoLinearTrussElement<TDim, TNumNodes>::Create(IndexType       
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoLinearTrussElement<TDim, TNumNodes>::~GeoLinearTrussElement()
-{
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 {
     KRATOS_TRY
@@ -250,7 +244,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,
                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 

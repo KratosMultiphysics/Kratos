@@ -53,8 +53,6 @@ public:
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoLinearTrussElement() override;
-
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
