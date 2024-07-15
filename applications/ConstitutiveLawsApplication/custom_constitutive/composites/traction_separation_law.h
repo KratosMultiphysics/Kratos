@@ -340,6 +340,24 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
+        /**
+     * @brief Calculates the value of A, B, and D matrices (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+     std::vector<Vector>& CalculateABDMatrices(
+        double n, 
+        Vector L, 
+        Vector T,
+        std::vector<Vector>& A,
+        std::vector<Vector>& B,
+        std::vector<Vector>& D,
+        std::vector<Vector>& K,
+        std::vector<Vector>& ComplianceMatrix
+        );
+
 
 protected:
 

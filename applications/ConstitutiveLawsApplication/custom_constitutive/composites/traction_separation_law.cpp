@@ -24,6 +24,7 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+// #include <Eigen/Dense>
 
 namespace Kratos
 {
@@ -1083,6 +1084,55 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
         mFatigueDataContainersModeOne[i] = HCFDataContainer();
         mFatigueDataContainersModeTwo[i] = HCFDataContainer();
     }
+
+    // Calculating A, B, and D matrices
+
+    Vector L(4); 
+    L[0] = 0.0075; 
+    L[1] = 0.0025; 
+    L[2] = -0.0025; 
+    L[3] = -0.0075; 
+
+    Vector T(3);
+    T[0] = -45;
+    T[1] = 30;
+    T[2] = 0;
+
+    std::vector<Vector> A(3);
+    for (IndexType i=0; i < 3; ++i) {
+        A[i].resize(3, false);
+    }
+
+    std::vector<Vector> B(3);
+    for (IndexType i=0; i < 3; ++i) {
+        B[i].resize(3, false);
+    }
+
+    std::vector<Vector> D(3);
+    for (IndexType i=0; i < 3; ++i) {
+        D[i].resize(3, false);
+    }
+
+    std::vector<Vector> K(6);
+    for (IndexType i=0; i < 6; ++i) {
+        K[i].resize(6, false);
+    }
+
+    std::vector<Vector> ComplianceMatrix(6);
+    for (IndexType i=0; i < 6; ++i) {
+        ComplianceMatrix[i].resize(6, false);
+    }
+
+
+    CalculateABDMatrices(3, L, T, A, B, D, K, ComplianceMatrix);
+    KRATOS_WATCH(A);
+    KRATOS_WATCH(B);
+    KRATOS_WATCH(D);
+    KRATOS_WATCH(K);
+    KRATOS_WATCH(ComplianceMatrix);
+   
+
+    // Calculating A, B, and D matrices
 }
 
 /***********************************************************************************/
@@ -1573,6 +1623,194 @@ double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageExponentialSoft
     DelaminationDamage = (DelaminationDamage >= 0.99999) ? 0.99999 : DelaminationDamage;
     DelaminationDamage = (DelaminationDamage < 0.0) ? 0.0 : DelaminationDamage;
     return DelaminationDamage;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
+    double n, 
+    Vector L, 
+    Vector T,
+    std::vector<Vector>& A,
+    std::vector<Vector>& B,
+    std::vector<Vector>& D,
+    std::vector<Vector>& K,
+    std::vector<Vector>& ComplianceMatrix)
+{
+    for(IndexType i=0; i < T.size(); ++i) {
+        T[i] *= (Globals::Pi / 180.0);
+    }
+    
+
+    double E1=181e9;
+    double E2=10.3e9;
+    double G12=7.17e9;
+    double v12=0.28;
+    double v21=(E2/E1)*v12;
+    double Q11=E1/(1-(v12)*(v21));
+    double Q22=E2/(1-(v12)*(21));
+    double Q12=v12*E2/(1-(v12)*(v21));
+    double Q66=G12;
+    double U1=(3*Q11+3*Q22+2*Q12+4*Q66)/8;
+    double U2=(Q11-Q22)/2;
+    double U3=(Q11+Q22-2*Q12-4*Q66)/8;
+    double U4=(Q11+Q22+6*Q12-4*Q66)/8;
+
+    std::vector<std::vector<std::vector<double>>> QB(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
+    
+    for(IndexType k=0; k < n; ++k) {
+        QB[0][0][k]=U1+U2*cos(2*T[k])+U3*cos(4*T[k]);
+        QB[0][1][k]=U4-U3*cos(4*T[k]);
+        QB[1][0][k]=QB[0][1][k];
+        QB[1][1][k]=U1-U2*cos(2*T[k])+U3*cos(4*T[k]);
+        QB[2][0][k]=0.5*U2*sin(2*T[k])+U3*sin(4*T[k]);
+        QB[0][2][k]=0.5*U2*sin(2*T[k])+U3*sin(4*T[k]);
+        QB[2][1][k]=0.5*U2*sin(2*T[k])-U3*sin(4*T[k]);
+        QB[1][2][k]=0.5*U2*sin(2*T[k])-U3*sin(4*T[k]);
+        QB[2][2][k]=0.5*(U1-U4)-U3*cos(4*T[k]);
+    }
+
+        // QB[0][0][k]=U1+U2*cos(2*T[k])+U3*cos(4*T[k]);
+        // QB[0][1][k]=U4-U3*cos(4*T[k]);
+        // QB[1][0][k]=QB[0][1][k];
+        // QB[1][1][k]=U1-U2*cos(2*T[k])+U3*cos(4*T[k]);
+        // QB[2][0][k]=0.5*U2*sin(2*T[k])+U3*sin(4*T[k]);
+        // QB[0][2][k]=2*QB[2][0][k];
+        // QB[2][1][k]=0.5*U2*sin(2*T[k])-U3*sin(4*T[k]);
+        // QB[1][2][k]=2*QB[2][1][k];
+        // QB[2][2][k]=(U1-U4)-2*U3*cos(4*T[k]);
+
+    std::vector<std::vector<std::vector<double>>> AS(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
+    std::vector<std::vector<std::vector<double>>> BS(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
+    std::vector<std::vector<std::vector<double>>> DS(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
+
+    for(IndexType k=0; k < n; ++k) {
+        for(IndexType i=0; i < 3; ++i) {
+            for(IndexType j=0; j < 3; ++j) {
+                AS[i][j][k]=QB[i][j][k]*(L[k]-L[k+1]);
+                BS[i][j][k]=QB[i][j][k]*(((L[k])*(L[k]))-(L[k+1])*(L[k+1]));
+                DS[i][j][k]=QB[i][j][k]*((L[k])*(L[k])*(L[k])-(L[k+1])*(L[k+1])*(L[k+1]));
+
+                // AS[i][j][k]=QB[i][j][k]*(L[k+1]-L[k]);
+                // BS[i][j][k]=QB[i][j][k]*(((L[k+1])*(L[k+1]))-(L[k])*(L[k]));
+                // DS[i][j][k]=QB[i][j][k]*((L[k+1])*(L[k+1])*(L[k+1])-(L[k])*(L[k])*(L[k]));
+            }
+        }
+    }
+
+    std::vector<Vector> ASF(3);
+    std::vector<Vector> BSF(3);
+    std::vector<Vector> DSF(3);
+    for (IndexType i=0; i < 3; ++i) {
+        ASF[i].resize(3, false);
+        BSF[i].resize(3, false);
+        DSF[i].resize(3, false);
+        A[i].resize(3, false);
+        B[i].resize(3, false);
+        D[i].resize(3, false);
+    }
+
+    for(IndexType i=0; i < 3; ++i) {
+        for(IndexType j=0; j < 3; ++j) {
+            ASF[i][j] = 0.0;
+            BSF[i][j] = 0.0;
+            DSF[i][j] = 0.0;
+            A[i][j] = 0.0;
+            B[i][j] = 0.0;
+            D[i][j] = 0.0;
+        }
+    }
+
+    for(IndexType k=0; k < n; ++k) {
+        for(IndexType i=0; i < 3; ++i) {
+            for(IndexType j=0; j < 3; ++j) {
+                ASF[i][j] += AS[i][j][k];
+                BSF[i][j] += (0.5) * (BS[i][j][k]);
+                DSF[i][j] += (0.33) * (DS[i][j][k]);
+            }
+        }
+    }
+
+   A = ASF;
+   B = BSF;
+   D = DSF;
+
+   // Constructing stifness matrix
+
+   for (IndexType i=0; i < 6; ++i) {
+        K[i].resize(6, false);
+   }
+
+   for (int i = 0; i < A.size(); ++i) {
+        for (int j = 0; j < A[i].size(); ++j) {
+            K[i][j] = A[i][j];
+            K[i][j + A[i].size()] = B[i][j];
+            K[i + A.size()][j] = B[i][j];
+            K[i + A.size()][j + A[i].size()] = D[i][j];
+        }
+    }
+   
+   // Calculating the inverse matrix
+
+    int matrix_size = 6;
+    std::vector<Vector> augmentedMatrix(matrix_size);
+    for (IndexType i=0; i < matrix_size; ++i) {
+        augmentedMatrix[i].resize(2*matrix_size, false);
+    }
+
+    for(IndexType i=0; i < matrix_size; ++i) {
+        for(IndexType j=0; j < matrix_size; ++j) {
+            augmentedMatrix[i][j] = K[i][j];
+        }
+    }
+
+     for(IndexType i=0; i < matrix_size; ++i) {
+        for(IndexType j=6; j < 12; ++j) {
+            augmentedMatrix[i][j] = 0.0;
+        }
+    }
+
+    for (IndexType i = 0; i < matrix_size; ++i) {
+        augmentedMatrix[i][i + matrix_size] = 1.0;
+    }
+
+    for (IndexType i = 0; i < matrix_size; ++i) {
+        double diagElem = augmentedMatrix[i][i];
+        if (diagElem == 0.0) throw std::runtime_error("Matrix is singular and cannot be inverted.");
+
+        for (IndexType j = 0; j < 2 * matrix_size; ++j) {
+            augmentedMatrix[i][j] /= diagElem;
+        }
+
+        for (IndexType k = 0; k < matrix_size; ++k) {
+            if (k != i) {
+                double factor = augmentedMatrix[k][i];
+                for (IndexType j = 0; j < 2 * matrix_size; ++j) {
+                    augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
+                }
+            }
+        }
+    }
+
+    for (IndexType i=0; i < matrix_size; ++i) {
+        ComplianceMatrix[i].resize(matrix_size, false);
+    }
+
+    for (IndexType i = 0; i < matrix_size; ++i) {
+        for (IndexType j = 0; j < matrix_size; ++j) {
+            ComplianceMatrix[i][j] = augmentedMatrix[i][j + matrix_size];
+        }
+    }
+
+   //
+
+    return A;
+    return B;
+    return D;
+    return K;
+    return ComplianceMatrix;
 }
 
 /***********************************************************************************/
