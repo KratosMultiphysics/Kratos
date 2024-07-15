@@ -79,13 +79,6 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    /**
-     * @brief This function calculates the current linear-Lagrange strain
-     */
-    double CalculateLinearStrain();
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
 private:
     friend class Serializer;
 

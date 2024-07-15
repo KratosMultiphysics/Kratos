@@ -111,6 +111,7 @@ public:
     void ResetConstitutiveLaw() override;
 
 private:
+    double CalculateLinearStrain();
     void AddPrestressLinear(VectorType& rRightHandSideVector);
 
     friend class Serializer;

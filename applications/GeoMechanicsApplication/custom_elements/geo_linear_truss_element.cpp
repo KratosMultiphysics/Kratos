@@ -283,12 +283,41 @@ void GeoLinearTrussElement<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorT
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoLinearTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    GeoTrussElementLinearBase<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+    temp_strain[0]     = this->CalculateLinearStrain();
+    Values.SetStrainVector(temp_strain);
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double GeoLinearTrussElement<TDim, TNumNodes>::CalculateLinearStrain()
+{
+    Vector current_disp = ZeroVector(TDim * TNumNodes);
+    this->GetValuesVector(current_disp);
+    FullDofMatrixType transformation_matrix;
+    this->CreateTransformationMatrix(transformation_matrix);
+
+    current_disp = prod(Matrix(trans(transformation_matrix)), current_disp);
+
+    double length_0;
+    if constexpr (TDim == 2) {
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    } else if constexpr (TDim == 3) {
+        length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    } else {
+        KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
+    }
+
+    return (current_disp[TDim] - current_disp[0]) / length_0;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
