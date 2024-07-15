@@ -444,8 +444,6 @@ private:
     const GeoCrBeamElement3D2N       mGeoCrBeamElement3D2N      { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N{ 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
-    const GeoTrussElement<2,2>       mGeoTrussElement2D2N       { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
-    const GeoTrussElement<3,2>       mGeoTrussElement3D2N       { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCableElement<2,2>       mGeoCableElement2D2N       { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
