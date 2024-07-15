@@ -200,31 +200,31 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsOnlyCalledWhenConditionIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsOnlyCalledWhenElementIsActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsOnlyCalledWhenComponentIsActive<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
@@ -283,7 +283,7 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TestUpdateForNumberOfThreads(1);
     TestUpdateForNumberOfThreads(2);

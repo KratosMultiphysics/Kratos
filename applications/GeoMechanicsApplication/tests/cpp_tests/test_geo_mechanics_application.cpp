@@ -16,7 +16,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
 

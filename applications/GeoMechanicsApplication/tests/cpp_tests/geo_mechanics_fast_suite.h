@@ -32,6 +32,8 @@ namespace Kratos::Testing
 
 class KratosGeoMechanicsFastSuiteWithoutKernel : public KratosCoreFastSuiteWithoutKernel
 {
+public:
+    KratosGeoMechanicsFastSuiteWithoutKernel();
 };
 
  class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
