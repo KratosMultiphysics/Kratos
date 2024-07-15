@@ -105,25 +105,29 @@ public:
                   typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
     {
         using MapperType = Mapper<TSparseSpace, TDenseSpace>;
-        Registry::AddItem<MapperType>("mappers."+Registry::GetCurrentSource()+"."+rMapperName, pMapperPrototype);
-        Registry::AddItem<MapperType>("mappers.all."+rMapperName, pMapperPrototype);
+        // Register mappers.all.mapper and mappers.ApplicationName.mapper (or their mpi equivalents)
+        // MapperFactory always uses the mappers.all path, but the other one is used when de-registering the application
+        Registry::AddItem<MapperType>(GetApplicationPath(Registry::GetCurrentSource(), rMapperName), pMapperPrototype);
+        Registry::AddItem<MapperType>(GetPath(rMapperName), pMapperPrototype);
     }
 
     static bool HasMapper(const std::string& rMapperName)
     {
-        const auto& mapper_list = GetRegisteredMappersList();
-        return mapper_list.find(rMapperName) != mapper_list.end();
+        return Registry::HasItem(GetPath(rMapperName));
     }
 
     static std::vector<std::string> GetRegisteredMapperNames()
     {
-        const auto& mapper_list = GetRegisteredMappersList();
-
         std::vector<std::string> mapper_names;
 
-        mapper_names.reserve(mapper_list.size());
-        for (auto const& r_registered_mapper : mapper_list) {
-            mapper_names.push_back(r_registered_mapper.first);
+        if (Registry::HasItem(GetPath())) {
+            auto& r_mappers = Registry::GetItem(GetPath());
+
+            mapper_names.reserve(r_mappers.size());
+            for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+                mapper_names.push_back(*i_key);
+            }
+
         }
 
         return mapper_names;
@@ -166,6 +170,14 @@ private:
         return std::string("mappers.all");
     }
 
+    static std::string GetApplicationPath(const std::string& rApplicationName, const std::string& rName)
+    {
+        if constexpr (TSparseSpace::IsDistributed()) {
+            return "mappers."+rApplicationName+".mpi."+rName;
+        }
+        return "mappers."+rApplicationName+"."+rName;
+    }
+
     static std::string GetPath(const std::string& rName)
     {
         return GetPath() + "." + rName;
@@ -190,9 +202,6 @@ private:
             return rModelPart;
         }
     }
-
-    static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-        TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
     ///@}
 
