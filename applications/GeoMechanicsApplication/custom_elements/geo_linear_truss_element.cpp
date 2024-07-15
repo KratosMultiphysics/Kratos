@@ -27,7 +27,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeoTrussElementLinearBase<TDim, TNumNodes>(NewId, pGeometry)
+    : GeoTrussElementBase<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
 
@@ -36,7 +36,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeoLinearTrussElement<TDim, TNumNodes>::GeoLinearTrussElement(IndexType               NewId,
                                                               GeometryType::Pointer   pGeometry,
                                                               PropertiesType::Pointer pProperties)
-    : GeoTrussElementLinearBase<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    : GeoTrussElementBase<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
 }
 
@@ -84,7 +84,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurr
 {
     KRATOS_TRY
 
-    GeoTrussElementLinearBase<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    BaseType::Initialize(rCurrentProcessInfo);
 
     if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
         bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];

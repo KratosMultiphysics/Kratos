@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/geo_linear_truss_element_base.hpp"
+#include "custom_elements/geo_truss_element_base.hpp"
 
 namespace Kratos
 {
@@ -32,7 +32,7 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement
-    : public GeoTrussElementLinearBase<TDim, TNumNodes>
+    : public GeoTrussElementBase<TDim, TNumNodes>
 {
 protected:
     // const values
@@ -44,7 +44,7 @@ protected:
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoLinearTrussElement);
 
-    using BaseType          = GeoTrussElementLinearBase<TDim, TNumNodes>;
+    using BaseType          = GeoTrussElementBase<TDim, TNumNodes>;
     using GeometryType      = Element::GeometryType;
     using NodesArrayType    = Element::NodesArrayType;
     using PropertiesType    = Element::PropertiesType;
@@ -118,7 +118,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
         rSerializer.save("InternalStresses", mInternalStresses);
         rSerializer.save("InternalStressesFinalized", mInternalStressesFinalized);
         rSerializer.save("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
@@ -126,7 +126,7 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
         rSerializer.load("InternalStresses", mInternalStresses);
         rSerializer.load("InternalStressesFinalized", mInternalStressesFinalized);
         rSerializer.load("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
