@@ -31,6 +31,7 @@ public:
     ResetDisplacementProcess& operator=(const ResetDisplacementProcess&) = delete;
 
     void ExecuteInitialize() override;
+    int  Check() override;
 
 private:
     ModelPart& mrModelPart;

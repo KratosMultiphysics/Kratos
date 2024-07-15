@@ -45,4 +45,13 @@ void ResetDisplacementProcess::ExecuteInitialize()
     });
 }
 
+int ResetDisplacementProcess::Check()
+{
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[IS_RESTARTED])
+        << "The IS_RESTARTED flag must be set to true in the ProcessInfo of the "
+           "model part. Please use the \"rest\" option for the model input type";
+
+    return 0;
+}
+
 } // namespace Kratos
