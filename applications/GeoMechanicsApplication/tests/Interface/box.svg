@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1442px"
-   height="664px"
-   viewBox="0 0 1442 664"
+   width="675.69342"
+   height="465.71835"
+   viewBox="0 0 675.69342 465.71835"
    version="1.1"
    id="svg486"
    sodipodi:docname="box.svg"
@@ -10,7 +10,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
      id="namedview486"
      pagecolor="#ffffff"
@@ -20,15 +23,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.9542509"
-     inkscape:cx="626.1456"
-     inkscape:cy="252.03015"
+     inkscape:zoom="7.6340072"
+     inkscape:cx="167.60529"
+     inkscape:cy="425.66111"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g15" />
+     inkscape:current-layer="g486" />
   <title
      id="title1">UNNAMED</title>
   <desc
@@ -163,7 +166,7 @@ CreationDate: Fri Jul 12 17:52:19 2024
   <g
      shape-rendering="crispEdges"
      id="g486"
-     transform="translate(-16.767079,-34.5821)">
+     transform="translate(-344.66636,-103.002)">
     <polyline
        fill="none"
        stroke="#ff00ff"
@@ -295,6 +298,14 @@ CreationDate: Fri Jul 12 17:52:19 2024
        transform="matrix(1,0,0,1.9423801,0,-486.72236)" />
     <polyline
        fill="none"
+       stroke="#0000ff"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="492.502,538.736 492.502,560.498 516.243,560.498 492.502,538.736"
+       id="polyline103" />
+    <polyline
+       fill="none"
        stroke="#ff00ff"
        stroke-width="1"
        stroke-linejoin="round"
@@ -317,14 +328,6 @@ CreationDate: Fri Jul 12 17:52:19 2024
        stroke-linecap="round"
        points="492.502,190.549 492.502,212.311 517.979,201.067 492.502,190.549"
        id="polyline101" />
-    <polyline
-       fill="none"
-       stroke="#0000ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="492.502,538.736 492.502,560.498 516.243,560.498 492.502,538.736"
-       id="polyline103" />
     <polyline
        fill="none"
        stroke="#0000ff"
@@ -2278,4 +2281,13 @@ CreationDate: Fri Jul 12 17:52:19 2024
          id="path4-89-4-6" />
     </g>
   </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>UNNAMED</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

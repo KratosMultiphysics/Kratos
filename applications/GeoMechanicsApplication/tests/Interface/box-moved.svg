@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1442px"
-   height="664px"
-   viewBox="0 0 1442 664"
+   width="470.11401"
+   height="521.81299"
+   viewBox="0 0 470.11401 521.81299"
    version="1.1"
    id="svg491"
    sodipodi:docname="box-moved.svg"
@@ -10,7 +10,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
      id="namedview491"
      pagecolor="#ffffff"
@@ -20,9 +23,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="5.3980582"
-     inkscape:cx="565.66637"
-     inkscape:cy="567.88939"
+     inkscape:zoom="3.8170036"
+     inkscape:cx="66.937323"
+     inkscape:cy="496.85571"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
@@ -41,7 +44,8 @@ CreationDate: Fri Jul 12 18:27:26 2024
      id="defs1" />
   <g
      shape-rendering="crispEdges"
-     id="g491">
+     id="g491"
+     transform="translate(-490.311,-103.002)">
     <polyline
        fill="none"
        stroke="#ff00ff"
@@ -172,6 +176,14 @@ CreationDate: Fri Jul 12 18:27:26 2024
        id="polyline96" />
     <polyline
        fill="none"
+       stroke="#0000ff"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="492.164,576.984 490.811,624.315 516.839,624.315 492.164,576.984"
+       id="polyline103" />
+    <polyline
+       fill="none"
        stroke="#ff00ff"
        stroke-width="1"
        stroke-linejoin="round"
@@ -194,14 +206,6 @@ CreationDate: Fri Jul 12 18:27:26 2024
        stroke-linecap="round"
        points="492.561,241.56 492.494,262.597 518.837,251.341 492.561,241.56"
        id="polyline101" />
-    <polyline
-       fill="none"
-       stroke="#0000ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="492.164,576.984 490.811,624.315 516.839,624.315 492.164,576.984"
-       id="polyline103" />
     <polyline
        fill="none"
        stroke="#0000ff"
@@ -2043,4 +2047,13 @@ CreationDate: Fri Jul 12 18:27:26 2024
        points="492.682,178.323 492.34,167.319"
        id="polyline345" />
   </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>UNNAMED</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

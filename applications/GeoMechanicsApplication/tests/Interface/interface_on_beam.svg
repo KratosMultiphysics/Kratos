@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1442px"
-   height="664px"
-   viewBox="0 0 1442 664"
+   width="730.63824"
+   height="332.44202"
+   viewBox="0 0 730.63824 332.44202"
    version="1.1"
    id="svg8403"
    sodipodi:docname="interface_on_beam.svg"
@@ -10,7 +10,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
      id="namedview8403"
      pagecolor="#ffffff"
@@ -20,15 +23,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1.5755895"
-     inkscape:cx="638.17384"
-     inkscape:cy="344.31557"
+     inkscape:zoom="1.11411"
+     inkscape:cx="554.25406"
+     inkscape:cy="182.65701"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g8403" />
+     inkscape:current-layer="svg8403" />
   <title
      id="title1">UNNAMED</title>
   <desc
@@ -82,7 +85,8 @@ CreationDate: Tue Jul  9 19:28:30 2024
   </defs>
   <g
      shape-rendering="crispEdges"
-     id="g8403">
+     id="g8403"
+     transform="translate(-290,-168.96716)">
     <polyline
        fill="none"
        stroke="#00ffff"
@@ -30471,4 +30475,47 @@ CreationDate: Tue Jul  9 19:28:30 2024
        d="m 1019.5287,453.72983 -11.4192,17.3598"
        id="path2-9-8-09" />
   </g>
+  <text
+     xml:space="preserve"
+     style="fill:#ff00ff"
+     x="421.77887"
+     y="325.59799"
+     id="text1"><tspan
+       sodipodi:role="line"
+       id="tspan1"
+       x="421.77887"
+       y="325.59799" /></text>
+  <text
+     xml:space="preserve"
+     style="font-size:25.7096px;fill:#ff00ff;stroke-width:2.14246"
+     x="419.95062"
+     y="334.76953"
+     id="text2"
+     transform="scale(1.0070012,0.99304748)"><tspan
+       sodipodi:role="line"
+       id="tspan2"
+       x="419.95062"
+       y="334.76953"
+       style="fill:#ff00ff;stroke-width:2.14246">B</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:20.336px;fill:#ff00ff;stroke-width:1.69467"
+     x="395.4053"
+     y="14.785305"
+     id="text3"
+     transform="scale(1.07124,0.93349762)"><tspan
+       sodipodi:role="line"
+       id="tspan3"
+       x="395.4053"
+       y="14.785305"
+       style="fill:#ff00ff;stroke-width:1.69467">T</tspan></text>
+  <metadata
+     id="metadata3">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>UNNAMED</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

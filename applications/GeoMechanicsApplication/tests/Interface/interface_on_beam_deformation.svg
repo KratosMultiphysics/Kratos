@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1442px"
-   height="664px"
-   viewBox="0 0 1442 664"
+   width="570.14099"
+   height="288.37299"
+   viewBox="0 0 570.141 288.37299"
    version="1.1"
    id="svg8500"
    sodipodi:docname="interface_on_beam_deformation.svg"
@@ -10,7 +10,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
      id="namedview8500"
      pagecolor="#ffffff"
@@ -20,9 +23,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="5.3980582"
-     inkscape:cx="690.98921"
-     inkscape:cy="422.65198"
+     inkscape:zoom="0.47712545"
+     inkscape:cx="392.97841"
+     inkscape:cy="359.44425"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
@@ -40,21 +43,22 @@ CreationDate: Tue Jul  9 19:32:06 2024
   <defs
      id="defs1">
     <rect
-       x="298.66359"
+       x="298.6636"
        y="167.67079"
-       width="361.54014"
-       height="213.78025"
+       width="361.54013"
+       height="213.78024"
        id="rect8502" />
     <rect
        x="1396.1213"
        y="631.38531"
        width="51.87315"
-       height="37.463942"
+       height="37.463943"
        id="rect8501" />
   </defs>
   <g
      shape-rendering="crispEdges"
-     id="g8500">
+     id="g8500"
+     transform="translate(-435.929,-186.413)">
     <polyline
        fill="none"
        stroke="#00ffff"
@@ -30143,14 +30147,6 @@ CreationDate: Tue Jul  9 19:32:06 2024
        stroke-linecap="round"
        points="525.308,417.275 526.703,426.42"
        id="polyline8354" />
-    <polygon
-       fill="#000000"
-       points="1402,664 1442,664 1442,640"
-       id="polygon8498" />
-    <polygon
-       fill="#000000"
-       points="1402,664 1442,640 1402,640"
-       id="polygon8499" />
     <text
        fill="#ffff00"
        x="1409.21"
@@ -30172,10 +30168,19 @@ CreationDate: Tue Jul  9 19:32:06 2024
     <text
        xml:space="preserve"
        id="text8501"
-       style="fill:#ff00ff;white-space:pre;shape-inside:url(#rect8501)" />
+       style="white-space:pre;shape-inside:url(#rect8501);fill:#ff00ff" />
     <text
        xml:space="preserve"
        id="text8502"
-       style="fill:#ff00ff;white-space:pre;shape-inside:url(#rect8502)" />
+       style="white-space:pre;shape-inside:url(#rect8502);fill:#ff00ff" />
   </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>UNNAMED</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

@@ -3,7 +3,7 @@
 This set of tests verifies the interface functionality.
 
 
-## Using interface between beam and soil
+## Using interfaces between beam and soil
 
 ### Setup
 
@@ -11,7 +11,7 @@ This test models the beam movement in the soil. The model consists of 4230 3-nod
 
 ![MeshStructure](interface_on_beam.svg)
 
-All nodes on the vertical sides and the bottom are fixed in both the horizontal and the vertical directions. In the middle of the domain the vertical beam is placed. It is shown in red color. The beam bottom has a fixed support and a horizontal constant load with a magnitude of $q=10.0 \  \mathrm{[N/m]}$ is applied to the beam top. 
+All nodes on the vertical sides and the bottom are fixed in both the horizontal and the vertical directions. In the middle of the domain the vertical beam is placed. It is shown in red color and letters B and T are placed near it bottom and top, respectively. The beam bottom has a fixed support and a constant load in the positive x-direction with a magnitude of $q=10.0 \  \mathrm{[N/m]}$ is applied to the beam top. 
 
 
 The soil is described with GeoLinearElasticPlaneStrain2DLaw:
@@ -31,7 +31,7 @@ The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a cohes
 
 ### Solution
 
-Under the load the beam bends and acts on the soil. The following picture shows the bended beam and soil displacement.
+Under the load the beam bends and acts on the soil. The following picture shows the bent beam and soil displacement.
 
 ![Displacement](interface_on_beam_deformation.svg)
 
@@ -43,21 +43,21 @@ The test asserts maximum values of displacement in X and Y directions. The value
 
 ### Setup
 
-This test uses the same setting as the previous test except the interface stiffness of $1e2 \  \mathrm{[Pa]}$. 
+This test uses the same setting as the previous test except the interface stiffness is set to $1e2 \  \mathrm{[Pa]}$ (instead of $1e12 \  \mathrm{[Pa]}$). 
 
 ### Solution
 
-This very small value of the stiffness leads to a large movement of the beam against the soil. The following picture shows that the beam is bended as in the previous test but the beam affects the soil displacement very little. The brown lines depict the interfaces' horizontal lines.
+This very small value of the stiffness leads to a large movement of the beam against the soil. The following picture shows that the beam is bent as in the previous test but the beam affects the soil displacement very little. As a result the interface elements are stretched. The brown lines depict the interfaces' horizontal lines that connect the interface soil part with interface beam part. 
 
-![Displacement](week_interface_on_beam_deformation.svg)
+![Displacement](weak_interface_on_beam_deformation.svg)
 
 ### Assertions
 
-The test checks that the beam displacement shall be much larger than the soil displacement. 
+The test checks that the beam displacement shall be much larger than the soil displacement (a factor of $10^8$). 
 
 ## Interface cohesive side
 
-This test models a vertical movement of the soil block which left hand side is connected to the interface. 
+This test models a vertical movement of the entire soil block which left hand side is connected to the interface. 
 
 ### Setup
 
@@ -72,7 +72,7 @@ The soil is dry, and it is described with GeoLinearElasticPlaneStrain2DLaw:
 
 The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a cohesion of $1000 \  \mathrm{[kN]}$ and a stiffness of $1e12 \  \mathrm{[Pa]}$. 
 
-The left side of the interface is fixed. The soil moves down with a prescribed vertical displacement of $-0.1 \  \mathrm{[m]}$  and a horizontal line load of $-1 \  \mathrm{[kN]}$  is applied to the soil right side. 
+The left side of the interface is fixed. The entire soil block moves down with a prescribed vertical displacement of $-0.1 \  \mathrm{[m]}$  and a horizontal line load of $-1 \  \mathrm{[kN]}$  is applied to the soil block right side. 
 
 ### Solution
 

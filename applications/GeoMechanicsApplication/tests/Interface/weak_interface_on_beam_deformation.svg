@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1442px"
-   height="664px"
-   viewBox="0 0 1442 664"
+   width="570.14099"
+   height="285.57199"
+   viewBox="0 0 570.14099 285.57199"
    version="1.1"
    id="svg8470"
    sodipodi:docname="week_interface_on_beam_deformation.svg"
@@ -10,7 +10,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
      id="namedview8470"
      pagecolor="#ffffff"
@@ -21,8 +24,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="5.3980582"
-     inkscape:cx="732.39299"
-     inkscape:cy="255.18435"
+     inkscape:cx="318.35522"
+     inkscape:cy="119.39479"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
      inkscape:window-x="-9"
@@ -41,7 +44,8 @@ CreationDate: Fri Jul 12 14:39:27 2024
      id="defs1" />
   <g
      shape-rendering="crispEdges"
-     id="g8470">
+     id="g8470"
+     transform="translate(-435.929,-189.214)">
     <polyline
        fill="none"
        stroke="#00ffff"
@@ -272,24 +276,8 @@ CreationDate: Fri Jul 12 14:39:27 2024
        stroke-width="1"
        stroke-linejoin="round"
        stroke-linecap="round"
-       points="721,208.074 721,198.894 781.554,198.894 778.483,208.074 721,208.074"
-       id="polyline4583" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
        points="721,217.253 721,208.074 778.483,208.074 775.424,217.253 721,217.253"
        id="polyline4584" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="721,226.433 721,217.253 775.424,217.253 772.385,226.433 721,226.433"
-       id="polyline4585" />
     <polyline
        fill="none"
        stroke="#a50021"
@@ -304,24 +292,8 @@ CreationDate: Fri Jul 12 14:39:27 2024
        stroke-width="1"
        stroke-linejoin="round"
        stroke-linecap="round"
-       points="721,244.792 721,235.613 769.371,235.613 766.389,244.792 721,244.792"
-       id="polyline4587" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
        points="721,253.972 721,244.792 766.389,244.792 763.446,253.972 721,253.972"
        id="polyline4588" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="721,263.152 721,253.972 763.446,253.972 760.547,263.152 721,263.152"
-       id="polyline4589" />
     <polyline
        fill="none"
        stroke="#a50021"
@@ -336,24 +308,8 @@ CreationDate: Fri Jul 12 14:39:27 2024
        stroke-width="1"
        stroke-linejoin="round"
        stroke-linecap="round"
-       points="721,281.512 721,272.332 757.7,272.332 754.91,281.512 721,281.512"
-       id="polyline4591" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
        points="721,290.691 721,281.512 754.91,281.512 752.185,290.691 721,290.691"
        id="polyline4592" />
-    <polyline
-       fill="none"
-       stroke="#a50021"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="721,299.871 721,290.691 752.185,290.691 749.53,299.871 721,299.871"
-       id="polyline4593" />
     <polyline
        fill="none"
        stroke="#a50021"
@@ -562,6 +518,14 @@ CreationDate: Fri Jul 12 14:39:27 2024
        stroke-linecap="round"
        points="721,290.691 721,281.512 712.867,286.102 721,290.691"
        id="polyline4619" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,299.871 721,290.691 752.185,290.691 749.53,299.871 721,299.871"
+       id="polyline4593" />
     <polyline
        fill="none"
        stroke="#0000ff"
@@ -30052,14 +30016,6 @@ CreationDate: Fri Jul 12 14:39:27 2024
        id="polyline8305" />
     <polyline
        fill="none"
-       stroke="#ff00ff"
-       stroke-width="1"
-       stroke-linejoin="round"
-       stroke-linecap="round"
-       points="721,474.286 721.098,465.106 721.389,455.926 721.865,446.747 722.521,437.567 723.35,428.387 724.345,419.208 725.5,410.028 726.81,400.848 728.267,391.668 729.864,382.488 731.597,373.309 733.457,364.129 735.439,354.949 737.537,345.77 739.743,336.59 742.052,327.41 744.457,318.23 746.952,309.051 749.53,299.871 752.185,290.691 754.91,281.512 757.7,272.332 760.547,263.152 763.446,253.972 766.389,244.792 769.371,235.613 772.385,226.433 775.424,217.253 778.483,208.074 781.554,198.894 784.632,189.714"
-       id="polyline8306" />
-    <polyline
-       fill="none"
        stroke="#00ffff"
        stroke-width="1"
        stroke-linejoin="round"
@@ -30122,6 +30078,54 @@ CreationDate: Fri Jul 12 14:39:27 2024
        stroke-linecap="round"
        points="522.981,419.258 524.717,428.136"
        id="polyline8324" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,208.074 721,198.894 781.554,198.894 778.483,208.074 721,208.074"
+       id="polyline4583" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,226.433 721,217.253 775.424,217.253 772.385,226.433 721,226.433"
+       id="polyline4585" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,244.792 721,235.613 769.371,235.613 766.389,244.792 721,244.792"
+       id="polyline4587" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,263.152 721,253.972 763.446,253.972 760.547,263.152 721,263.152"
+       id="polyline4589" />
+    <polyline
+       fill="none"
+       stroke="#a50021"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,281.512 721,272.332 757.7,272.332 754.91,281.512 721,281.512"
+       id="polyline4591" />
+    <polyline
+       fill="none"
+       stroke="#ff00ff"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="721,474.286 721.098,465.106 721.389,455.926 721.865,446.747 722.521,437.567 723.35,428.387 724.345,419.208 725.5,410.028 726.81,400.848 728.267,391.668 729.864,382.488 731.597,373.309 733.457,364.129 735.439,354.949 737.537,345.77 739.743,336.59 742.052,327.41 744.457,318.23 746.952,309.051 749.53,299.871 752.185,290.691 754.91,281.512 757.7,272.332 760.547,263.152 763.446,253.972 766.389,244.792 769.371,235.613 772.385,226.433 775.424,217.253 778.483,208.074 781.554,198.894 784.632,189.714"
+       id="polyline8306" />
     <text
        fill="#ffff00"
        x="1409.21"
@@ -30141,4 +30145,13 @@ CreationDate: Fri Jul 12 14:39:27 2024
        font-family="Helvetica"
        id="text8470" />
   </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>UNNAMED</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>
