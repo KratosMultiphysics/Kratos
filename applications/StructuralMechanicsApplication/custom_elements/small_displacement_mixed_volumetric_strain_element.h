@@ -34,12 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,6 +59,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedVolumet
 {
 
 protected:
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /**
      * Internal variables used in the kinematic calculations
@@ -127,6 +127,47 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    struct GaussPointAuxiliaryVariables
+    {
+        double Dt;
+        double Rho;
+        double Tau1;
+        double Tau2;
+        double Weight;
+        double BulkModulus;
+
+        Vector m; // Voigt identity
+        Vector m_T; // Voigt identity x anisotropy tensor
+        Vector invT_m; // Anisotropy tensor inverse x Voigt identity
+        Vector BodyForce; // Body force value at current Gauss point
+        Vector VolumetricStrainGradient; // Volumetric strain gradient at current Gauss point
+        Vector DisplacementSubscaleAcceleration; // Displacement subscale acceleration term for dynamic subscale calculation
+
+        GaussPointAuxiliaryVariables(
+            const SmallDisplacementMixedVolumetricStrainElement* pElement,
+            const SizeType Dimension,
+            const SizeType StrainSize)
+        {
+            // Array allocation
+            BodyForce.resize(Dimension);
+            VolumetricStrainGradient.resize(Dimension);
+
+            // Initialize the subscale acceleration to zero for the static case
+            // Note that the zero value is only overwritten in the dynamic case
+            DisplacementSubscaleAcceleration = ZeroVector(Dimension);
+
+            // Define the identity tensor in Voigt notation
+            m =  ZeroVector(StrainSize);
+            for (IndexType d = 0; d < Dimension; ++d) {
+                m[d] = 1.0;
+            }
+
+            // Calculate the anisotropy tensor products
+            m_T = prod(m, pElement->mAnisotropyTensor);
+            invT_m = prod(pElement->mInverseAnisotropyTensor, m);
         }
     };
 
@@ -314,6 +355,19 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+     * @param rMassMatrix The elemental mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -323,7 +377,7 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
-     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @brief Calculate a double Variable on the element Gauss points
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained int the integration points
      * @param rCurrentProcessInfo the current process info instance
@@ -334,7 +388,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Calculate a Vector Variable on the Element Constitutive Law
+     * @brief Calculate a Vector Variable on the element Gauss points
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained int the integration points
      * @param rCurrentProcessInfo the current process info instance
@@ -344,6 +398,16 @@ public:
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Calculate an array Variable on the element Gauss points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double,3>>& rVariable,
+        std::vector<array_1d<double,3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -394,6 +458,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    std::vector<Vector> mDisplacementSubscale1; /// Gauss points displacement subscale at previous time step
+
+    std::vector<Vector> mDisplacementSubscale2; /// Gauss points displacement subscale at two previous time step
+
     IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
@@ -435,6 +503,18 @@ protected:
     virtual bool UseElementProvidedStrain() const;
 
     /**
+     * @brief Calculate the kinematics
+     * @details This method calculates the kinematics of the element for a given integration point
+     * @param rThisKinematicVariables Integration point kinematics container
+     * @param PointNumber Integration point index
+     * @param rIntegrationMethod Integration rule
+     */
+    void CalculateKinematicVariables(
+        KinematicVariables &rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod &rIntegrationMethod) const;
+
+    /**
      * @brief This functions updates the data structure passed to the CL
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
@@ -469,6 +549,21 @@ protected:
         ) const;
 
     /**
+     * @brief Calculates the Gauss point data
+     * @param rThisGaussPointAuxiliaryVariables The Gauss point data container to be filled
+     * @param rThisKinematicVariables The kinematic variables to be used to fill the data
+     * @param rThisConstitutiveVariables The constitutive variables to be used to fill the data
+     * @param rProcessInfo Reference to the current ProcessInfo container
+     * @param PointNumber Gauss point index
+     */
+    void CalculateGaussPointAuxiliaryVariables(
+        GaussPointAuxiliaryVariables &rThisGaussPointAuxiliaryVariables,
+        const KinematicVariables &rThisKinematicVariables,
+        const ConstitutiveVariables &rThisConstitutiveVariables,
+        const ProcessInfo &rProcessInfo,
+        const IndexType PointNumber) const;
+
+    /**
      * @brief This function computes the body force
      * @param IntegrationPoints The array containing the integration points
      * @param PointNumber The id of the integration point considered
@@ -478,13 +573,118 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
 
+    /**
+     * @brief Calculate the isotropic bulk modulus
+     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic bulk modulus
+     */
+    double CalculateBulkModulus(const Matrix &rC) const;
+
+    /**
+     * @brief Calculates the displacement subscale stabilization parameter
+     * Calculates the first stabilization parameter corresponding to the displacement subscale
+     * @param rVoigtIdAnysotropyMatrixProd Matrix containing the Voigt identity and the anisotropy tensor product
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rCurrentProcessInfo Reference to the current ProcessInfo container
+     * @return double The displacement subscale stabilization constant
+     */
+    double CalculateTau1(
+        const Vector& rVoigtIdAnysotropyMatrixProd,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * @brief Calculates the volumetric strain subscale stabilization parameter
+     * Calculates the second stabilization parameter corresponding to the volumetric strain subscale
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @return double The volumetric strain subscale stabilization constant
+     */
+    double CalculateTau2(const ConstitutiveVariables& rThisConstitutiveVariables) const;
+
+    /**
+     * @brief Calculates the current Gauss point local system (LHS and RHS) contributions
+     * @param rRightHandSideVector The elemental right hand side vector
+     * @param rLeftHandSideMatrix The elemental left hand side matrix
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
+    virtual void CalculateLocalSystemGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        MatrixType& rLeftHandSideMatrix,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
+    /**
+     * @brief Calculates the current Gauss point RHS contribution
+     * @param rRightHandSideVector The elemental right hand side vector
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
+    virtual void CalculateRightHandSideGaussPointContribution(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
+    /**
+     * @brief Calculates the current Gauss point LHS contribution
+     * @param rLeftHandSideMatrix The elemental left hand side matrix
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rThisGaussPointAuxiliaryVariables Reference to the Gauss point data container
+     */
+    virtual void CalculateLeftHandSideGaussPointContribution(
+        MatrixType& rLeftHandSideMatrix,
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const GaussPointAuxiliaryVariables& rThisGaussPointAuxiliaryVariables) const;
+
+    /**
+     * @brief Updates the subscale historical values for the dynamic case
+     * @param rThisKinematicVariables Reference to the filled kinematics container
+     * @param rThisConstitutiveVariables Reference to the filled constitutive variables container
+     * @param rProcessInfo Reference to the current ProcessInfo container
+     * @param PointIndex Gauss point index
+     */
+    virtual void UpdateGaussPointDisplacementSubscaleHistory(
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables,
+        const ProcessInfo& rProcessInfo,
+        const IndexType PointIndex);
+
     ///@}
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief Get the Anisotropy Tensor object
+     * @return const Matrix& Reference to the anisotropy tensor
+     */
+    const Matrix& GetAnisotropyTensor() const
+    {
+        return mAnisotropyTensor;
+    }
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
+    /**
+     * @brief Returns a bool variable indicating if the problem is dynamic
+     * The variable is set in the Initialize function according to the presence of the ACCELERATION variable
+     * @return true If the problem is dynamic
+     * @return false If the problem is not dynamic (e.g., static or eigenvalue analysis)
+     */
+    bool IsDynamic() const
+    {
+        return mIsDynamic;
+    }
 
     ///@}
     ///@name Protected LifeCycle
@@ -498,8 +698,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    Matrix mAnisotropyTensor;
-    Matrix mInverseAnisotropyTensor;
+    bool mIsDynamic; // Bool variable to indicate if the problem is dynamic
+
+    Matrix mAnisotropyTensor; // The anisotropy transformation tensor
+
+    Matrix mInverseAnisotropyTensor; // The inverse of the anisotropy transformation tensor
 
     ///@}
     ///@name Private Operators
@@ -508,19 +711,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Calculate the kinematics
-     * @details This method calculates the kinematics of the element for a given integration point
-     * @param rThisKinematicVariables Integration point kinematics container
-     * @param PointNumber Integration point index
-     * @param rIntegrationMethod Integration rule
-     */
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) const;
 
     /**
      * @brief Calculation of the Deformation Matrix B
@@ -556,14 +746,6 @@ private:
      * Note that we take advantage of the fact that the anisotropy tensor is diagonal
      */
     void CalculateInverseAnisotropyTensor();
-
-    /**
-     * @brief Calculate the isotropic bulk modulus
-     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
-     * @param rC Input constitutive matrx
-     * @return double Isotropic bulk modulus
-     */
-    double CalculateBulkModulus(const Matrix &rC) const;
 
     /**
      * @brief Calculate the isotropic shear modulus
@@ -685,4 +867,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
