@@ -5,7 +5,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
+class TestQNBBSteepestDescentAnalysis(kratos_unittest.TestCase):
     def test_steepest_descent_analysis(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json", "r") as file_input:
@@ -29,6 +29,5 @@ class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
             DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
 

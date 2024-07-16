@@ -15,28 +15,29 @@
 
 #include "processes/process.h"
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
-
 
 namespace Kratos
 {
 
 class Parameters;
 
-class ProcessFactory
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessFactory
 {
 public:
     using ProductType = std::unique_ptr<Process>;
 
-    [[nodiscard]] ProductType Create(const std::string& rProcessClassName,
-                                     const Parameters&  rProcessSettings) const;
-    void AddCreator(const std::string&                            rProcessClassName,
-                    std::function<ProductType(const Parameters&)> Creator);
+    [[nodiscard]] ProductType Create(const std::string& rProcessClassName, const Parameters& rProcessSettings) const;
+    void AddCreator(const std::string& rProcessClassName, std::function<ProductType(const Parameters&)> Creator);
+
+    void SetCallBackWhenProcessIsUnknown(const std::function<void(const std::string&)>& function);
 
 private:
     std::map<std::string, std::function<ProductType(const Parameters&)>, std::less<>> mCreatorMap;
+    std::function<void(const std::string&)> mCallBackIfProcessIsUnknown;
 };
 
-}
+} // namespace Kratos

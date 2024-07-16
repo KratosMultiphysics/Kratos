@@ -11,8 +11,8 @@
 //                   Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "custom_utilities/process_factory.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
@@ -34,7 +34,7 @@ class BarProcess : public Process
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenNoCreatorWasAddedForRequestedProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenNoCreatorWasAddedForRequestedProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
 
@@ -44,7 +44,17 @@ KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenNoCreatorWasAddedForRequestedProcess,
     KRATOS_EXPECT_EQ(process.get(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenTheAddedCreatorIsEmpty, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateThrowsForUnknownProcess_WhenCallbackFunctionThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    ProcessFactory factory;
+    factory.SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName){ KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";});
+
+    const Parameters process_settings;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(const auto process = factory.Create("UnknownProcess", process_settings),
+                                      "Unexpected process (UnknownProcess), calculation is aborted")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenTheAddedCreatorIsEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
     factory.AddCreator("TestProcess", {});
@@ -55,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenTheAddedCreatorIsEmpty, KratosGeoMech
     KRATOS_EXPECT_EQ(process.get(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateFooProcessAfterCreatorWasAdded, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateFooProcessAfterCreatorWasAdded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
     factory.AddCreator("FooProcess", [](const Parameters&){return std::make_unique<FooProcess>();});
@@ -67,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateFooProcessAfterCreatorWasAdded, KratosGeoMechani
     KRATOS_EXPECT_EQ(dynamic_cast<BarProcess*>(process.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateDifferentKindsOfProcessesAfterAddingCreators, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateDifferentKindsOfProcessesAfterAddingCreators, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
     factory.AddCreator("FooProcess", [](const Parameters&){return std::make_unique<FooProcess>();});
@@ -82,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateDifferentKindsOfProcessesAfterAddingCreators, Kr
     KRATOS_EXPECT_NE(dynamic_cast<BarProcess*>(bar_process.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreatorReceivesGivenSettingsWhenMakingNewProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreatorReceivesGivenSettingsWhenMakingNewProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
     const Parameters* received_settings = nullptr;
@@ -98,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreatorReceivesGivenSettingsWhenMakingNewProcess, Krat
     KRATOS_EXPECT_EQ(&process_settings, received_settings);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AddingCreatorWithSameProcessNameOverwritesPreviousOne, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AddingCreatorWithSameProcessNameOverwritesPreviousOne, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     ProcessFactory factory;
     auto creator_id = 0;

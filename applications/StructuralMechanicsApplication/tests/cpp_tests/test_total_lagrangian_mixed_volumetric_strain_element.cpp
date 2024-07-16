@@ -23,7 +23,7 @@
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 
 // Application includes
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
@@ -144,6 +144,12 @@ namespace Kratos::Testing
      */
     KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElementBonetPatch, KratosStructuralMechanicsFastSuite)
     {
+        // Skip the test if the constitutive law is not available (i.e. the ConstitutiveLawsApplication is not compiled)
+        const std::string claw_name = "HyperElasticPlaneStrain2DLaw";
+        if (!KratosComponents<ConstitutiveLaw>::Has(claw_name)) {
+            return;
+        }
+
         // Set the test model part
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -175,7 +181,7 @@ namespace Kratos::Testing
         auto p_elem_prop = r_model_part.CreateNewProperties(1);
         p_elem_prop->SetValue(YOUNG_MODULUS, 250.0);
         p_elem_prop->SetValue(POISSON_RATIO, 0.25);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("HyperElasticPlaneStrain2DLaw");
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get(claw_name);
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
         for (auto& r_elem: r_model_part.Elements()) {
             r_elem.SetProperties(p_elem_prop);

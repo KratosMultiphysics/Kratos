@@ -24,17 +24,17 @@ extern "C"
                                                void __stdcall         reportTextualProgress(const char*),
                                                bool __stdcall         shouldCancel())
     {
-        int errorCode = instance->ExecuteFlowAnalysis(workingDirectory,
+        const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(minCriticalHead, maxCriticalHead, stepCriticalHead);
+        const Kratos::KratosExecute::CallBackFunctions call_back_functions(logCallback,
+                                                                     reportProgress,
+                                                                     reportTextualProgress,
+                                                                     shouldCancel);
+
+        return instance->ExecuteFlowAnalysis(workingDirectory,
                                                       projectFile,
-                                                      minCriticalHead,
-                                                      maxCriticalHead,
-                                                      stepCriticalHead,
+                                                      critical_head_info,
                                                       criticalHeadBoundaryModelPartName,
-                                                      logCallback,
-                                                      reportProgress,
-                                                      reportTextualProgress,
-                                                      shouldCancel);
-        return errorCode;
+                                                      call_back_functions);
     }
 
     EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()

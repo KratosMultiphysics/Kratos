@@ -58,4 +58,4 @@ class AssignScalarVariableToConditionsProcess(assign_scalar_variable_to_entities
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignScalarVariableToConditionsProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)

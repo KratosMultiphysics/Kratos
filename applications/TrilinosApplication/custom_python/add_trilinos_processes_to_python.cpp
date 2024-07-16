@@ -42,6 +42,14 @@ template<unsigned int TDim> using TrilinosVariationalDistanceCalculation = Varia
 template< class TBinder, unsigned int TDim > void DistanceCalculatorConstructionHelper(TBinder& rBinder)
 {
     rBinder.def(py::init([](
+        Epetra_MpiComm& rCommunicator, Model& rModel,TrilinosLinearSolverType::Pointer pLinearSolver, Parameters ThisParameters)
+        {
+            constexpr int row_size_guess = TDim == 2 ? 15 : 40;
+            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >(
+                rCommunicator, row_size_guess, pLinearSolver);
+            return Kratos::make_shared<TrilinosVariationalDistanceCalculation<TDim>>(rModel, pLinearSolver, p_builder_solver, ThisParameters);
+        }));
+    rBinder.def(py::init([](
         Epetra_MpiComm& rComm,ModelPart& rModelPart,TrilinosLinearSolverType::Pointer pLinearSolver,
         unsigned int MaxIter,Flags TheFlags)
         {

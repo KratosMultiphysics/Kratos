@@ -137,10 +137,9 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(
     const double J2thirds = J2 / 3.0;
 
     if constexpr (Dimension == 2) {
-        rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
-        rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
-        rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
-        rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+        rThirdVector[0] = J2thirds;
+        rThirdVector[1] = J2thirds;
+        rThirdVector[2] = 0.0; // The szz should be added when 4-size is ready in plane strain
     } else {
         rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
         rThirdVector[1] = rDeviator[0] * rDeviator[2] - rDeviator[5] * rDeviator[5] + J2thirds;
@@ -809,6 +808,35 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::MacaullyBrackets(const doub
     
 {
     return (Number > 0.0) ? Number : 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetMaterialPropertyThroughAccessor(
+    const Variable<double>& rVariable,
+    ConstitutiveLaw::Parameters &rValues
+    )
+{
+    const auto &r_geom = rValues.GetElementGeometry();
+    const auto &r_N = rValues.GetShapeFunctionsValues();
+    const auto &r_process_info = rValues.GetProcessInfo();
+    return rValues.GetMaterialProperties().GetValue(rVariable, r_geom, r_N, r_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetPropertyFromTemperatureTable(
+    const Variable<double>& rVariable,
+    ConstitutiveLaw::Parameters &rValues,
+    const double Temperature
+    )
+{
+    const auto& r_properties = rValues.GetMaterialProperties();
+    return r_properties.HasTable(TEMPERATURE, rVariable) ? r_properties.GetTable(TEMPERATURE, rVariable).GetValue(Temperature) : r_properties[rVariable];
 }
 
 /***********************************************************************************/

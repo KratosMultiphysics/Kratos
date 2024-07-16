@@ -39,6 +39,7 @@ class PythonRegistry(object):
 
     #TODO: Change this by a frozenmap() once this is available
     CppGetFunctionNamesMap = {
+        "Modelers": "GetModeler",
         "Operations": "GetOperation",
         "Processes": "GetProcess"
     }

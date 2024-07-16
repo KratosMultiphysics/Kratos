@@ -127,7 +127,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
     def _create_solution_strategy(self):
         self.computing_model_part = self.GetComputingModelPart()
         strategy_settings = KratosMultiphysics.Parameters('''{}''')
-        strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
+        strategy_settings.AddEmptyValue("rebuild_level").SetInt(1 if self.settings["reform_dofs_at_each_step"].GetBool() else 0)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 

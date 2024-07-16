@@ -52,9 +52,9 @@ class MaterialPropertiesControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+        if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+            KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
         pass
@@ -100,7 +100,7 @@ class MaterialPropertiesControl(Control):
         # get the current unfiltered control field
         unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+        if Kratos.Expression.Utils.NormL2(unfiltered_control_field - control_field) > 1e-9:
             KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
             return True
 

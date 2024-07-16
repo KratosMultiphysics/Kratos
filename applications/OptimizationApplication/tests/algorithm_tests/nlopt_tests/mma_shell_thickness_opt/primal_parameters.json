@@ -1,0 +1,131 @@
+{
+    "problem_data": {
+        "problem_name": "shell",
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "solver_settings": {
+        "solver_type": "static",
+        "echo_level": 0,
+        "analysis_type": "linear",
+        "model_part_name": "shell",
+        "domain_size": 3,
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "material_import_settings": {
+            "materials_filename": "materials_2D.json"
+        },
+        "rotation_dofs": true,
+        "move_mesh_flag": false,
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "smoother_type": "ilu0",
+            "krylov_type": "gmres",
+            "coarsening_type": "aggregation",
+            "max_iteration": 200,
+            "provide_coordinates": false,
+            "gmres_krylov_space_dimension": 100,
+            "verbosity": 0,
+            "tolerance": 1e-7,
+            "scaling": false,
+            "block_size": 1,
+            "use_block_matrices_if_possible": true,
+            "coarse_enough": 5000
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.edge_support",
+                    "variable_name": "DISPLACEMENT",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.surface_load",
+                    "variable_name": "SURFACE_LOAD",
+                    "modulus": 1000.0,
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "check": "DirectorVectorNonZero direction",
+                "Parameters": {
+                    "model_part_name": "shell",
+                    "variable_name": "VOLUME_ACCELERATION",
+                    "constrained": false,
+                    "modulus": 9.8,
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        "vtk_output": [
+            {
+                "python_module": "vtk_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VTKOutputProcess",
+                "Parameters": {
+                    "model_part_name": "shell",
+                    "file_format": "binary",
+                    "output_precision": 7,
+                    "output_control_type": "step",
+                    "output_frequency": 1.0,
+                    "output_sub_model_parts": false,
+                    "folder_name": "Primal_Results",
+                    "save_output_files_in_folder": true,
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT",
+                        "REACTION",
+                        "ROTATION",
+                        "POINT_LOAD"
+                    ],
+                    "nodal_data_value_variables": [],
+                    "element_data_value_variables": [],
+                    "condition_data_value_variables": [],
+                    "gauss_point_variables_extrapolated_to_nodes": [],
+                    "gauss_point_variables_in_elements": [
+                        "VON_MISES_STRESS"
+                    ]
+                }
+            }
+        ]
+    }
+}
