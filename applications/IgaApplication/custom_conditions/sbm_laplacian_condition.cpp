@@ -471,28 +471,19 @@ namespace Kratos
                                 
                                 if (k_x >= 1) {
                                     H_taylor_term_X += computeTaylorTerm3D(derivative, d[0], k_x-1, d[1], k_y, d[2], k_z);
-                                    KRATOS_WATCH(k_x)
-                                    KRATOS_WATCH(k_y)
-                                    KRATOS_WATCH(k_z)
-                                    KRATOS_WATCH(countDerivativeId)
                                 }
                                 if (k_y >= 1) {
                                     H_taylor_term_Y += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y-1, d[2], k_z);
-                                    KRATOS_WATCH(k_x)
-                                    KRATOS_WATCH(k_y)
-                                    KRATOS_WATCH(k_z)
-                                    KRATOS_WATCH(countDerivativeId)
                                 }
                                 if (k_z >= 1) {
                                     H_taylor_term_Z += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y, d[2], k_z-1);
-                                    KRATOS_WATCH(k_x)
-                                    KRATOS_WATCH(k_y)
-                                    KRATOS_WATCH(k_z)
-                                    KRATOS_WATCH(countDerivativeId)
                                 }     
                                 countDerivativeId++;
                             }
                         }
+                        // H_taylor_term_X += shapeFunctionDerivatives(i,0)*d[0] + shapeFunctionDerivatives(i,1)*d[1] + shapeFunctionDerivatives(i,2)*d[2] ;
+                        // H_taylor_term_Y += shapeFunctionDerivatives(i,1)*d[0] + shapeFunctionDerivatives(i,3)*d[1] + shapeFunctionDerivatives(i,4)*d[2] ;
+                        // H_taylor_term_Z += shapeFunctionDerivatives(i,2)*d[0] + shapeFunctionDerivatives(i,4)*d[1] + shapeFunctionDerivatives(i,5)*d[2] ;
                     }
                 }
                 
@@ -529,6 +520,10 @@ namespace Kratos
                     t_N[i] = sqrt(2) * cos(sqrt(2)*projection[0]) * sinh(projection[1]) *  cosh(projection[2]) * true_n[0] + 
                                        sin(sqrt(2)*projection[0]) * cosh(projection[1]) *  cosh(projection[2]) * true_n[1] +
                                        sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
+                    // double x = r_geometry.Center().X(); double y = r_geometry.Center().Y(); double z = r_geometry.Center().Z();
+                    // t_N[i] = sqrt(2) * cos(sqrt(2)*x) * sinh(y) *  cosh(z) * true_n[0] + 
+                    //                    sin(sqrt(2)*x) * cosh(y) *  cosh(z) * true_n[1] +
+                    //                    sin(sqrt(2)*x) * sinh(y) *  sinh(z) * true_n[2];
 
                     // true sol: x+y+z
                     // t_N[i] = true_n[0]+true_n[1]+true_n[2];
