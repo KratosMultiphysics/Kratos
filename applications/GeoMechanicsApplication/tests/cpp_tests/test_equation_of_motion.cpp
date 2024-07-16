@@ -21,7 +21,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
@@ -33,8 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     p_elem_prop->SetValue(POROSITY, 0.0);
     p_elem_prop->SetValue(DENSITY_SOLID, 1700.0);
     // set arbitrary constitutive law
-    const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     ProcessInfo process_info;
 
@@ -67,7 +66,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+class StubConstitutiveLaw : public ConstitutiveLaw
+{};
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;
     const auto nodal_variables =
@@ -78,8 +80,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     // Set the element properties
     auto p_elem_prop = r_model_part.pGetProperties(0);
     // set arbitrary constitutive law
-    const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
     // Please note these are not representative values, it just ensures the values are set
     p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
     p_elem_prop->SetValue(POROSITY, 0.3);
@@ -119,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr std::size_t n = 10;
 
@@ -158,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr std::size_t voigt_size = 4;
     constexpr std::size_t n          = 3;
