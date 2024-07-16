@@ -33,9 +33,10 @@ void ResetDisplacementProcess::ExecuteInitialize()
         std::vector<Vector> stresses_on_integration_points;
         rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
                                               mrModelPart.GetProcessInfo());
-
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
         rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
+
+        CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement);
 
         for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
             auto p_initial_state = make_intrusive<InitialState>();
@@ -52,6 +53,21 @@ int ResetDisplacementProcess::Check()
            "model part. Please use the \"rest\" option for the model input type";
 
     return 0;
+}
+
+void ResetDisplacementProcess::CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
+                                                         const std::vector<Vector>& rStressesOnIntegrationPoints,
+                                                         const Element& rElement)
+{
+    KRATOS_ERROR_IF(rConstitutiveLaws.empty())
+            << "The constitutive laws on the integration points could not be retrieved for element "
+            << rElement.GetId() << std::endl;
+    KRATOS_ERROR_IF(rStressesOnIntegrationPoints.empty())
+        << "The stress vectors on the integration points could not be retrieved for element "
+        << rElement.GetId() << std::endl;
+    KRATOS_ERROR_IF(rStressesOnIntegrationPoints.size() != rConstitutiveLaws.size())
+        << "Number of retrieved stress vectors does not match the number of constitutive laws for element "
+        << rElement.GetId() << std::endl;
 }
 
 } // namespace Kratos

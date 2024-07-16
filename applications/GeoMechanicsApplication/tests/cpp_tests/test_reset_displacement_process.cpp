@@ -13,7 +13,6 @@
 #include "custom_processes/reset_displacement_process.h"
 #include "geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
-#include <includes/deprecated_variables.h>
 
 namespace
 {
@@ -31,9 +30,7 @@ public:
 
     StubElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        for (int i = 0; i < 3; ++i) {
-            mConstitutiveLaws.push_back(std::make_shared<StubConstitutiveLaw>());
-        }
+        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
     }
 
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
@@ -47,18 +44,18 @@ public:
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
-        rOutput = mIntegrationVectorValues;
+        rOutput = mIntegrationPointVectors;
     }
 
     using Element::CalculateOnIntegrationPoints;
 
-    std::vector<Vector>                   mIntegrationVectorValues = {};
+    std::vector<Vector>                   mIntegrationPointVectors = {};
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws        = {};
 };
 
-ModelPart& CreateModelPartWithAStubElement(Model& model)
+ModelPart& CreateModelPartWithAStubElement(Model& rModel)
 {
-    auto& model_part = model.CreateModelPart("MainModelPart");
+    auto& model_part = rModel.CreateModelPart("MainModelPart");
     auto  node_1     = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto  node_2     = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     auto  node_3     = model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -81,8 +78,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     Vector initial_stress_vector(4);
     initial_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
 
-    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationVectorValues = {
-        initial_stress_vector, initial_stress_vector, initial_stress_vector};
+    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationPointVectors =
+        std::vector<Vector>(3, initial_stress_vector);
 
     ResetDisplacementProcess reset_displacement_process(model_part, {});
     reset_displacement_process.ExecuteInitialize();
@@ -91,6 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
                                                           model_part.GetProcessInfo());
 
+    KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
     for (const auto& constitutive_law : constitutive_laws) {
         KRATOS_EXPECT_VECTOR_NEAR(constitutive_law->GetInitialState().GetInitialStressVector(),
                                   initial_stress_vector, 1e-12)
@@ -112,6 +110,47 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInCheck_WhenModelIsNotR
 
     model_part.GetProcessInfo()[IS_RESTARTED] = true;
     KRATOS_EXPECT_EQ(process.Check(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& model_part = CreateModelPartWithAStubElement(model);
+
+    ResetDisplacementProcess process(model_part, {});
+    dynamic_cast<StubElement&>(model_part.Elements()[1]).mConstitutiveLaws.clear();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitialize(),
+        "The constitutive laws on the integration points could not be retrieved for element 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenStressVectorsCannotBeRetrieved,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& model_part = CreateModelPartWithAStubElement(model);
+
+    ResetDisplacementProcess process(model_part, {});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.ExecuteInitialize(),
+        "The stress vectors on the integration points could not be retrieved for element 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenStressVectorsAndConstitutiveLawsAreNotTheSameSize,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& model_part = CreateModelPartWithAStubElement(model);
+    dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationPointVectors =
+        std::vector<Vector>(2, ScalarVector(4, 1.0));
+
+    ResetDisplacementProcess process(model_part, {});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitialize(),
+                                      "Number of retrieved stress vectors does not match the "
+                                      "number of constitutive laws for element 1")
 }
 
 } // namespace Kratos::Testing
