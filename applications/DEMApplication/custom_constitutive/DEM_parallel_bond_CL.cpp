@@ -280,7 +280,7 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
                             SphericContinuumParticle* element2) {
     KRATOS_TRY
 
-    double tension_limit;
+    //double tension_limit;
 
     // calculation of equivalent Young modulus
     const double& equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
@@ -860,9 +860,9 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
 
     const double equivalent_radius = std::sqrt(calculation_area / Globals::Pi);
-    const double element_mass  = element->GetMass();
-    const double neighbor_mass = neighbor->GetMass();
-    const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
+    //const double element_mass  = element->GetMass();
+    //const double neighbor_mass = neighbor->GetMass();
+    //const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
 
     const double bond_equiv_young = GetYoungModulusForComputingRotationalMoments(equiv_young);
     
@@ -873,7 +873,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
     const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
-    const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
+    //const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
     //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
     /*array_1d<double, 3> visc_param;

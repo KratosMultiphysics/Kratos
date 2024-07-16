@@ -79,14 +79,14 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
     const double bonded_indentation = indentation - mInitialIndentationForBondedPart; 
                                                                                     
     mBondedLocalElasticContactForce2 = 0.0; //normal forces
-    double BondedLocalElasticContactForce[2] = {0.0}; 
-    double current_tangential_force_module = 0.0;
+    //double BondedLocalElasticContactForce[2] = {0.0}; 
+    //double current_tangential_force_module = 0.0;
 
     //const double bond_sigma_max = (*mpProperties)[BOND_SIGMA_MAX]; //tension limit
     const double bond_sigma_max = mBondSigmaMax;
     const double fracture_energy_normal = (*mpProperties)[FRACTURE_ENERGY_NORMAL];
-    const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
-    const double delta_at_failure_point_normal = (2.0 * fracture_energy_normal) / bond_sigma_max;
+    //const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
+    //const double delta_at_failure_point_normal = (2.0 * fracture_energy_normal) / bond_sigma_max;
 
     const double initial_limit_force = bond_sigma_max * calculation_area;
     double DamageEnergyCoeffNormal = 0.0;
