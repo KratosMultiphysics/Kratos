@@ -143,7 +143,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
             }
 
             double deta_equivalent_0_normal = delta_equivalent_0 / sqrt(1 + beta * beta);
-            double deta_equivalent_0_tangential = beta * deta_equivalent_0_normal;
+            //double deta_equivalent_0_tangential = beta * deta_equivalent_0_normal;
             double k_bar_equivalent = (kn_el / calculation_area + beta * beta * kt_el / calculation_area) / (1 + beta * beta);
 
             //yield check
