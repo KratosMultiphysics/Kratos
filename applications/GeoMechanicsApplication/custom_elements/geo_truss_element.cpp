@@ -108,8 +108,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
         Vector strain = ZeroVector(TDim);
         strain[0]     = this->CalculateGreenLagrangeStrain();
         rOutput[0]    = strain;
-    }
-    if (rVariable == PK2_STRESS_VECTOR) {
+    } else if (rVariable == PK2_STRESS_VECTOR) {
         ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0]     = this->CalculateGreenLagrangeStrain();
@@ -122,22 +121,12 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
             temp_internal_stresses[i] += mInternalStressesFinalizedPrevious[i];
 
         rOutput[0] = temp_internal_stresses;
-    }
-    if (rVariable == CAUCHY_STRESS_VECTOR) {
-        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        temp_strain[0]     = this->CalculateGreenLagrangeStrain();
-        Values.SetStrainVector(temp_strain);
-        array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
-        mpConstitutiveLaw->CalculateValue(Values, FORCE, temp_internal_stresses);
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, rOutput, rCurrentProcessInfo);
 
-        for (unsigned int i = 0; i < TDim; ++i)
-            temp_internal_stresses[i] += mInternalStressesFinalizedPrevious[i];
-
-        const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-
-        rOutput[0] = temp_internal_stresses * l / L0;
+        const auto l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const auto L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] *= (l / L0);
     }
 
     KRATOS_CATCH("")
