@@ -110,7 +110,7 @@ End SubModelPart
 } // namespace
 
 KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorModelerKeyPlaneBySize,
-                          AdditiveManufacturingApplicationFastSuite)
+                          KratosCoreFastSuite)
 {
     using namespace Kratos;
 

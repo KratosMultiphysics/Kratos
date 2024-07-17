@@ -14,13 +14,14 @@
 #pragma once
 
 #include "time_incrementor.h"
+#include "includes/kratos_export_api.h"
 
 #include <vector>
 
 namespace Kratos
 {
 
-class PrescribedTimeIncrementor : public TimeIncrementor
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PrescribedTimeIncrementor : public TimeIncrementor
 {
 public:
     explicit PrescribedTimeIncrementor(const std::vector<double>& increments);

@@ -11,9 +11,9 @@
 //                   Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "custom_workflows/prescribed_time_incrementor.h"
 #include "custom_workflows/time_step_end_state.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
@@ -33,7 +33,7 @@ TimeStepEndState MakeConvergedEndState()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPrescribedTimeIncrementorHasEmptyList, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPrescribedTimeIncrementorHasEmptyList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{};
     const auto incrementor    = PrescribedTimeIncrementor{increments};
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPrescribedTimeIncrementorHasEmptyLis
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantFirstTimeStepWhenPrescribedTimeIncrementorHasNonEmptyList, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WantFirstTimeStepWhenPrescribedTimeIncrementorHasNonEmptyList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     const auto incrementor    = PrescribedTimeIncrementor{increments};
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTimeStepWhenPrescribedTimeIncrementorHasNonEm
     KRATOS_EXPECT_TRUE(incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorHasTwoItems, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorHasTwoItems, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     auto       incrementor    = PrescribedTimeIncrementor{increments};
@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorH
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegative, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegative, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments = std::vector<double>{0.4, -0.6};
 
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegativ
                                       "All prescribed increments must not be negative")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     const auto incrementor    = PrescribedTimeIncrementor{increments};
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoM
     KRATOS_EXPECT_TRUE(incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsFalseOnAnySubsequentCycle, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsFalseOnAnySubsequentCycle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     const auto incrementor    = PrescribedTimeIncrementor{increments};
@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsFalseOnAnySubsequentCycle, K
     KRATOS_EXPECT_FALSE(incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     auto       incrementor    = PrescribedTimeIncrementor{increments};
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementBeyondEnd, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementBeyondEnd, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     auto       incrementor    = PrescribedTimeIncrementor{increments};
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
                                       "Out of increment range")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments  = std::vector<double>{0.4, 0.6};
     auto       incrementor = PrescribedTimeIncrementor{increments};
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, Kr
     KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPreviousEndStateDidNotConverge, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPreviousEndStateDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto increments     = std::vector<double>{0.4, 0.6};
     const auto incrementor    = PrescribedTimeIncrementor{increments};

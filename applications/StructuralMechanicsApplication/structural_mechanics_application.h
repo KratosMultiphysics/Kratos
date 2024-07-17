@@ -77,9 +77,13 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
+#include "custom_elements/timoshenko_beam_element_2D3N.h"
+#include "custom_elements/timoshenko_curved_beam_element_2D3N.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
@@ -269,6 +273,8 @@ private:
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
+    const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
+    const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
 
 
     // Adding the shells elements
@@ -326,6 +332,16 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D4N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D8N;
+
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;

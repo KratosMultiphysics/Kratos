@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
 #include "custom_utilities/scheme_factory.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
 
 using namespace Kratos;
@@ -23,7 +23,7 @@ using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 using SchemeFactoryType = SchemeFactory<SparseSpaceType, LocalSpaceType>;
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto parameters =
     R"(
@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosG
                                       "scheme_type is not defined, aborting")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto parameters =
             R"(
@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, Krato
                                       "solution_type is not defined, aborting")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNotSupported, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNotSupported, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto parameters =
             R"(
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNot
                                       "Specified solution_type/scheme_type is not supported, aborting")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_ReturnsCorrectScheme_ForBackwardEulerQuasiStatic, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_ReturnsCorrectScheme_ForBackwardEulerQuasiStatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto parameters =
             R"(

@@ -74,6 +74,7 @@ def GetDefaultInputParameters():
             }],
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
+            "SearchToleranceMultiplier"        : 0.0,
             "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
             "LocalCoordinationNumberOption"    : false,
