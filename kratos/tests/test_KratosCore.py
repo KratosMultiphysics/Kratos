@@ -93,6 +93,7 @@ import test_calculate_nodal_distance_to_skin_process
 import test_compute_nodal_gradient_process
 import test_voxel_modeler
 import test_model_part_utils_connectivity_generations
+import test_duplicate_mesh_modeler
 import test_search_wrapper
 
 # Import modules required for sequential orchestrator test
@@ -213,6 +214,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestOpenStructureVoxelizer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestBoundaryConditionVoxelizer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils_connectivity_generations.TestModelPartUtilsConnectivityGenerations]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_duplicate_mesh_modeler.TestDuplicateMeshModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_search_wrapper.TestSearchWrapper]))
 
     if sympy_available:
