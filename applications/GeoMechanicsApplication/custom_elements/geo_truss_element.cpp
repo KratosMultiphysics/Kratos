@@ -124,9 +124,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
         rOutput[0] = temp_internal_stresses;
     }
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        ProcessInfo temp_process_information;
-
-        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), temp_process_information);
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0]     = this->CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
