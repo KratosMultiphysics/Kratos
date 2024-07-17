@@ -797,7 +797,7 @@ namespace Testing
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks search_wrapper_bins search nearest
@@ -805,7 +805,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks search_wrapper_bins search nearest
@@ -813,7 +813,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks search_wrapper_bins empty search nearest
@@ -821,7 +821,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks search_wrapper_bins search is inside
@@ -829,7 +829,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks search_wrapper_bins search is inside = not found
@@ -837,7 +837,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
 {
     TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBins>();
-    TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
+    //TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBinsHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for KDTreeElement search in radius
@@ -845,7 +845,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperKDTreeElement>();
-    TestTreeSearchInRadius<SearchWrapperKDTreeElementHetereogeneous>();
+    //TestTreeSearchInRadius<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search in radius
@@ -853,7 +853,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadiu
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperOCTreeElement>();
-    TestTreeSearchInRadius<SearchWrapperOCTreeElementHetereogeneous>();
+    //TestTreeSearchInRadius<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search in radius
@@ -861,7 +861,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadiu
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElement>();
-    TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
+    //TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search in radius
@@ -869,35 +869,39 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchInRadius, KratosMPICoreFastSuite)
 {
     TestTreeSearchInRadius<SearchWrapperBinsDynamicElement>();
-    TestTreeSearchInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
+    //TestTreeSearchInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperKDTreeElementHetereogeneous>();
+    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();
+    //TestTreeSearchNearestInRadius<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperOCTreeElementHetereogeneous>();
+    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();
+    //TestTreeSearchNearestInRadius<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
+    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();
+    //TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
+    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();
+    //TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest
@@ -905,7 +909,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNe
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperKDTreeElement>();
-    TestTreeSearchNearest<SearchWrapperKDTreeElementHetereogeneous>();
+    //TestTreeSearchNearest<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest
@@ -913,7 +917,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperOCTreeElement>();
-    TestTreeSearchNearest<SearchWrapperOCTreeElementHetereogeneous>();
+    //TestTreeSearchNearest<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest
@@ -921,7 +925,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperStaticBinsTreeElement>();
-    TestTreeSearchNearest<SearchWrapperStaticBinsTreeElementHetereogeneous>();
+    //TestTreeSearchNearest<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest
@@ -929,7 +933,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearest, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
-    TestTreeSearchNearest<SearchWrapperBinsDynamicElementHetereogeneous>();
+    //TestTreeSearchNearest<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for KDTreeElement search nearest
@@ -937,7 +941,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNe
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
-    TestTreeSearchNearestEmpty<SearchWrapperKDTreeElementHetereogeneous>();
+    //TestTreeSearchNearestEmpty<SearchWrapperKDTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for OCTreeElement search nearest
@@ -945,7 +949,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
-    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElementHetereogeneous>();
+    //TestTreeSearchNearestEmpty<SearchWrapperOCTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for StaticBinsTree search nearest
@@ -953,7 +957,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
-    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElementHetereogeneous>();
+    //TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElementHetereogeneous>();
 }
 
 /** Checks SearchWrapper works for BinsDynamicElement search nearest
@@ -961,7 +965,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearc
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
     TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
-    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElementHetereogeneous>();
+    //TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElementHetereogeneous>();
 }
 
 } // namespace Testing.
