@@ -2,6 +2,9 @@
 
 This set of tests verifies the interface functionality.
 
+## Interface properties' input
+
+Currently, User Defined Soil Model (UDSM) is used to prescribe the interface properties. However, the standard properties like soil/water properties, porosity etc. must be prescribed as well when their values can be over-written by UDSM. In the following tests only two UMAT parameters are used, the first one is a stiffness and the third one is a cohesion.   
 
 ## Using interfaces between beam and soil
 
@@ -27,7 +30,7 @@ The beam is described with BeamConstitutiveLaw:
 -   Cross area of $0.01 \  \mathrm{[m^2]}$,
 -   Moment of inertia about Z axis $I33 = 8.33333\cdot 10^{-8} \  \mathrm{[kg m^2]}$
 
-The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a cohesion of $1000 \  \mathrm{[kN]}$ and a stiffness of $1e12 \  \mathrm{[Pa]}$. The stiffness value is provided as the first UMAT parameter. 
+The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a stiffness of $1e12 \  \mathrm{[Pa]}$.  
 
 ### Solution
 
@@ -70,9 +73,9 @@ The soil is dry, and it is described with GeoLinearElasticPlaneStrain2DLaw:
 -   The soil density is $2000 \  \mathrm{[kg/m^3]}$ and the porosity is $n=0.3$. 
 -   The bulk modulus of solid $K = 1.0e12 \  \mathrm{[Pa]}$.
 
-The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a cohesion of $1000 \  \mathrm{[kN]}$ and a stiffness of $1e12 \  \mathrm{[Pa]}$. 
+The interface is described with SmallStrainUDSM2DInterfaceLaw and it has a cohesion of $10 \  \mathrm{[kN]}$ and a stiffness of $1e10 \  \mathrm{[Pa]}$. A higher value of the stiffness leads to a solution divergence for the current setup.
 
-The left side of the interface is fixed. The entire soil block moves down with a prescribed vertical displacement of $-0.1 \  \mathrm{[m]}$  and a horizontal line load of $-1 \  \mathrm{[kN]}$  is applied to the soil block right side. 
+The left side of the interface is fixed. The upper and bottom sides of the soil block move down with a prescribed vertical displacement of $-0.1 \  \mathrm{[m]}$  and a horizontal line load of $-1000 \  \mathrm{[kN]}$  is applied to the soil block right side. 
 
 ### Solution
 
