@@ -59,12 +59,6 @@ Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType             
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTrussElement<TDim, TNumNodes>::~GeoTrussElement()
-{
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 {
     KRATOS_TRY

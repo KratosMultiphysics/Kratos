@@ -58,8 +58,6 @@ public:
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTrussElement() override;
-
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
