@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "geometries/line_2d_2.h"
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"

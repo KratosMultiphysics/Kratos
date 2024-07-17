@@ -85,7 +85,7 @@ Here's an example of how you can utilize the `SearchWrapperGeometricalObjectsBin
 
 ```cpp
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "spatial_containers/search_wrapper.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 

@@ -16,10 +16,10 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "containers/model.h"
 #include "spatial_containers/search_wrapper.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
 namespace Kratos
