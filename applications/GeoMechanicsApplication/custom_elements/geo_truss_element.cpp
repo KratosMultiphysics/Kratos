@@ -44,8 +44,7 @@ Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType             
                                                           NodesArrayType const&   rThisNodes,
                                                           PropertiesType::Pointer pProperties) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
-    return Kratos::make_intrusive<GeoTrussElement>(NewId, rGeom.Create(rThisNodes), pProperties);
+    return make_intrusive<GeoTrussElement>(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //----------------------------------------------------------------------------------------
@@ -54,7 +53,7 @@ Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType             
                                                           GeometryType::Pointer   pGeom,
                                                           PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<GeoTrussElement>(NewId, pGeom, pProperties);
+    return make_intrusive<GeoTrussElement>(NewId, pGeom, pProperties);
 }
 
 //----------------------------------------------------------------------------------------
