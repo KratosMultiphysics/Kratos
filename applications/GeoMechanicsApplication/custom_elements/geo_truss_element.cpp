@@ -150,7 +150,7 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                     std::vector<array_1d<double, 3>>& rOutput,
-                                                                    const ProcessInfo& rCurrentProcessInfo)
+                                                                    const ProcessInfo&)
 {
     KRATOS_TRY
 
@@ -239,7 +239,7 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
