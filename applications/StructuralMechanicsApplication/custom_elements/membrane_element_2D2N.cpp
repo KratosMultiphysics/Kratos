@@ -27,73 +27,6 @@
 namespace Kratos
 {
 
-void MembraneElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        if(this->UseGeometryIntegrationMethod()) {
-            if( GetProperties().Has(INTEGRATION_ORDER) ) {
-                const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-                switch (integration_order)
-                {
-                case 1:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                    break;
-                case 2:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-                    break;
-                case 3:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                    break;
-                case 4:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-                    break;
-                case 5:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-                    break;
-                default:
-                    KRATOS_WARNING("MembraneElement2D2N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-                    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-                }
-            } else {
-                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-            }
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void MembraneElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void MembraneElement2D2N::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void MembraneElement2D2N::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void MembraneElement2D2N::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -129,9 +62,6 @@ Element::Pointer MembraneElement2D2N::Clone(
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
-    // Currently selected integration methods
-    p_new_elem->SetIntegrationMethod(mThisIntegrationMethod);
-
     return p_new_elem;
 
     KRATOS_CATCH("");
@@ -146,14 +76,15 @@ void MembraneElement2D2N::EquationIdVector(
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
-    const SizeType n_nodes = r_geom.PointsNumber();
-    if (rResult.size() != n_nodes) {
-        rResult.resize(n_nodes, false);
+    if (rResult.size() != mLocalSize) {
+        rResult.resize(mLocalSize, false);
     }
 
-    rResult[0] = r_geom[0].GetDof(DISPLACEMENT_Y).EquationId();
-    rResult[1] = r_geom[1].GetDof(DISPLACEMENT_Y).EquationId();
+    const auto& r_geom = GetGeometry();
+    rResult[0] = r_geom[0].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[1] = r_geom[0].GetDof(DISPLACEMENT_Y).EquationId();
+    rResult[2] = r_geom[1].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[3] = r_geom[1].GetDof(DISPLACEMENT_Y).EquationId();
 
     KRATOS_CATCH("")
 };
@@ -168,14 +99,15 @@ void MembraneElement2D2N::GetDofList(
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
-    const SizeType n_nodes = r_geom.PointsNumber();
-    if (rElementalDofList.size() != n_nodes) {
-        rElementalDofList.resize(n_nodes);
+    if (rElementalDofList.size() != mLocalSize) {
+        rElementalDofList.resize(mLocalSize);
     }
 
-    rElementalDofList[0] = r_geom[0].pGetDof(DISPLACEMENT_Y);
-    rElementalDofList[1] = r_geom[1].pGetDof(DISPLACEMENT_Y);
+    const auto& r_geom = GetGeometry();
+    rElementalDofList[0] = r_geom[0].pGetDof(DISPLACEMENT_X);
+    rElementalDofList[1] = r_geom[0].pGetDof(DISPLACEMENT_Y);
+    rElementalDofList[2] = r_geom[1].pGetDof(DISPLACEMENT_X);
+    rElementalDofList[3] = r_geom[1].pGetDof(DISPLACEMENT_Y);
 
     KRATOS_CATCH("")
 };
@@ -187,14 +119,19 @@ void MembraneElement2D2N::GetFirstDerivativesVector(
     Vector& rValues,
     int Step) const
 {
-    const auto& r_geom = GetGeometry();
-    const SizeType n_nodes = r_geom.PointsNumber();
-    if (rValues.size() != n_nodes) {
-        rValues.resize(n_nodes, false);
+    KRATOS_TRY;
+
+    if (rValues.size() != mLocalSize) {
+        rValues.resize(mLocalSize, false);
     }
 
-    rValues[0] = r_geom[0].FastGetSolutionStepValue(VELOCITY_Y, Step);
-    rValues[1] = r_geom[1].FastGetSolutionStepValue(VELOCITY_Y, Step);
+    const auto& r_geom = GetGeometry();
+    rValues[0] = r_geom[0].FastGetSolutionStepValue(VELOCITY_X, Step);
+    rValues[1] = r_geom[0].FastGetSolutionStepValue(VELOCITY_Y, Step);
+    rValues[2] = r_geom[1].FastGetSolutionStepValue(VELOCITY_X, Step);
+    rValues[3] = r_geom[1].FastGetSolutionStepValue(VELOCITY_Y, Step);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -204,14 +141,19 @@ void MembraneElement2D2N::GetSecondDerivativesVector(
     Vector& rValues,
     int Step) const
 {
-    const auto& r_geom = GetGeometry();
-    const SizeType n_nodes = r_geom.PointsNumber();
-    if (rValues.size() != n_nodes) {
-        rValues.resize(n_nodes, false);
+    KRATOS_TRY;
+
+    if (rValues.size() != mLocalSize) {
+        rValues.resize(mLocalSize, false);
     }
 
-    rValues[0] = r_geom[0].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-    rValues[1] = r_geom[1].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+    const auto& r_geom = GetGeometry();
+    rValues[0] = r_geom[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
+    rValues[1] = r_geom[0].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+    rValues[2] = r_geom[1].FastGetSolutionStepValue(ACCELERATION_X, Step);
+    rValues[3] = r_geom[1].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -227,64 +169,96 @@ void MembraneElement2D2N::CalculateLocalSystem(
     // Get element data
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
-    const SizeType n_nodes = r_geom.PointsNumber();
 
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
 
-    // Calculate linearised tensile stress (note that we are assuming it constant in the element)
-    const double stress_0 = GetMembranePrestress();
+    // Calculate element lengths
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
-    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    const double strain = (l - l_0) / l_0;
-    const double stress = (young * strain + stress_0) * h;
+    const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    // Calculate material response
+    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double S0 = GetMembranePrestress();
+    const double S = young * E + S0;
+    const bool is_compressed = S < 0.0 && std::abs(E) > 1.0e-12 ? true : false;
 
     // Check RHS size
-    if (rRightHandSideVector.size() != n_nodes) {
-        rRightHandSideVector.resize(n_nodes, false);
+    if (rRightHandSideVector.size() != mLocalSize) {
+        rRightHandSideVector.resize(mLocalSize, false);
     }
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
-        rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
+    if (rLeftHandSideMatrix.size1() != mLocalSize || rLeftHandSideMatrix.size2() != mLocalSize) {
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
     }
 
-    // Calculate the RHS and LHS contributions
+    // Set RHS and LHS to zero
     rLeftHandSideMatrix.clear();
     rRightHandSideVector.clear();
 
-    Vector N(n_nodes);
-    Matrix DN_De(n_nodes, 1);
-    const SizeType n_gauss = r_geom.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geom.IntegrationPoints(GetIntegrationMethod());
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    // Calculate required kinematics
+    array_1d<double, mLocalSize> B;
+    const auto& r_x_0 = r_geom[0].Coordinates();
+    const auto& r_x_1 = r_geom[1].Coordinates();
+    const double dx = r_x_1[0] - r_x_0[0];
+    const double dy = r_x_1[1] - r_x_0[1];
+    B[0] = -dx / std::pow(l0,2);
+    B[1] = -dy / std::pow(l0,2);
+    B[2] = dx / std::pow(l0,2);
+    B[3] = dy / std::pow(l0,2);
 
-        // Calculate kinematics
-        r_geom.ShapeFunctionsValues(N, r_integration_points[i_gauss].Coordinates());
-        r_geom.ShapeFunctionsLocalGradients(DN_De, r_integration_points[i_gauss].Coordinates());
-        const double detJ = r_geom.DeterminantOfJacobian(r_integration_points[i_gauss].Coordinates());
-        const double w_gauss = detJ * r_integration_points[i_gauss].Weight();
+    // Calculate the internal force contribution
+    array_1d<double, mLocalSize> f_int;
+    if (is_compressed) {
+        f_int.clear();
+    } else {
+        const double aux_f_int = h * l0 * S;
+        noalias(f_int) = aux_f_int * B;
+    }
 
-        // Calculate the linearised membrane stress
-        double lin_rot = 0.0;
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            lin_rot += (1.0/detJ) * DN_De(i,0) * r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        }
-        const double lin_stress_term = stress /  std::sqrt(std::pow(1.0 + std::pow(lin_rot, 2), 3));
+    // Calculate the body force contribution
+    array_1d<double, 3> f_ext;
+    f_ext = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1), 0);
+    f_ext *= h * l0 * 0.5; // Half the force to each node
 
-        // Assemble nodal contributions
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            for (IndexType j = 0; j < n_nodes; ++j) {
-                // Pressure contribution
-                const double p = r_geom[j].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - r_geom[j].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-                rRightHandSideVector[i] += w_gauss * N[i] * N[j] * p; //TODO: Extend to also consider PRESSURE from the element database.
+    // Assemble the right hand side contributions
+    rRightHandSideVector[0] += f_ext[0] - f_int[0];
+    rRightHandSideVector[1] += f_ext[1] - f_int[1];
+    rRightHandSideVector[2] += f_ext[0] - f_int[2];
+    rRightHandSideVector[3] += f_ext[1] - f_int[3];
 
-                // Linearised stress contribution
-                const double aux = w_gauss * (DN_De(i,0) / detJ) * lin_stress_term * (DN_De(j,0) / detJ);
-                rLeftHandSideMatrix(i,j) += aux;
-                rRightHandSideVector[i] -= aux * r_geom[j].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    // Calculate material stiffness matrix
+    BoundedMatrix<double, mLocalSize, mLocalSize> K_mat;
+    if (is_compressed) {
+        K_mat.clear();
+    } else {
+        const double aux_K_mat = h * l0 * young;
+        K_mat = aux_K_mat * outer_prod(B, B);
+    }
+
+    // Calculate geometric stiffness matrix
+    BoundedMatrix<double, mLocalSize, mLocalSize> K_geo;
+    if (is_compressed) {
+        K_geo.clear();
+    } else {
+        const double aux_K_geo = h * S / l0;
+
+        K_geo.clear();
+        for (IndexType i = 0; i < mNumNodes; ++i) {
+            for (IndexType j = 0; j < mNumNodes; ++j) {
+                for (IndexType d = 0; d < mDim; ++d) {
+                    K_geo(i*mDim + d, j*mDim + d) = (i == j) ? aux_K_geo : - aux_K_geo;
+                }
             }
+        }
+    }
+
+    // Assemble the left hand side contributions
+    for (IndexType i = 0; i < mLocalSize; ++i) {
+        for (IndexType j = 0; j < mLocalSize; ++j) {
+            rLeftHandSideMatrix(i, j) += K_mat(i,j) + K_geo(i,j);
         }
     }
 
@@ -303,52 +277,70 @@ void MembraneElement2D2N::CalculateLeftHandSide(
     // Get element data
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
-    const SizeType n_nodes = r_geom.PointsNumber();
 
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
 
-    // Calculate linearised tensile stress (note that we are assuming it constant in the element)
-    const double stress_0 = GetMembranePrestress();
+    // Calculate element lengths
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
-    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    const double strain = (l - l_0) / l_0;
-    const double stress = (young * strain + stress_0) * h;;
+    const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    // Calculate material response
+    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double S0 = GetMembranePrestress();
+    const double S = young * E + S0;
+    const bool is_compressed = S < 0.0 && std::abs(E) > 1.0e-12 ? true : false;
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
-        rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
+    if (rLeftHandSideMatrix.size1() != mLocalSize || rLeftHandSideMatrix.size2() != mLocalSize) {
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
     }
 
-    // Calculate the LHS contribution
+    // Set LHS to zero
     rLeftHandSideMatrix.clear();
 
-    Vector N(n_nodes);
-    Matrix DN_De(n_nodes, 1);
-    const SizeType n_gauss = r_geom.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geom.IntegrationPoints(GetIntegrationMethod());
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    // Calculate required kinematics
+    array_1d<double, mLocalSize> B;
+    const auto& r_x_0 = r_geom[0].Coordinates();
+    const auto& r_x_1 = r_geom[1].Coordinates();
+    const double dx = r_x_1[0] - r_x_0[0];
+    const double dy = r_x_1[1] - r_x_0[1];
+    B[0] = -dx / std::pow(l0,2);
+    B[1] = -dy / std::pow(l0,2);
+    B[2] = dx / std::pow(l0,2);
+    B[3] = dy / std::pow(l0,2);
 
-        // Calculate kinematics
-        r_geom.ShapeFunctionsValues(N, r_integration_points[i_gauss].Coordinates());
-        r_geom.ShapeFunctionsLocalGradients(DN_De, r_integration_points[i_gauss].Coordinates());
-        const double detJ = r_geom.DeterminantOfJacobian(r_integration_points[i_gauss].Coordinates());
-        const double w_gauss = detJ * r_integration_points[i_gauss].Weight();
+    // Calculate material stiffness matrix
+    BoundedMatrix<double, mLocalSize, mLocalSize> K_mat;
+    if (is_compressed) {
+        K_mat.clear();
+    } else {
+        const double aux_K_mat = h * l0 * young;
+        K_mat = aux_K_mat * outer_prod(B, B);
+    }
 
-        // Calculate the linearised membrane stress
-        double lin_rot = 0.0;
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            lin_rot += (1.0/detJ) * DN_De(i,0) * r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        }
-        const double lin_stress_term = stress /  std::sqrt(std::pow(1.0 + std::pow(lin_rot, 2), 3));
+    // Calculate geometric stiffness matrix
+    BoundedMatrix<double, mLocalSize, mLocalSize> K_geo;
+    if (is_compressed) {
+        K_geo.clear();
+    } else {
+        const double aux_K_geo = h * S / l0;
 
-        // Assemble nodal contributions
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            for (IndexType j = 0; j < n_nodes; ++j) {
-                // Linearised stress contribution
-                rLeftHandSideMatrix(i,j) += w_gauss * (DN_De(i,0) / detJ) * lin_stress_term * (DN_De(j,0) / detJ);
+        K_geo.clear();
+        for (IndexType i = 0; i < mNumNodes; ++i) {
+            for (IndexType j = 0; j < mNumNodes; ++j) {
+                for (IndexType d = 0; d < mDim; ++d) {
+                    K_geo(i*mDim + d, j*mDim + d) = (i == j) ? aux_K_geo : - aux_K_geo;
+                }
             }
+        }
+    }
+
+    // Assemble the left hand side contributions
+    for (IndexType i = 0; i < mLocalSize; ++i) {
+        for (IndexType j = 0; j < mLocalSize; ++j) {
+            rLeftHandSideMatrix(i, j) += K_mat(i,j) + K_geo(i,j);
         }
     }
 
@@ -367,58 +359,59 @@ void MembraneElement2D2N::CalculateRightHandSide(
     // Get element data
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
-    const SizeType n_nodes = r_geom.PointsNumber();
 
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double young = r_prop.GetValue(YOUNG_MODULUS);
 
-    // Calculate linearised tensile stress (note that we are assuming it constant in the element)
-    const double stress_0 = GetMembranePrestress();
+    // Calculate element lengths
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
-    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    const double strain = (l - l_0) / l_0;
-    const double stress = (young * strain + stress_0) * h;;
+    const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    // Calculate material response
+    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double S0 = GetMembranePrestress();
+    const double S = young * E + S0;
+    const bool is_compressed = (S < 0.0 && std::abs(E) > 1.0e-12) ? true : false;
 
     // Check RHS size
-    if (rRightHandSideVector.size() != n_nodes) {
-        rRightHandSideVector.resize(n_nodes, false);
+    if (rRightHandSideVector.size() != mLocalSize) {
+        rRightHandSideVector.resize(mLocalSize, false);
     }
 
-    // Calculate the RHS contribution
+    // Set RHS to zero
     rRightHandSideVector.clear();
 
-    Vector N(n_nodes);
-    Matrix DN_De(n_nodes, 1);
-    const SizeType n_gauss = r_geom.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geom.IntegrationPoints(GetIntegrationMethod());
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    // Calculate required kinematics
+    array_1d<double, mLocalSize> B;
+    const auto& r_x_0 = r_geom[0].Coordinates();
+    const auto& r_x_1 = r_geom[1].Coordinates();
+    const double dx = r_x_1[0] - r_x_0[0];
+    const double dy = r_x_1[1] - r_x_0[1];
+    B[0] = -dx / std::pow(l0,2);
+    B[1] = -dy / std::pow(l0,2);
+    B[2] = dx / std::pow(l0,2);
+    B[3] = dy / std::pow(l0,2);
 
-        // Calculate kinematics
-        r_geom.ShapeFunctionsValues(N, r_integration_points[i_gauss].Coordinates());
-        r_geom.ShapeFunctionsLocalGradients(DN_De, r_integration_points[i_gauss].Coordinates());
-        const double detJ = r_geom.DeterminantOfJacobian(r_integration_points[i_gauss].Coordinates());
-        const double w_gauss = detJ * r_integration_points[i_gauss].Weight();
-
-        // Calculate the linearised membrane stress
-        double lin_rot = 0.0;
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            lin_rot += (1.0/detJ) * DN_De(i,0) * r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        }
-        const double lin_stress_term = stress /  std::sqrt(std::pow(1.0 + std::pow(lin_rot, 2), 3));
-
-        // Assemble nodal contributions
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            for (IndexType j = 0; j < n_nodes; ++j) {
-                // Pressure contribution
-                const double p = r_geom[j].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - r_geom[j].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-                rRightHandSideVector[i] += w_gauss * N[i] * N[j] * p; //TODO: Extend to also consider PRESSURE from the element database.
-
-                // Linearised stress contribution
-                rRightHandSideVector[i] -=  w_gauss * (DN_De(i,0) / detJ) * lin_stress_term * (DN_De(j,0) / detJ) * r_geom[j].FastGetSolutionStepValue(DISPLACEMENT_Y);
-            }
-        }
+    // Calculate the internal force contributions
+    array_1d<double, mLocalSize> f_int;
+    if (is_compressed) {
+        f_int.clear();
+    } else {
+        const double aux_f_int = h * l0 * S;
+        noalias(f_int) = aux_f_int * B;
     }
+
+    // Calculate the body force contribution
+    array_1d<double, 3> f_ext;
+    f_ext = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1), 0);
+    f_ext *= h * l0 * 0.5; // Half the force to each node
+
+    // Assemble the right hand side contributions
+    rRightHandSideVector[0] += f_ext[0] - f_int[0];
+    rRightHandSideVector[1] += f_ext[1] - f_int[1];
+    rRightHandSideVector[2] += f_ext[0] - f_int[2];
+    rRightHandSideVector[3] += f_ext[1] - f_int[3];
 
     KRATOS_CATCH("");
 }
@@ -433,38 +426,27 @@ void MembraneElement2D2N::CalculateMassMatrix(
     KRATOS_TRY;
 
     // Get element data
-    const auto &r_geom = GetGeometry();
     const auto &r_prop = GetProperties();
-    const SizeType n_nodes = r_geom.PointsNumber();
 
     // Get membrane data
     const double h = r_prop.GetValue(THICKNESS);
     const double rho = r_prop.GetValue(DENSITY);
 
+    // Calculate element lengths
+    const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
     // Check the mass matrix size
-    if (rMassMatrix.size1() != n_nodes || rMassMatrix.size2() != n_nodes) {
-        rMassMatrix.resize(n_nodes, n_nodes, false);
+    if (rMassMatrix.size1() != mLocalSize || rMassMatrix.size2() != mLocalSize) {
+        rMassMatrix.resize(mLocalSize, mLocalSize, false);
     }
 
-    // Calculate the mass matrixcontributions
+    // Calculate the mass matrix contributions
     rMassMatrix.clear();
-
-    Vector N(n_nodes);
-    const SizeType n_gauss = r_geom.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geom.IntegrationPoints(GetIntegrationMethod());
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-
-        // Calculate kinematics
-        r_geom.ShapeFunctionsValues(N, r_integration_points[i_gauss].Coordinates());
-        const double detJ = r_geom.DeterminantOfJacobian(r_integration_points[i_gauss].Coordinates());
-        const double w_gauss = detJ * r_integration_points[i_gauss].Weight();
-
-        // Assemble nodal contributions
-        const double aux = w_gauss * h * rho;
-        for (IndexType i = 0; i < n_nodes; ++i) {
-            for (IndexType j = 0; j < n_nodes; ++j) {
-                rMassMatrix(i,j) += aux * N[i] * N[j];
-            }
+    const double aux_M = rho * h * l0 / 6.0;
+    for (IndexType i = 0; i < mNumNodes; ++i) {
+        for (IndexType j = 0; j < mNumNodes; ++j) {
+            rMassMatrix(i*mDim, j*mDim) = (i == j) ? 2.0 * aux_M : aux_M;
+            rMassMatrix(i*mDim + 1, j*mDim + 1) = (i == j) ? 2.0 * aux_M : aux_M;
         }
     }
 
@@ -484,7 +466,7 @@ void MembraneElement2D2N::CalculateDampingMatrix(
         *this,
         rDampingMatrix,
         rCurrentProcessInfo,
-        GetGeometry().PointsNumber());
+        2.0 * GetGeometry().PointsNumber());
 
     KRATOS_CATCH("");
 }
@@ -542,7 +524,7 @@ const Parameters MembraneElement2D2N::GetSpecifications() const
             "strain_size" : []
         },
         "required_polynomial_degree_of_geometry" : -1,
-        "documentation"   : "This element implements a simplified linear elastic two-dimensional membrane model."
+        "documentation"   : "This element implements a simplified non-linear two-dimensional membrane model."
     })");
 
     return specifications;
@@ -567,8 +549,6 @@ double MembraneElement2D2N::GetMembranePrestress() const
 void MembraneElement2D2N::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
-    int IntMethod = int(this->GetIntegrationMethod());
-    rSerializer.save("IntegrationMethod",IntMethod);
 }
 
 /***********************************************************************************/
@@ -577,9 +557,6 @@ void MembraneElement2D2N::save( Serializer& rSerializer ) const
 void MembraneElement2D2N::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
-    int IntMethod;
-    rSerializer.load("IntegrationMethod",IntMethod);
-    mThisIntegrationMethod = IntegrationMethod(IntMethod);
 }
 
 } // Namespace Kratos
