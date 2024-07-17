@@ -131,7 +131,7 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
     AddNodalVariablesToModelPart(r_result, first_order_variables);
 
-    CreateNewNodes(
+    auto node_pointers = CreateNewNodes(
         r_result,
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}});
 
@@ -140,8 +140,12 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     AddDofsToNodes(nodes.begin(), nodes.begin() + 3, first_order_variables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-    r_result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids,
-                              r_result.CreateNewProperties(0));
+
+    auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
+        1, Kratos::make_shared<Triangle2D6<Node>>(node_pointers), r_result.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+
+    r_result.AddElement(element);
 
     return r_result;
 }
@@ -155,24 +159,26 @@ ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
     const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
     AddNodalVariablesToModelPart(r_result, first_order_variables);
 
-    CreateNewNodes(r_result, {{0.0, 0.0, 0.0},
-                              {1.0, 0.0, 0.0},
-                              {0.0, 1.0, 0.0},
-                              {0.0, 0.0, 1.0},
-                              {0.5, 0.0, 0.0},
-                              {0.5, 0.5, 0.0},
-                              {0.0, 0.5, 0.0},
-                              {0.0, 0.0, 0.5},
-                              {0.5, 0.0, 0.5},
-                              {0.0, 0.5, 0.5}});
+    auto node_pointers = CreateNewNodes(r_result, {{0.0, 0.0, 0.0},
+                                                   {1.0, 0.0, 0.0},
+                                                   {0.0, 1.0, 0.0},
+                                                   {0.0, 0.0, 1.0},
+                                                   {0.5, 0.0, 0.0},
+                                                   {0.5, 0.5, 0.0},
+                                                   {0.0, 0.5, 0.0},
+                                                   {0.0, 0.0, 0.5},
+                                                   {0.5, 0.0, 0.5},
+                                                   {0.0, 0.5, 0.5}});
 
     const auto nodes = r_result.Nodes();
     AddDofsToNodes(nodes, second_order_variables);
     AddDofsToNodes(nodes.begin(), nodes.begin() + 4, first_order_variables);
 
-    const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    r_result.CreateNewElement("SmallStrainUPwDiffOrderElement3D10N", 1, node_ids,
-                              r_result.CreateNewProperties(0));
+    auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
+        1, Kratos::make_shared<Tetrahedra3D10<Node>>(node_pointers), r_result.CreateNewProperties(0),
+        std::make_unique<ThreeDimensionalStressState>());
+
+    r_result.AddElement(element);
 
     return r_result;
 }
