@@ -76,7 +76,7 @@ void GeoTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
-    GeoTrussElementBase<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    BaseType::Initialize(rCurrentProcessInfo);
 
     if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
         bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
@@ -241,7 +241,7 @@ void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& r
 {
     KRATOS_TRY
 
-    GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
     KRATOS_CATCH("")
