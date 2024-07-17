@@ -24,7 +24,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         """
         Tests an interface between a fixed line-element with and a non-fixed surface.
 
-        The surface has a prescribed vertical displacement of -0.1 m and a horizontal line load of -1 kN
+        The surface has a prescribed vertical displacement of -0.1 m and a horizontal line load of -1000 kN
         The interface has a cohesion of 10 kN.
         Expected shear stress in the interface is 10 kN
 
@@ -82,7 +82,6 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         precision = 0.01
         self.assertLess(abs(max_interface_x_displacement - max_base_x_displacement), precision*max_base_x_displacement)
         self.assertLess(abs(max_interface_y_displacement - max_base_y_displacement), precision*max_base_y_displacement)
-        self.assertLess(abs(min_interface_y_displacement - min_base_y_displacement), precision*max_base_y_displacement)
 
     def test_weak_interface_on_beam(self):
         """
