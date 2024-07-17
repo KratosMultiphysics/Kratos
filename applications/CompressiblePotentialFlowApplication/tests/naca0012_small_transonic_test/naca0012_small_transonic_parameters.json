@@ -21,6 +21,14 @@
         "echo_level"             : 0,
         "relative_tolerance": 1e-12,
         "absolute_tolerance": 1e-12,
+        "transonic_scheme_settings"          : {
+            "critical_mach"                 : 0.9,
+            "upwind_factor_constant"        : 1.0,
+            "new_critical_mach"             : 0.9,
+            "new_upwind_factor_constant"    : 1.0,
+            "update_relative_residual_norm" : 1e-3,
+            "mach_number_squared_limit"     : 3.0
+        },
         "linear_solver_settings"  : {
                 "solver_type"             : "LinearSolversApplication.sparse_lu",
                 "verbosity"               : 0
