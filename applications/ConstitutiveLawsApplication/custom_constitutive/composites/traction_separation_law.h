@@ -340,7 +340,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
-        /**
+    /**
      * @brief Calculates the value of A, B, and D matrices (Matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -351,12 +351,28 @@ public:
         double n, 
         Vector L, 
         Vector T,
+        double S,
+        std::vector<Vector>& A,
+        std::vector<Vector>& B,
+        std::vector<Vector>& D
+        // std::vector<Vector>& K,
+        // std::vector<Vector>& ComplianceMatrix
+        );
+
+    /**
+     * @brief This method computes the overall stiffness and compliance matrices
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateCompositeStiffnessAndComplianceMatrices(
         std::vector<Vector>& A,
         std::vector<Vector>& B,
         std::vector<Vector>& D,
-        std::vector<Vector>& K,
-        std::vector<Vector>& ComplianceMatrix
-        );
+        std::vector<Vector>& StiffnessMatrix,
+        std::vector<Vector>& ComplianceMatrix,
+        double& a11,
+        double& a22,
+        double& a33
+    );
 
 
 protected:

@@ -1087,49 +1087,182 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     // Calculating A, B, and D matrices
 
-    Vector L(4); 
-    L[0] = 0.0075; 
-    L[1] = 0.0025; 
-    L[2] = -0.0025; 
-    L[3] = -0.0075; 
-
-    Vector T(3);
-    T[0] = -45;
-    T[1] = 30;
-    T[2] = 0;
+    double Thickness = 0.015;
+    double NumberOfLayers = r_p_constitutive_law_vector.size();
 
     std::vector<Vector> A(3);
+    std::vector<Vector> A1(3);
+    std::vector<Vector> A2(3);
+    std::vector<Vector> B(3);
+    std::vector<Vector> B1(3);
+    std::vector<Vector> B2(3);
+    std::vector<Vector> D(3);
+    std::vector<Vector> D1(3);
+    std::vector<Vector> D2(3);
     for (IndexType i=0; i < 3; ++i) {
         A[i].resize(3, false);
-    }
-
-    std::vector<Vector> B(3);
-    for (IndexType i=0; i < 3; ++i) {
+        A1[i].resize(3, false);
+        A2[i].resize(3, false);
         B[i].resize(3, false);
-    }
-
-    std::vector<Vector> D(3);
-    for (IndexType i=0; i < 3; ++i) {
+        B1[i].resize(3, false);
+        B2[i].resize(3, false);
         D[i].resize(3, false);
+        D1[i].resize(3, false);
+        D2[i].resize(3, false);
+    }
+    std::vector<Vector> a(NumberOfLayers);
+    for (IndexType i=0; i < NumberOfLayers; ++i) {
+        a[i].resize(3);
     }
 
-    std::vector<Vector> K(6);
-    for (IndexType i=0; i < 6; ++i) {
-        K[i].resize(6, false);
-    }
-
+    std::vector<Vector> StiffnessMatrix(6);
     std::vector<Vector> ComplianceMatrix(6);
     for (IndexType i=0; i < 6; ++i) {
+        StiffnessMatrix[i].resize(6, false);
         ComplianceMatrix[i].resize(6, false);
     }
 
+    double a11 = 0.0;
+    double a22 = 0.0;
+    double a33 = 0.0;
 
-    CalculateABDMatrices(3, L, T, A, B, D, K, ComplianceMatrix);
+
+    // Calculating the [ABD] matrix of the original intact composite
+
+    double LaminaThickness = Thickness / NumberOfLayers;
+    Vector L(NumberOfLayers + 1);
+    Vector T(NumberOfLayers);
+    for(IndexType i=0; i < NumberOfLayers + 1; ++i) {
+        L[i] = (Thickness / 2.0) - (LaminaThickness * i);
+    }
+
+    for(IndexType i=0; i < NumberOfLayers; ++i) {
+        T[i] = rMaterialProperties[LAYER_EULER_ANGLES][3*i];
+    }
+
+    CalculateABDMatrices(NumberOfLayers, L, T, 0.0, A, B, D);
     KRATOS_WATCH(A);
     KRATOS_WATCH(B);
     KRATOS_WATCH(D);
-    KRATOS_WATCH(K);
+
+    CalculateCompositeStiffnessAndComplianceMatrices(A, B, D, StiffnessMatrix, ComplianceMatrix, a11, a22, a33);
+    KRATOS_WATCH(StiffnessMatrix);
     KRATOS_WATCH(ComplianceMatrix);
+
+    a[0][0] = a11;
+    a[0][1] = a22;
+    a[0][2] = a33;
+
+    // Calculating the [ABD] matrix of the original intact composite
+
+
+
+    // Calculating the [ABD] matrix in delaminated case scenarios
+
+    for(double i=0; i < NumberOfLayers - 1; ++i) {
+        double n1 = i+1;
+        double n2 = NumberOfLayers - (i+1);
+        Vector L1(n1+1);
+        Vector L2(n2+1);
+        double S1 = 0.5 * (Thickness - ((1 + i) * LaminaThickness));
+        double S2 = -0.5 * (1 + i) * LaminaThickness;
+        Vector T1(n1);
+        Vector T2(n2);
+        for(IndexType j=0; j < n1; ++j) {
+            T1[j] = T[j]; 
+        }
+        for(IndexType k=n1; k < (n1 + n2); ++k) {
+            T2[k-n1] = T[k];
+        }
+        for(IndexType m=0; m < n1+1; ++m) {
+            L1[m] = L[m] - S1;
+        }
+        for(IndexType h=n1; h < NumberOfLayers + 1; ++h) {
+            L2[h-n1] = L[h] - S2;
+        }
+        
+        CalculateABDMatrices(n1, L1, T1, S1, A1, B1, D1);
+        CalculateABDMatrices(n2, L2, T2, S2, A2, B2, D2);
+
+        for(IndexType k=0; k < 3; ++k) {
+            for(IndexType h=0; h < 3; ++h) {
+                A[k][h] = A1[k][h] + A2[k][h];
+                B[k][h] = B1[k][h] + B2[k][h];
+                D[k][h] = D1[k][h] + D2[k][h];
+            }
+        }
+
+        CalculateCompositeStiffnessAndComplianceMatrices(A, B, D, StiffnessMatrix, ComplianceMatrix, a11, a22, a33);
+
+        a[i+1][0] = a11;
+        a[i+1][1] = a22;
+        a[i+1][2] = a33;
+    }
+
+    std::vector<Vector> Dmax(NumberOfLayers + 1);
+    for (IndexType i=0; i < NumberOfLayers + 1; ++i) {
+        Dmax[i].resize(3);
+    }
+
+    for(IndexType i=0; i < NumberOfLayers - 1; ++i) {
+        for(IndexType j=0; j < 3; ++j) {
+            Dmax[i+1][j] = a[0][j] / a[i+1][j];
+        } 
+    }
+
+    KRATOS_WATCH(a);
+    KRATOS_WATCH(Dmax);
+
+    // Calculating the [ABD] matrix in delaminated case scenarios
+
+    // Vector L(4); 
+    // L[0] = 0.0075; 
+    // L[1] = 0.0025; 
+    // L[2] = -0.0025; 
+    // L[3] = -0.0075; 
+
+    // Vector T(3);
+    // T[0] = -45;
+    // T[1] = 30;
+    // T[2] = 0;
+
+    // std::vector<Vector> A(3);
+    // for (IndexType i=0; i < 3; ++i) {
+    //     A[i].resize(3, false);
+    // }
+
+    // std::vector<Vector> B(3);
+    // for (IndexType i=0; i < 3; ++i) {
+    //     B[i].resize(3, false);
+    // }
+
+    // std::vector<Vector> D(3);
+    // for (IndexType i=0; i < 3; ++i) {
+    //     D[i].resize(3, false);
+    // }
+
+    // std::vector<Vector> K(6);
+    // for (IndexType i=0; i < 6; ++i) {
+    //     K[i].resize(6, false);
+    // }
+
+    // std::vector<Vector> ComplianceMatrix(6);
+    // for (IndexType i=0; i < 6; ++i) {
+    //     ComplianceMatrix[i].resize(6, false);
+    // }
+
+    // double S=0;
+
+
+    // CalculateABDMatrices(3, L, T, S, A, B, D, K, ComplianceMatrix);
+    // KRATOS_WATCH(A);
+    // KRATOS_WATCH(B);
+    // KRATOS_WATCH(D);
+    // KRATOS_WATCH(StiffnessMatrix);
+    // KRATOS_WATCH(ComplianceMatrix);
+    // KRATOS_WATCH(a11);
+    // KRATOS_WATCH(a22);
+    // KRATOS_WATCH(a33);
    
 
     // Calculating A, B, and D matrices
@@ -1633,11 +1766,10 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
     double n, 
     Vector L, 
     Vector T,
+    double S,
     std::vector<Vector>& A,
     std::vector<Vector>& B,
-    std::vector<Vector>& D,
-    std::vector<Vector>& K,
-    std::vector<Vector>& ComplianceMatrix)
+    std::vector<Vector>& D)
 {
     for(IndexType i=0; i < T.size(); ++i) {
         T[i] *= (Globals::Pi / 180.0);
@@ -1728,27 +1860,122 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
             for(IndexType j=0; j < 3; ++j) {
                 ASF[i][j] += AS[i][j][k];
                 BSF[i][j] += (0.5) * (BS[i][j][k]);
-                DSF[i][j] += (0.33) * (DS[i][j][k]);
+                DSF[i][j] += (0.33333333) * (DS[i][j][k]);
             }
         }
     }
 
-   A = ASF;
-   B = BSF;
-   D = DSF;
+   // Constructing transformed [ABD] matrices to the global mid-plane
+   for(IndexType i=0; i < 3; ++i) {
+        for(IndexType j=0; j < 3; ++j) {
+            A[i][j] = ASF[i][j];
+            B[i][j] = BSF[i][j] + (S * ASF[i][j]);
+            D[i][j] = DSF[i][j] + (2 * S * BSF[i][j]) + (S * S * ASF[i][j]);
+        }
+   }
 
+//    // Constructing stifness matrix
+
+//    for (IndexType i=0; i < 6; ++i) {
+//         K[i].resize(6, false);
+//    }
+
+//    for (int i = 0; i < A.size(); ++i) {
+//         for (int j = 0; j < A[i].size(); ++j) {
+//             K[i][j] = A[i][j];
+//             K[i][j + A[i].size()] = B[i][j];
+//             K[i + A.size()][j] = B[i][j];
+//             K[i + A.size()][j + A[i].size()] = D[i][j];
+//         }
+//     }
+   
+//    // Calculating the inverse matrix
+
+//     int matrix_size = 6;
+//     std::vector<Vector> augmentedMatrix(matrix_size);
+//     for (IndexType i=0; i < matrix_size; ++i) {
+//         augmentedMatrix[i].resize(2*matrix_size, false);
+//     }
+
+//     for(IndexType i=0; i < matrix_size; ++i) {
+//         for(IndexType j=0; j < matrix_size; ++j) {
+//             augmentedMatrix[i][j] = K[i][j];
+//         }
+//     }
+
+//      for(IndexType i=0; i < matrix_size; ++i) {
+//         for(IndexType j=6; j < 12; ++j) {
+//             augmentedMatrix[i][j] = 0.0;
+//         }
+//     }
+
+//     for (IndexType i = 0; i < matrix_size; ++i) {
+//         augmentedMatrix[i][i + matrix_size] = 1.0;
+//     }
+
+//     for (IndexType i = 0; i < matrix_size; ++i) {
+//         double diagElem = augmentedMatrix[i][i];
+//         if (diagElem == 0.0) throw std::runtime_error("Matrix is singular and cannot be inverted.");
+
+//         for (IndexType j = 0; j < 2 * matrix_size; ++j) {
+//             augmentedMatrix[i][j] /= diagElem;
+//         }
+
+//         for (IndexType k = 0; k < matrix_size; ++k) {
+//             if (k != i) {
+//                 double factor = augmentedMatrix[k][i];
+//                 for (IndexType j = 0; j < 2 * matrix_size; ++j) {
+//                     augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
+//                 }
+//             }
+//         }
+//     }
+
+//     for (IndexType i=0; i < matrix_size; ++i) {
+//         ComplianceMatrix[i].resize(matrix_size, false);
+//     }
+
+//     for (IndexType i = 0; i < matrix_size; ++i) {
+//         for (IndexType j = 0; j < matrix_size; ++j) {
+//             ComplianceMatrix[i][j] = augmentedMatrix[i][j + matrix_size];
+//         }
+//     }
+
+   //
+
+    return A;
+    return B;
+    return D;
+    // return K;
+    // return ComplianceMatrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void TractionSeparationLaw3D<TDim>::CalculateCompositeStiffnessAndComplianceMatrices(
+    std::vector<Vector>& A,
+    std::vector<Vector>& B,
+    std::vector<Vector>& D,
+    std::vector<Vector>& StiffnessMatrix,
+    std::vector<Vector>& ComplianceMatrix,
+    double& a11,
+    double& a22,
+    double& a33)
+{
    // Constructing stifness matrix
 
    for (IndexType i=0; i < 6; ++i) {
-        K[i].resize(6, false);
+        StiffnessMatrix[i].resize(6, false);
    }
 
    for (int i = 0; i < A.size(); ++i) {
         for (int j = 0; j < A[i].size(); ++j) {
-            K[i][j] = A[i][j];
-            K[i][j + A[i].size()] = B[i][j];
-            K[i + A.size()][j] = B[i][j];
-            K[i + A.size()][j + A[i].size()] = D[i][j];
+            StiffnessMatrix[i][j] = A[i][j];
+            StiffnessMatrix[i][j + A[i].size()] = B[i][j];
+            StiffnessMatrix[i + A.size()][j] = B[i][j];
+            StiffnessMatrix[i + A.size()][j + A[i].size()] = D[i][j];
         }
     }
    
@@ -1762,7 +1989,7 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
 
     for(IndexType i=0; i < matrix_size; ++i) {
         for(IndexType j=0; j < matrix_size; ++j) {
-            augmentedMatrix[i][j] = K[i][j];
+            augmentedMatrix[i][j] = StiffnessMatrix[i][j];
         }
     }
 
@@ -1804,13 +2031,9 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
         }
     }
 
-   //
-
-    return A;
-    return B;
-    return D;
-    return K;
-    return ComplianceMatrix;
+    a11 = ComplianceMatrix[0][0];
+    a22 = ComplianceMatrix[1][1];
+    a33 = ComplianceMatrix[2][2];
 }
 
 /***********************************************************************************/
