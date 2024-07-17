@@ -6,6 +6,8 @@ from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
 
+import json
+
 def CreateSolver(model, custom_settings):
     return GeoMechanicalSolver(model, custom_settings)
 
@@ -205,6 +207,15 @@ class GeoMechanicalSolver(PythonSolver):
                                                   self.settings["nodal_smoothing"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
+        self.computing_model_part_name = "porous_computational_model_part"
+
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"]]
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
+
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"]]
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
+
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
             self._ExecuteCheckAndPrepare()
@@ -402,22 +413,6 @@ class GeoMechanicalSolver(PythonSolver):
         return self.linear_solver
 
     def _ExecuteCheckAndPrepare(self):
-
-        self.computing_model_part_name = "porous_computational_model_part"
-
-        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
-        import json
-
-        self.body_domain_sub_sub_model_part_list = []
-        for i in range(self.settings["body_domain_sub_model_part_list"].size()):
-            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["body_domain_sub_model_part_list"][i].GetString())
-        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
-
-        self.loads_sub_sub_model_part_list = []
-        for i in range(self.settings["loads_sub_model_part_list"].size()):
-            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["loads_sub_model_part_list"][i].GetString())
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
-
         # Auxiliary parameters object for the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
