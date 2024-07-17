@@ -22,6 +22,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"",
+                "angle_of_attack_units": "radians",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "free_stream_density"  : 1.0,
@@ -41,6 +42,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
 
+        self.angle_of_attack_units = settings["angle_of_attack_units"].GetString()
         self.angle_of_attack = settings["angle_of_attack"].GetDouble()
         self.free_stream_mach = settings["mach_infinity"].GetDouble()
         self.density_inf = settings["free_stream_density"].GetDouble()
@@ -60,20 +62,25 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
 
+        if self.angle_of_attack_units == "radians":
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", " Using 'radians' as default angle of attack unit.")
+        elif self.angle_of_attack_units == "degrees":
+            self.angle_of_attack = self.angle_of_attack*math.pi/180
+
         self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         if self.domain_size == 2:
             # By convention 2D airfoils are in the xy plane
-            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack*math.pi/180),8)
-            self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+            self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
             self.free_stream_velocity[2] = 0.0
         else: # self.domain_size == 3
             # By convention 3D wings and aircrafts:
             # y axis along the span
             # z axis pointing upwards
             # TODO: Add sideslip angle beta
-            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
             self.free_stream_velocity[1] = 0.0
-            self.free_stream_velocity[2] = round(self.u_inf*math.sin(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[2] = round(self.u_inf*math.sin(self.angle_of_attack),8)
 
         self.free_stream_velocity_direction = self.free_stream_velocity / self.u_inf
 
