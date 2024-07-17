@@ -61,11 +61,11 @@
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [1e12,
                                              0.0,
-                                             1e9,
-                                             30,
                                              0.0,
-                                             1e9,
-                                             1,
+                                             0,
+                                             0.0,
+                                             0.0,
+                                             0,
                                              0.0]
          },
          "Tables": {}
@@ -92,11 +92,11 @@
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [1e12,
                                             0.0,
-                                            1e9,
-                                            30,
                                             0.0,
-                                            1e9,
-                                            1,
+                                            0,
+                                            0.0,
+                                            0.0,
+                                            0,
                                             0.0]
          },
          "Tables": {}
