@@ -76,7 +76,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         interface_y_displacement = [displacement[1] for displacement in interface_displacement]
 
         max_interface_x_displacement = max(interface_x_displacement)
-        max_interface_y_displacement, min_interface_y_displacement = max(interface_y_displacement), min(interface_y_displacement)
+        max_interface_y_displacement = max(interface_y_displacement)
 
         # assert base displacement is approximately equal to displacement with interface
         precision = 0.01
