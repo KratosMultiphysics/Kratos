@@ -146,8 +146,8 @@ public:
     {
         KRATOS_TRY
 
-        rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mCriticalMach;
-        rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mUpwindFactorConstant;
+        rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mInitialCriticalMach;
+        rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mInitialUpwindFactorConstant;
         rModelPart.GetProcessInfo()[MACH_LIMIT]             = std::sqrt(mMachNumberSquaredLimit);
 
         BaseType::SetSchemeIsInitialized(true);
@@ -178,8 +178,8 @@ public:
             rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                          &&
             mUpdatedValues == false){
 
-            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mNewCriticalMach;
-            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mNewUpwindFactorConstant;
+            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
+            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
 
             mUpdatedValues = true;
         }
@@ -198,12 +198,12 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "critical_mach"                 : 0.92,
-            "upwind_factor_constant"        : 2.0,
-            "new_critical_mach"             : 0.92,
-            "new_upwind_factor_constant"    : 2.0,
-            "update_relative_residual_norm" : 1e-3,
-            "mach_number_squared_limit"     : 3.0
+            "initial_critical_mach"          : 0.92,
+            "initial_upwind_factor_constant" : 2.0,
+            "target_critical_mach"           : 0.92,
+            "target_upwind_factor_constant"  : 2.0,
+            "update_relative_residual_norm"  : 1e-3,
+            "mach_number_squared_limit"      : 3.0
         })");
 
         // Getting base class default parameters
@@ -218,12 +218,12 @@ public:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
-        mCriticalMach               = ThisParameters["critical_mach"].GetDouble();
-        mUpwindFactorConstant       = ThisParameters["upwind_factor_constant"].GetDouble();
-        mNewCriticalMach            = ThisParameters["new_critical_mach"].GetDouble();
-        mNewUpwindFactorConstant    = ThisParameters["new_upwind_factor_constant"].GetDouble();
-        mUpdateRelativeResidualNorm = ThisParameters["update_relative_residual_norm"].GetDouble();
-        mMachNumberSquaredLimit     = ThisParameters["mach_number_squared_limit"].GetDouble();
+        mInitialCriticalMach         = ThisParameters["initial_critical_mach"].GetDouble();
+        mInitialUpwindFactorConstant = ThisParameters["initial_upwind_factor_constant"].GetDouble();
+        mTargetCriticalMach          = ThisParameters["target_critical_mach"].GetDouble();
+        mTargetUpwindFactorConstant  = ThisParameters["target_upwind_factor_constant"].GetDouble();
+        mUpdateRelativeResidualNorm  = ThisParameters["update_relative_residual_norm"].GetDouble();
+        mMachNumberSquaredLimit      = ThisParameters["mach_number_squared_limit"].GetDouble();
     }
 
     /**
@@ -308,12 +308,12 @@ private:
     ///@name Member Variables
     ///@{
     bool mUpdatedValues = false;
-    double mCriticalMach               = 0.0;
-    double mNewCriticalMach            = 0.0;
-    double mUpwindFactorConstant       = 0.0;
-    double mNewUpwindFactorConstant    = 0.0;
-    double mUpdateRelativeResidualNorm = 0.0;
-    double mMachNumberSquaredLimit     = 0.0;
+    double mInitialCriticalMach         = 0.0;
+    double mTargetCriticalMach          = 0.0;
+    double mInitialUpwindFactorConstant = 0.0;
+    double mTargetUpwindFactorConstant  = 0.0;
+    double mUpdateRelativeResidualNorm  = 0.0;
+    double mMachNumberSquaredLimit      = 0.0;
 
     ///@}
     ///@name Private Operators
