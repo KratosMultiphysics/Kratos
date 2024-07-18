@@ -15,11 +15,11 @@
 
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -70,18 +70,24 @@ public:
 
         Vector det_J_container;
         GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-        GeometryType::ShapeFunctionsGradientsType dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(), dN_dX_container.begin(), std::divides<>());
+        GeometryType::ShapeFunctionsGradientsType dN_dX_container =
+            GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                       dN_dX_container.begin(), std::divides<>());
         const Matrix& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients);
-        const auto compressibility_matrix = CalculateCompressibilityMatrix(r_N_container, integration_coefficients);
+        const auto compressibility_matrix =
+            CalculateCompressibilityMatrix(r_N_container, integration_coefficients);
 
-        const auto fluid_body_vector = CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
+        const auto fluid_body_vector =
+            CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
-        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix, compressibility_matrix, rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]);
-        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, compressibility_matrix, fluid_body_vector);
+        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix, compressibility_matrix,
+                                    rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]);
+        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix,
+                                    compressibility_matrix, fluid_body_vector);
 
         KRATOS_CATCH("")
     }
@@ -119,7 +125,6 @@ public:
     }
 
 private:
-
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
 
     void CheckDomainSize() const
@@ -208,13 +213,14 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
-        const auto& r_properties = GetProperties();
+        const auto& r_properties         = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA]; });
+            return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
+        });
         return result;
     }
 
@@ -222,16 +228,17 @@ private:
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients) const
     {
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
+        RetentionLaw::Parameters    RetentionParameters(GetProperties());
         BoundedMatrix<double, 1, 1> constitutive_matrix;
-        const auto& r_properties = GetProperties();
+        const auto&                 r_properties = GetProperties();
         GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            const double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            const double RelativePermeability =
+                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
             result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
@@ -251,7 +258,7 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            const auto N = Vector{row(rNContainer, integration_point_index)};
+            const auto   N                  = Vector{row(rNContainer, integration_point_index)};
             const double BiotModulusInverse = CalculateBiotModulusInverse(integration_point_index);
             result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix<TNumNodes>(
                 N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
@@ -269,42 +276,43 @@ private:
         return result;
     }
 
-
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        if (const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        if (const std::size_t number_integration_points =
+                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
             mRetentionLawVector.size() != number_integration_points) {
             mRetentionLawVector.resize(number_integration_points);
         }
         for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
             mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
             mRetentionLawVector[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
+                GetProperties(), GetGeometry(),
+                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
         }
     }
 
-
     double CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
     {
-        const auto& r_properties = GetProperties();
+        const auto&  r_properties     = GetProperties();
         const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
         double bulk_fluid = TINY;
         if (!r_properties[IGNORE_UNDRAINED]) {
             bulk_fluid = r_properties[BULK_MODULUS_FLUID];
-        } 
+        }
         double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
                         r_properties[POROSITY] / bulk_fluid;
 
         RetentionLaw::Parameters RetentionParameters(GetProperties());
-        const double degree_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
-        const double derivative_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
+        const double             degree_of_saturation =
+            mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
+        const double derivative_of_saturation =
+            mRetentionLawVector[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
 
         result *= degree_of_saturation;
         result -= derivative_of_saturation * r_properties[POROSITY];
         return result;
     }
-
 
     void InitializeSolutionStep(const ProcessInfo&) override
     {
@@ -313,8 +321,7 @@ private:
             retention_law->InitializeSolutionStep(RetentionParameters);
         }
     }
-    
-    
+
     void FinalizeSolutionStep(const ProcessInfo&) override
     {
         RetentionLaw::Parameters RetentionParameters(this->GetProperties());
@@ -323,28 +330,29 @@ private:
         }
     }
 
-
-    array_1d<double, TNumNodes> CalculateFluidBodyVector(
-        const Matrix& rNContainer,
-        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-        const Vector& rIntegrationCoefficients) const
+    array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
+                                                         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+                                                         const Vector& rIntegrationCoefficients) const
     {
-        const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        const std::size_t number_integration_points =
+            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
         J_container.resize(number_integration_points, false);
         for (std::size_t i = 0; i < number_integration_points; ++i) {
-            J_container[i].resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
+                                  GetGeometry().LocalSpaceDimension(), false);
         }
         GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
 
-        const auto& r_properties = GetProperties();
+        const auto&                 r_properties = GetProperties();
         BoundedMatrix<double, 1, 1> constitutive_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
 
         RetentionLaw::Parameters RetentionParameters(GetProperties());
 
         array_1d<double, TNumNodes * TDim> volume_acceleration;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
+            volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
         array_1d<double, TDim> body_acceleration;
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
@@ -359,15 +367,16 @@ private:
 
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N = Vector{row(rNContainer, integration_point_index)};
-            double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            fluid_body_vector += r_properties[DENSITY_WATER] * RelativePermeability 
-                * prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
+            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            double     RelativePermeability =
+                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            fluid_body_vector +=
+                r_properties[DENSITY_WATER] * RelativePermeability *
+                prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
                 rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return fluid_body_vector;
     }
-
 
     [[nodiscard]] DofsVectorType GetDofs() const
     {
