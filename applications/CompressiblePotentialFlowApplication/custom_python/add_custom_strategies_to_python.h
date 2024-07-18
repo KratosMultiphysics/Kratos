@@ -29,8 +29,6 @@ namespace Kratos::Python
 void AddCustomStrategiesToPython(pybind11::module& m);
 
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
 
 #endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
