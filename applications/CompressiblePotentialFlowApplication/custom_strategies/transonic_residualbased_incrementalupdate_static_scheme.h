@@ -67,7 +67,7 @@ public:
     /// Pointer definition of TransonicResidualBasedIncrementalUpdateStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(TransonicResidualBasedIncrementalUpdateStaticScheme);
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                                 BaseSchemeType;
+    using BaseSchemeType = Scheme<TSparseSpace,TDenseSpace>;
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
     typedef TransonicResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
