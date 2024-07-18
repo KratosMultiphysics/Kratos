@@ -72,7 +72,7 @@ public:
     typedef TransonicResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     /// DoF array type definition
-    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// Data type definition
     typedef typename BaseType::TDataType                                          TDataType;
