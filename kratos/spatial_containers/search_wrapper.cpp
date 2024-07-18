@@ -376,9 +376,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsIn
                 // Generate the name
                 const std::string name = GenerateNameFromRanks(base_name, r_current_ranks);
                 const DataCommunicator& r_sub_communicator = mrDataCommunicator.GetSubDataCommunicator(r_current_ranks, name);
-                if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
-                    mSubDataCommunicatorNames.push_back(name);
-                }
+                mSubDataCommunicatorNames.push_back(name);
                 data_communicators[i] = &r_sub_communicator;
                 data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
             }
