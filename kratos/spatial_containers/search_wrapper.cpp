@@ -23,6 +23,17 @@ namespace Kratos
 {
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+SearchWrapper<TSearchObject, TSpatialSearchCommunication>::~SearchWrapper()
+{
+    // Cleanup subdatacommunicators leftovers
+    if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
+        for (auto& r_name : mSubDataCommunicatorNames) {
+            ParallelEnvironment::UnregisterDataCommunicator(r_name);
+        }
+    }
+}
+
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetGlobalBoundingBox() const
 {
     // Generate BB
@@ -365,6 +376,9 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsIn
                 // Generate the name
                 const std::string name = GenerateNameFromRanks(base_name, r_current_ranks);
                 const DataCommunicator& r_sub_communicator = mrDataCommunicator.GetSubDataCommunicator(r_current_ranks, name);
+                if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
+                    mSubDataCommunicatorNames.push_back(name);
+                }
                 data_communicators[i] = &r_sub_communicator;
                 data_communicators_database.insert({r_current_ranks, &r_sub_communicator});
             }

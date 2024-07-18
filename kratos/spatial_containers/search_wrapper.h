@@ -140,7 +140,7 @@ public:
     }
 
     /// Destructor.
-    ~SearchWrapper() = default;
+    ~SearchWrapper();
 
     ///@}
     ///@name Operators
@@ -564,6 +564,7 @@ private:
     std::vector<double> mGlobalBoundingBoxes;                   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
     const DataCommunicator& mrDataCommunicator;                 /// The data communicator
     Parameters mSettings;                                       /// The settings considered
+    std::vector<std::string> mSubDataCommunicatorNames;         /// The names of the sub data communicators (ONLY USED IN HETEROGENEOUS SEARCHES)
 
     ///@}
     ///@name Private Operators
