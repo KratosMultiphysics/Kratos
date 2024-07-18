@@ -373,19 +373,25 @@ public:
         const Matrix &rJPhi);
 
     /**
+     * @brief Initializes the bins for the nodes in the master structure.
+     *
+     * This function sets up the spatial bins for efficient nearest neighbor search.
+     *
+     * @param rMasterStructureNodes Reference to the master structure nodes.
+     */
+    static void InitializeBins(NodesPointerSetType& rMasterStructureNodes);
+
+    /**
      * @brief Finds the nearest neighbors for a set of nodes in a given model part.
      *
      * This function locates the closest node in the master structure to each node in the provided vector.
      * It uses a spatial bin to efficiently search for the nearest neighbor. The IDs of the nearest nodes are
      * stored in an unordered set to ensure uniqueness.
      *
-     * @param rMasterStructureNodes Reference to the master structure nodes, which contain all the nodes in the model part.
      * @param nodesVector A vector of pointers to the nodes for which the nearest neighbors are to be found.
      * @return std::unordered_set<int> A set containing unique IDs of the nearest nodes.
      */
-    std::unordered_set<int> FindNearestNeighbors(
-        NodesPointerSetType& rMasterStructureNodes,
-        std::vector<Node::Pointer> nodesVector);
+    static std::unordered_set<int> FindNearestNeighbors(std::vector<Node::Pointer> nodesVector);
 
     ///@}
 
@@ -394,7 +400,7 @@ public:
         ///@name Member Variables
         ///@{
 
-        NodeBinsType::UniquePointer mpBins;
+        static NodeBinsType::UniquePointer mpBins;
 
         ///@}
 

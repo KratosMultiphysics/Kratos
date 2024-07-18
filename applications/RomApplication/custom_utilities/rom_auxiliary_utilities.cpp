@@ -1088,14 +1088,23 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
         }
     }
 
-std::unordered_set<int> RomAuxiliaryUtilities::FindNearestNeighbors(
-    NodesPointerSetType& rMasterStructureNodes,
-    std::vector<Node::Pointer> nodesVector)
+// Define the static member
+RomAuxiliaryUtilities::NodeBinsType::UniquePointer RomAuxiliaryUtilities::mpBins = nullptr;
+
+
+void RomAuxiliaryUtilities::InitializeBins(NodesPointerSetType& rMasterStructureNodes)
+{
+    NodesPointerSetType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
+    mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
+}
+
+std::unordered_set<int> RomAuxiliaryUtilities::FindNearestNeighbors(std::vector<Node::Pointer> nodesVector)
 {
     KRATOS_TRY;
 
-    NodesPointerSetType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
-    mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
+    if (!mpBins) {
+        KRATOS_ERROR << "Bins have not been initialized. Call InitializeBins first." << std::endl;
+    }
 
     std::unordered_set<int> nearestNodeIds; // Using unordered_set for unique node IDs
 
