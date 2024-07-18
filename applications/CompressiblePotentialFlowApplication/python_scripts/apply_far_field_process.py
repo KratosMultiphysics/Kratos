@@ -66,7 +66,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
 
         if self.angle_of_attack_units == "radians":
-            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", " Using 'radians' as default angle of attack unit.")
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", " Using 'radians' as angle of attack unit. This will be deprecated soon.")
         elif self.angle_of_attack_units == "degrees":
             self.angle_of_attack = self.angle_of_attack*math.pi/180
 
