@@ -18,10 +18,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
-#include "processes/process.h"
-#include "custom_utilities/solver_settings.h"
-
 #include "spaces/ublas_space.h"
 
 //schemes
