@@ -13,11 +13,6 @@
 
 #pragma once
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
-
-
-
 // System includes
 
 
