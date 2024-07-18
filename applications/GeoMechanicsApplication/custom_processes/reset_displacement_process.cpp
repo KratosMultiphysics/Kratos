@@ -60,13 +60,14 @@ void ResetDisplacementProcess::CheckRetrievedElementData(const std::vector<Const
                                                          const Element& rElement)
 {
     KRATOS_ERROR_IF(rConstitutiveLaws.empty())
-            << "The constitutive laws on the integration points could not be retrieved for element "
-            << rElement.GetId() << std::endl;
+        << "The constitutive laws on the integration points could not be retrieved for element "
+        << rElement.GetId() << std::endl;
     KRATOS_ERROR_IF(rStressesOnIntegrationPoints.empty())
         << "The stress vectors on the integration points could not be retrieved for element "
         << rElement.GetId() << std::endl;
     KRATOS_ERROR_IF(rStressesOnIntegrationPoints.size() != rConstitutiveLaws.size())
-        << "Number of retrieved stress vectors does not match the number of constitutive laws for element "
+        << "Number of retrieved stress vectors does not match the number of constitutive laws for "
+           "element "
         << rElement.GetId() << std::endl;
 }
 

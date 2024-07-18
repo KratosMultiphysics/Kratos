@@ -78,8 +78,9 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     Vector initial_stress_vector(4);
     initial_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
 
+    constexpr auto number_of_integration_points = 3;
     dynamic_cast<StubElement&>(model_part.Elements()[1]).mIntegrationPointVectors =
-        std::vector<Vector>(3, initial_stress_vector);
+        std::vector<Vector>(number_of_integration_points, initial_stress_vector);
 
     ResetDisplacementProcess reset_displacement_process(model_part, {});
     reset_displacement_process.ExecuteInitialize();
@@ -88,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
                                                           model_part.GetProcessInfo());
 
-    KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
+    KRATOS_EXPECT_EQ(constitutive_laws.size(), number_of_integration_points);
     for (const auto& constitutive_law : constitutive_laws) {
         KRATOS_EXPECT_VECTOR_NEAR(constitutive_law->GetInitialState().GetInitialStressVector(),
                                   initial_stress_vector, 1e-12)
