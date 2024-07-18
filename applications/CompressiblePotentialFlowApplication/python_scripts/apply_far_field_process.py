@@ -19,6 +19,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        if not settings.Has("angle_of_attack_units"):
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", "'angle of attack_units' is not provided. Using 'radians' as default angle of attack unit.")
+
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"",
