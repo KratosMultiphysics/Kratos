@@ -279,13 +279,7 @@ void GeoLinearTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 {
     KRATOS_TRY
 
-    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
-    temp_strain[0]     = this->CalculateLinearStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+    this->FinalizeMaterialResponse(this->CalculateLinearStrain(), rCurrentProcessInfo);
 
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 

@@ -227,7 +227,8 @@ void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& r
 {
     KRATOS_TRY
 
-    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
+    this->FinalizeMaterialResponse(this->CalculateGreenLagrangeStrain(), rCurrentProcessInfo);
+
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
     KRATOS_CATCH("")
