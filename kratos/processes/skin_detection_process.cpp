@@ -18,6 +18,8 @@
 #include "processes/skin_detection_process.h"
 #include "utilities/variable_utils.h"
 #include "includes/key_hash.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -292,47 +294,53 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
         }
 
         ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
-        for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp){
+        for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp) {
             const std::string& r_model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
             ModelPart& r_sub_model_part = r_root_model_part.GetSubModelPart(r_model_part_name);
 
-            std::vector<IndexType> conditions_ids;
+            // We iterate over the nodes of this model part
+            auto& r_sub_nodes_array = r_sub_model_part.Nodes();
+            const auto it_node_begin = r_sub_nodes_array.begin();
+            std::vector<std::vector<IndexType>> conditions_ids_aux = IndexPartition<IndexType>(r_sub_nodes_array.size()).for_each<AccumReduction<std::vector<IndexType>>>([&](IndexType i) {
+                auto it_node = it_node_begin + i;
 
-            #pragma omp parallel
-            {
                 // Creating a buffer for parallel vector fill
                 std::vector<IndexType> conditions_ids_buffer;
 
-                // We iterate over the nodes of this model part
-                auto& r_sub_nodes_array = r_sub_model_part.Nodes();
-                const auto it_node_begin = r_sub_nodes_array.begin();
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(r_sub_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    auto it_set_found = conditions_nodes_ids_map.find(it_node->Id());
-                    if(it_set_found != conditions_nodes_ids_map.end()) {
-                        for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
-                            auto& r_condition = mrModelPart.GetCondition(r_cond_id);
-                            auto& r_geom = r_condition.GetGeometry();
-                            bool has_nodes = true;
-                            for (auto& r_node : r_geom) {
-                                if (!r_sub_model_part.GetMesh().HasNode(r_node.Id())) {
-                                    has_nodes = false;
-                                    break;
-                                }
+                auto it_set_found = conditions_nodes_ids_map.find(it_node->Id());
+                if(it_set_found != conditions_nodes_ids_map.end()) {
+                    for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
+                        auto& r_condition = mrModelPart.GetCondition(r_cond_id);
+                        auto& r_geom = r_condition.GetGeometry();
+                        bool has_nodes = true;
+                        for (auto& r_node : r_geom) {
+                            if (!r_sub_model_part.GetMesh().HasNode(r_node.Id())) {
+                                has_nodes = false;
+                                break;
                             }
-                            // We append to the vector
-                            if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
                         }
+                        // We append to the vector
+                        if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
                     }
                 }
 
-                // Combine buffers together
-                #pragma omp critical
-                {
-                    std::move(conditions_ids_buffer.begin(),conditions_ids_buffer.end(),back_inserter(conditions_ids));
-                }
+                return conditions_ids_buffer;
+            });
+
+            // We flatten the vector
+            std::vector<IndexType> conditions_ids;
+
+            // Calculate total size needed for conditions_ids to avoid reallocations
+            const std::size_t total_size = block_for_each<SumReduction<std::size_t>>(conditions_ids_aux, [](const auto& r_vec) {
+                return r_vec.size();
+            });
+
+            // Reserve memory for conditions_ids
+            conditions_ids.reserve(total_size);
+
+            // Flatten the vector of vectors
+            for (const auto& r_vec : conditions_ids_aux) {
+                conditions_ids.insert(conditions_ids.end(), r_vec.begin(), r_vec.end());
             }
 
             r_sub_model_part.AddConditions(conditions_ids);
@@ -387,11 +395,11 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         }
         if (to_remove) {
             faces_to_remove.push_back(r_vector_ids);
-        }            
+        }
     }
 
     /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
-    
+
     // First we determine the rank and the size of the world
     const auto& r_communicator = mrModelPart.GetCommunicator();
     const auto& r_data_communicator = r_communicator.GetDataCommunicator();
