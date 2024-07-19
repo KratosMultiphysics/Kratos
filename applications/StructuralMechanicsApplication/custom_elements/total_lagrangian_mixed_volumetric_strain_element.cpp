@@ -7223,6 +7223,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::save(Serializer& rSerial
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("MinShearModulusVector", mMinShearModulusVector);
 }
 
 /***********************************************************************************/
@@ -7236,6 +7237,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::load(Serializer& rSerial
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("MinShearModulusVector", mMinShearModulusVector);
 }
 
 /***********************************************************************************/
