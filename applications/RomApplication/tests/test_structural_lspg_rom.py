@@ -109,21 +109,8 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
             return parameters
 
-        def json_numpy_to_hdf5(json_file, numpy_dir, hdf5_file):
-            with open(json_file, 'r') as jf:
-                data_dict = json.load(jf)
-
-            with h5py.File(hdf5_file, 'w') as hdf:
-                for dataset_name, metadata in data_dict.items():
-                    data = np.load(numpy_dir+ metadata['path'])
-                    hdf.create_dataset(dataset_name, data=data, dtype=metadata['dtype'])
-                hdf.create_group('vars')
-
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            json_file = 'rom_data/rom_database/saved_nn_models/f9b3a1523204244793a33ef440c3029f5eb3f160c378d1596b572022b2e954b2/output_metadata.json'
-            numpy_dir = 'rom_data/rom_database/saved_nn_models/f9b3a1523204244793a33ef440c3029f5eb3f160c378d1596b572022b2e954b2/'
-            output_hdf5_file = 'rom_data/rom_database/saved_nn_models/f9b3a1523204244793a33ef440c3029f5eb3f160c378d1596b572022b2e954b2/model.weights.h5'
-            json_numpy_to_hdf5(json_file, numpy_dir,output_hdf5_file)
+   
             rom_manager = RomManager(general_rom_manager_parameters=general_rom_manager_parameters,CustomizeSimulation=CustomizeSimulation,UpdateProjectParameters=UpdateProjectParameters)
             with open('mu_train.json', 'r') as json_file:
                 mu_train = json.load(json_file)
