@@ -13,9 +13,6 @@ from keras import metrics
 
 tf.keras.backend.set_floatx('float64')
 
-
-import KratosMultiphysics
-
 class ANNPROM_Keras_Model(Model):
 
     def __init__(self, phisig_norm_matrix, rescaling_factor, w_gradNN, *args, **kwargs):
@@ -226,6 +223,13 @@ class RomNeuralNetworkTrainer(object):
 
         network=ANNPROM_Keras_Model(phisig_norm_matrix, rescaling_factor, w_gradNN, input_layer, output_layer)
         return network
+    
+    def _SaveWeightsKratosFormat(self, network, weights_path):
+        layers=[]
+        for layer in network.trainable_variables:
+            layers.append(layer.numpy())
+
+        np.save(weights_path, np.array(layers, dtype=object), allow_pickle=True)
 
     def TrainNetwork(self, seed=None):
 
@@ -289,7 +293,8 @@ class RomNeuralNetworkTrainer(object):
         network.save_weights(str(model_path)+"/model.weights.h5")
         with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
-
+        
+        self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
 
     def EvaluateNetwork(self):
 
@@ -341,91 +346,3 @@ class RomNeuralNetworkTrainer(object):
         print('     POD Inf: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_inf)))))
 
         return err_rel_recons
-
-
-class NN_ROM_Interface():
-    def __init__(self, mu_train, data_base):
-
-        model_name, _ = data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
-        model_path=pathlib.Path(data_base.database_root_directory / 'saved_nn_models' / model_name)
-
-        with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
-            model_config = json.load(config_file)
-
-        self.n_inf = int(model_config["modes"][0])
-        self.n_sup = int(model_config["modes"][1])
-        layers_size = model_config["layers_size"]
-                                                  
-        self.network = self._DefineNetwork(self.n_inf, self.n_sup, layers_size)
-        self.network.summary()
-
-        self.network.load_weights(str(pathlib.Path(model_path / 'model.weights.h5')))
-
-        _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
-        self.phi = data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
-        self.sigma =  data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
-        self.ref_snapshot = np.zeros(self.phi.shape[0])
-
-    def _DefineNetwork(self, n_inf, n_sup, layers_size):
-        input_layer=layers.Input((n_inf,), dtype=tf.float64)
-        layer_out=input_layer
-        for layer_size in layers_size:
-            layer_out=layers.Dense(int(layer_size), 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
-        output_layer=layers.Dense(n_sup-n_inf, 'linear', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
-
-        network=Model(input_layer, output_layer)
-        return network
-
-    def get_encode_function(self):
-
-        phi_inf = self.phi[:,:self.n_inf]
-        ref_snapshot = self.ref_snapshot
-
-        def encode_function(s):
-            output_data=(s-ref_snapshot).copy()
-            output_data = (phi_inf.T@output_data).T
-            return np.expand_dims(output_data,axis=0), None
-        
-        return encode_function
-
-    def get_decode_function(self):
-        
-        ref_snapshot = self.ref_snapshot
-
-        phi_inf = self.phi[:,:self.n_inf]
-
-        sigma_inf = self.sigma[:self.n_inf]
-        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
-
-        phi_sup = self.phi[:,self.n_inf:self.n_sup]
-        sigma_sup = self.sigma[self.n_inf:self.n_sup]
-        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
-
-        def decode_function(q_inf):
-
-            q_sup_pred = self.network((sigma_inf_inv@q_inf.T).T).numpy()
-            s_pred = np.expand_dims(ref_snapshot,axis=1) + phi_inf@q_inf.T + phi_sup_weighted@q_sup_pred.T
-            return s_pred.T
-        
-        return decode_function
-    
-    def get_phi_matrices(self):
-        phi_inf = self.phi[:,:self.n_inf]
-        phi_sup = self.phi[:,self.n_inf:self.n_sup]
-        sigma_inf = self.sigma[:self.n_inf]
-        sigma_sup = self.sigma[self.n_inf:self.n_sup]
-        phi_inf_weighted = phi_inf @ np.diag(sigma_inf)
-        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
-        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
-
-        return KratosMultiphysics.Matrix(phi_inf), KratosMultiphysics.Matrix(phi_sup_weighted), KratosMultiphysics.Matrix(sigma_inf_inv)
-    
-    def get_NN_layers(self):
-        layers=[]
-        for layer in self.network.trainable_variables:
-            layers.append(KratosMultiphysics.Matrix(layer.numpy()))
-        return layers
-    
-    def get_ref_snapshot(self):
-        return self.ref_snapshot
