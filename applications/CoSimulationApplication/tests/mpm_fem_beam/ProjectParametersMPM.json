@@ -47,7 +47,7 @@
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.INTERFACE_coupling_to_fem",
-                "particles_per_condition" : 7,
+                "material_points_per_condition" : 7,
                 "penalty_factor"  : 900000000.0,
                 "constrained"     : "fixed"
             }
