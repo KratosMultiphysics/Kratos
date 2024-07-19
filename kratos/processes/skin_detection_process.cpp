@@ -190,10 +190,12 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     // The auxiliar name of the condition
     const std::string& r_name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && r_name_condition == "Condition") {
-        pre_name = "Surface";
-    } else if (TDim == 2 && r_name_condition == "Condition") {
-        pre_name = "Line";
+    if (r_name_condition == "Condition") {
+        if constexpr (TDim == 3) {
+            pre_name = "Surface";
+        } else if constexpr (TDim == 2) {
+            pre_name = "Line";
+        }
     }
     const std::string base_name = pre_name + r_name_condition;
 
