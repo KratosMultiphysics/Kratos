@@ -83,10 +83,10 @@
   },
   "print_output_process": [
     {
-      "python_module": "particle_json_output_process",
+      "python_module": "mpm_json_output_process",
       "kratos_module": "KratosMultiphysics.MPMApplication",
       "help": "",
-      "process_name": "ParticleJsonOutputProcess",
+      "process_name": "MPMJsonOutputProcess",
       "Parameters": {
         "gauss_points_output_variables": [ "MP_DISPLACEMENT" ],
         "output_file_name": "mpm_dem/cosim_mpm_dem_results.json",
