@@ -70,7 +70,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     ) const
 {
-    // Auxiliar values
+    // Auxiliary values
     auto& r_elements_array = mrModelPart.Elements();
     const SizeType number_of_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
@@ -160,7 +160,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
 template<SizeType TDim>
 ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 {
-    // We create the auxiliar ModelPart
+    // We create the auxiliary ModelPart
     const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
@@ -220,7 +220,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 
-    // In case we are in MPI we syncronize the INTERFACE flag
+    // In case we are in MPI we synchronize the INTERFACE flag
      mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
 }
 
