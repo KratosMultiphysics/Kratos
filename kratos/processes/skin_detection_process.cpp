@@ -202,8 +202,9 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     // The number of conditions
     auto& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
     const auto it_cond_begin = r_condition_array.begin();
-    for(IndexType i = 0; i < r_condition_array.size(); ++i)
+    IndexPartition<IndexType>(r_condition_array.size()).for_each([&it_cond_begin](IndexType i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
