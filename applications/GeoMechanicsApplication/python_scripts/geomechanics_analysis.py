@@ -51,11 +51,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         return "GeoMechanics Analysis"
 
     def _CalculateTotalDisplacement(self,node, old_total_displacement):
-        """
-        Calculates total displacement
-        :param node:
-        :return:
-        """
         stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         total_displacement = old_total_displacement + stage_displacement
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
@@ -173,8 +168,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
                 # set new_time and delta_time in the nonlinear solver
                 new_time = t + self.delta_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]       = new_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]             = new_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]       = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NUMBER_OF_CYCLES] = number_cycle
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
@@ -213,6 +209,12 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             if self._GetSolver().settings["reset_displacements"].GetBool():
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
+
+            if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
+                incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
+                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+
+                incr_process.Execute()
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()

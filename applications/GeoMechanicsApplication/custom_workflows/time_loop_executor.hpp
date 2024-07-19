@@ -71,6 +71,7 @@ public:
             mStrategyWrapper->CloneTimeStep();
             NewEndState = RunCycleLoop(NewEndState);
             mStrategyWrapper->AccumulateTotalDisplacementField();
+            mStrategyWrapper->ComputeIncrementalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
             mStrategyWrapper->OutputProcess();
             result.emplace_back(NewEndState);

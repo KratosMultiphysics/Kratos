@@ -22,7 +22,7 @@
 #include "includes/kratos_filesystem.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "meshing_application_variables.h"
 #include "custom_io/mmg/mmg_io.h"
 

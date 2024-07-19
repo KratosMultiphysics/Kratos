@@ -54,7 +54,7 @@ public:
     using GeoTrussElement<TDim, TNumNodes>::mInternalStressesFinalizedPrevious;
     using GeoTrussElement<TDim, TNumNodes>::mInternalStresses;
 
-    GeoCableElement(){};
+    GeoCableElement() = default;
     GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
@@ -102,7 +102,7 @@ public:
 
 private:
     // boolean for the cable --> does not resist to compression
-    bool mIsCompressed;
+    bool mIsCompressed = false;
 
     friend class Serializer;
 

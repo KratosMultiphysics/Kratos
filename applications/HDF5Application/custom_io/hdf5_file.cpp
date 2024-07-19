@@ -1091,6 +1091,9 @@ void File::ReadDataSetImpl(
 }
 
 // template instantiations
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<int>(const std::string&) const;
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::string&) const;
+
 #ifndef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 #define KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(...)                                                                                                                                     \
     template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<__VA_ARGS__, File::DataTransferMode::Collective>(const std::string&, const __VA_ARGS__&, WriteInfo&);                     \

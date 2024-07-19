@@ -114,11 +114,10 @@ void GeoLinearElasticPlaneStrain2DLaw::InitializeMaterialResponseCauchy(Constitu
 {
     KRATOS_TRY
     if (!mIsModelInitialized) {
-        // stress and strain vectors must be initialized:
+        // stress vector must be initialized:
         mStressVectorFinalized = rValues.GetStressVector();
         mStrainVectorFinalized = rValues.GetStrainVector();
-
-        mIsModelInitialized = true;
+        mIsModelInitialized    = true;
     }
     KRATOS_CATCH("")
 }

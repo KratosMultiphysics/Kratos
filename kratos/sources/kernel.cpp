@@ -36,7 +36,11 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
     Initialize();
 }
 
-void Kernel::Initialize() {
+Kernel::~Kernel() {
+    GetApplicationsList().clear();
+}
+
+void Kernel::PrintInfo() {
     KRATOS_INFO("") << " |  /           |                  \n"
                     << " ' /   __| _` | __|  _ \\   __|    \n"
                     << " . \\  |   (   | |   (   |\\__ \\  \n"
@@ -45,6 +49,9 @@ void Kernel::Initialize() {
                     << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
 
     PrintParallelismSupportInfo();
+}
+
+void Kernel::Initialize() {
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);

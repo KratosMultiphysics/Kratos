@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -30,11 +31,12 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The index type definition
-    typedef std::size_t IndexType;
-
 ///@}
 ///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
 ///@{
 
 /**
@@ -49,6 +51,9 @@ class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The index type definition
+    using IndexType = std::size_t;
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
@@ -70,24 +75,106 @@ public:
     virtual ~AuxiliarModelPartUtilities()= default;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
+    ///@name Operators
     ///@{
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method adds the given element and the belonging nodes
+     * @param pNewElement The new element added
+     */
+    void AddElementWithNodes(Element::Pointer pNewElement);
+
+    /**
+     * @brief Inserts a list of elements and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rElementIds The ids of the elements
+     */
+    void AddElementsWithNodes(const std::vector<IndexType>& rElementIds);
+
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TIteratorType >
+    void AddElementsWithNodes(
+        TIteratorType ItElementsBegin,
+        TIteratorType ItElementsEnd
+        )
+    {
+        KRATOS_TRY
+
+        // Using auxiliay method
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::vector<IndexType> list_of_nodes;
+        ModelPart::ElementsContainerType new_elements_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), new_elements_to_add , list_of_nodes, ItElementsBegin, ItElementsEnd);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_elem = new_elements_to_add.begin(); it_elem!=new_elements_to_add.end(); ++it_elem) {
+                p_current_part->Elements().push_back( *(it_elem.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Elements().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method adds the given condition and the belonging nodes
+     * @param pNewCondition The new condition added
+     */
+    void AddConditionWithNodes(Condition::Pointer pNewCondition);
+
+    /**
+     * @brief Inserts a list of conditions and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+     * @param rConditionIds The ids of the conditions
+     */
+    void AddConditionsWithNodes(const std::vector<IndexType>& rConditionIds);
+
+    /**
+     * @brief Inserts a list of pointers to conditions and the belonging nodes
+     * @param ItConditionsBegin The begin iterator
+     * @param ItConditionsEnd The end iterator
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TIteratorType >
+    void AddConditionsWithNodes(
+        TIteratorType ItConditionsBegin,
+        TIteratorType ItConditionsEnd
+        )
+    {
+        KRATOS_TRY
+
+        // Using auxiliay method
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        std::vector<IndexType> list_of_nodes;
+        ModelPart::ConditionsContainerType new_conditions_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), new_conditions_to_add, list_of_nodes, ItConditionsBegin, ItConditionsEnd);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it_cond = new_conditions_to_add.begin(); it_cond!=new_conditions_to_add.end(); ++it_cond) {
+                p_current_part->Conditions().push_back( *(it_cond.base()) );
+            }
+            p_current_part->AddNodes(list_of_nodes);
+
+            p_current_part->Conditions().Unique();
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This method copies the structure of submodelparts
@@ -623,6 +710,22 @@ public:
         KRATOS_CATCH("")
     }
 
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+  
     /**
     * @brief Retrieve the IDs of neighboring elements for each element.
     * @details This function retrieves the IDs of neighboring elements for each element in the model part.
@@ -662,6 +765,7 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -766,6 +870,106 @@ private:
     }
 
     /**
+     * @brief Inserts a list of entities and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+	 * @param rEntitiesContainer The entities to be added
+     * @param rEntitiesIds The ids of the entities
+     */
+    template<class TEntitiesContainer>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        const std::vector<IndexType>& rEntitiesIds
+        )
+    {
+        KRATOS_TRY
+        
+        // Obtain from the root model part the corresponding list of nodes
+        const auto it_ent_end = rEntitiesContainer.end();
+        std::unordered_set<IndexType> set_of_node_ids;
+        for(IndexType i=0; i<rEntitiesIds.size(); ++i) {
+          auto it_ent = rEntitiesContainer.find(rEntitiesIds[i]);
+          if(it_ent!=it_ent_end) {
+            const auto& r_geom = it_ent->GetGeometry();
+            for (IndexType j = 0; j < r_geom.size(); ++j) {
+              set_of_node_ids.insert(r_geom[j].Id());
+            }
+          } else {
+            KRATOS_ERROR << "The entity with Id " << rEntitiesIds[i] << " does not exist in the root model part";
+          }
+        }
+
+        // Adding nodes
+        std::vector<IndexType> list_of_nodes;
+        list_of_nodes.insert(list_of_nodes.end(), set_of_node_ids.begin(), set_of_node_ids.end());
+        mrModelPart.AddNodes(list_of_nodes);
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = &mrModelPart;
+        while(p_current_part->IsSubModelPart()) {
+          p_current_part->AddNodes(list_of_nodes);
+          p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param rEntitiesContainer The entities to be added
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
+     * @tparam TEntitiesContainer The class of entities considered
+     * @tparam TIteratorType The class of iterator considered
+     */
+    template<class TEntitiesContainer, class TIteratorType>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        TEntitiesContainer& rAux,
+        std::vector<IndexType>& rListOfNodes,
+        TIteratorType ItEntitiesBegin,
+        TIteratorType ItEntitiesEnd
+        )
+    {
+        KRATOS_TRY
+        
+        TEntitiesContainer aux_root;
+        std::unordered_set<IndexType> set_of_nodes;
+        
+        const auto it_ent_end = rEntitiesContainer.end();
+        for(TIteratorType it_ent = ItEntitiesBegin; it_ent!=ItEntitiesEnd; ++it_ent) {
+            auto it_ent_found = rEntitiesContainer.find(it_ent->Id());
+            if(it_ent_found == it_ent_end) { // Entity does not exist in the top model part
+                aux_root.push_back( *(it_ent.base()) );
+                rAux.push_back( *(it_ent.base()) );
+                const auto& r_geom = it_ent->GetGeometry();
+                for (IndexType i = 0; i < r_geom.size(); ++i) {
+                    set_of_nodes.insert(r_geom[i].Id());
+                }
+            } else { // If it_ent does exist verify it_ent is the same entity
+                if(&(*it_ent_found) != &(*it_ent)) { //check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new entity wit_enth Id :" << it_ent_found->Id() << ", unfortunately a (different) entity wit_enth the same Id already exists" << std::endl;
+                } else {
+                    rAux.push_back( *(it_ent.base()) );
+                    const auto& r_geom = it_ent->GetGeometry();
+                    for (IndexType i = 0; i < r_geom.size(); ++i) {
+                        set_of_nodes.insert(r_geom[i].Id());
+                    }
+                }
+            }
+        }
+
+        // Adding nodes
+        rListOfNodes.insert(rListOfNodes.end(), set_of_nodes.begin(), set_of_nodes.end());
+        mrModelPart.AddNodes(rListOfNodes);
+
+        for(auto it_ent = aux_root.begin(); it_ent!=aux_root.end(); ++it_ent) {
+            rEntitiesContainer.push_back( *(it_ent.base()) );
+        }
+        rEntitiesContainer.Unique();
+
+        KRATOS_CATCH("")
+    }
+    
+    /**
      * @brief This method copies the submodelpart structure from the original model part to the new one.
      * @details This method is called recursively
      * @param rOriginalModelPart The original model part
@@ -779,14 +983,12 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
     ///@}
-
     ///@name Private Inquiry
     ///@{
-    ///@}
 
+    ///@}
     ///@name Unaccessible methods
     ///@{
     ///@}
@@ -795,7 +997,6 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

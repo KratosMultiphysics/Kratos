@@ -50,9 +50,6 @@ Element::Pointer GeoCrBeamElement2D2N::Create(IndexType               NewId,
 }
 
 //----------------------------------------------------------------------------------------------------
-GeoCrBeamElement2D2N::~GeoCrBeamElement2D2N() {}
-
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
