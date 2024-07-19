@@ -10,7 +10,7 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#include <iostream>
+#include <filesystem>
 #include <string>
 
 // Project includes
@@ -28,33 +28,30 @@ using namespace Kratos::Testing;
 const auto workingDirectory = std::filesystem::path{"."} / "applications" / "GeoMechanicsApplication" /
                               "tests" / "test_head_extrapolation_custom_workflow_flow";
 
-int RunTestCase(int test_case_number)
+int RunTestCase(int TestCaseNumber)
 {
-    const auto projectFile = std::string{"ProjectParameters_"} + std::to_string(test_case_number) + ".json";
-
-    auto execute = KratosExecute();
+    const auto projectFile = std::string{"ProjectParameters_"} + std::to_string(TestCaseNumber) + ".json";
 
     const KratosExecute::CriticalHeadInfo  critical_head_info(0, 0, 0);
     const KratosExecute::CallBackFunctions call_back_functions(
         &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-    return execute.ExecuteFlowAnalysis(workingDirectory.generic_string(), projectFile,
-                                       critical_head_info, "", call_back_functions);
+    return KratosExecute().ExecuteFlowAnalysis(workingDirectory.generic_string(), projectFile,
+                                               critical_head_info, "", call_back_functions);
 }
 
-void CompareResults(int test_case_number)
+void CompareResults(int TestCaseNumber)
 {
     const auto original =
-        (workingDirectory / ("test_head_extrapolate_" + std::to_string(test_case_number) + ".orig.res"))
+        (workingDirectory / ("test_head_extrapolate_" + std::to_string(TestCaseNumber) + ".orig.res"))
             .generic_string();
     const auto result =
-        (workingDirectory / ("test_head_extrapolate_" + std::to_string(test_case_number) + ".post.res"))
+        (workingDirectory / ("test_head_extrapolate_" + std::to_string(TestCaseNumber) + ".post.res"))
             .generic_string();
 
     KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
-}
-
+} // namespace
 
 namespace Kratos::Testing
 {
