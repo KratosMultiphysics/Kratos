@@ -10,8 +10,8 @@
 //  Main authors:    Marco Antonio Zuñiga Perez
 //
 
-#if !defined(KRATOS_TRANSONIC_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
-#define  KRATOS_TRANSONIC_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
+#if !defined(KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
+#define  KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
 /* System includes */
 
@@ -35,90 +35,132 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-///@name  Enum's
+///@name Enum's
 ///@{
 ///@}
-///@name  Functions
+///@name Functions
 ///@{
 ///@}
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class TransonicResidualBasedIncrementalUpdateStaticScheme
+ * @class PotentialFlowResidualBasedIncrementalUpdateStaticScheme
  * @ingroup CompressiblePotentialFlowApplication
  * @brief This class is a reimplementation of residualBasedIncrementalUpdateStaticScheme and is 
  * used in a transonic potential simulation to update both the CRITICAL_MACH and 
  * UPWIND_FACTOR_CONSTANT values, between nonlinear iterations, to a user-defined value when 
- * a user-defined residual tolerance is reached. This update is done only once.
- * @details The only operation done in this  scheme is the update of the database and values, no predict is done
+ * a user-defined residual tolerance is reached. This update is done only once. For a normal element 
+ * the only operation done in this scheme is the update of the database and values, no predict is done.
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
  * @see Scheme
  */
 template<class TSparseSpace,class TDenseSpace>
-class TransonicResidualBasedIncrementalUpdateStaticScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
+class PotentialFlowResidualBasedIncrementalUpdateStaticScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TransonicResidualBasedIncrementalUpdateStaticScheme
-    KRATOS_CLASS_POINTER_DEFINITION(TransonicResidualBasedIncrementalUpdateStaticScheme);
+    /// Pointer definition of PotentialFlowResidualBasedIncrementalUpdateStaticScheme
+    KRATOS_CLASS_POINTER_DEFINITION(PotentialFlowResidualBasedIncrementalUpdateStaticScheme);
 
-    using BaseSchemeType = Scheme<TSparseSpace,TDenseSpace>;
-    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
-    typedef TransonicResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
+    // The base scheme class definition
+    using BaseSchemeType        = Scheme<TSparseSpace,TDenseSpace>;
+
+    // The base class definition
+    using BaseType              = ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>;
+
+    /// The definition of the current class
+    using ClassType             =  PotentialFlowResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>;
 
     /// DoF array type definition
-    using DofsArrayType = typename BaseType::DofsArrayType;
+    using DofsArrayType         = typename BaseType::DofsArrayType;
 
     /// Data type definition
-    typedef typename BaseType::TDataType                                          TDataType;
+    using TDataType             = typename BaseType::TDataType;
+
     /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+
     /// Vector type definition
-    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+
     /// Local system matrix type definition
-    typedef typename BaseType::LocalSystemVectorType                  LocalSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+
     /// Local system vector type definition
-    typedef typename BaseType::LocalSystemMatrixType                  LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType                              ElementsArrayType;
+    using ElementsArrayType     = ModelPart::ElementsContainerType;
+
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType                          ConditionsArrayType;
+    using ConditionsArrayType   = ModelPart::ConditionsContainerType;
 
     /// The definition of the vector containing the equation ids
-    typedef Element::EquationIdVectorType                              EquationIdVectorType;
+    using EquationIdVectorType  = Element::EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Default onstructor.
+    /** Default constructor.
     */
-    explicit TransonicResidualBasedIncrementalUpdateStaticScheme()
+    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme()
         : BaseType()
     {  
     }
 
     /**
-     * @brief Constructor. The pseudo static scheme (parameters)
+     * @brief Default constructor. The pseudo static scheme (parameters)
      * @param ThisParameters Dummy parameters
      */
-    explicit TransonicResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters) : BaseType()
+    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters) : BaseType()
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
     }
 
+    /**
+     * @brief Default constructor.
+     * @param ElementType Type of element used in the simulation.
+     * @param InitialCriticalMach Initial critical mach value.
+     * @param InitialUpwindFactorConstant Initial upwind factor constant value.
+     * @param TargetCriticalMach Critical mach value to be used once the UpdateRelativeResidualNorm value is reached.
+     * @param TargetUpwindFactorConstant Upwind factor constant value to be used once the UpdateRelativeResidualNorm value is reached.
+     * @param UpdateRelativeResidualNorm Relative residual norm value to which the critical mach and the upwind factor constant will be updated.
+     * @param MachNumberSquaredLimit Mach number squared limit value wich will be used.
+     */
+    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(
+        std::string ElementType,
+        double InitialCriticalMach,
+        double InitialUpwindFactorConstant,
+        double TargetCriticalMach,
+        double TargetUpwindFactorConstant,
+        double UpdateRelativeResidualNorm,
+        double MachNumberSquaredLimit) 
+        : BaseType()
+    {
+        mElementType = ElementType;
+
+        if (mElementType == "perturbation_transonic"){
+            mInitialCriticalMach         = InitialCriticalMach;
+            mInitialUpwindFactorConstant = InitialUpwindFactorConstant;
+            mTargetCriticalMach          = TargetCriticalMach;
+            mTargetUpwindFactorConstant  = TargetUpwindFactorConstant;
+            mUpdateRelativeResidualNorm  = UpdateRelativeResidualNorm;
+            mMachNumberSquaredLimit      = MachNumberSquaredLimit;
+        }
+    }
+
 
     /** Destructor.
     */
-    ~TransonicResidualBasedIncrementalUpdateStaticScheme() override {}
+    ~PotentialFlowResidualBasedIncrementalUpdateStaticScheme() override {}
 
     ///@}
     ///@name Operators
@@ -146,11 +188,12 @@ public:
     {
         KRATOS_TRY
 
-        rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mInitialCriticalMach;
-        rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mInitialUpwindFactorConstant;
-        rModelPart.GetProcessInfo()[MACH_LIMIT]             = std::sqrt(mMachNumberSquaredLimit);
-
-        BaseType::SetSchemeIsInitialized(true);
+        if (mElementType == "perturbation_transonic"){
+            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mInitialCriticalMach;
+            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mInitialUpwindFactorConstant;
+            rModelPart.GetProcessInfo()[MACH_LIMIT]             = std::sqrt(mMachNumberSquaredLimit);
+        }
+        BaseType::Initialize(rModelPart);
         KRATOS_CATCH("")
     }
 
@@ -173,19 +216,19 @@ public:
     {
         KRATOS_TRY
 
-        // Update the upwind factor constant and critical mach with the user-defined values
-        if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
-            rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                          &&
-            mUpdatedValues == false){
+        if (mElementType == "perturbation_transonic"){
+            // Update the upwind factor constant and critical mach with the user-defined values
+            if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
+                rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                          &&
+                mUpdatedValues == false){
 
-            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
-            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
+                rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
+                rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
 
-            mUpdatedValues = true;
+                mUpdatedValues = true;
+            }
         }
-
-        // Initialize non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+        BaseType::InitializeNonLinIteration(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }
@@ -198,6 +241,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
+            "element_type"                   : "",
             "initial_critical_mach"          : 0.92,
             "initial_upwind_factor_constant" : 2.0,
             "target_critical_mach"           : 0.92,
@@ -218,6 +262,7 @@ public:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
+        mElementType                 = ThisParameters["element_type"].GetString();
         mInitialCriticalMach         = ThisParameters["initial_critical_mach"].GetDouble();
         mInitialUpwindFactorConstant = ThisParameters["initial_upwind_factor_constant"].GetDouble();
         mTargetCriticalMach          = ThisParameters["target_critical_mach"].GetDouble();
@@ -232,7 +277,7 @@ public:
      */
     static std::string Name()
     {
-        return "TransonicResidualBasedIncrementalUpdateStaticScheme";
+        return "PotentialFlowResidualBasedIncrementalUpdateStaticScheme";
     }
 
     ///@}
@@ -250,7 +295,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "TransonicResidualBasedIncrementalUpdateStaticScheme";
+        return "PotentialFlowResidualBasedIncrementalUpdateStaticScheme";
     }
 
     /// Print information about this object.
@@ -279,6 +324,7 @@ private:
     ///@name Member Variables
     ///@{
     bool mUpdatedValues = false;
+    std::string mElementType;
     double mInitialCriticalMach         = 0.0;
     double mTargetCriticalMach          = 0.0;
     double mInitialUpwindFactorConstant = 0.0;
@@ -308,7 +354,7 @@ private:
 
     ///@}
 
-}; // Class TransonicResidualBasedIncrementalUpdateStaticScheme
+}; // Class PotentialFlowResidualBasedIncrementalUpdateStaticScheme
 }  // namespace Kratos
 
-#endif /* KRATOS_TRANSONIC_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */
+#endif /* KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */

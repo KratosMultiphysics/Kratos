@@ -257,12 +257,17 @@ class PotentialFlowSolver(FluidSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
-        if self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic":
-            # Custom Scheme for transonic cases
-            scheme = KCPFApp.TransonicResidualBasedIncrementalUpdateStaticScheme(self.settings["transonic_scheme_settings"])
-        else:
-            # Fake scheme creation to do the solution update
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        settings = self.settings["transonic_scheme_settings"]
+        settings.AddValue("element_type",self.settings["formulation"]["element_type"])
+        settings.AddMissingParameters(self._GetDefaultTransonicParameters())
+        scheme = KCPFApp.PotentialFlowResidualBasedIncrementalUpdateStaticScheme(
+            settings["element_type"].GetString(),
+            settings["initial_critical_mach"].GetDouble(),
+            settings["initial_upwind_factor_constant"].GetDouble(),
+            settings["target_critical_mach"].GetDouble(),
+            settings["target_upwind_factor_constant"].GetDouble(),
+            settings["update_relative_residual_norm"].GetDouble(),
+            settings["mach_number_squared_limit"].GetDouble())
         return scheme
 
     def _CreateConvergenceCriterion(self):
@@ -327,6 +332,19 @@ class PotentialFlowSolver(FluidSolver):
                 "min_alpha"                  : 0.1,
                 "max_alpha"                  : 2.0,
                 "line_search_tolerance"      : 0.5
+            }""")
+        return default_line_search_parameters
+    @classmethod
+
+    def _GetDefaultTransonicParameters(self):
+        default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                "element_type"                   : "incompressible",
+                "initial_critical_mach"          : 0.92,
+                "initial_upwind_factor_constant" : 2.0,
+                "target_critical_mach"           : 0.92,
+                "target_upwind_factor_constant"  : 2.0,
+                "update_relative_residual_norm"  : 1e-3,
+                "mach_number_squared_limit"      : 3.0
             }""")
         return default_line_search_parameters
 

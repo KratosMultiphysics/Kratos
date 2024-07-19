@@ -23,7 +23,7 @@
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/transonic_residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/potential_flow_residualbased_incrementalupdate_static_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -41,8 +41,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticSchemeType;
 
     //********************************************************************
-    typedef TransonicResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> TransonicResidualBasedIncrementalUpdateStaticScheme;
-    py::class_<TransonicResidualBasedIncrementalUpdateStaticScheme, typename TransonicResidualBasedIncrementalUpdateStaticScheme::Pointer, ResidualBasedIncrementalUpdateStaticSchemeType>(m, "TransonicResidualBasedIncrementalUpdateStaticScheme")
+    typedef PotentialFlowResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> PotentialFlowResidualBasedIncrementalUpdateStaticScheme;
+    py::class_<PotentialFlowResidualBasedIncrementalUpdateStaticScheme, typename PotentialFlowResidualBasedIncrementalUpdateStaticScheme::Pointer, ResidualBasedIncrementalUpdateStaticSchemeType>(m, "PotentialFlowResidualBasedIncrementalUpdateStaticScheme")
+        .def(py::init<std::string, double, double, double, double, double, double>() )
         .def(py::init<Parameters >() )
         .def(py::init< >()
         );
