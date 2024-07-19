@@ -302,8 +302,6 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
-
-                # s_init = np.squeeze(nn_rom_interface.get_decode_function()(q), axis=0)
                 
                 s_init = np.array(self._GetSolver()._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
                 print(s_init.shape)

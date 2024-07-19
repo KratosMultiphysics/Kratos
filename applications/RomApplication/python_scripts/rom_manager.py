@@ -8,7 +8,7 @@ from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-
+from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 
 
 class RomManager(object):
@@ -52,7 +52,6 @@ class RomManager(object):
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
@@ -83,7 +82,6 @@ class RomManager(object):
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
@@ -162,7 +160,6 @@ class RomManager(object):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
@@ -189,7 +186,6 @@ class RomManager(object):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    NN_ROM_Interface = self._TryImportNNInterface()
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
@@ -243,7 +239,6 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
@@ -252,7 +247,6 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                NN_ROM_Interface = self._TryImportNNInterface()
                 nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
@@ -1176,12 +1170,4 @@ class RomManager(object):
             return RomNeuralNetworkTrainer
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
-            raise Exception(err_msg)
-
-    def _TryImportNNInterface(self):
-        try:
-            from KratosMultiphysics.RomApplication.rom_nn_trainer import NN_ROM_Interface
-            return NN_ROM_Interface
-        except ImportError:
-            err_msg = f'Failed to import the NN_ROM_Interface class. Make sure TensorFlow is properly installed.'
             raise Exception(err_msg)
