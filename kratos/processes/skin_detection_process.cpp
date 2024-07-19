@@ -187,7 +187,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     )
 {
-    // The auxiliar name of the condition
+    // The auxiliary name of the condition
     const std::string& r_name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
     if (r_name_condition == "Condition") {
@@ -211,7 +211,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     this->CreateConditions(mrModelPart, rAuxiliaryModelPart, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
-    // Adding to the auxiliar model part
+    // Adding to the auxiliary model part
     VectorIndexType indexes_skin;
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
     rAuxiliaryModelPart.AddNodes(indexes_skin);
@@ -219,7 +219,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
-    // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
+    // Now we set the flag on the nodes. The list of nodes of the auxiliary model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 
@@ -243,7 +243,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
     const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
-    // Create the auxiliar conditions
+    // Create the auxiliary conditions
     for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
