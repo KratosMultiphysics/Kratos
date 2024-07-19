@@ -11,7 +11,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 import json
-import h5py
+
 def CustomizeSimulation(cls, global_model, parameters):
 
     class CustomSimulation(cls):
@@ -22,12 +22,6 @@ def CustomizeSimulation(cls, global_model, parameters):
             return {f"displacement": rom_testing_utilities.GetVectorNodalResults(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT), f"nodal_area": rom_testing_utilities.GetNodalAreaVector(self._GetSolver().GetComputingModelPart()) }
 
     return CustomSimulation(global_model, parameters)
-
-try:
-    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
-    have_tensorflow = True
-except ImportError:
-    have_tensorflow = False
 
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
@@ -66,8 +60,6 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-
-    @KratosUnittest.skipUnless(have_tensorflow,"Missing required python module: TensorFlow.")
     def testStructuralStaticLSPGRom2D_ANN(self):
         self.work_folder = "structural_static_test_files/LSPGROM_ANN/"
         expected_output_filename = "ExpectedOutputLSPG_ANN.npy"
@@ -110,7 +102,6 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             return parameters
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-   
             rom_manager = RomManager(general_rom_manager_parameters=general_rom_manager_parameters,CustomizeSimulation=CustomizeSimulation,UpdateProjectParameters=UpdateProjectParameters)
             with open('mu_train.json', 'r') as json_file:
                 mu_train = json.load(json_file)
