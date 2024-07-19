@@ -219,13 +219,9 @@ public:
         if (mElementType == "perturbation_transonic"){
             // Update the upwind factor constant and critical mach with the user-defined values
             if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
-                rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                          &&
-                mUpdatedValues == false){
-
+                rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
                 rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mTargetCriticalMach;
                 rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mTargetUpwindFactorConstant;
-
-                mUpdatedValues = true;
             }
         }
         BaseType::InitializeNonLinIteration(rModelPart,A,Dx,b);
@@ -323,7 +319,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    bool mUpdatedValues = false;
+    
     std::string mElementType;
     double mInitialCriticalMach         = 0.0;
     double mTargetCriticalMach          = 0.0;
