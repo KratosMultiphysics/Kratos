@@ -380,7 +380,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
     HashMapVectorIntType& rInverseFaceMap
     )
 {
-    // First determine with the nodes in the MPI interface wich faces are potentially removable
+    // First determine with the nodes in the MPI interface which faces are potentially removable
     std::vector<VectorIndexType> faces_to_remove;
     bool to_remove;
     for (auto& r_map : rInverseFaceMap) {
