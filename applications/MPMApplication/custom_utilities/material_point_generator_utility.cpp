@@ -367,19 +367,19 @@ namespace Kratos::MaterialPointGeneratorUtility
                         }
 
                         // Check condition variables
-                        if (r_cond->Has(DISPLACEMENT))
-                            mpc_imposed_displacement[0] = r_cond->GetValue(DISPLACEMENT);
-                        if (r_cond->Has(VELOCITY))
-                            mpc_imposed_velocity[0] = r_cond->GetValue(VELOCITY);
-                        if (r_cond->Has(ACCELERATION))
-                            mpc_imposed_acceleration[0] = r_cond->GetValue(ACCELERATION);
-                        if (r_cond->Has(PENALTY_COEFFICIENT))
-                            mpc_penalty_coefficient[0] = r_cond->GetValue(PENALTY_COEFFICIENT);
+                        if (r_cond.Has(DISPLACEMENT))
+                            mpc_imposed_displacement[0] = r_cond.GetValue(DISPLACEMENT);
+                        if (r_cond.Has(VELOCITY))
+                            mpc_imposed_velocity[0] = r_cond.GetValue(VELOCITY);
+                        if (r_cond.Has(ACCELERATION))
+                            mpc_imposed_acceleration[0] = r_cond.GetValue(ACCELERATION);
+                        if (r_cond.Has(PENALTY_COEFFICIENT))
+                            mpc_penalty_coefficient[0] = r_cond.GetValue(PENALTY_COEFFICIENT);
 
-                        const bool is_slip = r_cond->Is(SLIP);
-                        const bool is_contact = r_cond->Is(CONTACT);
-                        const bool is_interface = r_cond->Is(INTERFACE);
-                        const bool flip_normal_direction = r_cond->Is(MODIFIED);
+                        const bool is_slip = r_cond.Is(SLIP);
+                        const bool is_contact = r_cond.Is(CONTACT);
+                        const bool is_interface = r_cond.Is(INTERFACE);
+                        const bool flip_normal_direction = r_cond.Is(MODIFIED);
 
                         std::string condition_type_name;
 
