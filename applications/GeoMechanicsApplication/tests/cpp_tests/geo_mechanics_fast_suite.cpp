@@ -12,6 +12,8 @@
 //
 
 #include "geo_mechanics_fast_suite.h"
+#include "geo_mechanics_application.h"
+#include "linear_solvers_application.h"
 
 namespace Kratos::Testing
 {

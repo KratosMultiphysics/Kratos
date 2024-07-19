@@ -13,6 +13,7 @@
 
 #include "custom_constitutive/thermal_filter_law.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/properties.h"
 
 namespace Kratos
 {

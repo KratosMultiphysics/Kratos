@@ -11,6 +11,7 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
