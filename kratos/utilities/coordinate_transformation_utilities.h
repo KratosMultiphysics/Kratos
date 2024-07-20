@@ -1010,7 +1010,7 @@ private:
                             for(unsigned int k=0; k<4; k++)
                                 aux[k] = rLocalVector[j*mBlockSize+k];
 
-                            if(revert_rotation)
+                            if(RevertRotation)
                             {
                                 noalias(aux1) = prod(trans(rRot),aux);
                             } else{
@@ -1031,7 +1031,7 @@ private:
                                 aux[k] = rLocalVector[j*mBlockSize+k];
                             }
 
-                            if(revert_rotation)
+                            if(RevertRotation)
                             {
                                 noalias(aux1) = prod(trans(rRot),aux);
                             } else{
@@ -1061,7 +1061,7 @@ private:
                             for(unsigned int k=0; k<3; k++)
                                 aux[k] = rLocalVector[j*mBlockSize+k];
 
-                            if(revert_rotation)
+                            if(RevertRotation)
                             {
                                 noalias(aux1) = prod(trans(rRot),aux);
                             } else{
@@ -1080,7 +1080,7 @@ private:
                             for(unsigned int k=0; k<2; k++)
                                 aux[k] = rLocalVector[j*mBlockSize+k];
 
-                            if(revert_rotation)
+                            if(RevertRotation)
                             {
                                 noalias(aux1) = prod(trans(rRot),aux);
                             } else{
