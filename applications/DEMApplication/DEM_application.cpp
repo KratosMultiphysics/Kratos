@@ -836,9 +836,9 @@ void KratosDEMApplication::Register() {
     // ******************* Quaternion Integration END *******************
 
     // ****************Radius expansion method BEGIN*******************
-    KRATOS_CREATE_VARIABLE(bool, IS_RADIUS_EXPANSION)
-    KRATOS_CREATE_VARIABLE(double, RADIUS_EXPANSION_RATE)
-    KRATOS_CREATE_VARIABLE(double, RADIUS_MULTIPLIER_MAX)
+    KRATOS_REGISTER_VARIABLE(IS_RADIUS_EXPANSION)
+    KRATOS_REGISTER_VARIABLE(RADIUS_EXPANSION_RATE)
+    KRATOS_REGISTER_VARIABLE(RADIUS_MULTIPLIER_MAX)
     // *****************Radius expansion method END********************
 
     // FORCE AND MOMENTUM
