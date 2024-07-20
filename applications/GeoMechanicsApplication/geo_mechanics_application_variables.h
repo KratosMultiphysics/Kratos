@@ -20,7 +20,6 @@
 // Project includes
 #include "geo_mechanics_application_constants.h"
 #include "includes/define.h"
-#include "includes/kratos_application.h"
 #include "structural_mechanics_application_variables.h"
 #include <string>
 

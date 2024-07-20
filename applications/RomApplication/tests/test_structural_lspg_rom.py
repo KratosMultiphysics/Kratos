@@ -23,12 +23,6 @@ def CustomizeSimulation(cls, global_model, parameters):
 
     return CustomSimulation(global_model, parameters)
 
-try:
-    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
-    have_tensorflow = True
-except ImportError:
-    have_tensorflow = False
-
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestStructuralLSPGRom(KratosUnittest.TestCase):
@@ -66,8 +60,6 @@ class TestStructuralLSPGRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-
-    @KratosUnittest.skipUnless(have_tensorflow,"Missing required python module: TensorFlow.")
     def testStructuralStaticLSPGRom2D_ANN(self):
         self.work_folder = "structural_static_test_files/LSPGROM_ANN/"
         expected_output_filename = "ExpectedOutputLSPG_ANN.npy"

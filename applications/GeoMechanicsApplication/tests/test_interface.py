@@ -64,7 +64,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         base_y_displacement = [displacement[1] for displacement in base_displacement]
 
         max_base_x_displacement = max(base_x_displacement)
-        max_base_y_displacement, min_base_y_displacement = max(base_y_displacement), min(base_y_displacement)
+        max_base_y_displacement = max(base_y_displacement)
 
         # calculate case with strong interface
         file_path = test_helper.get_file_path(os.path.join('Interface', 'interface_on_beam'))
@@ -76,7 +76,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         interface_y_displacement = [displacement[1] for displacement in interface_displacement]
 
         max_interface_x_displacement = max(interface_x_displacement)
-        max_interface_y_displacement, min_interface_y_displacement = max(interface_y_displacement), min(interface_y_displacement)
+        max_interface_y_displacement = max(interface_y_displacement)
 
         # assert base displacement is approximately equal to displacement with interface
         precision = 0.01
