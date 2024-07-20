@@ -19,6 +19,7 @@
 #include "micro_climate_constants.h"
 
 #include <boost/numeric/ublas/vector_expression.hpp>
+#include <numeric>
 
 namespace Kratos
 {

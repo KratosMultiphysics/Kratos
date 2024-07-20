@@ -102,7 +102,7 @@ public:
 
 private:
     // boolean for the cable --> does not resist to compression
-    bool mIsCompressed;
+    bool mIsCompressed = false;
 
     friend class Serializer;
 

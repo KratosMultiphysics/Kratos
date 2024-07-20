@@ -36,7 +36,7 @@ protected:
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidTheta_CheckNewmarkScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double invalid_theta = -2.0;
 

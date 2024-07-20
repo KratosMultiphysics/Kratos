@@ -30,8 +30,10 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
 
 //linear solvers
@@ -87,9 +89,27 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
+    typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
+    
+    py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
+    .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("RunDecoder", &AnnPromGlobalROMBuilderAndSolverType::RunDecoder)
+    ;
+
+    typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+    
+    py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
+    .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
+    .def("RunDecoder", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
+    ;
 
 }
 
 } // namespace Python.
 } // Namespace Kratos
-
