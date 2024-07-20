@@ -469,8 +469,9 @@ public:
 	}
 
 	/// RHS only version of Rotate which reverts the rotation to the original frame
-	virtual void RevertRotate(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
+	virtual void RevertRotate(
+	    TLocalVectorType& rLocalVector,
+	    GeometryType& rGeometry) const
 	{
             RotateRHSAux(rLocalVector, rGeometry, true);
 	}
