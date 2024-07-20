@@ -987,8 +987,10 @@ private:
 	///@name Private Operations
 	///@{
 
-    void RotateRHSAux(TLocalVectorType& rLocalVector,
-                      GeometryType& rGeometry, const bool revert_rotation) const
+    void RotateRHSAux(
+        TLocalVectorType& rLocalVector,
+        GeometryType& rGeometry,
+        const bool RevertRotation) const
     {
         if (rLocalVector.size() > 0)
         {
