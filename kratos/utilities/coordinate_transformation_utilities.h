@@ -461,14 +461,26 @@ public:
 
 	}
 
-	/// RHS only version of Rotate
+    /**
+     * @brief RHS only version of Rotate
+     * @details Rotates the local RHS vector (rLocalVector) to a tangential-normal coordinate system defined by the
+     * normals of the associated rGeometry
+     * @param rLocalVector Local RHS vector associated with rGeometry, to be transformed
+     * @param rGeometry Geometry associated with rLocalVector
+     */
 	virtual void Rotate(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
             RotateRHSAux(rLocalVector, rGeometry, false);
 	}
 
-	/// RHS only version of Rotate which reverts the rotation to the original frame
+    /**
+     * @brief RHS only version of Rotate which reverts the rotation to the original frame
+     * @details Rotates the local RHS vector (rLocalVector) in the tangential-normal coordinate system back to the
+     * original coordinate system
+     * @param rLocalVector Local RHS vector associated with rGeometry, to be transformed
+     * @param rGeometry Geometry associated with rLocalVector
+     */
 	virtual void RevertRotate(
 	    TLocalVectorType& rLocalVector,
 	    GeometryType& rGeometry) const
@@ -673,6 +685,20 @@ protected:
 	///@name Protected Operations
 	///@{
 
+    /**
+     * @brief Auxilliary function to rotate local system contributions between the original and tangential-normal
+     * frames of reference, to be used when pressure etc. is present
+     * @details Transforms the local system based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if TRevertRotation is false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the system back to the original coordinate system.
+     * @tparam TDim Number of spatial dimensions
+     * @tparam TBlockSize Total number of DoFs associated with each node
+     * @tparam TSkip
+     * @tparam TRevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     * @param rLocalMatrix Local LHS matrix contribution associated with rGeometry
+     * @param rLocalVector Local RHS vector contribution associated with rGeometry
+     * @param rGeometry Geometry associated with local system
+     */
 	template<unsigned int TDim, unsigned int TBlockSize, unsigned int TSkip = 0, bool TRevertRotation = false>
 	void RotateAux(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
@@ -760,7 +786,18 @@ protected:
 		}
 	}
 
-	//to be used when there is only velocity (no additional pressure or other var block)
+    /**
+     * @brief Auxilliary function to rotate local system contributions between the original and tangential-normal
+     * frames of reference, to be used when there is only velocity (no additional pressure or other var block)
+     * @details Transforms the local system based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if TRevertRotation is false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the system back to the original coordinate system.
+     * @tparam TDim Number of spatial dimensions
+     * @tparam TRevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     * @param rLocalMatrix Local LHS matrix contribution associated with rGeometry
+     * @param rLocalVector Local RHS vector contribution associated with rGeometry
+     * @param rGeometry Geometry associated with local system
+     */
 	template<unsigned int TDim, bool TRevertRotation = false>
 	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
@@ -988,6 +1025,15 @@ private:
 	///@name Private Operations
 	///@{
 
+    /**
+     * @brief Auxilliary function to implement a reversible rotation operation on the local RHS vector
+     * @details Transforms the local RHS vector based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if RevertRotation == false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the RHS vector back to the original coordinate system.
+     * @param rLocalVector Local RHS vector associated with rGeometry
+     * @param rGeometry Geometry associated with rLocalVector
+     * @param RevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     */
     void RotateRHSAux(
         TLocalVectorType& rLocalVector,
         GeometryType& rGeometry,
