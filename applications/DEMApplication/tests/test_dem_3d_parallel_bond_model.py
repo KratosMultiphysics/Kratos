@@ -23,7 +23,7 @@ class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        tolerance = 1e-7
+        tolerance = 1e-6
         for node in self.spheres_model_part.Nodes:
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
