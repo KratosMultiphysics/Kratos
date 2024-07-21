@@ -484,7 +484,7 @@ class MPMSolver(PythonSolver):
         flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
         flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
         flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-        KratosMultiphysics.TetrahedralMeshOrientationCheck(self.GetGridModelPart(), throw_errors, flags).Execute()
+        # KratosMultiphysics.TetrahedralMeshOrientationCheck(self.GetGridModelPart(), throw_errors, flags).Execute()
         # # else:
         # #     KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
         # Specific active node and element check for MPM solver

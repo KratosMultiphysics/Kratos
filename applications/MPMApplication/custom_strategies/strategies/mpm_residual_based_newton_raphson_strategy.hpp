@@ -318,7 +318,7 @@ public:
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
 
 
-            std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!! "<<"\n";
+            std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!!------------------------------------------------------------------------------------------ "<<"\n";
         }
 
         return is_converged;

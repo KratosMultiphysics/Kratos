@@ -162,7 +162,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-                        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+                        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed. Coordinate:\n" << xg[0] << std::endl;
 
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
