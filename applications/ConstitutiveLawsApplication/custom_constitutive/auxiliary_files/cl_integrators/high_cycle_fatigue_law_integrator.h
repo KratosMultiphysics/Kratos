@@ -279,7 +279,7 @@ public:
         }
         if (MaxStress > Sth) {
             rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
-            rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
+            rFatigueReductionFactor = (rFatigueReductionFactor < 0.1) ? 0.1 : rFatigueReductionFactor;
         }
     }
 

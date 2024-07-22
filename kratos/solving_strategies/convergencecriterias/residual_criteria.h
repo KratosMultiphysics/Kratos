@@ -210,7 +210,7 @@ public:
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rank == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ io = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
