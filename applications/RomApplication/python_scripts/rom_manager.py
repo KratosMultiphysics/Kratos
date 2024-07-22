@@ -229,7 +229,7 @@ class RomManager(object):
         self._LaunchRunFOM(mu_run)
 
 
-    def RunROM(self, mu_train=[None], mu_run=[None]):
+    def RunROM(self, mu_run=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         nn_rom_interface = None
@@ -267,7 +267,7 @@ class RomManager(object):
 
 
 
-    def RunHROM(self, mu_train=[None], mu_run=[None], use_full_model_part = False):
+    def RunHROM(self, mu_run=[None], mu_train=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         self._LoadSolutionBasis(mu_train)
