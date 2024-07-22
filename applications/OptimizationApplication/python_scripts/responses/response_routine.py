@@ -49,13 +49,8 @@ class ResponseRoutine:
         for control in self.__master_control.GetListOfControls():
             # check whether control has keys given by required gradients
             if set(control.GetPhysicalKratosVariables()).intersection(self.__required_physical_gradients.keys()):
-                # check whether there is an intersection of model parts between respones domain and control domain.
-                #   1. in the case where response does not require an analysis, then intersection between evaluated and control domain is checked.
-                #   2. in the case where response require an analysis, then intersection between analysis and control domain is checked.
-                if self.__response.GetAnalysisModelPart() is None:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetEvaluatedModelPart()
-                else:
-                    checked_model_part: Kratos.ModelPart = self.__response.GetAnalysisModelPart()
+                # check whether there is an intersection of model parts between response influencial domain and control domain.
+                checked_model_part: Kratos.ModelPart = self.__response.GetInfluencingModelPart()
 
                 if Kratos.ModelPartOperationUtilities.HasIntersection([checked_model_part, control.GetEmptyField().GetModelPart()]):
                     self.__contributing_controls_list.append(control)
