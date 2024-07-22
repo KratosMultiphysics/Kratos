@@ -273,7 +273,7 @@ public:
                             nodes_id[18] = (it)->GetGeometry() [14].Id();
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
-                        const unsinged int cond_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
+                        const unsigned int cond_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
                         nodes_id[(it)->GetGeometry().size()]= cond_layer + 1;
 
                         if (it->IsActive())
