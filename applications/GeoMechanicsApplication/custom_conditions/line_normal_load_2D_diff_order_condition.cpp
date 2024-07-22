@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "includes/variables.h"
 
 namespace Kratos
 {

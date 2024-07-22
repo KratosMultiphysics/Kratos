@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "utilities/math_utils.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {

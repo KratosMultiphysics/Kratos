@@ -44,12 +44,12 @@
               "UDSM_NUMBER"              :  1,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [1e10,
-                                            0.495,
+                                            0,
                                             10000,
                                             0.0,
                                             0.0,
-                                            1e30,
-                                            1,
+                                            0,
+                                            0,
                                             0.0]
          },
          "Tables": {}
