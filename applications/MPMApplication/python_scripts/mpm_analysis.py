@@ -8,7 +8,7 @@ from KratosMultiphysics.MPMApplication.python_solvers_wrapper_mpm import CreateS
 
 # Import utilities
 import itertools
-
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class MpmAnalysis(AnalysisStage):
     """
@@ -121,6 +121,15 @@ class MpmAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "::[MPM Analysis]:: "
+
+
+class MPMAnalysis(MpmAnalysis):
+    def __init__(self, model, parameters):
+        wrng_msg  = "Class `MPMAnalysis` is deprecated "
+        wrng_msg += "and replaced by `MpmAnalysis`"
+        IssueDeprecationWarning("MPMApplication:",wrng_msg)
+        super().__init__(model, parameters)
+
 
 if __name__ == "__main__":
     from sys import argv
