@@ -693,7 +693,7 @@ protected:
      * inverse transformation is applied -- this transforms the system back to the original coordinate system.
      * @tparam TDim Number of spatial dimensions
      * @tparam TBlockSize Total number of DoFs associated with each node
-     * @tparam TSkip
+     * @tparam TSkip Auxiliary value to shift the entries of the rotated array
      * @tparam TRevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
      * @param rLocalMatrix Local LHS matrix contribution associated with rGeometry
      * @param rLocalVector Local RHS vector contribution associated with rGeometry
