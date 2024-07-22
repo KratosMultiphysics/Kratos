@@ -103,8 +103,8 @@ class ResponseFunction(ABC):
                response value is computed.) Therefore, in this case, this method should return the
                evaluated model part.
             2. Responses with adjoint system solve: The value of the response can be influenced by
-                changing quantities in the adjoint model part (There may or may not be an intersection between
-                the evaluated and adjoint model parts). Therefore, in this case, this method should return the
+                changing quantities in the adjoint/primal model part (Evaluated model part needs to have
+                intersection with the adjoint/primal model part). Therefore, in this case, this method should return the
                 adjoint analysis model part.
 
         Returns:
