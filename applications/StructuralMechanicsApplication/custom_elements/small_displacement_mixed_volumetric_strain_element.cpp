@@ -183,7 +183,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
                 aux++;
             }
         }
-        mIsDynamic = aux == r_geom.PointsNumber() ? true : false;
+        mIsDynamic = (aux == r_geom.PointsNumber());
 
         // Initialize the displacement subscale containers
         if (mIsDynamic) {
@@ -1746,12 +1746,13 @@ void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
     int IntMethod = int(this->GetIntegrationMethod());
+    rSerializer.save("IsDynamic", mIsDynamic);
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.save("AnisotropyTensor", mAnisotropyTensor);
     rSerializer.save("InverseAnisotropyTensor", mInverseAnisotropyTensor);
-    // rSerializer.save("DisplacementSubscale1", mDisplacementSubscale1);
-    // rSerializer.save("DisplacementSubscale1", mDisplacementSubscale2);
+    rSerializer.save("DisplacementSubscale1", mDisplacementSubscale1);
+    rSerializer.save("DisplacementSubscale1", mDisplacementSubscale2);
 }
 
 /***********************************************************************************/
@@ -1761,13 +1762,14 @@ void SmallDisplacementMixedVolumetricStrainElement::load(Serializer& rSerializer
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
     int IntMethod;
+    rSerializer.load("IsDynamic",mIsDynamic);
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.load("AnisotropyTensor", mAnisotropyTensor);
     rSerializer.load("InverseAnisotropyTensor", mInverseAnisotropyTensor);
-    // rSerializer.load("DisplacementSubscale1", mDisplacementSubscale1);
-    // rSerializer.load("DisplacementSubscale1", mDisplacementSubscale2);
+    rSerializer.load("DisplacementSubscale1", mDisplacementSubscale1);
+    rSerializer.load("DisplacementSubscale1", mDisplacementSubscale2);
 }
 
 } // Namespace Kratos
