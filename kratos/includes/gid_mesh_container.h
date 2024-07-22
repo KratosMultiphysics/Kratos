@@ -174,7 +174,7 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [1].Id();
                             nodes_id[2] = (it)->GetGeometry() [2].Id();
                         }
-                        const int elem_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
+                        const unsigned int elem_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
                         nodes_id[ (it)->GetGeometry().size()]= elem_layer + 1;
 
                         if (it->IsActive())
