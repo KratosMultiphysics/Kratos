@@ -84,7 +84,11 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             # TODO: Remove this block. This is only required for time averaged adjoint analysis primal runs only with turbulence models
             # this is a hack for the time being
             if not self.fluid_model_part.ProcessInfo.Has(KratosRANS.WALL_MODEL_PART_NAME):
-                wall_mp = self.fluid_model_part.CreateSubModelPart(settings["all_wall_model_part_name"].GetString())
+                all_wall_model_part_name = settings["all_wall_model_part_name"].GetString()
+                if all_wall_model_part_name.find(".") == -1:
+                    wall_mp = self.fluid_model_part.CreateSubModelPart(settings["all_wall_model_part_name"].GetString())
+                else:
+                    wall_mp = model.CreateModelPart(all_wall_model_part_name)
                 self.fluid_model_part.ProcessInfo.SetValue(KratosRANS.WALL_MODEL_PART_NAME, wall_mp.FullName())
 
             self.model_part = model[self.fluid_model_part.ProcessInfo[KratosRANS.WALL_MODEL_PART_NAME]]

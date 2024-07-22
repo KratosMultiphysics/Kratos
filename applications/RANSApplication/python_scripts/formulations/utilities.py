@@ -400,13 +400,11 @@ def AddWallPropertiesUpdateProcess(rans_formulation, settings):
         wall_model_part_name = settings["wall_model_part_name"].GetString()
 
     base_model_part = rans_formulation.GetBaseModelPart()
-    wall_model_part = base_model_part.CreateSubModelPart(wall_model_part_name)
-    base_model_part.ProcessInfo[KratosRANS.WALL_MODEL_PART_NAME] = wall_model_part.FullName()
-
+    wall_model_part_full_name = f"{base_model_part.FullName()}.{wall_model_part_name}"
     if len(wall_properties_update_execution_points) > 0:
         wall_properties_update_process = KratosRANS.RansWallPropertiesUpdateProcess(
             rans_formulation.GetBaseModelPart().GetModel(),
-            wall_model_part.FullName(),
+            wall_model_part_full_name,
             update_wall_normals,
             update_wall_condition_heights,
             wall_properties_update_execution_points,

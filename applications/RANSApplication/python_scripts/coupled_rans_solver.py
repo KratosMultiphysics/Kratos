@@ -573,9 +573,9 @@ class CoupledRANSSolver(PythonSolver):
             ## remove fluid_computational_model_part if it exists. It will be there if adaptive mesh refinement is used.
             if (self.main_model_part.HasSubModelPart("fluid_computational_model_part")):
                 self.main_model_part.RemoveSubModelPart("fluid_computational_model_part")
-            ## Executes the check and prepare model process
-            self._ExecuteCheckAndPrepare()
-            ## Set buffer size
+        
+        ## Executes the check and prepare model process
+        self._ExecuteCheckAndPrepare()
 
         if (IsDistributedRun()):
             self.distributed_model_part_importer.CreateCommunicators()
