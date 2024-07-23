@@ -694,6 +694,7 @@ class RomManager(object):
 
 
     def _AddHromParametersToRomParameters(self,f):
+        f["hrom_settings"]["hrom_format"] = self.general_rom_manager_parameters["HROM"]["hrom_format"].GetString()
         f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
         f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         f["hrom_settings"]["constraint_sum_weights"] = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
@@ -955,20 +956,20 @@ class RomManager(object):
                 }
             },
             "HROM":{
-                "hrom_format": "numpy",
+                "hrom_format": "numpy",                            //  "json", "numpy"
                 "element_selection_type": "empirical_cubature",
                 "element_selection_svd_truncation_tolerance": 1.0e-6,
-                "constraint_sum_weights": true,
-                "svd_type": "numpy_rsvd",
+                "constraint_sum_weights": true,                   // if true, then sum(w) = num_elems (this avoids trivial solutions sum(w)=0)
+                "svd_type": "numpy_rsvd",                         //  "numpy_svd", "numpy_rsvd"
                 "create_hrom_visualization_model_part" : true,
-                "include_elements_model_parts_list": [],
-                "include_conditions_model_parts_list": [],
-                "initial_candidate_elements_model_part_list" : [],
-                "initial_candidate_conditions_model_part_list" : [],
+                "include_elements_model_parts_list": [],          //The elements of the submodel parts included in this list will be considered in the HROM model part
+                "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part
+                "initial_candidate_elements_model_part_list" : [],        //These elements will be given priority when creating the HROM model part
+                "initial_candidate_conditions_model_part_list" : [],       //These conditions will be given priority when creating the HROM model part
                 "include_nodal_neighbouring_elements_model_parts_list":[],
-                "include_minimum_condition": false,
-                "include_condition_parents": false,
-                "echo_level" : 0
+                "include_minimum_condition": false,       // if true, keep at least one condition per submodelpart
+                "include_condition_parents": false,       // if true, when a condition is chosen by the ECM algorithm, the parent element is also included
+                "echo_level" : 0                          // if >0, get hrom training status promts
             }
         }""")
 

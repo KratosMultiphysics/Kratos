@@ -27,7 +27,8 @@
         "include_elements_model_parts_list": [],
         "include_conditions_model_parts_list": [],
         "include_nodal_neighbouring_elements_model_parts_list": [],
-        "include_minimum_condition": false
+        "include_minimum_condition": false,
+        "hrom_format": "numpy"
     },
     "nodal_modes": {
         "1": [
