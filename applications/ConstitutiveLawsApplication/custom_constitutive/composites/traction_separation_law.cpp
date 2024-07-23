@@ -1782,7 +1782,7 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
     double v12=0.28;
     double v21=(E2/E1)*v12;
     double Q11=E1/(1-(v12)*(v21));
-    double Q22=E2/(1-(v12)*(21));
+    double Q22=E2/(1-(v12)*(v21));
     double Q12=v12*E2/(1-(v12)*(v21));
     double Q66=G12;
     double U1=(3*Q11+3*Q22+2*Q12+4*Q66)/8;
