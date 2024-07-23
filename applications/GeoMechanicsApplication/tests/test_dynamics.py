@@ -100,6 +100,38 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         for node in nodes:
             self.assertVectorAlmostEqual(calculated_result[node][what], expected_result[node][what])
 
+    def test_constant_strip_load_2d(self):
+
+        test_name = 'test_constant_strip_load_2d'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        simulation = test_helper.run_kratos(file_path)
+
+        # get json output
+        json_process = simulation._GetListOfProcesses()[4]
+
+        elements = json_process.sub_model_part.Elements
+
+        centroids = []
+        stresses = []
+        x_coords = []
+        for element in elements:
+            # get centroid
+            centroid = element.GetGeometry().Center()
+            x_coords.append(centroid.X)
+            # get element cauchy stress
+            element_stress = element.CalculateOnIntegrationPoints(Kratos.CAUCHY_STRESS_VECTOR,
+                                                                  json_process.sub_model_part.ProcessInfo)
+            vert_stress = test_helper.compute_mean_list([gauss_stress[1] for gauss_stress in element_stress])
+            centroids.append(centroid)
+            stresses.append(vert_stress)
+
+        import matplotlib.pyplot as plt
+        plt.plot(x_coords, stresses, 'o')
+        plt.show()
+
+        a=1+1
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
