@@ -45,9 +45,6 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
-                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
-                        raise Exception(err_msg)
                     self._LaunchTrainROM(mu_train)
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
@@ -75,9 +72,6 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
-                        err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
-                        raise Exception(err_msg)
                     self._LaunchTrainROM(mu_train)
                     self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
