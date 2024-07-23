@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateGradient
 
 class BinaryOperatorResponseFunction(ResponseFunction):
     class BinaryOperator(str, Enum):
@@ -90,10 +91,13 @@ class BinaryOperatorResponseFunction(ResponseFunction):
             return resp_1_value ** resp_2_value
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        resp_1_physical_variable_collective_expressions = self.__EvaluateGradient(self.response_function_1, physical_variable_collective_expressions)
-        resp_2_physical_variable_collective_expressions = self.__EvaluateGradient(self.response_function_2, physical_variable_collective_expressions)
-        v1 = ComponentDataView(self.response_function_1, self.optimization_problem).GetBufferedData().GetValue("value")
-        v2 = ComponentDataView(self.response_function_2, self.optimization_problem).GetBufferedData().GetValue("value")
+        resp_1_buffered_data = ComponentDataView(self.response_function_1, self.optimization_problem).GetBufferedData()
+        resp_2_buffered_data = ComponentDataView(self.response_function_2, self.optimization_problem).GetBufferedData()
+
+        resp_1_physical_variable_collective_expressions = EvaluateGradient(self.response_function_1, resp_1_buffered_data, physical_variable_collective_expressions)
+        resp_2_physical_variable_collective_expressions = EvaluateGradient(self.response_function_2, resp_2_buffered_data, physical_variable_collective_expressions)
+        v1: float = resp_1_buffered_data.GetValue("value")
+        v2: float = resp_2_buffered_data.GetValue("value")
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
             for result, g1, g2 in zip(collective_expression.GetContainerExpressions(), resp_1_physical_variable_collective_expressions[variable].GetContainerExpressions(), resp_2_physical_variable_collective_expressions[variable].GetContainerExpressions()):
@@ -106,7 +110,7 @@ class BinaryOperatorResponseFunction(ResponseFunction):
                 elif self.binary_operator == BinaryOperatorResponseFunction.BinaryOperator.DIVIDE:
                     result.SetExpression((g1 / v2 - g2 * (v1 / v2 ** 2)).GetExpression())
                 elif self.binary_operator == BinaryOperatorResponseFunction.BinaryOperator.POWER:
-                    result.SetExpression(((g1 * v2 / v1 + g2 * log(v1)) * (v1 ** v2)).GetExpression())
+                    result.SetExpression(((g1 * (v2 / v1) + g2 * log(v1)) * (v1 ** v2)).GetExpression())
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
