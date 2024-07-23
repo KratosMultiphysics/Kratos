@@ -37,8 +37,6 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
         self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
 
-        aggregation_technique = sensor_settings["aggregation_technique"].GetString()
-
         p_coefficient = sensor_settings["p_coefficient"].GetDouble()
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)
 

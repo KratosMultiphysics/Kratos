@@ -9,8 +9,7 @@
     "sensor_settings": {
         "perturbation_size": 1e-8,
         "adapt_perturbation_size": true,
-        "aggregation_technique": "p_norm",
-        "p_coefficient": 2,
+        "p_coefficient": 4,
         "@include_json": "auxiliary_files/system_identification/sensor_data.json"
     },
     "solver_settings": {
