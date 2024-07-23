@@ -365,7 +365,7 @@ class RomManager(object):
         This method should be parallel capable
         """
         self._LaunchFOM(mu_train)
-        self._LauchComputeSolutionBasis(mu_train)
+        self._LaunchComputeSolutionBasis(mu_train)
 
 
 
@@ -401,7 +401,7 @@ class RomManager(object):
 
 
 
-    def _LauchComputeSolutionBasis(self, mu_train):
+    def _LaunchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
