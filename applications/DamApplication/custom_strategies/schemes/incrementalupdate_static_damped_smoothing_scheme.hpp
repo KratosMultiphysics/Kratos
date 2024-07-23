@@ -65,11 +65,6 @@ public:
         int ierr = Scheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
         if(ierr != 0) return ierr;
 
-        if ( RAYLEIGH_ALPHA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
-        if ( RAYLEIGH_BETA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA has Key zero! (check if the application is correctly registered", "" )
-
         // Check rayleigh coefficients
         if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )

@@ -55,12 +55,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         total_displacement = old_total_displacement + stage_displacement
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
-    def _CalculateIncrementalDisplacement(self, node):
-        incremental_displacement = (node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0) -
-                                   node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1))
-        node.SetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT, incremental_displacement)
-
-
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(variable, self._GetSolver().GetComputingModelPart().Nodes)
@@ -217,8 +211,10 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    self._CalculateIncrementalDisplacement(node)
+                incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
+                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+
+                incr_process.Execute()
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()

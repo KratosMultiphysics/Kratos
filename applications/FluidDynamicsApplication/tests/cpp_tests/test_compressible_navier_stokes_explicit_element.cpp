@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 #include "containers/model.h"
 
 // Application includes
