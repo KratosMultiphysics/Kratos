@@ -1,10 +1,8 @@
 import os
 import json
 
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
-
 import test_helper
 
 
