@@ -12,7 +12,7 @@ from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 import json
 
-def CustomizeSimulation(cls, global_model, parameters):
+def CustomizeSimulation(cls, global_model, parameters, mu=None):
 
     class CustomSimulation(cls):
 

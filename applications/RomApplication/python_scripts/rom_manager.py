@@ -379,7 +379,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
@@ -449,7 +449,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
@@ -482,7 +482,7 @@ class RomManager(object):
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
                     pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -523,7 +523,7 @@ class RomManager(object):
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
                     analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
@@ -575,7 +575,7 @@ class RomManager(object):
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -600,7 +600,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
@@ -618,7 +618,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
@@ -640,7 +640,7 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
@@ -981,11 +981,11 @@ class RomManager(object):
 
 
 
-    def DefaultCustomizeSimulation(self, cls, global_model, parameters):
+    def DefaultCustomizeSimulation(self, cls, global_model, parameters, mu=None):
         # Default function that does nothing special
         class DefaultCustomSimulation(cls):
-            def _init_(self, model, project_parameters):
-                super()._init_(model, project_parameters)
+            def __init__(self, model, project_parameters):
+                super().__init__(model, project_parameters)
 
             def Initialize(self):
                 super().Initialize()
