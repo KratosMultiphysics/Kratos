@@ -115,48 +115,31 @@ public:
     }
 
     /**
-     * @brief Default constructor. The pseudo static scheme (parameters)
-     * @param ThisParameters Dummy parameters
+     * @brief Default constructor.
+     * @param ThisParameters See parameters
      */
     explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters) : BaseType()
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-    }
+}
 
     /**
      * @brief Default constructor.
-     * @param ElementType Type of element used in the simulation.
-     * @param InitialCriticalMach Initial critical mach value.
-     * @param InitialUpwindFactorConstant Initial upwind factor constant value.
-     * @param TargetCriticalMach Critical mach value to be used once the UpdateRelativeResidualNorm value is reached.
-     * @param TargetUpwindFactorConstant Upwind factor constant value to be used once the UpdateRelativeResidualNorm value is reached.
-     * @param UpdateRelativeResidualNorm Relative residual norm value to which the critical mach and the upwind factor constant will be updated.
-     * @param MachNumberSquaredLimit Mach number squared limit value wich will be used.
+     * @param ThisParameters See parameters
      */
-    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(
-        std::string ElementType,
-        double InitialCriticalMach,
-        double InitialUpwindFactorConstant,
-        double TargetCriticalMach,
-        double TargetUpwindFactorConstant,
-        double UpdateRelativeResidualNorm,
-        double MachNumberSquaredLimit) 
-        : BaseType()
+    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters, bool IsTransonic) : BaseType()
     {
-        mElementType = ElementType;
-
-        if (mElementType == "perturbation_transonic"){
-            mInitialCriticalMach         = InitialCriticalMach;
-            mInitialUpwindFactorConstant = InitialUpwindFactorConstant;
-            mTargetCriticalMach          = TargetCriticalMach;
-            mTargetUpwindFactorConstant  = TargetUpwindFactorConstant;
-            mUpdateRelativeResidualNorm  = UpdateRelativeResidualNorm;
-            mMachNumberSquaredLimit      = MachNumberSquaredLimit;
+        mIsTransonic = IsTransonic;
+        KRATOS_WATCH(IsTransonic)
+        if (mIsTransonic){
+            KRATOS_WATCH(IsTransonic)
+            // Validate and assign defaults
+            ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+            this->AssignSettings(ThisParameters);
         }
     }
-
 
     /** Destructor.
     */
@@ -188,7 +171,8 @@ public:
     {
         KRATOS_TRY
 
-        if (mElementType == "perturbation_transonic"){
+        if (mIsTransonic){
+            // Initialize the upwind factor constant, critical mach and mach limit with the user-defined values
             rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mInitialCriticalMach;
             rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mInitialUpwindFactorConstant;
             rModelPart.GetProcessInfo()[MACH_LIMIT]             = std::sqrt(mMachNumberSquaredLimit);
@@ -216,7 +200,7 @@ public:
     {
         KRATOS_TRY
 
-        if (mElementType == "perturbation_transonic"){
+        if (mIsTransonic){
             // Update the upwind factor constant and critical mach with the user-defined values
             if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] <= mUpdateRelativeResidualNorm &&
                 rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
@@ -237,7 +221,6 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "element_type"                   : "",
             "initial_critical_mach"          : 0.92,
             "initial_upwind_factor_constant" : 2.0,
             "target_critical_mach"           : 0.92,
@@ -258,7 +241,6 @@ public:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
-        mElementType                 = ThisParameters["element_type"].GetString();
         mInitialCriticalMach         = ThisParameters["initial_critical_mach"].GetDouble();
         mInitialUpwindFactorConstant = ThisParameters["initial_upwind_factor_constant"].GetDouble();
         mTargetCriticalMach          = ThisParameters["target_critical_mach"].GetDouble();
@@ -319,8 +301,16 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    // Parameters ########################################
+    // InitialCriticalMach Initial critical mach value.
+    // InitialUpwindFactorConstant Initial upwind factor constant value.
+    // TargetCriticalMach Critical mach value to be used once the UpdateRelativeResidualNorm value is reached.
+    // TargetUpwindFactorConstant Upwind factor constant value to be used once the UpdateRelativeResidualNorm value is reached.
+    // UpdateRelativeResidualNorm Relative residual norm value to which the critical mach and the upwind factor constant will be updated.
+    // MachNumberSquaredLimit Mach number squared limit value wich will be used.
     
-    std::string mElementType;
+    bool mIsTransonic = false;
     double mInitialCriticalMach         = 0.0;
     double mTargetCriticalMach          = 0.0;
     double mInitialUpwindFactorConstant = 0.0;
