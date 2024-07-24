@@ -69,13 +69,14 @@ namespace Python{
         ModelPart& rInitialModelPart,
         ModelPart& rMPMModelPart,
         std::vector<std::array<double, 3>>&  rXgCoordinates,
-        std::string& rSubModelPartName)
+        std::string& rSubModelPartName,
+        bool IsMixedFormulation)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
         if (dimension == 2) MaterialPointGeneratorUtility::ImportMaterialPointElement<2>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName, IsMixedFormulation);
         else if (dimension == 3) MaterialPointGeneratorUtility::ImportMaterialPointElement<3>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName, IsMixedFormulation);
     }
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {

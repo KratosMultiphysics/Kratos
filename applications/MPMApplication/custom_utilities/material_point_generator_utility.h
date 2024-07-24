@@ -78,7 +78,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     ModelPart& rInitialModelPart,
                                     ModelPart& rMPMModelPart,
                                     std::vector<std::array<double, 3>>&  rXgCoordinates,
-                                    std::string& rSubModelPartName); 
+                                    std::string& rSubModelPartName,
+                                    bool IsMixedFormulation); 
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions

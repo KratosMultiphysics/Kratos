@@ -208,13 +208,14 @@ namespace Kratos::MaterialPointGeneratorUtility
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
                                         std::vector<std::array<double, 3>>& rXgCoordinates,
-                                        std::string& rSubModelPartName) {
+                                        std::string& rSubModelPartName,
+                                        bool IsMixedFormulation) {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
 
         rMPMModelPart.CreateSubModelPart(rSubModelPartName);
-
+        const ProcessInfo& rCurrentProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
@@ -272,8 +273,27 @@ namespace Kratos::MaterialPointGeneratorUtility
 
         // Get volumes of the material points
 
-        // Set element type xxx fixed to MPMUpdatedLagrangian for now
+        // Set element type
         std::string element_type_name = "MPMUpdatedLagrangian";
+        if (IsMixedFormulation) {
+            if ((rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 0) || (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 1)){
+                if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUP";
+                else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+            }
+            else {
+                if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUPVMS";
+                else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+            }
+
+        }
+        else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+        else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
+                element_type_name = "MPMUpdatedLagrangianPQ";
+                KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
+            }
+        }
+
 
         // Get new element
         const Element& new_element = KratosComponents<Element>::Get(element_type_name);
@@ -304,7 +324,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
             bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-            if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+            if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed. Coordinate:\n" << xg[0] << std::endl;
 
             pelem->Set(ACTIVE);
             auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -328,6 +348,11 @@ namespace Kratos::MaterialPointGeneratorUtility
             p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
             p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
             p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
+
+            if (IsMixedFormulation)
+                {
+                    p_element->SetValuesOnIntegrationPoints(MP_PRESSURE, mp_pressure, process_info);
+                }
 
             // Add the MP Element to the model part
             rMPMModelPart.GetSubModelPart(rSubModelPartName).AddElement(p_element);
@@ -1120,10 +1145,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                                                 ModelPart& rInitialModelPart,
                                                 ModelPart& rMPMModelPart,
                                                 std::vector<std::array<double, 3>>&  rXgCoordinates,
-                                                std::string& rSubModelPartName);
+                                                std::string& rSubModelPartName,
+                                                bool IsMixedFormulation);
     template void ImportMaterialPointElement<3>(ModelPart& rBackgroundGridModelPart,
                                                 ModelPart& rInitialModelPart,
                                                 ModelPart& rMPMModelPart,
                                                 std::vector<std::array<double, 3>>&  rXgCoordinates,
-                                                std::string& rSubModelPartName);
+                                                std::string& rSubModelPartName,
+                                                bool IsMixedFormulation);
 } // end namespace Kratos::MaterialPointGeneratorUtility
