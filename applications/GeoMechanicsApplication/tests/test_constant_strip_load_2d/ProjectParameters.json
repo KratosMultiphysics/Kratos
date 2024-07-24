@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "test_lamb",
+        "problem_name": "test_constant_strip_load_2d",
         "start_time": 0.0,
         "end_time": 1,
         "echo_level": 1,
@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "test_lamb_stage_1"
+            "input_filename": "test_constant_strip_load_2d"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters_stage_1.json"

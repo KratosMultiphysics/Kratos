@@ -1,6 +1,5 @@
 import os
 import json
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
