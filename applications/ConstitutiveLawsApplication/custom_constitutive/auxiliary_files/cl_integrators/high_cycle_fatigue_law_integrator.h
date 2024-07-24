@@ -218,22 +218,10 @@ public:
     static void CalculateRelaxationFactor(const double NominalUniaxialStress,
                                           const double UniaxialResidualStress,    
                                            const double Threshold,
-                                           unsigned int LocalNumberOfCycles,
-                                           double& rFirstCycleRelaxationFactor,
-                                           double& rRelaxationFactor,
-                                           bool FirstNonlinearity)
+                                           double& rRelaxationFactor)
     {       
-        if ((Threshold - NominalUniaxialStress) / UniaxialResidualStress < 1.0 && FirstNonlinearity){
-            rFirstCycleRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487;
-            // rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487))
-            // rFirstCycleRelaxationFactor = 0.3319 + (5.524E07 / UniaxialResidualStress);
-            // rFirstCycleRelaxationFactor = std::min(std::min((0.3319 + 5.524E07 / UniaxialResidualStress), (Threshold - NominalUniaxialStress) / UniaxialResidualStress), rRelaxationFactor);
-            rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
-            rRelaxationFactor = rFirstCycleRelaxationFactor;
-        } else {
-            rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
-            rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
-        }
+        rRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487;
+        rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
     }
 
     /**
@@ -254,7 +242,6 @@ public:
                                             const double UniaxialResidualStress,
                                             const double UltimateStress,
                                             const double ReversionFactor,
-                                            double InitialThreshold,
                                             double Threshold,
                                             unsigned int LocalNumberOfCycles,
                                             const Properties& rMaterialParameters,
@@ -274,18 +261,15 @@ public:
         // Reduction factors applied to the fatigue limit
         double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction
         // double const k_residual_stress = 1 - std::pow((UniaxialResidualStress / UltimateStress), 2.0); // Gerber mean stress correction
-        // double const k_residual_stress = (UniaxialResidualStress > 0.0) ? 1 - ((0.5 * (1 + ReversionFactor) * MaxStress) / UltimateStress) : 1.0; // Goodman mean stress correction on Sth
         // double const k_stress_concentration = (!rElementGeometry.Has(HOLE_DIAMETER)) ? 1.0 : 2 + 0.284 * (1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH)) - 
-        //              0.600 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 2.0) + 1.32 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 3.0);
-        double const k_stress_concentration = r_fatigue_coefficients[12];
+        //              0.600 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 2.0) + 1.32 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 3.0); // Stress concentration factor 
+        double const k_stress_concentration = r_fatigue_coefficients[12]; // Manual stress concentration factor
         double const h_stress_concentration = (LocalNumberOfCycles < std::pow(10, c2_stress_concentration)) ? 0.0 : (1.0 / c1_stress_concentration) * std::log10(LocalNumberOfCycles / std::pow(10, c2_stress_concentration));
+        double const k_fatigue = (std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) > 1.0) ? 1.0 : std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0));
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
         double const h_roughness = (LocalNumberOfCycles < std::pow(10, c2_roughness)) ? 0.0 : (1.0 / c1_roughness) * std::log10(LocalNumberOfCycles / std::pow(10, c2_roughness));
-        // double const k_fatigue = (std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) > (1.0 / r_fatigue_coefficients[0])) ? (1 / r_fatigue_coefficients[0]) : std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0));
-        // double const k_fatigue = (std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) > (UltimateStress / InitialThreshold)) ? (UltimateStress / InitialThreshold) : std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0));
-        double const k_fatigue = (std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) > 1.0) ? 1.0 : std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0));
-        
+                
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
         const double Se = k_residual_stress * k_fatigue * std::pow(k_roughness, h_roughness) * (r_fatigue_coefficients[0] * UltimateStress);
         // const double Se = r_fatigue_coefficients[0] * UltimateStress;
@@ -299,11 +283,9 @@ public:
 
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
-            // rSth *= k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness);
 			rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
         } else {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
-            // rSth *= k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness);
 			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
 

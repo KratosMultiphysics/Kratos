@@ -449,8 +449,7 @@ private:
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
     double mPeriod = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
     double mInitialTherhold = 0.0; // Initial damage threshold
-    double mFirstCycleRelaxationFactor = 1.0; // Relaxation factor of the residual stresses at the first cycle
-    bool mFirstNonlinearity = true; // Indicator of first nonlinearity
+    bool mFirstCycleNonlinearity = true; // Indicator of first nonlinearity
     double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
 
 
@@ -497,8 +496,7 @@ private:
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
         rSerializer.save("InitialTherhold", mInitialTherhold);
-        rSerializer.save("FirstCycleRelaxationFactor", mFirstCycleRelaxationFactor);
-        rSerializer.save("FirstNonlinearity", mFirstNonlinearity);
+        rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.save("RelaxationFactor", mRelaxationFactor);
     }
 
@@ -529,8 +527,7 @@ private:
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
         rSerializer.load("InitialTherhold", mInitialTherhold);
-        rSerializer.load("FirstCycleRelaxationFactor", mFirstCycleRelaxationFactor);
-        rSerializer.save("FirstNonlinearity", mFirstNonlinearity);
+        rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
         rSerializer.load("RelaxationFactor", mRelaxationFactor);
     }
     ///@}
