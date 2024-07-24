@@ -337,7 +337,7 @@ class StripLoad:
 
         Args:
             - x (float): x coordinate [m]
-            - z (float): z coordinate [m]
+            - z (float): depth from load [m]
             - t (float): time [s]
             - load_length (float): length of the line load [m]
             - load_value (float): value of the line load [N/m]
