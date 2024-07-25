@@ -28,12 +28,8 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         bottom_node_ids = [5, 7, 9]
         self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
 
-        reader = test_helper.GiDOutputFileReader()
-        output_data = reader.read_output_from(output_file_path)
-        end_time = 1.0
-        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
-        for stress_tensor in nodal_stress_tensors:
-            self.assertAlmostEqual(stress_tensor[1], -1e4)
+        output_data = self.fetchOutputFromFile(output_file_path)
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_triangle_3n_rebuild_level_0(self):
         test_name = 'test_triangle_3n_rebuild_0'
@@ -45,6 +41,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 2
         bottom_node_ids = [5, 7, 9]
         self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+
+        output_data = self.fetchOutputFromFile(output_file_path)
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_triangle_6n(self):
         test_name = 'test_triangle_6n'
@@ -90,6 +89,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         bottom_node_ids = [5, 7, 9]
         self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
 
+        output_data = self.fetchOutputFromFile(output_file_path)
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+
     def test_triangle_6n_fic(self):
         test_name = 'test_triangle_6n_fic'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
@@ -112,12 +114,8 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         bottom_node_ids = [5, 7, 9]
         self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
 
-        reader = test_helper.GiDOutputFileReader()
-        output_data = reader.read_output_from(output_file_path)
-        end_time = 1.0
-        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
-        for stress_tensor in nodal_stress_tensors:
-            self.assertAlmostEqual(stress_tensor[1], -1e4)
+        output_data = self.fetchOutputFromFile(output_file_path)
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_quad_8n(self):
         test_name = 'test_quad_8n'
@@ -140,6 +138,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 3
         bottom_node_ids = [11, 12, 17, 20, 22, 23, 25, 26, 27]
         self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+
+        output_data = self.fetchOutputFromFile(output_file_path)
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_tetra_10n(self):
         test_name = 'test_tetra_10n'
@@ -230,6 +231,16 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         if n_dim >= 3:
             for z_displacement in z_displacements:
                 self.assertAlmostEqual(0.0, z_displacement)
+
+    def fetchOutputFromFile(self, output_file_path):
+        reader = test_helper.GiDOutputFileReader()
+        return reader.read_output_from(output_file_path)
+
+    def assertVerticalStressAtBottomNodes(self, output_data, bottom_node_ids):
+        end_time = 1.0
+        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        for stress_tensor in nodal_stress_tensors:
+            self.assertAlmostEqual(stress_tensor[1], -1e4)
 
 if __name__ == '__main__':
     KratosUnittest.main()
