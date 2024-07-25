@@ -43,7 +43,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     //********************************************************************
     typedef PotentialFlowResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> PotentialFlowResidualBasedIncrementalUpdateStaticScheme;
     py::class_<PotentialFlowResidualBasedIncrementalUpdateStaticScheme, typename PotentialFlowResidualBasedIncrementalUpdateStaticScheme::Pointer, ResidualBasedIncrementalUpdateStaticSchemeType>(m, "PotentialFlowResidualBasedIncrementalUpdateStaticScheme")
-        .def(py::init<Parameters, bool>())
         .def(py::init<Parameters>())
         .def(py::init< >() )
         ;

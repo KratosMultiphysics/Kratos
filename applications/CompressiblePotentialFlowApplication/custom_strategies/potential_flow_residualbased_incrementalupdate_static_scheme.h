@@ -125,22 +125,6 @@ public:
         this->AssignSettings(ThisParameters);
 }
 
-    /**
-     * @brief Default constructor.
-     * @param ThisParameters See parameters
-     */
-    explicit PotentialFlowResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters, bool IsTransonic) : BaseType()
-    {
-        mIsTransonic = IsTransonic;
-        KRATOS_WATCH(IsTransonic)
-        if (mIsTransonic){
-            KRATOS_WATCH(IsTransonic)
-            // Validate and assign defaults
-            ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-            this->AssignSettings(ThisParameters);
-        }
-    }
-
     /** Destructor.
     */
     ~PotentialFlowResidualBasedIncrementalUpdateStaticScheme() override {}
@@ -221,6 +205,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
+            "is_transonic"                   : false,
             "initial_critical_mach"          : 0.92,
             "initial_upwind_factor_constant" : 2.0,
             "target_critical_mach"           : 0.92,
@@ -241,6 +226,7 @@ public:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
+        mIsTransonic                 = ThisParameters["is_transonic"].GetBool();
         mInitialCriticalMach         = ThisParameters["initial_critical_mach"].GetDouble();
         mInitialUpwindFactorConstant = ThisParameters["initial_upwind_factor_constant"].GetDouble();
         mTargetCriticalMach          = ThisParameters["target_critical_mach"].GetDouble();

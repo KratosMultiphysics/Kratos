@@ -259,11 +259,11 @@ class PotentialFlowSolver(FluidSolver):
     def _CreateScheme(self):
         settings = self.settings["transonic_scheme_settings"]
         settings.AddMissingParameters(self._GetDefaultTransonicParameters())
-        if self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic":
-            is_transonic = True
-        else:
-            is_transonic = False
-        scheme = KCPFApp.PotentialFlowResidualBasedIncrementalUpdateStaticScheme(settings, is_transonic)
+        if (self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic"
+            and settings["is_transonic"].GetBool() == False):
+            warn_msg = "Using 'perturbation_transonic' element without updating transonic parameters. You can enable it with 'is_transonic' flag in your 'transonic_scheme_settings'."
+            KratosMultiphysics.Logger.PrintWarning('PotentialFlowSolver', warn_msg)
+        scheme = KCPFApp.PotentialFlowResidualBasedIncrementalUpdateStaticScheme(settings)
         return scheme
 
     def _CreateConvergenceCriterion(self):
@@ -334,6 +334,7 @@ class PotentialFlowSolver(FluidSolver):
 
     def _GetDefaultTransonicParameters(self):
         default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                "is_transonic"                   : false,
                 "initial_critical_mach"          : 0.92,
                 "initial_upwind_factor_constant" : 2.0,
                 "target_critical_mach"           : 0.92,
