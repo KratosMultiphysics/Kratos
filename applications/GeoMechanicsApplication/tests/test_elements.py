@@ -26,6 +26,14 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 2
         self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
 
+        reader = test_helper.GiDOutputFileReader()
+        output_data = reader.read_output_from(os.path.join(file_path, f"{test_name}.post.res"))
+        end_time = 1.0
+        bottom_node_ids = [5, 7, 9]
+        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        for stress_tensor in nodal_stress_tensors:
+            self.assertAlmostEqual(stress_tensor[1], -1e4)
+
     def test_triangle_3n_rebuild_level_0(self):
         test_name = 'test_triangle_3n_rebuild_0'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))

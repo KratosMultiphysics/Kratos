@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
@@ -1542,20 +1543,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
 template <>
 void UPwSmallStrainElement<2, 3>::CalculateExtrapolationMatrix(BoundedMatrix<double, 3, 3>& rExtrapolationMatrix)
 {
-    // The matrix contains the shape functions at each GP evaluated at each
-    // node. Rows: nodes Columns: GP
-
     // Triangle_2d_3
     // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = 1.6666666666666666666;
-    rExtrapolationMatrix(0, 1) = -0.33333333333333333333;
-    rExtrapolationMatrix(0, 2) = -0.33333333333333333333;
-    rExtrapolationMatrix(1, 0) = -0.33333333333333333333;
-    rExtrapolationMatrix(1, 1) = 1.6666666666666666666;
-    rExtrapolationMatrix(1, 2) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 0) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 1) = -0.33333333333333333333;
-    rExtrapolationMatrix(2, 2) = 1.6666666666666666666;
+
+    LinearNodalExtrapolator extrapolator;
+    const auto              result = extrapolator.CalculateElementExtrapolationMatrix(
+        this->GetGeometry(), this->GetIntegrationMethod());
+    KRATOS_ERROR_IF_NOT(result.size1() == 3)
+        << "Extrapolation matrix has unexpected number of rows: " << result.size1()
+        << " (expected 3)" << std::endl;
+    KRATOS_ERROR_IF_NOT(result.size2() == 3)
+        << "Extrapolation matrix has unexpected number of columns: " << result.size1()
+        << " (expected 3)" << std::endl;
+    rExtrapolationMatrix = result;
 }
 
 template <>
