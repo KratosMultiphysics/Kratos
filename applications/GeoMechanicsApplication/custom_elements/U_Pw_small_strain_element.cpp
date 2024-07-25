@@ -1545,9 +1545,8 @@ void UPwSmallStrainElement<2, 3>::CalculateExtrapolationMatrix(BoundedMatrix<dou
 {
     // Triangle_2d_3
     // GI_GAUSS_2
-
-    LinearNodalExtrapolator extrapolator;
-    const auto              result = extrapolator.CalculateElementExtrapolationMatrix(
+    const auto extrapolator = LinearNodalExtrapolator{};
+    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
         this->GetGeometry(), this->GetIntegrationMethod());
     KRATOS_ERROR_IF_NOT(result.size1() == 3)
         << "Extrapolation matrix has unexpected number of rows: " << result.size1()
@@ -1563,22 +1562,16 @@ void UPwSmallStrainElement<2, 4>::CalculateExtrapolationMatrix(BoundedMatrix<dou
 {
     // Quadrilateral_2d_4
     // GI_GAUSS_2
-    rExtrapolationMatrix(0, 0) = 1.8660254037844386;
-    rExtrapolationMatrix(0, 1) = -0.5;
-    rExtrapolationMatrix(0, 2) = 0.13397459621556132;
-    rExtrapolationMatrix(0, 3) = -0.5;
-    rExtrapolationMatrix(1, 0) = -0.5;
-    rExtrapolationMatrix(1, 1) = 1.8660254037844386;
-    rExtrapolationMatrix(1, 2) = -0.5;
-    rExtrapolationMatrix(1, 3) = 0.13397459621556132;
-    rExtrapolationMatrix(2, 0) = 0.13397459621556132;
-    rExtrapolationMatrix(2, 1) = -0.5;
-    rExtrapolationMatrix(2, 2) = 1.8660254037844386;
-    rExtrapolationMatrix(2, 3) = -0.5;
-    rExtrapolationMatrix(3, 0) = -0.5;
-    rExtrapolationMatrix(3, 1) = 0.13397459621556132;
-    rExtrapolationMatrix(3, 2) = -0.5;
-    rExtrapolationMatrix(3, 3) = 1.8660254037844386;
+    const auto extrapolator = LinearNodalExtrapolator{};
+    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
+        this->GetGeometry(), this->GetIntegrationMethod());
+    KRATOS_ERROR_IF_NOT(result.size1() == 4)
+        << "Extrapolation matrix has unexpected number of rows: " << result.size1()
+        << " (expected 4)" << std::endl;
+    KRATOS_ERROR_IF_NOT(result.size2() == 4)
+        << "Extrapolation matrix has unexpected number of columns: " << result.size1()
+        << " (expected 4)" << std::endl;
+    rExtrapolationMatrix = result;
 }
 
 template <>
