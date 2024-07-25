@@ -25,10 +25,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 1, 5]
         n_dim = 2
-        bottom_node_ids = [5, 7, 9]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
         output_data = self.fetchOutputFromFile(output_file_path)
+        bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_triangle_3n_rebuild_level_0(self):
@@ -39,10 +39,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, "test_triangle_3n.post.res")
         top_node_nbrs = [0, 1, 5]
         n_dim = 2
-        bottom_node_ids = [5, 7, 9]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
         output_data = self.fetchOutputFromFile(output_file_path)
+        bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_triangle_6n(self):
@@ -53,8 +53,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 2, 4, 9, 15]
         n_dim = 2
-        bottom_node_ids = [17, 18, 22, 24, 25]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
     def test_triangle_10n(self):
         test_name = 'test_triangle_10n'
@@ -64,8 +63,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [9, 8, 7, 6]
         n_dim = 2
-        bottom_node_ids = [1, 2, 3, 4]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
     def test_triangle_15n(self):
         test_name = 'test_triangle_15n'
@@ -75,8 +73,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [12, 11, 10, 9, 8]
         n_dim = 2
-        bottom_node_ids = [1, 2, 3, 4, 5]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
     def test_triangle_3n_fic(self):
         test_name = 'test_triangle_3n_fic'
@@ -86,10 +83,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 1, 5]
         n_dim = 2
-        bottom_node_ids = [5, 7, 9]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
         output_data = self.fetchOutputFromFile(output_file_path)
+        bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_triangle_6n_fic(self):
@@ -100,8 +97,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 2, 4, 9, 15]
         n_dim = 2
-        bottom_node_ids = [17, 18, 22, 24, 25]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
     def test_quad_4n(self):
         test_name = 'test_quad_4n'
@@ -111,10 +107,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 1, 5]
         n_dim = 2
-        bottom_node_ids = [5, 7, 9]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
         output_data = self.fetchOutputFromFile(output_file_path)
+        bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_quad_8n(self):
@@ -125,8 +121,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 2, 4, 8, 12]
         n_dim = 2
-        bottom_node_ids = [14, 15, 18, 20, 21]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
     def test_tetra_4n(self):
         test_name = 'test_tetra_4n'
@@ -136,10 +131,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         output_file_path = os.path.join(file_path, f"{test_name}.post.res")
         top_node_nbrs = [0, 2, 9, 3, 6, 13, 8, 14, 20]
         n_dim = 3
-        bottom_node_ids = [11, 12, 17, 20, 22, 23, 25, 26, 27]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
         output_data = self.fetchOutputFromFile(output_file_path)
+        bottom_node_ids = [11, 12, 17, 20, 22, 23, 25, 26, 27]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
     def test_tetra_10n(self):
@@ -154,11 +149,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
                          27, 34, 41, 64, 94,
                          51, 56, 74, 95, 110]
         n_dim = 3
-        bottom_node_ids = [53, 58, 63, 64, 74, 76, 83, 84, 88, 91, 94, 98, 99, 104, 106, 110, 112, 113, 115, 118, 119, 121, 122, 124, 125]
-        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids)
+        self.assert_linear_elastic_block(simulation, output_file_path, top_node_nbrs, n_dim)
 
 
-    def assert_linear_elastic_block(self, simulation, output_file_path, top_node_nbrs, n_dim, bottom_node_ids):
+    def assert_linear_elastic_block(self, simulation, output_file_path, top_node_nbrs, n_dim):
         """
         Assert results of a linear elastic block. The sides of the block can move freely in vertical direction and are
         fixed in horizontal direction. The bottom of the block is fixed. On top of the block, a load of 10kN/m2 is
