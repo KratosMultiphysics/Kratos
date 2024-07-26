@@ -807,7 +807,6 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 total_tensor = np.empty((3, 3))
                 total_contact_number  = 0
-                number_of_contacts_in_a_direction = np.zeros((36, 36))
 
                 for element in self.contact_model_part.Elements:
             
@@ -831,25 +830,11 @@ class DEMAnalysisStage(AnalysisStage):
                         tensor = np.outer(vector1, vector2)
                         total_tensor += tensor
                         total_contact_number += 1
-
-                        #calculate the contact direction
-                        x, y, z = vector1
-                        vector_length = np.linalg.norm(vector1)
-                        theta = np.arccos(z / vector_length)
-                        phi = np.arctan2(y, x)
-                        
-                        theta_index = int(theta / (2 * np.pi) * 36)
-                        phi_index = int(phi / (2 * np.pi) * 36)
-                        
-                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
-
-                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(radius) +".txt"
-                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
                 
                 return eigenvalues
 
@@ -1021,7 +1006,10 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 total_tensor = np.empty((3, 3))
                 total_contact_number  = 0
-                number_of_contacts_in_a_direction = np.zeros((18, 36))
+                #number_of_contacts_in_a_direction = np.zeros((18, 36))
+                number_of_contacts_in_a_direction_2D_x_z = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_x_y = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_y_z = np.zeros(36)
 
                 for element in self.contact_model_part.Elements:
             
@@ -1050,8 +1038,8 @@ class DEMAnalysisStage(AnalysisStage):
 
                     if sphere_0_is_inside or sphere_1_is_inside:
                         
+                        #-----------------vector 1 -------------------
                         vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        #vector2 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
                         v1_norm = np.linalg.norm(vector1)
                         if v1_norm:
                             vector1_unit = vector1 / v1_norm
@@ -1065,28 +1053,111 @@ class DEMAnalysisStage(AnalysisStage):
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
 
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / np.pi * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
-                        
-                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
 
+                        if phi_index == 0:
+                            if z >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
                         
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
+                        
+                        #-----------------vector 2 -------------------
                         vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
                         x, y, z = vector2
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
                         
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / np.pi * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if z > 0.0:
+                                phi_index = 0
+                            elif z == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
                         
-                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
-                        
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
@@ -1097,8 +1168,17 @@ class DEMAnalysisStage(AnalysisStage):
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
 
-                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
-                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+                #output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
+                #np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_z, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_y_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_y, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_y_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_y_z, fmt='%d', delimiter=' ')
                 
                 return eigenvalues, second_invariant_of_deviatoric_tensor
 

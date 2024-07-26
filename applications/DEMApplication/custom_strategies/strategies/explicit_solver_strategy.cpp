@@ -1291,9 +1291,18 @@ namespace Kratos {
         KRATOS_TRY
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
-            mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
-        });
+        if (GetDeltaOption() == 3){
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
+            const double search_radius_multiplier = added_search_distance;
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+                mListOfSphericParticles[i]->SetSearchRadius(amplification * ((1 + search_radius_multiplier) *  mListOfSphericParticles[i]->GetRadius()));
+            });
+        }
+        else{
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+                mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
+            });
+        }
 
         KRATOS_CATCH("")
     }

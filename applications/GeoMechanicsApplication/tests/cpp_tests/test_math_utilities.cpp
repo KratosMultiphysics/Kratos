@@ -12,13 +12,12 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
-#include "includes/checks.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::vector<Matrix> matrices = {ScalarMatrix(1, 1, 3.0), ZeroMatrix(3, 3), IdentityMatrix(3) * 2.0};
 
@@ -28,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeo
     KRATOS_CHECK_VECTOR_NEAR(results, expected_results, 1.0e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::vector<Matrix> matrices = {};
 

@@ -16,6 +16,7 @@
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

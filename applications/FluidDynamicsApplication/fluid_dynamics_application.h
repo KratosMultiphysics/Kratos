@@ -115,6 +115,8 @@
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
 
+extern "C" KRATOS_API(FLUID_DYNAMICS_APPLICATION) Kratos::KratosApplication * CreateApplication();
+
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication

@@ -461,11 +461,31 @@ public:
 
 	}
 
-	/// RHS only version of Rotate
+    /**
+     * @brief RHS only version of Rotate
+     * @details Rotates the local RHS vector (rLocalVector) to a tangential-normal coordinate system defined by the
+     * normals of the associated rGeometry
+     * @param rLocalVector Local RHS vector associated with rGeometry, to be transformed
+     * @param rGeometry Geometry associated with rLocalVector
+     */
 	virtual void Rotate(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-        RotateRHSAux(rLocalVector, rGeometry);
+            RotateRHSAux(rLocalVector, rGeometry, false);
+	}
+
+    /**
+     * @brief RHS only version of Rotate which reverts the rotation to the original frame
+     * @details Rotates the local RHS vector (rLocalVector) in the tangential-normal coordinate system back to the
+     * original coordinate system
+     * @param rLocalVector Local RHS vector associated with rGeometry, to be transformed
+     * @param rGeometry Geometry associated with rLocalVector
+     */
+	virtual void RevertRotate(
+	    TLocalVectorType& rLocalVector,
+	    GeometryType& rGeometry) const
+	{
+            RotateRHSAux(rLocalVector, rGeometry, true);
 	}
 
 	/// Apply slip boundary conditions to the rotated local contributions.
@@ -665,118 +685,21 @@ protected:
 	///@name Protected Operations
 	///@{
 
-    template<bool TToGlobalCoord = false>
-    void RotateRHSAux(TLocalVectorType& rLocalVector,
-                      GeometryType& rGeometry) const
-    {
-        if (rLocalVector.size() > 0)
-        {
-            if(mBlockSize != mDomainSize) //Monolithic case
-            {
-                for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
-                {
-                    if( this->IsSlip(rGeometry[j]) )
-                    {
-                        if(mDomainSize == 3)
-                        {
-                            array_1d<double,4> aux,aux1;
-                            BoundedMatrix<double,4,4> rRot;
-                            LocalRotationOperator3D<4>(rRot,rGeometry[j]);
-
-                            for(unsigned int k=0; k<4; k++)
-                                aux[k] = rLocalVector[j*mBlockSize+k];
-
-                            if constexpr (TToGlobalCoord)
-                            {
-                                noalias(aux1) = prod(trans(rRot),aux);
-                            } else{
-                                noalias(aux1) = prod(rRot,aux);
-                            }
-
-                            for(unsigned int k=0; k<4; k++)
-                                rLocalVector[j*mBlockSize+k] = aux1[k];
-                        }
-                        else
-                        {
-                            array_1d<double,3> aux,aux1;
-                            BoundedMatrix<double,3,3> rRot;
-                            LocalRotationOperator2D<3>(rRot,rGeometry[j]);
-
-                            for(unsigned int k=0; k<3; k++)
-                            {
-                                aux[k] = rLocalVector[j*mBlockSize+k];
-                            }
-
-                            if constexpr (TToGlobalCoord)
-                            {
-                                noalias(aux1) = prod(trans(rRot),aux);
-                            } else{
-                                noalias(aux1) = prod(rRot,aux);
-                            }
-
-                            for(unsigned int k=0; k<3; k++)
-                                rLocalVector[j*mBlockSize+k] = aux1[k];
-                        }
-                    }
-                    //Index += mBlockSize;
-                }
-
-            }
-            else //fractional step case
-            {
-                for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
-                {
-                    if( this->IsSlip(rGeometry[j]) )
-                    {
-                        if(mDomainSize == 3)
-                        {
-                            array_1d<double,3> aux,aux1;
-                            BoundedMatrix<double,3,3> rRot;
-                            LocalRotationOperatorPure(rRot,rGeometry[j]);
-
-                            for(unsigned int k=0; k<3; k++)
-                                aux[k] = rLocalVector[j*mBlockSize+k];
-
-                            if constexpr (TToGlobalCoord)
-                            {
-                                noalias(aux1) = prod(trans(rRot),aux);
-                            } else{
-                                noalias(aux1) = prod(rRot,aux);
-                            }
-
-                            for(unsigned int k=0; k<3; k++)
-                                rLocalVector[j*mBlockSize+k] = aux1[k];
-                        }
-                        else
-                        {
-                            array_1d<double,2> aux,aux1;
-                            BoundedMatrix<double,2,2> rRot;
-                            LocalRotationOperatorPure(rRot,rGeometry[j]);
-
-                            for(unsigned int k=0; k<2; k++)
-                                aux[k] = rLocalVector[j*mBlockSize+k];
-
-                            if constexpr (TToGlobalCoord)
-                            {
-                                noalias(aux1) = prod(trans(rRot),aux);
-                            } else{
-                                noalias(aux1) = prod(rRot,aux);
-                            }
-
-                            for(unsigned int k=0; k<2; k++)
-                                rLocalVector[j*mBlockSize+k] = aux1[k];
-                        }
-                    }
-                    //Index += mBlockSize;
-                }
-
-            }
-
-        }
-
-    }
-
-	template<unsigned int TDim, unsigned int TBlockSize, unsigned int TSkip = 0, bool TToGlobalCoord = false>
+    /**
+     * @brief Auxilliary function to rotate local system contributions between the original and tangential-normal
+     * frames of reference, to be used when pressure etc. is present
+     * @details Transforms the local system based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if TRevertRotation is false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the system back to the original coordinate system.
+     * @tparam TDim Number of spatial dimensions
+     * @tparam TBlockSize Total number of DoFs associated with each node
+     * @tparam TSkip Auxiliary value to shift the entries of the rotated array
+     * @tparam TRevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     * @param rLocalMatrix Local LHS matrix contribution associated with rGeometry
+     * @param rLocalVector Local RHS vector contribution associated with rGeometry
+     * @param rGeometry Geometry associated with local system
+     */
+	template<unsigned int TDim, unsigned int TBlockSize, unsigned int TSkip = 0, bool TRevertRotation = false>
 	void RotateAux(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
@@ -789,7 +712,7 @@ protected:
 		DenseVector<bool> NeedRotation( NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
-        BoundedMatrix<double,TBlockSize,TBlockSize> tmp;
+		BoundedMatrix<double,TBlockSize,TBlockSize> tmp;
 
 		for(unsigned int j = 0; j < NumBlocks; ++j)
 		{
@@ -801,7 +724,7 @@ protected:
 				if constexpr (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 
-                if constexpr (TToGlobalCoord)
+                if constexpr (TRevertRotation)
                 {
                     noalias(tmp) = trans(rRot[j]);
                     rRot[j] = tmp;
@@ -863,8 +786,19 @@ protected:
 		}
 	}
 
-	//to be used when there is only velocity (no additional pressure or other var block)
-	template<unsigned int TDim, bool TToGlobalCoord = false>
+    /**
+     * @brief Auxilliary function to rotate local system contributions between the original and tangential-normal
+     * frames of reference, to be used when there is only velocity (no additional pressure or other var block)
+     * @details Transforms the local system based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if TRevertRotation is false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the system back to the original coordinate system.
+     * @tparam TDim Number of spatial dimensions
+     * @tparam TRevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     * @param rLocalMatrix Local LHS matrix contribution associated with rGeometry
+     * @param rLocalVector Local RHS vector contribution associated with rGeometry
+     * @param rGeometry Geometry associated with local system
+     */
+	template<unsigned int TDim, bool TRevertRotation = false>
 	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
@@ -877,7 +811,7 @@ protected:
 		DenseVector<bool> NeedRotation( NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
-        BoundedMatrix<double,TDim,TDim> tmp;
+		BoundedMatrix<double,TDim,TDim> tmp;
 
 		for(unsigned int j = 0; j < NumBlocks; ++j)
 		{
@@ -888,7 +822,7 @@ protected:
 
 				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
 
-                if constexpr (TToGlobalCoord)
+                if constexpr (TRevertRotation)
                 {
                     noalias(tmp) = trans(rRot[j]);
                     rRot[j] = tmp;
@@ -1090,6 +1024,128 @@ private:
 	///@}
 	///@name Private Operations
 	///@{
+
+    /**
+     * @brief Auxilliary function to implement a reversible rotation operation on the local RHS vector
+     * @details Transforms the local RHS vector based on the normal associated with the rGeometry into tangential-
+     * normal coordinates if RevertRotation == false. Otherwise, the rotation matrix used is transposed and the
+     * inverse transformation is applied -- this transforms the RHS vector back to the original coordinate system.
+     * @param rLocalVector Local RHS vector associated with rGeometry
+     * @param rGeometry Geometry associated with rLocalVector
+     * @param RevertRotation Boolean indicating if the transformation is reverted (true -> revert transformation)
+     */
+    void RotateRHSAux(
+        TLocalVectorType& rLocalVector,
+        GeometryType& rGeometry,
+        const bool RevertRotation) const
+    {
+        if (rLocalVector.size() > 0)
+        {
+            if(mBlockSize != mDomainSize) //Monolithic case
+            {
+                for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+                {
+                    if( this->IsSlip(rGeometry[j]) )
+                    {
+                        if(mDomainSize == 3)
+                        {
+                            array_1d<double,4> aux,aux1;
+                            BoundedMatrix<double,4,4> rRot;
+                            LocalRotationOperator3D<4>(rRot,rGeometry[j]);
+
+                            for(unsigned int k=0; k<4; k++)
+                                aux[k] = rLocalVector[j*mBlockSize+k];
+
+                            if(RevertRotation)
+                            {
+                                noalias(aux1) = prod(trans(rRot),aux);
+                            } else{
+                                noalias(aux1) = prod(rRot,aux);
+                            }
+
+                            for(unsigned int k=0; k<4; k++)
+                                rLocalVector[j*mBlockSize+k] = aux1[k];
+                        }
+                        else
+                        {
+                            array_1d<double,3> aux,aux1;
+                            BoundedMatrix<double,3,3> rRot;
+                            LocalRotationOperator2D<3>(rRot,rGeometry[j]);
+
+                            for(unsigned int k=0; k<3; k++)
+                            {
+                                aux[k] = rLocalVector[j*mBlockSize+k];
+                            }
+
+                            if(RevertRotation)
+                            {
+                                noalias(aux1) = prod(trans(rRot),aux);
+                            } else{
+                                noalias(aux1) = prod(rRot,aux);
+                            }
+
+                            for(unsigned int k=0; k<3; k++)
+                                rLocalVector[j*mBlockSize+k] = aux1[k];
+                        }
+                    }
+                    //Index += mBlockSize;
+                }
+
+            }
+            else //fractional step case
+            {
+                for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+                {
+                    if( this->IsSlip(rGeometry[j]) )
+                    {
+                        if(mDomainSize == 3)
+                        {
+                            array_1d<double,3> aux,aux1;
+                            BoundedMatrix<double,3,3> rRot;
+                            LocalRotationOperatorPure(rRot,rGeometry[j]);
+
+                            for(unsigned int k=0; k<3; k++)
+                                aux[k] = rLocalVector[j*mBlockSize+k];
+
+                            if(RevertRotation)
+                            {
+                                noalias(aux1) = prod(trans(rRot),aux);
+                            } else{
+                                noalias(aux1) = prod(rRot,aux);
+                            }
+
+                            for(unsigned int k=0; k<3; k++)
+                                rLocalVector[j*mBlockSize+k] = aux1[k];
+                        }
+                        else
+                        {
+                            array_1d<double,2> aux,aux1;
+                            BoundedMatrix<double,2,2> rRot;
+                            LocalRotationOperatorPure(rRot,rGeometry[j]);
+
+                            for(unsigned int k=0; k<2; k++)
+                                aux[k] = rLocalVector[j*mBlockSize+k];
+
+                            if(RevertRotation)
+                            {
+                                noalias(aux1) = prod(trans(rRot),aux);
+                            } else{
+                                noalias(aux1) = prod(rRot,aux);
+                            }
+
+                            for(unsigned int k=0; k<2; k++)
+                                rLocalVector[j*mBlockSize+k] = aux1[k];
+                        }
+                    }
+                    //Index += mBlockSize;
+                }
+
+            }
+
+        }
+
+    }
+
 
 //     /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
 //     /**

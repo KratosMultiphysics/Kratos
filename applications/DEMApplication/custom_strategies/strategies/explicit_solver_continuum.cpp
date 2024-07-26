@@ -654,9 +654,19 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
         const int number_of_elements = r_model_part.GetCommunicator().LocalMesh().NumberOfElements();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++) {
-            mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (added_search_distance + mListOfSphericContinuumParticles[i]->GetRadius()));
+        if (GetDeltaOption() == 3){
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
+            const double search_radius_multiplier = added_search_distance;
+            #pragma omp parallel for
+            for (int i = 0; i < number_of_elements; i++) {
+                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * ((1 + search_radius_multiplier) * mListOfSphericContinuumParticles[i]->GetRadius()));
+            }
+        }
+        else{
+            #pragma omp parallel for
+            for (int i = 0; i < number_of_elements; i++) {
+                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (added_search_distance + mListOfSphericContinuumParticles[i]->GetRadius()));
+            }
         }
         KRATOS_CATCH("")
     }

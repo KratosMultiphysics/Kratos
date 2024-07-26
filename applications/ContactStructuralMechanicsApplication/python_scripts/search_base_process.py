@@ -150,10 +150,11 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
-        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
-        check_normal_process.Execute()
+        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED] == 0:
+            normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+            normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+            check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
+            check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():

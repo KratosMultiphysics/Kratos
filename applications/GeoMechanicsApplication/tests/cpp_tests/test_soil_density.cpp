@@ -12,14 +12,14 @@
 
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/checks.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateSoilDensityGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateSoilDensityGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties(0);
     // Please note these are not representative values, it just ensures the values are set

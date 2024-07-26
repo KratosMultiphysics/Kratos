@@ -128,16 +128,47 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeZerosOfMatrix
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolutionStep()
 {
     InitializeVariables();
+    CacheExtrapolationMatricesForElements();
 
-    block_for_each(mrModelPart.Elements(), [this](Element& rElem) {
-        if (rElem.IsActive()) {
-            AddIntegrationPointContributionsForAllVariables(rElem, GetExtrapolationMatrix(rElem));
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+        if (rElement.IsActive()) {
+            AddIntegrationPointContributionsForAllVariables(rElement, GetCachedExtrapolationMatrixFor(rElement));
         }
     });
 }
 
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatricesForElements()
+{
+    // This is specifically a single-thread range-based for-loop and no block_for_each.
+    // Running this in parallel would lead to issues, since multiple threads might try to
+    // write to the same cache at the same time.
+    for (const auto& rElement : mrModelPart.Elements()) {
+        if (!ExtrapolationMatrixIsCachedFor(rElement)) {
+            CacheExtrapolationMatrixFor(
+                rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(
+                              rElement.GetGeometry(), rElement.GetIntegrationMethod()));
+        }
+    }
+}
+
+bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
+{
+    return mExtrapolationMatrixMap.count(typeid(rElement).hash_code()) > 0;
+}
+
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
+                                                                                     const Matrix& rExtrapolationMatrix)
+{
+    mExtrapolationMatrixMap[typeid(rElement).hash_code()] = rExtrapolationMatrix;
+}
+
+const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
+{
+    return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
+}
+
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
-    Element& rElem, const Matrix& rExtrapolationMatrix)
+    Element& rElem, const Matrix& rExtrapolationMatrix) const
 {
     const SizeType integration_points_number =
         rElem.GetGeometry().IntegrationPointsNumber(rElem.GetIntegrationMethod());
@@ -158,32 +189,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointCont
         AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
                                            integration_points_number, AtomicAddMatrix<Matrix, Matrix>);
     }
-}
-
-const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetExtrapolationMatrix(const Element& rElement) const
-{
-    if (!ExtrapolationMatrixIsCachedFor(rElement)) {
-        CacheExtrapolationMatrixFor(rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(
-                                                  rElement.GetGeometry(), rElement.GetIntegrationMethod()));
-    }
-
-    return GetCachedExtrapolationMatrixFor(rElement);
-}
-
-bool GeoExtrapolateIntegrationPointValuesToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElement) const
-{
-    return mExtrapolationMatrixMap.count(typeid(rElement).hash_code()) > 0;
-}
-
-const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElement) const
-{
-    return mExtrapolationMatrixMap.at(typeid(rElement).hash_code());
-}
-
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElement,
-                                                                                     const Matrix& rExtrapolationMatrix) const
-{
-    mExtrapolationMatrixMap[typeid(rElement).hash_code()] = rExtrapolationMatrix;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVariables()
