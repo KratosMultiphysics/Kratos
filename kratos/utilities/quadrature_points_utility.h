@@ -142,8 +142,11 @@ namespace Kratos
             double LocalTangentSlaveU,
             double LocalTangentSlaveV,
             GeometryType* pGeometryParentMaster,
-            GeometryType* pGeometryParentSlave)
+            GeometryType* pGeometryParentSlave,
+            GeometryType* pParentGeometry)
         {
+
+            std::shared_ptr<GeometryType> pCouplingGeometry(pParentGeometry);
             QuadraturePointCurveOnSurfaceGeometryPointer quadraturePointMaster = Kratos::make_shared<QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
                 rPointsMaster,
                 rShapeFunctionContainerMaster,
@@ -164,7 +167,7 @@ namespace Kratos
             //                                                                     pGeometryParentMaster);
 
             return Kratos::make_shared<QuadraturePointCouplingGeometry2D<TPointType>>(quadraturePointMaster,
-                                                                                      quadraturePointSlave);
+                                                                                      quadraturePointSlave, pCouplingGeometry);
             
 
         }

@@ -88,7 +88,7 @@ namespace Kratos
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
-        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+        
         
         const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
@@ -107,6 +107,8 @@ namespace Kratos
         InvJ0_23(1,1) = InvJ0(1,1);
         InvJ0_23(0,2) = 0;
         InvJ0_23(1,2) = 0;
+
+        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0_23);
@@ -129,11 +131,11 @@ namespace Kratos
             const double x = GP_parameter_coord[0];
             const double y = GP_parameter_coord[1];
 
-            g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
-            g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
+            // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
+            // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
 
-            // g_N[0] = this->GetValue(FORCE_X); 
-            // g_N[1] = this->GetValue(FORCE_Y); 
+            g_N[0] = this->GetValue(FORCE_X); 
+            g_N[1] = this->GetValue(FORCE_Y); 
             
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 
@@ -198,6 +200,56 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
         }
     };
+
+    void LoadSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+       
+    /////////////////////////
+        const auto& r_geometry = GetGeometry();
+        const SizeType nb_nodes = r_geometry.size();
+
+        // Integration Points
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        // Shape function values
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        GeometryType::JacobiansType J0;
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        // Get the parameter coordinates
+        Vector GP_parameter_coord(2); 
+        GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // Only one Integration Points 
+
+        double x_coord_gauss_point = 0;
+        double y_coord_gauss_point = 0;
+        double rOutput = 0;
+
+        for (IndexType i = 0; i < nb_nodes; ++i)
+        {
+            // KRATOS_WATCH(r_geometry[i])
+            double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
+            rOutput += r_N(0, i) * output_solution_step_value;
+            x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
+            y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
+        }        
+
+        // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
+        // if (output_file.is_open()) {
+        //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+        //     output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+        //     output_file.close();
+        // } 
+
+
+        std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
+        if (!outputFile.is_open())
+        {
+            std::cerr << "Failed to open the file for writing." << std::endl;
+            return;
+        }
+        outputFile << std::setprecision(14); // Set precision to 10^-14
+        outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
+        outputFile.close();
+    }
 
 
     void LoadSolid2DCondition::GetValuesVector(

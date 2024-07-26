@@ -367,6 +367,7 @@ public:
             rResultGeometries.resize(numberIntegrationPoints);
 
 
+        SizeType quadraturePointId = 0;
         this->CreateQuadraturePointGeometriesOnParent(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
@@ -377,7 +378,7 @@ public:
             mMasterGeometryList,
             mSlaveGeometryList,
             MasterIndex,
-            0);
+            quadraturePointId);
 
        
         GeometriesArrayType rResultGeometries2;
@@ -391,10 +392,10 @@ public:
             mSlaveGeometryList,
             mMasterGeometryList,
             SlaveIndex,
-            numberIntegrationPointsMaster);
+            quadraturePointId);
 
-        // KRATOS_WATCH("CIAO")
-        // rResultGeometries.resize(rResultGeometries.size() + rResultGeometries2.size());
+        rResultGeometries.resize(quadraturePointId);
+        
 
     }
 
@@ -424,7 +425,7 @@ public:
         GeometriesArrayType& rParentGeometryList,
         GeometriesArrayType& rPairedGeometryList,
         const IndexType& integrationDomain,
-        const SizeType numberOfQuadraturePointGeometriesAlreadyCreated = 0) 
+        SizeType& quadraturePointId) 
     {
         // FOR EACH OF THE INTEGRATION POINTS FIND THE PROJECTION ON THE SLAVE, AND SAVE ALL THE VALUES OF THE BASIS FUNCTIONS 
         
@@ -592,10 +593,11 @@ public:
                 double best_distance = 1e16;
                 CoordinatesArrayType best_projected_point_on_slave_local;
                 int best_bred_id_slave = -1;
+                bool isConverged;
                 for (IndexType i_brep_s = 0; i_brep_s < rIntegrationPoints.size(); i_brep_s++) {
                     
                     CoordinatesArrayType local_coord_projected_on_slave; //first trial
-                    bool isConverged = rPairedGeometryList[i_brep_s].ProjectionPointGlobalToLocalSpace(master_quadrature_point, local_coord_projected_on_slave, 1e-12);
+                    isConverged = rPairedGeometryList[i_brep_s].ProjectionPointGlobalToLocalSpace(master_quadrature_point, local_coord_projected_on_slave, 1e-12);
 
                     if (isConverged) {
                         CoordinatesArrayType point_projected_on_slave(3);
@@ -611,7 +613,6 @@ public:
                             best_bred_id_slave = i_brep_s;
                         }
                     } else {
-                    
                         Vector interval; 
                         rPairedGeometryList[i_brep_s].DomainInterval(interval);
                         local_coord_projected_on_slave[0] = interval[0];
@@ -640,6 +641,8 @@ public:
                     }
 
                 }
+                if (!isConverged) continue;
+                // WARNING ! REMOVE
 
                 IntegrationPoint<1> integrationPointSlave(best_projected_point_on_slave_local[0]);
 
@@ -754,15 +757,16 @@ public:
                     default_method, integrationPointSlave,
                     N_s, shape_function_derivatives_s);
 
-                rResultGeometries(i+numberOfQuadraturePointGeometriesAlreadyCreated) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
+                rResultGeometries(quadraturePointId) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
                     data_container_master, data_container_slave, 
                     nonzero_control_points_master, nonzero_control_points_slave,
                     global_space_derivatives_master[1][0], global_space_derivatives_master[1][1], 
                     global_space_derivatives_slave[1][0], global_space_derivatives_slave[1][1],
-                    &rParentGeometryList[i_brep_m], &rPairedGeometryList[best_bred_id_slave]);
+                    &rParentGeometryList[i_brep_m], &rPairedGeometryList[best_bred_id_slave], this);
 
                 // set value of the background integration domain
-                rResultGeometries(i+numberOfQuadraturePointGeometriesAlreadyCreated)->SetValue(ACTIVATION_LEVEL, integrationDomain);
+                rResultGeometries(quadraturePointId)->SetValue(ACTIVATION_LEVEL, integrationDomain);
+                quadraturePointId++;
             }
         }
     }
@@ -859,6 +863,77 @@ public:
         distance = norm_2(slavePoint-globCoordMaster);
         return 1;
     }    
+
+
+
+    void ComputeProjectionOnSlave() {
+
+        KRATOS_WATCH("ssssssssssssssi")
+        // CoordinatesArrayType master_quadrature_point(3);
+        // master_quadrature_point[0] = global_space_derivatives_master[0][0]; master_quadrature_point[1] = global_space_derivatives_master[0][1];
+        // master_quadrature_point[2] = 0.0;
+        // double best_distance = 1e16;
+        // CoordinatesArrayType best_projected_point_on_slave_local;
+        // int best_bred_id_slave = -1;
+        // bool isConverged;
+        // for (IndexType i_brep_s = 0; i_brep_s < rIntegrationPoints.size(); i_brep_s++) {
+            
+        //     CoordinatesArrayType local_coord_projected_on_slave; //first trial
+        //     isConverged = rPairedGeometryList[i_brep_s].ProjectionPointGlobalToLocalSpace(master_quadrature_point, local_coord_projected_on_slave, 1e-12);
+
+        //     if (isConverged) {
+        //         CoordinatesArrayType point_projected_on_slave(3);
+                
+        //         std::vector<CoordinatesArrayType> global_space_derivatives_slave(2);
+        //         rPairedGeometryList[i_brep_s].GlobalCoordinates(point_projected_on_slave, local_coord_projected_on_slave);
+
+        //         double current_distance = norm_2(master_quadrature_point-point_projected_on_slave);
+
+        //         if (current_distance < best_distance) {
+        //             best_distance = current_distance;
+        //             best_projected_point_on_slave_local = local_coord_projected_on_slave;
+        //             best_bred_id_slave = i_brep_s;
+        //         }
+        //     } else {
+        //         Vector interval; 
+        //         rPairedGeometryList[i_brep_s].DomainInterval(interval);
+        //         local_coord_projected_on_slave[0] = interval[0];
+        //         CoordinatesArrayType point_projected_on_slave(3);        
+        //         rPairedGeometryList[i_brep_s].GlobalCoordinates(point_projected_on_slave, local_coord_projected_on_slave);
+
+        //         double current_distance = norm_2(master_quadrature_point-point_projected_on_slave);
+
+        //         if (current_distance < best_distance) {
+        //             best_distance = current_distance;
+        //             best_projected_point_on_slave_local = local_coord_projected_on_slave;
+        //             best_bred_id_slave = i_brep_s;
+        //         }
+
+        //         local_coord_projected_on_slave[0] = interval[1];
+        //         rPairedGeometryList[i_brep_s].GlobalCoordinates(point_projected_on_slave, local_coord_projected_on_slave);
+
+        //         current_distance = norm_2(master_quadrature_point-point_projected_on_slave);
+
+
+        //         if (current_distance < best_distance) {
+        //             best_distance = current_distance;
+        //             best_projected_point_on_slave_local = local_coord_projected_on_slave;
+        //             best_bred_id_slave = i_brep_s;
+        //         }
+        //     }
+
+        // }
+        // if (!isConverged) continue;
+        // // WARNING ! REMOVE
+
+        // IntegrationPoint<1> integrationPointSlave(best_projected_point_on_slave_local[0]);
+
+        // std::vector<CoordinatesArrayType> global_space_derivatives_slave(2);
+        // rPairedGeometryList[best_bred_id_slave].GlobalSpaceDerivatives(
+        //         global_space_derivatives_slave,
+        //         integrationPointSlave,
+        //         1);
+    }
 
     ///@}
     

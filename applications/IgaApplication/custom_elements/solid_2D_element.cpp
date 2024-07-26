@@ -351,13 +351,18 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
 
     double x_coord_gauss_point = 0;
     double y_coord_gauss_point = 0;
-    double rOutput = 0;
+    double rOutput_x = 0;
+    double rOutput_y = 0;
 
     for (IndexType i = 0; i < nb_nodes; ++i)
     {
         // KRATOS_WATCH(r_geometry[i])
         double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
-        rOutput += r_N(0, i) * output_solution_step_value;
+        rOutput_x += r_N(0, i) * output_solution_step_value;
+
+        double output_solution_step_value_y = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_Y);
+        rOutput_y += r_N(0, i) * output_solution_step_value_y;
+
         x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
         y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
     }        
@@ -365,12 +370,12 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
 
 
 
-    // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-    // if (output_file.is_open()) {
-    //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-    //     output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-    //     output_file.close();
-    // } 
+    std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
+    if (output_file.is_open()) {
+        output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+        output_file << rOutput_x << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+        output_file.close();
+    } 
 
 
 
@@ -378,14 +383,14 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
         std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
         if (output_file.is_open()) {
             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
             output_file.close();
         } 
     } else {
         std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
         if (output_file.is_open()) {
             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
             output_file.close();
         } 
     }

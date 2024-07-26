@@ -68,7 +68,14 @@ namespace Kratos
             : Condition(NewId, pGeometry),
               mpPropMaster(pPropMaster),
               mpPropSlave(pPropSlave)
-        {};
+        {
+            const int integrationDomain = GetGeometry().GetValue(ACTIVATION_LEVEL);
+
+            if (integrationDomain == 1) {
+                mpPropMaster = pPropSlave;
+                mpPropSlave = pPropMaster;
+            }
+        };
 
         /// Default constructor
         SupportContact2DCondition() : Condition()
@@ -328,11 +335,42 @@ namespace Kratos
     PropertiesType::Pointer mpPropMaster;
     PropertiesType::Pointer mpPropSlave;
 
+    bool m_contact_is_active = false;
+
     ///@}
 
     private:
         ///@name Serialization
         ///@{
+
+        // void GetDBMatrix(IndexType index, GeometryType::Pointer r_geometry, 
+        //                                         Vector& old_displacement, Matrix& DB, const Kratos::ProcessInfo& rCurrentProcessInfo);
+
+        const Matrix GetConstitutiveMatrix(IndexType index, Matrix& r_B, GeometryType r_geometry,
+                                            Vector& old_displacement, const Kratos::ProcessInfo& rCurrentProcessInfo); 
+        
+        PropertiesType& GetProperty(IndexType index) {
+            if (index == 0) {
+                return *mpPropMaster;
+            }
+            else if (index == 1) {
+                return *mpPropSlave;
+            }
+        }
+
+        ConstitutiveLaw::Pointer GetConstitutiveLaw(IndexType index) {
+            if (index == 0) {
+                return mpConstitutiveLawMaster;
+            }
+            else if (index == 1) {
+                return mpConstitutiveLawSlave;
+            }
+        }
+
+        void GetDeformed(const Matrix& N, Vector& reference_position, Vector& displacement, Vector& deformed_position);
+
+        bool CheckCriteria(const Vector& deformed_pos_master, const Vector& deformed_pos_slave, const Vector& displacement_master,
+                           const Vector& normal, const Matrix& DB_master, array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal);
 
         friend class Serializer;
 

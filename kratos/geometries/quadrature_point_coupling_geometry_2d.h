@@ -67,6 +67,8 @@ public:
     static constexpr IndexType Master = 0;
     static constexpr IndexType Slave = 1;
 
+    static constexpr IndexType CouplingGeometry = 2;
+
     /// Constructor with points and geometry shape function container
     // QuadraturePointCouplingGeometry2D(
     //     QuadraturePointCurveOnSurfaceGeometryPointer pMasterQuadraturePoint,
@@ -94,13 +96,16 @@ public:
 
     QuadraturePointCouplingGeometry2D(
         GeometryPointer pMasterQuadraturePoint,
-        GeometryPointer pSlaveQuadraturePoint): 
+        GeometryPointer pSlaveQuadraturePoint,
+        GeometryPointer pCouplingGeometry): 
         BaseType()
     {
-        mpGeometries.resize(2);
+        mpGeometries.resize(3);
 
         mpGeometries[0] = pMasterQuadraturePoint;
         mpGeometries[1] = pSlaveQuadraturePoint;
+
+        mpGeometries[2] = pCouplingGeometry;
     }
 
 
@@ -151,6 +156,8 @@ public:
 private:
 
     GeometryPointerVector mpGeometries;
+
+
     // typename QuadraturePointCurveOnSurfaceGeometry<TPointType>::Pointer mpQuadraturePointMaster;
     // typename QuadraturePointCurveOnSurfaceGeometry<TPointType>::Pointer mpQuadraturePointSlave;
 

@@ -195,6 +195,8 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
         void GetValuesVector(Vector& rValues) const;
 
 

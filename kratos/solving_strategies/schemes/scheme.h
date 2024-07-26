@@ -359,7 +359,7 @@ public:
     /***********************************************************************************/
 
     /**
-     * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
+     * @brief Function to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
      * @note Take care: the elemental function with the same name is NOT called here.
      * @warning Must be defined in derived classes
      * @details The function is called in the builder for memory efficiency
