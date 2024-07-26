@@ -46,12 +46,13 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
         "At least two coordinates in gravity direction must be given, but got 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenHorizontalCoordinatesAreEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenLessThanTwoCoordinatesInHorizontalDirectionAreGiven,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("foo");
 
-    const auto test_parameters = Parameters{R"(
+    auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "variable_name": "WATER_PRESSURE",
@@ -64,7 +65,13 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyConstantPhreaticMultiLinePressureProcess{r_model_part, test_parameters}),
-        "Coordinates in horizontal direction must not be empty")
+        "At least two coordinates in horizontal direction must be given, but got 0")
+
+    test_parameters.RemoveValue("x_coordinates");
+    test_parameters.AddVector("x_coordinates", ScalarVector{1, 0.0});
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplyConstantPhreaticMultiLinePressureProcess{r_model_part, test_parameters}),
+        "At least two coordinates in horizontal direction must be given, but got 1")
 }
 
 } // namespace Kratos::Testing
