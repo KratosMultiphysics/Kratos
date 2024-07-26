@@ -63,6 +63,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(MPMBoundaryRotationUtility);
 
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
+    using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::RevertRotate;
 
 	typedef Node NodeType;
 
