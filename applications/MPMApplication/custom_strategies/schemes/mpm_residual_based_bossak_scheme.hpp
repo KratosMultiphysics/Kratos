@@ -518,7 +518,7 @@ public:
         // Rotate contributions (to match coordinates for slip conditions)
         if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
-            mRotationTool.RotateRHS(RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
         }
 
@@ -598,7 +598,7 @@ public:
         // Rotate contributions (to match coordinates for slip conditions)
         if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
-            mRotationTool.RotateRHS(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
         }
 

@@ -121,7 +121,7 @@ public:
 
 	}
 
-    void RotateToGlobal(
+    void RevertRotate(
         TLocalMatrixType& rLocalMatrix,
         TLocalVectorType& rLocalVector,
         GeometryType& rGeometry) const
@@ -137,21 +137,6 @@ public:
             else if (this->GetDomainSize() == 3) this->template RotateAux<3,4,true>(rLocalMatrix,rLocalVector,rGeometry);
         }
 
-    }
-
-	/// RHS only version of Rotate
-	void RotateRHS(
-        TLocalVectorType& rLocalVector,
-		GeometryType& rGeometry) const
-	{
-		this->Rotate(rLocalVector,rGeometry);
-	}
-
-    void RotateRHSToGlobal(
-        TLocalVectorType& rLocalVector,
-        GeometryType& rGeometry) const
-    {
-        this->template RotateRHSAux<true>(rLocalVector,rGeometry);
     }
 
 	/// Apply roler type boundary conditions to the rotated local contributions.

@@ -217,7 +217,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             if (CalculateStiffnessMatrixFlag == true){
                 GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
             } else {
-                GetRotationTool().RotateRHS(rRightHandSideVector, GetGeometry());
+                GetRotationTool().Rotate(rRightHandSideVector, GetGeometry());
             }
 
             if (CalculateStiffnessMatrixFlag == true) {
@@ -239,9 +239,9 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
             // rotate back to global frame
             if (CalculateStiffnessMatrixFlag == true){
-                GetRotationTool().RotateToGlobal(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+                GetRotationTool().RevertRotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
             } else {
-                GetRotationTool().RotateRHSToGlobal(rRightHandSideVector, GetGeometry());
+                GetRotationTool().RevertRotate(rRightHandSideVector, GetGeometry());
             }
 
         }
