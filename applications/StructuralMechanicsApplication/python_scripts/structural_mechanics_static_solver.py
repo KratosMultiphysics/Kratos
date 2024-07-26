@@ -20,4 +20,10 @@ class StaticMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[StaticMechanicalSolver]:: ", "Construction finished")
 
     def _CreateScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme_settings = KratosMultiphysics.Parameters("""{
+            projection_variables_list : []
+        }""")
+        if self.settings["use_orthogonal_subscales"].GetBool():
+            if self.settings["volumetric_strain_dofs"].GetBool():
+                scheme_settings.SetStringArray(["VOLUMETRIC_STRAIN_PROJECTION","DISPLACEMENT_PROJECTION"])
+        return KratosMultiphysics.StructuralMechanicsStaticScheme(scheme_settings)

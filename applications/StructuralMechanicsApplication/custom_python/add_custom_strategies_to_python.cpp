@@ -31,6 +31,8 @@
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_multi_stage_kim_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
+#include "custom_strategies/custom_schemes/structural_mechanics_bossak_scheme.h"
+#include "custom_strategies/custom_schemes/structural_mechanics_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -51,6 +53,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    using BaseBossakSchemeType = ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>;
+    using BaseStaticSchemeType = ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -75,7 +79,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     typedef ExplicitMultiStageKimScheme< SparseSpaceType, LocalSpaceType >  ExplicitMultiStageKimSchemeType;
-
+    using StructuralMechanicsBossakSchemeType = StructuralMechanicsBossakScheme<SparseSpaceType, LocalSpaceType>;
+    using StructuralMechanicsStaticSchemeType = StructuralMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     // Custom convergence criterion types
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -155,7 +160,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< Parameters>())
         ;
 
+    // Implicit Bossak Scheme Type
+    py::class_<StructuralMechanicsBossakSchemeType, typename StructuralMechanicsBossakSchemeType::Pointer, BaseBossakSchemeType>(m, "StucturalMechanicsBossakScheme")
+        .def(py::init<Parameters>())
+        ;
 
+    // Implicit Static Scheme Type
+    py::class_<StructuralMechanicsStaticSchemeType, typename StructuralMechanicsStaticSchemeType::Pointer, BaseStaticSchemeType>(m, "StucturalMechanicsStaticScheme")
+        .def(py::init<Parameters>())
+        ;
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
