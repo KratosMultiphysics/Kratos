@@ -328,4 +328,3 @@ private:
 }; // Class PotentialFlowResidualBasedIncrementalUpdateStaticScheme
 }  // namespace Kratos
 
-#endif /* KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */
