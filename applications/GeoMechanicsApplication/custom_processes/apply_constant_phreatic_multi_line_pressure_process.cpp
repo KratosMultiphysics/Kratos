@@ -81,6 +81,8 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end())) {
         KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered." << rParameters << std::endl;
     }
+
+    KRATOS_ERROR_IF(GravityDirectionCoordinates().empty()) << "Coordinates in gravity direction must not be empty" << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
