@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
                 "variable_name": "WATER_PRESSURE",
                 "x_coordinates": [0.0, 1.0],
                 "y_coordinates": [],
-				"z_coordinates": [0.0, 0.0],
+                "z_coordinates": [0.0, 0.0],
                 "gravity_direction": 1
             }  )"};
 
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
                 "variable_name": "WATER_PRESSURE",
                 "x_coordinates": [],
                 "y_coordinates": [0.0, 1.0],
-				"z_coordinates": [0.0, 0.0],
+                "z_coordinates": [0.0, 0.0],
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2
             }  )"};
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
                 "variable_name": "WATER_PRESSURE",
                 "x_coordinates": [0.0, 1.0],
                 "y_coordinates": [1.0, 2.0],
-				"z_coordinates": [0.0, 0.0],
+                "z_coordinates": [0.0, 0.0],
                 "gravity_direction": 1
             }  )"};
 
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
                 "variable_name": "WATER_PRESSURE",
                 "x_coordinates": [1.0, 2.0],
                 "y_coordinates": [0.0, 1.0],
-				"z_coordinates": [0.0, 0.0],
+                "z_coordinates": [0.0, 0.0],
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2
             }  )"};
