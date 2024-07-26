@@ -19,13 +19,13 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenCoordinatesInGravityDirectionAreEmpty,
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenLessThanTwoCoordinatesInGravityDirectionAreGiven,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("foo");
 
-    const auto test_parameters = Parameters{R"(
+    auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "variable_name": "WATER_PRESSURE",
@@ -37,7 +37,13 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyConstantPhreaticMultiLinePressureProcess{r_model_part, test_parameters}),
-        "Coordinates in gravity direction must not be empty")
+        "At least two coordinates in gravity direction must be given, but got 0")
+
+    test_parameters.RemoveValue("y_coordinates");
+    test_parameters.AddVector("y_coordinates", ScalarVector{1, 0.0});
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplyConstantPhreaticMultiLinePressureProcess{r_model_part, test_parameters}),
+        "At least two coordinates in gravity direction must be given, but got 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenHorizontalCoordinatesAreEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
