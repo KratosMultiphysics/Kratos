@@ -46,8 +46,8 @@ namespace Kratos
 /**
  * @class PotentialFlowResidualBasedIncrementalUpdateStaticScheme
  * @ingroup CompressiblePotentialFlowApplication
- * @brief This class is a reimplementation of residualBasedIncrementalUpdateStaticScheme and is 
- * used in a transonic potential simulation to update both the CRITICAL_MACH and 
+ * @brief This class is a reimplementation of residualBasedIncrementalUpdateStaticScheme for potential flow simulations. 
+ * @details This Class is used in a transonic potential simulation to update both the CRITICAL_MACH and 
  * UPWIND_FACTOR_CONSTANT values, between nonlinear iterations, to a user-defined value when 
  * a user-defined residual tolerance is reached. This update is done only once. For a normal element 
  * the only operation done in this scheme is the update of the database and values, no predict is done.
@@ -147,7 +147,9 @@ public:
 
     /**
      * @brief This is the place to initialize the Scheme.
-     * @details This is intended to be called just once when the strategy is initialized
+     * @details This is intended to be called just once when the strategy is initialized.
+     * Here CRITICAL_MACH, UPWIND_FACTOR_CONSTANT and MACH_LIMIT parameters are initialized
+     * to a user-defined values in a transonic case. Otherwise the base residualBasedIncrementalUpdateStaticScheme is used.
      * @param rModelPart The model part of the problem to solve
      */
     void Initialize(ModelPart& rModelPart) override
@@ -166,6 +168,9 @@ public:
 
     /**
      * @brief Function to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
+     * @details Here CRITICAL_MACH and UPWIND_FACTOR_CONSTANT are updated, between nonlinear iterations, to a user-defined value when a user-defined 
+     * residual tolerance is reached in a transonic case. For a normal case, the base residualBasedIncrementalUpdateStaticScheme is used.
+     * This update is performed at each step after the tolerance is reached. 
      * @note Take care: the elemental function with the same name is NOT called here.
      * @warning Must be defined in derived classes
      * @details The function is called in the builder for memory efficiency

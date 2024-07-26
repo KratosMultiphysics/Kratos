@@ -167,7 +167,7 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
-            "transonic_scheme_settings" :{
+            "scheme_settings" :{
             },
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -257,11 +257,11 @@ class PotentialFlowSolver(FluidSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
-        settings = self.settings["transonic_scheme_settings"]
+        settings = self.settings["scheme_settings"]
         settings.AddMissingParameters(self._GetDefaultTransonicParameters())
         if (self.settings["formulation"]["element_type"].GetString() == "perturbation_transonic"
             and settings["is_transonic"].GetBool() == False):
-            warn_msg = "Using 'perturbation_transonic' element without updating transonic parameters. You can enable it with 'is_transonic' flag in your 'transonic_scheme_settings'."
+            warn_msg = "Using 'perturbation_transonic' element without updating transonic parameters. You can enable it with 'is_transonic' flag in your 'scheme_settings'."
             KratosMultiphysics.Logger.PrintWarning('PotentialFlowSolver', warn_msg)
         scheme = KCPFApp.PotentialFlowResidualBasedIncrementalUpdateStaticScheme(settings)
         return scheme
