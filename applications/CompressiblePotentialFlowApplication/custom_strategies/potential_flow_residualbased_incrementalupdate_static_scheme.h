@@ -10,8 +10,7 @@
 //  Main authors:    Marco Antonio Zuñiga Perez
 //
 
-#if !defined(KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
-#define  KRATOS_POTENTIAL_FLOW_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
+# pragma once
 
 /* System includes */
 
