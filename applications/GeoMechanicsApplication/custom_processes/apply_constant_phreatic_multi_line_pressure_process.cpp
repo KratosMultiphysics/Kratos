@@ -83,6 +83,7 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     }
 
     KRATOS_ERROR_IF(GravityDirectionCoordinates().empty()) << "Coordinates in gravity direction must not be empty" << std::endl;
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().empty()) << "Coordinates in horizontal direction must not be empty" << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
