@@ -12,7 +12,7 @@ from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 import json
 
-def CustomizeSimulation(cls, global_model, parameters):
+def CustomizeSimulation(cls, global_model, parameters, mu=None):
 
     class CustomSimulation(cls):
 
@@ -105,7 +105,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             rom_manager = RomManager(general_rom_manager_parameters=general_rom_manager_parameters,CustomizeSimulation=CustomizeSimulation,UpdateProjectParameters=UpdateProjectParameters)
             with open('mu_train.json', 'r') as json_file:
                 mu_train = json.load(json_file)
-            rom_manager.RunROM(mu_train, [mu_train[50]])
+            rom_manager.RunROM([mu_train[50]], mu_train)
             # Check results
             expected_output = np.load(expected_output_filename)
             obtained_output = rom_manager.QoI_Run_ROM[0]["displacement"]
