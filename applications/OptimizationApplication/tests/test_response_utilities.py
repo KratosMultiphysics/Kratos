@@ -20,6 +20,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         for i in range(10):
             node: Kratos.Node = cls.model_part.CreateNewNode(i + 1, i, i + 1, i + 2)
             node.SetValue(Kratos.PRESSURE, (i + 1) / 100.0)
+            node.SetValue(Kratos.TEMPERATURE, (i + 10) / 100.0)
 
         r1_params = Kratos.Parameters("""{
             "evaluated_model_part_names"     : [
@@ -45,12 +46,26 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         cls.r2 = DiscreteValueResidualResponseFunction("r2", cls.model, r2_params)
         cls.r2.Initialize()
 
+        r3_params = Kratos.Parameters("""{
+            "evaluated_model_part_names"     : [
+                "test"
+            ],
+            "container_type"         : "node_non_historical",
+            "variable_name"          : "TEMPERATURE",
+            "residual_type"          : "exact",
+            "list_of_discrete_values": [-2e-3, -3e-3, -4e-3]
+        }""")
+        cls.r3 = DiscreteValueResidualResponseFunction("r3", cls.model, r3_params)
+        cls.r3.Initialize()
+
     def setUp(self) -> None:
         self.optimization_problem = OptimizationProblem()
         self.optimization_problem.AddComponent(self.r1)
         ComponentDataView(self.r1, self.optimization_problem).SetDataBuffer(1)
         self.optimization_problem.AddComponent(self.r2)
         ComponentDataView(self.r2, self.optimization_problem).SetDataBuffer(1)
+        self.optimization_problem.AddComponent(self.r3)
+        ComponentDataView(self.r3, self.optimization_problem).SetDataBuffer(1)
 
     def test_LiteralResponseCalculateValue1(self):
         eval_resp = EvaluateResponseExpression(self.model, "4.0 + 6.0", self.optimization_problem)
@@ -125,7 +140,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         eval_resp = EvaluateResponseExpression(self.model, "r1", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
-        self.assertEqual(eval_value, self.r1.CalculateValue())
+        self.assertAlmostEqual(eval_value, self.r1.CalculateValue(), 12)
 
         self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
         self.assertTrue(self.optimization_problem.HasResponse("r1"))
