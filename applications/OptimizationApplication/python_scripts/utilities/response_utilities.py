@@ -66,14 +66,19 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
             resp_physical_variable_collective_expressions[variable] = collective_expression.Clone()
 
     resp_physical_variable_collective_expressions_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-    response_data = ComponentDataView(response_function, optimization_problem)
-    if response_data.HasDataBuffer():
-        response_data_buffer = response_data.GetBufferedData()
-        for variable, collective_expression in resp_physical_variable_collective_expressions.items():
-            # first check whether the gradients have been already evaluated. if so, take the gradients.
-            if response_data_buffer.HasValue(f"d{response_function.GetName()}_d{variable.Name()}"):
-                resp_physical_variable_collective_expressions[variable] = response_data_buffer.GetValue(f"d{response_function.GetName()}_d{variable.Name()}")
-            else:
+    if optimization_problem.HasResponse(response_function):
+        response_data = ComponentDataView(response_function, optimization_problem)
+        if response_data.HasDataBuffer():
+            response_data_buffer = response_data.GetBufferedData()
+            for variable, collective_expression in resp_physical_variable_collective_expressions.items():
+                # first check whether the gradients have been already evaluated. if so, take the gradients.
+                if response_data_buffer.HasValue(f"d{response_function.GetName()}_d{variable.Name()}"):
+                    resp_physical_variable_collective_expressions[variable] = response_data_buffer.GetValue(f"d{response_function.GetName()}_d{variable.Name()}")
+                else:
+                    # gradients have not yet evaluated. put it to the dictionary for later evaluation
+                    resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
+        else:
+            for variable, collective_expression in resp_physical_variable_collective_expressions.items():
                 # gradients have not yet evaluated. put it to the dictionary for later evaluation
                 resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
     else:
@@ -84,8 +89,10 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
     if len(resp_physical_variable_collective_expressions_to_evaluate) != 0:
         response_function.CalculateGradient(resp_physical_variable_collective_expressions_to_evaluate)
         for variable, collective_expression in resp_physical_variable_collective_expressions_to_evaluate.items():
-            if response_data.HasDataBuffer():
-                response_data.GetBufferedData().SetValue(f"d{response_function.GetName()}_d{variable.Name()}", collective_expression.Clone())
+            if optimization_problem.HasResponse(response_function):
+                response_data = ComponentDataView(response_function, optimization_problem)
+                if response_data.HasDataBuffer():
+                    response_data.GetBufferedData().SetValue(f"d{response_function.GetName()}_d{variable.Name()}", collective_expression.Clone())
             resp_physical_variable_collective_expressions[variable] = collective_expression
 
     # now add zero values collective expressions to variables for which the response function does not have dependence
