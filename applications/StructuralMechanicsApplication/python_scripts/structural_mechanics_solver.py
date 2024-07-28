@@ -132,7 +132,7 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "use_old_stiffness_in_first_iteration": false,
-            "use_orthogonal_subscales: false,
+            "use_orthogonal_subscales" : false,
             "compute_reactions": true,
             "solving_strategy_settings": {
                 "type" : "newton_raphson",
@@ -218,12 +218,12 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
-            #TODO: These are only required in the nonlinear OSS case so we are adding them for nothing in the linearised one
+            #TODO: These are only required in the nonlinear OSS case so we are adding them for nothing in the linearised OSS and ASGS
             #TODO: We can get rid of this overhead once we move to the specification-based variables and DOFs addition
-            dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "STRAIN_PROJECTION_REACTION"])
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_X", "DISPLACEMENT_PROJECTION_REACTION_X"])
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Y", "DISPLACEMENT_PROJECTION_REACTION_Y"])
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Z", "DISPLACEMENT_PROJECTION_REACTION_Z"])
+            dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION_REACTION"])
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 

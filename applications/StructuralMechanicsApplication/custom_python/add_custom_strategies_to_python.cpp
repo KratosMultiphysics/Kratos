@@ -161,12 +161,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     // Implicit Bossak Scheme Type
-    py::class_<StructuralMechanicsBossakSchemeType, typename StructuralMechanicsBossakSchemeType::Pointer, BaseBossakSchemeType>(m, "StucturalMechanicsBossakScheme")
+    py::class_<StructuralMechanicsBossakSchemeType, typename StructuralMechanicsBossakSchemeType::Pointer, BaseBossakSchemeType>(m, "StructuralMechanicsBossakScheme")
         .def(py::init<Parameters>())
         ;
 
     // Implicit Static Scheme Type
-    py::class_<StructuralMechanicsStaticSchemeType, typename StructuralMechanicsStaticSchemeType::Pointer, BaseStaticSchemeType>(m, "StucturalMechanicsStaticScheme")
+    py::class_<StructuralMechanicsStaticSchemeType, typename StructuralMechanicsStaticSchemeType::Pointer, BaseStaticSchemeType>(m, "StructuralMechanicsStaticScheme")
         .def(py::init<Parameters>())
         ;
 

@@ -95,16 +95,16 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         #     mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
         if (scheme_type == "newmark" or scheme_type == "bossak"):
             scheme_settings = KratosMultiphysics.Parameters("""{
-                damp_factor_m : 0.0,
-                newmark_beta : 0.0,
-                projection_variables_list : []
+                "damp_factor_m" : 0.0,
+                "newmark_beta" : 0.0,
+                "projection_variables_list" : []
             }""")
             scheme_settings["damp_factor_m"].SetDouble(0.0 if scheme_type == "newmark" else self.settings["damp_factor_m"].GetDouble())
             scheme_settings["newmark_beta"].SetDouble(self.settings["newmark_beta"].GetDouble())
             if self.settings["use_orthogonal_subscales"].GetBool():
                 if self.settings["volumetric_strain_dofs"].GetBool():
-                    scheme_settings.SetStringArray(["VOLUMETRIC_STRAIN_PROJECTION","DISPLACEMENT_PROJECTION"])
-            mechanical_scheme = KratosMultiphysics.StructuralMechanicsBossakScheme(scheme_settings)
+                    scheme_settings["projection_variables_list"].SetStringArray(["VOLUMETRIC_STRAIN_PROJECTION","DISPLACEMENT_PROJECTION"])
+            mechanical_scheme = StructuralMechanicsApplication.StructuralMechanicsBossakScheme(scheme_settings)
         elif(scheme_type == "pseudo_static"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
