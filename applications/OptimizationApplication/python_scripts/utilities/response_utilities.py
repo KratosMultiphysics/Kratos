@@ -5,7 +5,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
@@ -19,6 +18,13 @@ class BinaryOperator(str, Enum):
 BinaryOperatorValues = [operator.value for operator in BinaryOperator]
 
 BinaryOperatorValuesMap = dict([(operator.value, operator) for operator in BinaryOperator])
+
+def GetFunctionsMap() -> 'dict[str, ResponseFunction]':
+    # import functions
+    from KratosMultiphysics.OptimizationApplication.responses.log_response_function import LogResponseFunction
+    return {
+        "log": LogResponseFunction
+    }
 
 def EvaluateValue(response_function: ResponseFunction, optimization_problem: OptimizationProblem) -> float:
     if optimization_problem.HasResponse(response_function):
@@ -86,19 +92,25 @@ def GetResponseFunction(current_value: str, optimization_problem: OptimizationPr
                 raise RuntimeError(f"The response named \"{current_value}\" not defined.")
 
 def GetValuesAndOperators(response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
-    value = ""
     responses: 'list[ResponseFunction]' = []
     operators: 'list[str]' = []
-    for c in response_expression:
-        if c in BinaryOperatorValues:
-            responses.append(GetResponseFunction(value, optimization_problem))
-            operators.append(c)
-            value = ""
-        else:
-            value += c
 
-    # add the last value
-    responses.append(GetResponseFunction(value, optimization_problem))
+    index = 0
+    current_word = ""
+    while index < len(response_expression):
+        current_char = response_expression[index]
+
+        if current_char in BinaryOperatorValues:
+            responses.append(GetResponseFunction(current_word, optimization_problem))
+            operators.append(current_char)
+            current_word = ""
+        else:
+            current_word += current_char
+
+        index += 1
+
+    # add the last current_word
+    responses.append(GetResponseFunction(current_word, optimization_problem))
 
     return responses, operators
 
