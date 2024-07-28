@@ -32,8 +32,6 @@
         "echo_level"                      : 1,
         "analysis_type"                   : "linear",
         "model_import_settings"           : {
-            // "input_type"     : "mdpa",
-            // "input_filename" : "cook_membrane_test/cook_membrane"
             "input_type" : "use_input_model_part"
         },
         "material_import_settings"        : {
