@@ -17,7 +17,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
 
         for i in range(10):
             node: Kratos.Node = cls.model_part.CreateNewNode(i + 1, i, i + 1, i + 2)
-            node.SetValue(Kratos.PRESSURE, i + 1)
+            node.SetValue(Kratos.PRESSURE, (i + 1) / 100.0)
 
         r1_params = Kratos.Parameters("""{
             "evaluated_model_part_names"     : [
@@ -26,7 +26,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
             "container_type"         : "node_non_historical",
             "variable_name"          : "PRESSURE",
             "residual_type"          : "exact",
-            "list_of_discrete_values": [-1.0, -2.0, -3.0]
+            "list_of_discrete_values": [-1.0e-2, -2.0e-2, -3.0e-2]
         }""")
         cls.r1 = DiscreteValueResidualResponseFunction("r1", cls.model, r1_params)
         cls.r1.Initialize()
@@ -38,7 +38,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
             "container_type"         : "node_non_historical",
             "variable_name"          : "PRESSURE",
             "residual_type"          : "exact",
-            "list_of_discrete_values": [-10.0, -20.0, -30.0]
+            "list_of_discrete_values": [-1e-3, -2e-3, -3e-3]
         }""")
         cls.r2 = DiscreteValueResidualResponseFunction("r2", cls.model, r2_params)
         cls.r2.Initialize()
@@ -136,7 +136,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + r2", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
-        self.assertEqual(eval_value, self.r1.CalculateValue() + 2.0 * self.r2.CalculateValue())
+        self.assertAlmostEqual(eval_value, self.r1.CalculateValue() + 2.0 * self.r2.CalculateValue(), 12)
 
         # followings are intermediate responses, or leaf responses. Therefore they need to be
         # in the optimization problem
@@ -154,24 +154,84 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
         self.assertFalse(self.optimization_problem.HasResponse("((r1+r2)+r2)"))
 
-    # def test_CombinedResponseCalculateValue3(self):
-    #     eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + 4.0", self.optimization_problem)
-    #     eval_resp.Initialize()
-    #     self.assertEqual(eval_resp.CalculateValue(), self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0)
-    #     self.assertTrue(eval_resp in self.optimization_problem.GetListOfResponses())
+    def test_CombinedResponseCalculateValue3(self):
+        eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + 4.0", self.optimization_problem)
+        eval_resp.Initialize()
+        eval_value = eval_resp.CalculateValue()
+        self.assertEqual(eval_value, self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0)
 
-    # def test_CombinedResponseCalculateValue4(self):
-    #     eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 + r2 / 3.0 + 4.0", self.optimization_problem)
-    #     eval_resp.Initialize()
-    #     self.assertEqual(eval_resp.CalculateValue(), self.r1.CalculateValue() * 2.0 + self.r2.CalculateValue() / 3.0 + 4.0 + 3.5)
-    #     self.assertTrue(eval_resp in self.optimization_problem.GetListOfResponses())
+        # followings are intermediate responses, or leaf responses. Therefore they need to be
+        # in the optimization problem
+        self.assertTrue(self.optimization_problem.HasResponse("r1"))
+        self.assertTrue(self.optimization_problem.HasResponse("r2"))
+        self.assertTrue(self.optimization_problem.HasResponse("(r1+r2)"))
+        self.assertFalse(self.optimization_problem.HasResponse("4.0"))
 
-    # def test_CombinedResponseCalculateValue5(self):
-    #     eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 * r2 / 3.0 + 4.0", self.optimization_problem)
-    #     eval_resp.Initialize()
-    #     self.assertEqual(eval_resp.CalculateValue(), self.r1.CalculateValue() * 2.0 * self.r2.CalculateValue() / 3.0 + 4.0 + 3.5)
-    #     print(self.optimization_problem.GetProblemDataContainer())
-    #     self.assertTrue(eval_resp in self.optimization_problem.GetListOfResponses())
+        # followings are intermediate responses, so Algorithm, ResponseRoutine do not see them. Therefore
+        # the value storage is managed by the ResponseFunction it self.
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r1"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r2"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(r1+r2)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+
+        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
+        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
+        self.assertFalse(self.optimization_problem.HasResponse("((r1+r2)+4.0)"))
+
+    def test_CombinedResponseCalculateValue4(self):
+        eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 + r2 / 3.0 - 4.0", self.optimization_problem)
+        eval_resp.Initialize()
+        eval_value = eval_resp.CalculateValue()
+        self.assertEqual(eval_value, self.r1.CalculateValue() * 2.0 + self.r2.CalculateValue() / 3.0 - 4.0 + 3.5)
+
+        # followings are intermediate responses, or leaf responses. Therefore they need to be
+        # in the optimization problem
+        self.assertTrue(self.optimization_problem.HasResponse("r1"))
+        self.assertTrue(self.optimization_problem.HasResponse("r2"))
+        self.assertTrue(self.optimization_problem.HasResponse("(r1*2.0)"))
+        self.assertTrue(self.optimization_problem.HasResponse("(r2/3.0)"))
+        self.assertTrue(self.optimization_problem.HasResponse("(3.5+(r1*2.0))"))
+        self.assertTrue(self.optimization_problem.HasResponse("((3.5+(r1*2.0))+(r2/3.0))"))
+
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r1"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r2"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(r1*2.0)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(r2/3.0)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(3.5+(r1*2.0))"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("((3.5+(r1*2.0))+(r2/3.0))"), self.optimization_problem).GetBufferedData().HasValue("value"))
+
+        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
+        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
+        self.assertFalse(self.optimization_problem.HasResponse("(((3.5+(r1*2.0))+(r2/3.0))-4.0)"))
+
+    def test_CombinedResponseCalculateValue5(self):
+        eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 * r2 / 3.0 - 4.0 + r1 ^ r2", self.optimization_problem)
+        eval_resp.Initialize()
+        eval_value = eval_resp.CalculateValue()
+        self.assertEqual(eval_value, self.r1.CalculateValue() * 2.0 * self.r2.CalculateValue() / 3.0 - 4.0 + 3.5 + self.r1.CalculateValue() ** self.r2.CalculateValue())
+
+        # followings are intermediate responses, or leaf responses. Therefore they need to be
+        # in the optimization problem
+        self.assertTrue(self.optimization_problem.HasResponse("r1"))
+        self.assertTrue(self.optimization_problem.HasResponse("r2"))
+        self.assertTrue(self.optimization_problem.HasResponse("(r1*2.0)"))
+        self.assertTrue(self.optimization_problem.HasResponse("((r1*2.0)*r2)"))
+        self.assertTrue(self.optimization_problem.HasResponse("(((r1*2.0)*r2)/3.0)"))
+        self.assertTrue(self.optimization_problem.HasResponse("(r1^r2)"))
+        self.assertTrue(self.optimization_problem.HasResponse("(3.5+(((r1*2.0)*r2)/3.0))"))
+        self.assertTrue(self.optimization_problem.HasResponse("((3.5+(((r1*2.0)*r2)/3.0))-4.0)"))
+
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r1"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("r2"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(r1*2.0)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("((r1*2.0)*r2)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(((r1*2.0)*r2)/3.0)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(r1^r2)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("(3.5+(((r1*2.0)*r2)/3.0))"), self.optimization_problem).GetBufferedData().HasValue("value"))
+        self.assertTrue(ComponentDataView(self.optimization_problem.GetResponse("((3.5+(((r1*2.0)*r2)/3.0))-4.0)"), self.optimization_problem).GetBufferedData().HasValue("value"))
+
+        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
+        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
+        self.assertFalse(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
 if __name__ == "__main__":
     kratos_unittest.main()
