@@ -33,7 +33,7 @@ class BinaryOperatorResponseFunction(ResponseFunction):
         self.response_function_1.Initialize()
         self.response_function_2.Initialize()
 
-        if len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0 and len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0:
+        if len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0 and len(self.response_function_2.GetImplementedPhysicalKratosVariables()) != 0:
             self.model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.response_function_1.GetInfluencingModelPart().FullName(), self.response_function_2.GetInfluencingModelPart().FullName()], False).GetModelPart()
         elif len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0:
             self.model_part = self.response_function_1.GetInfluencingModelPart()
