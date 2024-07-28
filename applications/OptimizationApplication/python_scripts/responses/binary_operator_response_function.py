@@ -71,13 +71,10 @@ class BinaryOperatorResponseFunction(ResponseFunction):
             return v1 ** v2
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        resp_1_buffered_data = ComponentDataView(self.response_function_1, self.optimization_problem).GetBufferedData()
-        resp_2_buffered_data = ComponentDataView(self.response_function_2, self.optimization_problem).GetBufferedData()
-
         v1 = EvaluateValue(self.response_function_1, self.optimization_problem)
         v2 = EvaluateValue(self.response_function_2, self.optimization_problem)
-        resp_1_physical_variable_collective_expressions = EvaluateGradient(self.response_function_1, resp_1_buffered_data, physical_variable_collective_expressions)
-        resp_2_physical_variable_collective_expressions = EvaluateGradient(self.response_function_2, resp_2_buffered_data, physical_variable_collective_expressions)
+        resp_1_physical_variable_collective_expressions = EvaluateGradient(self.response_function_1, physical_variable_collective_expressions, self.optimization_problem)
+        resp_2_physical_variable_collective_expressions = EvaluateGradient(self.response_function_2, physical_variable_collective_expressions, self.optimization_problem)
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
             for result, g1, g2 in zip(collective_expression.GetContainerExpressions(), resp_1_physical_variable_collective_expressions[variable].GetContainerExpressions(), resp_2_physical_variable_collective_expressions[variable].GetContainerExpressions()):
