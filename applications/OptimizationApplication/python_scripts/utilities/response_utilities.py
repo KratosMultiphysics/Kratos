@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 
 import KratosMultiphysics as Kratos
@@ -19,12 +20,30 @@ BinaryOperatorValues = [operator.value for operator in BinaryOperator]
 
 BinaryOperatorValuesMap = dict([(operator.value, operator) for operator in BinaryOperator])
 
-def GetFunctionsMap() -> 'dict[str, ResponseFunction]':
+def GetClosingBracketIndex(expression: str) -> int:
+    # this function assumes the starting point is without the opening bracket.
+    # it will give the position of the respective closing bracket
+    index = 0
+    brackets_counter = 1
+    while index < len(expression):
+        brackets_counter += (expression[index] == "(") + (expression[index] == ")") * -1
+        if brackets_counter == 0:
+            return index
+        index += 1
+
+    raise RuntimeError(f"The closing bracket not found for expression ({expression}")
+
+def GetFunction(function_name: str, optimization_problem: OptimizationProblem, *args) -> ResponseFunction:
     # import functions
     from KratosMultiphysics.OptimizationApplication.responses.log_response_function import LogResponseFunction
-    return {
+
+    functions_map: 'dict[str, type[ResponseFunction]]' = {
         "log": LogResponseFunction
     }
+    if function_name in functions_map.keys():
+        return functions_map[function_name](*args, optimization_problem)
+    else:
+        raise RuntimeError(f"Undefined \"{function_name}\" function. Followings are supported function names:\n\t" + "\n\t".join(functions_map.keys()))
 
 def EvaluateValue(response_function: ResponseFunction, optimization_problem: OptimizationProblem) -> float:
     if optimization_problem.HasResponse(response_function):
@@ -76,22 +95,56 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
 
     return resp_physical_variable_collective_expressions
 
-def GetResponseFunction(current_value: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+def GetResponseFunction(model: Kratos.Model, current_value: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.literal_value_response_function import LiteralValueResponseFunction
-    list_of_response_names: 'list[str]' = [response.GetName() for response in optimization_problem.GetListOfResponses()]
     if current_value == "":
         return LiteralValueResponseFunction(0.0)
     else:
         try:
+            # first try to get a literal response function
             return LiteralValueResponseFunction(float(current_value))
         except:
-            # first check whether the value exists in list of responses
-            if current_value in list_of_response_names:
-                return optimization_problem.GetResponse(current_value)
-            else:
-                raise RuntimeError(f"The response named \"{current_value}\" not defined.")
+            # literal response function fails. Then the current value may hold one of the followings
+            #   1. A leaf response function name
+            #   2. A response expression
+            #   3. A function call
 
-def GetValuesAndOperators(response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
+            if re.match(r"(^\w+)$", current_value) is not None:
+                # the match is a leaf response function name
+                return optimization_problem.GetResponse(current_value)
+            elif re.match(r"(^\w+\()", current_value) is not None:
+                # the match is a function call
+                args_starting_index = current_value.index("(")
+                function_name = current_value[:args_starting_index]
+
+                # now need to find the args correctly
+                args_list: 'list[str]' = []
+                index = args_starting_index + 1
+                current_arg = ""
+                while index < len(current_value) - 1:
+                    current_char = current_value[index]
+
+                    if current_char == "(":
+                        closing_bracket_pos = GetClosingBracketIndex(current_value[index+1:])
+                        current_arg += current_value[index:index+closing_bracket_pos+2]
+                        index += closing_bracket_pos + 2
+                        continue
+
+                    if current_char == ",":
+                        args_list.append(current_arg)
+                        current_arg = ""
+                    else:
+                        current_arg += current_char
+
+                    index += 1
+
+                args_list.append(current_arg)
+                return GetFunction(function_name, optimization_problem, *[EvaluateResponseExpression(model, arg, optimization_problem) for arg in args_list])
+            else:
+                # this is a response expression.
+                return EvaluateResponseExpression(model, current_value, optimization_problem)
+
+def GetValuesAndOperators(model: Kratos.Model, response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
     responses: 'list[ResponseFunction]' = []
     operators: 'list[str]' = []
 
@@ -100,17 +153,28 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
     while index < len(response_expression):
         current_char = response_expression[index]
 
+        if current_char == "(":
+            # found opening bracket
+            closing_bracket_position = GetClosingBracketIndex(response_expression[index + 1:])
+            if current_word != "":
+                current_word = f"{current_word}{response_expression[index:index+closing_bracket_position+2]}"
+            else:
+                current_word = response_expression[index + 1:index+closing_bracket_position + 1]
+            index += closing_bracket_position + 2
+            continue
+
         if current_char in BinaryOperatorValues:
-            responses.append(GetResponseFunction(current_word, optimization_problem))
+            responses.append(GetResponseFunction(model, current_word, optimization_problem))
             operators.append(current_char)
             current_word = ""
-        else:
-            current_word += current_char
+            index += 1
+            continue
 
+        current_word += current_char
         index += 1
 
     # add the last current_word
-    responses.append(GetResponseFunction(current_word, optimization_problem))
+    responses.append(GetResponseFunction(model, current_word, optimization_problem))
 
     return responses, operators
 
@@ -118,7 +182,7 @@ def EvaluateResponseExpression(model: Kratos.Model, response_expression: str, op
     from KratosMultiphysics.OptimizationApplication.responses.binary_operator_response_function import BinaryOperatorResponseFunction
 
     response_expression = response_expression.replace(" ", "")
-    responses, operators = GetValuesAndOperators(response_expression, optimization_problem)
+    responses, operators = GetValuesAndOperators(model, response_expression, optimization_problem)
 
     def __evaluate_operator(list_of_operators: 'list[str]') -> None:
         operator_index = 0
