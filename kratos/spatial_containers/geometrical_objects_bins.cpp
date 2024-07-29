@@ -142,6 +142,47 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GeometricalObjectsBins::SearchInBoundingBox(
+    const PointType& rPoint,
+    const array_1d<double, 3>& rMinPoint,
+    const array_1d<double, 3>& rMaxPoint,
+    std::vector<ResultType>& rResults
+    )
+{
+    std::unordered_map<GeometricalObject*, double> results;
+
+    // array_1d<std::size_t, Dimension> min_position;
+    // array_1d<std::size_t, Dimension> max_position;
+
+    // for(unsigned int i = 0; i < Dimension; i++ ) {
+    //     min_position[i] = CalculatePosition(rPoint[i] - Radius, i);
+    //     max_position[i] = CalculatePosition(rPoint[i] + Radius, i) + 1;
+    // }
+    // for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
+    //     for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
+    //         for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
+    //             auto& r_cell = GetCell(i,j,k);
+    //             double distance = 0.0;
+    //             for(auto p_geometrical_object : r_cell){
+    //                 auto& r_geometry = p_geometrical_object->GetGeometry();
+    //                 distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+    //                 rResults.insert({p_geometrical_object, distance});
+    //             }
+    //         }
+    //     }
+    // }
+
+    // rResults.clear();
+    // rResults.reserve(results.size());
+    // for(auto& object : results){
+    //     rResults.push_back(ResultType(object.first));
+    //     rResults.back().SetDistance(object.second);
+    // }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const PointType& rPoint)
 {
     ResultType current_result;
