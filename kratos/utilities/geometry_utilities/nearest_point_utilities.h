@@ -75,7 +75,7 @@ public:
 
     /**
      * @brief Finds the nearest point to the given point on a line segment. 
-     * @details It first projects the point into the line. If the porjceted point is inside the segment boundary 
+     * @details It first projects the point into the line. If the projected point is inside the segment boundary 
      * it returns the projected point. If not it returns the nearest end point of the line.
      * @tparam Type of the Point 
      * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
@@ -90,23 +90,83 @@ public:
         )
     {
         KRATOS_DEBUG_ERROR_IF_NOT(rLine.size() == 2) << "This function only accepts Line2D2 as input" << std::endl;
-        Point result;
-        const Point line_projected_point = GeometricalProjectionUtilities::FastProjectOnLine(rLine, rPoint, result);
-        array_1d<double,3> projected_local;
-        if(rLine.IsInside(result.Coordinates(), projected_local))
-            return result;
-        
-        const double distance1 = norm_2(rLine[0] - result);
-        const double distance2 = norm_2(rLine[1] - result);
+        return LineNearestPoint(rPoint, rLine[0], rLine[1]);
+    }
 
-        result = (distance1 < distance2) ? rLine[0] : rLine[1];
+    /**
+     * @brief Finds the nearest point to the given point on a line segment (given 2 points). 
+     * @details It first projects the point into the line. If the projected point is inside the segment boundary 
+     * it returns the projected point. If not it returns the nearest end point of the line.
+     * @tparam Type of the Point 
+     * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
+     * @param rPoint The query point which we want to get nearest point to it on the line
+     * @param rLinePointA The first point of the line
+     * @param rLinePointB The second point of the line
+     * @return The nearest point to rPoint
+     */
+    template<class TPointType>
+    static Point LineNearestPoint(
+        const TPointType& rPoint, 
+        const array_1d<double, 3>& rLinePointA, 
+        const array_1d<double, 3>& rLinePointB
+        )
+    {
+        // Project point globally into the line
+        const array_1d<double, 3> ab = rLinePointB - rLinePointA;
+        const array_1d<double, 3>& r_p_c = rPoint.Coordinates();
+        const double factor = (inner_prod(rLinePointB, r_p_c) - inner_prod(rLinePointA, r_p_c) - inner_prod(rLinePointB, rLinePointA) + inner_prod(rLinePointA, rLinePointA)) / inner_prod(ab, ab);
+        Point result(rLinePointA + factor * ab);
+
+        // Compute lentgh of the line
+        const double lx = rLinePointA[0] - rLinePointB[0];
+        const double ly = rLinePointA[1] - rLinePointB[1];
+        const double lz = rLinePointA[2] - rLinePointB[2];
+        double length = lx * lx + ly * ly + lz * lz;
+        length = std::sqrt( length );
+
+        // Project point locally into the line
+        array_1d<double,3> projected_local;
+        const double tolerance = 1e-14; // Tolerance
+
+        const double length_1 = std::sqrt( std::pow(result[0] - rLinePointA[0], 2)
+                    + std::pow(result[1] - rLinePointA[1], 2) + std::pow(result[2] - rLinePointA[2], 2));
+
+        const double length_2 = std::sqrt( std::pow(result[0] - rLinePointB[0], 2)
+                    + std::pow(result[1] - rLinePointB[1], 2) + std::pow(result[2] - rLinePointB[2], 2));
+
+        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
+            projected_local[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+        } else if (length_1 > (length + tolerance)) {
+            projected_local[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
+        } else if (length_2 > (length + tolerance)) {
+            projected_local[0] = 1.0 - 2.0 * length_2/(length + tolerance);
+        } else {
+            projected_local[0] = 2.0; // Out of the line!!!
+        }
+
+        // Check if the projected point is inside the line
+        if ( std::abs( projected_local[0] ) <= (1.0 + std::numeric_limits<double>::epsilon()) ) {
+            return result;
+        }
+        
+        // If the projected point is outside the line, return the nearest end point
+        const double distance1 = norm_2(rLinePointA - result);
+        const double distance2 = norm_2(rLinePointB - result);
+        if (distance1 < distance2) {
+            result[0] = rLinePointA[0];
+            result[1] = rLinePointA[1];
+            result[2] = rLinePointA[2];
+        } else {
+            result[0] = rLinePointB[0];
+            result[1] = rLinePointB[1];
+            result[2] = rLinePointB[2];
+        }
         return result;
     }
 
-
     /**
      * @brief Finds the nearest point to the given point on a trianlge. 
-     * @details It first projects the point into the triangle surface. If the porjceted point is inside the triangle 
+     * @details It first projects the point into the triangle surface. If the projected point is inside the triangle 
      * it returns the projected point. If not it returns the nearest point on the edges of the triangle.
      * Dividing the plane of the triangle in 7 zones and find the nearest reflecting those zones
      *
@@ -144,7 +204,6 @@ public:
         double distance = 0.0;
         const Point point_projected = GeometricalProjectionUtilities::FastProject( center, rPoint, normal, distance);
         rTriangle.PointLocalCoordinates(local_coordinates, point_projected);
-        using line_point_type= typename TGeometryType::PointType;
 
         if(local_coordinates[0] < -Tolerance) { // case 2,5,6
             if(local_coordinates[1] < -Tolerance) { // case 5
@@ -152,16 +211,16 @@ public:
             } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 6
                 result = rTriangle[2];
             } else {
-                result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
+                result = LineNearestPoint(rPoint, rTriangle.GetPoint(0), rTriangle.GetPoint(2));
             }
         } else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
             if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 7
                 result = rTriangle[1];
             } else { // case 4
-                result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
+                result = LineNearestPoint(rPoint, rTriangle.GetPoint(0), rTriangle.GetPoint(1));
             }
         } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
-            result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
+            result = LineNearestPoint(rPoint, rTriangle.GetPoint(1), rTriangle.GetPoint(2));
         } else {  // inside
             result = point_projected;
         }
@@ -174,34 +233,27 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
-
 }; // Class NearestPointUtilities
 
 ///@}
