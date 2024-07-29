@@ -153,13 +153,9 @@ public:
         const double distance1 = norm_2(rLinePointA - result);
         const double distance2 = norm_2(rLinePointB - result);
         if (distance1 < distance2) {
-            result[0] = rLinePointA[0];
-            result[1] = rLinePointA[1];
-            result[2] = rLinePointA[2];
+            noalias(result.Coordinates()) = rLinePointA;
         } else {
-            result[0] = rLinePointB[0];
-            result[1] = rLinePointB[1];
-            result[2] = rLinePointB[2];
+            noalias(result.Coordinates()) = rLinePointB;
         }
         return result;
     }
