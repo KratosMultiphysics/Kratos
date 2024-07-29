@@ -402,7 +402,7 @@ private:
             //    grow = false;
             //}
 
-            if (mStoreNonconvergedSolutionsFlag) {
+            if (mStoreNonconvergedSolutionsFlag && !converged) {
                 CollectCurrentSolution();
             }
 
