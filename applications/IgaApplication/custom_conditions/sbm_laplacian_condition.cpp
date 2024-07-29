@@ -38,15 +38,13 @@ namespace Kratos
                                             rCurrentProcessInfo,
                                             CalculateStiffnessMatrixFlag,
                                             CalculateResidualVectorFlag);
-        }
-        else if (boundaryConditionType == "neumann"){
+        } else if (boundaryConditionType == "neumann"){
             this-> CalculateAllNeumann(     rLeftHandSideMatrix,
                                             rRightHandSideVector,
                                             rCurrentProcessInfo,
                                             CalculateStiffnessMatrixFlag,
                                             CalculateResidualVectorFlag);
-        }
-        else{
+        } else{
             KRATOS_ERROR << "error in SBM_LAPLACIAN_CONDITION, no BOUNDARY_CONDITION_TYPE available" << std::endl;
         }
     }
@@ -64,9 +62,11 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
+        KRATOS_TRY
+
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
 
-        KRATOS_TRY
+
         const auto& r_geometry = this->GetGeometry();
         const SizeType number_of_nodes = r_geometry.PointsNumber();
         if (rRightHandSideVector.size() != number_of_nodes) {
@@ -82,7 +82,7 @@ namespace Kratos
         double penalty = GetProperties()[PENALTY_FACTOR];
 
         // Integration
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
         
         // Initialize DN_DX
@@ -114,31 +114,20 @@ namespace Kratos
                     closestNodeId = i;
                 }
             }
-        }else{
+        } else {
             closestNodeId = 0;
         }
         Vector projection(3);
-        projection[0] = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].X() ;
-        projection[1] = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].Y() ;
-        projection[2] = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].Z() ;
+        projection = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].Coordinates() ;
 
-        // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() <<"\n";
-        outputFile.close();
 
         d.resize(3);
-        d[0] = projection[0] - r_geometry.Center().X();
-        d[1] = projection[1] - r_geometry.Center().Y();
-        d[2] = projection[2] - r_geometry.Center().Z();
-        // d[0] = 0;
-        // d[1] = 0;
-        // d[2] = 0;
+        noalias(d) = projection - r_geometry.Center().Coordinates();
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight() ; // * std::abs(DetJ0);
+        double penalty_integration = penalty * r_integration_points[0].Weight() ; // * std::abs(DetJ0);
 
         // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = DN_De[0]; // prod(DN_De[0],InvJ0);
@@ -167,7 +156,7 @@ namespace Kratos
         Vector H_sum_vec = ZeroVector(number_of_nodes);
 
         // Compute all the derivatives of the basis functions involved
-        for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+        for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
             mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
         }
 
@@ -183,7 +172,7 @@ namespace Kratos
             double H_taylor_term = 0.0; 
 
             if (dim == 2) {
-                for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+                for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
                     // Retrieve the appropriate derivative for the term
                     Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     for (int k = 0; k <= n; k++) {
@@ -195,7 +184,7 @@ namespace Kratos
                 }
             } else {
                 // 3D
-                for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+                for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
                     Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     
                     int countDerivativeId = 0;
@@ -221,9 +210,9 @@ namespace Kratos
 
         // Assembly
         // -(GRAD_w * n, u + GRAD_u * d + ...)
-        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
         noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
 
@@ -234,7 +223,7 @@ namespace Kratos
 
             noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
             // Dirichlet BCs
-            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
 
             Vector temp(number_of_nodes);
             // RHS = ExtForces - K*temp;
@@ -291,9 +280,9 @@ namespace Kratos
         }
 
         // Integration
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
         {
             // Obtaining the projection from the closest skin segment
             Vector projection(3);
@@ -338,8 +327,7 @@ namespace Kratos
                 } else { // outer
                     true_n = - true_n / MathUtils<double>::Norm(true_n) ;
                 }
-            }
-            else {
+            } else {
                 // 3D CASE
                 array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
                 array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment1.GetGeometry()[2] - candidateClosestSkinSegment1.GetGeometry()[1];
@@ -360,7 +348,7 @@ namespace Kratos
 
             // Compute all the derivatives of the basis functions involved
             std::vector<Matrix> nShapeFunctionDerivatives;
-            for (int n = 1; n <= mbasisFunctionsOrder; n++) {
+            for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
                 nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
             }
 
@@ -384,7 +372,7 @@ namespace Kratos
                 double H_taylor_term_Z = 0.0; 
 
                 if (dim == 2) {
-                    for (int n = 2; n <= mbasisFunctionsOrder; n++) {
+                    for (IndexType n = 2; n <= mbasisFunctionsOrder; n++) {
                         // Retrieve the appropriate derivative for the term
                         Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
                         for (int k = 0; k <= n-1; k++) {
@@ -402,7 +390,7 @@ namespace Kratos
                     }
                 } else {
                     // 3D
-                    for (int n = 2; n <= mbasisFunctionsOrder; n++) {
+                    for (IndexType n = 2; n <= mbasisFunctionsOrder; n++) {
                         Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
                     
                         int countDerivativeId = 0;
@@ -443,8 +431,8 @@ namespace Kratos
             HgradNdot_n = HgradX * true_n[0] + HgradY * true_n[1] + HgradZ * true_n[2];
 
             // compute Neumann contributions
-            noalias(rLeftHandSideMatrix) += prod(trans(H), HgradNdot_n)  * n_ntilde   * integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n_tilde)            * integration_points[point_number].Weight() ; // * std::abs(DetJ0) ;
+            noalias(rLeftHandSideMatrix) += prod(trans(H), HgradNdot_n)  * n_ntilde   * r_integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n_tilde)            * r_integration_points[point_number].Weight() ; // * std::abs(DetJ0) ;
 
             if (CalculateResidualVectorFlag) {
                                 
@@ -462,7 +450,7 @@ namespace Kratos
                     //                    sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
                 }
                 // Neumann Contributions
-                noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * n_ntilde * integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+                noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * n_ntilde * r_integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 
                 Vector temp(number_of_nodes);
                 // RHS = ExtForces - K*temp;

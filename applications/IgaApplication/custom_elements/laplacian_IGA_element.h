@@ -56,8 +56,6 @@ public:
 
     typedef Element BaseType;
 
-    // static constexpr std::size_t NumNodes = TDim + 1;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -111,76 +109,6 @@ public:
     LaplacianIGAElement() : Element()
     {
     }
-
-    // New functions NICO
-
-
-
-    // void CalculateRightHandSide(
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     if (rRightHandSideVector.size() != mat_size)
-    //         rRightHandSideVector.resize(mat_size);
-    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-    //     MatrixType left_hand_side_matrix;
-
-    //     KRATOS_WATCH("RHS1")
-        
-    //     // CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-    //     //     rCurrentProcessInfo, false, true);
-    //     MatrixType temp(0,0);
-    //     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
-    // }
-
-
-    // void CalculateLeftHandSide(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     KRATOS_WATCH("LHS0")
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     VectorType right_hand_side_vector;
-
-    //     if (rLeftHandSideMatrix.size1() != mat_size)
-    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
-    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-    //     // CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
-    //     //     rCurrentProcessInfo, true, false);
-        
-    //     KRATOS_WATCH("LHS1')
-
-    //     VectorType temp(0);
-    //     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
-    // }
-
-
-    // void CalculateLocalSystem(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType mat_size = number_of_nodes * 3;
-
-    //     if (rRightHandSideVector.size() != mat_size)
-    //         rRightHandSideVector.resize(mat_size);
-    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-    //     if (rLeftHandSideMatrix.size1() != mat_size)
-    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
-    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-    //     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-    //         rCurrentProcessInfo, true, true);
-    // }
 
     ///@}
     ///@name Access
@@ -247,21 +175,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    
-    // /// Calculates LHS and RHS dependent on flags
-    // void CalculateAll(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo,
-    //     const bool CalculateStiffnessMatrixFlag,
-    //     const bool CalculateResidualVectorFlag
-    // ) const;
-
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Serialization
@@ -300,18 +216,6 @@ private:
     ///@{
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    //LaplacianIGAElement& operator=(const LaplacianIGAElement& rOther);
-
-    /// Copy constructor.
-    //LaplacianIGAElement(const LaplacianIGAElement& rOther);
-
-    ///@}
-
 }; // Class LaplacianIGAElement
 
 ///@}
@@ -324,21 +228,6 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    LaplacianIGAElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const LaplacianIGAElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-      return rOStream;
-    }*/
-///@}
 
 }  // namespace Kratos.
 
