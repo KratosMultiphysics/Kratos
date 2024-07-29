@@ -78,7 +78,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
         # Check that OSS are supported by current scheme
-        oss_available_schemes = ["newmark","bossak"]
+        oss_available_schemes = ("newmark","bossak")
         if self.settings["use_orthogonal_subscales"].GetBool():
             if not scheme_type in oss_available_schemes:
                 err_msg = f"'{scheme_type}' scheme does not support OSS. Please switch 'use_orthogonal_subscales' off."
