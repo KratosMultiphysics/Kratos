@@ -85,40 +85,6 @@ public:
     std::vector<Vector> mNonconvergedSolutions;
 
 
-    /**
-     * @brief This matrix stores the non-converged solutions
-     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
-     */
-    Matrix mNonconvergedSolutionsMatrix;
-
-    /**
-     * @brief Flag indicating whether to store non-converged solutions
-     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
-     */
-    bool mStoreNonconvergedSolutionsFlag = false;
-
-
-    /**
-     * @brief Gets the matrix of non-converged solutions and the DOF set
-     * @return A tuple containing the matrix of non-converged solutions and the DOF set
-     * @details This method returns a tuple where the first element is a matrix of non-converged solutions and the second element is the corresponding DOF set.
-     */
-    std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
-        return std::make_tuple(mNonconvergedSolutionsMatrix, this->GetBuilderAndSolver()->GetDofSet());
-    }
-
-    /**
-    * @brief Sets the state for storing non-converged solutions.
-    * @param state The state to set for storing non-converged solutions (true to enable, false to disable).
-    * @details This method enables or disables the storage of non-converged solutions at each iteration
-    * by setting the appropriate flag. When the flag is set to true, non-converged solutions will be stored.
-    */
-    void SetUpNonconvergedSolutionsFlag(bool state) {
-        mStoreNonconvergedSolutionsFlag = state;
-    }
-
-
-
     void FinalizeSolutionStep() override
     {
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -291,6 +257,18 @@ private:
     int          rank;
     double       small_pipe_height    = 1e-10;
     double       pipe_height_accuracy = small_pipe_height * 10;
+
+    /**
+     * @brief This matrix stores the non-converged solutions
+     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
+     */
+    Matrix mNonconvergedSolutionsMatrix;
+
+    /**
+     * @brief Flag indicating whether to store non-converged solutions
+     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
+     */
+    bool mStoreNonconvergedSolutionsFlag = false;
 
     /// <summary>
     /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi
