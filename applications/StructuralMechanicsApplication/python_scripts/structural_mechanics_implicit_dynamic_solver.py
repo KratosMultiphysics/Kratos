@@ -85,7 +85,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
                 raise Exception(err_msg)
 
         # Setting the time integration schemes
-        if (scheme_type == "newmark" or scheme_type == "bossak"):
+        if scheme_type in ("newmark", "bossak"):
             scheme_settings = KratosMultiphysics.Parameters("""{
                 "damp_factor_m" : 0.0,
                 "newmark_beta" : 0.0,
