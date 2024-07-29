@@ -102,7 +102,7 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
 
     return resp_physical_variable_collective_expressions
 
-def GetResponseFunction(model: Kratos.Model, current_value: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+def GetResponseFunction(current_value: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.literal_value_response_function import LiteralValueResponseFunction
     if current_value == "":
         return LiteralValueResponseFunction(0.0)
@@ -146,12 +146,12 @@ def GetResponseFunction(model: Kratos.Model, current_value: str, optimization_pr
                     index += 1
 
                 args_list.append(current_arg)
-                return GetFunction(function_name, optimization_problem, *[EvaluateResponseExpression(model, arg, optimization_problem) for arg in args_list])
+                return GetFunction(function_name, optimization_problem, *[EvaluateResponseExpression(arg, optimization_problem) for arg in args_list])
             else:
                 # this is a response expression.
-                return EvaluateResponseExpression(model, current_value, optimization_problem)
+                return EvaluateResponseExpression(current_value, optimization_problem)
 
-def GetValuesAndOperators(model: Kratos.Model, response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
+def GetValuesAndOperators(response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
     responses: 'list[ResponseFunction]' = []
     operators: 'list[str]' = []
 
@@ -171,7 +171,7 @@ def GetValuesAndOperators(model: Kratos.Model, response_expression: str, optimiz
             continue
 
         if current_char in BinaryOperatorValues:
-            responses.append(GetResponseFunction(model, current_word, optimization_problem))
+            responses.append(GetResponseFunction(current_word, optimization_problem))
             operators.append(current_char)
             current_word = ""
             index += 1
@@ -181,15 +181,15 @@ def GetValuesAndOperators(model: Kratos.Model, response_expression: str, optimiz
         index += 1
 
     # add the last current_word
-    responses.append(GetResponseFunction(model, current_word, optimization_problem))
+    responses.append(GetResponseFunction(current_word, optimization_problem))
 
     return responses, operators
 
-def EvaluateResponseExpression(model: Kratos.Model, response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.binary_operator_response_function import BinaryOperatorResponseFunction
 
     response_expression = response_expression.replace(" ", "")
-    responses, operators = GetValuesAndOperators(model, response_expression, optimization_problem)
+    responses, operators = GetValuesAndOperators(response_expression, optimization_problem)
 
     def __evaluate_operator(list_of_operators: 'list[str]') -> None:
         operator_index = 0
@@ -224,7 +224,7 @@ def EvaluateResponseExpression(model: Kratos.Model, response_expression: str, op
                     if not right_operand_component_data_view.HasDataBuffer():
                         right_operand_component_data_view.SetDataBuffer(1)
 
-                resultant_operator = BinaryOperatorResponseFunction(model, left_operand, right_operand, BinaryOperatorValuesMap[operators[operator_index]], optimization_problem)
+                resultant_operator = BinaryOperatorResponseFunction(left_operand, right_operand, BinaryOperatorValuesMap[operators[operator_index]], optimization_problem)
                 if not optimization_problem.HasResponse(resultant_operator.GetName()):
                     # There is no already existing response with the same operation. Then use the new one.
                     responses[operator_index] = resultant_operator

@@ -14,14 +14,13 @@ from KratosMultiphysics.OptimizationApplication.utilities.response_utilities imp
 from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import BinaryOperator
 
 class BinaryOperatorResponseFunction(ResponseFunction):
-    def __init__(self, model: Kratos.Model, response_function_1: ResponseFunction, response_function_2: ResponseFunction, binary_operator: BinaryOperator, optimization_problem: OptimizationProblem):
+    def __init__(self, response_function_1: ResponseFunction, response_function_2: ResponseFunction, binary_operator: BinaryOperator, optimization_problem: OptimizationProblem):
         if binary_operator == BinaryOperator.DIVIDE:
             # this is because, the optimization_problem data container uses "/" as a path separator.
             super().__init__(f"({response_function_1.GetName()}÷{response_function_2.GetName()})")
         else:
             super().__init__(f"({response_function_1.GetName()}{binary_operator.value}{response_function_2.GetName()})")
 
-        self.model = model
         self.optimization_problem = optimization_problem
         self.response_function_1 = response_function_1
         self.response_function_2 = response_function_2
@@ -38,7 +37,7 @@ class BinaryOperatorResponseFunction(ResponseFunction):
         self.response_function_2.Initialize()
 
         if len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0 and len(self.response_function_2.GetImplementedPhysicalKratosVariables()) != 0:
-            self.model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.response_function_1.GetInfluencingModelPart().FullName(), self.response_function_2.GetInfluencingModelPart().FullName()], False).GetModelPart()
+            self.model_part = ModelPartOperation(self.response_function_1.GetInfluencingModelPart().GetModel(), ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", [self.response_function_1.GetInfluencingModelPart().FullName(), self.response_function_2.GetInfluencingModelPart().FullName()], False).GetModelPart()
         elif len(self.response_function_1.GetImplementedPhysicalKratosVariables()) != 0:
             self.model_part = self.response_function_1.GetInfluencingModelPart()
         elif len(self.response_function_2.GetImplementedPhysicalKratosVariables()) != 0:

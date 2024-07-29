@@ -95,7 +95,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         ComponentDataView(self.r3, self.optimization_problem).SetDataBuffer(1)
 
     def test_LiteralResponseCalculateValue1(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 + 6.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 + 6.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
@@ -109,7 +109,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 + 6.0, 1e-8, 12)
 
     def test_LiteralResponseCalculateValue2(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 * 6.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 * 6.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, 24.0)
@@ -122,7 +122,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 * 6.0, 1e-8, 12)
 
     def test_LiteralResponseCalculateValue3(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 / 8.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 / 8.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, 0.5)
@@ -135,7 +135,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 / 8.0, 1e-8, 12)
 
     def test_LiteralResponseCalculateValue4(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 - 8.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 - 8.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, -4.0)
@@ -148,7 +148,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 - 8.0, 1e-8, 12)
 
     def test_LiteralResponseCalculateValue5(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 ^ 2.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 ^ 2.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, 16.0)
@@ -161,7 +161,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 ** 2.0, 1e-8, 12)
 
     def test_LiteralResponseCalculateValue6(self):
-        eval_resp = EvaluateResponseExpression(self.model, "4.0 - 8.0 + 3.0 * 2.0 / 5.0 ^ 2", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("4.0 - 8.0 + 3.0 * 2.0 / 5.0 ^ 2", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, -3.76)
@@ -176,7 +176,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : 4.0 - 8.0 + 3.0 * 2.0 / 5.0 ** 2, 1e-8, 12)
 
     def test_CombinedResponseCalculateValue1(self):
-        eval_resp = EvaluateResponseExpression(self.model, "r1", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("r1", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertAlmostEqual(eval_value, self.r1.CalculateValue(), 12)
@@ -191,7 +191,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : self.r1.CalculateValue(), 1e-8, 9)
 
     def test_CombinedResponseCalculateValue2(self):
-        eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + r2", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("r1 + r2 + r2", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertAlmostEqual(eval_value, self.r1.CalculateValue() + 2.0 * self.r2.CalculateValue(), 12)
@@ -215,7 +215,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : self.r1.CalculateValue() + self.r2.CalculateValue() * 2, 1e-8, 9)
 
     def test_CombinedResponseCalculateValue3(self):
-        eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + 4.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("r1 + r2 + 4.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0)
@@ -240,7 +240,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0, 1e-7, 8)
 
     def test_CombinedResponseCalculateValue4(self):
-        eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 + r2 / 3.0 - 4.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("3.5 + r1 * 2.0 + r2 / 3.0 - 4.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, self.r1.CalculateValue() * 2.0 + self.r2.CalculateValue() / 3.0 - 4.0 + 3.5)
@@ -268,7 +268,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : 3.5 + self.r1.CalculateValue() * 2.0 + self.r2.CalculateValue() / 3.0 - 4.0, 1e-6, 7)
 
     def test_CombinedResponseCalculateValue5(self):
-        eval_resp = EvaluateResponseExpression(self.model, "3.5 + r1 * 2.0 * r2 / 3.0 - 4.0 + r1 ^ r2", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("3.5 + r1 * 2.0 * r2 / 3.0 - 4.0 + r1 ^ r2", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, self.r1.CalculateValue() * 2.0 * self.r2.CalculateValue() / 3.0 - 4.0 + 3.5 + self.r1.CalculateValue() ** self.r2.CalculateValue())
@@ -300,7 +300,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : 3.5 + self.r1.CalculateValue() * 2.0 * self.r2.CalculateValue() / 3.0 - 4.0 + self.r1.CalculateValue() ** self.r2.CalculateValue(), 1e-7, 8)
 
     def test_BracketResponseCalculateValue1(self):
-        eval_resp = EvaluateResponseExpression(self.model, "(4.0)", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("(4.0)", self.optimization_problem)
         eval_resp.Initialize()
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
@@ -310,7 +310,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
             self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : 4.0, 1e-7, 8)
 
     def test_BracketResponseCalculateValue2(self):
-        eval_resp = EvaluateResponseExpression(self.model, "(4.0 + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("(4.0 + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, 72.0)
@@ -318,7 +318,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : (4.0 + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0, 1e-7, 8)
 
     def test_BracketResponseCalculateValue3(self):
-        eval_resp = EvaluateResponseExpression(self.model, "(4.0 + (r1 * 2) * (r2 ^ 2) + log((2+6)*(3+(4-2)/4)+6*r1) + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("(4.0 + (r1 * 2) * (r2 ^ 2) + log((2+6)*(3+(4-2)/4)+6*r1) + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, (4.0 + (self.r1.CalculateValue() * 2) * (self.r2.CalculateValue() ** 2) + log((2+6)*(3+(4-2)/4)+6*self.r1.CalculateValue()) + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0)
@@ -352,7 +352,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : (4.0 + (self.r1.CalculateValue() * 2) * (self.r2.CalculateValue() ** 2) + log((2+6)*(3+(4-2)/4)+6*self.r1.CalculateValue()) + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0, 1e-6, 7)
 
     def test_MultipleControlVars(self):
-        eval_resp = EvaluateResponseExpression(self.model, "r1 + r2 + r3 + log(r3)", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("r1 + r2 + r3 + log(r3)", self.optimization_problem)
         eval_resp.Initialize()
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : self.r1.CalculateValue() + self.r2.CalculateValue() + self.r3.CalculateValue() + log(self.r3.CalculateValue()), 1e-8, 5)
 
