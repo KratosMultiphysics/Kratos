@@ -152,7 +152,7 @@ public:
             auto& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
             mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), mNonconvergedSolutions.size() );
             for (std::size_t i = 0; i < mNonconvergedSolutions.size(); ++i) {
-                block_for_each(r_dof_set, [&](const auto& r_dof) {
+                block_for_each(r_dof_set, [this, &mNonconvergedSolutions, i](const auto& r_dof) {
                     mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = mNonconvergedSolutions[i](r_dof.EquationId());
                 });
             }
