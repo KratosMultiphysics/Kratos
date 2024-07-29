@@ -94,22 +94,20 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        """Returns the model part for which this response is computed on.
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
+        """Returns the model part which influences the computation of the response value.
+
+        Following two cases are considered:
+            1. Responses without adjoint system solve: The value of the response can only be influenced by
+               changing the quantities in the evaluated model part (evaluated model part is the one which the
+               response value is computed.) Therefore, in this case, this method should return the
+               evaluated model part.
+            2. Responses with adjoint system solve: The value of the response can be influenced by
+                changing quantities in the adjoint/primal model part (Evaluated model part needs to have
+                intersection with the adjoint/primal model part). Therefore, in this case, this method should return the
+                adjoint analysis model part.
 
         Returns:
-            Kratos.ModelPart: Response function model part.
-        """
-        pass
-
-    @abstractmethod
-    def GetAnalysisModelPart(self) -> 'Union[Kratos.ModelPart, None]':
-        """Returns the analysis model part if exists. Otherwise returns None.
-
-        This method returns the analysis model part if an analysis is used (as in Adjoint case)
-        to compute the gradients. If it is not the case, then None should be returned.
-
-        Returns:
-            Union[Kratos.ModelPart, None]: Analysis model part if used, otherwise None
+            Kratos.ModelPart: Response function model part which influences the response value.
         """
         pass

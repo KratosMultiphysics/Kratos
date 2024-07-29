@@ -19,7 +19,7 @@ class ANNPROM_Keras_Model(Model):
         super(ANNPROM_Keras_Model,self).__init__(*args, **kwargs)
 
         self.run_eagerly = False
-        
+
         self.phisig_norm_matrix = phisig_norm_matrix
         self.w_gradNN = w_gradNN
         self.rescaling_factor_x = rescaling_factor
@@ -31,7 +31,7 @@ class ANNPROM_Keras_Model(Model):
 
     def train_step(self,data):
         input_batch, x_true_batch = data # target_aux is the reference force or residual, depending on the settings
-        
+
         with tf.GradientTape() as tape_d:
 
             with tf.GradientTape() as tape_e:
@@ -84,7 +84,7 @@ class ANNPROM_Keras_Model(Model):
         # or at the start of `evaluate()`.
         # If you don't implement this property, you have to call
         # `reset_states()` yourself at the time of your choosing.
-        
+
         return [self.loss_tracker, self.loss_x_tracker, self.loss_gradNN_tracker]
 
 
@@ -129,29 +129,11 @@ class RomNeuralNetworkTrainer(object):
         Q_sup_val = (phisig_inv_sup@S_val).T
         Q_inf_train_original = Q_inf_train.copy()
 
-        UseNonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
-        if UseNonConvergedSolutionsGathering:
-            #fetching nonconverged sols for enlarginign training samples in ann enhanced prom
-            conn = sqlite3.connect(self.data_base.database_name)
-            cursor = conn.cursor()
-            for mu in self.mu_train:
-                hash_mu, _ = self.data_base.get_hashed_file_name_for_table('NonconvergedFOM', mu)
-                cursor.execute(f"SELECT file_name FROM {'NonconvergedFOM'} WHERE file_name = ?", (hash_mu,))
-                result = cursor.fetchone()
-                if result:
-                    file_name = result[0]
-                    data = self.data_base.get_single_numpy_from_database(file_name)
-                    max_number_of_nonconverged_sols = 1000  #making sure not all data is contained
-                    number_of_cols = data.shape[1]
-
-                    if True: #use all data !!! data.shape[1] <= max_number_of_nonconverged_sols:
-                        pass
-                    else:
-                        indices = np.linspace(0, number_of_cols - 1, max_number_of_nonconverged_sols).astype(int)
-                        data = data[:, indices]
-
-                    Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
-                    Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
+        if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
+            #fetching nonconverged sols for enlarging training samples in ann enhanced prom
+            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
+            Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
+            Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
         phisig_norm_matrix = phisig_sup.T @ phisig_sup
 
@@ -213,7 +195,7 @@ class RomNeuralNetworkTrainer(object):
         schedulers_dict={"const": lr_const_scheduler, "steps": lr_steps_scheduler, "sgdr": lr_sgdr_scheduler}
 
         return schedulers_dict[strategy_name]
-    
+
     def _DefineNetwork(self, n_inf, n_sup, layers_size, phisig_norm_matrix=None, rescaling_factor=None, w_gradNN=None):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
@@ -223,7 +205,7 @@ class RomNeuralNetworkTrainer(object):
 
         network=ANNPROM_Keras_Model(phisig_norm_matrix, rescaling_factor, w_gradNN, input_layer, output_layer)
         return network
-    
+
     def _SaveWeightsKratosFormat(self, network, weights_path):
         layers=[]
         for layer in network.trainable_variables:
@@ -256,7 +238,7 @@ class RomNeuralNetworkTrainer(object):
 
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
 
-        network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN) 
+        network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN)
 
         # def scaled_phinorm_mse_loss(y_true, y_pred):
         #     y_diff=y_true-y_pred
@@ -293,7 +275,7 @@ class RomNeuralNetworkTrainer(object):
         network.save_weights(str(model_path)+"/model.weights.h5")
         with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
-        
+
         self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
 
     def EvaluateNetwork(self):
