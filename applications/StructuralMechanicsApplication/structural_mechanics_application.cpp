@@ -124,6 +124,16 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacementMixedVolumetricStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
+      mSmallDisplacementMixedVolumetricStrainOssElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
       mTotalLagrangianMixedVolumetricStrainElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mTotalLagrangianMixedVolumetricStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
 
@@ -576,6 +586,16 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D4N", mSmallDisplacementMixedVolumetricStrainElement3D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D8N", mSmallDisplacementMixedVolumetricStrainElement3D8N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D3N", mSmallDisplacementMixedVolumetricStrainOssElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D4N", mSmallDisplacementMixedVolumetricStrainOssElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D4N", mSmallDisplacementMixedVolumetricStrainOssElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D8N", mSmallDisplacementMixedVolumetricStrainOssElement3D8N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedVolumetricStrainElement2D3N", mTotalLagrangianMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedVolumetricStrainElement3D4N", mTotalLagrangianMixedVolumetricStrainElement3D4N)

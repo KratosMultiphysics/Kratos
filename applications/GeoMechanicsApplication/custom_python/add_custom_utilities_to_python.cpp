@@ -21,14 +21,12 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 
-
-namespace Kratos {
-namespace Python {
-
-void  AddCustomUtilitiesToPython(pybind11::module& m)
+namespace Kratos
 {
-    namespace py = pybind11;
-}
+namespace Python
+{
+
+void AddCustomUtilitiesToPython(pybind11::module& m) { namespace py = pybind11; }
 
 } // Namespace Python.
 } // Namespace Kratos
