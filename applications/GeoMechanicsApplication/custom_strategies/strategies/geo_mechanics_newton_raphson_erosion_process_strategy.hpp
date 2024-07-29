@@ -371,7 +371,7 @@ private:
     void CollectCurrentSolution() {
         auto& rDofSet = this->GetBuilderAndSolver()->GetDofSet();
         Vector this_solution(rDofSet.size());
-        block_for_each(rDofSet, [&](const auto& r_dof) {
+        block_for_each(rDofSet, [&this_solution](const auto& r_dof) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         });
         mNonconvergedSolutions.push_back(this_solution);
