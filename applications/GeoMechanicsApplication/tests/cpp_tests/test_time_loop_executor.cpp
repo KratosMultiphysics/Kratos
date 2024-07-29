@@ -15,7 +15,7 @@
 #include "custom_workflows/prescribed_time_incrementor.h"
 #include "custom_workflows/time_loop_executor.hpp"
 #include "custom_workflows/time_step_end_state.hpp"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include <numeric>
 
@@ -101,7 +101,21 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
-    void OutputProcess() override { ++mCountOutputProcessCalled; }
+    void ComputeIncrementalDisplacementField() override
+    {
+        // intentionally empty
+    }
+
+    void OutputProcess() override
+    {
+        ++mCountOutputProcessCalled;
+        if (mOutputProcessCallback) mOutputProcessCallback();
+    }
+
+    [[nodiscard]] std::size_t GetCountInitializeOutputCalled() const
+    {
+        return mCountInitializeOutputCalled;
+    }
 
     [[nodiscard]] std::size_t GetCountOutputProcessCalled() const
     {
@@ -113,10 +127,21 @@ public:
         return mCountFinalizeSolutionStepCalled;
     }
 
+    [[nodiscard]] std::size_t GetCountFinalizeOutputCalled() const
+    {
+        return mCountFinalizeOutputCalled;
+    }
+
     void Initialize() override
     {
         // intentionally empty
     }
+
+    void InitializeOutput() override
+    {
+        ++mCountInitializeOutputCalled;
+    }
+
     void InitializeSolutionStep() override
     {
         // intentionally empty
@@ -132,7 +157,12 @@ public:
     void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
     void FinalizeOutput() override
     {
-        // intentionally empty
+        ++mCountFinalizeOutputCalled;
+    }
+
+    void SetOutputProcessCallback(std::function<void()> Callback)
+    {
+        mOutputProcessCallback = std::move(Callback);
     }
 
 private:
@@ -143,9 +173,12 @@ private:
     bool mIsCloned = false;
     bool mIsRestoreCalled = false;
     bool mIsSaveTotalDisplacementFieldCalled = false;
+    std::size_t mCountInitializeOutputCalled = 0;
     std::size_t mCountAccumulateTotalDisplacementFieldCalled = 0;
     std::size_t mCountOutputProcessCalled = 0;
     std::size_t mCountFinalizeSolutionStepCalled = 0;
+    std::size_t mCountFinalizeOutputCalled = 0;
+    std::function<void()> mOutputProcessCallback;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -202,7 +235,7 @@ namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConvergingSolverStrategy,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
@@ -218,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunningANeverConvergingSolverStrategy,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
@@ -232,7 +265,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunni
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingSolverStrategy,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
@@ -245,7 +278,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
                             step_states.back().time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto wanted_num_of_cycles_per_step = 5;
@@ -264,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechani
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrementor,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
@@ -286,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
@@ -295,42 +328,42 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepL
     KRATOS_EXPECT_EQ(2, solver_strategy->GetStepNumber());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
     KRATOS_EXPECT_TRUE(solver_strategy->IsCloned())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
     KRATOS_EXPECT_FALSE(solver_strategy->IsRestoreCalled())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(2);
 
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldStoredForResetDisplacements, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldStoredForResetDisplacements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
     KRATOS_EXPECT_TRUE(solver_strategy->IsSaveFieldCalled())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
     KRATOS_EXPECT_EQ(2, solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto wanted_num_of_cycles_per_step = 1;
@@ -344,7 +377,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechan
     KRATOS_EXPECT_EQ(2, step_states.size());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto wanted_num_of_cycles_per_step = 3;
@@ -356,6 +389,39 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, Krat
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_EQ(step_states.size(),
                      solver_strategy->GetCountFinalizeSolutionStepCalled());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesOk, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    TimeLoopExecutor executor;
+    const auto       wanted_num_of_cycles_per_step = std::size_t{1};
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyWrapper(solver_strategy);
+    executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
+    KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    TimeLoopExecutor executor;
+    const auto       wanted_num_of_cycles_per_step = std::size_t{1};
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    solver_strategy->SetOutputProcessCallback([](){throw Exception{"Test exception"};});
+    executor.SetSolverStrategyWrapper(solver_strategy);
+
+    auto exception_caught = false;
+    try {
+        executor.Run(MakeConvergedStepState());
+    } catch (const Exception&) {
+        exception_caught = true;
+    }
+
+    KRATOS_EXPECT_TRUE(exception_caught)
+    KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
+    KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
 }
 
 } // namespace Kratos::Testing

@@ -13,13 +13,13 @@
 
 #pragma once
 
+#include "includes/kratos_export_api.h"
 #include "time_incrementor.h"
-
 
 namespace Kratos
 {
 
-class AdaptiveTimeIncrementor : public TimeIncrementor
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AdaptiveTimeIncrementor : public TimeIncrementor
 {
 public:
     AdaptiveTimeIncrementor(double      StartTime,
@@ -33,10 +33,9 @@ public:
                             std::size_t MaxNumOfIterations = 15);
 
     [[nodiscard]] bool WantNextStep(const TimeStepEndState& rPreviousState) const override;
-    [[nodiscard]] bool WantRetryStep(std::size_t             CycleNumber,
-                                     const TimeStepEndState& rPreviousState) const override;
+    [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override;
     [[nodiscard]] double GetIncrement() const override;
-    void PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
+    void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
     double      mEndTime;
@@ -49,4 +48,4 @@ private:
     std::size_t mMaxNumOfIterations;
 };
 
-}
+} // namespace Kratos

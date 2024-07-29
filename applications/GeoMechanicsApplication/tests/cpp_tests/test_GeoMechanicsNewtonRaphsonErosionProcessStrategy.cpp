@@ -11,17 +11,12 @@
 //
 
 // System includes
-#include <limits>
 #include <map>
 
-/* External includes */
-#include <filesystem>
-#include <iostream>
-
 /* Project includes */
-#include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
@@ -58,7 +53,6 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
     std::function<void(const char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](const char* message)
     {
         messageCount++;
-        std::cout << "Captured: " << message << std::endl;
 
         if(strcmp(message, "Calculating head level 3m (1/12)") == 0) {
             firstMessageFound = true;
@@ -96,7 +90,6 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechani
 
     std::function<void(double)> reportProgress = [&startProgressFound, &endProgressFound, &progressUpdates](double progress)
     {
-        std::cout << "Progress: " << progress << std::endl;
         progressUpdates++;
 
         if(progress == 0.0) {

@@ -25,8 +25,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw
-    : public LinearPlaneStrainK0Law
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public LinearPlaneStrainK0Law
 {
 public:
     /// The base class LinearPlaneStrainK0Law type definition
@@ -43,12 +42,19 @@ public:
     static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStrain2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
 
     /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
+
+    bool RequiresInitializeMaterialResponse() override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    bool RequiresFinalizeMaterialResponse() override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -93,13 +99,9 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
-
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) final;
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) final;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) final;
 
     ///@}
 
@@ -115,4 +117,4 @@ private:
     void load(Serializer& rSerializer) override;
 }; // Class GeoLinearElasticPlaneStrain2DLaw
 
-}
+} // namespace Kratos

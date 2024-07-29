@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsHydraulicsApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
@@ -28,11 +30,12 @@ file( GLOB_RECURSE KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_PYTHON_INTERFACE
 ## FluidDynamicsHydraulics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    kratos_add_gtests(TARGET KratosFluidDynamicsHydraulicsCore SOURCES "${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 ## FluidDynamicsBiomedicalApplication core library (C++ parts)
-add_library(KratosFluidDynamicsHydraulicsCore SHARED ${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_TESTING_SOURCES})
+add_library(KratosFluidDynamicsHydraulicsCore SHARED ${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_CORE_SOURCES})
 target_link_libraries(KratosFluidDynamicsHydraulicsCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosFluidDynamicsHydraulicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_HYDRAULICS_APPLICATION=EXPORT,API")
 

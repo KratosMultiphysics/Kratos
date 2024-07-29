@@ -47,37 +47,53 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakDisplacementScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
+    /// Base type for the scheme
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
+    /// Implicit base type for the scheme
+    using ImplicitBaseType = ResidualBasedImplicitTimeScheme<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+    /// Class type for the scheme
+    using ClassType = ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename ImplicitBaseType::TDataType                             TDataType;
+    /// Data type used within the ImplicitBaseType
+    using TDataType = typename ImplicitBaseType::TDataType;
 
-    typedef typename ImplicitBaseType::DofsArrayType                     DofsArrayType;
+    /// Array type for degrees of freedom within ImplicitBaseType
+    using DofsArrayType = typename ImplicitBaseType::DofsArrayType;
 
-    typedef typename Element::DofsVectorType                            DofsVectorType;
+    /// Vector type for degrees of freedom within an Element
+    using DofsVectorType = typename Element::DofsVectorType;
 
-    typedef typename ImplicitBaseType::TSystemMatrixType             TSystemMatrixType;
+    /// Type for the system matrix within ImplicitBaseType
+    using TSystemMatrixType = typename ImplicitBaseType::TSystemMatrixType;
 
-    typedef typename ImplicitBaseType::TSystemVectorType             TSystemVectorType;
+    /// Type for the system vector within ImplicitBaseType
+    using TSystemVectorType = typename ImplicitBaseType::TSystemVectorType;
 
-    typedef typename ImplicitBaseType::LocalSystemVectorType     LocalSystemVectorType;
+    /// Type for local system vectors within ImplicitBaseType
+    using LocalSystemVectorType = typename ImplicitBaseType::LocalSystemVectorType;
 
-    typedef typename ImplicitBaseType::LocalSystemMatrixType     LocalSystemMatrixType;
+    /// Type for local system matrices within ImplicitBaseType
+    using LocalSystemMatrixType = typename ImplicitBaseType::LocalSystemMatrixType;
 
-    typedef ModelPart::NodeIterator                                       NodeIterator;
+    /// Iterator for nodes in a ModelPart
+    using NodeIterator = ModelPart::NodeIterator;
 
-    typedef ModelPart::NodesContainerType                               NodesArrayType;
+    /// Container type for nodes in a ModelPart
+    using NodesArrayType = ModelPart::NodesContainerType;
 
-    typedef ModelPart::ElementsContainerType                         ElementsArrayType;
+    /// Container type for elements in a ModelPart
+    using ElementsArrayType = ModelPart::ElementsContainerType;
 
-    typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
+    /// Container type for conditions in a ModelPart
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
-    typedef typename BaseType::Pointer                                 BaseTypePointer;
+    /// Pointer type for the BaseType
+    using BaseTypePointer = typename BaseType::Pointer;
 
-    typedef double              ComponentType;
+    /// Component type as 'double'
+    using ComponentType = double;
 
     ///@}
     ///@name Life Cycle
@@ -221,73 +237,75 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        if (rModelPart.Nodes().size() > 0) {
+            const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Getting position
-        KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBossakDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
-        const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
+            // Getting position
+            KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBossakDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
+            const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+            const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
-        // Getting dimension
-        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
-        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+            // Getting dimension
+            KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Auxiliar variables
-        array_1d<double, 3 > delta_displacement;
-        std::array<bool, 3> predicted = {false, false, false};
-        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
-        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
-        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
+            // Auxiliar variables
+            array_1d<double, 3 > delta_displacement;
+            std::array<bool, 3> predicted = {false, false, false};
+            const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+            const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
-        TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
+            typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
+            TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
 
-        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node& rNode, TLSContainerType& rAuxTLS){
-            auto& r_delta_displacement = std::get<0>(rAuxTLS);
-            auto& r_predicted = std::get<1>(rAuxTLS);
+            block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node& rNode, TLSContainerType& rAuxTLS){
+                auto& r_delta_displacement = std::get<0>(rAuxTLS);
+                auto& r_predicted = std::get<1>(rAuxTLS);
 
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                r_predicted[i_dim] = false;
-            }
-
-            // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
-            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-
-            if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
-                        r_predicted[i_dim] = true;
+                    r_predicted[i_dim] = false;
+                }
+
+                // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
+                const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+                const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
+                const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+                array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
+                array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+
+                if (accelpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                            r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
+                            r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
                     }
                 }
-            }
-            if (velpos > -1) {
-                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
-                        r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
-                        r_predicted[i_dim] = true;
+                if (velpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                            r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
+                            r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                            r_predicted[i_dim] = true;
+                        }
                     }
                 }
-            }
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
-                    r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                        r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
+                    }
                 }
-            }
 
-            // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
-            UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
-        });
+                // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
+                noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
+                UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+                UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+            });
+        }
 
         KRATOS_CATCH( "" );
     }
@@ -325,42 +343,44 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         // Updating time derivatives (nodally for efficiency)
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        if (rModelPart.Nodes().size() > 0) {
+            const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Getting dimension
-        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
-        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+            // Getting dimension
+            KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+            const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Getting position
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
+            // Getting position
+            const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+            const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
-        std::array<bool, 3> fixed = {false, false, false};
-        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
-        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
-        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
+            std::array<bool, 3> fixed = {false, false, false};
+            const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+            const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+            const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                rFixedTLS[i_dim] = false;
-            }
-
-            if (accelpos > -1) {
+            block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        rNode.Fix(*disp_components[i_dim]);
-                        rFixedTLS[i_dim] = true;
+                    rFixedTLS[i_dim] = false;
+                }
+
+                if (accelpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                            rNode.Fix(*disp_components[i_dim]);
+                            rFixedTLS[i_dim] = true;
+                        }
                     }
                 }
-            }
-            if (velpos > -1) {
-                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
-                        rNode.Fix(*disp_components[i_dim]);
+                if (velpos > -1) {
+                    for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                        if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
+                            rNode.Fix(*disp_components[i_dim]);
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         KRATOS_CATCH( "" );
     }
@@ -688,4 +708,3 @@ private:
 ///@}
 
 } // namespace Kratos
-

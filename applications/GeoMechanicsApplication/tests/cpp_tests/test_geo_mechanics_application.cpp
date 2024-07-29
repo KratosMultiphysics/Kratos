@@ -10,13 +10,13 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
 
@@ -34,8 +34,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
                                                          "THERMAL_CONDUCTIVITY_SOLID_XY",
                                                          "THERMAL_CONDUCTIVITY_SOLID_YZ",
                                                          "THERMAL_CONDUCTIVITY_SOLID_XZ",
-                                                         "LONGITUDINAL_DISPERSIVITY",
-                                                         "TRANSVERSE_DISPERSIVITY",
                                                          "SOLID_COMPRESSIBILITY",
                                                          "DT_TEMPERATURE_COEFFICIENT",
                                                          "DT_TEMPERATURE",

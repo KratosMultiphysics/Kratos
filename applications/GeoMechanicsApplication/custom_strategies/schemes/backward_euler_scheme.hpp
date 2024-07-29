@@ -12,41 +12,38 @@
 
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "geomechanics_time_integration_scheme.hpp"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerScheme
-    : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerScheme : public GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>
+{
 public:
-    BackwardEulerScheme(const Variable<double>& rVariable,
-                        const Variable<double>& rDeltaTimeVariable,
-                        const Variable<double>& rDeltaTimeVariableCoefficient)
-        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(),
-          mVariable(rVariable),
-          mDeltaTimeVariable(rDeltaTimeVariable),
-          mDeltaTimeVariableCoefficient(rDeltaTimeVariableCoefficient)
+    BackwardEulerScheme(const std::vector<FirstOrderScalarVariable>&  rFirstOrderScalarVariables,
+                        const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
+        : GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>(rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {
     }
 
 protected:
-    void CheckAllocatedVariables(const ModelPart& rModelPart) const override
-    {
-        for (const auto& r_node : rModelPart.Nodes()) {
-            this->CheckSolutionStepsData(r_node, mVariable);
-            this->CheckSolutionStepsData(r_node, mDeltaTimeVariable);
-            this->CheckDof(r_node, mVariable);
-        }
-    }
-
     inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
-            const auto delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-            this->SetDeltaTime(delta_time);
-            rModelPart.GetProcessInfo()[mDeltaTimeVariableCoefficient] = 1.0 / delta_time;
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::SetTimeFactors(rModelPart);
+
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+            rModelPart.GetProcessInfo()[r_first_order_scalar_variable.delta_time_coefficient] =
+                1.0 / this->GetDeltaTime();
+        }
+
+        if (!this->GetSecondOrderVectorVariables().empty()) {
+            rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0 / this->GetDeltaTime();
+        }
 
         KRATOS_CATCH("")
     }
@@ -56,26 +53,47 @@ protected:
         KRATOS_TRY
 
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            this->UpdateScalarTimeDerivative(rNode, mVariable, mDeltaTimeVariable);
+            UpdateVectorTimeDerivatives(rNode);
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
+
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
+                    CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
+            }
         });
 
         KRATOS_CATCH("")
     }
 
-    void UpdateScalarTimeDerivative(Node& rNode,
-                                    const Variable<double>& variable,
-                                    const Variable<double>& dt_variable) const override
+    void UpdateVectorTimeDerivatives(Node& rNode) const
     {
-        const auto delta_variable = rNode.FastGetSolutionStepValue(variable, 0) -
-                                    rNode.FastGetSolutionStepValue(variable, 1);
-        rNode.FastGetSolutionStepValue(dt_variable, 0) =
-            delta_variable / this->GetDeltaTime();
+        for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
+
+            const auto updated_first_time_derivative =
+                CalculateDerivative(r_second_order_vector_variable.instance, rNode);
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.first_time_derivative, updated_first_time_derivative);
+
+            // Make sure that setting the second_time_derivative is done
+            // after setting the first_time_derivative.
+            const auto updated_second_time_derivative =
+                CalculateDerivative(r_second_order_vector_variable.first_time_derivative, rNode);
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
+        }
     }
 
-private:
-    Variable<double> mVariable;
-    Variable<double> mDeltaTimeVariable;
-    Variable<double> mDeltaTimeVariableCoefficient;
+    template <class T>
+    T CalculateDerivative(const Variable<T>& rInstanceVariable, Node& rNode) const
+    {
+        return (rNode.FastGetSolutionStepValue(rInstanceVariable, 0) -
+                rNode.FastGetSolutionStepValue(rInstanceVariable, 1)) /
+               this->GetDeltaTime();
+    }
 };
 
 } // namespace Kratos

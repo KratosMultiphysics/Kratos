@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -54,7 +55,7 @@ namespace StringUtilities
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
 
     /**
      *  @brief Convert snake_case to CamelCase.
@@ -64,7 +65,7 @@ namespace StringUtilities
      *          - contains special characters other than underscores    (?![a-z0-9_])
      *          - contains repeated underscores                         __+
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
 
     /**
      * @brief Erase first occurrence of given  substring from main string.
@@ -72,7 +73,7 @@ namespace StringUtilities
      * @param rToErase The string to remove
      * @return The string without the part to remove
      */
-    std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
         const std::string& rMainString,
         const std::string& rToErase
         );
@@ -83,7 +84,7 @@ namespace StringUtilities
      * @param rToCheck The string to search
      * @return True if the substring is found and false otherwise
      */
-    bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
+    [[nodiscard]] bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
         const std::string& rMainString,
         const std::string& rToCheck
         );
@@ -93,7 +94,7 @@ namespace StringUtilities
      * @param rString The string to be transformed
      * @return The string without white spaces
      */
-    std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
 
     /**
      * @brief This method splits a string by a delimiter
@@ -101,7 +102,7 @@ namespace StringUtilities
      * @param Delimiter The delimiter by which the string is to be splitted
      * @return a vector containing the splitted string
      */
-    std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
+    [[nodiscard]] std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
         const std::string& rString,
         const char Delimiter
         );
@@ -113,11 +114,42 @@ namespace StringUtilities
      * @param rStringToReplace The string which replaces the substring
      * @return The string updated with the new substring
      */
-    std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
         const std::string& rInputString,
         const std::string& rStringToBeReplaced,
         const std::string& rStringToReplace
         );
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left and right. Same as "strip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) Trim(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left. Same as "lstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) TrimLeft(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc and right. Same as "rstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) TrimRight(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
 
     /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.

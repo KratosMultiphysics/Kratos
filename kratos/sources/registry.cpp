@@ -80,6 +80,30 @@ namespace
         }
     }
 
+    void Registry::SetCurrentSource(std::string const & rCurrentSource)
+    {
+        // If context key not present, create it
+        if (Registry::HasItem("CurrentContext")){
+            Registry::RemoveItem("CurrentContext");
+        }
+
+        // It is needed to create a std::string explicitly copying the '"CurrentContext"+rCurrentSource' to avoid casting problems
+        // involing std::any_cast to a reference type which key references a string that may not be alive when invoked.
+        std::string context_key = std::string("CurrentContext." + rCurrentSource);
+
+        Registry::AddItem<RegistryItem>(context_key);
+    }
+
+    std::string Registry::GetCurrentSource()
+    {
+        // If context key not present, create it
+        if (!Registry::HasItem("CurrentContext")){
+            Registry::AddItem<RegistryItem>("CurrentContext.KratosMultiphysics");
+        }
+
+        return Registry::GetItem("CurrentContext").begin()->first;
+    }
+
     std::size_t Registry::size()
     {
         return mspRootRegistryItem->size();

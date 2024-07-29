@@ -379,10 +379,14 @@ public:
             r_Dx.resize(BaseBuilderAndSolverType::GetEquationSystemSize(), false);
         }
 
+        TSparseSpace::SetToZero(r_Dx);
+
         TSystemVectorType& r_b = *pb;
         if (r_b.size() != BaseBuilderAndSolverType::GetEquationSystemSize()) {
             r_b.resize(BaseBuilderAndSolverType::GetEquationSystemSize(), false);
         }
+
+        TSparseSpace::SetToZero(r_b);
 
         KRATOS_CATCH("")
     }

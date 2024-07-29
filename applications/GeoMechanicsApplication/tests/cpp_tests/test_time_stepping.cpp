@@ -13,8 +13,8 @@
 
 #include "custom_workflows/strategy_wrapper.hpp"
 #include "custom_workflows/time_step_executor.h"
+#include "geo_mechanics_fast_suite.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 
@@ -85,11 +85,20 @@ public:
     void AccumulateTotalDisplacementField() override{
         // intentionally empty
     };
+    void ComputeIncrementalDisplacementField() override{
+        // intentionally empty
+    };
     void OutputProcess() override{
         // intentionally empty
     };
 
     void Initialize() override { ++mSolverStrategyInitializeCalls; }
+
+    void InitializeOutput() override
+    {
+        // Intentionally empty
+    }
+
     void InitializeSolutionStep() override
     {
         ++mSolverStrategyInitializeSolutionStepCalls;
@@ -143,7 +152,7 @@ private:
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto nonconverging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -153,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, Kra
     KRATOS_EXPECT_TRUE(executor.Run(time).NonConverged())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -163,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMec
     KRATOS_EXPECT_TRUE(executor.Run(time).Converged())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -183,7 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -202,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFin
         0, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -212,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeo
     KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto non_converging_strategy = std::make_shared<DummyStrategyWrapper>(
@@ -222,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, Kratos
     KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(

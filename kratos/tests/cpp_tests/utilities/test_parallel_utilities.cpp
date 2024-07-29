@@ -332,6 +332,31 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionSet, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FilteredAccumReductionInt, KratosCoreFastSuite)
+{
+    const int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize/2);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+    std::transform(
+        expct_data_vector.begin(),
+        expct_data_vector.end(),
+        expct_data_vector.begin(),
+        [] (int x) { return x * 2; });
+
+    auto assembled_vector = block_for_each<FilteredAccumReduction<int>>(input_data_vector, [](int& rValue) {
+        const bool add_value = rValue % 2 != 0;
+        return std::pair<bool, std::size_t>(add_value, rValue + 1);
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_EXPECT_VECTOR_EQ(assembled_vector, expct_data_vector);
+}
+
+
 KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
 {
     using map_type = std::unordered_map<int, int>;

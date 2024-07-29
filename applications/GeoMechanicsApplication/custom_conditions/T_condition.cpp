@@ -13,8 +13,10 @@
 //
 
 #include "custom_conditions/T_condition.h"
+#include "custom_utilities/dof_utilities.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTCondition<TDim, TNumNodes>::GeoTCondition() : Condition()
@@ -28,24 +30,27 @@ GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId, GeometryType::Poi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId,
-                                              GeometryType::Pointer pGeometry,
+GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType               NewId,
+                                              GeometryType::Pointer   pGeometry,
                                               PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTCondition<TDim, TNumNodes>::~GeoTCondition() = default;
+void GeoTCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
+{
+    rConditionDofList = GetDofs();
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                          VectorType& rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                          VectorType&        rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    rLeftHandSideMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    rLeftHandSideMatrix  = ZeroMatrix(TNumNodes, TNumNodes);
     rRightHandSideVector = ZeroVector(TNumNodes);
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -54,34 +59,21 @@ void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandS
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      const ProcessInfo& rCurrentProcessInfo) const
+void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    if (rResult.size() != TNumNodes) {
-        rResult.resize(TNumNodes, false);
-    }
-
-    const GeometryType& rGeom = GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = rGeom[i].GetDof(TEMPERATURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                  VectorType& rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                  VectorType&        rRightHandSideVector,
                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
-                                                  const ProcessInfo& rCurrentProcessInfo)
+void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -92,10 +84,18 @@ void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVect
     KRATOS_CATCH("")
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::DofsVectorType GeoTCondition<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), TEMPERATURE);
+}
+
+template class GeoTCondition<2, 1>;
 template class GeoTCondition<2, 2>;
 template class GeoTCondition<2, 3>;
 template class GeoTCondition<2, 4>;
 template class GeoTCondition<2, 5>;
+template class GeoTCondition<3, 1>;
 template class GeoTCondition<3, 3>;
 template class GeoTCondition<3, 4>;
 template class GeoTCondition<3, 6>;
