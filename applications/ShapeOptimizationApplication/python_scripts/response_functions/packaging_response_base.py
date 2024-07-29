@@ -9,6 +9,8 @@
 # ==============================================================================
 
 import time as timer
+import csv
+import os
 import KratosMultiphysics as KM
 try:
     import KratosMultiphysics.StructuralMechanicsApplication as KSM
@@ -64,6 +66,8 @@ class PackagingResponseBase(ResponseFunctionInterface):
         self.feasible_in_normal_direction = self.response_settings["feasible_in_normal_direction"].GetBool()
         self.exponent = 2
 
+        self.initialized = False
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
@@ -91,6 +95,18 @@ class PackagingResponseBase(ResponseFunctionInterface):
         self.signed_distances = None
         self.directions = None
         self.gradient = {}
+
+        if not self.initialized:
+            self.log_file_name = f"Optimization_Results/{self.identifier}_log.csv"
+            with open(self.log_file_name, 'w') as csvfile:
+                historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+                row = []
+                row.append("{:>4s}".format("itr"))
+                row.append("{:>13s}".format("max_penetration"))
+                historyWriter.writerow(row)
+
+            self.current_index = 0
+            self.initialized = True
 
     def CalculateValue(self):
         Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
@@ -139,6 +155,22 @@ class PackagingResponseBase(ResponseFunctionInterface):
         for condition in self.model_part.Conditions:
             gradient[condition.Id] = 0.0
         return gradient
+
+    def FinalizeSolutionStep(self):
+
+        self.current_index += 1
+
+        with open(self.log_file_name, 'a') as csvfile:
+            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+            row = []
+            row.append("{:>4d}".format(self.current_index))
+
+            max_distance = 0.0
+            for i in range(len(self.signed_distances)):
+                if self._HasContribution(self.signed_distances[i]):
+                    max_distance = max(max_distance, abs(self.signed_distances[i]))
+            row.append(" {:> .5E}".format(max_distance))
+            historyWriter.writerow(row)
 
     def _CalculateDistances(self):
         raise NotImplementedError("_CalculateDistances needs to be implemented by the derived class!")
