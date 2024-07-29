@@ -16,6 +16,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.response_utilities imp
 class BinaryOperatorResponseFunction(ResponseFunction):
     def __init__(self, model: Kratos.Model, response_function_1: ResponseFunction, response_function_2: ResponseFunction, binary_operator: BinaryOperator, optimization_problem: OptimizationProblem):
         if binary_operator == BinaryOperator.DIVIDE:
+            # this is because, the optimization_problem data container uses "/" as a path separator.
             super().__init__(f"({response_function_1.GetName()}÷{response_function_2.GetName()})")
         else:
             super().__init__(f"({response_function_1.GetName()}{binary_operator.value}{response_function_2.GetName()})")
