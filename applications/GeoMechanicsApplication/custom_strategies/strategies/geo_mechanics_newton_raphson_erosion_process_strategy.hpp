@@ -78,13 +78,6 @@ public:
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
-    /**
-     * @brief std vector containing non-converged solutions.
-     * @details Each entry in the std vector is a Kratos Vector containing the solution at a specific non-converged iteration.
-     */
-    std::vector<Vector> mNonconvergedSolutions;
-
-
     void FinalizeSolutionStep() override
     {
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -257,6 +250,12 @@ private:
     int          rank;
     double       small_pipe_height    = 1e-10;
     double       pipe_height_accuracy = small_pipe_height * 10;
+
+    /**
+     * @brief std vector containing non-converged solutions.
+     * @details Each entry in the std vector is a Kratos Vector containing the solution at a specific non-converged iteration.
+     */
+    std::vector<Vector> mNonconvergedSolutions;
 
     /**
      * @brief This matrix stores the non-converged solutions
