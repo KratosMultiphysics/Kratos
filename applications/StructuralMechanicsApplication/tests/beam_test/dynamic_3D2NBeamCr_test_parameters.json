@@ -86,7 +86,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"          : "AssignVectorByDirectionToConditionProcess",
         "Parameters"            : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
             "modulus"          : 100000,
