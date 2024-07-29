@@ -85,14 +85,6 @@ class ImplicitMechanicalSolver(MechanicalSolver):
                 raise Exception(err_msg)
 
         # Setting the time integration schemes
-        # if(scheme_type == "newmark"):
-        #     damp_factor_m = 0.0
-        #     newmark_beta = self.settings["newmark_beta"].GetDouble()
-        #     mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
-        # elif(scheme_type == "bossak"):
-        #     damp_factor_m = self.settings["damp_factor_m"].GetDouble()
-        #     newmark_beta = self.settings["newmark_beta"].GetDouble()
-        #     mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
         if (scheme_type == "newmark" or scheme_type == "bossak"):
             scheme_settings = KratosMultiphysics.Parameters("""{
                 "damp_factor_m" : 0.0,

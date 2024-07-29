@@ -29,17 +29,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements
- *  @class StructuralMechanicsBossakScheme
- *  @ingroup StructuralMechanicsApplciation
- *
- *  @details This is a dynamic implicit scheme based on the Bossak algorithm for displacements.
- *           The Bossak Alpha parameter ranges from 0 to -0.5, and introduces damping.
- *           Implementation according to: "An alpha modification of Newmark's method; W.L. Wood, M. Bossak, O.C. Zienkiewicz;
- *           Numerical Methods in Engineering; 1980"
- *  @author Josep Maria Carbonell
- *  @author Vicente Mataix Ferrandiz
- *  @author Andreas Winterstein (refactoring)
+/**
+ * @brief Structural mechanics Bossak scheme
+ * This scheme extends the implementation in the ResidualBasedBossakDisplacementScheme to do some structural mechanics specifics
+ * @tparam TSparseSpace The sparse space considered
+ * @tparam TDenseSpace The dense space considered
  */
 template<class TSparseSpace,  class TDenseSpace >
 class StructuralMechanicsBossakScheme

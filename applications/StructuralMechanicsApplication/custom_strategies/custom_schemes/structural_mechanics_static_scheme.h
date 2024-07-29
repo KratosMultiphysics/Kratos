@@ -41,14 +41,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class StructuralMechanicsStaticScheme
- * @ingroup KratosCore
- * @brief This class provides the implementation of a static scheme
- * @details The only operation done in this  scheme is the update of the database, no predict is done
+ * @brief Structural mechanics static scheme
+ * This scheme extends the implementation in the ResidualBasedIncrementalUpdateStaticScheme to do some structural mechanics specifics
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
- * @see Scheme
- * @author Riccardo Rossi
  */
 template<class TSparseSpace, class TDenseSpace>
 class StructuralMechanicsStaticScheme
