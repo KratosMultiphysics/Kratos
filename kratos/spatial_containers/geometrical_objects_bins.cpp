@@ -97,7 +97,6 @@ void GeometricalObjectsBins::SearchInRadius(
     }
 
     // Loop over the candidates and filter by distance
-    double distance = 0.0;
     std::unordered_set<GeometricalObject*> to_erase;
     for(auto& r_pair : results) {
         auto p_geometrical_object = r_pair.first;
