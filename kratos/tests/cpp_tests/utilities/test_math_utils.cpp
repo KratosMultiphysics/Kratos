@@ -633,6 +633,7 @@ KRATOS_TEST_CASE_IN_SUITE(MathUtilsDot, KratosCoreFastSuite)
     f[0] = 1.0;
 
     const double g = MathUtils<double>::Dot3(e, f);
+    KRATOS_EXPECT_EQ(g, 0.0);
 }
 
 /** Checks if it clamps the values correctly
