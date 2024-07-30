@@ -161,7 +161,7 @@ public:
             
             rOutput[0] = + tangent_parameter_space[1] / magnitude;
             rOutput[1] = - tangent_parameter_space[0] / magnitude; 
-            rOutput[2] = 0;
+            rOutput[2] = 0.0;
         }
     }
 
