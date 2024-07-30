@@ -70,6 +70,7 @@
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
+#include "custom_constitutive/small_strains/plastic_damage/jointed_cohesive_frictional_constitutive_law.h"
 
 // Integrators
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
