@@ -179,7 +179,8 @@ void MembraneElement2D2N::CalculateLocalSystem(
     const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
 
     // Calculate material response
-    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double l0_pow = std::pow(l0, 2);
+    const double E = 0.5 * (std::pow(l, 2) - l0_pow) / l0_pow;
     const double S0 = GetMembranePrestress();
     const double S = young * E + S0;
     const bool is_compressed = S < 0.0 && std::abs(E) > 1.0e-12 ? true : false;
@@ -204,10 +205,10 @@ void MembraneElement2D2N::CalculateLocalSystem(
     const auto& r_x_1 = r_geom[1].Coordinates();
     const double dx = r_x_1[0] - r_x_0[0];
     const double dy = r_x_1[1] - r_x_0[1];
-    B[0] = -dx / std::pow(l0,2);
-    B[1] = -dy / std::pow(l0,2);
-    B[2] = dx / std::pow(l0,2);
-    B[3] = dy / std::pow(l0,2);
+    B[0] = -dx / l0_pow;
+    B[1] = -dy / l0_pow;
+    B[2] = dx / l0_pow;
+    B[3] = dy / l0_pow;
 
     // Calculate the internal force contribution
     array_1d<double, mLocalSize> f_int;
@@ -235,7 +236,7 @@ void MembraneElement2D2N::CalculateLocalSystem(
         K_mat.clear();
     } else {
         const double aux_K_mat = h * l0 * young;
-        K_mat = aux_K_mat * outer_prod(B, B);
+        noalias(K_mat) = aux_K_mat * outer_prod(B, B);
     }
 
     // Calculate geometric stiffness matrix
@@ -256,11 +257,7 @@ void MembraneElement2D2N::CalculateLocalSystem(
     }
 
     // Assemble the left hand side contributions
-    for (IndexType i = 0; i < mLocalSize; ++i) {
-        for (IndexType j = 0; j < mLocalSize; ++j) {
-            rLeftHandSideMatrix(i, j) += K_mat(i,j) + K_geo(i,j);
-        }
-    }
+    noalias(rLeftHandSideMatrix) += K_mat + K_geo;
 
     KRATOS_CATCH("");
 }
@@ -287,7 +284,8 @@ void MembraneElement2D2N::CalculateLeftHandSide(
     const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
 
     // Calculate material response
-    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double l0_pow = std::pow(l0, 2);
+    const double E = 0.5 * (std::pow(l, 2) - l0_pow) / l0_pow;
     const double S0 = GetMembranePrestress();
     const double S = young * E + S0;
     const bool is_compressed = S < 0.0 && std::abs(E) > 1.0e-12 ? true : false;
@@ -306,10 +304,10 @@ void MembraneElement2D2N::CalculateLeftHandSide(
     const auto& r_x_1 = r_geom[1].Coordinates();
     const double dx = r_x_1[0] - r_x_0[0];
     const double dy = r_x_1[1] - r_x_0[1];
-    B[0] = -dx / std::pow(l0,2);
-    B[1] = -dy / std::pow(l0,2);
-    B[2] = dx / std::pow(l0,2);
-    B[3] = dy / std::pow(l0,2);
+    B[0] = -dx / l0_pow;
+    B[1] = -dy / l0_pow;
+    B[2] = dx / l0_pow;
+    B[3] = dy / l0_pow;
 
     // Calculate material stiffness matrix
     BoundedMatrix<double, mLocalSize, mLocalSize> K_mat;
@@ -317,7 +315,7 @@ void MembraneElement2D2N::CalculateLeftHandSide(
         K_mat.clear();
     } else {
         const double aux_K_mat = h * l0 * young;
-        K_mat = aux_K_mat * outer_prod(B, B);
+        noalias(K_mat) = aux_K_mat * outer_prod(B, B);
     }
 
     // Calculate geometric stiffness matrix
@@ -338,11 +336,7 @@ void MembraneElement2D2N::CalculateLeftHandSide(
     }
 
     // Assemble the left hand side contributions
-    for (IndexType i = 0; i < mLocalSize; ++i) {
-        for (IndexType j = 0; j < mLocalSize; ++j) {
-            rLeftHandSideMatrix(i, j) += K_mat(i,j) + K_geo(i,j);
-        }
-    }
+    noalias(rLeftHandSideMatrix) += K_mat + K_geo;
 
     KRATOS_CATCH("");
 }
@@ -369,7 +363,8 @@ void MembraneElement2D2N::CalculateRightHandSide(
     const double l0 = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
 
     // Calculate material response
-    const double E = 0.5 * (std::pow(l, 2) - std::pow(l0, 2)) / std::pow(l0, 2);
+    const double l0_pow = std::pow(l0, 2);
+    const double E = 0.5 * (std::pow(l, 2) - l0_pow) / l0_pow;
     const double S0 = GetMembranePrestress();
     const double S = young * E + S0;
     const bool is_compressed = (S < 0.0 && std::abs(E) > 1.0e-12) ? true : false;
@@ -388,10 +383,10 @@ void MembraneElement2D2N::CalculateRightHandSide(
     const auto& r_x_1 = r_geom[1].Coordinates();
     const double dx = r_x_1[0] - r_x_0[0];
     const double dy = r_x_1[1] - r_x_0[1];
-    B[0] = -dx / std::pow(l0,2);
-    B[1] = -dy / std::pow(l0,2);
-    B[2] = dx / std::pow(l0,2);
-    B[3] = dy / std::pow(l0,2);
+    B[0] = -dx / l0_pow;
+    B[1] = -dy / l0_pow;
+    B[2] = dx / l0_pow;
+    B[3] = dy / l0_pow;
 
     // Calculate the internal force contributions
     array_1d<double, mLocalSize> f_int;
