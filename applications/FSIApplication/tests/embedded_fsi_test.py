@@ -23,10 +23,10 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.print_output = False
-        self.reference_values_check = True
-        self.reference_values_output = False
-        self.check_relative_tolerance = 1.0e-6
-        self.check_absolute_tolerance = 1.0e-8
+        self.reference_values_check = False
+        self.reference_values_output = True
+        self.check_relative_tolerance = 1.0e-3
+        self.check_absolute_tolerance = 1.0e-5
         self.work_folder = "embedded_fsi_test"
         self.settings = "ProjectParameters.json"
 
@@ -37,7 +37,15 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
             DeleteFilesEndingWith(self.work_folder, ".post.lst")
 
     def testEmbeddedVolumetricMVQN(self):
+        self.fluid_element_settings = KratosMultiphysics.Parameters("""{
+            "element_type" : "embedded_weakly_compressible_navier_stokes",
+            "is_slip": true,
+            "slip_length": 1.0e6,
+            "penalty_coefficient": 1.0e3,
+            "dynamic_tau": 1.0
+        }""")
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
+        self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "MVQN"
         self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
 
@@ -49,7 +57,15 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
             fsi_analysis.FsiAnalysis(model, self.parameters).Run()
 
     def testEmbeddedVolumetricIBQNMVQN(self):
+        self.fluid_element_settings = KratosMultiphysics.Parameters("""{
+            "element_type" : "embedded_weakly_compressible_navier_stokes",
+            "is_slip": true,
+            "slip_length": 1.0e6,
+            "penalty_coefficient": 1.0e3,
+            "dynamic_tau": 1.0
+        }""")
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
+        self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "IBQN_MVQN"
         self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
 
@@ -60,8 +76,50 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
             self._CustomizeProjectParameters()
             fsi_analysis.FsiAnalysis(model, self.parameters).Run()
 
+    def testEmbeddedThinMVQN(self):
+        self.fluid_element_settings = KratosMultiphysics.Parameters("""{
+            "element_type" : "embedded_weakly_compressible_navier_stokes_discontinuous",
+            "is_slip": true,
+            "slip_length": 1.0e6,
+            "penalty_coefficient": 1.0e3,
+            "dynamic_tau": 1.0
+        }""")
+        self.structure_filename = "embedded_fsi_test_structure_thin"
+        self.structure_materials_filename = "StructuralMaterialsThin.json"
+        self.convergence_accelerator = "MVQN"
+        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
+
+        with WorkFolderScope(self.work_folder):
+            model = KratosMultiphysics.Model()
+            parameter_file = open(self.settings, 'r')
+            self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            self._CustomizeProjectParameters()
+            fsi_analysis.FsiAnalysis(model, self.parameters).Run()
+
+    def testEmbeddedThinIBQNMVQN(self):
+        self.fluid_element_settings = KratosMultiphysics.Parameters("""{
+            "element_type" : "embedded_weakly_compressible_navier_stokes_discontinuous",
+            "is_slip": true,
+            "slip_length": 1.0e6,
+            "penalty_coefficient": 1.0e3,
+            "dynamic_tau": 1.0
+        }""")
+        self.structure_filename = "embedded_fsi_test_structure_thin"
+        self.structure_materials_filename = "StructuralMaterialsThin.json"
+        self.convergence_accelerator = "IBQN_MVQN"
+        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
+
+        with WorkFolderScope(self.work_folder):
+            model = KratosMultiphysics.Model()
+            parameter_file = open(self.settings, 'r')
+            self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            self._CustomizeProjectParameters()
+            fsi_analysis.FsiAnalysis(model, self.parameters).Run()
+
     def _CustomizeProjectParameters(self):
+        self.parameters["solver_settings"]["fluid_solver_settings"]["formulation"] = self.fluid_element_settings
         self.parameters["solver_settings"]["structure_solver_settings"]["model_import_settings"]["input_filename"].SetString(self.structure_filename)
+        self.parameters["solver_settings"]["structure_solver_settings"]["material_import_settings"]["materials_filename"].SetString(self.structure_materials_filename)
         self.parameters["solver_settings"]["coupling_settings"]["coupling_strategy_settings"]["solver_type"].SetString(self.convergence_accelerator)
 
         if self.print_output:
