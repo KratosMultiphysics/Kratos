@@ -73,7 +73,6 @@ void GeometricalObjectsBins::SearchInRadius(
 {
     // Initialize the results
     std::unordered_map<GeometricalObject*, double> results;
-    std::unordered_set<GeometricalObject*> candidates;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -91,7 +90,7 @@ void GeometricalObjectsBins::SearchInRadius(
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
                 for(auto p_geometrical_object : r_cell) {
-                    candidates.insert(p_geometrical_object);
+                    results.insert({p_geometrical_object, 0.0});
                 }
             }
         }
@@ -99,12 +98,19 @@ void GeometricalObjectsBins::SearchInRadius(
 
     // Loop over the candidates and filter by distance
     double distance = 0.0;
-    for(auto p_geometrical_object : candidates) {
+    std::vector<GeometricalObject*> to_erase;
+    for(auto& r_pair : results) {
+        auto p_geometrical_object = r_pair.first;
+        double& r_distance = r_pair.second;
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-        if((Radius + mTolerance) > distance) {
-            results.insert({p_geometrical_object, distance});
+        r_distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+        if((Radius + mTolerance) <= r_distance) {
+            to_erase.push_back(p_geometrical_object);
         }
+    }
+    // Erase the objects that are not within the radius
+    for (auto p_geometrical_object : to_erase) {
+        results.erase(p_geometrical_object);
     }
 
     // Fill the results
