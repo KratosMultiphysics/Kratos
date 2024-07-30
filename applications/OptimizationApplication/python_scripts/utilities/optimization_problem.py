@@ -45,14 +45,14 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
-    def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> Any:
+    def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> Any:
         for k in self.__components.keys():
             if isinstance(component, k):
                 return k
 
         return None
 
-    def GetComponentName(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> str:
+    def GetComponentName(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> str:
         component_type = self.GetComponentType(component)
         if not component_type is None:
             components = self.__components[component_type]
@@ -65,7 +65,7 @@ class OptimizationProblem:
 
         raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
 
-    def AddComponent(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> None:
+    def AddComponent(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> None:
         for k, v in self.__components.items():
             if isinstance(component, k):
                 added_component_type = k.__name__
