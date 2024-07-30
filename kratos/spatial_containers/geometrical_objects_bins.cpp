@@ -98,14 +98,14 @@ void GeometricalObjectsBins::SearchInRadius(
 
     // Loop over the candidates and filter by distance
     double distance = 0.0;
-    std::vector<GeometricalObject*> to_erase;
+    std::unordered_set<GeometricalObject*> to_erase;
     for(auto& r_pair : results) {
         auto p_geometrical_object = r_pair.first;
         double& r_distance = r_pair.second;
         auto& r_geometry = p_geometrical_object->GetGeometry();
         r_distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if((Radius + mTolerance) <= r_distance) {
-            to_erase.push_back(p_geometrical_object);
+            to_erase.insert(p_geometrical_object);
         }
     }
     // Erase the objects that are not within the radius
