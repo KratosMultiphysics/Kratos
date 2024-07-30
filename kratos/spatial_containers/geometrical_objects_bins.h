@@ -516,6 +516,21 @@ private:
     }
 
     /**
+     * @brief Searchs in objects in the given cell for the nearest one.
+     * @details This method takes a cell and a point and searchs in objects in the given cell for the nearest one.
+     * @param rCell The cell to be checked
+     * @param rPoint The point to be checked
+     * @param rResult The result of the search
+     * @param MaxRadius The max radius to be considered
+     */
+    void SearchNearestInCell(
+        const CellType& rCell,
+        const PointType& rPoint,
+        ResultType& rResult,
+        const double MaxRadius
+        );
+
+    /**
      * @brief Searchs in objects in the given cell for the one inside only.
      * @details This method takes a cell and a point and searchs in objects in the given cell for the one inside only.
      * @param rCell The cell to be checked
