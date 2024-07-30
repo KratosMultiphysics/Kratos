@@ -23,8 +23,8 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.print_output = False
-        self.reference_values_check = False
-        self.reference_values_output = True
+        self.reference_values_check = True
+        self.reference_values_output = False
         self.check_relative_tolerance = 1.0e-3
         self.check_absolute_tolerance = 1.0e-5
         self.work_folder = "embedded_fsi_test"
