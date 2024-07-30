@@ -78,14 +78,14 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
         # Check that OSS are supported by current scheme
-        oss_available_schemes = ["newmark","bossak"]
+        oss_available_schemes = ("newmark","bossak")
         if self.settings["use_orthogonal_subscales"].GetBool():
             if not scheme_type in oss_available_schemes:
                 err_msg = f"'{scheme_type}' scheme does not support OSS. Please switch 'use_orthogonal_subscales' off."
                 raise Exception(err_msg)
 
         # Setting the time integration schemes
-        if (scheme_type == "newmark" or scheme_type == "bossak"):
+        if scheme_type in ("newmark", "bossak"):
             scheme_settings = KratosMultiphysics.Parameters("""{
                 "damp_factor_m" : 0.0,
                 "newmark_beta" : 0.0,
