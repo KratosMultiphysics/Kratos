@@ -5,7 +5,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 4.99e-1
+        "end_time": 1.99e-1
     },
     "solver_settings": {
         "solver_type": "partitioned_embedded",
