@@ -4,8 +4,10 @@ from typing import Any, Union
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
+from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 
 class OptimizationProblem:
     """This is the main data holder for optimization problems
@@ -28,7 +30,9 @@ class OptimizationProblem:
         self.__components: 'dict[Any, dict[str, Any]]' = {
             ResponseFunction: {},
             ExecutionPolicy: {},
-            Control: {}
+            Control: {},
+            MasterControl:{},
+            ResponseRoutine:{}
         }
 
         # now set the processes dict with different categories of processes
