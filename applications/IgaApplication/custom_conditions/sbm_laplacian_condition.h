@@ -38,10 +38,18 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
+        // sbm variables
         array_1d<double, 3> normal_parameter_space;
         Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
-        int basisFunctionsOrder;
         Vector d;
+        std::vector<Matrix> mShapeFunctionDerivatives;
+        int basis_functions_order;
+
+        // enum
+        enum class BoundaryConditionType {
+            Dirichlet,
+            Neumann,
+        };
 
         ///@}
         ///@name Life Cycle
@@ -224,9 +232,11 @@ namespace Kratos
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-        std::vector<Matrix> mShapeFunctionDerivatives;
-
-        int mbasisFunctionsOrder;
+        BoundaryConditionType GetBoundaryConditionType(const std::string& type) {
+            if (type == "dirichlet") return BoundaryConditionType::Dirichlet;
+            if (type == "neumann") return BoundaryConditionType::Neumann;
+            throw std::invalid_argument("Invalid boundary condition type");
+        }
 
         unsigned long long factorial(int n); 
 

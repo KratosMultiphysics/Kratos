@@ -29,22 +29,24 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
-        std::string boundaryConditionType = this->GetValue(BOUNDARY_CONDITION_TYPE);
-        
-        if (boundaryConditionType == "dirichlet")
+        std::string boundaryConditionTypeStr = this->GetValue(BOUNDARY_CONDITION_TYPE);
+        BoundaryConditionType boundaryConditionType = GetBoundaryConditionType(boundaryConditionTypeStr);
+
+        if (boundaryConditionType == BoundaryConditionType::Dirichlet)
         {
             this-> CalculateAllDirichlet(   rLeftHandSideMatrix,
                                             rRightHandSideVector,
                                             rCurrentProcessInfo,
                                             CalculateStiffnessMatrixFlag,
                                             CalculateResidualVectorFlag);
-        } else if (boundaryConditionType == "neumann"){
+        } else if (boundaryConditionType == BoundaryConditionType::Neumann) 
+        {
             this-> CalculateAllNeumann(     rLeftHandSideMatrix,
                                             rRightHandSideVector,
                                             rCurrentProcessInfo,
                                             CalculateStiffnessMatrixFlag,
                                             CalculateResidualVectorFlag);
-        } else{
+        } else {
             KRATOS_ERROR << "error in SBM_LAPLACIAN_CONDITION, no BOUNDARY_CONDITION_TYPE available" << std::endl;
         }
     }
@@ -95,13 +97,13 @@ namespace Kratos
 
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
         if (dim == 3) {
-            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+            basis_functions_order = std::cbrt(DN_De[0].size1()) - 1;
         } else {
-            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+            basis_functions_order = std::sqrt(DN_De[0].size1()) - 1;
         }
 
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-        penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
+        penalty = basis_functions_order * basis_functions_order * penalty / h;
 
         // Find the closest node in condition
         auto GP_parameter_coord = r_geometry.Center();
@@ -156,7 +158,7 @@ namespace Kratos
         Vector H_sum_vec = ZeroVector(number_of_nodes);
 
         // Compute all the derivatives of the basis functions involved
-        for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
+        for (IndexType n = 1; n <= basis_functions_order; n++) {
             mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
         }
 
@@ -172,7 +174,7 @@ namespace Kratos
             double H_taylor_term = 0.0; 
 
             if (dim == 2) {
-                for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
+                for (IndexType n = 1; n <= basis_functions_order; n++) {
                     // Retrieve the appropriate derivative for the term
                     Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     for (int k = 0; k <= n; k++) {
@@ -184,7 +186,7 @@ namespace Kratos
                 }
             } else {
                 // 3D
-                for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
+                for (IndexType n = 1; n <= basis_functions_order; n++) {
                     Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                     
                     int countDerivativeId = 0;
@@ -274,9 +276,9 @@ namespace Kratos
 
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
         if (dim == 3) {
-            mbasisFunctionsOrder = std::cbrt(DN_De[0].size1()) - 1;
+            basis_functions_order = std::cbrt(DN_De[0].size1()) - 1;
         } else {
-            mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
+            basis_functions_order = std::sqrt(DN_De[0].size1()) - 1;
         }
 
         // Integration
@@ -348,7 +350,7 @@ namespace Kratos
 
             // Compute all the derivatives of the basis functions involved
             std::vector<Matrix> nShapeFunctionDerivatives;
-            for (IndexType n = 1; n <= mbasisFunctionsOrder; n++) {
+            for (IndexType n = 1; n <= basis_functions_order; n++) {
                 nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
             }
 
@@ -372,7 +374,7 @@ namespace Kratos
                 double H_taylor_term_Z = 0.0; 
 
                 if (dim == 2) {
-                    for (IndexType n = 2; n <= mbasisFunctionsOrder; n++) {
+                    for (IndexType n = 2; n <= basis_functions_order; n++) {
                         // Retrieve the appropriate derivative for the term
                         Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
                         for (int k = 0; k <= n-1; k++) {
@@ -390,7 +392,7 @@ namespace Kratos
                     }
                 } else {
                     // 3D
-                    for (IndexType n = 2; n <= mbasisFunctionsOrder; n++) {
+                    for (IndexType n = 2; n <= basis_functions_order; n++) {
                         Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
                     
                         int countDerivativeId = 0;
