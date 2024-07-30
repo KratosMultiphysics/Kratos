@@ -43,7 +43,6 @@ class AlgorithmSteepestDescent(Algorithm):
 
         self.master_control = MasterControl() # Need to fill it with controls
         self._optimization_problem.AddComponent(self.master_control)
-        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)

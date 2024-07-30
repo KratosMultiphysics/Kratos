@@ -132,6 +132,43 @@ class OptimizationProblem:
     def AddProcessType(self, process_type: str) -> None:
         self.__proceses[process_type] = []
 
+    def GetResponseRoutine(self, name: str) -> ResponseRoutine:
+        return self.GetComponent(name, ResponseRoutine)
+
+    def GetListOfResponseRoutines(self) -> 'list[ResponseRoutine]':
+        return self.__components[ResponseRoutine].values()
+
+    def HasResponseRoutine(self, name_or_response_routine: 'Union[str, ResponseRoutine]') -> bool:
+        if isinstance(name_or_response_routine, str):
+            return name_or_response_routine in [response_routine.GetName() for response_routine in self.GetListOfResponseRoutines()]
+        elif isinstance(name_or_response_routine, ResponseRoutine):
+            return name_or_response_routine in self.GetListOfResponseRoutines()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_control. Only allowed to have string or Control types.")
+
+    def RemoveResponseRoutine(self, name: str) -> None:
+        self.RemoveComponent(name, ResponseRoutine)
+
+    def GetMasterControl(self, name: str) -> MasterControl:
+        return self.GetComponent(name, MasterControl)
+
+    def GetListOfMasterControls(self) -> 'list[MasterControl]':
+        return self.__components[MasterControl].values()
+
+    def HasMasterControl(self, name_or_master_control: 'Union[str, MasterControl]') -> bool:
+        if isinstance(name_or_master_control, str):
+            return name_or_master_control in [master_control.GetName() for master_control in self.GetListOfMasterControls()]
+        elif isinstance(name_or_master_control, MasterControl):
+            return name_or_master_control in self.GetListOfMasterControls()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_control. Only allowed to have string or Control types.")
+
+    def RemoveMasterControl(self, name: str) -> None:
+        self.RemoveComponent(name, MasterControl)
+
+    def AddProcessType(self, process_type: str) -> None:
+        self.__proceses[process_type] = []
+
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
             self.__proceses[process_type]: 'list[Kratos.Process]' = []
