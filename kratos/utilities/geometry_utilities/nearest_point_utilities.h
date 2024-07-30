@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+#include "utilities/math_utils.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "geometries/line_3d_2.h"
 
@@ -36,7 +37,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class NearestPointUtilities
  * @ingroup KratosCore
  * @brief Tools to calculate the nearest point in different geometries
@@ -74,10 +75,10 @@ public:
     ///@{
 
     /**
-     * @brief Finds the nearest point to the given point on a line segment. 
-     * @details It first projects the point into the line. If the projected point is inside the segment boundary 
+     * @brief Finds the nearest point to the given point on a line segment.
+     * @details It first projects the point into the line. If the projected point is inside the segment boundary
      * it returns the projected point. If not it returns the nearest end point of the line.
-     * @tparam Type of the Point 
+     * @tparam Type of the Point
      * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rLine The line in which we want to find the nearest point to rPoint
@@ -85,7 +86,7 @@ public:
      */
     template<class TPointType, class TGeometryType>
     static Point LineNearestPoint(
-        const TPointType& rPoint, 
+        const TPointType& rPoint,
         const TGeometryType& rLine
         )
     {
@@ -94,27 +95,25 @@ public:
     }
 
     /**
-     * @brief Finds the nearest point to the given point on a line segment (given 2 points). 
-     * @details It first projects the point into the line. If the projected point is inside the segment boundary 
+     * @brief Finds the nearest point to the given point on a line segment (given 2 points).
+     * @details It first projects the point into the line. If the projected point is inside the segment boundary
      * it returns the projected point. If not it returns the nearest end point of the line.
-     * @tparam Type of the Point 
+     * @tparam Type of the Point
      * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rLinePointA The first point of the line
      * @param rLinePointB The second point of the line
      * @return The nearest point to rPoint
      */
-    template<class TPointType>
     static Point LineNearestPoint(
-        const TPointType& rPoint, 
-        const array_1d<double, 3>& rLinePointA, 
+        const array_1d<double, 3>& rPoint,
+        const array_1d<double, 3>& rLinePointA,
         const array_1d<double, 3>& rLinePointB
         )
     {
         // Project point globally into the line
         const array_1d<double, 3> ab = rLinePointB - rLinePointA;
-        const array_1d<double, 3>& r_p_c = rPoint.Coordinates();
-        const double factor = (inner_prod(rLinePointB, r_p_c) - inner_prod(rLinePointA, r_p_c) - inner_prod(rLinePointB, rLinePointA) + inner_prod(rLinePointA, rLinePointA)) / inner_prod(ab, ab);
+        const double factor = (inner_prod(rLinePointB, rPoint) - inner_prod(rLinePointA, rPoint) - inner_prod(rLinePointB, rLinePointA) + inner_prod(rLinePointA, rLinePointA)) / inner_prod(ab, ab);
         Point result(rLinePointA + factor * ab);
 
         // Compute lentgh of the line
@@ -148,7 +147,7 @@ public:
         if ( std::abs( projected_local[0] ) <= (1.0 + std::numeric_limits<double>::epsilon()) ) {
             return result;
         }
-        
+
         // If the projected point is outside the line, return the nearest end point
         const double distance1 = norm_2(rLinePointA - result);
         const double distance2 = norm_2(rLinePointB - result);
@@ -161,8 +160,71 @@ public:
     }
 
     /**
-     * @brief Finds the nearest point to the given point on a trianlge. 
-     * @details It first projects the point into the triangle surface. If the projected point is inside the triangle 
+     * @brief Computes the nearest point on a triangle to a given point in 3D space.
+     * @details This method calculates the nearest point on a triangle defined by three points
+     * (`rTrianglePoint0`, `rTrianglePoint1`, and `rTrianglePoint2`) to a given point
+     * `rPoint` in 3D space. If the nearest point lies within the triangle, it returns
+     * the projection. If the nearest point lies on one of the triangle's edges, it
+     * returns the nearest point on that edge.
+     * Based on https://www.shadertoy.com/view/ttfGWl
+     * @param rPoint The point from which the nearest point on the triangle is to be found.
+     * @param rTrianglePoint0 The first vertex of the triangle.
+     * @param rTrianglePoint1 The second vertex of the triangle.
+     * @param rTrianglePoint2 The third vertex of the triangle.
+     * @return Point The nearest point on the triangle to the given point.
+     */
+    static Point TriangleNearestPoint(
+        const array_1d<double, 3>& rPoint,
+        const array_1d<double, 3>& rTrianglePoint0,
+        const array_1d<double, 3>& rTrianglePoint1,
+        const array_1d<double, 3>& rTrianglePoint2
+        )
+    {
+        // Compute side vectors and normal
+        const array_1d<double, 3> v10 = rTrianglePoint1 - rTrianglePoint0;
+        const array_1d<double, 3> p0 = rPoint - rTrianglePoint0;
+        const array_1d<double, 3> v21 = rTrianglePoint2 - rTrianglePoint1;
+        const array_1d<double, 3> p1 = rPoint - rTrianglePoint1;
+        const array_1d<double, 3> v02 = rTrianglePoint0 - rTrianglePoint2;
+        const array_1d<double, 3> p2 = rPoint - rTrianglePoint2;
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, v10, v02);
+
+        // Define the result
+        Point result;
+
+        // Compute the cross product
+        array_1d<double, 3> auxiliary_cross_product;
+
+        // Check first size
+        MathUtils<double>::CrossProduct(auxiliary_cross_product, v10,normal);
+        if( MathUtils<double>::Dot3(auxiliary_cross_product, p0) < 0.0 ) {
+            noalias(result.Coordinates()) =  rTrianglePoint0 + v10 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p0,v10)/MathUtils<double>::Dot3(v10, v10), 0.0, 1.0 );
+            return result;
+        }
+
+        // Check second side
+        MathUtils<double>::CrossProduct(auxiliary_cross_product, v21, normal);
+        if( MathUtils<double>::Dot3(auxiliary_cross_product, p1) < 0.0 ) {
+            noalias(result.Coordinates()) =  rTrianglePoint1 + v21 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p1,v21)/MathUtils<double>::Dot3(v21, v21), 0.0, 1.0 );
+            return result;
+        }
+
+        // Check third side
+        MathUtils<double>::CrossProduct(auxiliary_cross_product, v02, normal);
+        if( MathUtils<double>::Dot3(auxiliary_cross_product, p2) < 0.0 ) {
+            noalias(result.Coordinates()) = rTrianglePoint2 + v02 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p2,v02)/MathUtils<double>::Dot3(v02, v02), 0.0, 1.0 );
+            return result;
+        }
+
+        // Compute the projection
+        noalias(result.Coordinates()) = rPoint - normal * MathUtils<double>::Dot3(normal,p0)/MathUtils<double>::Dot3(normal, normal);
+        return result;
+    }
+
+    /**
+     * @brief Finds the nearest point to the given point on a triangle.
+     * @details It first projects the point into the triangle surface. If the projected point is inside the triangle
      * it returns the projected point. If not it returns the nearest point on the edges of the triangle.
      * Dividing the plane of the triangle in 7 zones and find the nearest reflecting those zones
      *
@@ -170,25 +232,25 @@ public:
      *              \  6  /
      *               \   /
      *                \ /
-     *                 /\ 
-     *                /  \ 
+     *                 /\
+     *                /  \
      *          2    /    \     3
-     *              /   1  \ 
-     *             /        \ 
-     *    _______ /__________\_____________ 
-     *           /            \ 
+     *              /   1  \
+     *             /        \
+     *    _______ /__________\_____________
+     *           /            \
      *     5    /       4      \    7
-     *         /                \ 
-     *        /                  \ 
-     * @tparam Type of the Point 
+     *         /                \
+     *        /                  \
+     * @tparam Type of the Point
      * @tparam TGeometryType The type of the triangle. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rTriangle The triangle in which we want to find the nearest point to rPoint
      * @return The nearest point to rPoint
-     */    
+     */
     template<class TPointType, class TGeometryType>
     static Point TriangleNearestPoint(
-        const TPointType& rPoint, 
+        const TPointType& rPoint,
         const TGeometryType& rTriangle
         )
     {
@@ -220,7 +282,7 @@ public:
         } else {  // inside
             result = point_projected;
         }
-            
+
         return result;
     }
 
