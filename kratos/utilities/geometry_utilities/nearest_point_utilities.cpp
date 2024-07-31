@@ -33,49 +33,43 @@ Point NearestPointUtilities::LineNearestPoint(
     const double factor = (inner_prod(rLinePointB, rPoint) - inner_prod(rLinePointA, rPoint) - inner_prod(rLinePointB, rLinePointA) + inner_prod(rLinePointA, rLinePointA)) / inner_prod(ab, ab);
     Point result(rLinePointA + factor * ab);
 
-    // Compute length of the line
-    const double lx = rLinePointA[0] - rLinePointB[0];
-    const double ly = rLinePointA[1] - rLinePointB[1];
-    const double lz = rLinePointA[2] - rLinePointB[2];
-    double length = lx * lx + ly * ly + lz * lz;
-    length = std::sqrt( length );
+    // Compute square_length of the line
+    double lx = rLinePointA[0] - rLinePointB[0];
+    double ly = rLinePointA[1] - rLinePointB[1];
+    double lz = rLinePointA[2] - rLinePointB[2];
+    double square_length = lx * lx + ly * ly + lz * lz;
+
+    // Compute square_length of the projection (A)
+    lx = result[0] - rLinePointA[0];
+    ly = result[1] - rLinePointA[1];
+    lz = result[2] - rLinePointA[2];
+    double square_length_1 = lx * lx + ly * ly + lz * lz;
+
+    // Compute square_length of the projection (B)
+    lx = result[0] - rLinePointB[0];
+    ly = result[1] - rLinePointB[1];
+    lz = result[2] - rLinePointB[2];
+    double square_length_2 = lx * lx + ly * ly + lz * lz;
 
     // Project point locally into the line
     array_1d<double,3> projected_local;
     const double tolerance = 1e-14; // Tolerance
 
-    const double length_1 = std::sqrt( std::pow(result[0] - rLinePointA[0], 2)
-                + std::pow(result[1] - rLinePointA[1], 2) + std::pow(result[2] - rLinePointA[2], 2));
-
-    const double length_2 = std::sqrt( std::pow(result[0] - rLinePointB[0], 2)
-                + std::pow(result[1] - rLinePointB[1], 2) + std::pow(result[2] - rLinePointB[2], 2));
-
-    if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
-        projected_local[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-    } else if (length_1 > (length + tolerance)) {
-        projected_local[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
-    } else if (length_2 > (length + tolerance)) {
-        projected_local[0] = 1.0 - 2.0 * length_2/(length + tolerance);
+    if (square_length_1 <= (square_length + tolerance) && square_length_2 <= (square_length + tolerance)) {
+        return result;
     } else {
-        projected_local[0] = 2.0; // Out of the line!!!
-    }
-
-    // Check if the projected point is inside the line
-    if ( std::abs( projected_local[0] ) <= (1.0 + std::numeric_limits<double>::epsilon()) ) {
+        // If the projected point is outside the line, return the nearest end point
+        array_1d<double, 3> auxiliary_values = rLinePointA - result;
+        const double distance1 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
+        noalias(auxiliary_values) = rLinePointB - result;
+        const double distance2 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
+        if (distance1 < distance2) {
+            noalias(result.Coordinates()) = rLinePointA;
+        } else {
+            noalias(result.Coordinates()) = rLinePointB;
+        }
         return result;
     }
-
-    // If the projected point is outside the line, return the nearest end point
-    array_1d<double, 3> auxiliary_values = rLinePointA - result;
-    const double distance1 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
-    noalias(auxiliary_values) = rLinePointB - result;
-    const double distance2 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
-    if (distance1 < distance2) {
-        noalias(result.Coordinates()) = rLinePointA;
-    } else {
-        noalias(result.Coordinates()) = rLinePointB;
-    }
-    return result;
 }
 
 /***********************************************************************************/
