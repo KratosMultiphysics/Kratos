@@ -657,8 +657,8 @@ public:
         const Vector& b
         )
     {
-        KRATOS_DEBUG_ERROR_IF(a.size() < 3) << "The size of the first vector is not 3. Size: " << a.size() << std::endl;
-        KRATOS_DEBUG_ERROR_IF(b.size() < 3) << "The size of the second vector is not 3. Size: " << b.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(a.size() == 3) << "The size of the first vector is not 3. Size: " << a.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(b.size() == 3) << "The size of the second vector is not 3. Size: " << b.size() << std::endl;
         return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
     }
 
