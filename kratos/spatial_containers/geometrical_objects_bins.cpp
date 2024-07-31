@@ -71,8 +71,8 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    // Initialize the results
-    std::unordered_map<GeometricalObject*, double> results;
+    // Initialize the candidates
+    std::unordered_set<GeometricalObject*> candidates;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -90,35 +90,26 @@ void GeometricalObjectsBins::SearchInRadius(
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
                 for(auto p_geometrical_object : r_cell) {
-                    results.insert({p_geometrical_object, 0.0});
+                    candidates.insert(p_geometrical_object);
                 }
             }
         }
     }
 
-    // Loop over the candidates and filter by distance
-    std::unordered_set<GeometricalObject*> to_erase;
-    for(auto& r_pair : results) {
-        auto p_geometrical_object = r_pair.first;
-        double& r_distance = r_pair.second;
+    // Loop over the candidates and filter by distance and fill the results
+    rResults.clear();
+    rResults.reserve(candidates.size());
+    for(auto& p_geometrical_object : candidates) {
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        r_distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-        if((Radius + mTolerance) <= r_distance) {
-            to_erase.insert(p_geometrical_object);
+        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+        if((Radius + mTolerance) > distance) {
+            rResults.push_back(ResultType(p_geometrical_object));
+            rResults.back().SetDistance(distance);
         }
     }
-    // Erase the objects that are not within the radius
-    for (auto p_geometrical_object : to_erase) {
-        results.erase(p_geometrical_object);
-    }
 
-    // Fill the results
-    rResults.clear();
-    rResults.reserve(results.size());
-    for(auto& object : results){
-        rResults.push_back(ResultType(object.first));
-        rResults.back().SetDistance(object.second);
-    }
+    // Shrink the results
+    rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
