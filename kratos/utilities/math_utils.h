@@ -42,6 +42,20 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+/**
+ * @brief Enum class that defines the possible scenarios for the clamp function
+ * @details This enum class defines the possible scenarios for the clamp function
+ * WITHIN: The value is within the limits
+ * MINIMUM: The value is below the minimum
+ * MAXIMUM: The value is above the maximum
+ */
+enum class ClampScenario
+{
+    WITHIN_BOUNDS,
+    BELOW_MINIMUM,
+    ABOVE_MAXIMUM
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -722,6 +736,39 @@ public:
         } else if (rX > rMaximum) {
             return rMaximum;
         } else {
+            return rX;
+        }
+    }
+
+    /**
+     * @brief Clamps a value between a minimum and maximum range with a scenario.
+     * @details This function ensures that the given value `rX` lies within the specified
+     * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+     * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+     * Otherwise, it returns `rX`. It also returns a scenario indicating if the value is below the minimum, above the maximum or within the bounds.
+     * @tparam T The type of the value and bounds, typically a numeric type.
+     * @param rX The value to clamp.
+     * @param rMinimum The minimum bound.
+     * @param rMaximum The maximum bound.
+     * @param rScenario The scenario where the value is clamped. It can be BELOW_MINIMUM, ABOVE_MAXIMUM or WITHIN_BOUNDS.
+     * @return The clamped value.
+     */
+    template <typename T>
+    static inline T Clamp(
+        const T& rX,
+        const T& rMinimum,
+        const T& rMaximum,
+        ClampScenario& rScenario
+        )
+    {
+        if (rX < rMinimum) {
+            rScenario = ClampScenario::BELOW_MINIMUM;
+            return rMinimum;
+        } else if (rX > rMaximum) {
+            rScenario = ClampScenario::ABOVE_MAXIMUM;
+            return rMaximum;
+        } else {
+            rScenario = ClampScenario::WITHIN_BOUNDS;
             return rX;
         }
     }
