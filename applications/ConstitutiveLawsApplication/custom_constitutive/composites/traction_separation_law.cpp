@@ -1187,7 +1187,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
         for(IndexType k=0; k < 3; ++k) {
             for(IndexType h=0; h < 3; ++h) {
                 A[k][h] = A1[k][h] + A2[k][h];
-                B[k][h] = B1[k][h] + B2[k][h];
+                B[k][h] = B1[k][h] - B2[k][h];
                 D[k][h] = D1[k][h] + D2[k][h];
             }
         }
