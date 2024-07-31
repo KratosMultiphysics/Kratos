@@ -47,7 +47,8 @@ namespace Kratos
         array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
 
-        r_geometry.Calculate(NORMAL, normal_parameter_space);
+        normal_parameter_space = - r_geometry.Normal(0, GetIntegrationMethod());
+        normal_parameter_space = normal_parameter_space / MathUtils<double>::Norm(normal_parameter_space);
 
         normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
         

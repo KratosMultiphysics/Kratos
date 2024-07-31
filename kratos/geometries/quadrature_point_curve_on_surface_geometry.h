@@ -154,14 +154,6 @@ public:
             rOutput[0] = mLocalTangentsU;
             rOutput[1] = mLocalTangentsV;
             rOutput[2] = 0.0;
-        } else if (rVariable == NORMAL) {
-            array_1d<double, 3> tangent_parameter_space;
-            Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-            double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-            
-            rOutput[0] = + tangent_parameter_space[1] / magnitude;
-            rOutput[1] = - tangent_parameter_space[0] / magnitude; 
-            rOutput[2] = 0;
         }
     }
 
