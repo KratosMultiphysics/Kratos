@@ -334,8 +334,7 @@ public:
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(
-        ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageParameters &rPlasticDamageParameters);
+        ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues);
 
 
     /**

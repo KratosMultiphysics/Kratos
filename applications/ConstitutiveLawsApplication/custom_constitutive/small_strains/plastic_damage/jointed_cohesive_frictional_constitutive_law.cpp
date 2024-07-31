@@ -377,8 +377,7 @@ int JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Check(
 
 template<class TYieldSurfaceType>
 void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateTangentTensor(
-    ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPlasticDamageParameters
+    ConstitutiveLaw::Parameters& rValues
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -401,8 +400,7 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateTange
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
-        double det = 0.0;
-        MathUtils<double>::InvertMatrix(mComplianceMatrix, rValues.GetConstitutiveMatrix(), det);
+        
     }
 }
 
