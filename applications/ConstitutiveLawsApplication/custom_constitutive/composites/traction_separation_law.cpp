@@ -1141,9 +1141,6 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     }
 
     CalculateABDMatrices(NumberOfLayers, L, T, 0.0, A, B, D);
-    KRATOS_WATCH(A);
-    KRATOS_WATCH(B);
-    KRATOS_WATCH(D);
 
     CalculateCompositeStiffnessAndComplianceMatrices(A, B, D, StiffnessMatrix, ComplianceMatrix, a11, a22, a33);
 
