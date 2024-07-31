@@ -29,26 +29,51 @@ namespace Kratos
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-ConstitutiveLaw::Pointer JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Clone() const
+ConstitutiveLaw::Pointer JointedCohesiveFrictionalConstitutiveLaw::Clone() const
 {
     return Kratos::make_shared<JointedCohesiveFrictionalConstitutiveLaw>(*this);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void JointedCohesiveFrictionalConstitutiveLaw::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
+{
+
+
+// todo
+
+
+
+}
+
+
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
+void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    // todo
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
 
 
 
-
-
+// todo
 
 
 }
@@ -56,24 +81,7 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateMater
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-
-
-
-
-
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Has(
+bool JointedCohesiveFrictionalConstitutiveLaw::Has(
     const Variable<double>& rThisVariable
     )
 {
@@ -93,8 +101,7 @@ bool JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-bool JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Has(
+bool JointedCohesiveFrictionalConstitutiveLaw::Has(
     const Variable<Vector>& rThisVariable
     )
 {
@@ -108,8 +115,7 @@ bool JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-double& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::GetValue(
+double& JointedCohesiveFrictionalConstitutiveLaw::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -130,8 +136,7 @@ double& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-Vector& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::GetValue(
+Vector& JointedCohesiveFrictionalConstitutiveLaw::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -148,8 +153,7 @@ Vector& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::SetValue(
+void JointedCohesiveFrictionalConstitutiveLaw::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -167,8 +171,7 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::SetValue(
+void JointedCohesiveFrictionalConstitutiveLaw::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -182,8 +185,7 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-double& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateValue(
+double& JointedCohesiveFrictionalConstitutiveLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -214,143 +216,14 @@ double& JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateVa
     // } else {
     //     BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     // }
-    // return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
-    )
-{
-
-
-
-
-
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void  JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-template<class TYieldSurfaceType>
-/***********************************************************************************/
-/***********************************************************************************/
-
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK2(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    FinalizeMaterialResponseCauchy(rValues);
+    return rValue;
 }
 
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-int JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Check(
+int JointedCohesiveFrictionalConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -358,25 +231,13 @@ int JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::Check(
 {
     // The auxiliary output
     int aux_out = 0;
-    // KRATOS_ERROR_IF(!rMaterialProperties.Has(FRACTURE_ENERGY))           << "FRACTURE_ENERGY not provided in the material properties" << std::endl;
-    // KRATOS_ERROR_IF(!rMaterialProperties.Has(HARDENING_CURVE))           << "HARDENING_CURVE not provided in the material properties" << std::endl;
-    // KRATOS_ERROR_IF(!rMaterialProperties.Has(PLASTIC_DAMAGE_PROPORTION)) << "PLASTIC_DAMAGE_PROPORTION not provided in the material properties" << std::endl;
-
-    // // Checking curves
-    // const int curve_type = rMaterialProperties[HARDENING_CURVE];
-    // if (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type) == GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints) {
-    //     KRATOS_ERROR_IF(!rMaterialProperties.Has(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE))  << "EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
-    //     KRATOS_ERROR_IF(!rMaterialProperties.Has(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE))       << "TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
-    // }
     return aux_out;
 }
 
-
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TYieldSurfaceType>
-void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateTangentTensor(
+void JointedCohesiveFrictionalConstitutiveLaw::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -388,8 +249,7 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateTange
         static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        // CalculateAnalyticalTangentTensor(rValues, rPlasticDamageParameters);
-        noalias(rValues.GetConstitutiveMatrix()) = rPlasticDamageParameters.TangentTensor;
+
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
@@ -400,8 +260,12 @@ void JointedCohesiveFrictionalConstitutiveLaw<TYieldSurfaceType>::CalculateTange
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
-        
+
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 } // Namespace Kratos

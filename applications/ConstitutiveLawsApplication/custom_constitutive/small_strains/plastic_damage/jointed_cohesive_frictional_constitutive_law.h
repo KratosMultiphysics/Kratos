@@ -54,7 +54,6 @@ localized failure in quasi-brittle solids: Material model and strain
 localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03.005)
  * @author Alejandro Cornejo
  */
-template<class TYieldSurfaceType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) JointedCohesiveFrictionalConstitutiveLaw
     : public LinearPlaneStrain
 {
@@ -243,70 +242,11 @@ public:
         ) override;
 
     /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
