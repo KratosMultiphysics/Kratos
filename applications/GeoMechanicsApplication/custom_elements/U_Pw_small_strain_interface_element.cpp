@@ -179,8 +179,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
     RetentionLaw::Parameters RetentionParameters(r_prop);
 
     // Defining necessary variables
-    BoundedMatrix<double, TDim, TNumNodes * TDim> aux_density_matrix = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TDim> density_matrix = ZeroMatrix(TDim, TDim);
 
     array_1d<double, TDim> LocalRelDispVector;
     array_1d<double, TDim> RelDispVector;
@@ -203,13 +201,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
         const auto density =
             GeoTransportEquationUtilities::CalculateSoilDensity(Variables.DegreeOfSaturation, r_prop);
 
-        GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-
-        noalias(aux_density_matrix) = prod(density_matrix, Variables.Nu);
-
         // Adding contribution to Mass matrix
         GeoElementUtilities::AssembleUUBlockMatrix(
-            rMassMatrix, prod(trans(Variables.Nu), aux_density_matrix) * Variables.JointWidth *
+            rMassMatrix, density * prod(trans(Variables.Nu), Variables.Nu) * Variables.JointWidth *
                              Variables.IntegrationCoefficient);
     }
 
