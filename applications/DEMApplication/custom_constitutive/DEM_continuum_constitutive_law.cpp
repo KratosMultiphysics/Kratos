@@ -93,4 +93,9 @@ namespace Kratos {
         return false;
     }
 
+    double DEMContinuumConstitutiveLaw::GetTangentialStiffness() {
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) shouldn't be accessed, use derived class instead"<<std::endl;
+        return 0.0;
+    }
+
 } //kratos

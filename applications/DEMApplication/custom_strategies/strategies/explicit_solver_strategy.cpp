@@ -631,7 +631,7 @@ namespace Kratos {
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-        SetNormalRadiiOnAllParticles(*mpDem_model_part);
+        SetNormalRadiiOnAllParticlesBeforeInitilization(*mpDem_model_part);
 
         #pragma omp parallel
         {
@@ -1307,12 +1307,36 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
+    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticlesBeforeInitilization(ModelPart& r_model_part) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetRadius();
+        });
+
+        KRATOS_CATCH("")
+    }
+    
+    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
+        KRATOS_TRY
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        bool is_radius_expansion = r_process_info[IS_RADIUS_EXPANSION];
+        double radius_expansion_rate = r_process_info[RADIUS_EXPANSION_RATE];
+        double radius_multiplier_max = r_process_info[RADIUS_MULTIPLIER_MAX];
+        const double time = r_process_info[TIME];
+        const double delta_time = r_process_info[DELTA_TIME];
+        double radius_multiplier = 1.0 + time * radius_expansion_rate;
+        double radius_multiplier_old = 1.0 + (time - delta_time) * radius_expansion_rate;
+
+        if (radius_multiplier > radius_multiplier_max) {
+            is_radius_expansion = false;
+        }
+
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+            mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
         });
 
         KRATOS_CATCH("")
