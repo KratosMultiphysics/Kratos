@@ -420,6 +420,45 @@ def find_closest_index_greater_than_value(input_list, value):
     return None
 
 
+def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two values are almost equal.
+
+    Args:
+        - expected (Any): Expected value.
+        - actual (Any): Actual value.
+
+    Returns:
+        - True if the values are almost equal, False otherwise.
+
+    """
+    # check if the value is a dictionary and check the dictionary
+    if isinstance(expected, dict):
+        # check if the value is a dictionary and check the dictionary
+        if not are_dictionaries_almost_equal(expected, actual):
+            return False
+    elif isinstance(expected, str):
+        # check if the value is a string and compare the strings
+        if expected != actual:
+            return False
+    elif isinstance(expected, (list, tuple, set)):
+        # check if the value is a list, tuple or set and compare the values
+        if not are_iterables_almost_equal(expected, actual):
+            return False
+    elif expected is None:
+        # check if the value is None and compare the values
+        if actual is not None:
+            return False
+    elif isinstance(expected, (float, int, complex)):
+        # The value is a number and compare the values
+        if not math.isclose(expected, actual, abs_tol=abs_tolerance):
+            return False
+    else:
+        raise Exception(f"Unsupported type {type(expected)}")
+
+    return True
+
+
 def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
                                abs_tolerance: float = 1e-7) -> bool:
     """
@@ -436,29 +475,10 @@ def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tupl
     # check if the value is a list, tuple or set and compare the values
     if len(expected) != len(actual):
         return False
+
     for v_i, actual_i in zip(expected, actual):
-        if isinstance(v_i, dict):
-            # check if the value is a dictionary and recursively check the dictionary
-            if not are_dictionaries_almost_equal(v_i, actual_i):
-                return False
-        elif isinstance(v_i, str):
-            # check if the value is a string and compare the strings
-            if v_i != actual_i:
-                return False
-        elif isinstance(v_i, (list, tuple, set)):
-            # check if the value is a list, tuple or set and compare the values
-            if not are_iterables_almost_equal(v_i, actual_i):
-                return False
-        elif v_i is None:
-            # check if the value is None and compare the values
-            if actual_i is not None:
-                return False
-        elif isinstance(v_i, (float, int, complex)):
-            # The value is a number and compare the values
-            if not math.isclose(v_i, actual_i, abs_tol=abs_tolerance):
-                return False
-        else:
-            Exception(f"Unsupported type {type(v_i)}")
+        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
+            return False
 
     return True
 
@@ -484,30 +504,9 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
         if k not in actual:
             return False
 
-        # check if values are equal
-        if isinstance(v, dict):
-            # check if the value is a dictionary and recursively check the dictionary
-            if not are_dictionaries_almost_equal(v, actual[k]):
-                return False
-        elif isinstance(v, str):
-            # check if the value is a string and compare the strings
-            if v != actual[k]:
-                return False
-        elif isinstance(v, (list, tuple, set)):
-            # check if the value is a list, tuple or set and compare the values
-            if not are_iterables_almost_equal(v, actual[k], abs_tolerance):
-                return False
-
-        elif v is None:
-            # check if the value is None and compare the values
-            if actual[k] is not None:
-                return False
-        elif isinstance(v, (float, int, complex)):
-            # The value is a number and compare the values
-            if not math.isclose(v, actual[k], abs_tol=abs_tolerance):
-                return False
-        else:
-            Exception(f"Unsupported type {type(v)}")
+        # check if values are almost equal
+        if not are_values_almost_equal(v, actual[k], abs_tolerance):
+            return False
 
     # all checks passed
     return True
