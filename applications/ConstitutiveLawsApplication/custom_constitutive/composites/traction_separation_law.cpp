@@ -1146,8 +1146,6 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     KRATOS_WATCH(D);
 
     CalculateCompositeStiffnessAndComplianceMatrices(A, B, D, StiffnessMatrix, ComplianceMatrix, a11, a22, a33);
-    KRATOS_WATCH(StiffnessMatrix);
-    KRATOS_WATCH(ComplianceMatrix);
 
     a[0][0] = a11;
     a[0][1] = a22;
@@ -1210,60 +1208,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
         } 
     }
 
-    KRATOS_WATCH(a);
     KRATOS_WATCH(Dmax);
-
-    // Calculating the [ABD] matrix in delaminated case scenarios
-
-    // Vector L(4); 
-    // L[0] = 0.0075; 
-    // L[1] = 0.0025; 
-    // L[2] = -0.0025; 
-    // L[3] = -0.0075; 
-
-    // Vector T(3);
-    // T[0] = -45;
-    // T[1] = 30;
-    // T[2] = 0;
-
-    // std::vector<Vector> A(3);
-    // for (IndexType i=0; i < 3; ++i) {
-    //     A[i].resize(3, false);
-    // }
-
-    // std::vector<Vector> B(3);
-    // for (IndexType i=0; i < 3; ++i) {
-    //     B[i].resize(3, false);
-    // }
-
-    // std::vector<Vector> D(3);
-    // for (IndexType i=0; i < 3; ++i) {
-    //     D[i].resize(3, false);
-    // }
-
-    // std::vector<Vector> K(6);
-    // for (IndexType i=0; i < 6; ++i) {
-    //     K[i].resize(6, false);
-    // }
-
-    // std::vector<Vector> ComplianceMatrix(6);
-    // for (IndexType i=0; i < 6; ++i) {
-    //     ComplianceMatrix[i].resize(6, false);
-    // }
-
-    // double S=0;
-
-
-    // CalculateABDMatrices(3, L, T, S, A, B, D, K, ComplianceMatrix);
-    // KRATOS_WATCH(A);
-    // KRATOS_WATCH(B);
-    // KRATOS_WATCH(D);
-    // KRATOS_WATCH(StiffnessMatrix);
-    // KRATOS_WATCH(ComplianceMatrix);
-    // KRATOS_WATCH(a11);
-    // KRATOS_WATCH(a22);
-    // KRATOS_WATCH(a33);
-   
 
     // Calculating A, B, and D matrices
 }
@@ -1804,15 +1749,6 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
         QB[2][2][k]=0.5*(U1-U4)-U3*cos(4*T[k]);
     }
 
-        // QB[0][0][k]=U1+U2*cos(2*T[k])+U3*cos(4*T[k]);
-        // QB[0][1][k]=U4-U3*cos(4*T[k]);
-        // QB[1][0][k]=QB[0][1][k];
-        // QB[1][1][k]=U1-U2*cos(2*T[k])+U3*cos(4*T[k]);
-        // QB[2][0][k]=0.5*U2*sin(2*T[k])+U3*sin(4*T[k]);
-        // QB[0][2][k]=2*QB[2][0][k];
-        // QB[2][1][k]=0.5*U2*sin(2*T[k])-U3*sin(4*T[k]);
-        // QB[1][2][k]=2*QB[2][1][k];
-        // QB[2][2][k]=(U1-U4)-2*U3*cos(4*T[k]);
 
     std::vector<std::vector<std::vector<double>>> AS(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
     std::vector<std::vector<std::vector<double>>> BS(3, std::vector<std::vector<double>>(3, std::vector<double>(n)));
@@ -1824,10 +1760,6 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
                 AS[i][j][k]=QB[i][j][k]*(L[k]-L[k+1]);
                 BS[i][j][k]=QB[i][j][k]*(((L[k])*(L[k]))-(L[k+1])*(L[k+1]));
                 DS[i][j][k]=QB[i][j][k]*((L[k])*(L[k])*(L[k])-(L[k+1])*(L[k+1])*(L[k+1]));
-
-                // AS[i][j][k]=QB[i][j][k]*(L[k+1]-L[k]);
-                // BS[i][j][k]=QB[i][j][k]*(((L[k+1])*(L[k+1]))-(L[k])*(L[k]));
-                // DS[i][j][k]=QB[i][j][k]*((L[k+1])*(L[k+1])*(L[k+1])-(L[k])*(L[k])*(L[k]));
             }
         }
     }
@@ -1874,80 +1806,9 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
         }
    }
 
-//    // Constructing stifness matrix
-
-//    for (IndexType i=0; i < 6; ++i) {
-//         K[i].resize(6, false);
-//    }
-
-//    for (int i = 0; i < A.size(); ++i) {
-//         for (int j = 0; j < A[i].size(); ++j) {
-//             K[i][j] = A[i][j];
-//             K[i][j + A[i].size()] = B[i][j];
-//             K[i + A.size()][j] = B[i][j];
-//             K[i + A.size()][j + A[i].size()] = D[i][j];
-//         }
-//     }
-   
-//    // Calculating the inverse matrix
-
-//     int matrix_size = 6;
-//     std::vector<Vector> augmentedMatrix(matrix_size);
-//     for (IndexType i=0; i < matrix_size; ++i) {
-//         augmentedMatrix[i].resize(2*matrix_size, false);
-//     }
-
-//     for(IndexType i=0; i < matrix_size; ++i) {
-//         for(IndexType j=0; j < matrix_size; ++j) {
-//             augmentedMatrix[i][j] = K[i][j];
-//         }
-//     }
-
-//      for(IndexType i=0; i < matrix_size; ++i) {
-//         for(IndexType j=6; j < 12; ++j) {
-//             augmentedMatrix[i][j] = 0.0;
-//         }
-//     }
-
-//     for (IndexType i = 0; i < matrix_size; ++i) {
-//         augmentedMatrix[i][i + matrix_size] = 1.0;
-//     }
-
-//     for (IndexType i = 0; i < matrix_size; ++i) {
-//         double diagElem = augmentedMatrix[i][i];
-//         if (diagElem == 0.0) throw std::runtime_error("Matrix is singular and cannot be inverted.");
-
-//         for (IndexType j = 0; j < 2 * matrix_size; ++j) {
-//             augmentedMatrix[i][j] /= diagElem;
-//         }
-
-//         for (IndexType k = 0; k < matrix_size; ++k) {
-//             if (k != i) {
-//                 double factor = augmentedMatrix[k][i];
-//                 for (IndexType j = 0; j < 2 * matrix_size; ++j) {
-//                     augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-//                 }
-//             }
-//         }
-//     }
-
-//     for (IndexType i=0; i < matrix_size; ++i) {
-//         ComplianceMatrix[i].resize(matrix_size, false);
-//     }
-
-//     for (IndexType i = 0; i < matrix_size; ++i) {
-//         for (IndexType j = 0; j < matrix_size; ++j) {
-//             ComplianceMatrix[i][j] = augmentedMatrix[i][j + matrix_size];
-//         }
-//     }
-
-   //
-
     return A;
     return B;
     return D;
-    // return K;
-    // return ComplianceMatrix;
 }
 
 /***********************************************************************************/
