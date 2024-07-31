@@ -40,6 +40,8 @@
 #include "custom_constitutive/small_strains/linear/wrinkling_linear_2d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
+#include "custom_constitutive/small_strains/plastic_damage/jointed_cohesive_frictional_constitutive_law.h"
+
 
 // Plastic, damage laws and viscosities
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
@@ -237,6 +239,9 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"ViscousGeneralizedMaxwell3D").def(py::init<>())
     ;
 
+    py::class_< JointedCohesiveFrictionalConstitutiveLaw, typename JointedCohesiveFrictionalConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "JointedCohesiveFrictionalConstitutiveLaw").def(py::init<>() )
+    ;
 
     // Custom Constitutive Laws Registration
     // Isotropic Plasticity

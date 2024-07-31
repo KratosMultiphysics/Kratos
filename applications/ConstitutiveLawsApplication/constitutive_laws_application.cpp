@@ -35,6 +35,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_INFO("") << "Initializing KratosConstitutiveLawsApplication..." << std::endl;
 
     // Damage and plasticity
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("JointedCohesiveFrictionalConstitutiveLaw", mJointedCohesiveFrictionalConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
     // Register hyper elastic laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenant3DLaw", mHyperElasticIsotropicKirchhoff3D);

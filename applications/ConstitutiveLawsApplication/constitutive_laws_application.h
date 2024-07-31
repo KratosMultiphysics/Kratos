@@ -275,6 +275,7 @@ private:
 
 
     // Damage and plasticity laws
+    const JointedCohesiveFrictionalConstitutiveLaw  mJointedCohesiveFrictionalConstitutiveLaw;
     const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
