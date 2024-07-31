@@ -80,9 +80,9 @@ public:
      * @param rLine The line in which we want to find the nearest point to rPoint
      * @return The nearest point to rPoint
      */
-    template<class TPointType, class TGeometryType>
+    template<class TGeometryType>
     static Point LineNearestPoint(
-        const TPointType& rPoint,
+        const array_1d<double, 3>& rPoint,
         const TGeometryType& rLine
         )
     {
@@ -129,67 +129,26 @@ public:
         );
 
     /**
-     * @brief Finds the nearest point to the given point on a triangle.
-     * @details It first projects the point into the triangle surface. If the projected point is inside the triangle
-     * it returns the projected point. If not it returns the nearest point on the edges of the triangle.
-     * Dividing the plane of the triangle in 7 zones and find the nearest reflecting those zones
-     *
-     *             \       /
-     *              \  6  /
-     *               \   /
-     *                \ /
-     *                 /\
-     *                /  \
-     *          2    /    \     3
-     *              /   1  \
-     *             /        \
-     *    _______ /__________\_____________
-     *           /            \
-     *     5    /       4      \    7
-     *         /                \
-     *        /                  \
+     * @brief Computes the nearest point on a triangle to a given point in 3D space.
+     * @details This method calculates the nearest point on a triangle defined by three points
+     * (`rTrianglePoint0`, `rTrianglePoint1`, and `rTrianglePoint2`) to a given point
+     * `rPoint` in 3D space. If the nearest point lies within the triangle, it returns
+     * the projection. If the nearest point lies on one of the triangle's edges, it
+     * returns the nearest point on that edge.
+     * Based on https://www.shadertoy.com/view/ttfGWl
      * @tparam Type of the Point
      * @tparam TGeometryType The type of the triangle. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rTriangle The triangle in which we want to find the nearest point to rPoint
      * @return The nearest point to rPoint
      */
-    template<class TPointType, class TGeometryType>
+    template<class TGeometryType>
     static Point TriangleNearestPoint(
-        const TPointType& rPoint,
+        const array_1d<double, 3>& rPoint,
         const TGeometryType& rTriangle
         )
     {
-        constexpr double Tolerance = 1e-12;
-        Point result;
-        array_1d<double,3> local_coordinates = ZeroVector(3);
-        const Point center = rTriangle.Center();
-        const array_1d<double, 3> normal = rTriangle.UnitNormal(local_coordinates);
-        double distance = 0.0;
-        const Point point_projected = GeometricalProjectionUtilities::FastProject( center, rPoint, normal, distance);
-        rTriangle.PointLocalCoordinates(local_coordinates, point_projected);
-
-        if(local_coordinates[0] < -Tolerance) { // case 2,5,6
-            if(local_coordinates[1] < -Tolerance) { // case 5
-                result = rTriangle[0];
-            } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 6
-                result = rTriangle[2];
-            } else {
-                result = LineNearestPoint(rPoint, rTriangle.GetPoint(0), rTriangle.GetPoint(2));
-            }
-        } else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
-            if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 7
-                result = rTriangle[1];
-            } else { // case 4
-                result = LineNearestPoint(rPoint, rTriangle.GetPoint(0), rTriangle.GetPoint(1));
-            }
-        } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
-            result = LineNearestPoint(rPoint, rTriangle.GetPoint(1), rTriangle.GetPoint(2));
-        } else {  // inside
-            result = point_projected;
-        }
-
-        return result;
+        return TriangleNearestPoint(rPoint, rTriangle[0], rTriangle[1], rTriangle[2]);
     }
 
     ///@}
