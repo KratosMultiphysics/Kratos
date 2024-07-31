@@ -66,8 +66,10 @@ Point NearestPointUtilities::LineNearestPoint(
     }
 
     // If the projected point is outside the line, return the nearest end point
-    const double distance1 = norm_2(rLinePointA - result);
-    const double distance2 = norm_2(rLinePointB - result);
+    array_1d<double, 3> auxiliary_values = rLinePointA - result;
+    const double distance1 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
+    noalias(auxiliary_values) = rLinePointB - result;
+    const double distance2 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
     if (distance1 < distance2) {
         noalias(result.Coordinates()) = rLinePointA;
     } else {
