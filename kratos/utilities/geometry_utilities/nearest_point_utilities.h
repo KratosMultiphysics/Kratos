@@ -30,6 +30,32 @@ namespace Kratos {
 ///@{
 
 ///@}
+///@name  Enum's
+///@{
+
+/**
+ * @brief Enum class that defines the possible locations of the nearest point to a triangle
+ * @details This enum class defines the possible locations of the nearest point to a triangle
+ * INSIDE_TRIANGLE: The nearest point is inside the triangle
+ * ON_TRIANGLE_EDGE_01: The nearest point is on the edge 01 of the triangle
+ * ON_TRIANGLE_EDGE_12: The nearest point is on the edge 12 of the triangle
+ * ON_TRIANGLE_EDGE_20: The nearest point is on the edge 20 of the triangle
+ * ON_TRIANGLE_VERTEX_0: The nearest point is on the vertex 0 of the triangle
+ * ON_TRIANGLE_VERTEX_1: The nearest point is on the vertex 1 of the triangle
+ * ON_TRIANGLE_VERTEX_2: The nearest point is on the vertex 2 of the triangle
+ */
+enum class TriangleNearestPointLocation
+{
+    INSIDE_TRIANGLE,
+    ON_TRIANGLE_EDGE_01,
+    ON_TRIANGLE_EDGE_12,
+    ON_TRIANGLE_EDGE_20,
+    ON_TRIANGLE_VERTEX_0,
+    ON_TRIANGLE_VERTEX_1,
+    ON_TRIANGLE_VERTEX_2
+};
+
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -136,8 +162,31 @@ public:
      * the projection. If the nearest point lies on one of the triangle's edges, it
      * returns the nearest point on that edge.
      * Based on https://www.shadertoy.com/view/ttfGWl
+     * @param rPoint The point from which the nearest point on the triangle is to be found.
+     * @param rTrianglePoint0 The first vertex of the triangle.
+     * @param rTrianglePoint1 The second vertex of the triangle.
+     * @param rTrianglePoint2 The third vertex of the triangle.
+     * @param rResult Point The nearest point on the triangle to the given point.
+     * @return TriangleNearestPointLocation The location of the nearest point on the triangle.
+     */
+    static TriangleNearestPointLocation TriangleNearestPoint(
+        const array_1d<double, 3>& rPoint,
+        const array_1d<double, 3>& rTrianglePoint0,
+        const array_1d<double, 3>& rTrianglePoint1,
+        const array_1d<double, 3>& rTrianglePoint2,
+        Point& rResult
+        );
+
+    /**
+     * @brief Computes the nearest point on a triangle to a given point in 3D space.
+     * @details This method calculates the nearest point on a triangle defined by three points
+     * (`rTrianglePoint0`, `rTrianglePoint1`, and `rTrianglePoint2`) to a given point
+     * `rPoint` in 3D space. If the nearest point lies within the triangle, it returns
+     * the projection. If the nearest point lies on one of the triangle's edges, it
+     * returns the nearest point on that edge.
+     * Based on https://www.shadertoy.com/view/ttfGWl
      * @tparam Type of the Point
-     * @tparam TGeometryType The type of the triangle. Assumes to have [] access and IsInside method
+     * @tparam TGeometryType The type of the triangle.
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rTriangle The triangle in which we want to find the nearest point to rPoint
      * @return The nearest point to rPoint
@@ -149,6 +198,31 @@ public:
         )
     {
         return TriangleNearestPoint(rPoint, rTriangle[0], rTriangle[1], rTriangle[2]);
+    }
+
+    /**
+     * @brief Computes the nearest point on a triangle to a given point in 3D space.
+     * @details This method calculates the nearest point on a triangle defined by three points
+     * (`rTrianglePoint0`, `rTrianglePoint1`, and `rTrianglePoint2`) to a given point
+     * `rPoint` in 3D space. If the nearest point lies within the triangle, it returns
+     * the projection. If the nearest point lies on one of the triangle's edges, it
+     * returns the nearest point on that edge.
+     * Based on https://www.shadertoy.com/view/ttfGWl
+     * @tparam Type of the Point
+     * @tparam TGeometryType The type of the triangle.
+     * @param rPoint The query point which we want to get nearest point to it on the line
+     * @param rTriangle The triangle in which we want to find the nearest point to rPoint
+     * @param rResult Point The nearest point on the triangle to the given point.
+     * @return TriangleNearestPointLocation The location of the nearest point on the triangle.
+     */
+    template<class TGeometryType>
+    static TriangleNearestPointLocation TriangleNearestPoint(
+        const array_1d<double, 3>& rPoint,
+        const TGeometryType& rTriangle,
+        Point& rResult
+        )
+    {
+        return TriangleNearestPoint(rPoint, rTriangle[0], rTriangle[1], rTriangle[2], rResult);
     }
 
     ///@}
