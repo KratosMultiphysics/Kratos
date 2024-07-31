@@ -412,6 +412,7 @@ private:
     std::vector <HCFDataContainer> mFatigueDataContainersModeOne;
     std::vector <HCFDataContainer> mFatigueDataContainersModeTwo;
     bool mFatigueLoadingStateParameter = false;
+    std::vector<Vector> mMaximumDelaminationDamageVector;
     ///@}
     ///@name Private Operators
     ///@{

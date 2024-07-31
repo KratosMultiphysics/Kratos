@@ -56,7 +56,8 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationL
       mThresholdModeOne(rOther.mThresholdModeOne),
       mThresholdModeTwo(rOther.mThresholdModeTwo),
       mFatigueDataContainersModeOne(rOther.mFatigueDataContainersModeOne),
-      mFatigueDataContainersModeTwo(rOther.mFatigueDataContainersModeTwo)
+      mFatigueDataContainersModeTwo(rOther.mFatigueDataContainersModeTwo),
+      mMaximumDelaminationDamageVector(rOther.mMaximumDelaminationDamageVector)
 {
 }
 
@@ -1087,7 +1088,7 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     // Calculating A, B, and D matrices
 
-    double Thickness = 0.015;
+    double Thickness = 0.0624;
     double NumberOfLayers = r_p_constitutive_law_vector.size();
 
     std::vector<Vector> A(3);
@@ -1195,17 +1196,21 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     }
 
     std::vector<Vector> Dmax(NumberOfLayers + 1);
+    mMaximumDelaminationDamageVector.resize(NumberOfLayers + 1);
     for (IndexType i=0; i < NumberOfLayers + 1; ++i) {
         Dmax[i].resize(3);
+        mMaximumDelaminationDamageVector[i].resize(3);
     }
 
     for(IndexType i=0; i < NumberOfLayers - 1; ++i) {
         for(IndexType j=0; j < 3; ++j) {
             Dmax[i+1][j] = a[0][j] / a[i+1][j];
+            mMaximumDelaminationDamageVector[i+1][j] = Dmax[i+1][j];
         } 
     }
 
-    KRATOS_WATCH(Dmax);
+    // KRATOS_WATCH(Dmax);
+    // KRATOS_WATCH(mMaximumDelaminationDamageVector);
 
     // Calculating A, B, and D matrices
 }
@@ -1718,10 +1723,10 @@ std::vector<Vector>& TractionSeparationLaw3D<TDim>::CalculateABDMatrices(
     }
     
 
-    double E1=181e9;
-    double E2=10.3e9;
-    double G12=7.17e9;
-    double v12=0.28;
+    double E1=19.3e6;
+    double E2=1.62e6;
+    double G12=1.02e6;
+    double v12=0.288;
     double v21=(E2/E1)*v12;
     double Q11=E1/(1-(v12)*(v21));
     double Q22=E2/(1-(v12)*(v21));
