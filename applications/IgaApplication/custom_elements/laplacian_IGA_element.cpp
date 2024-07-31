@@ -113,7 +113,7 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const double heat_flux = this->GetValue(r_volume_source_var);
     const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
-    for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
+    for(IndexType i_point = 0; i_point < integration_points.size(); ++i_point)
     {
         noalias(DN_DX) = DN_De[i_point] ; //prod(DN_De[i_point],InvJ0);
 
@@ -126,7 +126,7 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
     // RHS = ExtForces - K*temp;
-    for (unsigned int i = 0; i < number_of_points; i++) {
+    for (IndexType i = 0; i < number_of_points; i++) {
         temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
 

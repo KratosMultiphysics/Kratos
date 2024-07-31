@@ -43,7 +43,7 @@ namespace Kratos
         Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
         Vector d;
         std::vector<Matrix> mShapeFunctionDerivatives;
-        int basis_functions_order;
+        IndexType basis_functions_order;
 
         // enum
         enum class BoundaryConditionType {
@@ -238,11 +238,11 @@ namespace Kratos
             throw std::invalid_argument("Invalid boundary condition type");
         }
 
-        unsigned long long factorial(int n); 
+        unsigned long long factorial(IndexType n); 
 
-        double computeTaylorTerm(double derivative, double dx, int k, double dy, int n_k);
+        double computeTaylorTerm(double derivative, double dx, IndexType k, double dy, IndexType n_k);
 
-        double computeTaylorTerm3D(double derivative, double dx, int k_x, double dy, int k_y, double dz, int k_z);
+        double computeTaylorTerm3D(double derivative, double dx, IndexType k_x, double dy, IndexType k_y, double dz, IndexType k_z);
 
         ///@}
         ///@name Input and output

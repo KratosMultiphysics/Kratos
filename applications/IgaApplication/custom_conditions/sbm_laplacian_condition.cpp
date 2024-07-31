@@ -110,7 +110,7 @@ namespace Kratos
         int closestNodeId;
         if (dim > 2) {
             double incumbent_dist = 1e16;
-            for (int i = 0; i < dim; i++) {
+            for (unsigned int i = 0; i < dim; i++) {
                 if (norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-GP_parameter_coord) < incumbent_dist) {
                     incumbent_dist = norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-GP_parameter_coord);
                     closestNodeId = i;
@@ -178,8 +178,8 @@ namespace Kratos
                 for (IndexType n = 1; n <= basis_functions_order; n++) {
                     // Retrieve the appropriate derivative for the term
                     Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
-                    for (int k = 0; k <= n; k++) {
-                        int n_k = n - k;
+                    for (IndexType k = 0; k <= n; k++) {
+                        IndexType n_k = n - k;
                         double derivative = shapeFunctionDerivatives(i,k); 
                         // Compute the Taylor term for this derivative
                         H_taylor_term += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
@@ -192,12 +192,12 @@ namespace Kratos
                     
                     int countDerivativeId = 0;
                     // Loop over blocks of derivatives in x
-                    for (int k_x = n; k_x >= 0; k_x--) {
+                    for (IndexType k_x = n; k_x >= 0; k_x--) {
                         // Loop over the possible derivatives in y
-                        for (int k_y = n - k_x; k_y >= 0; k_y--) {
+                        for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
                             
                             // derivatives in z
-                            int k_z = n - k_x - k_y;
+                            IndexType k_z = n - k_x - k_y;
                             double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
 
                             H_taylor_term += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y, d[2], k_z);
@@ -230,7 +230,7 @@ namespace Kratos
 
             Vector temp(number_of_nodes);
             // RHS = ExtForces - K*temp;
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (IndexType i = 0; i < number_of_nodes; i++) {
                 temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
             }
             // RHS -= K*temp
@@ -367,7 +367,7 @@ namespace Kratos
             {
                 H(0, i) = N(point_number, i);
                 // grad N cdot n_tilde
-                for (IndexType idim = 0; idim < dim; idim++) {
+                for (unsigned int idim = 0; idim < dim; idim++) {
                     DN_dot_n_tilde(0, i)  += DN_DX(i, idim) * normal_parameter_space[idim];
                 } 
                 // Reset for each control point
@@ -379,14 +379,14 @@ namespace Kratos
                     for (IndexType n = 2; n <= basis_functions_order; n++) {
                         // Retrieve the appropriate derivative for the term
                         Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
-                        for (int k = 0; k <= n-1; k++) {
-                            int n_k = n - 1 - k;
+                        for (IndexType k = 0; k <= n-1; k++) {
+                            IndexType n_k = n - 1 - k;
                             double derivative = shapeFunctionDerivatives(i,k); 
                             // Compute the Taylor term for this derivative
                             H_taylor_term_X += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
                         }
-                        for (int k = 0; k <= n-1; k++) {
-                            int n_k = n - 1 - k;
+                        for (IndexType k = 0; k <= n-1; k++) {
+                            IndexType n_k = n - 1 - k;
                             double derivative = shapeFunctionDerivatives(i,k+1); 
                             // Compute the Taylor term for this derivative
                             H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
@@ -399,12 +399,12 @@ namespace Kratos
                     
                         int countDerivativeId = 0;
                         // Loop over blocks of derivatives in x
-                        for (int k_x = n; k_x >= 0; k_x--) {
+                        for (IndexType k_x = n; k_x >= 0; k_x--) {
                             // Loop over the possible derivatives in y
-                            for (int k_y = n - k_x; k_y >= 0; k_y--) {
+                            for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
         
                                 // derivatives in z
-                                int k_z = n - k_x - k_y;
+                                IndexType k_z = n - k_x - k_y;
                                 double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                                 
                                 if (k_x >= 1) {
@@ -458,7 +458,7 @@ namespace Kratos
 
                 Vector temp(number_of_nodes);
                 // RHS = ExtForces - K*temp;
-                for (unsigned int i = 0; i < number_of_nodes; i++) {
+                for (IndexType i = 0; i < number_of_nodes; i++) {
                     temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
                 }
                 // RHS -= K*temp
@@ -473,21 +473,21 @@ namespace Kratos
     
 
 
-    unsigned long long SBMLaplacianCondition::factorial(int n) 
+    unsigned long long SBMLaplacianCondition::factorial(IndexType n) 
     {
         if (n == 0) return 1;
         unsigned long long result = 1;
-        for (int i = 2; i <= n; ++i) result *= i;
+        for (IndexType i = 2; i <= n; ++i) result *= i;
         return result;
     }
 
     // Function to compute a single term in the Taylor expansion
-    double SBMLaplacianCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
+    double SBMLaplacianCondition::computeTaylorTerm(double derivative, double dx, IndexType n_k, double dy, IndexType k)
     {
         return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
     }
 
-    double SBMLaplacianCondition::computeTaylorTerm3D(double derivative, double dx, int k_x, double dy, int k_y, double dz, int k_z)
+    double SBMLaplacianCondition::computeTaylorTerm3D(double derivative, double dx, IndexType k_x, double dy, IndexType k_y, double dz, IndexType k_z)
     {   
         return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (factorial(k_x) * factorial(k_y) * factorial(k_z));    
     }

@@ -68,7 +68,7 @@ namespace Kratos
                 H(0, i)            = N(point_number, i);
                 H_vector(i)        = N(point_number, i); 
 
-                for (IndexType idim = 0; idim < dim; idim++) {
+                for (unsigned int idim = 0; idim < dim; idim++) {
                     DN_dot_n(0, i)   += DN_DX(i, idim) * normal_physical_space[idim];           
                     DN_dot_n_vec(i)  += DN_DX(i, idim) * normal_physical_space[idim];
                 } 
@@ -90,7 +90,7 @@ namespace Kratos
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
             noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
-            // Of the Dirichlet BCs -(GRAD_w* n,u) 
+            // Assembly Dirichlet BCs -(GRAD_w* n,u) 
             noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
 
 
@@ -99,12 +99,11 @@ namespace Kratos
                 const double u_D_scalar = this->GetValue(TEMPERATURE);
 
                 noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration;
-                // Of the Dirichlet BCs
                 noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[point_number].Weight(); // * std::abs(DetJ0);
 
                 Vector temp(number_of_nodes);
                 // RHS = ExtForces - K*temp;
-                for (unsigned int i = 0; i < number_of_nodes; i++) {
+                for (IndexType i = 0; i < number_of_nodes; i++) {
                     temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
                 }
                 // RHS -= K*temp
@@ -134,7 +133,6 @@ namespace Kratos
             rResult.resize(number_of_nodes, false);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
-            // const IndexType index = i * 3;
             const auto& r_node = r_geometry[i];
             rResult[i] = r_node.GetDof(TEMPERATURE).EquationId();
         }
