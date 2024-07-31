@@ -60,7 +60,83 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    // todo
+    KRATOS_TRY;
+
+    Flags &r_constitutive_law_options = rValues.GetOptions();
+    const auto& r_strain_vector = rValues.GetStrainVector();
+    const auto strain_increment = r_strain_vector - mOldStrainVector;
+
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // We retrieve material properties
+        const double E  = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+        const double nu = rValues.GetMaterialProperties()[POISSON_RATIO];
+        const Vector &r_joint_cl_props = rValues.GetMaterialProperties()[CURVE_FITTING_PARAMETERS];
+        const double fc  = r_joint_cl_props[0];
+        const double ft  = r_joint_cl_props[1];
+        const double Kn  = r_joint_cl_props[2];
+        const double Ks  = r_joint_cl_props[3];
+        const double muy = r_joint_cl_props[4];
+        const double delta_0 = r_joint_cl_props[5];
+        const double H = r_joint_cl_props[6];
+        const double m = r_joint_cl_props[7];
+        const double muy0   = r_joint_cl_props[8];
+        const double alpha0 = r_joint_cl_props[9];
+        const double beta   = r_joint_cl_props[10];
+        const double gamma  = r_joint_cl_props[11];
+        Matrix Kc(Dimension, Dimension);
+        Kc.clear();
+        Kc(0, 0) = Kn;
+        Kc(1, 1) = Ks;
+
+        this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+        Matrix &a0 = rValues.GetConstitutiveMatrix();
+
+        // Compute the trial stress
+        Vector stress_increment_trial(VoigtSize);
+        noalias(stress_increment_trial) = prod(a0, strain_increment);
+
+        // Rotation and normal matrices
+        Matrix R(Dimension, Dimension);
+        Matrix n(VoigtSize, Dimension);
+
+        // Estimate joint orientation with respect to some trial stress
+        CalculateJointOrientation(R, n, mOldStressVector + stress_increment_trial, mDamage, muy0, muy, ft, m, fc);
+
+        const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(Kc, R)));
+        Matrix inv_C(Dimension, Dimension);
+        double det_C;
+        MathUtils<double>::InvertMatrix(C, inv_C, det_C);
+        const Matrix aux = prod(inv_C, trans(n));
+        const Vector delta_u_trial = prod(aux, stress_increment_trial);
+        const Vector delta_uc_trial = prod(R, delta_u_trial);
+        const Vector delta_stress_trial = stress_increment_trial - prod(a0, Vector(prod(n, delta_u_trial))) / H;
+        const Vector tc_trial = mLocalTraction + prod(R, Vector(prod(trans(n), delta_stress_trial)));
+
+        const double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
+
+        if (yield < tolerance) { // Elastic condition
+            noalias(rValues.GetStressVector()) = stress_trial;
+        } else {
+
+        }
+
+
+
+
+
+
+
+
+    }
+
+
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+
+
+
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

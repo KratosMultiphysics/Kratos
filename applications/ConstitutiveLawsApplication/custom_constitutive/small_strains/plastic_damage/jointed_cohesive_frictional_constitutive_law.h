@@ -47,11 +47,9 @@ namespace Kratos
 /**
  * @class JointedCohesiveFrictionalConstitutiveLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This law defines a parallel rule of mixture (classic law of mixture)
- * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cicle fatigue processes
- * by means of a plastic damage model. Source: A thermodynamically consistent plastic-damage framework for
-localized failure in quasi-brittle solids: Material model and strain
-localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03.005)
+ * @brief This law defines a CL for continuum rocks with an embedded joint
+ * @details This CL is detailed in Modelling jointed rock mass as a continuum with an embedded cohesive-frictional model
+ * Engineering Geology 228 (2017) 107–120, DOI:10.1016/j.enggeo.2017.07.011
  * @author Alejandro Cornejo
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) JointedCohesiveFrictionalConstitutiveLaw
@@ -297,6 +295,83 @@ public:
         return (Number > machine_tolerance) ? Number : 0.0;
     }
 
+    /**
+     * @brief This method returns the value of the yield surface
+     * defined in Eq. (12) in Lihn et al.
+     */
+    double YieldSurfaceValue(
+        const double ts,
+        const double D,
+        const double mu0,
+        const double mu,
+        const double tn,
+        const double ft,
+        const double m,
+        const double fc) const
+    {
+        const double one_minus_D = 1.0 - D;
+        return std::pow(ts, 2) - (one_minus_D * std::pow(mu0, 2) + D * std::pow(mu, 2)) * std::pow((tn - one_minus_D * ft), 2) -
+               m * fc * one_minus_D * (tn - one_minus_D * ft);
+    }
+
+    /**
+     * @brief This method returns the normal n and rotation matrix R
+     * Estimates the orientation of the crack by checking the maximum
+     * yield stress with respect to theta angle
+     */
+    void CalculateJointOrientation(
+        Matrix& rR,
+        Matrix& rn,
+        const Vector& rStressVectorTrial,
+        const double D,
+        const double mu0,
+        const double mu,
+        const double ft,
+        const double m,
+        const double fc)
+    {
+        const double pi_over_180 = Globals::Pi / 180.0;
+        double theta = 0.0, y_max = -std::numeric_limits<double>::infinity(), theta_incr = 0.1;
+        Matrix n_trial(VoigtSize, Dimension), R_trial(Dimension, Dimension);
+        Vector tc_trial = ZeroVector(Dimension);
+        n_trial.clear();
+        R_trial.clear();
+
+        if (rR.size1() != Dimension || rR.size1() != Dimension)
+            rR.resize(Dimension, Dimension, false);
+
+        if (rn.size1() != VoigtSize || rn.size1() != Dimension)
+            rn.resize(VoigtSize, Dimension, false);
+
+        while (theta <= 180.0) {
+            const double angle_radians = theta * pi_over_180;
+            const double n1 = std::cos(angle_radians);
+            const double n2 = std::sin(angle_radians);
+            const double m1 = -n2;
+            const double m2 = n1;
+
+            R_trial(0, 0) = n1;
+            R_trial(0, 1) = n2;
+            R_trial(1, 0) = m1;
+            R_trial(1, 1) = m2;
+
+            n_trial(0, 0) = n1;
+            n_trial(1, 1) = n2;
+            n_trial(2, 0) = n2;
+            n_trial(2, 1) = n1;
+
+            noalias(tc_trial) = prod(R_trial, Vector(prod(trans(n_trial), rStressVectorTrial)));
+            const double y_trial = YieldSurfaceValue(tc_trial[1], D, mu0, mu, tc_trial[0], ft, m, fc);
+
+            if (y_trial > y_max) {
+                y_max = y_trial;
+                noalias(rn) = n_trial;
+                noalias(rR) = R_trial;
+            }
+            theta += theta_incr;
+        }
+    }
+
 protected:
 
     ///@name Protected static Member Variables
@@ -325,6 +400,13 @@ private:
     ///@name Member Variables
     ///@{
 
+    double mDamage = 0.0;                            // Damage Variable "D"
+    double mTheta  = 0.0;                            // Orientation of the joint plane, it defines "n"
+    Vector mLocalTraction = ZeroVector(Dimension);   // The traction vector in local axes of the joint "tc"
+    Vector mU  = ZeroVector(Dimension);              // The displacement jump "[[u]]"
+    Vector mUp = ZeroVector(Dimension);              // The displacement jump "[[up]]"
+    Vector mOldStrainVector = ZeroVector(VoigtSize); // The previous converged strain vector
+    Vector mOldStressVector = ZeroVector(VoigtSize); // The previous converged stress vector
 
     ///@}
     ///@name Private Operators
