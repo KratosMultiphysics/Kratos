@@ -38,9 +38,6 @@ GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType               NewId,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTCondition<TDim, TNumNodes>::~GeoTCondition() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
     rConditionDofList = GetDofs();

@@ -144,7 +144,7 @@ namespace Kratos{
                                             SphericContinuumParticle* element2,
                                             int i_neighbour_count,
                                             bool& sliding,
-                                            const ProcessInfo& r_process_info);
+                                            const ProcessInfo& r_process_info) override;
 
         void CalculateMoments(SphericContinuumParticle* element, 
                             SphericContinuumParticle* neighbor, 

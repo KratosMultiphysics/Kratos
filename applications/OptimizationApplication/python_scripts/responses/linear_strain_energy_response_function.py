@@ -53,12 +53,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
     def Finalize(self) -> None:
         pass
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if self.model_part is None:
-            raise RuntimeError("Please call LinearStrainEnergyResponseFunction::Initialize first.")
-        return self.model_part
-
-    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:

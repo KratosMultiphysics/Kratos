@@ -19,7 +19,7 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
     def Initialize(self):
         super().Initialize()
         self._GetSolver().cplusplus_strategy.BreakAllBonds()
-
+    
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
