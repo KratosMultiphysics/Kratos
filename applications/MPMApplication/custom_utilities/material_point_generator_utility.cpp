@@ -220,7 +220,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> point_load = { ZeroVector(3) };
 
         std::vector<double> mpc_area(1);
-        std::vector<double> mpc_penalty_factor(1);
+        std::vector<double> mpc_penalty_coefficient(1);
         PointerVector<Condition> MaterialPointConditions;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
@@ -373,8 +373,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                             mpc_imposed_velocity[0] = r_cond.GetValue(VELOCITY);
                         if (r_cond.Has(ACCELERATION))
                             mpc_imposed_acceleration[0] = r_cond.GetValue(ACCELERATION);
-                        if (r_cond.Has(PENALTY_FACTOR))
-                            mpc_penalty_factor[0] = r_cond.GetValue(PENALTY_FACTOR);
+                        if (r_cond.Has(PENALTY_COEFFICIENT))
+                            mpc_penalty_coefficient[0] = r_cond.GetValue(PENALTY_COEFFICIENT);
 
                         const bool is_slip = r_cond.Is(SLIP);
                         const bool is_contact = r_cond.Is(CONTACT);
@@ -519,7 +519,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                                     if (boundary_condition_type == 1)
                                     {
-                                        p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+                                        p_condition->SetValuesOnIntegrationPoints(PENALTY_COEFFICIENT, mpc_penalty_coefficient , process_info);
                                     }
 
                                     if (is_slip)
