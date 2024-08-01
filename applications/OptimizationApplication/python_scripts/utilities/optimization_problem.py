@@ -80,6 +80,14 @@ class OptimizationProblem:
     def GetListOfResponses(self) -> 'list[ResponseFunction]':
         return self.__components[ResponseFunction].values()
 
+    def HasResponse(self, name_or_response: 'Union[str, ResponseFunction]') -> bool:
+        if isinstance(name_or_response, str):
+            return name_or_response in [response_function.GetName() for response_function in self.GetListOfResponses()]
+        elif isinstance(name_or_response, ResponseFunction):
+            return name_or_response in self.GetListOfResponses()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_response. Only allowed to have string or ResponseFunction types.")
+
     def RemoveResponse(self, name: str) -> None:
         self.RemoveComponent(name, ResponseFunction)
 
@@ -89,6 +97,14 @@ class OptimizationProblem:
     def GetListOfExecutionPolicies(self) -> 'list[ExecutionPolicy]':
         return self.__components[ExecutionPolicy].values()
 
+    def HasExecutionPolicy(self, name_or_execution_policy: 'Union[str, ExecutionPolicy]') -> bool:
+        if isinstance(name_or_execution_policy, str):
+            return name_or_execution_policy in [execution_policy.GetName() for execution_policy in self.GetListOfExecutionPolicies()]
+        elif isinstance(name_or_execution_policy, ExecutionPolicy):
+            return name_or_execution_policy in self.GetListOfExecutionPolicies()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_execution_policy. Only allowed to have string or ExecutionPolicy types.")
+
     def RemoveExecutionPolicy(self, name: str) -> None:
         self.RemoveComponent(name, ExecutionPolicy)
 
@@ -97,6 +113,14 @@ class OptimizationProblem:
 
     def GetListOfControls(self) -> 'list[Control]':
         return self.__components[Control].values()
+
+    def HasControl(self, name_or_control: 'Union[str, Control]') -> bool:
+        if isinstance(name_or_control, str):
+            return name_or_control in [control.GetName() for control in self.GetListOfControls()]
+        elif isinstance(name_or_control, Control):
+            return name_or_control in self.GetListOfControls()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_control. Only allowed to have string or Control types.")
 
     def RemoveControl(self, name: str) -> None:
         self.RemoveComponent(name, Control)
