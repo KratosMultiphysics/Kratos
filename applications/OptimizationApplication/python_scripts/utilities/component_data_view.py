@@ -49,12 +49,15 @@ class ComponentDataView:
             if buffered_data.GetBufferSize() < buffer_size:
                 raise RuntimeError(f"The required buffer size is not satisfied with the existing problem data container. [ component data container buffer size = {buffered_data.GetBufferSize()}, required buffer size = {buffer_size}, component = {self.__component_name}, component type = {self.__component_type}")
 
+    def HasDataBuffer(self) -> bool:
+        return self.__problem_data.HasValue(self.__buffered_data_name)
+
     def GetComponent(self) -> Any:
         return self.__component
 
     def GetBufferedData(self) -> BufferedDict:
-        if not self.__problem_data.HasValue(self.__buffered_data_name):
-            raise RuntimeError(f"Buffered data is not set by calling ComponentData::SetBuffer for component of type \"{self.__component_type}\" with component name \"{self.__component_name}\".")
+        if not self.HasDataBuffer():
+            raise RuntimeError(f"Buffered data is not set by calling ComponentData::SetDataBuffer for component of type \"{self.__component_type}\" with component name \"{self.__component_name}\".")
 
         return self.__problem_data[self.__buffered_data_name]
 

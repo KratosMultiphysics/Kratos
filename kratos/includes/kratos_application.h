@@ -130,7 +130,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
-    virtual ~KratosApplication() 
+    virtual ~KratosApplication()
     {
         // This must be commented until tests have been fixed.
         DeregisterCommonComponents();
@@ -153,7 +153,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     /**
      * @brief This method is used to unregister common components of the application.
-     * @details This method is used to unregister common components of the application. 
+     * @details This method is used to unregister common components of the application.
      * The list of unregistered components are the ones exposed in the common KratosComponents interface:
      * - Geometries
      * - Elements
@@ -169,6 +169,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
      * @details This method is used to unregister specific application components.
      */
     virtual void DeregisterApplication();
+
+    /**
+     * @brief This method is used to unregister mappers registered by the application..
+     * @details This method is used to unregister mappers registered by the application..
+     */
+    void DeregisterMappers();
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core

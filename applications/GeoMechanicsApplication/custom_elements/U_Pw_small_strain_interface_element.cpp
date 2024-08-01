@@ -16,6 +16,7 @@
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include <custom_utilities/stress_strain_utilities.h>
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

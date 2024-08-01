@@ -173,11 +173,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "ApplyCPhiReductionProcess")
         .def(py::init<ModelPart&, const Parameters>());
 
-    py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>
-        (m, "CalculateIncrementalDisplacementProcess")
+    py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>(
+        m, "CalculateIncrementalDisplacementProcess")
         .def(py::init<ModelPart&, const Parameters&>());
-
-
 }
 
 } // Namespace Kratos::Python.
