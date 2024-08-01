@@ -219,12 +219,12 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             counter+=1;
     }
 
-    if (counter > 0)
-        this->Reset(ACTIVE);
-
-
-    // if (counter == number_of_nodes)
+    // if (counter > 0)
     //     this->Reset(ACTIVE);
+
+
+    if (counter == number_of_nodes)
+        this->Reset(ACTIVE);
     
     if (apply_constraints && this->Is(ACTIVE))    
     {
@@ -241,15 +241,15 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                     // // augmented Penalty
                     // lagrange_matrix(ibase + k, ibase + k) = -1/m_penalty;
                 }
-                // auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
-                // if (mp_counter < 1 ){
-                //     auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
-                //     auto volume = r_geometry.GetGeometryParent(0).Area();
-                //     for (unsigned int k = 0; k < dimension; k++)
-                //     {
-                //         lagrange_matrix(i* dimension+k, i* dimension+k) = 21600000/mpc_counter /  this->GetIntegrationWeight() * volume ; 
-                //     }
-                // }
+                auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
+                if (mp_counter < 1 ){
+                    auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
+                    auto volume = r_geometry.GetGeometryParent(0).Area();
+                    for (unsigned int k = 0; k < dimension; k++)
+                    {
+                        lagrange_matrix(i* dimension+k, i* dimension+k) = 6000000/mpc_counter /  this->GetIntegrationWeight() * volume ; 
+                    }
+                }
 
         }
 
