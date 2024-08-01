@@ -71,6 +71,12 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
+    // Clear the results
+    rResults.clear();
+
+    // Initialize the current size
+    std::size_t current_size = 0;
+
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
 
@@ -89,16 +95,27 @@ void GeometricalObjectsBins::SearchInRadius(
         for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
-                for(auto p_geometrical_object : r_cell) {
-                    candidates.insert(p_geometrical_object);
+                if (IsBoundingBoxInsideRadius(i, j, k, rPoint, Radius)) {
+                    current_size = rResults.size();
+                    rResults.reserve(current_size + r_cell.size());
+                    for(auto p_geometrical_object : r_cell) {
+                        auto& r_geometry = p_geometrical_object->GetGeometry();
+                        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+                        rResults.push_back(ResultType(p_geometrical_object));
+                        rResults.back().SetDistance(distance);
+                    }
+                } else {
+                    for(auto p_geometrical_object : r_cell) {
+                        candidates.insert(p_geometrical_object);
+                    }
                 }
             }
         }
     }
 
     // Loop over the candidates and filter by distance and fill the results
-    rResults.clear();
-    rResults.reserve(candidates.size());
+    current_size = rResults.size();
+    rResults.reserve(current_size + candidates.size());
     for(auto& p_geometrical_object : candidates) {
         auto& r_geometry = p_geometrical_object->GetGeometry();
         const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
@@ -184,6 +201,50 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
     SearchIsInsideInCell(r_cell, rPoint, current_result);
 
     return current_result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::IsBoundingBoxInsideRadius(
+    const std::size_t I,
+    const std::size_t J,
+    const std::size_t K,
+    const Point& rPoint,
+    const double Radius
+    )
+{
+    // Check the indices
+    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+
+    // Get the bounding box points min point
+    const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
+
+    // Calculate the minimum point in the bounding box
+    const double min_point_x = r_min_point[0] + I * mCellSizes[0];
+    const double min_point_y = r_min_point[1] + J * mCellSizes[1];
+    const double min_point_z = r_min_point[2] + K * mCellSizes[2];
+
+    // Calculate the maximum point in the bounding box
+    const double max_point_x = r_min_point[0] + (I + 1) * mCellSizes[0];
+    const double max_point_y = r_min_point[1] + (J + 1) * mCellSizes[1];
+    const double max_point_z = r_min_point[2] + (K + 1) * mCellSizes[2];
+
+    // Determine the farthest point in the bounding box from the center point
+    const double x_farthest = (rPoint[0] < (min_point_x + max_point_x) / 2) ? max_point_x : min_point_x;
+    const double y_farthest = (rPoint[1] < (min_point_y + max_point_y) / 2) ? max_point_y : min_point_y;
+    const double z_farthest = (rPoint[2] < (min_point_z + max_point_z) / 2) ? max_point_z : min_point_z;
+
+    // Calculate the squared distance to avoid using sqrt
+    const double dx = x_farthest - rPoint[0];
+    const double dy = y_farthest - rPoint[1];
+    const double dz = z_farthest - rPoint[2];
+    const double distance_squared = dx * dx + dy * dy + dz * dz;
+
+    // Compare squared distance with squared radius
+    return distance_squared <= Radius * Radius;
 }
 
 /***********************************************************************************/
