@@ -429,10 +429,7 @@ protected:
 
     /**
      * @brief Checks if a 3D bounding box is fully inside a given radius from a point.
-     * @details This function determines if a 3D bounding box, defined by its minimum and maximum points,
-     * is fully within a specified radius from a given point. It calculates the farthest point
-     * in the bounding box from the reference point and checks if the distance from this point
-     * to the reference point is within the specified radius.
+     * @details This function determines if a 3D bounding box, defined by the indices of the cell studied, is fully within a specified radius from a given point. It calculates the farthest point in the bounding box from the reference point and checks if the distance from this point to the reference point is within the specified radius.
      * @param I The index in x direction
      * @param J The index in y direction
      * @param K The index in z direction
@@ -440,7 +437,7 @@ protected:
      * @param Radius The radius within which the bounding box should be.
      * @return True if the bounding box is fully inside the radius, false otherwise.
      */
-    bool IsBoundingBoxInsideRadius(
+    bool IsCellBoundingBoxInsideRadius(
         const std::size_t I,
         const std::size_t J,
         const std::size_t K,
