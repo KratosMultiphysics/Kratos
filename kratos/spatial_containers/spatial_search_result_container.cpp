@@ -117,29 +117,7 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Bar
     // Only in MPI code and in SYNCHRONOUS_HETEROGENEOUS
     if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
         if(mrDataCommunicator.IsDistributed()) {
-            // MPI data
-            const int rank = mrDataCommunicator.Rank();
-            const int current_world_size = mrDataCommunicator.Size();
-
-            // Using the global Id as tag
-            KRATOS_DEBUG_ERROR_IF(mGlobalIndex > static_cast<IndexType>(std::numeric_limits<int>::max())) << "Global index is greater than integer. Error may happen" << std::endl;
-            const int tag = static_cast<int>(mGlobalIndex);
-
-            // Sending receiving simple integers
-            int send = 0;
-            int recv = 0;
-
-            // Main rank
-            const int main_rank = 0;
-
-            // If rank search, send to other partitions
-            if (rank == main_rank) {
-                for (int i_rank = 1; i_rank < current_world_size; ++i_rank) {
-                    mrDataCommunicator.Send(send, i_rank, tag);
-                }
-            } else { // Otherwise receive
-                mrDataCommunicator.Recv(recv, main_rank, tag);
-            }
+            mrDataCommunicator.Barrier();
         }
     }
 }
