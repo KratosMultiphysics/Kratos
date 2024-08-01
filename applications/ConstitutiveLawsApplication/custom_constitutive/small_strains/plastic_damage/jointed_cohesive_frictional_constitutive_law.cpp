@@ -115,9 +115,10 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         const double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
 
         if (yield < tolerance) { // Elastic condition
-            noalias(rValues.GetStressVector()) = stress_trial;
-        } else {
-
+            noalias(rValues.GetStressVector()) = mOldStressVector + delta_stress_trial;
+            // update int vars in finalize...
+        } else { // Non-linear behaviour
+            
         }
 
 
@@ -131,9 +132,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
 
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-
-
-
+        CalculateTangentTensor(rValues);
     }
 
     KRATOS_CATCH("");
@@ -162,15 +161,6 @@ bool JointedCohesiveFrictionalConstitutiveLaw::Has(
     )
 {
     bool has = false;
-    // if (rThisVariable == PLASTIC_DISSIPATION) {
-    //     has = true;
-    // } else if (rThisVariable == THRESHOLD) {
-    //     has = true;
-    // } else if (rThisVariable == DAMAGE) {
-    //     has = true;
-    // } else if (rThisVariable == DISSIPATION) {
-    //     has = true;
-    // }
     return has;
 }
 
@@ -182,9 +172,6 @@ bool JointedCohesiveFrictionalConstitutiveLaw::Has(
     )
 {
     bool has = false;
-    // if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-    //     has = true;
-    // }
     return has;
 }
 
@@ -197,15 +184,6 @@ double& JointedCohesiveFrictionalConstitutiveLaw::GetValue(
     )
 {
     rValue = 0.0;
-    // if (rThisVariable == PLASTIC_DISSIPATION) {
-    //     rValue = mPlasticDissipation;
-    // } else if (rThisVariable == THRESHOLD) {
-    //     rValue = mThreshold;
-    // }  else if (rThisVariable == DAMAGE) {
-    //     rValue = mDamageDissipation;
-    // } else if (rThisVariable == DISSIPATION) {
-    //     rValue = mPlasticDissipation + mDamageDissipation;
-    // }
     return rValue;
 }
 
@@ -219,9 +197,6 @@ Vector& JointedCohesiveFrictionalConstitutiveLaw::GetValue(
 {
     rValue.resize(VoigtSize, false);
     rValue.clear();
-    // if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-    //     noalias(rValue) = mPlasticStrain;
-    // }
     return rValue;
 }
 
@@ -235,13 +210,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // if (rThisVariable == PLASTIC_DISSIPATION) {
-    //     mPlasticDissipation = rValue;
-    // } else if (rThisVariable == THRESHOLD) {
-    //     mThreshold = rValue;
-    // }  else if (rThisVariable == DAMAGE) {
-    //     mDamageDissipation = rValue;
-    // }
 }
 
 /***********************************************************************************/
@@ -253,9 +221,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-    //     noalias(mPlasticStrain) = rValue;
-    // }
 }
 
 /***********************************************************************************/
@@ -267,31 +232,7 @@ double& JointedCohesiveFrictionalConstitutiveLaw::CalculateValue(
     double& rValue
     )
 {
-    // if (rThisVariable == UNIAXIAL_STRESS) {
-    //     // Get Values to compute the constitutive law:
-    //     Flags& r_flags = rParameterValues.GetOptions();
 
-    //     // Previous flags saved
-    //     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    //     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-    //     // Calculate the stress vector
-    //     CalculateMaterialResponseCauchy(rParameterValues);
-    //     const Vector& r_stress_vector = rParameterValues.GetStressVector();
-    //     const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-    //     BoundedVectorType aux_stress_vector = r_stress_vector;
-    //     TYieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
-
-    //     // Previous flags restored
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    // } else {
-    //     BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    // }
     return rValue;
 }
 
