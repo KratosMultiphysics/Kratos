@@ -722,20 +722,20 @@ public:
     * @param rX The value to clamp.
     * @param rMinimum The minimum bound.
     * @param rMaximum The maximum bound.
-    * @param rTolerance The tolerance value to consider for clamping, defaults to epsilon.
+    * @param Tolerance The tolerance value to consider for clamping, defaults to 0.
     * @return The clamped value.
     */
     template <typename T>
-    static inline T Clamp(
+    static T Clamp(
         const T& rX,
         const T& rMinimum,
         const T& rMaximum,
-        const T& rTolerance = ZeroTolerance
+        const T Tolerance = 0.0
         )
     {
-        if (rX < rMinimum - rTolerance) {
+        if (rX < rMinimum - Tolerance) {
             return rMinimum;
-        } else if (rX > rMaximum + rTolerance) {
+        } else if (rX > rMaximum + Tolerance) {
             return rMaximum;
         } else {
             return rX;
@@ -753,22 +753,22 @@ public:
     * @param rMinimum The minimum bound.
     * @param rMaximum The maximum bound.
     * @param rScenario The scenario where the value is clamped. It can be BELOW_MINIMUM, ABOVE_MAXIMUM or WITHIN_BOUNDS.
-    * @param rTolerance The tolerance value to consider for clamping, defaults to epsilon.
+    * @param Tolerance The tolerance value to consider for clamping, defaults to 0.
     * @return The clamped value.
     */
     template <typename T>
-    static inline T Clamp(
+    static T Clamp(
         const T& rX,
         const T& rMinimum,
         const T& rMaximum,
         ClampScenario& rScenario,
-        const T& rTolerance = ZeroTolerance
+        const T Tolerance = 0.0
         )
     {
-        if (rX < rMinimum - rTolerance) {
+        if (rX < rMinimum - Tolerance) {
             rScenario = ClampScenario::BELOW_MINIMUM;
             return rMinimum;
-        } else if (rX > rMaximum + rTolerance) {
+        } else if (rX > rMaximum + Tolerance) {
             rScenario = ClampScenario::ABOVE_MAXIMUM;
             return rMaximum;
         } else {
