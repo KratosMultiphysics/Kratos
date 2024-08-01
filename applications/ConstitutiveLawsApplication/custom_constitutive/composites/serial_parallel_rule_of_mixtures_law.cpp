@@ -212,7 +212,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-            // push forward Constitutive tangent tensor
+            // we push forward Constitutive tangent tensor
             if (rValues.IsSetDeterminantF())
                 PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
@@ -1206,6 +1206,14 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
         // We reset the values
         rParameterValues.SetMaterialProperties(props);
         noalias(rParameterValues.GetStrainVector()) = strain_vector;
+        return rValue;
+    } else if (rThisVariable == HCF_UNIAXIAL_STRESS_FIBER) {
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+        rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, HCF_UNIAXIAL_STRESS_FIBER, rValue);
+        rParameterValues.SetMaterialProperties(props);
         return rValue;
     }
     return rValue;
