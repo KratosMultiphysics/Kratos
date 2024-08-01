@@ -242,7 +242,7 @@ public:
     }
 
     /**
-     * @brief This method checks the condition number of  amtrix
+     * @brief This method checks the condition number of matrix
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param Tolerance The maximum tolerance considered
@@ -251,7 +251,7 @@ public:
     static inline bool CheckConditionNumber(
         const TMatrix1& rInputMatrix,
         TMatrix2& rInvertedMatrix,
-        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const double Tolerance = ZeroTolerance,
         const bool ThrowError = true
         )
     {
@@ -713,27 +713,29 @@ public:
     }
 
     /**
-     * @brief Clamps a value between a minimum and maximum range.
-     * @details This function ensures that the given value `rX` lies within the specified
-     * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
-     * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
-     * Otherwise, it returns `rX`.
-     * @tparam T The type of the value and bounds, typically a numeric type.
-     * @param rX The value to clamp.
-     * @param rMinimum The minimum bound.
-     * @param rMaximum The maximum bound.
-     * @return The clamped value.
-     */
+    * @brief Clamps a value between a minimum and maximum range.
+    * @details This function ensures that the given value `rX` lies within the specified
+    * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+    * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+    * Otherwise, it returns `rX`.
+    * @tparam T The type of the value and bounds, typically a numeric type.
+    * @param rX The value to clamp.
+    * @param rMinimum The minimum bound.
+    * @param rMaximum The maximum bound.
+    * @param rTolerance The tolerance value to consider for clamping, defaults to epsilon.
+    * @return The clamped value.
+    */
     template <typename T>
     static inline T Clamp(
         const T& rX,
         const T& rMinimum,
-        const T& rMaximum
+        const T& rMaximum,
+        const T& rTolerance = ZeroTolerance
         )
     {
-        if (rX < rMinimum) {
+        if (rX < rMinimum - rTolerance) {
             return rMinimum;
-        } else if (rX > rMaximum) {
+        } else if (rX > rMaximum + rTolerance) {
             return rMaximum;
         } else {
             return rX;
@@ -741,30 +743,32 @@ public:
     }
 
     /**
-     * @brief Clamps a value between a minimum and maximum range with a scenario.
-     * @details This function ensures that the given value `rX` lies within the specified
-     * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
-     * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
-     * Otherwise, it returns `rX`. It also returns a scenario indicating if the value is below the minimum, above the maximum or within the bounds.
-     * @tparam T The type of the value and bounds, typically a numeric type.
-     * @param rX The value to clamp.
-     * @param rMinimum The minimum bound.
-     * @param rMaximum The maximum bound.
-     * @param rScenario The scenario where the value is clamped. It can be BELOW_MINIMUM, ABOVE_MAXIMUM or WITHIN_BOUNDS.
-     * @return The clamped value.
-     */
+    * @brief Clamps a value between a minimum and maximum range with a scenario.
+    * @details This function ensures that the given value `rX` lies within the specified
+    * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+    * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+    * Otherwise, it returns `rX`. It also returns a scenario indicating if the value is below the minimum, above the maximum or within the bounds.
+    * @tparam T The type of the value and bounds, typically a numeric type.
+    * @param rX The value to clamp.
+    * @param rMinimum The minimum bound.
+    * @param rMaximum The maximum bound.
+    * @param rScenario The scenario where the value is clamped. It can be BELOW_MINIMUM, ABOVE_MAXIMUM or WITHIN_BOUNDS.
+    * @param rTolerance The tolerance value to consider for clamping, defaults to epsilon.
+    * @return The clamped value.
+    */
     template <typename T>
     static inline T Clamp(
         const T& rX,
         const T& rMinimum,
         const T& rMaximum,
-        ClampScenario& rScenario
+        ClampScenario& rScenario,
+        const T& rTolerance = ZeroTolerance
         )
     {
-        if (rX < rMinimum) {
+        if (rX < rMinimum - rTolerance) {
             rScenario = ClampScenario::BELOW_MINIMUM;
             return rMinimum;
-        } else if (rX > rMaximum) {
+        } else if (rX > rMaximum + rTolerance) {
             rScenario = ClampScenario::ABOVE_MAXIMUM;
             return rMaximum;
         } else {
