@@ -181,35 +181,69 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_map<GeometricalObject*, double> results;
+    // Clear the results
+    rResults.clear();
 
-    // array_1d<std::size_t, Dimension> min_position;
-    // array_1d<std::size_t, Dimension> max_position;
+    // Define bounding box
+    BoundingBox<PointType> bounding_box;
+    noalias(bounding_box.GetMinPoint().Coordinates()) = rMinPoint;
+    noalias(bounding_box.GetMaxPoint().Coordinates()) = rMaxPoint;
 
-    // for(unsigned int i = 0; i < Dimension; i++ ) {
-    //     min_position[i] = CalculatePosition(rPoint[i] - Radius, i);
-    //     max_position[i] = CalculatePosition(rPoint[i] + Radius, i) + 1;
-    // }
-    // for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-    //     for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
-    //         for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-    //             auto& r_cell = GetCell(i,j,k);
-    //             double distance = 0.0;
-    //             for(auto p_geometrical_object : r_cell){
-    //                 auto& r_geometry = p_geometrical_object->GetGeometry();
-    //                 distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-    //                 rResults.insert({p_geometrical_object, distance});
-    //             }
-    //         }
-    //     }
-    // }
+    // Initialize the current size
+    std::size_t current_size = 0;
 
-    // rResults.clear();
-    // rResults.reserve(results.size());
-    // for(auto& object : results){
-    //     rResults.push_back(ResultType(object.first));
-    //     rResults.back().SetDistance(object.second);
-    // }
+    // Initialize the candidates
+    std::unordered_set<GeometricalObject*> candidates;
+
+    // Initialize the position bounds
+    array_1d<std::size_t, Dimension> min_position;
+    array_1d<std::size_t, Dimension> max_position;
+
+    // Calculate the position bounds
+    for(unsigned int i = 0; i < Dimension; i++ ) {
+        min_position[i] = CalculatePosition(rMinPoint[i], i);
+        max_position[i] = CalculatePosition(rMaxPoint[i], i) + 1;
+    }
+
+    // Loop over the cells and gather candidates
+    for(std::size_t k = min_position[2]; k < max_position[2]; k++) {
+        for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
+            for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
+                auto& r_cell = GetCell(i, j, k);
+                if (IsCellBoundingBoxInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
+                    current_size = rResults.size();
+                    rResults.reserve(current_size + r_cell.size());
+                    for(auto p_geometrical_object : r_cell) {
+                        auto& r_geometry = p_geometrical_object->GetGeometry();
+                        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+                        rResults.push_back(ResultType(p_geometrical_object));
+                        rResults.back().SetDistance(distance);
+                    }
+                } else {
+                    for(auto p_geometrical_object : r_cell) {
+                        candidates.insert(p_geometrical_object);
+                    }
+                }
+            }
+        }
+    }
+
+    // Loop over the candidates and filter by distance and fill the results
+    const auto& r_min_point = bounding_box.GetMinPoint();
+    const auto& r_max_point = bounding_box.GetMaxPoint();
+    current_size = rResults.size();
+    rResults.reserve(current_size + candidates.size());
+    for(auto& p_geometrical_object : candidates) {
+        const auto& r_geometry = p_geometrical_object->GetGeometry();
+        if(r_geometry.HasIntersection(r_min_point, r_max_point)) { // NOTE: This operation is expensive, we should think a way to avoid it
+            const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+            rResults.push_back(ResultType(p_geometrical_object));
+            rResults.back().SetDistance(distance);
+        }
+    }
+
+    // Shrink the results
+    rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
@@ -286,6 +320,41 @@ bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
 
     // Compare squared distance with squared radius
     return distance_squared <= Radius * Radius;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::IsCellBoundingBoxInsideBoundingBox(
+    const std::size_t I,
+    const std::size_t J,
+    const std::size_t K,
+    const Point& rPoint,
+    const BoundingBox<PointType>& rBoundingBox
+    )
+{
+    // Check the indices
+    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+
+    // Get the bounding box points min point
+    const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
+
+    // Calculate the minimum point in the bounding box
+    array_1d<double, 3> min_point;
+    min_point[0] = r_min_point[0] + I * mCellSizes[0];
+    min_point[1] = r_min_point[1] + J * mCellSizes[1];
+    min_point[2] = r_min_point[2] + K * mCellSizes[2];
+
+    // Calculate the maximum point in the bounding box
+    array_1d<double, 3> max_point;
+    max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
+    max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
+    max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
+
+    // We do the checks of both points
+    return rBoundingBox.IsInside(min_point) && rBoundingBox.IsInside(max_point);
 }
 
 /***********************************************************************************/
