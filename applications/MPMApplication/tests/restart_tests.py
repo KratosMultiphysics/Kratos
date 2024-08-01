@@ -95,8 +95,8 @@ class MPMRestartTestFactory(KratosUnittest.TestCase):
 
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
-            mpm_analysis.MPMAnalysis(model_save, self.project_parameters_save).Run()
-            mpm_analysis.MPMAnalysis(model_load, self.project_parameters_load).Run()
+            mpm_analysis.MpmAnalysis(model_save, self.project_parameters_save).Run()
+            mpm_analysis.MpmAnalysis(model_load, self.project_parameters_load).Run()
 
 
 class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):

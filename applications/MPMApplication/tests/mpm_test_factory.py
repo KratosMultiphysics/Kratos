@@ -4,7 +4,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
 class MPMTestFactory(KratosUnittest.TestCase):
     def setUp(self):
@@ -23,7 +23,7 @@ class MPMTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = MPMAnalysis(model, ProjectParameters)
+            self.test = MpmAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
