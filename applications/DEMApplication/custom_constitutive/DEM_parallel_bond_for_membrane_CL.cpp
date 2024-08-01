@@ -124,8 +124,7 @@ void DEM_parallel_bond_for_membrane::ComputeParticleRotationalMoments(SphericCon
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]) {
+                                                double indentation) {
 
     KRATOS_TRY
 

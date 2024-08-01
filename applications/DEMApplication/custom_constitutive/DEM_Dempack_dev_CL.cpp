@@ -312,8 +312,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) {
+                                                    double indentation) {
 
         KRATOS_TRY
         double LocalDeltaRotatedAngle[3]    = {0.0};
