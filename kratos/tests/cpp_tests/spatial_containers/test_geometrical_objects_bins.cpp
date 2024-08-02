@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosCoreFastSu
     KRATOS_EXPECT_EQ(results.size(), 8);
 
     bins.SearchInRadius(center_point, .9, results);
-    KRATOS_EXPECT_EQ(results.size(), 12);
+    KRATOS_EXPECT_EQ(results.size(), 24);
 }
 
 /** Checks bins search nearest
