@@ -225,11 +225,13 @@ void GeometricalObjectsBins::SearchInBoundingBox(
                     current_size = rResults.size();
                     rResults.reserve(current_size + r_cell.size());
                     for(auto p_geometrical_object : r_cell) {
-                        to_remove.insert(p_geometrical_object);
-                        auto& r_geometry = p_geometrical_object->GetGeometry();
-                        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-                        rResults.push_back(ResultType(p_geometrical_object));
-                        rResults.back().SetDistance(distance);
+                        auto insert_result = to_remove.insert(p_geometrical_object);
+                        if (insert_result.second) {
+                            auto& r_geometry = p_geometrical_object->GetGeometry();
+                            const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+                            rResults.push_back(ResultType(p_geometrical_object));
+                            rResults.back().SetDistance(distance);
+                        }
                     }
                 } else {
                     for(auto p_geometrical_object : r_cell) {
@@ -259,8 +261,9 @@ void GeometricalObjectsBins::SearchInBoundingBox(
         }
     }
 
-    // Shrink the results
-    rResults.shrink_to_fit();
+    // NOTE: We avoid shrink_to_fit for performance potential issues
+    // // Shrink the results
+    // rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
