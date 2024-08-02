@@ -108,8 +108,9 @@ void GeometricalObjectsBins::SearchInRadius(
         }
     }
 
-    // Shrink the results
-    rResults.shrink_to_fit();
+    // NOTE: We avoid shrink_to_fit for performance potential issues
+    // // Shrink the results
+    // rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
