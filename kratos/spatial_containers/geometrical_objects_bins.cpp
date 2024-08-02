@@ -79,6 +79,7 @@ void GeometricalObjectsBins::SearchInRadius(
 
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
+    std::unordered_set<GeometricalObject*> to_remove;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -99,6 +100,7 @@ void GeometricalObjectsBins::SearchInRadius(
                     current_size = rResults.size();
                     rResults.reserve(current_size + r_cell.size());
                     for(auto p_geometrical_object : r_cell) {
+                        to_remove.insert(p_geometrical_object);
                         auto& r_geometry = p_geometrical_object->GetGeometry();
                         const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
                         rResults.push_back(ResultType(p_geometrical_object));
@@ -111,6 +113,11 @@ void GeometricalObjectsBins::SearchInRadius(
                 }
             }
         }
+    }
+
+    // Clear the candidates
+    for (const auto& r_element : to_remove) {
+        candidates.erase(r_element);
     }
 
     // Loop over the candidates and filter by distance and fill the results
