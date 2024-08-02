@@ -308,23 +308,28 @@ bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
     KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
     KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
 
+    // Calculate the squared radius
+    const double squared_radius = Radius * Radius;
+
     // Get the bounding box points min point
     const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
 
     // Calculate the minimum point in the bounding box
-    const double min_point_x = r_min_point[0] + I * mCellSizes[0];
-    const double min_point_y = r_min_point[1] + J * mCellSizes[1];
-    const double min_point_z = r_min_point[2] + K * mCellSizes[2];
+    array_1d<double, 3> min_point;
+    min_point[0] = r_min_point[0] + I * mCellSizes[0];
+    min_point[1] = r_min_point[1] + J * mCellSizes[1];
+    min_point[2] = r_min_point[2] + K * mCellSizes[2];
 
     // Calculate the maximum point in the bounding box
-    const double max_point_x = r_min_point[0] + (I + 1) * mCellSizes[0];
-    const double max_point_y = r_min_point[1] + (J + 1) * mCellSizes[1];
-    const double max_point_z = r_min_point[2] + (K + 1) * mCellSizes[2];
+    array_1d<double, 3> max_point;
+    max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
+    max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
+    max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
 
     // Determine the farthest point in the bounding box from the center point
-    const double x_farthest = (rPoint[0] < (min_point_x + max_point_x) / 2) ? max_point_x : min_point_x;
-    const double y_farthest = (rPoint[1] < (min_point_y + max_point_y) / 2) ? max_point_y : min_point_y;
-    const double z_farthest = (rPoint[2] < (min_point_z + max_point_z) / 2) ? max_point_z : min_point_z;
+    const double x_farthest = (rPoint[0] < (min_point[0] + max_point[0]) / 2) ? max_point[0] : min_point[0];
+    const double y_farthest = (rPoint[1] < (min_point[1] + max_point[1]) / 2) ? max_point[1] : min_point[1];
+    const double z_farthest = (rPoint[2] < (min_point[2] + max_point[2]) / 2) ? max_point[2] : min_point[2];
 
     // Calculate the squared distance to avoid using sqrt
     const double dx = x_farthest - rPoint[0];
@@ -333,7 +338,29 @@ bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
     const double distance_squared = dx * dx + dy * dy + dz * dz;
 
     // Compare squared distance with squared radius
-    return distance_squared <= Radius * Radius;
+    return distance_squared <= squared_radius;
+
+    // NOTE: This is the brute force way to do it, but it is not efficient
+    // // Iterate over all 8 corners of the bounding box
+    // double dx, dy, dz, distance_squared;
+    // array_1d<double, 3> corner;
+    // for (int i = 0; i < 8; ++i) {
+    //     corner[0] = (i & 1) ? max_point[0] : min_point[0];
+    //     corner[1] = (i & 2) ? max_point[1] : min_point[1];
+    //     corner[2] = (i & 4) ? max_point[2] : min_point[2];
+
+    //     // Calculate the squared distance to avoid using sqrt
+    //     dx = corner[0] - rPoint[0];
+    //     dy = corner[1] - rPoint[1];
+    //     dz = corner[2] - rPoint[2];
+    //     distance_squared = dx * dx + dy * dy + dz * dz;
+
+    //     // If any corner is outside the radius, return false
+    //     if (distance_squared > squared_radius) {
+    //         return false;
+    //     }
+    // }
+    // return true;
 }
 
 /***********************************************************************************/
