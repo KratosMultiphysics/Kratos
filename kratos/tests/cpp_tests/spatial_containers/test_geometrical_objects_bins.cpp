@@ -141,6 +141,35 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosCoreFastSu
     KRATOS_EXPECT_EQ(results.size(), 12);
 }
 
+/** Checks bins search nearest
+*/
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite) 
+{
+    constexpr double tolerance = 1e-12;
+
+    Model current_model;
+
+    // Cube coordinates
+    const double cube_z = 0.3;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
+
+    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
+
+    double epsilon = 1.00e-6;
+    Point near_point{epsilon,epsilon,epsilon};
+    auto result = bins.SearchNearestInRadius(near_point, cube_z - 1.e-4);
+
+    KRATOS_EXPECT_FALSE(result.IsObjectFound());
+
+    result = bins.SearchNearestInRadius(near_point, cube_z + 1.e-4);
+    KRATOS_EXPECT_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
+
+    std::size_t id = result.Get()->Id();
+    KRATOS_EXPECT_TRUE(id == 3);
+}
+
 /** Checks bins search in bounding box
 */
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreFastSuite)
@@ -179,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_3;
     point_max.Z() = limit_3;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 8);
+    KRATOS_EXPECT_EQ(results.size(), 4);
 
     const double limit_4 = 0.6;
     point_min.X() = -limit_4;
@@ -189,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_4;
     point_max.Z() = limit_4;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 12);
+    KRATOS_EXPECT_EQ(results.size(), 8);
 
     const double limit_5 = 0.7;
     point_min.X() = -limit_5;
@@ -199,7 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_5;
     point_max.Z() = limit_5;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 28);
+    KRATOS_EXPECT_EQ(results.size(), 20);
 
     const double limit_6 = 0.9;
     point_min.X() = -limit_6;
@@ -209,36 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_6;
     point_max.Z() = limit_6;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 32);
-}
-
-/** Checks bins search nearest
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite) 
-{
-    constexpr double tolerance = 1e-12;
-
-    Model current_model;
-
-    // Cube coordinates
-    const double cube_z = 0.3;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    double epsilon = 1.00e-6;
-    Point near_point{epsilon,epsilon,epsilon};
-    auto result = bins.SearchNearestInRadius(near_point, cube_z - 1.e-4);
-
-    KRATOS_EXPECT_FALSE(result.IsObjectFound());
-
-    result = bins.SearchNearestInRadius(near_point, cube_z + 1.e-4);
-    KRATOS_EXPECT_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
-
-    std::size_t id = result.Get()->Id();
-    KRATOS_EXPECT_TRUE(id == 3);
+    KRATOS_EXPECT_EQ(results.size(), 24);
 }
 
 /** Checks bins search nearest
