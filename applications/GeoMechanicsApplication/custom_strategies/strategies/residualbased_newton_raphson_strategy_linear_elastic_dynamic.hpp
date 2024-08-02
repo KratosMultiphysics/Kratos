@@ -34,6 +34,9 @@
 //#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 
+#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+
 // Application includes
 #include "geo_mechanics_application_variables.h"
 
@@ -229,11 +232,18 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
      
-            // initialize the system matrices and the initial second derivative
-            this->InititalizeSystemAndState();
-
             mInitializeWasPerformed = true;
         }
+
+		auto find_neighbour_elements_of_conditions_process = FindNeighbourElementsOfConditionsProcess(BaseType::GetModelPart());
+		find_neighbour_elements_of_conditions_process.Execute();
+
+		auto deactivate_conditions_on_inactive_elements_process = DeactivateConditionsOnInactiveElements(BaseType::GetModelPart());
+		deactivate_conditions_on_inactive_elements_process.Execute();
+
+        if (!BaseType::mStiffnessMatrixIsBuilt)
+            // initialize the system matrices and the initial second derivative
+            this->InititalizeSystemAndState();
 
         KRATOS_CATCH("");
     }
@@ -341,8 +351,6 @@ class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
                 r_condition.FinalizeSolutionStep(r_current_process_info);
             }
             });
-
-        //p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
 
         p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);

@@ -499,9 +499,9 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_linear_elastic":
 
-            if (not (self.settings["solver_type"].GetString() == "U_Pw")
-                    and not (self.settings["solution_type"].GetString() == "dynamic")
-                    and not (self.settings["scheme_type"].GetString() == "newmark")):
+            if ((self.settings["solver_type"].GetString().lower() != "u_pw")
+                    or (self.settings["solution_type"].GetString().lower() != "dynamic")
+                    or (self.settings["scheme_type"].GetString().lower() != "newmark")):
                 raise Exception("The selected strategy is only available for the U-Pw solver, "
                                 "dynamic solution type and newmark scheme")
 
