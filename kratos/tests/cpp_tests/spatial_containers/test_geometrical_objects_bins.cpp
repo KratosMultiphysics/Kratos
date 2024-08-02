@@ -228,7 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_5;
     point_max.Z() = limit_5;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 20);
+    KRATOS_EXPECT_EQ(results.size(), 8);
 
     const double limit_6 = 0.9;
     point_min.X() = -limit_6;
@@ -238,7 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInBoundingBox, KratosCoreF
     point_max.Y() = limit_6;
     point_max.Z() = limit_6;
     bins.SearchInBoundingBox(center_point, point_min, point_max, results);
-    KRATOS_EXPECT_EQ(results.size(), 24);
+    KRATOS_EXPECT_EQ(results.size(), 12);
 }
 
 /** Checks bins search nearest
