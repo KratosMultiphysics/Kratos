@@ -89,5 +89,5 @@
             "time_frequency"                 : 0.49
         }
     }],
-    "analysis_stage": "KratosMultiphysics.MPMApplication.particle_mechanics_analysis"
+    "analysis_stage": "KratosMultiphysics.MPMApplication.mpm_analysis"
 }
