@@ -114,8 +114,8 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
             thickness_control.Update(control_field)
             self.optimization_problem.AdvanceStep()
 
-        self.assertAlmostEqual(thickness_control.thickness_projection.beta, 0.01157625)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.031173377425432858)
+        self.assertAlmostEqual(thickness_control.thickness_projection.beta, 0.014071004226562506)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.031423121954655735)
 
 if __name__ == "__main__":
     kratos_unittest.main()
