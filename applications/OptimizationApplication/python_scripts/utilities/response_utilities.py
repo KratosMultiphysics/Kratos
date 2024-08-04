@@ -129,10 +129,10 @@ def GetResponseFunction(current_value: str, optimization_problem: OptimizationPr
                     index += 1
 
                 args_list.append(current_arg)
-                return GetFunction(function_name, optimization_problem, *[EvaluateResponseExpression(arg, optimization_problem) for arg in args_list])
+                return GetFunction(function_name, optimization_problem, *[__EvaluateResponseExpressionImpl(arg, optimization_problem) for arg in args_list])
             else:
                 # this is a response expression.
-                return EvaluateResponseExpression(current_value, optimization_problem)
+                return __EvaluateResponseExpressionImpl(current_value, optimization_problem)
 
 def GetValuesAndOperators(response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
     responses: 'list[ResponseFunction]' = []
@@ -168,7 +168,7 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
 
     return responses, operators
 
-def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+def __EvaluateResponseExpressionImpl(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.binary_operator_response_function import BinaryOperatorResponseFunction
 
     response_expression = response_expression.replace(" ", "")
@@ -225,4 +225,7 @@ def EvaluateResponseExpression(response_expression: str, optimization_problem: O
     __evaluate_operator(["*", "/"])
     __evaluate_operator(["+", "-"])
 
-    return EvaluationResponseFunction(responses[0], optimization_problem)
+    return responses[0]
+
+def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+    return EvaluationResponseFunction(__EvaluateResponseExpressionImpl(response_expression, optimization_problem), optimization_problem)
