@@ -148,7 +148,7 @@ class ShellThicknessControl(Control):
                 self.thickness_projection.Update()
                 return True
 
-        # self.thickness_projection.Update()
+        self.thickness_projection.Update()
         return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
