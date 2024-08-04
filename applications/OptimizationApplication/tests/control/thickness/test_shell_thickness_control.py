@@ -22,12 +22,9 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
                 "filter_type"  : "implicit_filter",
                 "filter_radius": 0.2
             },
-            "beta_settings": {
-                "initial_value": 25,
-                "max_value"    : 30,
-                "adaptive"     : false,
-                "increase_fac" : 1.05,
-                "update_period": 50
+            "thickness_projection_settings": {
+                "type": "sigmoidal_projection",
+                "beta_value": 25
             }
         }""")
 
@@ -98,10 +95,10 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
                 "filter_type"  : "implicit_filter",
                 "filter_radius": 0.2
             },
-            "beta_settings": {
+            "thickness_projection_settings": {
+                "type": "adaptive_sigmoidal_projection",
                 "initial_value": 0.01,
                 "max_value"    : 30,
-                "adaptive"     : true,
                 "increase_fac" : 1.05,
                 "update_period": 3
             }
@@ -117,7 +114,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
             thickness_control.Update(control_field)
             self.optimization_problem.AdvanceStep()
 
-        self.assertAlmostEqual(thickness_control.beta, 0.01157625)
+        self.assertAlmostEqual(thickness_control.thickness_projection.beta, 0.01157625)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.031173377425432858)
 
 if __name__ == "__main__":

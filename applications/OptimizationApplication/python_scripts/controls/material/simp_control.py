@@ -65,37 +65,22 @@ class SimpControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "controlled_model_part_names": [""],
-            "output_all_fields": true,
-            "echo_level"       : 0,
-            "list_of_materials": [
+            "controlled_model_part_names"      : [""],
+            "output_all_fields"                : true,
+            "echo_level"                       : 0,
+            "density_projection_settings"      : {},
+            "young_modulus_projection_settings": {},
+            "filter_settings"                  : {},
+            "list_of_materials"                : [
                 {
                     "density"      : 1.0,
                     "young_modulus": 1.0
                 }
-            ],
-            "density_projection_settings": {
-                "type"          : "adaptive_sigmoidal_projection",
-                "initial_value" : 5,
-                "max_value"     : 30,
-                "increase_fac"  : 1.05,
-                "update_period" : 50,
-                "penalty_factor": 1
-            },
-            "young_modulus_projection_settings": {
-                "type"          : "adaptive_sigmoidal_projection",
-                "initial_value" : 5,
-                "max_value"     : 30,
-                "increase_fac"  : 1.05,
-                "update_period" : 50,
-                "penalty_factor": 3
-            },
-            "filter_settings"            : {}
+            ]
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.simp_power_fac = parameters["simp_power_fac"].GetInt()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.echo_level = parameters["echo_level"].GetInt()
 
@@ -103,10 +88,7 @@ class SimpControl(Control):
 
         self.materials = Materials(parameters["list_of_materials"].values())
 
-        parameters["density_projection_settings"].ValidateAndAssignDefaults(default_settings["density_projection_settings"])
         self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem)
-
-        parameters["young_modulus_projection_settings"].ValidateAndAssignDefaults(default_settings["young_modulus_projection_settings"])
         self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem)
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
@@ -205,8 +187,13 @@ class SimpControl(Control):
             self._UpdateAndOutputFields(update)
             self.filter.Update()
 
+            # self.density_projection.Update()
+            # self.young_modulus_projection.Update()
+            # return True
+
         self.density_projection.Update()
         self.young_modulus_projection.Update()
+        # return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
