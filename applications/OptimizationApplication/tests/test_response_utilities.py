@@ -488,6 +488,10 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         eval_resp = EvaluateResponseExpression("r1 + r2 + r3 + log(r3)", self.optimization_problem)
         eval_resp.Initialize()
 
+        self.assertEqual(self.r1.calculate_value_calls, 0)
+        self.assertEqual(self.r2.calculate_value_calls, 0)
+        self.assertEqual(self.r3.calculate_value_calls, 0)
+
         eval_resp.CalculateValue()
 
         self.assertEqual(self.r1.calculate_value_calls, 1)
