@@ -66,26 +66,30 @@ class Projection(ABC):
         """Updates the projection method
         """
 
-class LinearlyInterpolatedProjection(Projection):
+class IdentityProjection(Projection):
     def __init__(self, parameters: Kratos.Parameters, _):
         default_settings = Kratos.Parameters("""{
-            "type"       : "linearly_interpolated_projection",
+            "type"       : "identity_projection",
             "extrapolate": "false"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
         pass
 
-    def SetProjectionSpaces(self, x_space_values: list[float], y_space_values: list[float]) -> None:
+    def SetProjectionSpaces(self, _: list[float], __: list[float]) -> None:
+        # not using any of the spaces provided.
         pass
 
     def ProjectForward(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        # returns the x_values since x and y are the same for IdentityProjection
         return x_values.Clone()
 
     def ProjectBackward(self, y_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        # return the y_values since x and y are the same for Identity projection
         return y_values.Clone()
 
     def ForwardProjectionGradient(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
         result = x_values.Clone()
+        # x = y, hence the gradients are 1.0
         Kratos.Expression.LiteralExpressionIO.SetData(result, 1.0)
         return result
 
