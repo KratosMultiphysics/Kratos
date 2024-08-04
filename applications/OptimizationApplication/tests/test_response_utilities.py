@@ -507,6 +507,10 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr(((r1+r2)+r3)+log(r3)_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d((r1+r2)+r3)_dTEMPERATURE"))
 
+        self.assertEqual(self.r1.calculate_gradient_calls, 0)
+        self.assertEqual(self.r2.calculate_gradient_calls, 0)
+        self.assertEqual(self.r3.calculate_gradient_calls, 0)
+
         self.__CheckGradients([Kratos.PRESSURE, Kratos.TEMPERATURE], eval_resp, lambda : self.r1.CalculateValue() + self.r2.CalculateValue() + self.r3.CalculateValue() + log(self.r3.CalculateValue()), 1e-8, 5)
 
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
