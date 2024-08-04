@@ -65,4 +65,4 @@ class EvaluationResponseFunction(ResponseFunction):
             del unbuffered_data[f"{prefix}/{response_function.GetName()}"]
         for child_response in response_function.GetChildResponses():
             # now reset the children
-            EvaluationResponseFunction.__ResetEvaluationData(child_response, unbuffered_data)
+            EvaluationResponseFunction.__ResetEvaluationData(child_response, unbuffered_data, prefix)
