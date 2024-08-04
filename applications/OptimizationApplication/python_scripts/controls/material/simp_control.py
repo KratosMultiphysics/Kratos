@@ -187,13 +187,13 @@ class SimpControl(Control):
             self._UpdateAndOutputFields(update)
             self.filter.Update()
 
-            # self.density_projection.Update()
-            # self.young_modulus_projection.Update()
-            # return True
+            self.density_projection.Update()
+            self.young_modulus_projection.Update()
+            return True
 
         self.density_projection.Update()
         self.young_modulus_projection.Update()
-        # return False
+        return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
