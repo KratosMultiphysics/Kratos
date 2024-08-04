@@ -97,7 +97,6 @@ class TestResponseUtilities(kratos_unittest.TestCase):
     def test_LiteralResponseCalculateValue1(self):
         eval_resp = EvaluateResponseExpression("4.0 + 6.0", self.optimization_problem)
         eval_resp.Initialize()
-        eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
         self.assertEqual(eval_value, 10.0)
 
