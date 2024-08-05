@@ -233,7 +233,7 @@ def EvaluateResponseExpression(response_expression: str, optimization_problem: O
         # if the response has children and has some dependence on the variables, then
         # we need to use the EvaluationResponseFunction to clear the evaluation data
         # whenever CalculateValue, CalculateGradient is used.
-        evaluated_response = EvaluationResponseFunction(__EvaluateResponseExpressionImpl(response_expression, optimization_problem), optimization_problem)
+        evaluated_response = EvaluationResponseFunction(evaluated_response_impl, optimization_problem)
         optimization_problem.AddComponent(evaluated_response)
         return evaluated_response
     else:
