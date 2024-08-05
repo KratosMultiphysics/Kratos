@@ -9,7 +9,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import B
 
 class EvaluationResponseFunction(ResponseFunction):
     def __init__(self, response_function: ResponseFunction, optimization_problem: OptimizationProblem):
-        super().__init__(f"EvaluationResponse_{response_function.GetName()}")
+        super().__init__(f"Eval_{response_function.GetName()}")
         self.response_function = response_function
         self.optimization_problem = optimization_problem
 
