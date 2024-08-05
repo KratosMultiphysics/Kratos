@@ -23,7 +23,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecuteBarStructure, KratosMPICoreFastSuite)
 {
     // The model part
     Model current_model;
@@ -68,6 +68,61 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuit
             KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 3);
             KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 0);
             KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 2);
+        } else { // The rest of the ranks
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 0);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 0);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 0);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecuteTriangleMesh, KratosMPICoreFastSuite)
+{
+    // The model part
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // The data communicator
+    const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int rank =  r_data_communicator.Rank();
+    const int world_size = r_data_communicator.Size();
+
+    // Fill the model part
+    MPICppTestUtilities::GenerateDistributedTriangleMesh(r_model_part, r_data_communicator);
+
+    // Check that the communicator is correctly filled
+    const auto& r_neighbours_indices = r_model_part.GetCommunicator().NeighbourIndices();
+    if (world_size == 1) {
+        KRATOS_EXPECT_EQ(r_neighbours_indices.size(), 0);
+        KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 5);
+        KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 0);
+        KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 0);
+    } else if (world_size == 2) {
+        KRATOS_EXPECT_EQ(r_neighbours_indices.size(), 1);
+        if (rank == 0) {
+            KRATOS_EXPECT_EQ(r_neighbours_indices[0], 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 3);
+        } else if (rank == 1) {
+            KRATOS_EXPECT_EQ(r_neighbours_indices[0], 0);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 3);
+        }
+    } else {
+        if (rank == 0) {
+            KRATOS_EXPECT_EQ(r_neighbours_indices[0], 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 4);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 3);
+        } else if (rank == 1) {
+            KRATOS_EXPECT_EQ(r_neighbours_indices[0], 0);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 1);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 2);
+            KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 3);
         } else { // The rest of the ranks
             KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), 0);
             KRATOS_EXPECT_EQ(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 0);
