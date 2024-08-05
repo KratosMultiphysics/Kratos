@@ -4,6 +4,7 @@ from enum import Enum
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.responses.evaluation_response_function import EvaluationResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -46,17 +47,12 @@ def GetFunction(function_name: str, optimization_problem: OptimizationProblem, *
         raise RuntimeError(f"Undefined \"{function_name}\" function. Followings are supported function names:\n\t" + "\n\t".join(functions_map.keys()))
 
 def EvaluateValue(response_function: ResponseFunction, optimization_problem: OptimizationProblem) -> float:
-    if optimization_problem.HasResponse(response_function):
-        response_data = ComponentDataView(response_function, optimization_problem)
-        if response_data.HasDataBuffer():
-            response_data_buffer = response_data.GetBufferedData()
-            if not response_data_buffer.HasValue("value"):
-                response_data_buffer.SetValue("value", response_function.CalculateValue())
-            return response_data_buffer.GetValue("value")
-        else:
-            return response_function.CalculateValue()
-    else:
-        return response_function.CalculateValue()
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
+
+    if not response_data.HasValue(f"values/{response_function.GetName()}"):
+        response_data.SetValue(f"values/{response_function.GetName()}", response_function.CalculateValue())
+
+    return response_data.GetValue(f"values/{response_function.GetName()}")
 
 def EvaluateGradient(response_function: ResponseFunction, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]', optimization_problem: OptimizationProblem) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
     # first get the sub_collective expressions for implemented physical kratos variables
@@ -66,33 +62,20 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
             resp_physical_variable_collective_expressions[variable] = collective_expression.Clone()
 
     resp_physical_variable_collective_expressions_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-    if optimization_problem.HasResponse(response_function):
-        response_data = ComponentDataView(response_function, optimization_problem)
-        if response_data.HasDataBuffer():
-            response_data_buffer = response_data.GetBufferedData()
-            for variable, collective_expression in resp_physical_variable_collective_expressions.items():
-                # first check whether the gradients have been already evaluated. if so, take the gradients.
-                if response_data_buffer.HasValue(f"d{response_function.GetName()}_d{variable.Name()}"):
-                    resp_physical_variable_collective_expressions[variable] = response_data_buffer.GetValue(f"d{response_function.GetName()}_d{variable.Name()}")
-                else:
-                    # gradients have not yet evaluated. put it to the dictionary for later evaluation
-                    resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
+
+    for variable, collective_expression in resp_physical_variable_collective_expressions.items():
+        # first check whether the gradients have been already evaluated. if so, take the gradients.
+        if response_data.HasValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}"):
+            resp_physical_variable_collective_expressions[variable] = response_data.GetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}")
         else:
-            for variable, collective_expression in resp_physical_variable_collective_expressions.items():
-                # gradients have not yet evaluated. put it to the dictionary for later evaluation
-                resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
-    else:
-        for variable, collective_expression in resp_physical_variable_collective_expressions.items():
             # gradients have not yet evaluated. put it to the dictionary for later evaluation
             resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
 
     if len(resp_physical_variable_collective_expressions_to_evaluate) != 0:
         response_function.CalculateGradient(resp_physical_variable_collective_expressions_to_evaluate)
         for variable, collective_expression in resp_physical_variable_collective_expressions_to_evaluate.items():
-            if optimization_problem.HasResponse(response_function):
-                response_data = ComponentDataView(response_function, optimization_problem)
-                if response_data.HasDataBuffer():
-                    response_data.GetBufferedData().SetValue(f"d{response_function.GetName()}_d{variable.Name()}", collective_expression.Clone())
+            response_data.SetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}", collective_expression.Clone())
             resp_physical_variable_collective_expressions[variable] = collective_expression
 
     # now add zero values collective expressions to variables for which the response function does not have dependence
@@ -146,10 +129,10 @@ def GetResponseFunction(current_value: str, optimization_problem: OptimizationPr
                     index += 1
 
                 args_list.append(current_arg)
-                return GetFunction(function_name, optimization_problem, *[EvaluateResponseExpression(arg, optimization_problem) for arg in args_list])
+                return GetFunction(function_name, optimization_problem, *[__EvaluateResponseExpressionImpl(arg, optimization_problem) for arg in args_list])
             else:
                 # this is a response expression.
-                return EvaluateResponseExpression(current_value, optimization_problem)
+                return __EvaluateResponseExpressionImpl(current_value, optimization_problem)
 
 def GetValuesAndOperators(response_expression: str, optimization_problem: OptimizationProblem) -> 'tuple[list[ResponseFunction], list[str]]':
     responses: 'list[ResponseFunction]' = []
@@ -185,7 +168,7 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
 
     return responses, operators
 
-def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+def __EvaluateResponseExpressionImpl(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.binary_operator_response_function import BinaryOperatorResponseFunction
 
     response_expression = response_expression.replace(" ", "")
@@ -243,3 +226,6 @@ def EvaluateResponseExpression(response_expression: str, optimization_problem: O
     __evaluate_operator(["+", "-"])
 
     return responses[0]
+
+def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
+    return EvaluationResponseFunction(__EvaluateResponseExpressionImpl(response_expression, optimization_problem), optimization_problem)
