@@ -210,7 +210,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         eval_value = eval_resp.CalculateValue()
         self.assertAlmostEqual(eval_value, self.r1.CalculateValue(), 12)
 
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
         self.assertTrue(self.optimization_problem.HasResponse("r1"))
 
         # following is the resultant response function, hence the value storage is managed by the ResponseRoutine

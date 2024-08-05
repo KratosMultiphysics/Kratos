@@ -228,4 +228,19 @@ def __EvaluateResponseExpressionImpl(response_expression: str, optimization_prob
     return responses[0]
 
 def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
-    return EvaluationResponseFunction(__EvaluateResponseExpressionImpl(response_expression, optimization_problem), optimization_problem)
+    evaluated_response_impl = __EvaluateResponseExpressionImpl(response_expression, optimization_problem)
+    if not evaluated_response_impl.GetChildResponses() and  not evaluated_response_impl.GetImplementedPhysicalKratosVariables():
+        # if the response has children and has some dependence on the variables, then
+        # we need to use the EvaluationResponseFunction to clear the evaluation data
+        # whenever CalculateValue, CalculateGradient is used.
+        evaluated_response = EvaluationResponseFunction(__EvaluateResponseExpressionImpl(response_expression, optimization_problem), optimization_problem)
+        optimization_problem.AddComponent(evaluated_response)
+        return evaluated_response
+    else:
+        # this means the following cases
+        #    1. No children, but has dependence variables -> Leaf responses such as mass.
+        #    2. No children, no dependence variables -> Leaf responses such as LiteralValueResponse.
+        #    3. Has children, no dependence variables -> An expression with only LiteralValueResponses and functions, without any responses such as mass.
+        # in the above cases, there is no need to clear the response evaluation data, hence the original evaluated
+        # response is returned without the EvaluationResponseFunction wrapper.
+        return evaluated_response_impl
