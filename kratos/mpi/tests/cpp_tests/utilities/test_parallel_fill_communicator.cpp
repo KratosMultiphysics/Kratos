@@ -20,7 +20,7 @@
 #include "mpi/tests/test_utilities/mpi_cpp_test_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuite)
@@ -28,10 +28,10 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuit
     // The model part
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
-    
+
     // The data communicator
     const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
-    
+
     // MPI data
     const int rank =  r_data_communicator.Rank();
     const int world_size = r_data_communicator.Size();
