@@ -23,6 +23,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_nitsche_stabilization_strategy.hpp"
 // Schemes
 #include "custom_strategies/custom_schemes/eigensolver_nitsche_stabilization_scheme.hpp"
+#include "custom_strategies/custom_schemes/iga_contact_scheme.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -49,6 +50,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom scheme types
     typedef EigensolverNitscheStabilizationScheme< SparseSpaceType, LocalSpaceType > EigensolverNitscheStabilizationSchemeType;
+    typedef IgaContactScheme< SparseSpaceType, LocalSpaceType > IgaContactSchemeType;
 
     // Eigensolver Strategy
     py::class_< EigensolverNitscheStabilizationStrategyType, typename EigensolverNitscheStabilizationStrategyType::Pointer,BaseImplicitSolvingStrategyType >(m,"EigensolverNitscheStabilizationStrategy")
@@ -64,6 +66,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< EigensolverNitscheStabilizationSchemeType,typename EigensolverNitscheStabilizationSchemeType::Pointer, BaseSchemeType>(m,"EigensolverNitscheStabilizationScheme")
         .def(py::init<>() )
         ;
+
+    py::class_< IgaContactSchemeType,typename IgaContactSchemeType::Pointer, BaseSchemeType>(m,"IgaContactScheme")
+        .def(py::init<>() )
+        ;
+
+
+    // Custom mortar and criteria
+    // py::class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
+    //     ConvergenceCriteriaType >
+    //     (m, "MortarAndConvergenceCriteria")
+    //     .def(py::init<Parameters>())
+    //     .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
+    //     .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
+    //     ;
 }
 
 }  // namespace Python.

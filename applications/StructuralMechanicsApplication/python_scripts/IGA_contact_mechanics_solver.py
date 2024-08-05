@@ -3,6 +3,9 @@ import KratosMultiphysics
 
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+
+import KratosMultiphysics.IgaApplication as IgaApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import json
 import os
 
@@ -87,6 +90,57 @@ class IgaContactMechanicsSolver(MechanicalSolver):
                 for condition in skin_model_part2.Conditions :
                     file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
                     file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
+                    
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type" : "mechanical_solver",
+            "model_part_name" : "",
+            "computing_sub_model_part_name" : "",
+            "domain_size" : -1,
+            "echo_level": 0,
+            "buffer_size": 2,
+            "analysis_type": "non_linear",
+            "model_import_settings": {
+                "input_type": "mdpa"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
+            "time_stepping" : { },
+            "volumetric_strain_dofs": false,
+            "rotation_dofs": false,
+            "pressure_dofs": false,
+            "displacement_control": false,
+            "reform_dofs_at_each_step": false,
+            "use_old_stiffness_in_first_iteration": false,
+            "compute_reactions": true,
+            "solving_strategy_settings": {
+                "type" : "newton_raphson",
+                "advanced_settings" : { }
+            },
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
+            "clear_storage": false,
+            "move_mesh_flag": true,
+            "multi_point_constraints_used": true,
+            "convergence_criterion": "residual_criterion",
+            "scheme_type": "contact",
+            "displacement_relative_tolerance": 1.0e-4,
+            "displacement_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
+            "max_iteration": 10,
+            "linear_solver_settings": { },
+            "auxiliary_variables_list" : [],
+            "auxiliary_dofs_list" : [],
+            "auxiliary_reaction_list" : []
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
                 
     
     
@@ -153,4 +207,37 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         return self._solution_scheme
 
     def _CreateScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        """Create the scheme for the scipy solver.
+
+        The scheme determines the mass and stiffness matrices
+        """
+        scheme_type = self.settings["scheme_type"].GetString()
+        
+        # solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        if scheme_type == "iga_contact":
+            solution_scheme = IgaApplication.IgaContactScheme()
+            # solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        else: # here e.g. a stability scheme could be added
+            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"dynamic\""
+            # raise Exception(err_msg)
+
+        return solution_scheme
+        # return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+    def _create_newton_raphson_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self._GetScheme()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+                                                                     mechanical_scheme,
+                                                                     mechanical_convergence_criterion,
+                                                                     builder_and_solver,
+                                                                     self.settings["max_iteration"].GetInt(),
+                                                                     self.settings["compute_reactions"].GetBool(),
+                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                     self.settings["move_mesh_flag"].GetBool())
+        strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        return strategy
