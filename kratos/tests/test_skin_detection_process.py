@@ -25,7 +25,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
     def tearDownClass(cls):
         RemoveFiles(cls.mdpa_name)
 
-    def test_SkinDetectionProcess(self):
+    def test_BasicSkinDetectionProcess(self):
         # We set a flag in the already known node in the skin
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             node.Set(KratosMultiphysics.ACTIVE, True)
@@ -35,6 +35,33 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
+
+        # Check the number of conditions created
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        if data_comm.IsDistributed():
+            number_of_conditions = 0
+            number_of_conditions += self.model_part.NumberOfConditions()
+            global_number_of_conditions = data_comm.SumAll(number_of_conditions)
+            self.assertEqual(global_number_of_conditions, 128)
+        else:
+            self.assertEqual(self.model_part.NumberOfConditions(), 128)
+
+        # TODO: To debug, failing with 4 partitions
+        # # The data communicator
+        # comm = self.model_part.GetCommunicator()
+        # data_comm = comm.GetDataCommunicator()
+
+        # # Construct and execute the Parallel fill communicator
+        # if data_comm.IsDistributed():
+        #     import KratosMultiphysics.mpi as KratosMPI
+        #     parallel_fill_communicator = KratosMPI.ParallelFillCommunicator(self.model_part, data_comm)
+        #     parallel_fill_communicator.Execute()
+
+        # # Check the number of conditions created
+        # if data_comm.IsDistributed():
+        #     self.assertEqual(comm.GlobalNumberOfConditions(), 128)
+        # else:
+        #     self.assertEqual(self.model_part.NumberOfConditions(), 128)
 
     def test_SkinDetectionProcessWithAssign(self):
         skin_detection_parameters = KratosMultiphysics.Parameters("""
