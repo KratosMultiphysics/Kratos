@@ -187,9 +187,6 @@ void MPICppTestUtilities::GenerateDistributedTriangleMesh(
     const DataCommunicator& rDataCommunicator
     )
 {
-    // Set MPI communicator
-    ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
-
     // Add variables
     rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
