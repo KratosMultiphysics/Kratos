@@ -405,9 +405,6 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(ModelPart& r
 {
     KRATOS_TRY;
 
-    // Get the root id.
-    constexpr unsigned root_id = 0;
-
     // Set communicator for the sub model part.
     Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rSubModelPart.GetNodalSolutionStepVariablesList(), mrDataComm);
     rSubModelPart.SetCommunicator(pnew_comm);
