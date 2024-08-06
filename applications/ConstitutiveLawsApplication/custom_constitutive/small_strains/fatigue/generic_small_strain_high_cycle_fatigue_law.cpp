@@ -134,6 +134,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         if (uniaxial_stress / threshold > 1.0 && first_cycle_nonlinearity) {
             reference_damage = this->GetDamage();
+            mFirstCycleNonlinearity = false; 
+        } else if (local_number_of_cycles > 10 && first_cycle_nonlinearity) {
+            mFirstCycleNonlinearity = false; 
         }
 
         max_stress = (1 - reference_damage) * mMaxStress;
@@ -194,7 +197,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         first_min_indicator = true;
         mCyclesToFailure = cycles_to_failure;
         mPreviousCycleDamage = this->GetDamage();
-        mFirstCycleNonlinearity = false;  
     }
     
     if (advance_strategy_applied) {
