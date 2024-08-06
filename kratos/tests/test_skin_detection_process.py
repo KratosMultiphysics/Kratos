@@ -25,7 +25,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
     def tearDownClass(cls):
         RemoveFiles(cls.mdpa_name)
 
-    def test_BasicSkinDetectionProcess(self):
+    def test_SkinDetectionProcess(self):
         # We set a flag in the already known node in the skin
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             node.Set(KratosMultiphysics.ACTIVE, True)
