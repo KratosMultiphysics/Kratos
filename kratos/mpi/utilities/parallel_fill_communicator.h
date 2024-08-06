@@ -172,8 +172,12 @@ protected:
     /**
      * @brief This function computes the communication plan for a submodel part
      * @param rSubModelPart The sub model part to compute the communication plan
+     * @param rColors The colors of the sub model part
      */
-    void ComputeCommunicationPlanSubModelPart(ModelPart& rSubModelPart);
+    void ComputeCommunicationPlanSubModelPart(
+        ModelPart& rSubModelPart,
+        const std::vector<int>& rColors
+        );
 
     ///@}
     ///@name Protected  Access
