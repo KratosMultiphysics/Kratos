@@ -443,9 +443,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(ModelPart& r
     auto& r_parent_interface_nodes = r_parent_model_part.GetCommunicator().InterfaceMesh().Nodes();
 
     // Interface nodes we use the information from the parent model part.
-    for (auto it_node = r_parent_interface_nodes.begin(); it_node != r_parent_interface_nodes.end(); ++it_node) {
+    for (auto it_node = rSubModelPart.NodesBegin(); it_node != rSubModelPart.NodesEnd(); ++it_node) {
         const std::size_t index = it_node->Id();
-        if (rSubModelPart.HasNode(index)) {
+        if (r_parent_interface_nodes.find(index) != r_parent_interface_nodes.end()) {
             r_interface_nodes.push_back(*(it_node.base()));
         }
     }
