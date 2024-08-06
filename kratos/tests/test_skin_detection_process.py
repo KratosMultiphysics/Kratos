@@ -77,19 +77,13 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         }"""))
         detect_skin.Execute()
 
-        # The data communicator
-        comm = self.model_part.GetCommunicator()
-        data_comm = comm.GetDataCommunicator()
-
-        # Construct and execute the Parallel fill communicator
-        if data_comm.IsDistributed():
-            import KratosMultiphysics.mpi as KratosMPI
-            parallel_fill_communicator = KratosMPI.ParallelFillCommunicator(self.model_part, data_comm)
-            parallel_fill_communicator.Execute()
-
         # Check the number of conditions created
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
         if data_comm.IsDistributed():
-            self.assertEqual(comm.GlobalNumberOfConditions(), 112)
+            number_of_conditions = 0
+            number_of_conditions += self.model_part.NumberOfConditions()
+            global_number_of_conditions = data_comm.SumAll(number_of_conditions)
+            self.assertEqual(global_number_of_conditions, 112)
         else:
             self.assertEqual(self.model_part.NumberOfConditions(), 112)
 
