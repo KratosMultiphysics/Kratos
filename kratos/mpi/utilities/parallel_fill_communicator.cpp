@@ -405,15 +405,23 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(ModelPart& r
 {
     KRATOS_TRY;
 
+    // Get the root id.
     constexpr unsigned root_id = 0;
 
+    // Set communicator for the sub model part.
     Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rSubModelPart.GetNodalSolutionStepVariablesList(), mrDataComm);
     rSubModelPart.SetCommunicator(pnew_comm);
 
+    // Get communicator
+    auto& r_communicator = rSubModelPart.GetCommunicator();
+
+    // Get the local mesh
+    auto& r_local_mesh = r_communicator.LocalMesh();
+
     // Fill the list of all of the nodes to be communicated.
-    auto& r_local_nodes = rSubModelPart.GetCommunicator().LocalMesh().Nodes();
-    auto& r_ghost_nodes = rSubModelPart.GetCommunicator().GhostMesh().Nodes();
-    auto& r_interface_nodes = rSubModelPart.GetCommunicator().InterfaceMesh().Nodes();
+    auto& r_local_nodes = r_local_mesh.Nodes();
+    auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
+    auto& r_interface_nodes = r_communicator.InterfaceMesh().Nodes();
     r_local_nodes.clear();
     r_ghost_nodes.clear();
     r_interface_nodes.clear();
@@ -448,12 +456,12 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(ModelPart& r
     r_ghost_nodes.Unique();
 
     // Assign elements and conditions for LocalMesh.
-    rSubModelPart.GetCommunicator().LocalMesh().Elements().clear();
-    rSubModelPart.GetCommunicator().LocalMesh().Conditions().clear();
-    rSubModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints().clear();
-    rSubModelPart.GetCommunicator().LocalMesh().Elements() = rSubModelPart.Elements();
-    rSubModelPart.GetCommunicator().LocalMesh().Conditions() = rSubModelPart.Conditions();
-    rSubModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints() = rSubModelPart.MasterSlaveConstraints();
+    r_local_mesh.Elements().clear();
+    r_local_mesh.Conditions().clear();
+    r_local_mesh.MasterSlaveConstraints().clear();
+    r_local_mesh.Elements() = rSubModelPart.Elements();
+    r_local_mesh.Conditions() = rSubModelPart.Conditions();
+    r_local_mesh.MasterSlaveConstraints() = rSubModelPart.MasterSlaveConstraints();
 
     // Call the sub model part.
     for (ModelPart& r_sub_model_part : rSubModelPart.SubModelParts()) {
