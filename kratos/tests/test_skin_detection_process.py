@@ -88,4 +88,5 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
             self.assertEqual(self.model_part.NumberOfConditions(), 112)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
