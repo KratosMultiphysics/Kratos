@@ -485,6 +485,7 @@ void ParallelFillCommunicator::GenerateMeshes(
     ModelPart::NodesContainerType& r_interface_nodes =
         rModelPart.GetCommunicator().InterfaceMesh(Color).Nodes();
     r_interface_nodes.clear();
+    r_interface_nodes.reserve(r_local_nodes.size() + r_ghost_nodes.size());
 
     for (auto it = r_ghost_nodes.begin(); it != r_ghost_nodes.end(); ++it)
     {
