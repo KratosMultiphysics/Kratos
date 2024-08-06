@@ -187,7 +187,7 @@ void MPICppTestUtilities::GenerateDistributedTriangleMesh(
     const DataCommunicator& rDataCommunicator
     )
 {
-    // Set MPI coomunicator
+    // Set MPI communicator
     ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
 
     // Add variables
