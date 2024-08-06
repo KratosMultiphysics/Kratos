@@ -393,10 +393,71 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
     rModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints() = rModelPart.MasterSlaveConstraints();
 
+    // Call the sub model part. We don't need to fully compute info in the sub model part, as the info is already computed in the parent model part. This reduces also number of communication calls.
+    for (ModelPart& r_sub_model_part : rModelPart.SubModelParts()) {
+        ComputeCommunicationPlanSubModelPart(r_sub_model_part);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(ModelPart& rSubModelPart)
+{
+    KRATOS_TRY;
+
+    constexpr unsigned root_id = 0;
+
+    Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rSubModelPart.GetNodalSolutionStepVariablesList(), mrDataComm);
+    rSubModelPart.SetCommunicator(pnew_comm);
+
+    // Fill the list of all of the nodes to be communicated.
+    auto& r_local_nodes = rSubModelPart.GetCommunicator().LocalMesh().Nodes();
+    auto& r_ghost_nodes = rSubModelPart.GetCommunicator().GhostMesh().Nodes();
+    auto& r_interface_nodes = rSubModelPart.GetCommunicator().InterfaceMesh().Nodes();
+    r_local_nodes.clear();
+    r_ghost_nodes.clear();
+    r_interface_nodes.clear();
+
+    // Fill nodes for LocalMesh and GhostMesh.
+    for (auto it_node = rSubModelPart.NodesBegin(); it_node != rSubModelPart.NodesEnd(); ++it_node) {
+        const int index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
+        if (index == mrDataComm.Rank()) {
+            r_local_nodes.push_back(*(it_node.base()));
+        } else {
+            r_ghost_nodes.push_back(*(it_node.base()));
+        }
+    }
+
+    // Get the parent model part.
+    ModelPart& r_parent_model_part = rSubModelPart.GetParentModelPart();
+
+    // Parent model part nodes.
+    auto& r_parent_interface_nodes = r_parent_model_part.GetCommunicator().InterfaceMesh().Nodes();
+
+    // Interface nodes we use the information from the parent model part.
+    for (auto it_node = r_parent_interface_nodes.begin(); it_node != r_parent_interface_nodes.end(); ++it_node) {
+        const std::size_t index = it_node->Id();
+        if (rSubModelPart.HasNode(index)) {
+            r_interface_nodes.push_back(*(it_node.base()));
+        }
+    }
+
+    // Calling Unique() on the nodes container will remove duplicates.
+    r_interface_nodes.Unique();
+    r_local_nodes.Unique();
+    r_ghost_nodes.Unique();
+
+    // Assign elements and conditions for LocalMesh.
+    rSubModelPart.GetCommunicator().LocalMesh().Elements().clear();
+    rSubModelPart.GetCommunicator().LocalMesh().Conditions().clear();
+    rSubModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints().clear();
+    rSubModelPart.GetCommunicator().LocalMesh().Elements() = rSubModelPart.Elements();
+    rSubModelPart.GetCommunicator().LocalMesh().Conditions() = rSubModelPart.Conditions();
+    rSubModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints() = rSubModelPart.MasterSlaveConstraints();
+
     // Call the sub model part.
-    for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
-    {
-        ComputeCommunicationPlan(r_sub_model_part);
+    for (ModelPart& r_sub_model_part : rSubModelPart.SubModelParts()) {
+        ComputeCommunicationPlanSubModelPart(r_sub_model_part);
     }
 
     KRATOS_CATCH("");

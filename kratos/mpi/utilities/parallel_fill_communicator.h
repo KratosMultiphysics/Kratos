@@ -163,11 +163,17 @@ protected:
 
     /// Generate the ghost, local and interface meshes for processes of a communication pair (color).
     void GenerateMeshes(
-        const int NeighbourPID, 
-        const int MyPID, 
-        const unsigned int Color, 
+        const int NeighbourPID,
+        const int MyPID,
+        const unsigned int Color,
         ModelPart& rModelPart
         );
+
+    /**
+     * @brief This function computes the communication plan for a submodel part
+     * @param rSubModelPart The sub model part to compute the communication plan
+     */
+    void ComputeCommunicationPlanSubModelPart(ModelPart& rSubModelPart);
 
     ///@}
     ///@name Protected  Access
