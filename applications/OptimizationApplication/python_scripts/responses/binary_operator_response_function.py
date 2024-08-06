@@ -89,6 +89,9 @@ class BinaryOperatorResponseFunction(ResponseFunction):
                 elif self.binary_operator == BinaryOperator.POWER:
                     result.SetExpression(((g1 * (v2 / v1) + g2 * log(v1)) * (v1 ** v2)).GetExpression())
 
+    def GetChildResponses(self) -> 'list[ResponseFunction]':
+        return [self.response_function_1, self.response_function_2]
+
     def __str__(self) -> str:
         if self.model_part is not None:
             return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

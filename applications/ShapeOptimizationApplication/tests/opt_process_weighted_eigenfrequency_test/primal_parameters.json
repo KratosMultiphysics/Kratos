@@ -54,7 +54,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "structure.PointLoad3D_load_point",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 10000.0,

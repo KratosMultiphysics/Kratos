@@ -40,5 +40,8 @@ class LogResponseFunction(ResponseFunction):
             for result, g in zip(collective_expression.GetContainerExpressions(), resp_physical_variable_collective_expressions[variable].GetContainerExpressions()):
                 result.SetExpression((g / v).GetExpression())
 
+    def GetChildResponses(self) -> 'list[ResponseFunction]':
+        return [self.response_function]
+
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}]"

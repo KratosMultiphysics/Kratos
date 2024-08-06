@@ -34,7 +34,6 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -76,4 +75,4 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignVectorByDirectionToConditionProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
