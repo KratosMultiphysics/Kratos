@@ -31,10 +31,10 @@ namespace Kratos::Testing {
         {
         }
 
-		Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override
-		{
-			return Kratos::make_intrusive<MockElement>(NewId, pGeometry, pProperties);
-		}
+        Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override
+        {
+            return Kratos::make_intrusive<MockElement>(NewId, pGeometry, pProperties);
+        }
 
         void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rOutput,
@@ -74,7 +74,7 @@ namespace Kratos::Testing {
             }
 
         };
-	};
+    };
 
 
             
@@ -107,7 +107,7 @@ namespace Kratos::Testing {
 
             auto neighbour_node_1 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
             auto neighbour_node_2 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
-            			
+
             // register mock element
             const MockElement mock_element{
                 0, Kratos::make_shared<Quadrilateral2D4<Element::NodeType>>(Element::GeometryType::PointsArrayType(4)), Element::PropertiesType::Pointer(0)};
@@ -115,7 +115,7 @@ namespace Kratos::Testing {
 
             // add neighbour element to model part
             Element::GeometryType::Pointer p_geometry = Kratos::make_shared<Kratos::Quadrilateral2D4<Element::NodeType>>(node_1, node_2, neighbour_node_1, neighbour_node_2);
-			auto neighbour_element = rModelPart.CreateNewElement("MockElement", 1, p_geometry, p_neighbour_prop);
+            auto neighbour_element = rModelPart.CreateNewElement("MockElement", 1, p_geometry, p_neighbour_prop);
             
 
             // add neighbour element to condition
@@ -132,7 +132,7 @@ namespace Kratos::Testing {
 
 
         /// <summary>
-		/// Tests the calculation of the left hand side matrix of the UPwNormalLysmerAbsorbingCondition
+        /// Tests the calculation of the left hand side matrix of the UPwNormalLysmerAbsorbingCondition
         /// </summary>
         /// <param name=""></param>
         /// <param name=""></param>
@@ -144,13 +144,13 @@ namespace Kratos::Testing {
             auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
             r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
-			// set up condition
+            // set up condition
             ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition2D2NCondition(r_model_part);
             const auto& r_process_info = r_model_part.GetProcessInfo();
 
 
             // Perfrom test, calculate left hand side
-			unsigned int conditionSize = 6;
+            unsigned int conditionSize = 6;
             Matrix rLeftHandSideMatrix = ZeroMatrix(conditionSize, conditionSize);
             
             p_cond->CalculateLeftHandSide(rLeftHandSideMatrix, r_process_info);
@@ -158,33 +158,33 @@ namespace Kratos::Testing {
             // set expected_results
             Matrix expected_matrix = ZeroMatrix(conditionSize, conditionSize);
             expected_matrix(0, 0) = 5.0/ 100 / 4;
-			expected_matrix(0, 2) = expected_matrix(0, 0);
+            expected_matrix(0, 2) = expected_matrix(0, 0);
             expected_matrix(2, 0) = expected_matrix(0, 0);
-			expected_matrix(2, 2) = expected_matrix(0, 0);
+            expected_matrix(2, 2) = expected_matrix(0, 0);
 
             expected_matrix(1, 1) = 4.0/100 / 4;
-			expected_matrix(1, 3) = expected_matrix(1, 1);
-			expected_matrix(3, 1) = expected_matrix(1, 1);
-			expected_matrix(3, 3) = expected_matrix(1, 1);
+            expected_matrix(1, 3) = expected_matrix(1, 1);
+            expected_matrix(3, 1) = expected_matrix(1, 1);
+            expected_matrix(3, 3) = expected_matrix(1, 1);
 
 
-			// compare results
+            // compare results
             for (unsigned int i = 0; i < conditionSize; ++i)
             {
-				for (unsigned int j = 0; j < conditionSize; ++j)
-				{
-					KRATOS_EXPECT_NEAR(
-						rLeftHandSideMatrix(i, j),
-						expected_matrix(i, j),
-						1.0e-6);
-				}
+                for (unsigned int j = 0; j < conditionSize; ++j)
+                {
+                    KRATOS_EXPECT_NEAR(
+                        rLeftHandSideMatrix(i, j),
+                        expected_matrix(i, j),
+                        1.0e-6);
+                }
             }
         }
 
 
 
         /// <summary>
-		/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+        /// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
         /// </summary>
         /// <param name=""></param>
         /// <param name=""></param>
@@ -196,31 +196,31 @@ namespace Kratos::Testing {
             auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
             r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-			r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
             // set up condition
             ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition2D2NCondition(r_model_part);
             const auto& r_process_info = r_model_part.GetProcessInfo();
 
             // add dofs to nodes
-			for (auto& node : r_model_part.Nodes())
-			{
-				node.AddDof(DISPLACEMENT_X);
-				node.AddDof(DISPLACEMENT_Y);
-				node.AddDof(WATER_PRESSURE);
+            for (auto& node : r_model_part.Nodes())
+            {
+                node.AddDof(DISPLACEMENT_X);
+                node.AddDof(DISPLACEMENT_Y);
+                node.AddDof(WATER_PRESSURE);
             }
 
-			p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
-			p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
+            p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
+            p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
 
-			p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.0;
-			p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.0;
+            p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.0;
+            p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.0;
 
 
             // Perfrom test, calculate left hand side
             size_t condition_size = 6;
             Matrix rLeftHandSideMatrix = ZeroMatrix(condition_size, condition_size);
-			Vector right_hand_side_vector = ZeroVector(condition_size);
+            Vector right_hand_side_vector = ZeroVector(condition_size);
 
             //const auto& r_process_info = r_model_part.GetProcessInfo();
             p_cond->CalculateLocalSystem(rLeftHandSideMatrix, right_hand_side_vector, r_process_info);
@@ -237,11 +237,11 @@ namespace Kratos::Testing {
             expected_matrix(3, 1) = expected_matrix(1, 1);
             expected_matrix(3, 3) = expected_matrix(1, 1);
 
-			Vector expected_rhs = ZeroVector(condition_size);
+            Vector expected_rhs = ZeroVector(condition_size);
             expected_rhs[0] = -(expected_matrix(0, 0) * 1.0 + expected_matrix(0, 2) * 3.0);
-			expected_rhs[1] = -(expected_matrix(1, 1) * 2.0 + expected_matrix(1, 3) * 4.0);
-			expected_rhs[2] = -(expected_matrix(2, 0) * 1.0 + expected_matrix(2, 2) * 3.0);
-			expected_rhs[3] = -(expected_matrix(3, 1) * 2.0 + expected_matrix(3, 3) * 4.0);
+            expected_rhs[1] = -(expected_matrix(1, 1) * 2.0 + expected_matrix(1, 3) * 4.0);
+            expected_rhs[2] = -(expected_matrix(2, 0) * 1.0 + expected_matrix(2, 2) * 3.0);
+            expected_rhs[3] = -(expected_matrix(3, 1) * 2.0 + expected_matrix(3, 3) * 4.0);
 
             // compare results
             for (unsigned int i = 0; i < condition_size; ++i)
@@ -255,10 +255,10 @@ namespace Kratos::Testing {
                         1.0e-6);
                 }
                 // compare rhs
-				KRATOS_EXPECT_NEAR(
-					right_hand_side_vector[i],
-					expected_rhs[i],
-					1.0e-6);
+                KRATOS_EXPECT_NEAR(
+                    right_hand_side_vector[i],
+                    expected_rhs[i],
+                    1.0e-6);
             }
         }
 }
