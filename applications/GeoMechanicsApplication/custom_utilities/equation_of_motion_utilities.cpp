@@ -35,8 +35,8 @@ Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(std::size_t   dimension
     for (unsigned int g_point = 0; g_point < NumberIntegrationPoints; ++g_point) {
         GeoElementUtilities::AssembleDensityMatrix(density_matrix, rSolidDensities[g_point]);
         GeoElementUtilities::CalculateNuMatrix(dimension, number_U_nodes, Nu, Nu_container, g_point);
-        noalias(aux_density_matrix) = prod(density_matrix, Nu);
-        mass_matrix += prod(trans(Nu), aux_density_matrix) * rIntegrationCoefficients[g_point];
+
+        mass_matrix += rSolidDensities[g_point] * prod(trans(Nu), Nu) * rIntegrationCoefficients[g_point];
     }
     return mass_matrix;
 }
