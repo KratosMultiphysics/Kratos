@@ -8,23 +8,6 @@ summary:
 
 The objective of this tutorial is to show Kratos users how to build ROMs using the Kratos RomApplication.
 
-# Content
-- [Content](#content)
-- [Overview of ROMs in Kratos](#overview-of-roms-in-kratos)
-- [Setting up a Structural Mechanics Parametric Simulation](#setting-up-a-structural-mechanics-parametric-simulation)
-- [Setting up a Structural Mechanics ROM](#setting-up-a-structural-mechanics-rom)
-- [Setting up a Fluid Dynamics Parametric Simulation](#setting-up-a-fluid-dynamics-parametric-simulation)
-- [References](#references)
-
-
-# Overview of ROMs in Kratos
-
-The Kratos RomApplication implements Projection-based Reduced Order Models (PROMs)[1,2]. PROMs are a family of reduced models that aim to accelerate the evaluation of parametric models, by incurring a fraction of the costs associated to the high-dimensional FOMs, while still taking into account the physics underlying the models at hand. PROMs are comprised of two different stages:
-
-- Offline stage : In this stage, a set of simulations is performed using the computationally expensive FOM, and the resulting solutions are stored in a so-called snapshots matrix. This matrix is then processed to obtain a reduced-space where the discrete equations are projected (therefore the name of the method). Moreover,  we accomplish the decoupling of the ROMs from full dimensional variables through a hyper-reduction mesh sampling and weighting hyper-reduction technique.
-
-- Online stage: With the basis and additional hyper-reduction data available, the hyper-reduced order models (HROMs) can be efficiently launched for unexplored parameters at a fraction of the cost associated with the FOMs.
-
 In Katos, the [RomManager](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/RomApplication/python_scripts/rom_manager.py) is the class that seamlessly orschestrates the simulations involved in both stages. ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_1_1.png)
 
 In the subsequent sections, the parameters passed to the RomManager will be introduced.
@@ -150,11 +133,4 @@ Finally, the RunROM() method of the RomManager launches the ROM simulations for 
 
 
 # Setting up a Fluid Dynamics Parametric Simulation
-
-
-
-
-# References
-[1] Hesthaven, J. S., Rozza, G., & Stamm, B. (2016). Certified reduced basis methods for parametrized partial differential equations (Vol. 590, pp. 1-131). Berlin: Springer.
-
-[2] Rozza, G., Stabile, G., & Ballarin, F. (Eds.). (2022). Advanced reduced order methods and applications in computational fluid dynamics. Society for Industrial and Applied Mathematics.
+to be added
