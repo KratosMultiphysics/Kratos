@@ -14,7 +14,6 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           :"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id"                   : 0,
                 "friction_coefficient"      : 0,
                 "tangential_penalty_factor" : 0,
                 "option"                    : "",
