@@ -13,7 +13,7 @@ In Katos, the [RomManager](https://github.com/KratosMultiphysics/Kratos/blob/mas
 In the subsequent sections, the parameters passed to the RomManager will be introduced.
 
 
-# Setting up a Structural Mechanics Parametric Simulation
+## Setting up a Structural Mechanics Parametric Simulation
 
 The first example is a structural mechanics simulation with three pressure loads applied as shown in the figure
 
@@ -23,7 +23,7 @@ The material follows a Neo-Hookean Hyperelastic constitutive law, and the bottom
 
 
 
-# Setting up a Structural Mechanics ROM
+## Setting up a Structural Mechanics ROM
 
 A video version of this section is available [here](https://youtu.be/KtO-XxbgLwU?si=MEmMpKlW1LOJaCTW), while the files used are available [here](https://github.com/KratosMultiphysics/Documentation/tree/master/RomApp_Tutorial/RomAppTutorial_Part3).
 
@@ -99,7 +99,7 @@ rom_manager.Fit(mu_train)
 rom_manager.PrintErrors()
 ```
 
-The workflow for the above script is the one presented in Sec. [Overview of ROMs in Kratos](#overview-of-roms-in-kratos).
+The workflow for the above script is the one presented in Sec. Overview of ROMs in Kratos.
 
 
 The Test() method of the RomManager also accepts a list of lists specifying the testing parameters. This method runs both the FOM and ROM, but the snapshots from the FOM are not used for improving the ROM. An example snippet of the Test() method of the RomManager is the following:
@@ -132,5 +132,5 @@ Finally, the RunROM() method of the RomManager launches the ROM simulations for 
 
 
 
-# Setting up a Fluid Dynamics Parametric Simulation
+## Setting up a Fluid Dynamics Parametric Simulation
 to be added
