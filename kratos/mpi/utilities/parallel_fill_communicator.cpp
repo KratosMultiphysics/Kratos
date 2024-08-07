@@ -422,6 +422,38 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(
     Communicator::MeshType::Pointer p_local_mesh = Kratos::make_shared<Communicator::MeshType>();
     r_communicator.SetLocalMesh(p_local_mesh);
 
+    // Fill the list of all of the nodes to be communicated.
+    auto& r_local_nodes = p_local_mesh->Nodes();
+    auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
+    auto& r_interface_nodes = r_communicator.InterfaceMesh().Nodes();
+    r_ghost_nodes.clear();
+    r_interface_nodes.clear();
+
+    // Parent model part nodes
+    const auto& r_parent_local_nodes = r_parent_communicator.LocalMesh().Nodes();
+    const auto& r_parent_ghost_nodes = r_parent_communicator.GhostMesh().Nodes();
+    const auto& r_parent_interface_nodes = r_parent_communicator.InterfaceMesh().Nodes();
+
+    // Interface nodes we use the information from the parent model part.
+    for (auto it_node = rSubModelPart.NodesBegin(); it_node != rSubModelPart.NodesEnd(); ++it_node) {
+        const std::size_t index = it_node->Id();
+        if (r_parent_local_nodes.find(index) != r_parent_local_nodes.end()) {
+            r_local_nodes.push_back(*(it_node.base()));
+        }
+        if (r_parent_ghost_nodes.find(index) != r_parent_ghost_nodes.end()) {
+            r_ghost_nodes.push_back(*(it_node.base()));
+        }
+        if (r_parent_interface_nodes.find(index) != r_parent_interface_nodes.end()) {
+            r_interface_nodes.push_back(*(it_node.base()));
+        }
+    }
+
+    // // Calling Unique() on the nodes container will remove duplicates.
+    // // NOTE: Not required as already computed in base model part.
+    // r_interface_nodes.Unique();
+    // r_local_nodes.Unique();
+    // r_ghost_nodes.Unique();
+
     // Allocate space needed in the communicator.
     r_communicator.SetNumberOfColors(rColors.size());
     r_communicator.NeighbourIndices().resize(rColors.size());
@@ -470,39 +502,6 @@ void ParallelFillCommunicator::ComputeCommunicationPlanSubModelPart(
             r_interface_nodes.push_back(*(it.base()));
         }
     }
-
-    // Fill the list of all of the nodes to be communicated.
-    auto& r_local_nodes = p_local_mesh->Nodes();
-    auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
-    auto& r_interface_nodes = r_communicator.InterfaceMesh().Nodes();
-    r_ghost_nodes.clear();
-    r_interface_nodes.clear();
-
-    // Fill nodes for LocalMesh and GhostMesh.
-    for (auto it_node = rSubModelPart.NodesBegin(); it_node != rSubModelPart.NodesEnd(); ++it_node) {
-        const int index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
-        if (index == mrDataComm.Rank()) {
-            r_local_nodes.push_back(*(it_node.base()));
-        } else {
-            r_ghost_nodes.push_back(*(it_node.base()));
-        }
-    }
-
-    // Parent model part nodes.
-    auto& r_parent_interface_nodes = r_parent_communicator.InterfaceMesh().Nodes();
-
-    // Interface nodes we use the information from the parent model part.
-    for (auto it_node = rSubModelPart.NodesBegin(); it_node != rSubModelPart.NodesEnd(); ++it_node) {
-        const std::size_t index = it_node->Id();
-        if (r_parent_interface_nodes.find(index) != r_parent_interface_nodes.end()) {
-            r_interface_nodes.push_back(*(it_node.base()));
-        }
-    }
-
-    // Calling Unique() on the nodes container will remove duplicates.
-    r_interface_nodes.Unique();
-    r_local_nodes.Unique();
-    r_ghost_nodes.Unique();
 
     // Assign elements and conditions for LocalMesh.
     auto& r_submodel_part_mesh = rSubModelPart.GetMesh();
