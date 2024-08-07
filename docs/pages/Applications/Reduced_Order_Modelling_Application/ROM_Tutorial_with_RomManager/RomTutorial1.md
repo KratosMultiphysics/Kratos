@@ -145,7 +145,7 @@ The workflow, when calling the RunFOM() method looks like this:
 
 Finally, the RunROM() method of the RomManager launches the ROM simulations for the parameters passed, without storing extra data. The workflow, when calling the RunROM() method looks like this:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Figures/RomTutorial_3_4.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_3_4.png)
 
 
 
