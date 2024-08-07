@@ -37,8 +37,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
         # The data communicator
-        comm = self.model_part.GetCommunicator()
-        data_comm = comm.GetDataCommunicator()
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
 
         # Construct and execute the Parallel fill communicator
         if data_comm.IsDistributed():
@@ -48,7 +47,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         # Check the number of conditions created
         if data_comm.IsDistributed():
-            self.assertEqual(comm.GlobalNumberOfConditions(), 128)
+            self.assertEqual(self.model_part.GetCommunicator().GlobalNumberOfConditions(), 128)
         else:
             self.assertEqual(self.model_part.NumberOfConditions(), 128)
 
