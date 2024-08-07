@@ -302,6 +302,13 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
+        self.BoundingBoxMinX_update = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
+        self.BoundingBoxMinY_update = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
+        self.BoundingBoxMinZ_update = self.DEM_parameters["BoundingBoxMinZ"].GetDouble()
+        self.BoundingBoxMaxX_update = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
+        self.BoundingBoxMaxY_update = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
+        self.BoundingBoxMaxZ_update = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
+
     def SetMaterials(self):
 
         self.ReadMaterialsFile()
@@ -531,21 +538,22 @@ class DEMAnalysisStage(AnalysisStage):
 
     def UpdateSearchStartegyAndCPlusPlusStrategy(self):
 
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
 
-        BoundingBoxMinX_update = self.DEM_parameters["BoundingBoxMinX"].GetDouble() + self.time * move_velocity
-        BoundingBoxMinY_update = self.DEM_parameters["BoundingBoxMinY"].GetDouble() + self.time * move_velocity
-        BoundingBoxMinZ_update = self.DEM_parameters["BoundingBoxMinZ"].GetDouble() + self.time * move_velocity
-        BoundingBoxMaxX_update = self.DEM_parameters["BoundingBoxMaxX"].GetDouble() - self.time * move_velocity
-        BoundingBoxMaxY_update = self.DEM_parameters["BoundingBoxMaxY"].GetDouble() - self.time * move_velocity
-        BoundingBoxMaxZ_update = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble() - self.time * move_velocity
+        self.BoundingBoxMinX_update += delta_time * move_velocity
+        self.BoundingBoxMinY_update += delta_time * move_velocity
+        self.BoundingBoxMinZ_update += delta_time * move_velocity
+        self.BoundingBoxMaxX_update -= delta_time * move_velocity
+        self.BoundingBoxMaxY_update -= delta_time * move_velocity
+        self.BoundingBoxMaxZ_update -= delta_time * move_velocity
 
-        self._GetSolver().search_strategy = OMP_DEMSearch(BoundingBoxMinX_update,
-                                                        BoundingBoxMinY_update,
-                                                        BoundingBoxMinZ_update,
-                                                        BoundingBoxMaxX_update,
-                                                        BoundingBoxMaxY_update,
-                                                        BoundingBoxMaxZ_update)
+        self._GetSolver().search_strategy = OMP_DEMSearch(self.BoundingBoxMinX_update,
+                                                        self.BoundingBoxMinY_update,
+                                                        self.BoundingBoxMinZ_update,
+                                                        self.BoundingBoxMaxX_update,
+                                                        self.BoundingBoxMaxY_update,
+                                                        self.BoundingBoxMaxZ_update)
         self._GetSolver().UpdateCPlusPlusStrategy()
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
@@ -733,12 +741,12 @@ class DEMAnalysisStage(AnalysisStage):
         '''
         if type == "porosity":
 
-            measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
             sphere_volume_inside_range = 0.0
             measured_porosity = 0.0
 
             for node in self.spheres_model_part.Nodes:
-
+                
                 r = node.GetSolutionStepValue(RADIUS)
                 x = node.X
                 y = node.Y
@@ -750,7 +758,7 @@ class DEMAnalysisStage(AnalysisStage):
 
                     sphere_volume_inside_range += 4/3 * math.pi * r * r * r
 
-                elif center_to_sphere_distance < (radius + r):
+                elif center_to_sphere_distance <= (radius + r):
 
                     other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
 
@@ -759,8 +767,8 @@ class DEMAnalysisStage(AnalysisStage):
                     cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
                     
                     sphere_volume_inside_range += cross_volume
-
-            measured_porosity = 1 - (sphere_volume_inside_range / measure_sphere_volume)
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
 
             return measured_porosity
         
@@ -807,7 +815,6 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 total_tensor = np.empty((3, 3))
                 total_contact_number  = 0
-                number_of_contacts_in_a_direction = np.zeros((36, 36))
 
                 for element in self.contact_model_part.Elements:
             
@@ -831,25 +838,11 @@ class DEMAnalysisStage(AnalysisStage):
                         tensor = np.outer(vector1, vector2)
                         total_tensor += tensor
                         total_contact_number += 1
-
-                        #calculate the contact direction
-                        x, y, z = vector1
-                        vector_length = np.linalg.norm(vector1)
-                        theta = np.arccos(z / vector_length)
-                        phi = np.arctan2(y, x)
-                        
-                        theta_index = int(theta / (2 * np.pi) * 36)
-                        phi_index = int(phi / (2 * np.pi) * 36)
-                        
-                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
-
-                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(radius) +".txt"
-                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
                 
                 return eigenvalues
 
@@ -1021,7 +1014,10 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 total_tensor = np.empty((3, 3))
                 total_contact_number  = 0
-                number_of_contacts_in_a_direction = np.zeros((18, 36))
+                #number_of_contacts_in_a_direction = np.zeros((18, 36))
+                number_of_contacts_in_a_direction_2D_x_z = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_x_y = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_y_z = np.zeros(36)
 
                 for element in self.contact_model_part.Elements:
             
@@ -1050,8 +1046,8 @@ class DEMAnalysisStage(AnalysisStage):
 
                     if sphere_0_is_inside or sphere_1_is_inside:
                         
+                        #-----------------vector 1 -------------------
                         vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        #vector2 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
                         v1_norm = np.linalg.norm(vector1)
                         if v1_norm:
                             vector1_unit = vector1 / v1_norm
@@ -1065,28 +1061,111 @@ class DEMAnalysisStage(AnalysisStage):
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
 
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / np.pi * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
-                        
-                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
 
+                        if phi_index == 0:
+                            if z >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
                         
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
+                        
+                        #-----------------vector 2 -------------------
                         vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
                         x, y, z = vector2
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
                         
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / np.pi * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if z > 0.0:
+                                phi_index = 0
+                            elif z == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
                         
-                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
-                        
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
@@ -1097,8 +1176,17 @@ class DEMAnalysisStage(AnalysisStage):
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
 
-                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
-                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+                #output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
+                #np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_z, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_y_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_y, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_y_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_y_z, fmt='%d', delimiter=' ')
                 
                 return eigenvalues, second_invariant_of_deviatoric_tensor
 

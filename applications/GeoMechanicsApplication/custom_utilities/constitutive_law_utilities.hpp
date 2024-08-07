@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class ConstitutiveLawUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
 public:
     static int GetStateVariableIndex(const Variable<double>& rThisVariable);

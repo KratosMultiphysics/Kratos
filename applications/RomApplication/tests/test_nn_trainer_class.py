@@ -36,9 +36,9 @@ class SeededNN_RomManager(RomManager):
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         try:
             rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-            model_name = rom_nn_trainer.TrainNetwork(seed=324)  # Consistent solutions
+            rom_nn_trainer.TrainNetwork(seed=324)  # Consistent solutions
             self.data_base.add_to_database("Neural_Network", mu_train, None)
-            error = rom_nn_trainer.EvaluateNetwork(model_name)
+            error = rom_nn_trainer.EvaluateNetwork()
         except Exception as e:
             print(f"Error during training or evaluation: {e}")
             return None  # or handle the error as needed

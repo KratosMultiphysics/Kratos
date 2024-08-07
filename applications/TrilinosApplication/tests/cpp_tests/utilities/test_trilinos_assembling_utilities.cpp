@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "../trilinos_cpp_test_utilities.h"
 #include "custom_utilities/trilinos_assembling_utilities.h"
@@ -33,7 +33,7 @@ using TrilinosLocalMatrixType = TrilinosLocalSpaceType::MatrixType;
 using TrilinosLocalVectorType = TrilinosLocalSpaceType::VectorType;
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -66,7 +66,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetValue, KratosTrilinosAppl
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -101,7 +101,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosVectorSetGlobalValueWithoutGlobalA
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -133,7 +133,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetValue, KratosTrilinosAppl
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix, local_matrix);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMatrixSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixSetGlobalValueWithoutGlobalAssembly, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();

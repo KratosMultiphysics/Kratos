@@ -13,14 +13,14 @@
 #include "boost/numeric/ublas/assignment.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/checks.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateFluidPressureGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateFluidPressureGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Vector N(5);
     N <<= 1.0, 2.0, 3.0, 4.0, 5.0;

@@ -17,24 +17,21 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
+#include "includes/model_part.h"
+#include "includes/process_info.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
-#include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosConstitutiveLawsFastSuite)
 {
@@ -50,11 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     // Create gauss point
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-    Tetrahedra3D4<NodeType> geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Tetrahedra3D4<Node> geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
     // Set material properties
     material_properties.SetValue(YOUNG_MODULUS, 6);
     material_properties.SetValue(POISSON_RATIO, 0.3);
@@ -274,5 +271,5 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
 
 
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing
