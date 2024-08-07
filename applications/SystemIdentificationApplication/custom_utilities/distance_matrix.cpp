@@ -116,14 +116,6 @@ std::tuple<IndexType, IndexType> DistanceMatrix::GetIndexPair(
     const IndexType i = static_cast<IndexType>(std::floor(N - 0.5 - std::sqrt(std::pow(N - 0.5, 2) - 2 * EntryIndex)));
     const IndexType j = static_cast<IndexType>(EntryIndex - N * i + (i + 1) * (i + 2) / 2);
 
-    // #pragma omp critical
-    // {
-    //     KRATOS_WATCH(i)
-    //     KRATOS_WATCH(j)
-    //     KRATOS_WATCH(EntryIndex)
-    //     KRATOS_WATCH(N);
-    // }
-
     return std::make_tuple(i, j);
 }
 
