@@ -34,7 +34,7 @@ In the subsequent sections, the parameters passed to the RomManager will be intr
 
 The first example is a structural mechanics simulation with three pressure loads applied as shown in the figure
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_2_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_2_1.png)
 
 The material follows a Neo-Hookean Hyperelastic constitutive law, and the bottom part is fixed. The step-by-step procedure for generating this geometry in GiD is explained in [this video](https://youtu.be/3gJIHf5gQ88?si=5gPumMJTlYwBL0e3). Moreover, the geometry files can be obtained [here](https://github.com/KratosMultiphysics/Documentation/tree/master/RomApp_Tutorial/RomAppTutorial_Part2).
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
 Indeed, by running the above code, a unique case is launched, obtaining a single column vector, which is used for creating a ROM. Then, a ROM is also launched and the results of FOM and ROM are compared with the PrintErrors() method. This workflow looks as follows:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_3_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_3_1.png)
 
 
 The parameters vector $\mu$ contains the pressure loads speficied in the ProjectParameters.json, that is [10, 10, 10].
@@ -129,7 +129,7 @@ rom_manager.PrintErrors()
 
 The workflow, when calling the Test() method looks like this:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_3_2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_3_2.png)
 
 The RunFOM() method of the RomManager allows to launch the FOM simulations without introducing overheads. No extra data (besides the Results files if they are chosen to be kept with the flags *"save_gid_output"* and *"save_vtk_output"*) is generated.  An example snippet of the RunROM() method of the RomManager is the following:
 
@@ -140,12 +140,12 @@ rom_manager.RunFOM(mu_run)
 
 The workflow, when calling the RunFOM() method looks like this:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_3_3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_3_3.png)
 
 
 Finally, the RunROM() method of the RomManager launches the ROM simulations for the parameters passed, without storing extra data. The workflow, when calling the RunROM() method looks like this:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_AddFigures/RomApp_Tutorial/Figures/RomTutorial_3_4.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Figures/RomTutorial_3_4.png)
 
 
 
