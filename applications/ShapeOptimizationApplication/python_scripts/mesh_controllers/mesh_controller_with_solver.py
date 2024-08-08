@@ -62,6 +62,7 @@ class MeshControllerWithSolver(MeshController) :
                 "boundary_conditions_process_list" : []
             },
             "use_automatic_remeshing"     : false,
+            "skip_first_remeshing_step"   : false,
             "automatic_remeshing_settings": {
                 "strategy"        : "optimization",
                 "step_frequency"  : 1,
@@ -100,6 +101,7 @@ class MeshControllerWithSolver(MeshController) :
             self.has_automatic_boundary_process = False
 
         self.is_remeshing_used = self.MeshSolverSettings["use_automatic_remeshing"].GetBool()
+        self.skip_first_remshing_step = self.MeshSolverSettings["skip_first_remeshing_step"].GetBool()
         if (self.is_remeshing_used):
             automatic_remeshing_process_settings = self.MeshSolverSettings["automatic_remeshing_settings"]
             if (automatic_remeshing_process is None):
@@ -149,7 +151,7 @@ class MeshControllerWithSolver(MeshController) :
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        if self.is_remeshing_used:
+        if self.is_remeshing_used and not self.skip_first_remshing_step:
             self.OptimizationModelPart.Set(KM.MODIFIED, False)
             self.remeshing_process.ExecuteInitializeSolutionStep()
             self.remeshing_process.ExecuteFinalizeSolutionStep()
@@ -160,13 +162,15 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update)
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_update)
 
+        self.skip_first_remshing_step = False
+
         KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------
     def Finalize(self):
         self._mesh_moving_analysis.Finalize()
 
-        if self.is_remeshing_used:
+        if self.is_remeshing_used and not self.skip_first_remshing_step:
             self.remeshing_process.ExecuteFinalize()
 
     # --------------------------------------------------------------------------
