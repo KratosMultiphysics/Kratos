@@ -28,7 +28,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(DIGITAL_TWIN_APPLICATION) KratosSystemIdentificationApplication : public KratosApplication {
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) KratosSystemIdentificationApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

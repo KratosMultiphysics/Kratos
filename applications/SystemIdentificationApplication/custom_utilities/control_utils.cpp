@@ -81,11 +81,11 @@ void ControlUtils::ClipContainerExpression(
 }
 
 // template instantiations
-template void ControlUtils::AssignEquivalentProperties(ModelPart::ConditionsContainerType&, ModelPart::ConditionsContainerType&);
-template void ControlUtils::AssignEquivalentProperties(ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::AssignEquivalentProperties(ModelPart::ConditionsContainerType&, ModelPart::ConditionsContainerType&);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::AssignEquivalentProperties(ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&);
 
-template void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::NodesContainerType>&, const double, const double);
-template void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::ConditionsContainerType>&, const double, const double);
-template void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::ElementsContainerType>&, const double, const double);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::NodesContainerType>&, const double, const double);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::ConditionsContainerType>&, const double, const double);
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void ControlUtils::ClipContainerExpression(ContainerExpression<ModelPart::ElementsContainerType>&, const double, const double);
 
 } /* namespace Kratos.*/
