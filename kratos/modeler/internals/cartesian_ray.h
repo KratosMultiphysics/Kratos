@@ -343,11 +343,10 @@ private:
             // At this stage we can compute t to find out where the intersection point is on the line.
             float t = f * inner_prod(edge2,q);
             if (t > epsilon && t < 1.00/epsilon) {
-                // ray intersection
+                // Ray intersection
                 rIntersectionPoint = rLinePoint1 + line_vector * t;
                 return 1;
-            }
-            else {
+            } else {
                 // This means that there is a line intersection but not a ray intersection.
                 return 0;
             }
