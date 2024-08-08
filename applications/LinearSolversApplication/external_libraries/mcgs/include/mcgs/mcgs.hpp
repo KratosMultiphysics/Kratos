@@ -213,9 +213,9 @@ class Partition;
 ///
 /// @see destroyPartition
 template <class TIndex, class TColor>
-MCGS_EXPORT_SYMBOL
-[[nodiscard]] Partition<TIndex>* makePartition(const TColor* pColors,
-                                               const TIndex rowCount);
+[[nodiscard]] MCGS_EXPORT_SYMBOL
+Partition<TIndex>* makePartition(const TColor* pColors,
+                                 const TIndex rowCount);
 
 
 /// @brief Destroy a partition that was successfully constructed by @ref makePartition.
@@ -272,11 +272,11 @@ void destroyPartition(Partition<TIndex>* pPartition);
 /// @see revertReorder(TValue*,const TIndex,const Partition*)
 /// @see revertReorder(const TIndex,const TIndex,const TIndex,TIndex*,TIndex*,TValue*,TValue*,TValue*,const Partition*)
 template <class TIndex, class TValue>
-MCGS_EXPORT_SYMBOL
-[[nodiscard]] Partition<TIndex>* reorder(const unsigned long rowCount, const unsigned long columnCount, const unsigned long entryCount,
-                                         TIndex* pRowExtents, TIndex* pColumnIndices, TValue* pEntries,
-                                         TValue* pSolution, TValue* pRHS,
-                                         const Partition<TIndex>* pPartition);
+[[nodiscard]] MCGS_EXPORT_SYMBOL
+Partition<TIndex>* reorder(const unsigned long rowCount, const unsigned long columnCount, const unsigned long entryCount,
+                           TIndex* pRowExtents, TIndex* pColumnIndices, TValue* pEntries,
+                           TValue* pSolution, TValue* pRHS,
+                           const Partition<TIndex>* pPartition);
 
 
 /// @brief Restore the original order of a @ref reorder "reordered" vector.
