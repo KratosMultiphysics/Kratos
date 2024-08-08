@@ -67,9 +67,9 @@ Partition<TIndex>::Partition(std::vector<TIndex>&& rPartitionExtents,
 
 
 template <class TIndex, class TColor>
-MCGS_EXPORT_SYMBOL
-[[nodiscard]] Partition<TIndex>* makePartition(const TColor* pColors,
-                                               const TIndex rowCount)
+[[nodiscard]] MCGS_EXPORT_SYMBOL
+Partition<TIndex>* makePartition(const TColor* pColors,
+                                 const TIndex rowCount)
 {
     return new Partition<TIndex>(pColors, rowCount);
 }
