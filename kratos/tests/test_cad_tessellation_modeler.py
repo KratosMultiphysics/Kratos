@@ -17,9 +17,8 @@ def run_modelers(current_model, modelers_list):
     for modeler in list_of_modelers:
         modeler.SetupModelPart()
 
-# NOTE: This test is not added to KratosCore.py, therefore is not executed...
-# TODO: We need to define a flag so this test is skip without triangle compiled
 class TestCadTessellationModeler(KratosUnittest.TestCase):
+    @KratosUnittest.skipUnless(KratosMultiphysics.KratosGlobals.Kernel.IsLibraryAvailable("triangle"), "Kratos compiled without triangle")
     def test_cad_tessellation_modeler(self):
 
         modelers_list = KratosMultiphysics.Parameters(
