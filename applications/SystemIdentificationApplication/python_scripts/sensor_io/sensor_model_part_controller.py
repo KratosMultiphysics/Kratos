@@ -36,6 +36,7 @@ class SensorModelPartController(ModelPartController):
 
         # add the list of sensors to optimization problem
         sensors = ComponentDataView("sensors", self.optimization_problem)
+        sensors.SetDataBuffer(1)
         sensors.GetUnBufferedData().SetValue("list_of_sensors", self.list_of_sensors)
 
         for i, sensor in enumerate(self.list_of_sensors):
@@ -44,7 +45,7 @@ class SensorModelPartController(ModelPartController):
             for var_name in sensor.GetDataVariableNames():
                 var = Kratos.KratosGlobals.GetVariable(var_name)
                 node.SetValue(var, sensor.GetValue(var))
-            sensor.SetValue(KratosDT.SENSOR_ID, i + 1)
+            # sensor.SetValue(KratosDT.SENSOR_ID, i + 1)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.sensor_model_part

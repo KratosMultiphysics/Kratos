@@ -50,12 +50,12 @@ class SensorIsolationResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
         data = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData()
-        if not data.HasValue(f"{self.model_part.FullName()}/distance_matrix"):
+        if not data.HasValue(f"{self.model_part.FullName()}_distance_matrix"):
             distance_matrix = KratosSI.DistanceMatrix()
             nodal_positions = Kratos.Expression.NodalExpression(self.model_part)
             Kratos.Expression.NodalPositionExpressionIO.Read(nodal_positions, Kratos.Configuration.Current)
             distance_matrix.Update(nodal_positions)
-            data.SetValue(f"{self.model_part.FullName()}/distance_matrix", distance_matrix)
+            data.SetValue(f"{self.model_part.FullName()}_distance_matrix", distance_matrix)
 
     def Check(self) -> None:
         pass
@@ -69,7 +69,7 @@ class SensorIsolationResponse(ResponseFunction):
         return self.model_part
 
     def CalculateValue(self) -> float:
-        distance_matrix: KratosSI.DistanceMatrix = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue(f"{self.model_part.FullName()}/distance_matrix")
+        distance_matrix: KratosSI.DistanceMatrix = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue(f"{self.model_part.FullName()}_distance_matrix")
         return KratosSI.SensorIsolationResponseUtils.CalculateValue(self.model_part, self.isolation_radius, distance_matrix)
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
@@ -78,7 +78,7 @@ class SensorIsolationResponse(ResponseFunction):
             for container_expression in collective_expression.GetContainerExpressions():
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
 
-        distance_matrix: KratosSI.DistanceMatrix = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue(f"{self.model_part.FullName()}/distance_matrix")
+        distance_matrix: KratosSI.DistanceMatrix = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue(f"{self.model_part.FullName()}_distance_matrix")
         physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(KratosSI.SensorIsolationResponseUtils.CalculateGradient(self.model_part, self.isolation_radius, distance_matrix).GetExpression())
 
     def __str__(self) -> str:
