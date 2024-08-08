@@ -50,7 +50,7 @@ public:
     ///@{
 
     /// Constructor.
-    MeasurementResidualResponseFunction();
+    MeasurementResidualResponseFunction(const double PCoeficient);
 
     /// Destructor.
     ~MeasurementResidualResponseFunction() override = default;
@@ -154,6 +154,8 @@ public:
 private:
     ///@name Member Variables
     ///@{
+
+    double mPCoefficient;
 
     std::vector<Sensor::Pointer> mpSensorsList;
 

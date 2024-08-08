@@ -92,7 +92,7 @@ class DamageDetectionResponse(ResponseFunction):
 
     def Check(self) -> None:
         pass
-
+    
     def Finalize(self) -> None:
         self.adjoint_analysis.Finalize()
 
