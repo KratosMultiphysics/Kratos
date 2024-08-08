@@ -94,22 +94,23 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
         if len(self.format_info[bool]) != 2:
             raise RuntimeError("The \"bool_values\" should have only two strings corresponding to False and True values in the mentioned order.")
 
-        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
-        list_of_component_names = parameters["list_of_output_components"].GetStringArray()
-        if len(list_of_component_names) == 1 and list_of_component_names[0] == "all":
-            list_of_component_names = GetAllComponentFullNamesWithData(optimization_problem)
-
-        for component_name in list_of_component_names:
-            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, optimization_problem))
-
-        self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
+        self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
 
     def IsOutputStep(self) -> bool:
         return True
 
     def PrintOutput(self) -> None:
         if not self.initialized_headers:
+            self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
+            if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
+                self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+
+            for component_name in self.list_of_component_names:
+                self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
+
+            self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
+
             # now get the buffered data headers
             self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
             # write the ehader information
