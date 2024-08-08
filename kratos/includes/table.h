@@ -11,8 +11,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -48,8 +47,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class Table
  * @ingroup KratosCore
  * @brief This class represents the value of its variable depending to other variable.
@@ -71,11 +70,11 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef std::array<TResultType, TResultsColumns>  result_row_type;
+    using result_row_type = std::array<TResultType, TResultsColumns>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
 
-    typedef std::vector<RecordType> TableContainerType;
+    using TableContainerType = std::vector<RecordType>;
 
     ///@}
     ///@name Life Cycle
@@ -238,7 +237,7 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -440,17 +439,15 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef double TResultType;
-    typedef double TArgumentType;
+    using TResultType = double;
+    using TArgumentType = double;
 
-    typedef std::array<TResultType, 1>  result_row_type;
+    using result_row_type = std::array<TResultType, 1>;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
+    using TableContainerType = std::vector<RecordType>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
-
-    typedef std::vector<RecordType> TableContainerType;
-
-    typedef Variable<TArgumentType> XVariableType;
-    typedef Variable<TResultType> YVariableType;
+    using XVariableType = Variable<TArgumentType>;
+    using YVariableType = Variable<TResultType>;
 
     ///@}
     ///@name Life Cycle
@@ -665,7 +662,7 @@ public:
         if (dx < epsilon)
         {
             dx=epsilon;
-            KRATOS_WARNING("") 
+            KRATOS_WARNING("")
             << "*******************************************\n"
             << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
             << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
@@ -674,7 +671,7 @@ public:
         Result= dy/dx;
         return Result;
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -682,7 +679,7 @@ public:
     {
         mData.clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -810,7 +807,7 @@ private:
             for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
                 rSerializer.load("Column", *j);
         }
-   }
+    }
 
 
     ///@}
@@ -865,7 +862,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-
