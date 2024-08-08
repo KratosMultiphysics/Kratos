@@ -21,9 +21,8 @@
 #include "modeler/internals/cartesian_ray.h"
 #include "testing/testing.h"
 
-
-namespace Kratos::Testing {
-
+namespace Kratos::Testing 
+{
 
 KRATOS_TEST_CASE_IN_SUITE(CartesianRayAddIntersectionSmallTri, KratosCoreFastSuite)
 {
