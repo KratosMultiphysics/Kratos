@@ -14,6 +14,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 
@@ -65,6 +66,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     m.def_submodule("RansCalculationUtilities")
         .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6)
         .def("CalculateWallHeight", &RansCalculationUtilities::CalculateWallHeight)
+        .def("CalculateWallDistances", &RansCalculationUtilities::CalculateWallDistances, py::arg("model_part"), py::arg("structure_line_node_ids"))
         ;
 
     m.def_submodule("RansAdjointUtilities")

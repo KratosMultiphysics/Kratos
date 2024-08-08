@@ -16,6 +16,7 @@
 // System includes
 #include <cmath>
 #include <tuple>
+#include <vector>
 
 // Project includes
 #include "geometries/geometry.h"
@@ -94,6 +95,10 @@ double KRATOS_API(RANS_APPLICATION) CalculateLogarithmicYPlusLimit(
     const double Beta,
     const int MaxIterations = 20,
     const double Tolerance = 1e-6);
+
+void KRATOS_API(RANS_APPLICATION) CalculateWallDistances(
+    ModelPart& rModelPart,
+    const std::vector<std::vector<int>>& rLines);    
 
 void CalculateYPlusAndUtau(
     double& rYPlus,
