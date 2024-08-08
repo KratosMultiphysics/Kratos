@@ -4,9 +4,9 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_distance_summation_response import SensorDistanceSummationResponse
+from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_isolation_response import SensorIsolationResponse
 
-class TestSensorDistanceSummationResponse(UnitTest.TestCase):
+class TestSensorIsolationResponse(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
@@ -105,19 +105,26 @@ class TestSensorDistanceSummationResponse(UnitTest.TestCase):
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
-            ]
+            ],
+            "isolation_radius": 10.0
         }""")
 
         cls.optimization_problem = OptimizationProblem()
-        cls.response = SensorDistanceSummationResponse("test", cls.model, params, cls.optimization_problem)
+        cls.response = SensorIsolationResponse("test", cls.model, params, cls.optimization_problem)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
         distance = 0.0
         for node_i in self.sensor_model_part.Nodes:
             for node_j in self.sensor_model_part.Nodes:
-                current_distance = ((node_i.X - node_j.X) ** 2 + (node_i.Y - node_j.Y) ** 2 + (node_i.Z - node_j.Z) ** 2) ** (0.5)
-                distance += node_i.GetValue(KratosSI.SENSOR_STATUS) * node_j.GetValue(KratosSI.SENSOR_STATUS) * current_distance
+                if node_i.Id != node_j.Id:
+                    current_distance = ((node_i.X - node_j.X) ** 2 + (node_i.Y - node_j.Y) ** 2 + (node_i.Z - node_j.Z) ** 2) ** (0.5)
+                    if current_distance > 10.0:
+                        current_distance = 0.0
+                    else:
+                        x = 1.0 - current_distance / 10.0
+                        current_distance = x*x*(3.0-2.0*x)
+                    distance += node_i.GetValue(KratosSI.SENSOR_STATUS) * node_j.GetValue(KratosSI.SENSOR_STATUS) * current_distance
         self.assertAlmostEqual(self.response.CalculateValue(), distance * 0.5)
 
     def test_CalculateGradient(self):
@@ -127,7 +134,7 @@ class TestSensorDistanceSummationResponse(UnitTest.TestCase):
         self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
         analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
 
-        delta = 1e-6
+        delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
