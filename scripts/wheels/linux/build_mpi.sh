@@ -2,6 +2,8 @@
 PYTHONS=("cp38" "cp39" "cp310" "cp311" "cp312")
 export KRATOS_VERSION="9.5"
 
+source /opt/intel/oneapi/setvars.sh
+
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
 WHEEL_ROOT="/workspace/wheel"
@@ -31,7 +33,7 @@ build_core_wheel () {
 
     cd $WHEEL_ROOT
 
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
 
     cd ${WHEEL_ROOT}/dist
 
@@ -51,8 +53,13 @@ build_application_wheel () {
 
     cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
+<<<<<<< HEAD
+    
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
+=======
 
     $PYTHON_LOCATION setup.py bdist_wheel
+>>>>>>> master
 
     auditwheel repair dist/*.whl
 
@@ -69,8 +76,9 @@ build_kratos_all_wheel () {
     setup_wheel_dir
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
+    
     cd ${WHEEL_ROOT}
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
     cp dist/* ${WHEEL_OUT}/
 
     cd
@@ -113,7 +121,7 @@ optimize_wheel(){
     rm -r tmp
 }
 
-# Buils the KratosXCore components for the kernel and applications
+# Buils the Kratos Core components for the kernel and applications
 build_core () {
 	cd $KRATOS_ROOT
 
@@ -168,7 +176,7 @@ do
 	echo $LD_LIBRARY_PATH
 
     echo "Building Core Wheel"
-    build_core_wheel $PREFIX_LOCATION
+    build_core_wheel $PREFIX_LOCATION ""
 
     echo "Building App Wheels"
     for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
