@@ -85,13 +85,12 @@ public:
     void AddIntersection(TGeometryType const& rGeometry, double Tolerance){
 
         array_1d<double,3> intersection_point = ZeroVector(3);
-		const double relative_tolerance = 1.0e-12*std::sqrt(rGeometry.Length());
         const int is_intersected = ComputeTriangleRayIntersection(
           rGeometry,
           mPoint1,
           mPoint2,
           intersection_point,
-          relative_tolerance);
+          Tolerance);
 
         if(is_intersected == 1){ // There is an intersection but not coplanar
             mIntersections.push_back(std::make_pair(intersection_point[mDirection], &rGeometry));
@@ -318,31 +317,40 @@ private:
 
             const array_1d<double,3> edge1 = rTriangleGeometry[1] - rTriangleGeometry[0];
             const array_1d<double,3> edge2 = rTriangleGeometry[2] - rTriangleGeometry[0];
-            const array_1d<double,3> line_vector = rLinePoint2 - rLinePoint1;
-            array_1d<double,3> h;
+            const array_1d<double,3> line_vector = (rLinePoint2 - rLinePoint1)/norm_2(rLinePoint2 - rLinePoint1);
+            array_1d<double,3> h, h_norm;
+            const array_1d<double,3> edge1_normalized = edge1/norm_2(edge1);
+            const array_1d<double,3> edge2_normalized = edge2/norm_2(edge2);
+            MathUtils<double>::CrossProduct(h_norm, line_vector, edge2_normalized);
             MathUtils<double>::CrossProduct(h, line_vector, edge2);
-            double a = inner_prod(edge1,h);
-            if (a > -epsilon && a < epsilon)
+            const double a_norm = inner_prod(edge1_normalized,h_norm);
+            const double a = inner_prod(edge1,h);
+            if (a_norm > -epsilon && a_norm < epsilon) {
                 return 0;    // This ray is parallel to this triangle.
+            }
             const double f = 1.0/a;
             const array_1d<double,3> s = rLinePoint1 - rTriangleGeometry[0];
             const double u = f * inner_prod(s,h);
-            if (u < -epsilon || u > 1.0 + epsilon)
+            if (u < -epsilon || u > 1.0 + epsilon) {
                 return 0;
+            }
             array_1d<double,3> q;
             MathUtils<double>::CrossProduct(q, s, edge1);
             const double v = f * inner_prod(line_vector,q);
-            if (v < -epsilon || u + v > 1.0 + epsilon)
+            if (v < -epsilon || u + v > 1.0 + epsilon) {
                 return 0;
+            }
             // At this stage we can compute t to find out where the intersection point is on the line.
             float t = f * inner_prod(edge2,q);
-            if (t > epsilon && t < 1.00/epsilon) // ray intersection
-            {
+            if (t > epsilon && t < 1.00/epsilon) {
+                // ray intersection
                 rIntersectionPoint = rLinePoint1 + line_vector * t;
                 return 1;
             }
-            else // This means that there is a line intersection but not a ray intersection.
+            else {
+                // This means that there is a line intersection but not a ray intersection.
                 return 0;
+            }
         }
 
 
