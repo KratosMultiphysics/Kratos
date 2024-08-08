@@ -192,3 +192,6 @@ class MasterControl:
 
     def Finalize(self) -> None:
         CallOnAll(self.__list_of_controls, Control.Finalize)
+
+    def GetName(self) -> str:
+        return "master_control"

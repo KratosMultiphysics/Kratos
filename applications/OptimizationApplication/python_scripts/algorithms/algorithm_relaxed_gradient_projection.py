@@ -14,6 +14,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
 
 import math
 
@@ -54,6 +55,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
@@ -73,9 +75,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__constraints_list: 'list[StandardizedRGPConstraint]' = []
         for constraint_param in parameters["constraints"].values():
             constraint = StandardizedRGPConstraint(constraint_param, self.master_control, self._optimization_problem, self.GetMinimumBufferSize())
+            self._optimization_problem.AddComponent(constraint)
             self.__constraints_list.append(constraint)
         self.__control_field = None
         self.__obj_val = None
@@ -208,9 +212,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
-        self.__objective.OutputGradientFields(self._optimization_problem, True)
+        OutputGradientFields(self.__objective, self._optimization_problem, True)
         for constraint in self.__constraints_list:
-            constraint.OutputGradientFields(self._optimization_problem, constraint.GetStandardizedValue() > 0.0)
+            OutputGradientFields(constraint, self._optimization_problem, True)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
