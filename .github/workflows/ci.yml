@@ -296,7 +296,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
 
 
   centos:
@@ -535,7 +535,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
 
 
   ubuntu-intel-legacy:

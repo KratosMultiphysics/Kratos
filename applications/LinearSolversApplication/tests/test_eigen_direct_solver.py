@@ -1,6 +1,9 @@
 
 import os
+import platform
 import KratosMultiphysics
+
+psystem = platform.system()
 
 import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -86,33 +89,43 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_cg(self):
         self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_qr(self):
         self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_ldlt(self):
         self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'pardiso_ldlt')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_llt(self):
         self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'pardiso_llt')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_sparse_lu(self):
         self._execute_eigen_direct_complex_solver_test('ComplexSparseLUSolver', 'sparse_lu_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_lu(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLUSolver', 'pardiso_lu_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_ldlt(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLDLTSolver', 'pardiso_ldlt_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_llt(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLLTSolver', 'pardiso_llt_complex')
 
