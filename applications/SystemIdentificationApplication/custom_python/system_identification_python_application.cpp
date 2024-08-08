@@ -21,6 +21,7 @@
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_sensors_to_python.h"
+#include "custom_python/add_custom_response_utils_to_python.h"
 #include "system_identification_application.h"
 #include "system_identification_application_variables.h"
 
@@ -36,6 +37,7 @@ PYBIND11_MODULE(KratosSystemIdentificationApplication, m)
 
     AddCustomUtilitiesToPython(m);
     AddCustomSensorsToPython(m);
+    AddCustomResponseUtilsToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ROTATION)
@@ -50,6 +52,7 @@ PYBIND11_MODULE(KratosSystemIdentificationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_MEASURED_VALUE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_ERROR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_ELEMENT_ID)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_STATUS)
 }
 
 } // namespace Kratos::Python
