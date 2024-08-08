@@ -46,6 +46,7 @@ class SensorStatusControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
+        ComponentDataView(self, self.optimization_problem).SetDataBuffer(1)
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
 
         self.projection.SetProjectionSpaces([0, 1], [0, 1])
@@ -113,7 +114,7 @@ class SensorStatusControl(Control):
 
         # now update physical field
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosSI.SENSOR_STATUS, False)
-        list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+        list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
         for i, node in enumerate(self.model_part.Nodes):
             list_of_sensors[i].SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS))
 
