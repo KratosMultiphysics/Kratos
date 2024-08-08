@@ -9,6 +9,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -64,27 +65,22 @@ class SimpControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "controlled_model_part_names": [""],
-            "simp_power_fac"   : 3,
-            "output_all_fields": true,
-            "echo_level"       : 0,
-            "list_of_materials": [
+            "controlled_model_part_names"      : [""],
+            "output_all_fields"                : true,
+            "echo_level"                       : 0,
+            "density_projection_settings"      : {},
+            "young_modulus_projection_settings": {},
+            "filter_settings"                  : {},
+            "list_of_materials"                : [
                 {
                     "density"      : 1.0,
                     "young_modulus": 1.0
                 }
-            ],
-            "beta_settings": {
-                "initial_value": 5,
-                "max_value"    : 30,
-                "adaptive"     : true,
-                "increase_fac" : 1.05,
-                "update_period": 50
-            },
-            "filter_settings"            : {}
+            ]
         }""")
+
         parameters.ValidateAndAssignDefaults(default_settings)
-        self.simp_power_fac = parameters["simp_power_fac"].GetInt()
+
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.echo_level = parameters["echo_level"].GetInt()
 
@@ -92,15 +88,8 @@ class SimpControl(Control):
 
         self.materials = Materials(parameters["list_of_materials"].values())
 
-        # beta settings
-        beta_settings = parameters["beta_settings"]
-        beta_settings.ValidateAndAssignDefaults(default_settings["beta_settings"])
-        self.beta = beta_settings["initial_value"].GetDouble()
-        self.beta_max = beta_settings["max_value"].GetDouble()
-        self.beta_adaptive = beta_settings["adaptive"].GetBool()
-        self.beta_increase_frac = beta_settings["increase_fac"].GetDouble()
-        self.beta_update_period = beta_settings["update_period"].GetInt()
-        self.beta_computed_step = 1
+        self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem)
+        self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem)
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
@@ -125,10 +114,28 @@ class SimpControl(Control):
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
-        # calculate phi from existing density
-        density = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
-        self.simp_physical_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(density, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        # initialize the projections
+        self.density_projection.SetProjectionSpaces(self.materials.GetPhi(), self.materials.GetDensities())
+        self.young_modulus_projection.SetProjectionSpaces(self.materials.GetPhi(), self.materials.GetYoungModulus())
+
+        # check if the density or Young's modulus is defined
+        element: Kratos.Element
+        for element in self.model_part.Elements:
+            break
+        is_density_defined = element.Properties.Has(Kratos.DENSITY)
+        is_youngs_modulus_defined = element.Properties.Has(Kratos.YOUNG_MODULUS)
+        if is_density_defined:
+            if is_youngs_modulus_defined:
+                Kratos.Logger.PrintWarning(self.__class__.__name__, f"Elements of {self.model_part.FullName()} defines both DENSITY and YOUNG_MODULUS. Using DENSITY for initial field calculation and ignoring YOUNG_MODULUS.")
+            density = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
+            self.simp_physical_phi = self.density_projection.ProjectBackward(density)
+        elif is_youngs_modulus_defined:
+            young_modulus = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.PropertiesVariableExpressionIO.Read(young_modulus, Kratos.YOUNG_MODULUS)
+            self.simp_physical_phi = self.young_modulus_projection.ProjectBackward(young_modulus)
+        else:
+            raise RuntimeError(f"Elements of {self.model_part.FullName()} does not define either DENSITY or YOUNG_MODULUS.")
 
         # get the control field
         self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
@@ -180,35 +187,32 @@ class SimpControl(Control):
             self._UpdateAndOutputFields(update)
             self.filter.Update()
 
-        self.__UpdateBeta()
+            self.density_projection.Update()
+            self.young_modulus_projection.Update()
+            return True
 
-    def __UpdateBeta(self) -> None:
-        if self.beta_adaptive:
-            step = self.optimization_problem.GetStep()
-            if step % self.beta_update_period == 0 and self.beta_computed_step != step:
-                self.beta_computed_step = step
-                self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
-                if self.echo_level > 0:
-                    Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
+        self.density_projection.Update()
+        self.young_modulus_projection.Update()
+        return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
         physical_phi_update = self.filter.ForwardFilterField(update)
         self.simp_physical_phi = Kratos.Expression.Utils.Collapse(self.simp_physical_phi + physical_phi_update)
 
-        density =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        density = self.density_projection.ProjectForward(self.simp_physical_phi)
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
+        youngs_modulus = self.young_modulus_projection.ProjectForward(self.simp_physical_phi)
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
         # now calculate the total sensitivities of density w.r.t. phi
-        self.d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        self.d_density_d_phi = self.density_projection.ForwardProjectionGradient(self.simp_physical_phi)
 
         # now calculate the total sensitivities of young modulus w.r.t. simp_physical_phi
-        self.d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
+        self.d_young_modulus_d_phi = self.young_modulus_projection.ForwardProjectionGradient(self.simp_physical_phi)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
