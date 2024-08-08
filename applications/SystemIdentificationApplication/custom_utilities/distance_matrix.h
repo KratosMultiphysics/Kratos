@@ -56,6 +56,12 @@ public:
 
     IndexType GetEntriesSize() const;
 
+    IndexType GetEntryIndex(
+        const IndexType iIndex,
+        const IndexType jIndex) const;
+
+    std::tuple<IndexType, IndexType> GetIndexPair(const IndexType iEntryIndex) const;
+
     IndexType GetNumberOfItems() const;
 
     void Update(
@@ -63,21 +69,6 @@ public:
             ContainerExpression<ModelPart::NodesContainerType>::Pointer,
             ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
             ContainerExpression<ModelPart::ElementsContainerType>::Pointer> pDistancesExpression);
-
-    ///@}
-    ///@name Public static operations
-    ///@{
-
-    static IndexType GetEntryIndex(
-        const IndexType iIndex,
-        const IndexType jIndex,
-        const IndexType N);
-
-    static std::tuple<IndexType, IndexType> GetIndexPair(
-        const IndexType iEntryIndex,
-        const IndexType N);
-
-    static IndexType EntriesSize(const IndexType N);
 
     ///@}
 

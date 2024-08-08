@@ -47,7 +47,7 @@ void DistanceMatrix::Update(
         const auto dimensionality = r_expression.GetItemComponentCount();
 
         IndexPartition<IndexType>(this->mDistances.size()).for_each([&](const auto Index) {
-            const auto& index_pair = GetIndexPair(Index, this->mN);
+            const auto& index_pair = GetIndexPair(Index);
 
             const auto i_index = std::get<0>(index_pair);
             const auto i_data_begin = i_index * dimensionality;
@@ -79,7 +79,7 @@ double DistanceMatrix::GetDistance(
         if (ordered_j < ordered_i) {
             std::swap(ordered_i, ordered_j);
         }
-        return mDistances[GetEntryIndex(ordered_i, ordered_j, this->mN)];
+        return mDistances[GetEntryIndex(ordered_i, ordered_j)];
     } else {
         return 0.0;
     }
@@ -92,7 +92,7 @@ double DistanceMatrix::GetDistance(const IndexType EntryIndex) const
 
 IndexType DistanceMatrix::GetEntriesSize() const
 {
-    return EntriesSize(this->mN);
+    return this->mN * (this->mN - 1) / 2;
 }
 
 IndexType DistanceMatrix::GetNumberOfItems() const
@@ -102,26 +102,18 @@ IndexType DistanceMatrix::GetNumberOfItems() const
 
 IndexType DistanceMatrix::GetEntryIndex(
     const IndexType iIndex,
-    const IndexType jIndex,
-    const IndexType N)
+    const IndexType jIndex) const
 {
-    return N * iIndex + jIndex - ((iIndex + 2) * (iIndex + 1)) / 2;
+    return this->mN * iIndex + jIndex - ((iIndex + 2) * (iIndex + 1)) / 2;
 }
 
-std::tuple<IndexType, IndexType> DistanceMatrix::GetIndexPair(
-    const IndexType EntryIndex,
-    const IndexType N)
+std::tuple<IndexType, IndexType> DistanceMatrix::GetIndexPair(const IndexType EntryIndex) const
 {
 
-    const IndexType i = static_cast<IndexType>(std::floor(N - 0.5 - std::sqrt(std::pow(N - 0.5, 2) - 2 * EntryIndex)));
-    const IndexType j = static_cast<IndexType>(EntryIndex - N * i + (i + 1) * (i + 2) / 2);
+    const IndexType i = static_cast<IndexType>(std::floor(this->mN - 0.5 - std::sqrt(std::pow(this->mN - 0.5, 2) - 2 * EntryIndex)));
+    const IndexType j = static_cast<IndexType>(EntryIndex - this->mN * i + (i + 1) * (i + 2) / 2);
 
     return std::make_tuple(i, j);
-}
-
-IndexType DistanceMatrix::EntriesSize(const IndexType N)
-{
-    return N * (N - 1) / 2;
 }
 
 } /* namespace Kratos.*/
