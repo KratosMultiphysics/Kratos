@@ -1395,25 +1395,48 @@ public:
         return bool (intersections.size() > 0);
     }
 
-
+    /**
+     * @brief Test intersection of the geometry with a box
+     * @details Tests the intersection of the geometry with a 3D box defined by rLowPoint and rHighPoint
+     * @param rLowPoint  Lower point of the box to test the intersection
+     * @param rHighPoint Higher point of the box to test the intersection
+     * @return True if the geometry intersects the box, False in any other case.
+     */
     bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
-        using Triangle3D3Type = Triangle3D3<TPointType>;
         // Check if faces have intersection
-        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+        Point box_center;
+        Point box_half_size;
+
+        // Compute the center and half size of the box
+        box_center[0] = 0.5 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.5 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+
+        box_half_size[0] = 0.5 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
+
+        // Check if any face intersects the box
+        const auto& r_point_0 = this->GetPoint(0);
+        const auto& r_point_1 = this->GetPoint(1);
+        const auto& r_point_2 = this->GetPoint(2);
+        const auto& r_point_3 = this->GetPoint(3);
+
+        // Check if any face intersects the box
+        if (GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, r_point_0, r_point_2, r_point_1))
             return true;
-        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+        if (GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, r_point_0, r_point_3, r_point_2))
             return true;
-        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+        if (GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, r_point_0, r_point_1, r_point_3))
             return true;
-        if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+        if (GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, r_point_2, r_point_3, r_point_1))
             return true;
 
-        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        // If there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
         CoordinatesArrayType local_coordinates;
         return IsInside(rLowPoint,local_coordinates);
     }
-
 
     void SplitAndDecompose(
         const BaseType& tetra, Plane& plane,
