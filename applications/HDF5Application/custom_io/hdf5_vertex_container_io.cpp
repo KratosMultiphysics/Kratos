@@ -10,189 +10,122 @@
 //  Main author:     Máté Kelemen
 //
 
-// Internal includes
-#include "hdf5_vertex_container_io.h"
+// Project includes
+#include "utilities/parallel_utilities.h"
 
+// Application includes
+
+// Include base h
+#include "hdf5_vertex_container_io.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
 
-
-VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
-        : VertexContainerIO::BaseType(
-            VertexContainerIO::FormatParameters(parameters),
-            pFile,
-            VertexContainerIO::GetPath(parameters))
+VertexContainerCoordinateIO::VertexContainerCoordinateIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : mpFile(pFile)
 {
     KRATOS_TRY
 
-    parameters.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
+    Parameters default_params(R"(
+        {
+            "prefix"           : "",
+            "write_vertex_ids" : false
+        })");
+
+    Settings.AddMissingParameters(default_params);
+    mWriteIDs = Settings["write_vertex_ids"].GetBool();
+    mPathPrefix = Settings["prefix"].GetString();
 
     KRATOS_CATCH("");
 }
 
-
-Parameters VertexContainerIO::GetDefaultParameters()
+void VertexContainerCoordinateIO::Write(
+    const Detail::VertexContainerType& rVertices,
+    Parameters Attributes)
 {
-    return Parameters(R"({
-        "prefix"            : "/",
-        "list_of_variables" : []
-    })");
+    if (mWriteIDs) {
+        WriteWithIDs(rVertices, Attributes);
+    } else {
+        WriteWithoutIDs(rVertices, Attributes);
+    }
 }
 
 
-Parameters VertexContainerIO::FormatParameters(Parameters parameters)
+void VertexContainerCoordinateIO::WriteWithIDs(
+    const Detail::VertexContainerType& rVertices,
+    Parameters Attributes)
 {
     KRATOS_TRY
 
-    Parameters output = parameters.Clone();
-    output.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
-    output["prefix"].SetString("");
-    return output;
-
-    KRATOS_CATCH("");
-}
-
-
-std::string VertexContainerIO::GetPath(Parameters parameters)
-{
-    KRATOS_TRY
-
-    parameters.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
-    return parameters["prefix"].GetString();
-
-    KRATOS_CATCH("");
-}
-
-
-VertexContainerCoordinateIO::VertexContainerCoordinateIO(Parameters parameters,
-                                                         File::Pointer pFile)
-    : VertexContainerIO(VertexContainerCoordinateIO::FormatParameters(parameters), pFile)
-{
-    KRATOS_TRY
-
-    parameters.AddMissingParameters(VertexContainerCoordinateIO::GetDefaultParameters());
-    mWriteIDs = parameters["write_vertex_ids"].GetBool();
-
-    KRATOS_CATCH("");
-}
-
-
-void VertexContainerCoordinateIO::Write(const Detail::VertexContainerType& rVertices)
-{
-    if (mWriteIDs)
-        WriteWithIDs(rVertices);
-    else
-        WriteWithoutIDs(rVertices);
-}
-
-
-void VertexContainerCoordinateIO::WriteWithIDs(const Detail::VertexContainerType& rVertices)
-{
-    KRATOS_TRY
-
-    const std::string path = mComponentPath + "/POSITION";
+    const std::string path = mPathPrefix + "/POSITION";
 
     // Collect vertex coordinates into a buffer
     Matrix<double> buffer;
-    buffer.resize(rVertices.size(),
-                  4,
-                  false);
+    buffer.resize(rVertices.size(), 4,  false);
 
-    for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
-        const auto& rVertex = *(rVertices.begin() + i_vertex);
+    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
+        const auto& rVertex = *(rVertices.begin() + Index);
 
-        for (std::size_t i_component=0; i_component<3; ++i_component) {
-            buffer(i_vertex, i_component) = rVertex[i_component];
+        for (std::size_t i_component=0; i_component < 3; ++i_component) {
+            buffer(Index, i_component) = rVertex[i_component];
         }
 
-        buffer(i_vertex, 3) = rVertex.GetID();
-    }
+        buffer(Index, 3) = rVertex.GetID();
+    });
 
     // Write buffer to the requested path
     WriteInfo write_info;
-    mpFile->WriteDataSet(path,
-                         buffer,
-                         write_info);
+    mpFile->WriteDataSet(path, buffer, write_info);
+    mpFile->WriteAttribute(path, Attributes);
 
     KRATOS_CATCH("");
 }
 
-
-void VertexContainerCoordinateIO::WriteWithoutIDs(const Detail::VertexContainerType& rVertices)
+void VertexContainerCoordinateIO::WriteWithoutIDs(
+    const Detail::VertexContainerType& rVertices,
+    Parameters Attributes)
 {
     KRATOS_TRY
 
-    const std::string path = mComponentPath + "/POSITION";
+    const std::string path = mPathPrefix + "/POSITION";
 
     // Collect vertex coordinates into a buffer
     Matrix<double> buffer;
-    buffer.resize(rVertices.size(),
-                  3,
-                  false);
+    buffer.resize(rVertices.size(), 3,  false);
 
-    for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
-        const auto& rVertex = *(rVertices.begin() + i_vertex);
+    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
+        const auto& rVertex = *(rVertices.begin() + Index);
 
-        for (std::size_t i_component=0; i_component<3; ++i_component) {
-            buffer(i_vertex, i_component) = rVertex[i_component];
+        for (std::size_t i_component=0; i_component < 3; ++i_component) {
+            buffer(Index, i_component) = rVertex[i_component];
         }
-    }
+    });
 
     // Write buffer to the requested path
     WriteInfo write_info;
-    mpFile->WriteDataSet(path,
-                         buffer,
-                         write_info);
+    mpFile->WriteDataSet(path, buffer, write_info);
+    mpFile->WriteAttribute(path, Attributes);
 
     KRATOS_CATCH("");
 }
 
-
-Parameters VertexContainerCoordinateIO::GetDefaultParameters()
+VertexContainerVariableIO::VertexContainerVariableIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : BaseType(Settings, pFile)
 {
-    return Parameters(R"({
-        "prefix"            : "/POSITION",
-        "write_vertex_ids"  : false
-    })");
 }
 
-
-Parameters VertexContainerCoordinateIO::FormatParameters(Parameters parameters)
+void VertexContainerVariableIO::Write(
+    const Detail::VertexContainerType& rVertices,
+    Parameters Atttributes)
 {
-    KRATOS_TRY
-
-    parameters.AddMissingParameters(VertexContainerCoordinateIO::GetDefaultParameters());
-
-    Parameters output = parameters.Clone();
-    output.RemoveValue("write_vertex_ids");
-
-    return output;
-
-    KRATOS_CATCH("");
+    BaseType::Write(rVertices, Internals::VertexValueIO{}, Atttributes);
 }
-
-
-void VertexContainerVariableIO::Write(const Detail::VertexContainerType& rVertices)
-{
-    KRATOS_TRY
-
-    this->WriteContainerComponents(rVertices);
-
-    KRATOS_CATCH("");
-}
-
-
-Parameters VertexContainerVariableIO::GetDefaultParameters()
-{
-    return Parameters(R"({
-        "prefix"            : "/",
-        "list_of_variables" : []
-    })");
-}
-
 
 } // namespace HDF5
 } // namespace Kratos
