@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(DIGITAL_TWIN_APPLICATION) MeasurementResidualResponseFunction : public AdjointResponseFunction
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) MeasurementResidualResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
