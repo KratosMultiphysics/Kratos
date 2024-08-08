@@ -10,17 +10,17 @@ summary:
 
 This section will descrive the different layers of Kratos testing, and its characteristics.
 
-- Organization
-- Cpp Tests
-- MPI Cpp Tests
-- Python Tests
-- MPI Python Tests
+- [Organization](#organization)
+- [Cpp Tests](#cpp-tests)
+- [MPI Cpp Tests](#mpi-cpp)
+<!-- - [Python Tests]()
+- [MPI Python Tests]() -->
 
 If you are interested in examples, how to run tests, and how are run in our CI, please refeer to:
 
-- Quick Start
-- How To run tests
-- CI configuration
+- [Quick Start+](/docs/pages/Kratos/Testing/General/testing_quick_start.md)
+- [Examples](/docs/pages/Kratos/Testing/General/testing_examples.md)
+- [CI configuration](/docs/pages/Kratos/Testing/General/testing_ci.md)
 
 ### Organization
 
