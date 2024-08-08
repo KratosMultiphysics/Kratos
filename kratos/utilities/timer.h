@@ -190,11 +190,17 @@ public:
      * @brief This method sets the output file *.time that will store the timing
      * @param rOutputFileName The name of the output file
      */
+    static int SetOutputFile(std::string const& rOutputFileName);
+
+    KRATOS_DEPRECATED_MESSAGE("Please, fix spelling: SetOuputFile -> SetOutputFile")
     static int SetOuputFile(std::string const& rOutputFileName);
 
     /**
      * @brief This method closes the output file
      */
+    static int CloseOutputFile();
+
+    KRATOS_DEPRECATED_MESSAGE("Please, fix spelling: CloseOuputFile -> CloseOutputFile")
     static int CloseOuputFile();
 
     /**
@@ -304,6 +310,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method starts the timer meassures
+     * @param rIntervalName The internal name that will store the timing data
+     */
+    static void StartInterval(std::string const& rIntervalName);
+
+    /**
+     * @brief This method stops the timer meassures
+     * @param rIntervalName The internal name that will store the timing data
+     */
+    static void StopInterval(std::string const& rIntervalName);
 
     ///@}
     ///@name Protected  Access

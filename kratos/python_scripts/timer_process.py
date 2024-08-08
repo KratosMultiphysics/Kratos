@@ -55,7 +55,7 @@ class TimerProcess(KratosMultiphysics.Process):
 
         # Output file
         if self.output_filename != "":
-            self.timer.SetOuputFile(self.output_filename)
+            self.timer.SetOutputFile(self.output_filename)
         else:
             self.timer.SetPrintOnScreen(True)
 
@@ -70,5 +70,4 @@ class TimerProcess(KratosMultiphysics.Process):
         """
         self.timer.Stop(self.interval_name)
         self.timer.PrintTimingInformation()
-        if self.output_filename != "":
-            self.timer.CloseOuputFile()
+        self.timer.CloseOutputFile()

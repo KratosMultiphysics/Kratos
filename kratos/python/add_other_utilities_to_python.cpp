@@ -249,14 +249,16 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("Start", &Timer::Start)
         .def_static("Stop", &Timer::Stop)
         .def_static("GetTime", &Timer::GetTime)
-        .def_static("SetOuputFile", &Timer::SetOuputFile)
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("SetOuputFile", &Timer::SetOutputFile) // TODO: remove at end of 2022
+        .def_static("SetOutputFile", &Timer::SetOutputFile)
+        .def_static("CloseOuputFile", &Timer::CloseOutputFile) // TODO: remove at end of 2022
+        .def_static("CloseOutputFile", &Timer::CloseOutputFile)
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
         .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
-        .def_static("PrintTimingInformation", PrintTimingInformation)
+        .def_static("PrintTimingInformation", PrintTimingInformation) // TODO: remove at end of 2022
         .def("__str__", PrintObject<Timer>)
         ;
 
