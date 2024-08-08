@@ -419,7 +419,7 @@ int solve(TValue* pSolution,
                                                          const CSRAdaptor<TIndex,TValue>&,     \
                                                          const TValue*,                        \
                                                          const Partition<TIndex>*,             \
-                                                         const SolveSettings<TIndex,TValue>);
+                                                         const SolveSettings<TIndex,TValue>)
 
 MCGS_INSTANTIATE_SOLVE(int, double);
 MCGS_INSTANTIATE_SOLVE(long, double);

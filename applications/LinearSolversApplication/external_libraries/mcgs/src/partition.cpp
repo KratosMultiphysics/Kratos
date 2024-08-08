@@ -90,7 +90,7 @@ void destroyPartition(Partition<TIndex>* pPartition)
     template class Partition<TIndex>;                                               \
     MCGS_INSTANTIATE_PARTITION_FACTORY(TIndex, unsigned)                            \
     MCGS_INSTANTIATE_PARTITION_FACTORY(TIndex, unsigned long)                       \
-    template MCGS_EXPORT_SYMBOL void destroyPartition<TIndex>(Partition<TIndex>*)   \
+    template MCGS_EXPORT_SYMBOL void destroyPartition<TIndex>(Partition<TIndex>*)
 
 MCGS_INSTANTIATE_PARTITION(int);
 MCGS_INSTANTIATE_PARTITION(long);

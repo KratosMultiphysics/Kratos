@@ -425,7 +425,7 @@ int color(TColor* pColors,
 #define MCGS_INSTANTIATE_COLOR(TIndex, TValue, TColor)                                 \
     template MCGS_EXPORT_SYMBOL int color(TColor* pColors,                             \
                                           const CSRAdaptor<TIndex,TValue>& rMatrix,    \
-                                          const ColorSettings<TValue> settings);
+                                          const ColorSettings<TValue> settings)
 
 MCGS_INSTANTIATE_COLOR(int, double, unsigned);
 MCGS_INSTANTIATE_COLOR(long, double, unsigned);
