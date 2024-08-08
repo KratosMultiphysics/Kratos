@@ -1,3 +1,5 @@
+from typing import Callable
+
 import math
 import cmath
 
@@ -13,7 +15,7 @@ class StripLoad:
         - young (float): Young's modulus [Pa]
         - poisson (float): Poisson's ratio [-]
         - density (float): density [kg/m^3]
-        - load (float): load value [N/m]
+        - load (float): load value [N/m^2]
         - integral_stepsize (float): dimensionless time step size for solving integrals (default = 0.001) [-]
         - shear_modulus (float): shear modulus [Pa]
         - p_wave_modulus (float): P-wave modulus [Pa]
@@ -37,7 +39,7 @@ class StripLoad:
             - youngs_modulus (float): Young's modulus [Pa]
             - poisson_ratio (float): Poisson's ratio [-]
             - density (float): density [kg/m^3]
-            - load (float): load value [N/m]
+            - load (float): load value [N/m^2]
             - integral_stepsize (float): dimensionless time step size for solving integrals (default = 0.001) [-]
         """
 
@@ -60,27 +62,81 @@ class StripLoad:
         # epsilon to avoid division by zero
         self.epsilon = self.integral_stepsize**2
 
+    @staticmethod
+    def __calculate_radius(x_norm: float, z_norm: float) -> float:
+        """
+        Calculate the radius
+
+        Args:
+            - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
+            - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
+
+        Returns:
+            - float: dimensionless radius [-]
+
+        """
+
+        return math.sqrt(x_norm**2 + z_norm**2)
+
+    def __simpsons_rule(self, lower_limit: float, upper_limit: float, function: Callable, x_norm: float, z_norm: float,
+                        radius: float, k0: float) -> float:
+        """
+        Calculate the integral of a function using Simpson's rule
+
+        Args:
+            - lower_limit (float): lower limit of the integral [-]
+            - upper_limit (float): upper limit of the integral [-]
+            - function (Callable): function to integrate [-]
+            - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
+            - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
+            - radius (float): dimensionless radius [-]
+            - k0 (float): initial imaginary factor for the integral [-]
+
+        Returns:
+            - float: integral of the function [-]
+
+        """
+
+        integral = 0
+        # set dimensionless integration time parameter to lower limit
+        kappa = lower_limit
+
+        # solve integral with Simpson's rule
+        h_1 = 0
+        while kappa ** 2 < upper_limit ** 2:
+            kappa += self.integral_stepsize
+            h_2 = function(x_norm, z_norm, kappa, radius, k0)
+
+            kappa += self.integral_stepsize
+            h_3 = function(x_norm, z_norm, kappa, radius, k0)
+
+            integral += (h_1 + 4 * h_2 + h_3) * self.integral_stepsize / 3
+            h_1 = h_3
+
+        return integral
+
     def __k1(self, x_norm: float, z_norm: float, kappa: float) -> float:
         """
         Imaginary part of the imaginary factor for first integral
 
         Args:
-            - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
-            - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - x_norm (float): dimensionless x coordinate normalized with the line load length [-]
+            - z_norm (float): dimensionless z coordinate normalized with the line load length [-]
+            - kappa (float): dimensionless integration time parameter [-]
 
         Returns:
             - float: imaginary factor for the first integral [-]
+
         """
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
         kappa_r = kappa**2 - self.eta**2 * radius**2
 
         if kappa_r <= 0:
             k1 = 0
         else:
 
-            # dimensionless complex variables following from laplace and fourier transforms
+            # dimensionless complex variables following from Laplace and Fourier transforms
             a = complex(kappa * math.sqrt(kappa_r), self.eta**2 * x_norm * z_norm)
             beta_p = complex(kappa * x_norm / radius**2, (z_norm / radius**2) * math.sqrt(kappa_r))
             b1 = 1 - 2 * beta_p**2
@@ -95,14 +151,34 @@ class StripLoad:
 
         return k1
 
-    def __f1(self, x_norm: float, z_norm: float, kappa: float) -> float:
+    def __h1(self, x_norm: float, z_norm: float, kappa: float, radius: float, k1_0: float) -> float:
+        """
+        Integrand of the first integral
+
+        Args:
+            - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
+            - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
+            - kappa (float): dimensionless integration time parameter [-]
+            - radius (float): dimensionless radius [-]
+            - k1_0 (float): initial imaginary factor for the first integral [-]
+
+        Returns:
+            - float: integrand of the first integral [-]
+
+        """
+        pz = kappa ** 2 - self.eta ** 2 * z_norm ** 2
+        pr = kappa ** 2 - self.eta ** 2 * radius ** 2
+
+        return (self.__k1(x_norm, z_norm, kappa) - k1_0) / (pz * math.sqrt(pr))
+
+    def __f1(self, x_norm: float, z_norm: float, tau: float) -> float:
         """
         Calculates the first integral
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - tau (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
 
         Returns:
             - float: first integral solution [-]
@@ -113,43 +189,26 @@ class StripLoad:
         if abs(x_norm) < self.epsilon:
             x_norm = self.epsilon if x_norm >= 0 else -self.epsilon
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
 
         # dimensionless time parameter
-        time_parameter = self.eta * radius + self.epsilon
+        lower_limit_time = self.eta * radius + self.epsilon
 
-        k1_ini = self.__k1(x_norm, z_norm, time_parameter)
+        k1_ini = self.__k1(x_norm, z_norm, lower_limit_time)
 
-        x_new = max(math.sqrt(radius**2 - z_norm**2), self.epsilon)
+        abs_x_norm = abs(x_norm)
 
         # solve first integral with simpson's rule
-        if kappa**2 <= time_parameter**2:
+        if tau**2 <= lower_limit_time**2:
             first_integral = 0
         else:
-            first_integral = ((k1_ini / (self.eta**2 * z_norm * x_new)) * math.atan(
-                (z_norm * math.sqrt(kappa**2 - self.eta**2 * radius**2)) / (kappa * x_new)))
-            h1_1 = 0
+            first_integral = ((k1_ini / (self.eta**2 * z_norm * abs_x_norm)) * math.atan(
+                (z_norm * math.sqrt(tau**2 - self.eta**2 * radius**2)) / (tau * abs_x_norm)))
 
-            # solve first integral with simpson's rule
-            while time_parameter**2 < kappa**2:
-                time_parameter += self.integral_stepsize
+            # solve first integral with Simpson's rule
+            first_integral += self.__simpsons_rule(lower_limit_time, tau, self.__h1, x_norm, z_norm, radius, k1_ini)
 
-                pz = time_parameter**2 - self.eta**2 * z_norm**2
-                pr = time_parameter**2 - self.eta**2 * radius**2
-
-                h1_2 = (self.__k1(x_norm, z_norm, time_parameter) - k1_ini) / (pz * math.sqrt(pr))
-
-                time_parameter += self.integral_stepsize
-
-                pz = time_parameter**2 - self.eta**2 * z_norm**2
-                pr = time_parameter**2 - self.eta**2 * radius**2
-
-                h1_3 = (self.__k1(x_norm, z_norm, time_parameter) - k1_ini) / (pz * math.sqrt(pr))
-
-                first_integral += (h1_1 + 4 * h1_2 + h1_3) * self.integral_stepsize / 3
-                h1_1 = h1_3
-
-        if (kappa > self.eta * z_norm) and (x_norm < 0):
+        if (tau > self.eta * z_norm) and (x_norm < 0):
             first_integral += 1
 
         return first_integral
@@ -161,16 +220,20 @@ class StripLoad:
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - kappa (float): dimensionless integration time parameter [-]
+
+        Returns:
+            - float: factor for the second integral [-]
+
         """
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
         kappa_r = kappa**2 - radius**2
 
         if kappa_r <= 0:
             k2 = 0
         else:
-            # dimensionless complex variables following from laplace and fourier transforms
+            # dimensionless complex variables following from Laplace and Fourier transforms
             beta_s = complex(kappa * x_norm / radius**2, (z_norm / radius**2) * math.sqrt(kappa_r))
             b1 = 1 - 2 * beta_s**2
             gp = cmath.sqrt(self.eta**2 - beta_s**2)
@@ -183,152 +246,150 @@ class StripLoad:
 
         return k2
 
-    def __h2(self, x_norm: float, z_norm: float, time_parameter: float, radius: float, k2_0: float) -> float:
+    def __h2(self, x_norm: float, z_norm: float, kappa: float, radius: float, k2_0: float) -> float:
         """
-        Imaginary factor for the second integral
+        Integrand of the second integral
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - time_parameter (float): dimensionless integration time parameter [-]
+            - kappa (float): dimensionless integration time parameter [-]
             - radius (float): dimensionless radius [-]
             - k2_0 (float): initial imaginary factor for the second integral [-]
+
+        Returns:
+            - float: integrand of the second integral [-]
+
         """
 
-        pr = time_parameter**2 - radius**2
-        return (self.__k2(x_norm, z_norm, time_parameter) - k2_0) / math.sqrt(pr)
+        pr = kappa**2 - radius**2
+        return (self.__k2(x_norm, z_norm, kappa) - k2_0) / math.sqrt(pr)
 
-    def __f2(self, x_norm: float, z_norm: float, kappa: float) -> float:
+    def __f2(self, x_norm: float, z_norm: float, tau: float) -> float:
         """
         Calculates the second integral
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - tau (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
 
         Returns:
             - float: second integral solution [-]
+
         """
 
         if abs(x_norm) < self.epsilon:
             x_norm = self.epsilon if x_norm >= 0 else -self.epsilon
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
 
-        kappa_r = kappa / radius
+        tau_r = tau / radius
 
-        time_parameter = radius + self.epsilon
+        lower_limit_time = radius + self.epsilon
 
-        k2 = self.__k2(x_norm, z_norm, time_parameter)
+        k2 = self.__k2(x_norm, z_norm, lower_limit_time)
 
-        if kappa**2 <= time_parameter**2:
+        if tau**2 <= lower_limit_time**2:
             second_integral = 0
         else:
-            second_integral = k2 * math.log(kappa_r + math.sqrt(kappa_r**2 - 1))
-            h2_1 = 0
+            second_integral = k2 * math.log(tau_r + math.sqrt(tau_r**2 - 1))
 
             # solve second integral with simpson's rule
-            while time_parameter**2 < kappa**2:
-
-                time_parameter += self.integral_stepsize
-                h2_2 = self.__h2(x_norm, z_norm, time_parameter, radius, k2)
-
-                time_parameter += self.integral_stepsize
-                h2_3 = self.__h2(x_norm, z_norm, time_parameter, radius, k2)
-
-                second_integral += (h2_1 + 4 * h2_2 + h2_3) * self.integral_stepsize / 3
-                h2_1 = h2_3
+            second_integral += self.__simpsons_rule(lower_limit_time, tau, self.__h2, x_norm, z_norm, radius, k2)
 
         return second_integral
 
-    def __k3(self, x_norm: float, z_norm: float, kappa: float) -> float:
+    def __h3(self, x_norm: float, z_norm: float, kappa: float) -> float:
         """
-        Factor for the third integral
+        Integrand of the third integral
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - kappa (float): dimensionless integration time parameter [-]
 
         Returns:
-            - float: imaginary factor for the third integral [-]
+            - float: integrand of the third integral [-]
 
         """
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
 
-        kappa_q = self.eta * abs(x_norm) + z_norm * math.sqrt(1 - self.eta**2)
+        tau_q = self.eta * abs(x_norm) + z_norm * math.sqrt(1 - self.eta**2)
 
-        if (kappa**2 >= radius**2) or (kappa <= kappa_q) or (x_norm**2 <= self.eta**2 * radius**2):
-            k3 = 0
+        if (kappa**2 >= radius**2) or (kappa <= tau_q) or (x_norm**2 <= self.eta**2 * radius**2):
+            h3 = 0
         else:
-            beta_q = x_norm * kappa / radius**2 - (z_norm / radius**2) * math.sqrt(radius**2 - kappa**2)
+            beta_q = (x_norm * kappa - z_norm * math.sqrt(radius**2 - kappa**2)) / radius**2
 
             b2 = (1 - 2 * beta_q**2)**2
             numerator = 4 * beta_q * (1 - beta_q**2) * b2 * math.sqrt(beta_q**2 - self.eta**2)
 
             denominator = b2**2 + 16 * beta_q**4 * (1 - beta_q**2) * (beta_q**2 - self.eta**2)
 
-            k3 = -numerator / (math.pi * denominator * math.sqrt(radius**2 - kappa**2))
+            h3 = -numerator / (math.pi * denominator * math.sqrt(radius**2 - kappa**2))
 
-        return k3
+        return h3
 
-    def __f3(self, x_norm: float, z_norm: float, kappa: float) -> float:
+    def __f3(self, x_norm: float, z_norm: float, tau: float) -> float:
         """
         Calculates the third integral
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - tau (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
 
         Returns:
             - float: third integral solution [-]
 
         """
 
-        radius = math.sqrt(x_norm**2 + z_norm**2)
-        kappa_s = radius
-        kappa_q = self.eta * abs(x_norm) + z_norm * math.sqrt(1 - self.eta**2)
+        radius = self.__calculate_radius(x_norm, z_norm)
+        tau_s = radius
+        tau_q = self.eta * abs(x_norm) + z_norm * math.sqrt(1 - self.eta**2)
 
-        if (kappa <= kappa_q) or (x_norm**2 <= self.eta**2 * radius**2):
+        if (tau <= tau_q) or (x_norm**2 <= self.eta**2 * radius**2):
             third_integral = 0
         else:
 
-            # kappa_s is the minimum of kappa_s and kappa
-            kappa_s = min(kappa, kappa_s)
+            # tau_s is the minimum of tau_s and tau
+            tau_s = min(tau, tau_s)
 
-            # determine integral stepsize as a function of kappa_s and kappa_q
+            # determine integral stepsize as a function of tau_s and tau_q
             n_steps = 1000
-            stepsize = (kappa_s - kappa_q) / n_steps
+            stepsize = (tau_s - tau_q) / n_steps
 
             third_integral = 0
-            time_parameter = kappa_q + stepsize / 2
+            lower_limit_time = tau_q + stepsize / 2
+
+            # set dimensionless integration time parameter to lower limit
+            kappa = lower_limit_time
 
             # solve third integral
-            while time_parameter < kappa_s:
-                third_integral += self.__k3(x_norm, z_norm, time_parameter) * stepsize
-                time_parameter += stepsize
+            while kappa < tau_s:
+                third_integral += self.__h3(x_norm, z_norm, kappa) * stepsize
+                kappa += stepsize
 
         return third_integral
 
-    def calculate_normalised_vertical_stress(self, x_norm: float, z_norm: float, kappa: float):
+    def calculate_normalised_vertical_stress(self, x_norm: float, z_norm: float, tau: float):
         """
         Calculate the normalised vertical stress
 
         Args:
             - x_norm (float): dimensionless x coordinate normalised with the line load length [-]
             - z_norm (float): dimensionless z coordinate normalised with the line load length [-]
-            - kappa (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
+            - tau (float): dimensionless time parameter, normalised with line load length and shear wave velocity [-]
 
         Returns:
             - float: normalised vertical stress [-]
 
         """
-        normalised_vertical_stress = self.__f1(x_norm + 1, z_norm, kappa) - self.__f1(x_norm - 1, z_norm, kappa) + \
-            self.__f2(x_norm + 1, z_norm, kappa) - self.__f2(x_norm - 1, z_norm, kappa) + \
-            self.__f3(x_norm + 1, z_norm, kappa) - self.__f3(x_norm - 1, z_norm, kappa)
+        normalised_vertical_stress = self.__f1(x_norm + 1, z_norm, tau) - self.__f1(x_norm - 1, z_norm, tau) + \
+            self.__f2(x_norm + 1, z_norm, tau) - self.__f2(x_norm - 1, z_norm, tau) + \
+            self.__f3(x_norm + 1, z_norm, tau) - self.__f3(x_norm - 1, z_norm, tau)
         return normalised_vertical_stress
 
     def calculate_vertical_stress(self, x: float, z: float, t: float, load_length: float, load_value: float) -> float:
@@ -340,7 +401,7 @@ class StripLoad:
             - z (float): depth from load [m]
             - t (float): time [s]
             - load_length (float): length of the line load [m]
-            - load_value (float): value of the line load [N/m]
+            - load_value (float): value of the line load [N/m^2]
 
         Returns:
             - float: vertical stress [Pa]
@@ -348,8 +409,8 @@ class StripLoad:
         """
         x_norm = x / load_length
         z_norm = z / load_length
-        kappa = self.cs * t / load_length
+        tau = self.cs * t / load_length
 
-        normalised_vertical_stress = self.calculate_normalised_vertical_stress(x_norm, z_norm, kappa)
-        vertical_stress = normalised_vertical_stress * load_value * load_length
+        normalised_vertical_stress = self.calculate_normalised_vertical_stress(x_norm, z_norm, tau)
+        vertical_stress = normalised_vertical_stress * load_value
         return vertical_stress
