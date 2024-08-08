@@ -80,7 +80,7 @@ std::vector<NeighborSet<TIndex>> collectNeighbors(const CSRAdaptor<TIndex,TValue
                     MCGS_ACQUIRE_MUTEX(rMutexes[iColumn]);
                     const auto [itBegin, itEnd] = std::equal_range(neighbors[iColumn].begin(),
                                                                    neighbors[iColumn].end(),
-                                                                   iRow);
+                                                                   static_cast<TIndex>(iRow));
                     if (itBegin == itEnd) neighbors[iColumn].insert(itBegin, iRow);
                     MCGS_RELEASE_MUTEX(rMutexes[iColumn]);
                 }
