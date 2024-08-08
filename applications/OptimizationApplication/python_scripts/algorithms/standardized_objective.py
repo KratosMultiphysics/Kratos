@@ -6,6 +6,8 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateResponseExpression
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
@@ -17,14 +19,20 @@ class StandardizedObjective(ResponseRoutine):
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
+        # backward compatibility
+        if parameters.Has("response_name"):
+            IssueDeprecationWarning(self.__class__.__name__, "\"response_name\" is deprecated. Please use \"response_expression\".")
+            parameters.AddString("response_expression", parameters["response_name"].GetString())
+            parameters.RemoveValue("response_name")
+
         default_parameters = Kratos.Parameters("""{
-            "response_name": "",
-            "type"         : "",
-            "scaling"      : 1.0
+            "response_expression": "",
+            "type"               : "",
+            "scaling"            : 1.0
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        response = optimization_problem.GetResponse(parameters["response_name"].GetString())
+        response = EvaluateResponseExpression(parameters["response_expression"].GetString(), optimization_problem)
 
         super().__init__(master_control, response)
 
