@@ -15,7 +15,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
         raise RuntimeError(f"SensorDistanceSummationResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
         raise RuntimeError(f"SensorDistanceSummationResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return SensorDistanceSummationResponse(parameters["name"].GetString(), model, parameters["settings"])
+    return SensorDistanceSummationResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 
 class SensorDistanceSummationResponse(ResponseFunction):
