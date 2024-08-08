@@ -318,6 +318,20 @@ void KratosApplication::RegisterKratosCore() {
     RegisterVoxelMesherOperation();
 }
 
+
+void KratosApplication::DeregisterVariables() {
+    const std::string path = "variables."+mApplicationName;
+    if (Registry::HasItem(path)) {
+        auto& r_variables = Registry::GetItem(path);
+        // Iterate over items at path. For each item, remove it from the mappers.all branch too
+        for (auto i_key = r_variables.KeyConstBegin(); i_key != r_variables.KeyConstEnd(); ++i_key) {
+            Registry::RemoveItem("variables.all."+*i_key);
+        }
+        Registry::RemoveItem(path);
+    }
+}
+
+
 template<class TComponentsContainer>
 void KratosApplication::DeregisterComponent(std::string const & rComponentName) {
     auto path = std::string(rComponentName)+"."+mApplicationName;

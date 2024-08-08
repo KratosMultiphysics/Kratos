@@ -132,7 +132,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     /// Destructor.
     virtual ~KratosApplication()
     {
-        // This must be commented until tests have been fixed.
+        DeregisterVariables();
         DeregisterCommonComponents();
         DeregisterApplication();
     }
@@ -147,6 +147,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
+
+    void DeregisterVariables();
 
     template<class TComponentsContainer>
     void DeregisterComponent(std::string const & rComponentName);
