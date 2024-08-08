@@ -559,6 +559,34 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
+    .def("SearchInBoundingBox", [&](GeometricalObjectsBins& self, const Point& rPoint, const array_1d<double, 3>& rMinPoint, const array_1d<double, 3>& rMaxPoint) {
+        // Perform the search
+        std::vector<ResultType> results;
+        self.SearchInBoundingBox(rPoint, rMinPoint, rMaxPoint, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchInBoundingBox", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const array_1d<double, 3>& rMinPoint, const array_1d<double, 3>& rMaxPoint) {
+        // Perform the search
+        std::vector<std::vector<ResultType>> results;
+        self.SearchInBoundingBox(rNodes.begin(), rNodes.end(), rMinPoint, rMaxPoint, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list sub_list_results;
+            for (auto& r_sub_result : r_result) {
+                sub_list_results.append(r_sub_result);
+            }
+            list_results.append(sub_list_results);
+        }
+        return list_results;
+    })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
         return self.SearchNearest(rPoint);
