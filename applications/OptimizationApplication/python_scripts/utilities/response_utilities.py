@@ -229,7 +229,7 @@ def __EvaluateResponseExpressionImpl(response_expression: str, optimization_prob
 
 def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     evaluated_response_impl = __EvaluateResponseExpressionImpl(response_expression, optimization_problem)
-    if not evaluated_response_impl.GetChildResponses() and  not evaluated_response_impl.GetImplementedPhysicalKratosVariables():
+    if evaluated_response_impl.GetChildResponses() and  evaluated_response_impl.GetImplementedPhysicalKratosVariables():
         # if the response has children and has some dependence on the variables, then
         # we need to use the EvaluationResponseFunction to clear the evaluation data
         # whenever CalculateValue, CalculateGradient is used.
