@@ -222,7 +222,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     });
 
     // Create a temporary container to store the master-slave constraints
-    ConstraintContainerType temp_constraints;
+    std::vector<MasterSlaveConstraint::Pointer> temp_constraints;
     ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
 
     // Dequeue the constraints from the concurrent queue and add them to the temporary container

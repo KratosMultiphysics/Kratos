@@ -71,7 +71,7 @@ public:
                 && pElemIt->GetGeometry().IntegrationPoints(
                     pElemIt->GetIntegrationMethod() ).size() == mSize )
         {
-            mMeshElements.push_back( *(pElemIt.base() ) );
+            mMeshElements.insert(mMeshElements.end(), *(pElemIt.base() ) );
             return true;
         }
         else return false;
@@ -84,7 +84,7 @@ public:
         if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily &&
             pCondIt->GetGeometry().IntegrationPoints(pCondIt->GetIntegrationMethod()).size() == mSize )
         {
-            mMeshConditions.push_back( *(pCondIt.base() ) );
+            mMeshConditions.insert(mMeshConditions.end(), *(pCondIt.base() ) );
             return true;
         }
         else return false;

@@ -116,7 +116,7 @@ public:
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
         {
             if( i_node->GetValue(NEIGHBOUR_NODES).size() != 0 )
-                (mr_model_part.Nodes()).push_back(*(i_node.base()));
+                (mr_model_part.Nodes()).insert(mr_model_part.Nodes().end(), *(i_node.base()));
         }
 
         KRATOS_CATCH("")
@@ -275,6 +275,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ELIMINATE_ISOLATED_NODES_PROCESS_INCLUDED  defined 
+#endif // KRATOS_ELIMINATE_ISOLATED_NODES_PROCESS_INCLUDED  defined
 
 
