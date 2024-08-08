@@ -41,11 +41,8 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         self.flip_normal = (self.option == "flip_normal")
 
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
             node.SetValue(KratosMPM.TANGENTIAL_PENALTY_FACTOR, self.tangential_penalty_factor)
             node.Set(KratosMultiphysics.MODIFIED, self.flip_normal)

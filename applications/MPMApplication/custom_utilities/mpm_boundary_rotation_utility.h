@@ -25,6 +25,7 @@
 #include "geometries/geometry.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos {
 
@@ -62,6 +63,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(MPMBoundaryRotationUtility);
 
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
+    using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::RevertRotate;
 
 	typedef Node NodeType;
 
@@ -78,9 +80,8 @@ public:
 	 */
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
-		const unsigned int BlockSize,
-		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
+		const unsigned int BlockSize):
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP)
 	{}
 
 	/// Destructor.
@@ -121,13 +122,23 @@ public:
 
 	}
 
-	/// RHS only version of Rotate
-	void RotateRHS(
+    void RevertRotate(
+        TLocalMatrixType& rLocalMatrix,
         TLocalVectorType& rLocalVector,
-		GeometryType& rGeometry) const
-	{
-		this->Rotate(rLocalVector,rGeometry);
-	}
+        GeometryType& rGeometry) const
+    {
+        if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+        {
+            if (this->GetDomainSize() == 2) this->template RotateAuxPure<2,true>(rLocalMatrix,rLocalVector,rGeometry);
+            else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3,true>(rLocalMatrix,rLocalVector,rGeometry);
+        }
+        else // mixed formulation case
+        {
+            if (this->GetDomainSize() == 2) this->template RotateAux<2,3,true>(rLocalMatrix,rLocalVector,rGeometry);
+            else if (this->GetDomainSize() == 3) this->template RotateAux<3,4,true>(rLocalMatrix,rLocalVector,rGeometry);
+        }
+
+    }
 
 	/// Apply roler type boundary conditions to the rotated local contributions.
 	/** This function takes the rotated local system contributions so each
@@ -145,7 +156,9 @@ public:
 		{
 			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 			{
-				if(this->IsSlip(rGeometry[itNode]) )
+                // Checks for conforming slip
+                // [ non-conforming SLIP BCs are treated within the resp. condition itself ]
+				if( this->IsConformingSlip(rGeometry[itNode]) )
 				{
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
@@ -231,115 +244,26 @@ public:
         this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition
-	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, don't do anything
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-	}
-
-	// An extra function to distinguish the application of slip in element considering penalty imposition (RHS Version)
-	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, don't do anything
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalVector, rGeometry);
-		}
-	}
-
-	// An extra function to distinguish the application of slip in condition considering penalty imposition
-	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-		// Otherwise, do the following modification
-		else
-		{
-			const unsigned int LocalSize = rLocalVector.size();
-
-			if (LocalSize > 0)
-			{
-				const unsigned int block_size = this->GetBlockSize();
-				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
-				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-				{
-					if(this->IsSlip(rGeometry[itNode]) )
-					{
-						// We fix the first displacement dof (normal component) for each rotated block
-						unsigned int j = itNode * block_size;
-
-						// Copy all normal value in LHS to the temp_matrix
-                        // [ does nothing for dummy rLocalMatrix (size1() == 0) -- RHS only case ]
-						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
-						{
-							temp_matrix(i,j) = rLocalMatrix(i,j);
-							temp_matrix(j,i) = rLocalMatrix(j,i);
-						}
-
-						// Remove all other value in RHS than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
-					}
-				}
-                // All entries in penalty matrix zeroed out except for normal component
-                // [ no effect in case of empty dummy rLocalMatrix ]
-				rLocalMatrix = temp_matrix;
-			}
-		}
-	}
-
-	// An extra function to distinguish the application of slip in condition considering penalty imposition (RHS Version)
-	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-        // creates an empty dummy matrix to pass into the 'full' ConditionApplySlipCondition -- this dummy matrix is
-        // ignored, effectively only updating the RHS
-        TLocalMatrixType dummyMatrix;
-        this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
-	}
-
-
-    bool IsPenalty(const NodeType& rNode) const
+    bool IsParticleBasedSlip(const NodeType& rNode) const
     {
+        return rNode.GetValue(PARTICLE_BASED_SLIP);
+    }
 
-        if(this->IsSlip(rNode) )
+    // Checking whether it is normal element or penalty element
+    bool IsParticleBasedSlip(const GeometryType& rGeometry) const
+    {
+        for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
-            const double identifier = rNode.FastGetSolutionStepValue(mrFlagVariable);
-            const double tolerance  = 1.e-6;
-            if (identifier > 1.00 + tolerance)
+            if(IsParticleBasedSlip(rGeometry[itNode]))
                 return true;
         }
 
         return false;
     }
 
-	// Checking whether it is normal element or penalty element
-	bool IsPenalty(const GeometryType& rGeometry) const
-	{
-		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-		{
-            if(IsPenalty(rGeometry[itNode]))
-                return true;
-		}
-
-		return false;
-	}
+    bool IsConformingSlip(const NodeType& rNode) const {
+        return rNode.Is(SLIP) && !IsParticleBasedSlip(rNode);
+    }
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
 	virtual	void RotateDisplacements(ModelPart& rModelPart) const
@@ -359,7 +283,9 @@ public:
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
-			if( this->IsSlip(*itNode) )
+
+            // rotate conforming slip ONLY -- particle-based slip is handled by the relevant condition
+            if( this->IsConformingSlip(*itNode) )
 			{
 				//this->RotationOperator<TLocalMatrixType>(Rotation,);
 				if(this->GetDomainSize() == 3)
@@ -404,7 +330,8 @@ public:
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
-			if( this->IsSlip(*itNode) )
+            // rotate conforming slip ONLY -- particle-based slip is handled by the relevant condition
+            if( this->IsConformingSlip(*itNode) )
 			{
 				if(this->GetDomainSize() == 3)
 				{
@@ -443,7 +370,7 @@ public:
 			ModelPart::NodeIterator itNode = it_begin+iii;
 			const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
 
-			if( this->IsPenalty(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
+			if( this->IsConformingSlip(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
 			{
 				if(this->GetDomainSize() == 3)
 				{
@@ -668,8 +595,6 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-    const Variable<double>& mrFlagVariable;
-
 
     ///@}
 	///@name Private Operators
