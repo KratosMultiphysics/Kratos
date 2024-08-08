@@ -8,6 +8,8 @@ from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_u
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import SolveAdjointProblem
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import ComputeAdjointSensitivity
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceBodyFittedMomentShapeSensitivityAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis
 
 @KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
 class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
@@ -36,6 +38,26 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 4)
 
+    def testOneElementMoment(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/one_element_test_parameters.json')
+            step_size = 6.4e-5
+            fd_sensitivities = FiniteDifferenceBodyFittedMomentShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, [0.0, 0.0, 1.0],
+                'MainModelPart.Structure',
+                [1.0, 1.0, 0.0],
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess)
+
+            # solve adjoint
+            adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/one_element_test_moment_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 4)
+
     def testCylinder(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1968]
@@ -51,6 +73,44 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
 
             # solve adjoint
             adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 5)
+
+    def testDragFrequencyRealCylinder(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1968]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_parameters.json')
+            step_size = 1e-9
+            fd_sensitivities = FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.NoSlip2D_Cylinder',
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess, True, 0.05, 1)
+
+            # solve adjoint
+            adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_drag_frequency_real_coeff_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 5)
+
+    def testDragFrequencyImagCylinder(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1968]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_parameters.json')
+            step_size = 1e-9
+            fd_sensitivities = FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.NoSlip2D_Cylinder',
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess, False, 0.05, 1)
+
+            # solve adjoint
+            adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_drag_frequency_imag_coeff_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 5)
@@ -90,7 +150,8 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
                 "nodal_solution_step_data_settings": {
                     "list_of_variables": [
                         "VELOCITY",
-                        "PRESSURE"
+                        "PRESSURE",
+                        "REACTION"
                     ]
                 },
                 "nodal_data_value_settings": {

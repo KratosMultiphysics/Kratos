@@ -29,7 +29,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        super().__init__(model_part, settings, deprecated_settings_dict)
+        super().__init__(model_part, settings)
 
         self.GetParameters().ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.SetMaxCouplingIterations(1)
@@ -189,3 +189,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def GetMaxCouplingIterations(self):
         return 0
+
+    def GetSolvingVariables(self):
+        return [KratosRANS.VELOCITY_POTENTIAL]

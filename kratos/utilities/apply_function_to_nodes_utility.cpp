@@ -24,26 +24,27 @@ namespace Kratos
 
 void ApplyFunctionToNodesUtility::ApplyFunction(
     const Variable<double>& rVariable,
-    const double t
+    const double t,
+    const IndexType Step
     )
-{    
+{
     // Get function
     auto& r_function = *mpFunction;
 
     if(!mpFunction->UseLocalSystem()) {
         block_for_each(
             mrNodes,r_function,
-            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+            [&rVariable,&t,Step](Node<3>& rNode, GenericFunctionUtility& rFunction) {
                 const double value = rFunction.CallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
-                rNode.FastGetSolutionStepValue(rVariable) = value;
+                rNode.FastGetSolutionStepValue(rVariable, Step) = value;
             }
         );
     } else {
         block_for_each(
             mrNodes,r_function,
-            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+            [&rVariable,&t,Step](Node<3>& rNode, GenericFunctionUtility& rFunction) {
                 const double value = rFunction.RotateAndCallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
-                rNode.FastGetSolutionStepValue(rVariable) = value;
+                rNode.FastGetSolutionStepValue(rVariable, Step) = value;
             }
         );
     }

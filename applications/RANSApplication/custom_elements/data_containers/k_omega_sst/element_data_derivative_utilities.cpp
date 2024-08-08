@@ -66,14 +66,24 @@ double AdjointUtilities<TDim>::CalculateCrossDiffusionTermDerivative(
 {
     double value = 0.0;
 
+    double omega;
+    double omega_detivative;
+    if (TurbulentSpecificEnergyDissipationRate <= 1e-12) {
+        omega = 1e-12;
+        omega_detivative = 0.0;
+    } else {
+        omega = TurbulentSpecificEnergyDissipationRate;
+        omega_detivative = TurbulentSpecificEnergyDissipationRateDerivative;
+    }
+
     value += inner_prod(rTurbulentKineticEnergyGradientDerivative, rTurbulentSpecificEnergyDissipationRateGradient);
     value += inner_prod(rTurbulentKineticEnergyGradient, rTurbulentSpecificEnergyDissipationRateGradientDerivative);
 
-    value = value / TurbulentSpecificEnergyDissipationRate -
+    value = value / omega -
             inner_prod(rTurbulentKineticEnergyGradient,
                        rTurbulentSpecificEnergyDissipationRateGradient) *
-                TurbulentSpecificEnergyDissipationRateDerivative /
-                std::pow(TurbulentSpecificEnergyDissipationRate, 2);
+                omega_detivative /
+                std::pow(omega, 2);
 
     value *= 2.0 * SigmaTurbulentSpecificEnergyDissipationRate2;
 

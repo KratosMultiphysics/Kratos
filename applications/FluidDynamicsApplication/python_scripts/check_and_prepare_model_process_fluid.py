@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -14,7 +15,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "volume_model_part_name" : "",
             "skin_parts" : [],
-            "assign_neighbour_elements_to_conditions" : true
+            "assign_neighbour_elements_to_conditions" : true,
+            "fix_elements_with_all_nodes_on_boundaries": false
         }''')
         Parameters.ValidateAndAssignDefaults(default_parameters)
         if Parameters["volume_model_part_name"].GetString() == "":
@@ -24,6 +26,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.skin_name_list = Parameters["skin_parts"]
 
         self.assign_neighbour_elements = Parameters["assign_neighbour_elements_to_conditions"].GetBool()
+        self.fix_elements_with_all_nodes_on_boundaries = Parameters["fix_elements_with_all_nodes_on_boundaries"].GetBool()
 
 
         #self.volume_model_part_name = Parameters["volume_model_part_name"].GetString()
@@ -51,6 +54,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         skin_parts = []
         for i in range(self.skin_name_list.size()):
             skin_parts.append(self.main_model_part.GetSubModelPart(self.skin_name_list[i].GetString()))
+
+        element_ids_with_all_nodes_on_boundaries = KratosFluid.FluidModelPartPreProcessingUtilities.GetElementIdsWithAllNodesOnBoundaries(self.main_model_part, self.skin_name_list.GetStringArray())
+        if len(element_ids_with_all_nodes_on_boundaries) > 0:
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Found {:d} elements with all nodes on boundaries in {:s}.".format(len(element_ids_with_all_nodes_on_boundaries), self.main_model_part.FullName()))
 
         #construct a model part which contains both the skin and the volume
         #temporarily we call it "fluid_computational_model_part"

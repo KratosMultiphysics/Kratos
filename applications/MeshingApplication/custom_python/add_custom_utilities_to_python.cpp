@@ -26,6 +26,7 @@
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
+#include "custom_utilities/element_refinement_utilities.h"
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 
 
@@ -161,7 +162,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
 
+    py::class_<ElementRefinementUtilities>(m, "ElementRefinementUtilities")
+        .def(py::init<ModelPart&, const std::string&, const Element&, const std::size_t, const std::string, const std::string, const std::vector<std::string>&, const std::vector<std::string>&, const std::vector<std::string>&>())
+        .def("InterpolateToRefinedMeshFromCoarseElement", &ElementRefinementUtilities::InterpolateToRefinedMeshFromCoarseElement)
+        .def("ComputeSurfaceMap", &ElementRefinementUtilities::ComputeSurfaceMap)
+        .def("SetIds", &ElementRefinementUtilities::SetIds)
+        .def("SetConditionParentIds", &ElementRefinementUtilities::SetConditionParentIds)
+        .def("GetRefinedModelPart", &ElementRefinementUtilities::GetRefinedModelPart, py::return_value_policy::reference_internal)
+        ;
+
 }
 } // namespace Python.
 
 } // Namespace Kratos
+

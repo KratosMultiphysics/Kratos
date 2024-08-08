@@ -1,19 +1,25 @@
+from pathlib import Path
+
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
+from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
+from KratosMultiphysics.RANSApplication.formulations.utilities import AddWallPropertiesUpdateProcess
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -85,7 +91,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
         self.BackwardCompatibilityHelper(settings, deprecated_settings_dict)
-        super().__init__(model_part, settings, deprecated_settings_dict)
+        super().__init__(model_part, settings)
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -123,9 +129,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 "use_orthogonal_subscales": false,
                 "dynamic_tau": 0.01
             },
+            "use_frozen_turbulence" : false,
+            "additional_frozen_turbulence_constants": {
+                "a1"  : 0.31
+            },
             "wall_function_settings": {
-                "wall_function_region_type": "logarithmic_region_only",
-                "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
+                "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based",
+                "wall_function_region_type": "logarithmic_region_only"
             }
         }""")
 
@@ -160,6 +170,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         if (self.flow_solver_formulation.element_name == "VMS"):
             base_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
             base_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+
+        if (self.GetParameters()["use_frozen_turbulence"].GetBool()):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Frozen turbulence assumption is used. Adding respective variables.")
+            base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+            base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+            base_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
@@ -213,13 +229,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         if self.is_steady_simulation:
             scheme_type = GetKratosObjectPrototype("ResidualBasedSimpleSteadyScheme")
-            scheme = scheme_type(
+            self.scheme = scheme_type(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
                 self.GetDomainSize())
         else:
             scheme_type = GetKratosObjectPrototype("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
-            scheme = scheme_type(
+            self.scheme = scheme_type(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
                 self.GetDomainSize())
@@ -232,14 +248,22 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             self.IsPeriodic(),
             self.GetCommunicator())
 
+        self.compute_reactions_using_scheme = False
+        if settings["compute_reactions"].GetBool():
+            if hasattr(self.scheme, "CalculateReactions"):
+                self.compute_reactions_using_scheme = True
+            else:
+                Kratos.Logger.PrintWarning(
+                    self.__class__.__name__, "Using reaction computation from builder and solver because {:s} has not implemented CalculateReactions method. This will give wrong REACTION on nodes if wall functions are used.".format(self.scheme.__class__.__name__))
+
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
             self.monolithic_model_part,
-            scheme,
+            self.scheme,
             conv_criteria,
             builder_and_solver,
             settings["maximum_iterations"].GetInt(),
-            settings["compute_reactions"].GetBool(),
+            settings["compute_reactions"].GetBool() and not self.compute_reactions_using_scheme,
             settings["reform_dofs_at_each_step"].GetBool(),
             settings["move_mesh_flag"].GetBool())
 
@@ -259,6 +283,9 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             for iteration in range(max_iterations):
                 self.ExecuteBeforeCouplingSolveStep()
                 _ = self.solver.SolveSolutionStep()
+                if self.compute_reactions_using_scheme:
+                    self.scheme.CalculateReactions(self.GetModelPart())
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is used to calculate reactions in {:s}.".format(self.scheme.__class__.__name__, self.GetModelPart().FullName()))
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
@@ -305,6 +332,10 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
+        if (self.GetParameters()["use_frozen_turbulence"].GetBool()):
+            process_info.SetValue(KratosRANS.TURBULENCE_RANS_A1, self.GetParameters()["additional_frozen_turbulence_constants"]["a1"].GetDouble())
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Frozen turbulence assumption is used. Added respective constants.")
+
     def SetWallFunctionSettings(self):
         wall_function_settings = self.GetParameters()["wall_function_settings"]
         wall_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["wall_function_settings"])
@@ -332,6 +363,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 msg += "\tlogarithmic_region_only\n"
                 raise Exception(msg)
 
+        AddWallPropertiesUpdateProcess(self, wall_function_settings)
+
     def GetStrategy(self):
         if (hasattr(self, "solver")):
             return self.solver
@@ -347,5 +380,106 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def GetConditionNames(self):
         return [self.condition_name]
 
+    def GetSolvingVariables(self):
+        if (self.GetDomainSize() == 2):
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
+        else:
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
+
+
+    def ComputeTransientResponseFunctionInterpolationError(self, settings, amr_output_path, model_import_settings):
+        # in here we need to calculate response function interpolation error
+        default_settings = Kratos.Parameters("""{
+            "primal_transient_project_parameters_file_name" : "PLEASE_SPECIFY_TRANSIENT_PRIMAL_PROJECT_PARAMETERS_FILE",
+            "adjoint_transient_project_parameters_file_name": "PLEASE_SPECIFY_TRANSIENT_ADJOINT_PROJECT_PARAMETERS_FILE",
+            "number_of_transient_steps_to_consider"         : 50
+        }""")
+
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        current_model_part = self.GetBaseModelPart()
+        current_model = current_model_part.GetModel()
+        process_info = current_model_part.ProcessInfo
+        current_time = process_info[Kratos.TIME]
+        current_step = process_info[Kratos.STEP]
+        current_dt   = process_info[Kratos.DELTA_TIME]
+
+        execution_path = Path(amr_output_path) / "step_{:d}".format(current_step)
+        execution_path.mkdir(exist_ok=True, parents=True)
+
+        # run the forward primal solution for user defined steps in the transient problem
+        # while calculating time averaged quantities
+        time_steps = settings["number_of_transient_steps_to_consider"].GetInt()
+        start_time = current_time
+        end_time = current_time + current_dt * time_steps
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving forward primal solution for transient response function interpolation error calculation...")
+
+        # open primal parameters json file
+        primal_transient_project_parameters_file_name = settings["primal_transient_project_parameters_file_name"].GetString()
+        with open(primal_transient_project_parameters_file_name, "r") as file_input:
+            primal_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
+
+        # set start time and end time
+        primal_parameters["problem_data"]["start_time"].SetDouble(start_time)
+        primal_parameters["problem_data"]["end_time"].SetDouble(end_time)
+        primal_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(current_dt)
+
+        # solve primal problem
+        with ExecutionScope(execution_path):
+            from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
+            # write existing model part
+            Kratos.ModelPartIO(primal_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.GetBaseModelPart())
+            primal_model, primal_simulation = SolveProblem(RANSAnalysis, primal_parameters, primal_transient_project_parameters_file_name[:-5])
+
+            # copy time averaged quantities from the primal_simulation
+            time_averaged_variable_data = [
+                ("TIME_AVERAGED_{:s}".format(var.Name()), False, 0, "TIME_AVERAGED_{:s}".format(var.Name()), False, 0) for var in self.GetSolvingVariables()
+            ]
+            KratosRANS.RansVariableDataTransferProcess(
+                primal_model,
+                current_model,
+                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
+                current_model_part.FullName(),
+                ["execute"],
+                time_averaged_variable_data,
+                self.echo_level).Execute()
+
+            # free the memory consumed by primal analysis
+            del primal_simulation
+            del primal_model
+
+        # now run the backward adjoint steady problem
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving adjoint solution for transient response function interpolation error calculation...")
+
+        # open adjoint parameters json file
+        adjoint_transient_project_parameters_file_name = settings["adjoint_transient_project_parameters_file_name"].GetString()
+        with open(adjoint_transient_project_parameters_file_name, "r") as file_input:
+            adjoint_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
+
+        # set start time and end time
+        adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time + current_dt)
+        adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
+
+        # solve adjoint problem
+        with ExecutionScope(execution_path):
+            from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
+            adjoint_model, adjoint_simulation = SolveProblem(AdjointRANSAnalysis, adjoint_parameters, adjoint_transient_project_parameters_file_name[:-5])
+
+            # now transfer RESPONSE_FUNCTION_INTERPOLATION_ERROR data to the current model part
+            KratosRANS.RansVariableDataTransferProcess(
+                adjoint_model,
+                current_model,
+                adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
+                current_model_part.FullName(),
+                ["execute"],
+                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, 0, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, 0)],
+                self.echo_level).Execute()
+
+            # free the memory consumed by primal analysis
+            del adjoint_simulation
+            del adjoint_model
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response based interpolation errors for adaptive mesh refinement.")
     def GetConditionNamePrefix(self):
         return "RansVMSMonolithic"

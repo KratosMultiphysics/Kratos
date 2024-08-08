@@ -17,6 +17,8 @@ def CreateSolver(model, custom_settings):
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
             solver_module_name = "adjoint_monolithic_solver"
+        elif (solver_type == "MonolithicLSSForward"):
+            solver_module_name = "lss_forward_monolithic_solver"
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 

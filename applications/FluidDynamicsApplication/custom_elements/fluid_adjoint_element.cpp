@@ -509,6 +509,32 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES) {
+
+        if (rOutput.size1() != TElementLocalSize || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TElementLocalSize, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        AddFluidFirstDerivatives(rOutput, rCurrentProcessInfo, 0.0);
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested for Calculate method. "
+                        "[ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 std::string FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
 {
     std::stringstream buffer;

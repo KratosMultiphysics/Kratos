@@ -33,6 +33,10 @@
 #include "rans_application_variables.h"
 
 // Derivative data type includes
+// stabilization validaton
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data_derivatives.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_element_data_derivatives.h"
+
 // k-epsilon
 #include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
@@ -98,7 +102,7 @@ ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes
     mPrimalDampingMatrix.clear();
 
     mDeltaTime = rProcessInfo[DELTA_TIME];
-    KRATOS_ERROR_IF(mDeltaTime > 0.0)
+    KRATOS_ERROR_IF(mDeltaTime >= 0.0)
         << "Adjoints are computed in reverse time, therefore DELTA_TIME should "
            "be negative. [ DELTA_TIME = "
         << mDeltaTime << " ].\n";
@@ -216,8 +220,7 @@ template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Data::CalculateDataAfterGaussPointPointLoop()
 {
     using namespace ConvectionDiffusionReactionStabilizationUtilities;
-    double matrix_norm;
-    CalculateDiscreteUpwindOperator<TNumNodes>(matrix_norm, mDiscreteDiffusionMatrix, mPrimalDampingMatrix);
+    CalculateDiscreteUpwindOperator<TNumNodes>(mDiscreteDiffusionMatrix, mPrimalDampingMatrix);
     mDiagonalCoefficient = CalculatePositivityPreservingMatrix(mPrimalDampingMatrix);
     mScalarMultiplier /= mNumberOfGaussPoints;
 }
@@ -319,7 +322,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
     const Matrix& rdNdX,
     const double WDerivative,
     const double DetJDerivative,
-    const Matrix& rdNdXDerivative)
+    const Matrix& rdNdXDerivative,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -461,8 +465,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
         value -= tau_operator * mrData.mStabilizationTau * reaction_term_derivative * mrData.mPrimalVariableValue;
 
         // add mass term derivatives
-        value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalRelaxedVariableRateValue;
-        value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalRelaxedVariableRateValue;
+        value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalRelaxedVariableRateValue * MassTermsDerivativesWeight;
+        value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalRelaxedVariableRateValue * MassTermsDerivativesWeight;
 
         rResidualDerivative[a] = value * W;
     }
@@ -571,6 +575,15 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 }
 
 // template instantiations
+
+// stabilization validation element data derivatives
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::PhiDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::ShapeDerivative>;
+
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::DiffusionElementDataDerivatives::PhiDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::DiffusionElementDataDerivatives::ShapeDerivative>;
 
 // k-epsilon k element derivatives
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KEpsilonElementData::KElementDataDerivatives<2, 3>::Data>;

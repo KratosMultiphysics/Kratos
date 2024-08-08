@@ -61,7 +61,7 @@ void VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
         KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
             << "NORMAL must be calculated before using this " << this->Info() << "\n";
@@ -309,7 +309,7 @@ void VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
     using namespace RansCalculationUtilities;
 
-    if (IsWallFunctionActive(*this)) {
+    if (IsWallFunctionActive(this->GetGeometry())) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;

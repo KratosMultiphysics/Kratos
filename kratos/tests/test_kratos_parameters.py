@@ -979,6 +979,66 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertListEqual(new_string_array, string_array)
 
+    def test_is_keys_sub_set_with_equivalent_values_to(self):
+        new_param = Parameters("""{
+            "key1": {
+                "subkey1": "value_1",
+                "subkey2": 1.0,
+                "subkey3": [1.0, 2.0, 3.0],
+                "subkey4": ["1.0", "2.0", "3.0"]
+            },
+            "key2": [
+                {
+                    "listsubkey1": "value_1",
+                    "listsubkey2": 1.0,
+                    "listsubkey3": [1.0, 2.0, 3.0],
+                    "listsubkey4": ["1.0", "2.0", "3.0"]
+                },
+                {
+                    "listsubkey1": "value_1",
+                    "listsubkey2": 1.0,
+                    "listsubkey3": [1.0, 2.0, 3.0],
+                    "listsubkey4": ["1.0", "2.0", "3.0"]
+                }
+            ],
+            "key3": "value_3"
+        }""")
+
+        defaults = Parameters("""{
+            "key1": {
+                "subkey1": "value_1",
+                "subkey2": 1.0,
+                "subkey3": [1.0, 2.0, 3.0],
+                "subkey4": ["1.0", "2.0", "3.0"],
+                "subkey5": "default_value_5"
+            },
+            "key2": [
+                {
+                    "listsubkey1": "value_1",
+                    "listsubkey2": 1.0,
+                    "listsubkey3": [1.0, 2.0, 3.0],
+                    "listsubkey4": ["1.0", "2.0", "3.0"]
+                },
+                {
+                    "listsubkey1": "value_1",
+                    "listsubkey2": 1.0,
+                    "listsubkey3": [1.0, 2.0, 3.0],
+                    "listsubkey4": ["1.0", "2.0", "3.0"]
+                }
+            ],
+            "key3": "value_3",
+            "key4": "default_value_4"
+        }""")
+
+        self.assertTrue(new_param.IsKeysSubSetWithEquivalentValuesTo(defaults))
+
+        # adding a key to a list of parameters will make "key2" value to be not equal to that of new_param.
+        # hence this should return false
+        defaults["key2"][0].AddEmptyValue("listsubkey5")
+        defaults["key2"][0]["listsubkey5"].SetString("value_5")
+        self.assertFalse(new_param.IsKeysSubSetWithEquivalentValuesTo(defaults))
+
+
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)

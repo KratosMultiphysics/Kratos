@@ -2,9 +2,10 @@ from abc import abstractmethod, ABC
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 class RansFormulation(ABC):
-    def __init__(self, base_computing_model_part, settings, deprecated_settings_dict):
+    def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
 
         This class is the base class for formulations used in RANSApplication. A single leaf formulation
@@ -72,6 +73,12 @@ class RansFormulation(ABC):
         else:
             msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
             raise Exception(msg)
+
+    def AddProcessesList(self, kratos_parameters_processes_list):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(kratos_parameters_processes_list)
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
 
     def AddVariables(self):
         """Recursively calls AddVariables methods of existing formulations in this formulaton
@@ -390,6 +397,18 @@ class RansFormulation(ABC):
         """
         return self.__list_of_formulations
 
+    def GetSolvingVariables(self):
+        """Returns list of variables being solved in this formulation
+
+        Returns:
+            List(RansFormulation): List of variables
+        """
+        variables = []
+        for formulation in self.__list_of_formulations:
+            variables.extend(formulation.GetSolvingVariables())
+
+        return variables
+
     def GetProcessList(self):
         """Returns list of processes used in this formulation
 
@@ -409,6 +428,13 @@ class RansFormulation(ABC):
             return self.GetStrategy().GetModelPart()
         return None
 
+    def DeleteModelPartsRecursively(self):
+        for formulation in self.__list_of_formulations:
+            formulation.DeleteModelPartsRecursively()
+
+        if (self.GetModelPart() is not None):
+            self.GetModelPart().GetModel().DeleteModelPart(self.GetModelPart().FullName())
+
     def GetStrategy(self):
         """Returns strategy used in this formulation, if used any.
 
@@ -425,7 +451,7 @@ class RansFormulation(ABC):
         """
         info = "\n" + self.__class__.__name__
         if (self.GetModelPart() is not None):
-            info += "\n   Model part    : " + str(self.GetModelPart().Name)
+            info += "\n   Model part    : " + str(self.GetModelPart().FullName())
 
         if (self.GetMaxCouplingIterations() != 0):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())

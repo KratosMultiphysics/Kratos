@@ -1,4 +1,6 @@
+import os, sys
 from importlib import import_module
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -295,11 +297,117 @@ def CreateBlockBuilderAndSolver(
         else:
             return ResidualBasedBlockBuilderAndSolver(linear_solver)
 
-def GetRansFormulationsListRecursively(formulation):
-    flat_list_of_formulations = [formulation]
+def GetTimeDerivativeVariable(variable):
+    if (variable == Kratos.VELOCITY_X):
+        return Kratos.ACCELERATION_X
+    elif (variable == Kratos.VELOCITY_Y):
+        return Kratos.ACCELERATION_Y
+    elif (variable == Kratos.VELOCITY_Z):
+        return Kratos.ACCELERATION_Z
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY):
+        return KratosRANS.TURBULENT_KINETIC_ENERGY_RATE
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL):
+        return KratosRANS.VELOCITY_POTENTIAL_RATE
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
+    else:
+        return None
 
-    list_of_formulations = formulation.GetRansFormulationsList()
-    for child_formulation in list_of_formulations:
-        flat_list_of_formulations.extend(GetRansFormulationsListRecursively(child_formulation))
+def GetTimeDerivativeVariablesRecursively(var):
+    time_derivative_var = GetTimeDerivativeVariable(var)
+    if (time_derivative_var is None):
+        return [var]
+    else:
+        v = [var]
+        v.extend(GetTimeDerivativeVariablesRecursively(time_derivative_var))
+        return v
 
-    return flat_list_of_formulations
+def AddFileLoggerOutput(log_file_name):
+    file_logger = Kratos.FileLoggerOutput(log_file_name)
+    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    Kratos.Logger.AddOutput(file_logger)
+
+    return default_severity, file_logger
+
+def RemoveFileLoggerOutput(default_severity, file_logger):
+    Kratos.Logger.Flush()
+    Kratos.Logger.RemoveOutput(file_logger)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
+
+def SolveProblem(analysis_class_type, kratos_parameters, execution_prefix):
+    # set the loggers
+    default_severity, file_logger = AddFileLoggerOutput(execution_prefix + ".log")
+
+    # run the primal analysis
+    model = Kratos.Model()
+    primal_simulation = analysis_class_type(model, kratos_parameters)
+    primal_simulation.Run()
+
+    with open(execution_prefix + ".json", "w") as file_output:
+        file_output.write(kratos_parameters.PrettyPrintJsonString())
+
+    # flush the primal output
+    RemoveFileLoggerOutput(default_severity, file_logger)
+    Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(execution_prefix + ".json"))
+
+    return model, primal_simulation
+
+class ExecutionScope:
+    def __init__(self, execution_path):
+        self.currentPath = Path.cwd()
+        self.scope = Path(execution_path)
+
+    def __enter__(self):
+        self.scope.mkdir(parents=True, exist_ok=True)
+        sys.path.append(str(self.scope.absolute()))
+        os.chdir(str(self.scope))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
+        sys.path.remove(str(self.scope.absolute()))
+
+
+def AddWallPropertiesUpdateProcess(rans_formulation, settings):
+    wall_properties_update_execution_points = ["initialize"]
+    if settings.Has("wall_properties_update_execution_points"):
+        wall_properties_update_execution_points = settings["wall_properties_update_execution_points"].GetStringArray()
+
+    update_wall_normals = True
+    if settings.Has("update_wall_normals"):
+        update_wall_normals = settings["update_wall_normals"].GetBool()
+
+    update_wall_condition_heights = True
+    if settings.Has("update_wall_condition_heights"):
+        update_wall_condition_heights = settings["update_wall_condition_heights"].GetBool()
+
+    echo_level = 0
+    if settings.Has("echo_level"):
+        echo_level = settings["echo_level"].GetInt()
+
+    wall_model_part_name = "ALL_WALL_MODEL_PART"
+    if settings.Has("wall_model_part_name"):
+        wall_model_part_name = settings["wall_model_part_name"].GetString()
+
+    base_model_part = rans_formulation.GetBaseModelPart()
+    wall_model_part_full_name = f"{base_model_part.FullName()}.{wall_model_part_name}"
+    if len(wall_properties_update_execution_points) > 0:
+        wall_properties_update_process = KratosRANS.RansWallPropertiesUpdateProcess(
+            rans_formulation.GetBaseModelPart().GetModel(),
+            wall_model_part_full_name,
+            update_wall_normals,
+            update_wall_condition_heights,
+            wall_properties_update_execution_points,
+            echo_level)
+
+        rans_formulation.AddProcess(wall_properties_update_process)

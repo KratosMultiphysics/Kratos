@@ -25,6 +25,16 @@ namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
     : KratosApplication("RANSApplication"),
+      // stabilization validation elements
+      mRansCircularConvectionAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansCircularConvectionCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansCircularConvectionRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -71,7 +81,7 @@ KratosRANSApplication::KratosRANSApplication()
       mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansVMSMonolithicUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansVMSMonolithicUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),      
+      mRansVMSMonolithicUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // fractional step wall conditions
       mFractionalStepKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mFractionalStepKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -79,6 +89,8 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-epsilon turbulence model conditions
+      mRansKEpsilonKVisBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKEpsilonKVisBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKEpsilonEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonEpsilonUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
@@ -88,11 +100,18 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaVisLogBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaOmegaVisLogBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-omega-sst turbulence model conditions
       mRansKOmegaSSTOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaSSTOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaSSTOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // stabilization validation adjoint elements
+      mRansCircularConvectionRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      // stabilization adjoint validation conditions
+      mRansScalarEquationAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       // k-epsilon adjoint elements
       mRansKEpsilonQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -124,8 +143,14 @@ void KratosRANSApplication::Register()
 {
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
 
+    // stabilization validation specific variables
+    KRATOS_REGISTER_VARIABLE( CIRCULAR_CONVECTION_ROTATION_CLOCKWISE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CIRCULAR_CONVECTION_ROTATION_CENTER )
+    KRATOS_REGISTER_VARIABLE( REACTION_COEFFICIENT )
+
     // incompressible potential flow specific variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL_RATE )
     KRATOS_REGISTER_VARIABLE( PRESSURE_POTENTIAL )
     KRATOS_REGISTER_VARIABLE( RANS_IS_INLET )
     KRATOS_REGISTER_VARIABLE( RANS_IS_OUTLET )
@@ -133,6 +158,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RANS_IS_STEADY )
 
     // residual based flux corrected stabilization variables
+    KRATOS_REGISTER_VARIABLE( RANS_RESIDUAL_BASED_FLUX_CORRECTED_ACCELERATON_FACTOR )
     KRATOS_REGISTER_VARIABLE( RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT )
 
@@ -160,6 +186,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( GAUSS_RANS_Y_PLUS )
     KRATOS_REGISTER_VARIABLE( RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
     KRATOS_REGISTER_VARIABLE( WALL_SMOOTHNESS_BETA )
+    KRATOS_REGISTER_VARIABLE( WALL_ROUGHNESS_HEIGHT )
     KRATOS_REGISTER_VARIABLE( WALL_CORRECTION_FACTOR )
     KRATOS_REGISTER_VARIABLE( RANS_IS_WALL_FUNCTION_ACTIVE )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
@@ -185,6 +212,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( ANALYSIS_STEPS )
     KRATOS_REGISTER_VARIABLE( WALL_MODEL_PART_NAME )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
+    KRATOS_REGISTER_VARIABLE( NUMBER_OF_SMOOTHING_NEIGHBOUR_NODES )
 
     // adjoint variables
     KRATOS_REGISTER_VARIABLE( RANS_SCALAR_1_ADJOINT_1 )
@@ -200,7 +228,30 @@ void KratosRANSApplication::Register()
     // primal solution location storage variables
     KRATOS_REGISTER_VARIABLE(RANS_PRIMAL_SOLUTION_LOCATION_1)
 
+    // Response function interpolation error variables for transient cases
+    KRATOS_REGISTER_VARIABLE( RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR )
+    KRATOS_REGISTER_VARIABLE( RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE )
+    KRATOS_REGISTER_VARIABLE( RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_VELOCITY_POTENTIAL)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_KINETIC_ENERGY)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_ENERGY_DISSIPATION_RATE)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+
     // registering elements
+    // registering stabilization validation elements
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionAFC2D3N", mRansCircularConvectionAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionCWD2D3N", mRansCircularConvectionCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFC2D3N", mRansCircularConvectionRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRAFC2D3N", mRansBodyForceGovernedCDRAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRCWD2D3N", mRansBodyForceGovernedCDRCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRRFC2D3N", mRansBodyForceGovernedCDRRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionAFC2D3N", mRansDiffusionAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionCWD2D3N", mRansDiffusionCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionRFC2D3N", mRansDiffusionRFC2D);
+
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
@@ -265,7 +316,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall3D3N", mRansVMSMonolithicKBasedWall3D3N);
 
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicUBasedWall2D2N", mRansVMSMonolithicUBasedWall2D2N);
-    KRATOS_REGISTER_CONDITION("RansVMSMonolithicUBasedWall3D3N", mRansVMSMonolithicUBasedWall3D3N);    
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicUBasedWall3D3N", mRansVMSMonolithicUBasedWall3D3N);
 
     // registering fractional step wall conditions
     KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall2D2N", mFractionalStepKBasedWall2D2N);
@@ -276,6 +327,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
 
     // registering k-epsilon conditions
+    KRATOS_REGISTER_CONDITION("RansKEpsilonKVisBasedWall2D2N", mRansKEpsilonKVisBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKEpsilonKVisBasedWall3D3N", mRansKEpsilonKVisBasedWall3D3N);
+
     KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall2D2N", mRansKEpsilonEpsilonKBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall3D3N", mRansKEpsilonEpsilonKBasedWall3D3N);
 
@@ -288,6 +342,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaVisLogBasedWall2D2N", mRansKOmegaOmegaVisLogBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaVisLogBasedWall3D3N", mRansKOmegaOmegaVisLogBasedWall3D3N);
 
     // registering k-omega-sst conditions
     KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall2D2N", mRansKOmegaSSTOmegaKBasedWall2D2N);
@@ -305,6 +362,22 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian2DLaw", mRansKOmegaSSTNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian3DLaw", mRansKOmegaSSTNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKEpsilonNewtonian2DLaw", mRansFrozenTurbulenceKEpsilonNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKEpsilonNewtonian3DLaw", mRansFrozenTurbulenceKEpsilonNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaNewtonian2DLaw", mRansFrozenTurbulenceKOmegaNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaNewtonian3DLaw", mRansFrozenTurbulenceKOmegaNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaSSTNewtonian2DLaw", mRansFrozenTurbulenceKOmegaSSTNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaSSTNewtonian3DLaw", mRansFrozenTurbulenceKOmegaSSTNewtonian3DLaw);
+
+    // registering stabilization validation adjoint elements
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFCAdjoint2D3N", mRansCircularConvectionRFCAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionRFCAdjoint2D3N", mRansDiffusionRFCAdjoint2D3N);
+
+    // registering stabilization validation adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansScalarEquationAdjoint2D2N", mRansScalarEquationAdjoint2D2N);
 
     // registering k-epsilon adjoint elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint2D3N", mRansKEpsilonQSVMSRFCAdjoint2D3N);

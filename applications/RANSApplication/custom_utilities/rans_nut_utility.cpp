@@ -36,17 +36,13 @@ namespace Kratos
 {
 RansNutUtility::RansNutUtility(
     ModelPart& rModelPart,
-    const Variable<double>& rTurbulenceVariable1,
-    const Variable<double>& rTurbulenceVariable2,
     const double RelativeTolerance,
     const double AbsoluteTolerance,
     const int EchoLevel) :
     mrModelPart(rModelPart),
     mEchoLevel(EchoLevel),
     mRelativeTolerance(RelativeTolerance),
-    mAbsoluteTolerance(AbsoluteTolerance),
-    mrTurbulenceVariable1(rTurbulenceVariable1),
-    mrTurbulenceVariable2(rTurbulenceVariable2)
+    mAbsoluteTolerance(AbsoluteTolerance)
 {
     KRATOS_TRY
 
@@ -71,15 +67,6 @@ void RansNutUtility::Initialize()
 {
     KRATOS_TRY
 
-    // In here we transfer turbulence model variables to non-historical
-    // data value container of nodes so, nu_t can be calculated on those values
-    // this is done in order to achieve easier convergence.
-
-    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.SetValue(mrTurbulenceVariable1, rNode.FastGetSolutionStepValue(mrTurbulenceVariable1));
-        rNode.SetValue(mrTurbulenceVariable2, rNode.FastGetSolutionStepValue(mrTurbulenceVariable2));
-    });
-
     // Initialize elemental turbulent viscosity also as the initial values
     const auto& r_process_info = mrModelPart.GetProcessInfo();
     block_for_each(mrModelPart.Elements(), TLSType(), [&](ElementType& rElement, TLSType& rTLS){
@@ -88,8 +75,6 @@ void RansNutUtility::Initialize()
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Following variables are properly initialized on " << mrModelPart.Name() << ":\n"
-        << "       " << mrTurbulenceVariable1.Name() << "\n"
-        << "       " << mrTurbulenceVariable2.Name() << "\n"
         << "       " << TURBULENT_VISCOSITY.Name() << "\n";
 
     KRATOS_CATCH("");
@@ -168,21 +153,6 @@ bool RansNutUtility::CheckConvergence() const
     }
 
     return false;
-
-    KRATOS_CATCH("");
-}
-
-void RansNutUtility::UpdateTurbulenceData()
-{
-    KRATOS_TRY
-
-    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.GetValue(mrTurbulenceVariable1) = rNode.FastGetSolutionStepValue(mrTurbulenceVariable1);
-        rNode.GetValue(mrTurbulenceVariable2) = rNode.FastGetSolutionStepValue(mrTurbulenceVariable2);
-    });
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-        << "Updated turbulence data on " << mrModelPart.Name() << ".\n";
 
     KRATOS_CATCH("");
 }

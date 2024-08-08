@@ -24,6 +24,7 @@
 // Application includes
 #include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
@@ -244,14 +245,14 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
-    ref_LHS(0, 0) =  1.2959320308354529e+00;
-    ref_LHS(0, 3) =  6.5106952680296248e-01;
-    ref_LHS(1, 1) =  1.2959320308354529e+00;
-    ref_LHS(1, 4) =  6.5106952680296248e-01;
-    ref_LHS(3, 0) =  6.5106952680296248e-01;
-    ref_LHS(3, 3) =  1.3083460763763965e+00;
-    ref_LHS(4, 1) =  6.5106952680296248e-01;
-    ref_LHS(4, 4) =  1.3083460763763965e+00;
+    ref_LHS(0, 0) =  1.2878652580682977e+00;
+    ref_LHS(0, 3) =  6.4718969471920806e-01;
+    ref_LHS(1, 1) =  1.2878652580682977e+00;
+    ref_LHS(1, 4) =  6.4718969471920806e-01;
+    ref_LHS(3, 0) =  6.4718969471920806e-01;
+    ref_LHS(3, 3) =  1.3008935208085346e+00;
+    ref_LHS(4, 1) =  6.4718969471920806e-01;
+    ref_LHS(4, 4) =  1.3008935208085346e+00;
 
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
@@ -269,6 +270,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     Matrix LHS, ref_LHS;
     Vector RHS, ref_RHS;
     auto& r_condition = r_model_part.Conditions().front();
+
+    // set wall distance
+    r_condition.SetValue(DISTANCE, RansCalculationUtilities::CalculateWallHeight(r_condition, r_condition.GetValue(NORMAL)));
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
@@ -288,19 +292,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
-    ref_RHS[0] =  5.3244284443146106e-02;
-    ref_RHS[1] =  8.2493527945119283e+00;
-    ref_RHS[3] =  3.3323773458214871e+00;
-    ref_RHS[4] =  9.2737153157236367e+00;
+    ref_RHS[0] =  1.0664335127604463e-01;
+    ref_RHS[1] =  8.2557769254555886e+00;
+    ref_RHS[3] =  3.3530730354550062e+00;
+    ref_RHS[4] =  9.2724325134262724e+00;
 
-    ref_LHS(0, 0) =  1.2959320308354529e+00;
-    ref_LHS(0, 3) =  6.5106952680296248e-01;
-    ref_LHS(1, 1) =  1.2959320308354529e+00;
-    ref_LHS(1, 4) =  6.5106952680296248e-01;
-    ref_LHS(3, 0) =  6.5106952680296248e-01;
-    ref_LHS(3, 3) =  1.3083460763763965e+00;
-    ref_LHS(4, 1) =  6.5106952680296248e-01;
-    ref_LHS(4, 4) =  1.3083460763763965e+00;
+    ref_LHS(0, 0) =  1.2878652580682977e+00;
+    ref_LHS(0, 3) =  6.4718969471920806e-01;
+    ref_LHS(1, 1) =  1.2878652580682977e+00;
+    ref_LHS(1, 4) =  6.4718969471920806e-01;
+    ref_LHS(3, 0) =  6.4718969471920806e-01;
+    ref_LHS(3, 3) =  1.3008935208085346e+00;
+    ref_LHS(4, 1) =  6.4718969471920806e-01;
+    ref_LHS(4, 4) =  1.3008935208085346e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -309,8 +313,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
 
     Vector ref_gauss_rans_y_plus(2);
 
-    ref_gauss_rans_y_plus[0] = 2.8353913475450781e+01;
-    ref_gauss_rans_y_plus[1] = 3.6969057985705675e+01;
+    ref_gauss_rans_y_plus[0] =  2.8522374483513367e+01;
+    ref_gauss_rans_y_plus[1] =  3.7167376010071798e+01;
 
     KRATOS_CHECK_VECTOR_NEAR(gauss_rans_y_plus, ref_gauss_rans_y_plus, 1e-12);
 }

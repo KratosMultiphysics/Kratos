@@ -43,6 +43,7 @@ RansComputeReactionsProcess::RansComputeReactionsProcess(
 
     mModelPartName = rParameters["model_part_name"].GetString();
     mEchoLevel = rParameters["echo_level"].GetInt();
+    this->UpdateExecutionPointsList(rParameters["execution_points"].GetStringArray());
 
     KRATOS_CATCH("");
 }
@@ -50,11 +51,13 @@ RansComputeReactionsProcess::RansComputeReactionsProcess(
 RansComputeReactionsProcess::RansComputeReactionsProcess(
     Model& rModel,
     const std::string& rModelPartName,
+    const std::vector<std::string>& rExecutionPoints,
     const int EchoLevel)
     : mrModel(rModel),
       mModelPartName(rModelPartName),
       mEchoLevel(EchoLevel)
 {
+    this->UpdateExecutionPointsList(rExecutionPoints);
 }
 
 int RansComputeReactionsProcess::Check()
@@ -118,22 +121,46 @@ void RansComputeReactionsProcess::Initialize()
         rCondition.SetValue(REACTION, ZeroVector(3));
     });
 
+    mIsInitialized = true;
+
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Initialized compute reactions process on " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }
 
-void RansComputeReactionsProcess::ExecuteInitializeSolutionStep()
+std::string RansComputeReactionsProcess::Info() const
 {
-    if (!mIsInitialized) {
-        mIsInitialized = true;
-        Initialize();
-    }
+    return std::string("RansComputeReactionsProcess");
 }
 
-void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
+void RansComputeReactionsProcess::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+void RansComputeReactionsProcess::PrintData(std::ostream& rOStream) const
+{
+}
+
+const Parameters RansComputeReactionsProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "execution_points": ["after_coupling_solve_step"],
+            "echo_level"      : 0
+        })");
+
+    return default_parameters;
+}
+
+void RansComputeReactionsProcess::ExecuteOperation()
 {
     KRATOS_TRY
+
+    if (!mIsInitialized) {
+        Initialize();
+    }
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     const auto& r_process_info = r_model_part.GetProcessInfo();
@@ -163,30 +190,6 @@ void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Calculated reactions on " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
-}
-
-std::string RansComputeReactionsProcess::Info() const
-{
-    return std::string("RansComputeReactionsProcess");
-}
-
-void RansComputeReactionsProcess::PrintInfo(std::ostream& rOStream) const
-{
-    rOStream << this->Info();
-}
-
-void RansComputeReactionsProcess::PrintData(std::ostream& rOStream) const
-{
-}
-
-const Parameters RansComputeReactionsProcess::GetDefaultParameters() const
-{
-    const auto default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME"
-        })");
-
-    return default_parameters;
 }
 
 template<>

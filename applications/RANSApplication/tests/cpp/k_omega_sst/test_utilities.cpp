@@ -41,6 +41,7 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
@@ -64,6 +65,7 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
@@ -92,6 +94,7 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2);
@@ -115,6 +118,7 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
@@ -145,6 +149,7 @@ ModelPart& RansKOmegaSSTOmega2D2NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2);
@@ -171,6 +176,7 @@ ModelPart& RansKOmegaSSTOmega2D2NSetUp(
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);

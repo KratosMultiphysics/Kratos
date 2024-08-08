@@ -13,6 +13,8 @@
 // System includes
 #include <cmath>
 #include <tuple>
+#include <limits>
+#include <algorithm>
 
 // Project includes
 #include "includes/cfd_variables.h"
@@ -194,6 +196,63 @@ double CalculateLogarithmicYPlusLimit(
     return y_plus;
 }
 
+void CalculateWallDistances(
+    ModelPart& rModelPart,
+    const std::vector<std::vector<int>>& rLines)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(DISTANCE))
+        << rModelPart.FullName() << " do not have DISTANCE variable in "
+        << "its solution step variables list.";
+
+    // Initialize a matrix, which will be filled with the node coordinates instead of the node IDs
+    std::vector<std::vector<array_1d<double, 3>>> line_coordinates;
+    line_coordinates.resize(rLines.size(), std::vector<array_1d<double, 3>>(2));
+
+    for (IndexType i = 0; i < rLines.size(); ++i) {
+        const auto& r_line_node_ids = rLines[i];
+        auto& r_line_coordinates = line_coordinates[i];
+        for (IndexType j = 0; j < r_line_node_ids.size(); ++j) {
+            const auto& r_node = rModelPart.GetNode(r_line_node_ids[j]);
+            r_line_coordinates[j] = r_node.Coordinates();
+        }
+    }
+
+    block_for_each(rModelPart.Nodes(), [&line_coordinates](auto& rNode) {
+        // Get node coordinates
+        const array_1d<double, 3>& r_coordinates = rNode.Coordinates();
+
+        double distance = std::numeric_limits<double>::max();
+
+        // Calculate the distance to each segment
+        for (const auto& r_segment : line_coordinates) {
+
+            // Get important vectors
+            const array_1d<double, 3>& LP1 = r_segment[0];
+            const array_1d<double, 3>& LP2 = r_segment[1];
+            const array_1d<double, 3>& v_12 = LP2 - LP1;           // Vector between the points of the segment
+            const array_1d<double, 3>& v_1p = r_coordinates - LP1; // Vector between the node and point 1 of the segment
+            const array_1d<double, 3>& v_2p = r_coordinates - LP2; // Vector between the node and point 2 of the segment
+
+            if (inner_prod(v_12, v_1p) <= 0.0) {
+                // If this scalar product is negative, point 1 is the closest
+                distance = std::min(distance, norm_2(v_1p));
+            } else if (inner_prod(v_12, v_2p) >= 0.0) {
+                // If this scalar product is positive, point 2 is the closest
+                distance = std::min(distance, norm_2(v_2p));
+            } else {
+                // Otherwise, we need to calculate the distance to the line
+                distance = std::min(distance, std::abs(v_12[0]*v_1p[1] - v_1p[0]*v_12[1]) / norm_2(v_12));
+            }
+        }
+
+        rNode.FastGetSolutionStepValue(DISTANCE) = distance;
+    });
+
+    KRATOS_CATCH("");
+}
+
 double CalculateWallHeight(
     const ConditionType& rCondition,
     const array_1d<double, 3>& rNormal)
@@ -292,9 +351,9 @@ void CalculateYPlusAndUtau(
 }
 
 bool IsWallFunctionActive(
-    const ConditionType& rCondition)
+    const GeometryType& rGeometry)
 {
-    return rCondition.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
+    return rGeometry.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
 }
 
 bool IsInlet(
@@ -360,7 +419,7 @@ void CalculateWallTurbulentViscosity(
 
     block_for_each(rModelPart.Conditions(), tls_type(), [&](ConditionType& rCondition, tls_type& rTLS) {
         double nu_t = 0.0;
-        if (IsWallFunctionActive(rCondition)) {
+        if (IsWallFunctionActive(rCondition.GetGeometry())) {
             auto& r_geometry = rCondition.GetGeometry();
 
             auto& Ws = std::get<0>(rTLS);

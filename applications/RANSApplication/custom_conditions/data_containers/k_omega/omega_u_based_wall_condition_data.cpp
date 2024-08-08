@@ -56,6 +56,7 @@ void OmegaUBasedWallConditionData::Check(
     {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
 
@@ -81,10 +82,13 @@ double OmegaUBasedWallConditionData::CalculateWallFlux(
     const Vector& rShapeFunctions,
     const ScalarWallFluxConditionData::Parameters& rParameters)
 {
-    array_1d<double, 3> velocity;
+    array_1d<double, 3> velocity, fluid_velocity, mesh_velocity;
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
-        std::tie(velocity, VELOCITY));
+        std::tie(fluid_velocity, VELOCITY),
+        std::tie(mesh_velocity, MESH_VELOCITY));
+
+    noalias(velocity) = fluid_velocity - mesh_velocity;
 
     const double u_tau = norm_2(velocity) / ((1.0 / rParameters.mKappa) * std::log(rParameters.mYPlus) + mBeta);
 

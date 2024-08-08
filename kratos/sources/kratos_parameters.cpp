@@ -1022,21 +1022,20 @@ void Parameters::RecursivelyFindValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool Parameters::IsEquivalentTo(Parameters& rParameters)
-{
+bool Parameters::IsKeysSubSetWithEquivalentValuesTo(const Parameters& rParameters) const {
     for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
         const std::string& r_item_name = itr.key();
 
         bool found = false;
 
-        for (auto& r_parameter_reference : rParameters.items()) {
+        for (const auto& r_parameter_reference : rParameters.items()) {
             if (r_item_name == r_parameter_reference.key()) {
                 found = true;
-                Parameters subobject = (*this)[r_item_name];
-                Parameters reference_subobject = rParameters[r_item_name];
+                const Parameters& subobject = (*this)[r_item_name];
+                const Parameters& reference_subobject = rParameters[r_item_name];
 
                 if (itr->is_object()) {
-                    if (!subobject.IsEquivalentTo(reference_subobject))
+                    if (!subobject.IsKeysSubSetWithEquivalentValuesTo(reference_subobject))
                         return false;
                 } else {
                     if (itr.value() != r_parameter_reference.value())
@@ -1050,25 +1049,15 @@ bool Parameters::IsEquivalentTo(Parameters& rParameters)
             return false;
     }
 
-    // Reverse check: the rParameters can contain fields that are missing in the object
-    for (auto& r_parameter : rParameters.items()) {
-        const std::string& r_item_name = r_parameter.key();
-
-        bool found = false;
-
-        for (auto& r_parameter_reference : this->items()) {
-            if (r_item_name == r_parameter_reference.key()) {
-                found = true;
-                // No need to check the values here, if they were found in the previous loop, values were checked there
-                break;
-            }
-        }
-
-        if (!found)
-            return false;
-    }
-
     return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::IsEquivalentTo(Parameters& rParameters)
+{
+    return this->IsKeysSubSetWithEquivalentValuesTo(rParameters) && rParameters.IsKeysSubSetWithEquivalentValuesTo(*this);
 }
 
 /***********************************************************************************/

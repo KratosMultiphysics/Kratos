@@ -75,10 +75,6 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
-                    },
-                    "wall_function_settings": {
-                        "wall_function_region_type": "logarithmic_region_only",
-                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_energy_dissipation_rate_solver_settings": {

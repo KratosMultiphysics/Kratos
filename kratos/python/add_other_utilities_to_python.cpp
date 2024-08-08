@@ -215,6 +215,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
         .def(py::init<ModelPart::NodesContainerType&, GenericFunctionUtility::Pointer >() )
         .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction)
+        .def("ApplyFunction", [](ApplyFunctionToNodesUtility& rSelf, const Variable<double>& rVariable, double Value) {rSelf.ApplyFunction(rVariable, Value, 0);})
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 

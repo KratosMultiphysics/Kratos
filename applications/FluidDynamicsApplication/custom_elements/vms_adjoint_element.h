@@ -684,6 +684,28 @@ public:
         KRATOS_CATCH("")
     }
 
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        if (rVariable == PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES) {
+            if (rOutput.size1() != TFluidLocalSize || rOutput.size2() != TFluidLocalSize) {
+                rOutput.resize(TFluidLocalSize, TFluidLocalSize, false);
+            }
+
+            BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> temp;
+            CalculatePrimalGradientOfVMSSteadyTerm(temp, rCurrentProcessInfo);
+            noalias(rOutput) = temp;
+        } else {
+            KRATOS_ERROR << "Unsupported variable type is requested. [ rVariable.Name() = " << rVariable.Name() << " ].\n";
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override

@@ -1,6 +1,7 @@
 from math import sqrt
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
 
 try:
     import KratosMultiphysics.HDF5Application as KratosHDF5
@@ -91,6 +92,18 @@ def CalculateConditionNeighboursAndNormals(model_part):
     flags = (tmoc.COMPUTE_NODAL_NORMALS) | (tmoc.COMPUTE_CONDITION_NORMALS) | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
     Kratos.TetrahedralMeshOrientationCheck(model_part, throw_errors, flags).Execute()
 
+def GetHDF5File(hdf5_file_name, file_access_mode):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_file_settings = Kratos.Parameters("""{
+        "file_name"       : "",
+        "file_access_mode": "read_only"
+    }""")
+    hdf5_file_settings["file_name"].SetString(hdf5_file_name)
+    hdf5_file_settings["file_access_mode"].SetString(file_access_mode)
+    return KratosHDF5.HDF5FileSerial(hdf5_file_settings)
+
 def GetHDF5FileForReading(hdf5_file_name):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
@@ -134,6 +147,22 @@ def InputNodalResultsFromHDF5(model_part, hdf5_file, list_of_variables, is_histo
             hdf5_file)
         nodal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
+def InputNodalFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5NodalFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadNodalFlags(model_part.Nodes, model_part.GetCommunicator())
+
 def InputConditionResultsFromHDF5(model_part, hdf5_file, list_of_variables):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
@@ -149,6 +178,22 @@ def InputConditionResultsFromHDF5(model_part, hdf5_file, list_of_variables):
         hdf5_input_parameters,
         hdf5_file)
     nodal_io.ReadConditionResults(model_part.Conditions, model_part.GetCommunicator())
+
+def InputConditionFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5ConditionFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadConditionFlags(model_part.Conditions, model_part.GetCommunicator())
 
 def InputElementResultsFromHDF5(model_part, hdf5_file, list_of_variables):
     if (KratosHDF5 is None):
@@ -166,13 +211,29 @@ def InputElementResultsFromHDF5(model_part, hdf5_file, list_of_variables):
         hdf5_file)
     nodal_io.ReadElementResults(model_part.Elements, model_part.GetCommunicator())
 
+def InputElementFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5ElementFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadElementFlags(model_part.Elements, model_part.GetCommunicator())
+
 def OutputModelPartToHDF5(model_part, hdf5_file):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
 
     KratosHDF5.HDF5ModelPartIO(hdf5_file, "/ModelData").WriteModelPart(model_part)
 
-def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_historical = True):
+def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_historical = True, step = 0):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
 
@@ -187,7 +248,7 @@ def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_histor
         nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(
             hdf5_output_parameters,
             hdf5_file)
-        nodal_io.WriteNodalResults(model_part, 0)
+        nodal_io.WriteNodalResults(model_part, step)
     else:
         nodal_io = KratosHDF5.HDF5NodalDataValueIO(
             hdf5_output_parameters,
@@ -241,6 +302,42 @@ def CreateLineOutput(model_part, line_output_parameters):
     line_output_process.ExecuteInitialize()
     line_output_process.ExecuteInitializeSolutionStep()
     line_output_process.ExecuteFinalizeSolutionStep()
+
+def CalculateReactions(model_part, wall_model_part_name, materials_filename):
+    # In here, we assume model_part process info constants are properly defined.
+
+    # find parent elements
+    tmoc = Kratos.TetrahedralMeshOrientationCheck
+    throw_errors = False
+    flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS) | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+    Kratos.TetrahedralMeshOrientationCheck(model_part, throw_errors, flags).Execute()
+
+    # calculate normals
+    KratosRANS.RansVariableUtilities.CalculateNodalNormal(model_part.GetModel()[wall_model_part_name])
+
+    # populate material properties
+    material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+    material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+    Kratos.ReadMaterialsUtility(material_settings, model_part.GetModel())
+
+    # add wall law properties
+    InitializeWallLawProperties(model_part.GetModel())
+
+    # initialize constitutive laws
+    KratosRANS.RansVariableUtilities.SetElementConstitutiveLaws(model_part.Elements)
+
+    # calculate reactions
+    params = Kratos.Parameters("""
+    {
+        "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "execution_points": ["execute"],
+        "echo_level"      : 1
+    }""")
+    params["model_part_name"].SetString(wall_model_part_name)
+    process = KratosRANS.RansComputeReactionsProcess(model_part.GetModel(), params)
+    process.Check()
+    process.Execute()
+
 
 def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinmeatic_viscosity):
     if (KratosRANS is None):

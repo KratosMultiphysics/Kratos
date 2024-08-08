@@ -1,0 +1,98 @@
+{
+    "problem_data": {
+        "problem_name": "two_element",
+        "start_time": 0.0,
+        "end_time": 100.0,
+        "echo_level": 0,
+        "parallel_type": "OpenMP"
+    },
+    "output_processes": {},
+    "solver_settings": {
+        "model_part_name": "MainModelPart",
+        "domain_size": 2,
+        "solver_type": "CoupledRANS",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "./TwoElementsTest/two_elements_test",
+            "partition_in_memory": true
+        },
+        "echo_level": -1,
+        "volume_model_part_name": "Parts_Fluid",
+        "skin_parts": [
+            "Inlet",
+            "Outlet",
+            "Boundary",
+            "Structure"
+        ],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 1.0
+        },
+        "time_scheme_settings": {
+            "scheme_type": "steady"
+        },
+        "material_import_settings": {
+            "materials_filename": "./TwoElementsTest/ke_test_materials.json"
+        },
+        "no_skin_parts": [],
+        "formulation_settings": {
+            "formulation_name": "circular_convection",
+            "stabilization_method": "residual_based_flux_corrected",
+            "circular_convection_solver_settings": {
+                "relative_tolerance": 1e-3,
+                "absolute_tolerance": 1e-5,
+                "max_iterations": 20,
+                "echo_level": 0,
+                "relaxation_factor": 0.9,
+                "linear_solver_settings": {
+                    "solver_type": "LinearSolversApplication.sparse_lu"
+                }
+            }
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_flag_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart",
+                    "flag_name": "STRUCTURE",
+                    "interval": [
+                        0.0,
+                        1e30
+                    ],
+                    "value": true,
+                    "entities": [
+                        "elements"
+                    ]
+                }
+            }
+        ],
+        "boundary_conditions_process_list": [
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Structure",
+                    "variable_name": "VELOCITY_POTENTIAL",
+                    "value": "y + x"
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "VELOCITY_POTENTIAL",
+                    "value": 0.0
+                }
+            }
+        ],
+        "gravity": [],
+        "auxiliar_process_list": []
+    }
+}

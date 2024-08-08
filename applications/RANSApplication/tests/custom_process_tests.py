@@ -1,3 +1,5 @@
+from math import sqrt
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
@@ -15,9 +17,11 @@ class CustomProcessTest(UnitTest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("FluidModelPart")
+        cls.model_part.SetBufferSize(2)
 
         # add required variables to solution step list
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
@@ -29,12 +33,15 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
 
         cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
         cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
+        cls.model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0.1)
 
         with UnitTest.WorkFolderScope(".", __file__):
             ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
@@ -48,8 +55,12 @@ class CustomProcessTest(UnitTest.TestCase):
     def setUp(self):
         # reinitialize variables for each test
         KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.ACCELERATION, 0.0, 10.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.ACCELERATION, 20.0, 50.0, 1)
         KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 20.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 50.0, 100.0, 1)
         KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
@@ -318,12 +329,12 @@ class CustomProcessTest(UnitTest.TestCase):
                 "python_module" : "cpp_process_factory",
                 "process_name"  : "WallDistanceCalculationProcess",
                 "Parameters" : {
-                    "main_model_part_name"             : "FluidModelPart",
-                    "wall_model_part_name"             : "FluidModelPart.Slip2D.Slip2D_walls",
-                    "echo_level"                       : 0,
-                    "max_distance"                     : 1e+30,
-                    "max_levels"                       : 14,
-                    "re_calculate_at_each_time_step"   : false
+                    "main_model_part_name"                 : "FluidModelPart",
+                    "wall_model_part_name"                 : "FluidModelPart.Slip2D.Slip2D_walls",
+                    "echo_level"                           : 0,
+                    "max_distance"                         : 1e+30,
+                    "max_levels"                           : 14,
+                    "wall_distance_update_execution_points": ["initialize"]
                 }
             }
         ]''')
@@ -337,10 +348,248 @@ class CustomProcessTest(UnitTest.TestCase):
         CalculateNormalsOnConditions(self.model_part)
         self._RunProcessTest(settings)
 
-    def _RunProcessTest(self, settings):
+    def testVariableDataTransferProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "VariableDataTransferProcess",
+                "Parameters" : {
+                    "source_model_part_name"     : "FluidModelPart",
+                    "destination_model_part_name": "FluidModelPart",
+                    "copy_execution_points"      : ["initialize"],
+                    "copy_variables_list"        : [
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 0
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "REACTION",
+                                "step_index"             : 0
+                            }
+                        },
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 1
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "REACTION",
+                                "step_index"             : 1
+                            }
+                        },
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 0
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": false,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 0
+                            }
+                        },
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 1
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": false,
+                                "variable_name"          : "NORMAL",
+                                "step_index"             : 0
+                            }
+                        },
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "REACTION",
+                                "step_index"             : 0
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "VELOCITY",
+                                "step_index"             : 1
+                            }
+                        },
+                        {
+                            "source_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "ACCELERATION",
+                                "step_index"             : 1
+                            },
+                            "destination_variable_settings" : {
+                                "is_historical_container": true,
+                                "variable_name"          : "VELOCITY",
+                                "step_index"             : 0
+                            }
+                        }
+                    ],
+                    "echo_level"                 : 0
+                }
+            }
+        ]''')
+
+        self._RunProcessTest(settings)
+
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 1), node.GetSolutionStepValue(Kratos.REACTION, 1), 9)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 0), node.GetSolutionStepValue(Kratos.REACTION, 0), 9)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 1), node.GetValue(Kratos.NORMAL), 9)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 0), node.GetValue(Kratos.ACCELERATION), 9)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 1), node.GetSolutionStepValue(Kratos.VELOCITY, 0), 9)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 0), node.GetSolutionStepValue(Kratos.VELOCITY, 1), 9)
+
+    def testInitializeBossakPreviousStepVariableDerivatives(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "InitializeBossakPreviousStepVariableDerivatives",
+                "Parameters" : {
+                    "model_part_name" : "FluidModelPart",
+                    "echo_level"      : 1,
+                    "variables_list"  : [
+                        {
+                            "first_derivative_variable_name"         : "TURBULENT_KINETIC_ENERGY",
+                            "second_derivative_variable_name"        : "TURBULENT_KINETIC_ENERGY_RATE",
+                            "relaxed_second_derivative_variable_name": "RANS_AUXILIARY_VARIABLE_1",
+                            "is_relaxed_second_derivative_historical": true
+                        }
+                    ]
+                }
+            }
+        ]''')
+
+        scalar_scheme = KratosRANS.BossakRelaxationScalarScheme(-0.3, 1.0, KratosRANS.TURBULENT_KINETIC_ENERGY)
+        scalar_scheme.InitializeSolutionStep(self.model_part, Kratos.CompressedMatrix(), Kratos.Vector(), Kratos.Vector())
+        scalar_scheme.UpdateScalarRateVariables(self.model_part)
+
+        second_derivative_values = {}
+        for node in self.model_part.Nodes:
+            second_derivative_values[node.Id] = [
+                node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 0),
+                node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1)]
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1, 0.0)
+
+        self._RunProcessTest(settings)
+
+        for node in self.model_part.Nodes:
+            current_nodal_data = second_derivative_values[node.Id]
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 0), current_nodal_data[0], 9)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1), current_nodal_data[1], 9)
+
+    def testInitializePreviousSolutionStepValuesProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "initialize_previous_solution_step_values_process",
+                "process_name"  : "InitializePreviousSolutionStepValuesProcess",
+                "Parameters" : {
+                    "model_part_name" : "FluidModelPart",
+                    "echo_level"      : 0,
+                    "variable_name"   : "ACCELERATION_X",
+                    "value"           : "x+y*t"
+                }
+            }
+        ]''')
+
+        self.model_part.CloneTimeStep(0.5)
+        self.model_part.CloneTimeStep(2.0)
+
+        current_values = {}
+        for node in self.model_part.Nodes:
+            current_values[node.Id] = [node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.ACCELERATION, 1)]
+
+        self._GetProcessList(settings)
+        self.process_list[0].Execute()
+
+        for node in self.model_part.Nodes:
+            data = current_values[node.Id]
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), data[0], 9)
+            v =  data[1]
+            v[0] = node.X + node.Y * 0.5
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 1), v, 9)
+
+    def testCheckScalarBoundsProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "SmoothClipScalarVariableProcess",
+                "Parameters" : {
+                    "model_part_name"                           : "FluidModelPart",
+                    "variable_name"                             : "PRESSURE",
+                    "echo_level"                                : 1,
+                    "min_value"                                 : 1e-18,
+                    "max_value"                                 : 300,
+                    "max_number_of_sweeps"                      : 10000,
+                    "inverse_distance_weighting_power_parameter": 2,
+                    "always_find_neighbour_nodes"               : false,
+                    "execution_points"                          : ["after_coupling_solve_step"]
+                }
+            }
+        ]''')
+
+        neighbour_finding_process = Kratos.FindGlobalNodalNeighboursProcess(self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part)
+        neighbour_finding_process.Execute()
+        neighbour_id_map = neighbour_finding_process.GetNeighbourIds(self.model_part.Nodes)
+
+        node_id_list = [229, 216, 221, 224, 233, 236, 241]
+        for node_id in node_id_list:
+            self.model_part.GetNode(node_id).SetSolutionStepValue(Kratos.PRESSURE, -10)
+
+        reference_values = {}
+        for node in self.model_part.Nodes:
+            reference_values[node.Id] = node.GetSolutionStepValue(Kratos.PRESSURE)
+
+        def smoothing_layer(node_ids_list):
+            for smoothing_layer_node_id in node_ids_list:
+                smoothing_layer_node = self.model_part.GetNode(smoothing_layer_node_id)
+                total_weight = 0.0
+                current_value = 0.0
+                neighbour_nodes_list = neighbour_id_map[smoothing_layer_node_id]
+                for neighbour_node_id in neighbour_nodes_list:
+                    neighbour_node = self.model_part.GetNode(neighbour_node_id)
+                    neighbour_node_value = neighbour_node.GetSolutionStepValue(Kratos.PRESSURE)
+                    if neighbour_node_value > 1e-18 and neighbour_node_value < 300 and not neighbour_node_id in node_ids_list:
+                        weight = (neighbour_node.X-smoothing_layer_node.X)**2 + (neighbour_node.Y-smoothing_layer_node.Y)**2 + (neighbour_node.Z-smoothing_layer_node.Z)**2
+                        current_value += neighbour_node_value / weight
+                        total_weight += 1/weight
+                smoothing_layer_node.SetSolutionStepValue(Kratos.PRESSURE, current_value/total_weight)
+
+        smoothing_layer([216, 221, 224, 233, 236, 241])
+        smoothing_layer([229])
+
+        for node_id in node_id_list:
+            print(node_id)
+            reference_values[node_id] = self.model_part.GetNode(node_id).GetSolutionStepValue(Kratos.PRESSURE)
+            self.model_part.GetNode(node_id).SetSolutionStepValue(Kratos.PRESSURE, -10)
+
+        self._RunProcessTest(settings)
+
+        for node in self.model_part.Nodes:
+            self.assertAlmostEqual(node.GetSolutionStepValue(Kratos.PRESSURE), reference_values[node.Id], 9)
+
+    def _GetProcessList(self, settings):
         with UnitTest.WorkFolderScope(".", __file__):
             factory = KratosProcessFactory(self.model)
             self.process_list = factory.ConstructListOfProcesses(settings)
+
+    def _RunProcessTest(self, settings):
+        self._GetProcessList(settings)
+        with UnitTest.WorkFolderScope(".", __file__):
             self._ExecuteProcesses()
 
     def _ExecuteProcesses(self):
