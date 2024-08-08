@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import sys,os
 import math
 
@@ -418,6 +419,97 @@ def find_closest_index_greater_than_value(input_list, value):
             return index
     return None
 
+
+def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two values are almost equal.
+
+    Args:
+        - expected (Any): Expected value.
+        - actual (Any): Actual value.
+
+    Returns:
+        - True if the values are almost equal, False otherwise.
+
+    """
+    # check if the value is a dictionary and check the dictionary
+    if isinstance(expected, dict):
+        # check if the value is a dictionary and check the dictionary
+        if not are_dictionaries_almost_equal(expected, actual):
+            return False
+    elif isinstance(expected, str):
+        # check if the value is a string and compare the strings
+        if expected != actual:
+            return False
+    elif isinstance(expected, (list, tuple, set)):
+        # check if the value is a list, tuple or set and compare the values
+        if not are_iterables_almost_equal(expected, actual):
+            return False
+    elif expected is None:
+        # check if the value is None and compare the values
+        if actual is not None:
+            return False
+    elif isinstance(expected, (float, int, complex)):
+        # The value is a number and compare the values
+        if not math.isclose(expected, actual, abs_tol=abs_tolerance):
+            return False
+    else:
+        raise Exception(f"Unsupported type {type(expected)}")
+
+    return True
+
+
+def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+                               abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two iterables are almost equal.
+
+    Args:
+        - expected (list, tuple, set): Expected iterable.
+        - actual (list, tuple, set): Actual iterable.
+
+    Returns:
+        - True if the iterables are almost equal, False otherwise.
+
+    """
+    # check if the value is a list, tuple or set and compare the values
+    if len(expected) != len(actual):
+        return False
+
+    for v_i, actual_i in zip(expected, actual):
+        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
+            return False
+
+    return True
+
+
+def are_dictionaries_almost_equal(expected: Dict[Any, Any],
+                                  actual: Dict[Any, Any],
+                                  abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two dictionaries are equal.
+
+    Args:
+        - expected: Expected dictionary.
+        - actual: Actual dictionary.
+
+    Returns:
+        - True if the dictionaries are equal, False otherwise.
+
+    """
+
+    for k, v in expected.items():
+
+        # check if key is present in both dictionaries
+        if k not in actual:
+            return False
+
+        # check if values are almost equal
+        if not are_values_almost_equal(v, actual[k], abs_tolerance):
+            return False
+
+    # all checks passed
+    return True
 
 class GiDOutputFileReader:
     def __init__(self):
