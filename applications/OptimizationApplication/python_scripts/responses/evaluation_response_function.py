@@ -34,10 +34,10 @@ class EvaluationResponseFunction(ResponseFunction):
         # so this creates a new data container under the optimization problem to avoid
         # having to compute the same response value twice.
 
-        unbuffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData()
+        buffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData()
 
         # reset data of the evaluation
-        self.__ResetEvaluationData(self, unbuffered_data, "values")
+        self.__ResetEvaluationData(self, buffered_data, "values")
 
         # now calculate
         return self.response_function.CalculateValue()
@@ -47,10 +47,10 @@ class EvaluationResponseFunction(ResponseFunction):
         # so this creates a new data container under the optimization problem to avoid
         # having to compute the same response gradient twice.
 
-        unbuffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData()
+        buffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData()
 
         # reset data of the evaluation
-        self.__ResetEvaluationData(self, unbuffered_data, "gradients")
+        self.__ResetEvaluationData(self, buffered_data, "gradients")
 
         return self.response_function.CalculateGradient(physical_variable_collective_expressions)
 
@@ -61,9 +61,9 @@ class EvaluationResponseFunction(ResponseFunction):
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}]"
 
     @staticmethod
-    def __ResetEvaluationData(response_function: ResponseFunction, unbuffered_data: BufferedDict, prefix: str) -> None:
-        if unbuffered_data.HasValue(f"{prefix}/{response_function.GetName()}"):
-            del unbuffered_data[f"{prefix}/{response_function.GetName()}"]
+    def __ResetEvaluationData(response_function: ResponseFunction, buffered_data: BufferedDict, prefix: str) -> None:
+        if buffered_data.HasValue(f"{prefix}/{response_function.GetName()}"):
+            del buffered_data[f"{prefix}/{response_function.GetName()}"]
         for child_response in response_function.GetChildResponses():
             # now reset the children
-            EvaluationResponseFunction.__ResetEvaluationData(child_response, unbuffered_data, prefix)
+            EvaluationResponseFunction.__ResetEvaluationData(child_response, buffered_data, prefix)

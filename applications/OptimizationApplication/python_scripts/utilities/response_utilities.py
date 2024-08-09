@@ -47,12 +47,15 @@ def GetFunction(function_name: str, optimization_problem: OptimizationProblem, *
         raise RuntimeError(f"Undefined \"{function_name}\" function. Followings are supported function names:\n\t" + "\n\t".join(functions_map.keys()))
 
 def EvaluateValue(response_function: ResponseFunction, optimization_problem: OptimizationProblem) -> float:
-    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetBufferedData()
 
-    if not response_data.HasValue(f"values/{response_function.GetName()}"):
-        response_data.SetValue(f"values/{response_function.GetName()}", response_function.CalculateValue())
+    if response_function.GetImplementedPhysicalKratosVariables():
+        if not response_data.HasValue(f"values/{response_function.GetName()}"):
+            response_data.SetValue(f"values/{response_function.GetName()}", response_function.CalculateValue())
 
-    return response_data.GetValue(f"values/{response_function.GetName()}")
+        return response_data.GetValue(f"values/{response_function.GetName()}")
+    else:
+        return response_function.CalculateValue()
 
 def EvaluateGradient(response_function: ResponseFunction, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]', optimization_problem: OptimizationProblem) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
     # first get the sub_collective expressions for implemented physical kratos variables
@@ -62,7 +65,7 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
             resp_physical_variable_collective_expressions[variable] = collective_expression.Clone()
 
     resp_physical_variable_collective_expressions_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetBufferedData()
 
     for variable, collective_expression in resp_physical_variable_collective_expressions.items():
         # first check whether the gradients have been already evaluated. if so, take the gradients.
