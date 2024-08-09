@@ -398,6 +398,17 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertEqual(self.r1.calculate_gradient_calls, 1)
         self.assertEqual(self.r2.calculate_gradient_calls, 1)
 
+    def test_CombinedResponseCalculateValue6(self):
+        eval_resp = EvaluateResponseExpression("r1 * 1.2e+01 - 2.1E-2", self.optimization_problem)
+        eval_resp.Initialize()
+        eval_value = eval_resp.CalculateValue()
+        self.assertAlmostEqual(eval_value, self.r1.CalculateValue() * 12 - 0.021, 12)
+
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
+
+        self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : self.r1.CalculateValue() * 12 - 0.021, 1e-8, 9)
+
     def test_BracketResponseCalculateValue1(self):
         eval_resp = EvaluateResponseExpression("(4.0)", self.optimization_problem)
         eval_resp.Initialize()
