@@ -62,9 +62,9 @@ class EvaluationResponseFunction(ResponseFunction):
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}]"
 
     @staticmethod
-    def __ResetEvaluationData(response_function: ResponseFunction, buffered_data: BufferedDict, prefix: str) -> None:
-        if buffered_data.HasValue(f"{prefix}/{response_function.GetName()}"):
-            del buffered_data[f"{prefix}/{response_function.GetName()}"]
+    def __ResetEvaluationData(response_function: ResponseFunction, data: BufferedDict, prefix: str) -> None:
+        if data.HasValue(f"{prefix}/{response_function.GetName()}"):
+            del data[f"{prefix}/{response_function.GetName()}"]
         for child_response in response_function.GetChildResponses():
             # now reset the children
-            EvaluationResponseFunction.__ResetEvaluationData(child_response, buffered_data, prefix)
+            EvaluationResponseFunction.__ResetEvaluationData(child_response, data, prefix)

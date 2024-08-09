@@ -156,7 +156,8 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
             index += closing_bracket_position + 2
             continue
 
-        if current_char in BinaryOperatorValues and not re.match(r"(^[0-9.]+[e|E])$", current_word):
+        # check for binary operator or scientific notation value
+        if current_char in BinaryOperatorValues and not (re.match(r"(^[0-9.]+[e|E])$", current_word) and current_char in ["+", "-"]):
             responses.append(GetResponseFunction(current_word, optimization_problem))
             operators.append(current_char)
             current_word = ""

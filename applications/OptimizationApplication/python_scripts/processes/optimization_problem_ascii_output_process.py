@@ -7,6 +7,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetAllComponentFullNamesWithData
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentHavingDataByFullName
 
@@ -111,7 +112,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
             # now get the buffered data headers
-            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
+            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData() if x.HasDataBuffer() else BufferedDict())
             # write the ehader information
             self._WriteHeaders()
             self.initialized_headers = True
@@ -206,5 +207,6 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     if header_name in [header.GetHeaderName().strip() for header in header_info_dict.values()]:
                         Kratos.Logger.PrintWarning(self.__class__.__name__, "Second value with same header name = \"" + header_name + "\" found.")
                     header_info_dict[k] = Header(header_name, v, self.format_info)
-            list_of_headers.append([component, header_info_dict])
+            if len(header_info_dict):
+                list_of_headers.append([component, header_info_dict])
         return list_of_headers
