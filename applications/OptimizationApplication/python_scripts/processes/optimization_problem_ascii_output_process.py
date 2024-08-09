@@ -169,10 +169,11 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData()
                     component_name = componend_data_view.GetComponentName()
-                    msg_header = f"{msg_header}# \t" + component_name + ":\n"
-                    for k, header in header_info_dict.items():
-                        component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
-                        msg_header = f"{msg_header}# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
+                    if len(header_info_dict):
+                        msg_header = f"{msg_header}# \t" + component_name + ":\n"
+                        for k, header in header_info_dict.items():
+                            component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
+                            msg_header = f"{msg_header}# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
 
                 msg_header = f"{msg_header}# ------------ End of initial values ------------\n"
                 msg_header = f"{msg_header}# -----------------------------------------------\n"
