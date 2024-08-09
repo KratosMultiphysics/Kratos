@@ -18,7 +18,8 @@ class EvaluationResponseFunction(ResponseFunction):
 
     def Initialize(self) -> None:
         self.response_function.Initialize()
-        ComponentDataView("evaluated_responses", self.optimization_problem).SetDataBuffer(1)
+        if not ComponentDataView("evaluated_responses", self.optimization_problem).HasDataBuffer():
+            ComponentDataView("evaluated_responses", self.optimization_problem).SetDataBuffer(1)
 
     def Check(self) -> None:
         self.response_function.Check()
