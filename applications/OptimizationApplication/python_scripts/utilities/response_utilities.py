@@ -47,12 +47,15 @@ def GetFunction(function_name: str, optimization_problem: OptimizationProblem, *
         raise RuntimeError(f"Undefined \"{function_name}\" function. Followings are supported function names:\n\t" + "\n\t".join(functions_map.keys()))
 
 def EvaluateValue(response_function: ResponseFunction, optimization_problem: OptimizationProblem) -> float:
-    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetBufferedData()
 
-    if not response_data.HasValue(f"values/{response_function.GetName()}"):
-        response_data.SetValue(f"values/{response_function.GetName()}", response_function.CalculateValue())
+    if response_function.GetImplementedPhysicalKratosVariables():
+        if not response_data.HasValue(f"values/{response_function.GetName()}"):
+            response_data.SetValue(f"values/{response_function.GetName()}", response_function.CalculateValue())
 
-    return response_data.GetValue(f"values/{response_function.GetName()}")
+        return response_data.GetValue(f"values/{response_function.GetName()}")
+    else:
+        return response_function.CalculateValue()
 
 def EvaluateGradient(response_function: ResponseFunction, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]', optimization_problem: OptimizationProblem) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
     # first get the sub_collective expressions for implemented physical kratos variables
@@ -153,7 +156,8 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
             index += closing_bracket_position + 2
             continue
 
-        if current_char in BinaryOperatorValues:
+        # check for binary operator or scientific notation value
+        if current_char in BinaryOperatorValues and not (re.match(r"(^[0-9.]+[e|E])$", current_word) and current_char in ["+", "-"]):
             responses.append(GetResponseFunction(current_word, optimization_problem))
             operators.append(current_char)
             current_word = ""
@@ -229,7 +233,7 @@ def __EvaluateResponseExpressionImpl(response_expression: str, optimization_prob
 
 def EvaluateResponseExpression(response_expression: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     evaluated_response_impl = __EvaluateResponseExpressionImpl(response_expression, optimization_problem)
-    if not evaluated_response_impl.GetChildResponses() and  not evaluated_response_impl.GetImplementedPhysicalKratosVariables():
+    if evaluated_response_impl.GetChildResponses() and  evaluated_response_impl.GetImplementedPhysicalKratosVariables():
         # if the response has children and has some dependence on the variables, then
         # we need to use the EvaluationResponseFunction to clear the evaluation data
         # whenever CalculateValue, CalculateGradient is used.
