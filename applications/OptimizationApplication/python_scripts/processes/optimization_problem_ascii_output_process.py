@@ -94,6 +94,8 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
         if len(self.format_info[bool]) != 2:
             raise RuntimeError("The \"bool_values\" should have only two strings corresponding to False and True values in the mentioned order.")
 
+        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
+        self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
 
@@ -102,14 +104,11 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
 
     def PrintOutput(self) -> None:
         if not self.initialized_headers:
-            self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
             if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
                 self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
 
             for component_name in self.list_of_component_names:
                 self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
-
-            self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
 
             # now get the buffered data headers
             self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
@@ -169,6 +168,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData()
                     component_name = componend_data_view.GetComponentName()
+                    # check if there are values to be written under the component name, if not skip the component.
                     if len(header_info_dict):
                         msg_header = f"{msg_header}# \t" + component_name + ":\n"
                         for k, header in header_info_dict.items():
