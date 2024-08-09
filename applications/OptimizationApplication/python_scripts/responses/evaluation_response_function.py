@@ -47,10 +47,10 @@ class EvaluationResponseFunction(ResponseFunction):
         # so this creates a new data container under the optimization problem to avoid
         # having to compute the same response gradient twice.
 
-        buffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData()
+        unbuffered_data = ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData()
 
         # reset data of the evaluation
-        self.__ResetEvaluationData(self, buffered_data, "gradients")
+        self.__ResetEvaluationData(self, unbuffered_data, "gradients")
 
         return self.response_function.CalculateGradient(physical_variable_collective_expressions)
 

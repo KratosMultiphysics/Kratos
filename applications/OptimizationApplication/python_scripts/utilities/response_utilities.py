@@ -65,7 +65,7 @@ def EvaluateGradient(response_function: ResponseFunction, physical_variable_coll
             resp_physical_variable_collective_expressions[variable] = collective_expression.Clone()
 
     resp_physical_variable_collective_expressions_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetBufferedData()
+    response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
 
     for variable, collective_expression in resp_physical_variable_collective_expressions.items():
         # first check whether the gradients have been already evaluated. if so, take the gradients.
@@ -156,7 +156,7 @@ def GetValuesAndOperators(response_expression: str, optimization_problem: Optimi
             index += closing_bracket_position + 2
             continue
 
-        if current_char in BinaryOperatorValues:
+        if current_char in BinaryOperatorValues and not re.match(r"(^[0-9.]+[e|E])$", current_word):
             responses.append(GetResponseFunction(current_word, optimization_problem))
             operators.append(current_char)
             current_word = ""

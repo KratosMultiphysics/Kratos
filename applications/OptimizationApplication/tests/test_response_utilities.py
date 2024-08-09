@@ -123,6 +123,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         ComponentDataView(self.r2, self.optimization_problem).SetDataBuffer(1)
         self.optimization_problem.AddComponent(self.r3)
         ComponentDataView(self.r3, self.optimization_problem).SetDataBuffer(1)
+        ComponentDataView("evaluated_responses", self.optimization_problem).SetDataBuffer(1)
 
     def test_LiteralResponseCalculateValue1(self):
         eval_resp = EvaluateResponseExpression("4.0 + 6.0", self.optimization_problem)
@@ -237,13 +238,11 @@ class TestResponseUtilities(kratos_unittest.TestCase):
 
         # followings are intermediate responses, so Algorithm, ResponseRoutine do not see them. Therefore
         # the value storage is managed by the ResponseFunction it self.
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"values/r1"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"values/r2"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"values/(r1+r2)"))
-
-        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"values/((r1+r2)+r2)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue(f"values/r1"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue(f"values/r2"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue(f"values/(r1+r2)"))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue(f"values/((r1+r2)+r2)"))
 
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"gradients/dr1_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue(f"gradients/dr2_dPRESSURE"))
@@ -277,13 +276,11 @@ class TestResponseUtilities(kratos_unittest.TestCase):
 
         # followings are intermediate responses, so Algorithm, ResponseRoutine do not see them. Therefore
         # the value storage is managed by the ResponseFunction it self.
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r1"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r2"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r1+r2)"))
-
-        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
-        self.assertFalse(self.optimization_problem.HasResponse("((r1+r2)+4.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r1"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r2"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1+r2)"))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
@@ -317,16 +314,14 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertTrue(self.optimization_problem.HasResponse("(3.5+(r1*2.0))"))
         self.assertTrue(self.optimization_problem.HasResponse("((3.5+(r1*2.0))+(r2÷3.0))"))
 
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r1"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r2"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r1*2.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r2÷3.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(3.5+(r1*2.0))"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/((3.5+(r1*2.0))+(r2÷3.0))"))
-
-        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
-        self.assertFalse(self.optimization_problem.HasResponse("(((3.5+(r1*2.0))+(r2/3.0))-4.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r1"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r2"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1*2.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r2÷3.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(3.5+(r1*2.0))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((3.5+(r1*2.0))+(r2÷3.0))"))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
@@ -368,18 +363,17 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertTrue(self.optimization_problem.HasResponse("(3.5+(((r1*2.0)*r2)÷3.0))"))
         self.assertTrue(self.optimization_problem.HasResponse("((3.5+(((r1*2.0)*r2)÷3.0))-4.0)"))
 
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r1"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r2"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r1*2.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/((r1*2.0)*r2)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(((r1*2.0)*r2)÷3.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r1^r2)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(3.5+(((r1*2.0)*r2)÷3.0))"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/((3.5+(((r1*2.0)*r2)÷3.0))-4.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r1"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r2"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1*2.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((r1*2.0)*r2)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(((r1*2.0)*r2)÷3.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1^r2)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(3.5+(((r1*2.0)*r2)÷3.0))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((3.5+(((r1*2.0)*r2)÷3.0))-4.0)"))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
-        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
@@ -444,29 +438,27 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertTrue(self.optimization_problem.HasResponse("(((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))+((6.0÷3.0)+(3.0*(2.0+8.0))))"))
         self.assertTrue(self.optimization_problem.HasResponse("log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1)))"))
 
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r1"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/r2"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r1*2.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(r2^2.0)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/((r1*2.0)*(r2^2.0))"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(6.0*r1)"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/(((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))+((6.0÷3.0)+(3.0*(2.0+8.0))))"))
-        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("values/log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1)))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r1"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r2"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1*2.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r2^2.0)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((r1*2.0)*(r2^2.0))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(6.0*r1)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))+((6.0÷3.0)+(3.0*(2.0+8.0))))"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1)))"))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
+        self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
-        # following is the resultant response function, hence the value storage is managed by the ResponseRoutine
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp))
-        self.assertFalse(self.optimization_problem.HasResponse(eval_resp.GetName()))
-
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(r1*2.0)_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(r2^2.0)_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d((r1*2.0)*(r2^2.0))_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(6.0*r1)_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))+((6.0÷3.0)+(3.0*(2.0+8.0))))_dPRESSURE"))
-        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dlog((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1)))_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/dr1_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/dr2_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d(r1*2.0)_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d(r2^2.0)_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d((r1*2.0)*(r2^2.0))_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d(6.0*r1)_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/d(((4.0+((r1*2.0)*(r2^2.0)))+log((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1))))+((6.0÷3.0)+(3.0*(2.0+8.0))))_dPRESSURE"))
+        self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("gradients/dlog((((2.0+6.0)*(3.0+((4.0-2.0)÷4.0)))+(6.0*r1)))_dPRESSURE"))
 
         self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : (4.0 + (self.r1.CalculateValue() * 2) * (self.r2.CalculateValue() ** 2) + log((2+6)*(3+(4-2)/4)+6*self.r1.CalculateValue()) + (6.0 / 3.0 + 3 * (2 + 8))) * 2.0, 1e-6, 7)
 
