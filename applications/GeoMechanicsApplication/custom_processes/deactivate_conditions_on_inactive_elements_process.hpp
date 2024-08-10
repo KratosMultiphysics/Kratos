@@ -21,7 +21,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -33,8 +32,7 @@ namespace Kratos
  * @note Allways neighbour elements should be found before calling this process, otherwise an error will be given.
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) DeactivateConditionsOnInactiveElements
-    : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) DeactivateConditionsOnInactiveElements : public Process
 {
 public:
     ///@name Type Definitions
@@ -51,8 +49,8 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
-            mrModelPart(rModelPart)
+    explicit DeactivateConditionsOnInactiveElements(ModelPart& rModelPart)
+        : Process(), mrModelPart(rModelPart)
     {
     }
 
@@ -63,12 +61,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
@@ -81,28 +73,19 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "DeactivateConditionsOnInactiveElements";
-    }
+    std::string Info() const override { return "DeactivateConditionsOnInactiveElements"; }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->PrintInfo(rOStream);
-    }
-
+    void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
 
     ///@}
     ///@name Friends
@@ -141,14 +124,11 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  DeactivateConditionsOnInactiveElements& rThis);
+inline std::istream& operator>>(std::istream& rIStream, DeactivateConditionsOnInactiveElements& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DeactivateConditionsOnInactiveElements& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const DeactivateConditionsOnInactiveElements& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -156,6 +136,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
-}
+} // namespace Kratos

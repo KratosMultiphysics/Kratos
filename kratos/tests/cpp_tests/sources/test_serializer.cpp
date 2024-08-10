@@ -43,7 +43,7 @@ template<typename TObjectType>
 void TestObjectSerialization(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
 {
     SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
-    KRATOS_CHECK_EQUAL(rObjectToBeLoaded, rObjectToBeSaved);
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded, rObjectToBeSaved);
 }
 
 template<typename TObjectType>
@@ -51,10 +51,10 @@ void TestObjectSerializationComponentwise1D(const TObjectType& rObjectToBeSaved,
 {
     SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
 
-    KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size(), rObjectToBeSaved.size());
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size(), rObjectToBeSaved.size());
 
     for (std::size_t i=0; i< rObjectToBeSaved.size(); ++i)
-        KRATOS_CHECK_EQUAL(rObjectToBeLoaded[i], rObjectToBeSaved[i]);
+        KRATOS_EXPECT_EQ(rObjectToBeLoaded[i], rObjectToBeSaved[i]);
 }
 
 template<typename TObjectType>
@@ -62,12 +62,12 @@ void TestObjectSerializationComponentwise2D(const TObjectType& rObjectToBeSaved,
 {
     SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
 
-    KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size1(), rObjectToBeSaved.size1());
-    KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size2(), rObjectToBeSaved.size2());
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size1(), rObjectToBeSaved.size1());
+    KRATOS_EXPECT_EQ(rObjectToBeLoaded.size2(), rObjectToBeSaved.size2());
 
     for (std::size_t i=0; i<rObjectToBeSaved.size1(); ++i) {
         for (std::size_t j=0; j<rObjectToBeSaved.size2(); ++j) {
-            KRATOS_CHECK_EQUAL(rObjectToBeLoaded(i,j), rObjectToBeSaved(i,j));
+            KRATOS_EXPECT_EQ(rObjectToBeLoaded(i,j), rObjectToBeSaved(i,j));
         }
     }
 }
@@ -190,9 +190,9 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
     serializer.load(tag_string, p_loaded_array);
     serializer.load(tag_string_2, p_loaded_point);
 
-    KRATOS_CHECK_EQUAL(*p_point, *p_loaded_point);
+    KRATOS_EXPECT_EQ(*p_point, *p_loaded_point);
     for (std::size_t i=0; i<(*p_array).size(); ++i)
-        KRATOS_CHECK_EQUAL((*p_loaded_array)[i], (*p_array)[i]);
+        KRATOS_EXPECT_EQ((*p_loaded_array)[i], (*p_array)[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdArray, KratosCoreFastSuite)

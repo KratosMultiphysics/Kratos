@@ -332,6 +332,27 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    double ParticleCreatorDestructor::SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                                   std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map){
+
+        KRATOS_TRY
+
+        double radius = r_sub_model_part_with_parameters["RADIUS"].GetDouble();
+        const double& max_radius = r_sub_model_part_with_parameters["MAXIMUM_RADIUS"].GetDouble();
+        const std::string& distribution_type = r_sub_model_part_with_parameters["PROBABILITY_DISTRIBUTION"].GetString();
+
+        const double& std_deviation = r_sub_model_part_with_parameters["STANDARD_DEVIATION"].GetDouble();
+        const double& min_radius = r_sub_model_part_with_parameters["MINIMUM_RADIUS"].GetDouble();
+
+        if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "piecewise_linear" || distribution_type == "discrete") radius = r_random_variables_map[r_sub_model_part_with_parameters["NAME"].GetString()]->Sample();
+        else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters["NAME"].GetString() << std::endl;
+
+        return radius;
+        KRATOS_CATCH("")
+    }
+
     SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node ::Pointer reference_node,
@@ -1077,6 +1098,25 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             mDiameter = norm_2(mHighPoint - mLowPoint);
         }
 
+        KRATOS_CATCH("")
+    }
+
+    void ParticleCreatorDestructor::UpdateSurroundingBoundingBox(ModelPart& spheres_model_part) {
+        
+        KRATOS_TRY
+
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MIN_CORNER, mLowPoint);
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MAX_CORNER, mHighPoint);
+
+        for (int i = 0; i < 3; ++i) {
+                KRATOS_ERROR_IF(mHighPoint[i] < mLowPoint[i]) << "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." << std::endl;
+            }
+
+        mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
+        mStrictLowPoint = mLowPoint;
+        mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
+        mDiameter = norm_2(mHighPoint - mLowPoint);
+        
         KRATOS_CATCH("")
     }
 

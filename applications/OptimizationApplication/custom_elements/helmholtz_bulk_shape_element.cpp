@@ -22,6 +22,7 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "utilities/math_utils.h"
+#include "optimization_application_variables.h"
 
 namespace Kratos
 {

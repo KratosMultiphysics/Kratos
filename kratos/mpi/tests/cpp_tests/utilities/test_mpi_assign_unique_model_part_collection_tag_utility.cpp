@@ -19,9 +19,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "includes/kratos_flags.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "mpi/includes/mpi_communicator.h"
 
 /* Utilities */
@@ -36,7 +36,7 @@ namespace Kratos::Testing
     /**
     * Checks the correct work of the sub modelparts list utility
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
     {
         // Creating the reference model part and the relative submodelparts non alphabetically ordered
         Model current_model;
@@ -91,7 +91,7 @@ namespace Kratos::Testing
         const std::string filename = "mpi_test";
 
         AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(filename + std::to_string(rank), collections);
-        KRATOS_CHECK_EQUAL(collections.size(), 8);
+        KRATOS_EXPECT_EQ(collections.size(), 8);
 
         r_data_communicator.Barrier();
         for (int i = 0; i < size; i++) {
@@ -99,10 +99,10 @@ namespace Kratos::Testing
                 IndexStringMapType read_collections;
                 AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(filename + std::to_string(i), read_collections);
 
-                KRATOS_CHECK_EQUAL(collections.size(),read_collections.size());
+                KRATOS_EXPECT_EQ(collections.size(),read_collections.size());
 
                 for (IndexType j = 0; j < read_collections.size(); j++) {
-                    KRATOS_CHECK_EQUAL(collections[j], read_collections[j]);
+                    KRATOS_EXPECT_EQ(collections[j], read_collections[j]);
                 }
             }
         }

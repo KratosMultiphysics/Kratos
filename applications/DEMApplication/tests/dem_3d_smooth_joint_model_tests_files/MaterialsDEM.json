@@ -1,0 +1,152 @@
+{
+    "materials"                  : [{
+        "material_name" : "DEM-P",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2200,
+            "YOUNG_MODULUS"       : 45979417406,
+            "POISSON_RATIO"       : 0.25,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    },{
+        "material_name" : "DEM-S",
+        "material_id"   : 2,
+        "Variables"     : {
+            "YOUNG_MODULUS"       : 45979417406,
+            "POISSON_RATIO"       : 0.25,
+            "PARTICLE_SPHERICITY" : 1.0,
+            "COMPUTE_WEAR"        : false
+        }
+    },{
+        "material_name" : "DEM-J",
+        "material_id"   : 3,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2200,
+            "YOUNG_MODULUS"       : 45979417406,
+            "POISSON_RATIO"       : 0.25,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    }],
+    "material_relations"         : [{
+        "material_names_list" : ["DEM-P","DEM-P"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "PARTICLE_MATERIAL": 1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "STATIC_FRICTION"                        : 0.25,
+            "DYNAMIC_FRICTION"                       : 0.24,
+            "FRICTION_DECAY"                         : 500,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.01,
+            "K_ALPHA"                                : 45.0,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION"                       : 0.01,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"    : "DEM_parallel_bond_Hertz",
+            "BOND_YOUNG_MODULUS"                     : 3390093216,
+            "BOND_KNKS_RATIO"                        : 2.5,
+            "BOND_SIGMA_MAX"                         : 277245,
+            "BOND_SIGMA_MAX_DEVIATION"               : 0.0,
+            "BOND_TAU_ZERO"                          : 94030,
+            "BOND_TAU_ZERO_DEVIATION"                : 0.0,
+            "BOND_INTERNAL_FRICC"                    : 1.0,
+            "BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL"     : 0.01,
+            "BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL" : 0.01,
+            "BOND_RADIUS_FACTOR"                     : 1.0,
+            "IS_UNBREAKABLE"                         : false
+        }
+    },{
+        "material_names_list" : ["DEM-P","DEM-S"],
+        "material_ids_list"   : [1,2],
+        "Variables"           : {
+            "STATIC_FRICTION": 0.25,
+            "DYNAMIC_FRICTION": 0.24,
+            "FRICTION_DECAY": 500,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.1,
+            "PARTICLE_MATERIAL": 2,
+            "DEM_ROLLING_FRICTION_MODEL_NAME" : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION": 0.01,
+            "ROLLING_FRICTION_WITH_WALLS": 0.01,
+            "K_ALPHA" : 45.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    },{
+        "material_names_list" : ["DEM-P","DEM-J"],
+        "material_ids_list"   : [1,3],
+        "Variables"           : {
+            "PARTICLE_MATERIAL": 3,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "STATIC_FRICTION"                        : 0.25,
+            "DYNAMIC_FRICTION"                       : 0.24,
+            "FRICTION_DECAY"                         : 500,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION"                       : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"    : "DEM_parallel_bond_Hertz",
+            "BOND_YOUNG_MODULUS"                     : 3390093216,
+            "BOND_KNKS_RATIO"                        : 2.5,
+            "BOND_SIGMA_MAX"                         : 277245,
+            "BOND_SIGMA_MAX_DEVIATION"               : 0.0,
+            "BOND_TAU_ZERO"                          : 94030,
+            "BOND_TAU_ZERO_DEVIATION"                : 0.0,
+            "BOND_INTERNAL_FRICC"                    : 1.0,
+            "BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL"     : 0.01,
+            "BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL" : 0.01,
+            "BOND_RADIUS_FACTOR"                     : 1.0,
+            "IS_UNBREAKABLE"                         : false
+        }
+    },{
+        "material_names_list" : ["DEM-S","DEM-J"],
+        "material_ids_list"   : [2,3],
+        "Variables"           : {
+            "STATIC_FRICTION": 0.25,
+            "DYNAMIC_FRICTION": 0.24,
+            "FRICTION_DECAY": 500,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.1,
+            "PARTICLE_MATERIAL": 4,
+            "DEM_ROLLING_FRICTION_MODEL_NAME" : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION": 0.01,
+            "ROLLING_FRICTION_WITH_WALLS": 0.01,
+            "K_ALPHA" : 45.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    },{
+        "material_names_list" : ["DEM-J","DEM-J"],
+        "material_ids_list"   : [3,3],
+        "Variables"           : {
+            "PARTICLE_MATERIAL": 5,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_void",
+            "STATIC_FRICTION"                        : 0.25,
+            "DYNAMIC_FRICTION"                       : 0.24,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque",
+            "ROLLING_FRICTION"                       : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"    : "DEM_smooth_joint",
+            "JOINT_NORMAL_STIFFNESS"                 : 1e9,
+            "JOINT_TANGENTIAL_STIFFNESS"             : 1e9,
+            "BOND_SIGMA_MAX"                         : 2e5,
+            "BOND_SIGMA_MAX_DEVIATION"               : 0.0,
+            "BOND_TAU_ZERO"                          : 2e4,
+            "BOND_TAU_ZERO_DEVIATION"                : 0.0,
+            "BOND_INTERNAL_FRICC"                    : 10.0,
+            "BOND_RADIUS_FACTOR"                     : 1.0,
+            "JOINT_NORMAL_DIRECTION_X"               : -0.70710678118,
+            "JOINT_NORMAL_DIRECTION_Y"               : 0.70710678118,
+            "JOINT_NORMAL_DIRECTION_Z"               : 0.0,
+            "JOINT_FRICTION_COEFF"                   : 0.5,
+            "IS_UNBREAKABLE"                         : false
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Body","DEM-P"],
+    ["SpheresPart.DEMParts_Joint","DEM-J"],
+    ["RigidFacePart.DEM-FEM-Wall_TOP","DEM-S"],
+    ["RigidFacePart.DEM-FEM-Wall_BOTTOM","DEM-S"]]
+}

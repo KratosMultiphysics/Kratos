@@ -11,18 +11,14 @@
 //
 
 #include <string>
-#include <iostream>
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "geo_mechanics_fast_suite.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-    namespace Testing
-    {
-
         KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastSuite)
         {
 
@@ -58,7 +54,6 @@ namespace Kratos
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{1, 2};
-            // auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
             auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -80,7 +75,7 @@ namespace Kratos
 
             for (unsigned int i = 0; i < conditionSize; ++i)
             {
-                KRATOS_CHECK_NEAR(
+                KRATOS_EXPECT_NEAR(
                     rRightHandSideVector[i],
                     expected_vector[i],
                     1.0e-6);
@@ -122,7 +117,6 @@ namespace Kratos
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{1, 2};
-            // auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
             auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -144,12 +138,10 @@ namespace Kratos
 
             for (unsigned int i = 0; i < conditionSize; ++i)
             {
-                KRATOS_CHECK_NEAR(
+                KRATOS_EXPECT_NEAR(
                     rRightHandSideVector[i],
                     expected_vector[i],
                     1.0e-6);
             }
         }
-
-    }
 }

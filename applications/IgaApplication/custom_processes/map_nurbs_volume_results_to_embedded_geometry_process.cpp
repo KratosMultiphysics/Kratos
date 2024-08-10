@@ -77,28 +77,13 @@ namespace Kratos
         const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         IntegrationPointsArrayType integration_points(number_nodes_embedded);
 
-        const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
-        const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
-
-        const auto p_nurbs_volume_geo = dynamic_pointer_cast<NurbsVolumeGeometry<PointerVector<Node>>>(p_geometry);
-        const auto knots_u = p_nurbs_volume_geo->KnotsU();
-        const SizeType n_knots_u = p_nurbs_volume_geo->NumberOfKnotsU();
-        const auto knots_v = p_nurbs_volume_geo->KnotsV();
-        const SizeType n_knots_v = p_nurbs_volume_geo->NumberOfKnotsV();
-        const auto knots_w = p_nurbs_volume_geo->KnotsW();
-        const SizeType n_knots_w = p_nurbs_volume_geo->NumberOfKnotsW();
-
         const auto node_itr_begin = embedded_model_part.NodesBegin();
         IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {
             auto node_itr = node_itr_begin + i;
             // Map point into parameter space
             CoordinatesArrayType local_point;
-            local_point[0] = ((node_itr->X() - lower_point[0]) / std::abs( lower_point[0] - upper_point[0])
-                            * std::abs(knots_u[n_knots_u-1] - knots_u[0])) + knots_u[0];
-            local_point[1] = ((node_itr->Y() - lower_point[1]) / std::abs( lower_point[1] - upper_point[1])
-                            * std::abs(knots_v[n_knots_v-1] - knots_v[0])) + knots_v[0];
-            local_point[2] = ((node_itr->Z() - lower_point[2]) / std::abs( lower_point[2] - upper_point[2])
-                            * std::abs(knots_w[n_knots_w-1] - knots_w[0])) + knots_w[0];
+            p_geometry->ProjectionPointGlobalToLocalSpace(node_itr->Coordinates(), local_point);
+
             integration_points[i] = IntegrationPoint<3>(local_point, 1.0);
         });
 

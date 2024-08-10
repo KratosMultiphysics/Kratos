@@ -28,812 +28,797 @@
 
 namespace Kratos::Testing
 {
-    /// Factory functions
-
-    typedef Node NodeType;
-
-    /** Generates a sample Triangle3D3.
-    * Generates a triangle defined by three random points in the space.
-    * @return  Pointer to a Triangle3D3
-    */
-    template<class TPointType>
-    typename Triangle3D3<TPointType>::Pointer GenerateTriangle3D3(
-    typename TPointType::Pointer PointA = GeneratePoint<TPointType>(),
-    typename TPointType::Pointer PointB = GeneratePoint<TPointType>(),
-    typename TPointType::Pointer PointC = GeneratePoint<TPointType>()) {
-        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
-        PointA,
-        PointB,
-        PointC
-        ));
-    }
-
-    /** Generates a sample Triangle3D3.
-    * Generates a right triangle with origin in the origin and leg size 1.
-    * @return  Pointer to a Triangle3D3
-    */
-    template<class TPointType>
-    typename Triangle3D3<TPointType>::Pointer GenerateRightTriangle3D3() {
-        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
-        GeneratePoint<TPointType>(0.0, 0.0, 0.0),
-        GeneratePoint<TPointType>(std::cos(Globals::Pi/4), 0.0, std::sin(Globals::Pi/4)),
-        GeneratePoint<TPointType>(0.0, 1.0, 0.0)
-        ));
-    }
-
-    /** Generates a sample Triangle3D3.
-    * Generates an equilateral triangle with vertices at each axis.
-    * @return  Pointer to a Triangle3D3
-    */
-    template<class TPointType>
-    typename Triangle3D3<TPointType>::Pointer GenerateEquilateralTriangle3D3() {
-        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
-        GeneratePoint<TPointType>(1.0, 0.0, 0.0),
-        GeneratePoint<TPointType>(0.0, 1.0, 0.0),
-        GeneratePoint<TPointType>(0.0, 0.0, 1.0)
-        ));
-    }
-
-    /// Tests
-
-    /** Checks if the number of edges is correct.
-    * Checks if the number of edges is correct.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgesNumber, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
-    }
-
-    /** Checks if the edges are correct.
-    * Checks if the edges are correct.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Edges, KratosCoreGeometriesFastSuite) {
-        auto p_geom = GenerateRightTriangle3D3<NodeType>();
-
-        const auto& r_edges = p_geom->GenerateEdges();
-
-        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
-    }
-
-    /** Checks if the number of faces is correct.
-    * Checks if the number of faces is correct.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3FacesNumber, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
-        // that for planar geometries it also return the number of edges.
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
-    }
-
-    /** Checks if the faces are correct.
-    * Checks if the faces are correct.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Faces, KratosCoreGeometriesFastSuite) {
-        auto p_geom = GenerateRightTriangle3D3<NodeType>();
-
-        const auto& r_faces = p_geom->GenerateFaces();
-        KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
-
-        KRATOS_CHECK_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
-        KRATOS_CHECK_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
-    }
-
-    /** Checks if the area of the triangle is calculated correctly.
-    * Checks if the area of the triangle is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Area, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
-    }
-
-    /** Checks if the volume of the triangle is calculated correctly.
-    * Checks if the volume of the triangle is calculated correctly.
-    * For triangle 2D3 'volume()' call defaults to 'area()'
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        
-        // TODO: Remove code in June 2023
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
-        // TODO: Activate code in June 2023
-        //KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle3D3:: Method not well defined. Replace with DomainSize() instead.");
-    }
-
-    /** Checks if the minimum edge length is calculated correctly.
-    * Checks if the minimum edge length is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MinEdgeLength, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
-    }
-
-    /** Checks if the maximum edge length is calculated correctly.
-    * Checks if the maximum edge length is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MaxEdgeLength, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
-    }
-
-    /** Checks if the average edge length is calculated correctly.
-    * Checks if the average edge length is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AverageEdgeLength, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
-    }
-
-    /** Checks if the circumradius is calculated correctly.
-    * Checks if the circumradius is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Circumradius, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
-    }
-
-    /** Checks if the inradius is calculated correctly.
-    * Checks if the inradius is calculated correctly.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Inradius, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
-    }
-
-    /** Checks the ProjectionPoint test for a given point respect to the triangle
-    * Checks the ProjectionPoint test for a given point respect to the triangle
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        Point point(0.5 * std::cos(Globals::Pi/4), 0.55, 0.5 * std::sin(Globals::Pi/4));
-
-        Geometry<Point>::CoordinatesArrayType global_coords;
-        Geometry<Point>::CoordinatesArrayType local_coords;
-
-        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
-        geom->GlobalCoordinates(global_coords, local_coords);
-
-        // Manually project
-        const auto center = geom->Center();
-        const array_1d<double, 3> normal = geom->UnitNormal(center);
-        const Point point_to_project(point);
-        double distance;
-        Geometry<Point>::CoordinatesArrayType point_projected;
-        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
-
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], point_projected[0], 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], point_projected[1], 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], 1.0e-4);
-
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
-        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
-    }
-
-    /** Checks the inside test for a given point respect to the triangle
-    * Checks the inside test for a given point respect to the triangle
-    * It performs 4 tests:
-    * A Point inside the triangle: Expected result TRUE
-    * A Point outside the triangle: Expected result FALSE
-    * A Point over a vertex of the triangle: Expected result TRUE
-    * A Point over an edge of the triangle: Expected result TRUE
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-
-        Point PointInside(0.5 * std::cos(Globals::Pi/4), 0.5, 0.5 * std::sin(Globals::Pi/4));
-        Point PointOutside(0.66, 0.66, 0.0);
-        Point PointInVertex(0.0, 0.0, 0.0);
-        Point PointInEdge(0.0, 0.5, 0.0);
-
-        Point LocalCoords;
-
-        // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
-    }
-
-    /** Checks the point local coordinates for a given point respect to the
-    * triangle. The baricentre of the triangle is selected due to its known
-    * solution.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-
-        // Compute the global coordinates of the baricentre
-        const Geometry<NodeType>::PointsArrayType geom_pts = geom->Points();
-        array_1d<double, 3> baricentre = geom_pts[0].Coordinates() + geom_pts[1].Coordinates() + geom_pts[2].Coordinates();
-        baricentre *= 1.0/3.0;
-
-        // Compute the baricentre local coordinates
-        array_1d<double, 3> baricentre_local_coords;
-        geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
-
-        KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
-
-        for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        {
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
-        }
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-
-        for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        {
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
-        }
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-
-        for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        {
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
-        }
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-
-        for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        {
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
-        }
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-
-        for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        {
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
-        }
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        const double ExpectedJacobian = 1.0;
-
-        double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        double JacobianDeterminant = 0.0;
-        const double ExpectedJacobian = 1.0;
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        double JacobianDeterminant = 0.0;
-        const double ExpectedJacobian = 1.0;
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        double JacobianDeterminant = 0.0;
-        const double ExpectedJacobian = 1.0;
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-    }
-
-    /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightTriangle3D3<NodeType>();
-        double JacobianDeterminant = 0.0;
-        const double ExpectedJacobian = 1.0;
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-
-        JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-        KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
-    }
-
-
-    /** Tests two very near parallel triangles HasIntegration which should give false
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, 1.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.0, 0.0, 0.01),
-            std::make_shared<Point>(10., 0.0, 2.01),
-            std::make_shared<Point>(0.0, 1.0, 0.01)
-            );
-
-        KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, 1.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.0, 0.0, 0.00000001),
-            std::make_shared<Point>(10., 0.0, 2.00000001),
-            std::make_shared<Point>(0.0, 1.0, 0.00000001)
-            );
-
-        KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, 1.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.00000001, 0.00000001, 0.00000001),
-            std::make_shared<Point>(-10., 0.0, -2.0),
-            std::make_shared<Point>(0.0, -1.0, 0.00)
-            );
-
-        KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, 1.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.00, 0.00, 0.0),
-            std::make_shared<Point>(-10., 0.0, -2.0),
-            std::make_shared<Point>(0.0, -1.0, 0.00)
-            );
-
-        KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, 1.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.00, 0.00, 0.0),
-            std::make_shared<Point>(10., 0.0, 2.0),
-            std::make_shared<Point>(0.0, -1.0, 0.00)
-            );
-
-        KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3InsideIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(0.0, 0.0, 4.0),
-            std::make_shared<Point>(0.0, 4.0, 0.0)
-            );
-        Triangle3D3<Point > triangle_2(
-            std::make_shared<Point>(0.0, 1.0, 1.0),
-            std::make_shared<Point>(0.0, 1.0, 3.0),
-            std::make_shared<Point>(0.0, 3.0, 1.0)
-            );
-
-        KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3LineIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point> triangle(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(0.0, 0.0, 4.0),
-            std::make_shared<Point>(0.0, 4.0, 0.0)
-            );
-        Line3D2<Point> line(
-            std::make_shared<Point>(1.0, 0.0, 0.0),
-            std::make_shared<Point>(-1.0, 3.0, 1.0)
-            );
-
-        KRATOS_CHECK(triangle.HasIntersection(line));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarLineNoIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point> triangle(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(0.0, 0.0, 4.0),
-            std::make_shared<Point>(0.0, 4.0, 0.0)
-            );
-        Line3D2<Point> line(
-            std::make_shared<Point>(0.0, 2.0, 1.0),
-            std::make_shared<Point>(0.0, 6.0, 1.0)
-            );
-
-        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point> triangle(
-            std::make_shared<Point>(0.0, 0.0, 0.0),
-            std::make_shared<Point>(0.0, 0.0, 4.0),
-            std::make_shared<Point>(0.0, 4.0, 0.0)
-            );
-        Line3D2<Point> line(
-            std::make_shared<Point>(1.0, 0.0, 0.0),
-            std::make_shared<Point>(1.0, 3.0, 1.0)
-            );
-
-        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
-    }
-
-    /**
-    * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        Point point_1( 0.3, 0.3,-0.3);
-        Point point_2( 1.0, 1.0, 1.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-
-        Point point_3(-0.3, 0.3, 0.3);
-        Point point_4( 1.0, 1.0, 1.0);
-        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-
-        Point point_5( 0.3,-0.3, 0.3);
-        Point point_6( 1.0, 1.0, 1.0);
-        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
-    }
-
-    /**
-    * Test an overlaping box and triangle (intersects a triangle node) HasIntersection
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        Point point_1(-0.5, 0.8,-0.3);
-        Point point_2( 0.5, 1.2, 0.3);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-
-        Point point_3(-0.3,-0.5, 0.8);
-        Point point_4( 0.3, 0.5, 1.2);
-        KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-
-        Point point_5( 1.2, 0.3, 0.5);
-        Point point_6( 0.8,-0.3,-0.5);
-        KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
-    }
-
-    /**
-    * Test an overlaping box and triangle (intersects the triangle face) HasIntersection
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxPlane, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        Point point_1( 0.0, 0.0, 0.0);
-        Point point_2( 0.4, 0.5, 0.6);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-
-    /**
-    * Test a non overlaping box and triangle HasIntersection
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        Point point_1( 0.4, 0.5, 0.6);
-        Point point_2( 1.0, 1.0, 1.0);
-        KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
-    }
-
-    /**
-    * Test an overlaping non-cubic box and triangle (intersects a triangle edge) HasIntersection
-    */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.55, -0.25, 0.25),
-            std::make_shared<Point>(0.50, -0.25, 0.75),
-            std::make_shared<Point>(0.50,  0.25, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.50, 0.25),
-            std::make_shared<Point>(-0.25, 0.55, 0.75),
-            std::make_shared<Point>( 0.25, 0.50, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.25, 0.50),
-            std::make_shared<Point>(-0.25, 0.75, 0.50),
-            std::make_shared<Point>( 0.25, 0.25, 0.55)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.55, -0.25, 0.25),
-            std::make_shared<Point>(0.50, -0.25, 0.75),
-            std::make_shared<Point>(0.50,  0.25, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.50, 0.25),
-            std::make_shared<Point>(-0.25, 0.55, 0.75),
-            std::make_shared<Point>( 0.25, 0.50, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.25, 0.50),
-            std::make_shared<Point>(-0.25, 0.75, 0.50),
-            std::make_shared<Point>( 0.25, 0.25, 0.55)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(0.55, -0.25, 0.25),
-            std::make_shared<Point>(0.50, -0.25, 0.75),
-            std::make_shared<Point>(0.50,  0.25, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.50, 0.25),
-            std::make_shared<Point>(-0.25, 0.55, 0.75),
-            std::make_shared<Point>( 0.25, 0.50, 0.25)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreGeometriesFastSuite) {
-        Triangle3D3<Point > triangle_1(
-            std::make_shared<Point>(-0.25, 0.25, 0.50),
-            std::make_shared<Point>(-0.25, 0.75, 0.50),
-            std::make_shared<Point>( 0.25, 0.25, 0.55)
-        );
-
-        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
-        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
-
-        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        array_1d<double, 3> coord(3);
-        coord[0] = 1.0 / 2.0;
-        coord[1] = 1.0 / 8.0;
-        coord[2] = 0.0;
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.125, TOLERANCE);
-        CrossCheckShapeFunctionsValues(*geom);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
-        TestAllShapeFunctionsLocalGradients(*geom);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Normal, KratosCoreGeometriesFastSuite) {
-        Geometry<Point> geom(Triangle3D3<Point>(
-            std::make_shared<Point>(0.55, -0.25, 0.0),
-            std::make_shared<Point>(0.50, -0.25, 0.0),
-            std::make_shared<Point>(0.50, 0.25, 0.0))
-        );
-        auto normal = geom.Normal(0);
-
-        array_1d<double, 3> cross_norm;
-        cross_norm[0] = 0.0;
-        cross_norm[1] = 0.0;
-        cross_norm[2] = 1.0;
-        array_1d<double, 3> cross;
-        MathUtils<double>::CrossProduct(cross, cross_norm, normal);
-
-        KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(cross[2], 0.0, TOLERANCE);
-
-        normal /= norm_2(normal);
-
-        auto unit_normal = geom.UnitNormal(0);
-
-        KRATOS_CHECK_NEAR(unit_normal[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[2], -1.0, TOLERANCE);
-
-        KRATOS_CHECK_NEAR(unit_normal[0], normal[0], TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[1], normal[1], TOLERANCE);
-        KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
-    }
-
-    /**
-     * Checks the distance from a point to a triangle
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CalculateDistance, KratosCoreGeometriesFastSuite)
+/// Factory functions
+using NodeType = Node;
+
+/** Generates a sample Triangle3D3.
+* Generates a triangle defined by three random points in the space.
+* @return  Pointer to a Triangle3D3
+*/
+template<class TPointType>
+typename Triangle3D3<TPointType>::Pointer GenerateTriangle3D3(
+typename TPointType::Pointer PointA = GeneratePoint<TPointType>(),
+typename TPointType::Pointer PointB = GeneratePoint<TPointType>(),
+typename TPointType::Pointer PointC = GeneratePoint<TPointType>()) {
+    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+    PointA,
+    PointB,
+    PointC
+    ));
+}
+
+/** Generates a sample Triangle3D3.
+* Generates a right triangle with origin in the origin and leg size 1.
+* @return  Pointer to a Triangle3D3
+*/
+template<class TPointType>
+typename Triangle3D3<TPointType>::Pointer GenerateRightTriangle3D3() {
+    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+    GeneratePoint<TPointType>(0.0, 0.0, 0.0),
+    GeneratePoint<TPointType>(std::cos(Globals::Pi/4), 0.0, std::sin(Globals::Pi/4)),
+    GeneratePoint<TPointType>(0.0, 1.0, 0.0)
+    ));
+}
+
+/** Generates a sample Triangle3D3.
+* Generates an equilateral triangle with vertices at each axis.
+* @return  Pointer to a Triangle3D3
+*/
+template<class TPointType>
+typename Triangle3D3<TPointType>::Pointer GenerateEquilateralTriangle3D3() {
+    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+    GeneratePoint<TPointType>(1.0, 0.0, 0.0),
+    GeneratePoint<TPointType>(0.0, 1.0, 0.0),
+    GeneratePoint<TPointType>(0.0, 0.0, 1.0)
+    ));
+}
+
+/// Tests
+
+/** Checks if the number of edges is correct.
+* Checks if the number of edges is correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgesNumber, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 3);
+}
+
+/** Checks if the edges are correct.
+* Checks if the edges are correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Edges, KratosCoreGeometriesFastSuite) {
+    auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+    const auto& r_edges = p_geom->GenerateEdges();
+
+    KRATOS_EXPECT_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+}
+
+/** Checks if the number of faces is correct.
+* Checks if the number of faces is correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3FacesNumber, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
+    // that for planar geometries it also return the number of edges.
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
+}
+
+/** Checks if the faces are correct.
+* Checks if the faces are correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Faces, KratosCoreGeometriesFastSuite) {
+    auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+    const auto& r_faces = p_geom->GenerateFaces();
+    KRATOS_EXPECT_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+    KRATOS_EXPECT_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+    KRATOS_EXPECT_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+}
+
+/** Checks if the area of the triangle is calculated correctly.
+* Checks if the area of the triangle is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Area, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->Area(), 0.5, TOLERANCE);
+}
+
+/** Checks if the volume of the triangle is calculated correctly.
+* Checks if the volume of the triangle is calculated correctly.
+* For triangle 2D3 'volume()' call defaults to 'area()'
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    
+    // TODO: Remove code in June 2023
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+    // TODO: Activate code in June 2023
+    //KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle3D3:: Method not well defined. Replace with DomainSize() instead.");
+}
+
+/** Checks if the minimum edge length is calculated correctly.
+* Checks if the minimum edge length is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MinEdgeLength, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
+}
+
+/** Checks if the maximum edge length is calculated correctly.
+* Checks if the maximum edge length is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MaxEdgeLength, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
+}
+
+/** Checks if the average edge length is calculated correctly.
+* Checks if the average edge length is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
+}
+
+/** Checks if the circumradius is calculated correctly.
+* Checks if the circumradius is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Circumradius, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
+}
+
+/** Checks if the inradius is calculated correctly.
+* Checks if the inradius is calculated correctly.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Inradius, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    KRATOS_EXPECT_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
+}
+
+/** Checks the ProjectionPoint test for a given point respect to the triangle
+* Checks the ProjectionPoint test for a given point respect to the triangle
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    Point point(0.5 * std::cos(Globals::Pi/4), 0.45, 0.5 * std::sin(Globals::Pi/4));
+
+    Geometry<Point>::CoordinatesArrayType global_coords;
+    Geometry<Point>::CoordinatesArrayType local_coords;
+
+    geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+    geom->GlobalCoordinates(global_coords, local_coords);
+
+    // Manually project
+    const auto center = geom->Center();
+    const array_1d<double, 3> normal = geom->UnitNormal(center);
+    const Point point_to_project(point);
+    double distance;
+    Geometry<Point>::CoordinatesArrayType point_projected;
+    point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+
+    KRATOS_EXPECT_RELATIVE_NEAR(global_coords[0], point_projected[0], 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(global_coords[1], point_projected[1], 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(global_coords[2], point_projected[2], 1.0e-4);
+
+    KRATOS_EXPECT_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(local_coords[1], 0.45, 1.0e-4);
+    KRATOS_EXPECT_NEAR(local_coords[2], 0.0, 1.0e-4);
+}
+
+/** Checks the inside test for a given point respect to the triangle
+* Checks the inside test for a given point respect to the triangle
+* It performs 4 tests:
+* A Point inside the triangle: Expected result TRUE
+* A Point outside the triangle: Expected result FALSE
+* A Point over a vertex of the triangle: Expected result TRUE
+* A Point over an edge of the triangle: Expected result TRUE
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+
+    Point PointInside(0.5 * std::cos(Globals::Pi/4), 0.5, 0.5 * std::sin(Globals::Pi/4));
+    Point PointOutside(0.66, 0.66, 0.0);
+    Point PointInVertex(0.0, 0.0, 0.0);
+    Point PointInEdge(0.0, 0.5, 0.0);
+
+    Point LocalCoords;
+
+    // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+}
+
+/** Checks the point local coordinates for a given point respect to the
+* triangle. The baricentre of the triangle is selected due to its known
+* solution.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+
+    // Compute the global coordinates of the baricentre
+    const Geometry<NodeType>::PointsArrayType geom_pts = geom->Points();
+    array_1d<double, 3> baricentre = geom_pts[0].Coordinates() + geom_pts[1].Coordinates() + geom_pts[2].Coordinates();
+    baricentre *= 1.0/3.0;
+
+    // Compute the baricentre local coordinates
+    array_1d<double, 3> baricentre_local_coords;
+    geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
     {
-        auto geom = GenerateEquilateralTriangle3D3<Node>();
-
-        Point point1(1.0, 0.0, 0.0);
-        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
-
-        Point point2(0.0, 0.0, 0.5);
-        KRATOS_CHECK_RELATIVE_NEAR(geom->CalculateDistance(point2), 0.288675, 1.0e-4);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
     }
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    Vector JacobianDeterminants;
+    geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+
+    for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
+    {
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
+    }
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    const double ExpectedJacobian = 1.0;
+
+    double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+}
+
+/** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+* Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateRightTriangle3D3<NodeType>();
+    double JacobianDeterminant = 0.0;
+    const double ExpectedJacobian = 1.0;
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+
+    JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+    KRATOS_EXPECT_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
+}
+
+
+/** Tests two very near parallel triangles HasIntegration which should give false
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.0, 0.0, 0.01),
+        std::make_shared<Point>(10., 0.0, 2.01),
+        std::make_shared<Point>(0.0, 1.0, 0.01)
+        );
+
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.0, 0.0, 0.00000001),
+        std::make_shared<Point>(10., 0.0, 2.00000001),
+        std::make_shared<Point>(0.0, 1.0, 0.00000001)
+        );
+
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.00000001, 0.00000001, 0.00000001),
+        std::make_shared<Point>(-10., 0.0, -2.0),
+        std::make_shared<Point>(0.0, -1.0, 0.00)
+        );
+
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.00, 0.00, 0.0),
+        std::make_shared<Point>(-10., 0.0, -2.0),
+        std::make_shared<Point>(0.0, -1.0, 0.00)
+        );
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.00, 0.00, 0.0),
+        std::make_shared<Point>(10., 0.0, 2.0),
+        std::make_shared<Point>(0.0, -1.0, 0.00)
+        );
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3InsideIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(0.0, 0.0, 4.0),
+        std::make_shared<Point>(0.0, 4.0, 0.0)
+        );
+    Triangle3D3<Point > triangle_2(
+        std::make_shared<Point>(0.0, 1.0, 1.0),
+        std::make_shared<Point>(0.0, 1.0, 3.0),
+        std::make_shared<Point>(0.0, 3.0, 1.0)
+        );
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(triangle_2));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3LineIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point> triangle(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(0.0, 0.0, 4.0),
+        std::make_shared<Point>(0.0, 4.0, 0.0)
+        );
+    Line3D2<Point> line(
+        std::make_shared<Point>(1.0, 0.0, 0.0),
+        std::make_shared<Point>(-1.0, 3.0, 1.0)
+        );
+
+    KRATOS_EXPECT_TRUE(triangle.HasIntersection(line));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarLineNoIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point> triangle(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(0.0, 0.0, 4.0),
+        std::make_shared<Point>(0.0, 4.0, 0.0)
+        );
+    Line3D2<Point> line(
+        std::make_shared<Point>(0.0, 2.0, 1.0),
+        std::make_shared<Point>(0.0, 6.0, 1.0)
+        );
+
+    KRATOS_EXPECT_FALSE(triangle.HasIntersection(line));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point> triangle(
+        std::make_shared<Point>(0.0, 0.0, 0.0),
+        std::make_shared<Point>(0.0, 0.0, 4.0),
+        std::make_shared<Point>(0.0, 4.0, 0.0)
+        );
+    Line3D2<Point> line(
+        std::make_shared<Point>(1.0, 0.0, 0.0),
+        std::make_shared<Point>(1.0, 3.0, 1.0)
+        );
+
+    KRATOS_EXPECT_FALSE(triangle.HasIntersection(line));
+}
+
+/**
+* Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    Point point_1( 0.3, 0.3,-0.3);
+    Point point_2( 1.0, 1.0, 1.0);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
+
+    Point point_3(-0.3, 0.3, 0.3);
+    Point point_4( 1.0, 1.0, 1.0);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_3, point_4));
+
+    Point point_5( 0.3,-0.3, 0.3);
+    Point point_6( 1.0, 1.0, 1.0);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_5, point_6));
+}
+
+/**
+* Test an overlaping box and triangle (intersects a triangle node) HasIntersection
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    Point point_1(-0.5, 0.8,-0.3);
+    Point point_2( 0.5, 1.2, 0.3);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
+
+    Point point_3(-0.3,-0.5, 0.8);
+    Point point_4( 0.3, 0.5, 1.2);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_3, point_4));
+
+    Point point_5( 1.2, 0.3, 0.5);
+    Point point_6( 0.8,-0.3,-0.5);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_5, point_6));
+}
+
+/**
+* Test an overlaping box and triangle (intersects the triangle face) HasIntersection
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxPlane, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    Point point_1( 0.0, 0.0, 0.0);
+    Point point_2( 0.4, 0.5, 0.6);
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(point_1, point_2));
+}
+
+/**
+* Test a non overlaping box and triangle HasIntersection
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    Point point_1( 0.4, 0.5, 0.6);
+    Point point_2( 1.0, 1.0, 1.0);
+    KRATOS_EXPECT_FALSE(geom->HasIntersection(point_1, point_2));
+}
+
+/**
+* Test an overlaping non-cubic box and triangle (intersects a triangle edge) HasIntersection
+*/
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.55, -0.25, 0.25),
+        std::make_shared<Point>(0.50, -0.25, 0.75),
+        std::make_shared<Point>(0.50,  0.25, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.50, 0.25),
+        std::make_shared<Point>(-0.25, 0.55, 0.75),
+        std::make_shared<Point>( 0.25, 0.50, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.25, 0.50),
+        std::make_shared<Point>(-0.25, 0.75, 0.50),
+        std::make_shared<Point>( 0.25, 0.25, 0.55)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.55, -0.25, 0.25),
+        std::make_shared<Point>(0.50, -0.25, 0.75),
+        std::make_shared<Point>(0.50,  0.25, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.50, 0.25),
+        std::make_shared<Point>(-0.25, 0.55, 0.75),
+        std::make_shared<Point>( 0.25, 0.50, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.25, 0.50),
+        std::make_shared<Point>(-0.25, 0.75, 0.50),
+        std::make_shared<Point>( 0.25, 0.25, 0.55)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(0.55, -0.25, 0.25),
+        std::make_shared<Point>(0.50, -0.25, 0.75),
+        std::make_shared<Point>(0.50,  0.25, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.50, 0.25),
+        std::make_shared<Point>(-0.25, 0.55, 0.75),
+        std::make_shared<Point>( 0.25, 0.50, 0.25)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreGeometriesFastSuite) {
+    Triangle3D3<Point > triangle_1(
+        std::make_shared<Point>(-0.25, 0.25, 0.50),
+        std::make_shared<Point>(-0.25, 0.75, 0.50),
+        std::make_shared<Point>( 0.25, 0.25, 0.55)
+    );
+
+    auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+    auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+    KRATOS_EXPECT_TRUE(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    array_1d<double, 3> coord(3);
+    coord[0] = 1.0 / 2.0;
+    coord[1] = 1.0 / 8.0;
+    coord[2] = 0.0;
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 0.375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), 0.125, TOLERANCE);
+    CrossCheckShapeFunctionsValues(*geom);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+    TestAllShapeFunctionsLocalGradients(*geom);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Normal, KratosCoreGeometriesFastSuite) {
+    Geometry<Point> geom(Triangle3D3<Point>(
+        std::make_shared<Point>(0.55, -0.25, 0.0),
+        std::make_shared<Point>(0.50, -0.25, 0.0),
+        std::make_shared<Point>(0.50, 0.25, 0.0))
+    );
+    auto normal = geom.Normal(0);
+
+    array_1d<double, 3> cross_norm;
+    cross_norm[0] = 0.0;
+    cross_norm[1] = 0.0;
+    cross_norm[2] = 1.0;
+    array_1d<double, 3> cross;
+    MathUtils<double>::CrossProduct(cross, cross_norm, normal);
+
+    KRATOS_EXPECT_NEAR(cross[0], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(cross[1], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(cross[2], 0.0, TOLERANCE);
+
+    normal /= norm_2(normal);
+
+    auto unit_normal = geom.UnitNormal(0);
+
+    KRATOS_EXPECT_NEAR(unit_normal[0], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(unit_normal[1], 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(unit_normal[2], -1.0, TOLERANCE);
+
+    KRATOS_EXPECT_NEAR(unit_normal[0], normal[0], TOLERANCE);
+    KRATOS_EXPECT_NEAR(unit_normal[1], normal[1], TOLERANCE);
+    KRATOS_EXPECT_NEAR(unit_normal[2], normal[2], TOLERANCE);
+}
 
 } // namespace Kratos::Testing.

@@ -49,13 +49,13 @@ namespace Kratos
 
             for (std::size_t i = 0; i < 2; ++i) {
                 for (std::size_t j = i; j < 2; ++j) {
-                    KRATOS_CHECK_NEAR(auxmat22(i,j), a_matrix(i,j), tolerance);
+                    KRATOS_EXPECT_NEAR(auxmat22(i,j), a_matrix(i,j), tolerance);
                 }
             }
 
             // Check SV are correct (value and order)
-            KRATOS_CHECK_NEAR(s_matrix(0,0), 1.053846, tolerance);
-            KRATOS_CHECK_NEAR(s_matrix(1,1), 0.023021, tolerance);
+            KRATOS_EXPECT_NEAR(s_matrix(0,0), 1.053846, tolerance);
+            KRATOS_EXPECT_NEAR(s_matrix(1,1), 0.023021, tolerance);
         }
 
         /** Checks if it calculates the SVD of a matrix 3x3
@@ -85,14 +85,14 @@ namespace Kratos
 
             for (std::size_t i = 0; i < 3; ++i) {
                 for (std::size_t j = i; j < 3; ++j) {
-                    KRATOS_CHECK_NEAR(auxmat33(i,j), a_matrix(i,j), tolerance);
+                    KRATOS_EXPECT_NEAR(auxmat33(i,j), a_matrix(i,j), tolerance);
                 }
             }
 
             // Check SV are correct (value and order)
-            KRATOS_CHECK_NEAR(s_matrix(0,0), 1.554701, tolerance);
-            KRATOS_CHECK_NEAR(s_matrix(1,1), 0.412674, tolerance);
-            KRATOS_CHECK_NEAR(s_matrix(2,2), 0.059198, tolerance);
+            KRATOS_EXPECT_NEAR(s_matrix(0,0), 1.554701, tolerance);
+            KRATOS_EXPECT_NEAR(s_matrix(1,1), 0.412674, tolerance);
+            KRATOS_EXPECT_NEAR(s_matrix(2,2), 0.059198, tolerance);
         }
 
         /** Checks if it calculates the condition number of a matrix
@@ -118,7 +118,7 @@ namespace Kratos
             const double condition_number = SVDUtils<double>::SVDConditionNumber(a_matrix); // NOTE: Considering the default tolerance
 
             // Check condition number is correct
-            KRATOS_CHECK_NEAR(condition_number, 26.2607, tolerance);
+            KRATOS_EXPECT_NEAR(condition_number, 26.2607, tolerance);
         }
 
     } // namespace Testing

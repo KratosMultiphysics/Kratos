@@ -94,7 +94,7 @@ void Check(double N,
            array_1d<double, 3> const& rCoord)
 {
     KRATOS_TRY;
-    KRATOS_CHECK_NEAR(N, rGeom.ShapeFunctionValue(ShapeFunctionIndex, rCoord), TOLERANCE);
+    KRATOS_EXPECT_NEAR(N, rGeom.ShapeFunctionValue(ShapeFunctionIndex, rCoord), TOLERANCE);
     KRATOS_CATCH("");
 }
 

@@ -22,6 +22,8 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // ==============================================================================
 
@@ -51,7 +53,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) PartitionInterfaceStressOptResponse : public Response
+class PartitionInterfaceStressOptResponse : public Response
 {
 public:
     ///@name Type Definitions
@@ -98,91 +100,88 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"PartitionInterfaceStressOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-           
-        }        
+
+        }
     };
 
     // --------------------------------------------------------------------------
-    double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){        
+    double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){
 
         std::vector<double> gp_weights_vector;
         std::vector<double> stress_gp_vector;
-        elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo); 
-        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo); 
-        double element_density = elem_i.GetProperties().GetValue(DENSITY);       
-        
+        elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
+        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo);
+        double element_density = elem_i.GetProperties().GetValue(DENSITY);
+
         double elem_value = 0.0;
-        for(IndexType i = 0; i < gp_weights_vector.size(); i++){            
+        for(IndexType i = 0; i < gp_weights_vector.size(); i++){
             elem_value += gp_weights_vector[i] * stress_gp_vector[i] * std::pow((element_density) * (1.0-element_density),2);
         }
 
-        return elem_value;          
+        return elem_value;
     }
     // --------------------------------------------------------------------------
     double CalculateValue() override {
-        double intg_stress = 0.0;     
+        double intg_stress = 0.0;
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const ProcessInfo &CurrentProcessInfo = r_eval_object.GetProcessInfo();
             // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-            #pragma omp parallel for
-            for (auto& elem_i : r_eval_object.Elements())
-            {
+            intg_stress += block_for_each<SumReduction<double>>(r_eval_object.Elements(), [&](auto& elem_i) {
                 const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
                 if(element_is_active){
-                    #pragma omp atomic
-                    intg_stress += CalculateElementStress(elem_i,CurrentProcessInfo);
-                }                    
-            }
+                    return CalculateElementStress(elem_i,CurrentProcessInfo);
+                } else {
+                    return 0.0;
+                }
+            });
         }
         return intg_stress;
-    };    
+    };
 
     // --------------------------------------------------------------------------
     void CalculateGradient() override {
 
 		KRATOS_TRY;
 
-        // compute sensitivities       
+        // compute sensitivities
         for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
             VariableUtils().SetHistoricalVariableToZero(D_STRESS_D_FD, controlled_model_part.Nodes());
 
-            #pragma omp parallel for
-			for (auto& elem_i : controlled_model_part.Elements()){
+            block_for_each(controlled_model_part.Elements(), [&](auto& elem_i) {
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active){
                     auto& r_this_geometry = elem_i.GetGeometry();
                     const std::size_t number_of_nodes = r_this_geometry.size();
-                
+
                     std::vector<double> gp_weights_vector;
-                    elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, CurrentProcessInfo);        
+                    elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, CurrentProcessInfo);
                     std::vector<double> stress_gp_vector;
-                    elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, CurrentProcessInfo); 
+                    elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, CurrentProcessInfo);
                     double element_density = elem_i.GetProperties().GetValue(DENSITY);
 
                     double elem_sens = 0.0;
-                    for(IndexType i = 0; i < gp_weights_vector.size(); i++){            
+                    for(IndexType i = 0; i < gp_weights_vector.size(); i++){
                         elem_sens += gp_weights_vector[i] * stress_gp_vector[i] * 2 * std::pow((element_density) * (1.0-element_density),1) * (1.0 - 2.0 * element_density);
                     }
 
                     for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
                         const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
-                        #pragma omp atomic
-                        r_this_geometry[i_node].FastGetSolutionStepValue(D_STRESS_D_FD) += d_pd_d_fd * elem_sens / number_of_nodes;
-                    }                                              
+                        AtomicAdd(r_this_geometry[i_node].FastGetSolutionStepValue(D_STRESS_D_FD), d_pd_d_fd * elem_sens / number_of_nodes);
+                    }
                 }
-            }
+            });
         }
 
 		KRATOS_CATCH("");
- 
-    };  
+
+    };
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -233,7 +232,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -264,7 +263,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables

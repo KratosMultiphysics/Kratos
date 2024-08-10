@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <numeric>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -96,7 +97,7 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
         return rEntity.GetProperties().Id();
     });
 
-    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
+    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.GetRootModelPart().PropertiesArray(), [](const auto pProperties) {
         return pProperties->Id();
     });
 
@@ -115,7 +116,7 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
 }
 
 template<>
-IndexType OptimizationUtils::GetVariableDimension(
+KRATOS_API(OPTIMIZATION_APPLICATION) IndexType OptimizationUtils::GetVariableDimension(
     const Variable<double>& rVariable,
     const IndexType DomainSize)
 {
@@ -123,35 +124,83 @@ IndexType OptimizationUtils::GetVariableDimension(
 }
 
 template<>
-IndexType OptimizationUtils::GetVariableDimension(
+KRATOS_API(OPTIMIZATION_APPLICATION) IndexType OptimizationUtils::GetVariableDimension(
     const Variable<array_1d<double, 3>>& rVariable,
     const IndexType DomainSize)
 {
     return DomainSize;
 }
 
-void OptimizationUtils::CopySolutionStepVariablesList(
+void OptimizationUtils::SetSolutionStepVariablesList(
     ModelPart& rDestinationModelPart,
     const ModelPart& rOriginModelPart)
 {
-    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+    rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
+}
+
+bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
+    const ModelPart& rMainSetModelPart,
+    const ModelPart& rSubSetModelPart)
+{
+    for (const auto& r_sub_variable : rSubSetModelPart.GetNodalSolutionStepVariablesList()) {
+        if (!rMainSetModelPart.GetNodalSolutionStepVariablesList().Has(r_sub_variable)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
+    Model& rModel,
+    Parameters Settings)
+{
+    KRATOS_TRY
+
+    std::vector<std::vector<ModelPart*>> result;
+
+    int number_of_components = -1;
+
+    for (auto it = Settings.begin(); it != Settings.end(); ++it) {
+        // first set the number of components by checking the first entry.
+        if (number_of_components == -1) {
+            number_of_components = it->size();
+            result.resize(number_of_components);
+        }
+
+        KRATOS_ERROR_IF_NOT(static_cast<int>(it->size()) == number_of_components)
+            << "Number of component mismatch [ Number of components required = "
+            << number_of_components << ", number of components specified for model part "
+            << it.name() << " = " << it->size() << " ]. Settings = \n" << Settings;
+
+        IndexType i_component = 0;
+        for (const auto& r_value : *it) {
+            if (r_value.GetBool()) {
+                result[i_component].push_back(&rModel.GetModelPart(it.name()));
+            }
+            ++i_component;
+        }
+    }
+
+    return result;
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations
-template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
-template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
 
-template void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&);
-template void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&);
 
-template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
 
-template bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
-template bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
+template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
 
 }

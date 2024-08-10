@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20EdgesNumber, KratosCoreGeometriesFastSuit
 {
   auto geom = GenerateCanonicalHexahedra3D20();
 
-  KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 12);
+  KRATOS_EXPECT_EQ(geom->EdgesNumber(), 12);
 }
 
 /** Checks if the number of faces is correct.
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20FacesNumber, KratosCoreGeometriesFastSuit
 {
   auto geom = GenerateCanonicalHexahedra3D20();
 
-  KRATOS_CHECK_EQUAL(geom->FacesNumber(), 6);
+  KRATOS_EXPECT_EQ(geom->FacesNumber(), 6);
 }
 
 /** Checks if the characteristic length of the hexahedra is calculated correctly.
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20Length, KratosCoreGeometriesFastSuite)
 {
   auto geom = GenerateCanonicalHexahedra3D20();
 
-  KRATOS_CHECK_NEAR(geom->Length(), 0.353553, TOLERANCE);
+  KRATOS_EXPECT_NEAR(geom->Length(), 0.353553, TOLERANCE);
 }
 
 /** Checks if the area of the hexahedra is calculated correctly.
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20Area, KratosCoreGeometriesFastSuite)
 {
   auto geom = GenerateCanonicalHexahedra3D20();
 
-  KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
+  KRATOS_EXPECT_NEAR(geom->Area(), 1.0, TOLERANCE);
 }
 
 /** Checks if the volume of the hexahedra is calculated correctly.
@@ -133,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20Volume, KratosCoreGeometriesFastSuite)
 {
   auto geom = GenerateCanonicalHexahedra3D20();
 
-  KRATOS_CHECK_NEAR(geom->Volume(), 1.0, TOLERANCE);
+  KRATOS_EXPECT_NEAR(geom->Volume(), 1.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)

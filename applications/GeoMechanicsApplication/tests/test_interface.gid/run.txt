@@ -245,7 +245,6 @@ Parameters Object {
         "start_time": 0.0,
         "strategy_type": "arc_length",
         "time_stepping": {
-            "end_time": 1.0,
             "time_step": 0.25
         }
     }

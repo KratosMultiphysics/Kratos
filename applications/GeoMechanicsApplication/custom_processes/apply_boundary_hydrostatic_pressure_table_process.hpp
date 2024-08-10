@@ -23,23 +23,20 @@ namespace Kratos
 
 class ApplyBoundaryHydrostaticPressureTableProcess : public ApplyConstantBoundaryHydrostaticPressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyBoundaryHydrostaticPressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double, double>;
 
-    ApplyBoundaryHydrostaticPressureTableProcess(ModelPart& model_part,
-                                                 Parameters rParameters
-                                                 ) : ApplyConstantBoundaryHydrostaticPressureProcess(model_part, rParameters)
+    ApplyBoundaryHydrostaticPressureTableProcess(ModelPart& model_part, Parameters rParameters)
+        : ApplyConstantBoundaryHydrostaticPressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
 
         unsigned int TableId = rParameters["table"].GetInt();
-        mpTable = model_part.pGetTable(TableId);
-        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mpTable              = model_part.pGetTable(TableId);
+        mTimeUnitConverter   = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
         KRATOS_CATCH("")
     }
@@ -53,29 +50,25 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const double Time   = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        const double deltaH = mpTable->GetValue(Time);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const auto  time       = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
+        const auto  delta_h    = mpTable->GetValue(time);
 
-        block_for_each(mrModelPart.Nodes(), [&deltaH, &var, this](Node& rNode){
-            const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
-            const double pressure = mSpecificWeight * (distance + deltaH);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
+        block_for_each(GetModelPart().Nodes(), [&delta_h, &r_variable, this](Node& rNode) {
+            const auto distance = GetReferenceCoordinate() - rNode.Coordinates()[GetGravityDirection()];
+            const auto pressure                        = GetSpecificWeight() * (distance + delta_h);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.0);
         });
         KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyBoundaryHydrostaticPressureTableProcess";
-    }
+    std::string Info() const override { return "ApplyBoundaryHydrostaticPressureTableProcess"; }
 
 private:
     /// Member Variables
     TableType::Pointer mpTable;
-    double mTimeUnitConverter;
-
+    double             mTimeUnitConverter;
 };
 
-}
+} // namespace Kratos

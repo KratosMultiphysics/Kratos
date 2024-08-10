@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorLazy, KratosCoreFastSuite) {
         std::size_t component_index = local_index % 3;
         std::size_t entity_data_begin_index = entity_index * 3;
         ++local_index;
-        KRATOS_CHECK_NEAR(
+        KRATOS_EXPECT_NEAR(
             Value, p_binary_expression->Evaluate(entity_index, entity_data_begin_index, component_index),
             1e-9);
     });
@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatChar, KratosCoreFastSuite) {
 
     auto scalar_begin = p_literal_scalar_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<char>(i));
+        KRATOS_EXPECT_EQ(*(scalar_begin + i), static_cast<char>(i));
     }
 
     std::for_each(p_literal_array_3_expression->begin(), p_literal_array_3_expression->end(), [&value](auto& rValue) {
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatChar, KratosCoreFastSuite) {
 
     auto vector_begin = p_literal_array_3_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<char>(i + 10));
+        KRATOS_EXPECT_EQ(*(vector_begin + i), static_cast<char>(i + 10));
     }
 }
 
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatInt, KratosCoreFastSuite) {
 
     auto scalar_begin = p_literal_scalar_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<int>(i));
+        KRATOS_EXPECT_EQ(*(scalar_begin + i), static_cast<int>(i));
     }
 
     std::for_each(p_literal_array_3_expression->begin(), p_literal_array_3_expression->end(), [&value](auto& rValue) {
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatInt, KratosCoreFastSuite) {
 
     auto vector_begin = p_literal_array_3_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<int>(i + 10));
+        KRATOS_EXPECT_EQ(*(vector_begin + i), static_cast<int>(i + 10));
     }
 }
 
@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatDouble, KratosCoreFastSuite) {
 
     auto scalar_begin = p_literal_scalar_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<double>(i));
+        KRATOS_EXPECT_EQ(*(scalar_begin + i), static_cast<double>(i));
     }
 
     std::for_each(p_literal_array_3_expression->begin(), p_literal_array_3_expression->end(), [&value](auto& rValue) {
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatDouble, KratosCoreFastSuite) {
 
     auto vector_begin = p_literal_array_3_expression->cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
-        KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<double>(i + 10));
+        KRATOS_EXPECT_EQ(*(vector_begin + i), static_cast<double>(i + 10));
     }
 }
 

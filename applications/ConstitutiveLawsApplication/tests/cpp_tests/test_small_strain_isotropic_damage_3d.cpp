@@ -17,24 +17,21 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
+#include "includes/model_part.h"
+#include "includes/process_info.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
-#include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosConstitutiveLawsFastSuite)
 {
@@ -50,11 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     // Create gauss point
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-    Tetrahedra3D4<NodeType> geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Tetrahedra3D4<Node> geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
     // Set material properties
     material_properties.SetValue(YOUNG_MODULUS, 6);
     material_properties.SetValue(POISSON_RATIO, 0.3);
@@ -89,18 +86,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK_IS_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
+    KRATOS_EXPECT_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
     Vector internal_variables_w(1);
     internal_variables_w[0] = 0.123;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;  // CL should internally resize it to 1
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
     // Check CalculateValue(INITIAL_STRAIN_VECTOR)
     Vector initial_strain_w(6);
@@ -115,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     cl.SetInitialState(p_initial_state);
     Vector initial_strain_r;  // Should be accordingly resized in the CL
     cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);
-    KRATOS_CHECK_VECTOR_NEAR(initial_strain_r, initial_strain_w, 1e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(initial_strain_r, initial_strain_w, 1e-8);
 
     // Check CalculateValue(STRAIN)
     strain_vector(0) = 0.0000;
@@ -127,12 +124,12 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     Vector strain_ref = strain_vector - initial_strain_w;
     Vector strain_r;
     cl.CalculateValue(cl_parameters, STRAIN, strain_r);
-    KRATOS_CHECK_VECTOR_NEAR(strain_r, strain_ref, 1e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(strain_r, strain_ref, 1e-8);
 
     //Check CalculateVector(STRESSES)
     Vector stress_r;
     cl.CalculateValue(cl_parameters, STRESSES, stress_r);
-    KRATOS_CHECK_VECTOR_NEAR(stress_r, stress_vector, 1e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_r, stress_vector, 1e-8);
 
     // reset values
     p_initial_state->SetInitialStrainVector(ZeroVector(6));
@@ -188,18 +185,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     // Check damage variable and strain energy
     double value;
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_damage_variable, value, tolerance);
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_strain_energy, value, tolerance);
 
     // Check stress
     for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+        KRATOS_EXPECT_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
 
     // Check constitutive tensor
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+            KRATOS_EXPECT_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
     //
     // Test: trilinear hardening model, load in traction
@@ -259,20 +256,20 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
 
     // Check damage variable and strain energy
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_damage_variable, value, tolerance);
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    KRATOS_EXPECT_NEAR(ref_strain_energy, value, tolerance);
 
     // Check stress
     for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+        KRATOS_EXPECT_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
 
     // Check constitutive tensor
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+            KRATOS_EXPECT_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
 
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

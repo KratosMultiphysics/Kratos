@@ -35,16 +35,13 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
-    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
             raise RuntimeError("Please call GeometricCentroidDeviationResponseFunction::Initialize first.")
         return self.model_part
-
-    def GetAnalysisModelPart(self) -> None:
-        return None
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -82,7 +79,7 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
         self.value_array = (average_location / number_of_nodes  - self.model_part_center)
         return self.value_array[0] ** 2 + self.value_array[1] ** 2 + self.value_array[2] ** 2
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 

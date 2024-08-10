@@ -15,7 +15,7 @@ As Kratos runs using Python scripts the debugging process using Visual Studio ma
 
 ## Preparing the environment 
 
-First make sure the code is configured and compiled in `Debug` or `Fulldebug` modes. We recommend you to have a separate build directories for `Release` and `Debug`. Also, to avoid problems, we recommend you to set the `-DINSTALL_RUNKRATOS=OFF` in the configure file to problem problems while building runkratos as most python distributions lack the `python_*_d.lib` variant of the lib.
+First make sure the code is configured and compiled in `Debug` or `Fulldebug` modes. We recommend you to have a separate build directories for `Release` and `Debug`.
 
 ![](https://user-images.githubusercontent.com/1935791/35916965-859b3fe8-0c0c-11e8-867a-46a0f8f62f69.png)
 

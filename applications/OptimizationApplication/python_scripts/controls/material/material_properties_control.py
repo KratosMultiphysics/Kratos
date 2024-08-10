@@ -52,9 +52,9 @@ class MaterialPropertiesControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+        if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+            KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
         pass
@@ -62,7 +62,7 @@ class MaterialPropertiesControl(Control):
     def Finalize(self) -> None:
         pass
 
-    def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
@@ -75,7 +75,7 @@ class MaterialPropertiesControl(Control):
         KratosOA.PropertiesVariableExpressionIO.Read(field, self.controlled_physical_variable)
         return field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
@@ -100,7 +100,7 @@ class MaterialPropertiesControl(Control):
         # get the current unfiltered control field
         unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+        if Kratos.Expression.Utils.NormL2(unfiltered_control_field - control_field) > 1e-9:
             KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
             return True
 

@@ -21,7 +21,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             self.model_part = model_part
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+        def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
             pass
         def Check(self) -> None:
             pass
@@ -29,11 +29,9 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetAnalysisModelPart(self) -> Kratos.ModelPart:
+        def GetInfluencingModelPart(self) -> Kratos.ModelPart:
             return None
-        def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-            return None
-        def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
 
     class DummyControl(Control):
@@ -50,9 +48,9 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             return None
         def GetEmptyField(self) -> ContainerExpressionTypes:
             return None
-        def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
-        def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
+        def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
             return None
         def Update(self, control_field: ContainerExpressionTypes) -> bool:
             return True
@@ -185,5 +183,4 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             }""")).Execute()
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

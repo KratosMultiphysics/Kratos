@@ -15,10 +15,12 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
+
+// Application includes
 #include "custom_utilities/interface_preprocess.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 namespace Kratos::Testing 
 {
@@ -63,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessCondition2D, KratosContactStructura
     auto utility = InterfacePreprocessCondition(r_model_part);
     utility.GenerateInterfacePart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
+    KRATOS_EXPECT_TRUE(r_model_part.NumberOfConditions() == 2);
 }
 
 /**
@@ -82,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessCondition3D, KratosContactStructura
     auto utility = InterfacePreprocessCondition(r_model_part);
     utility.GenerateInterfacePart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
+    KRATOS_EXPECT_TRUE(r_model_part.NumberOfConditions() == 4);
 }
 
 } // namespace Kratos::Testing

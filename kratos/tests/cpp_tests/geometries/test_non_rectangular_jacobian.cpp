@@ -58,7 +58,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the absolute value of a given value
@@ -81,7 +81,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the minimum value of a given value
@@ -105,7 +105,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
     } // namespace Testing
 }  // namespace Kratos.

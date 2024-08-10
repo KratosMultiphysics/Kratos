@@ -26,14 +26,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
 
     InterfaceObject interface_obj(init_coords);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.pGetBaseNode(),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(interface_obj.pGetBaseNode(),
         "Error: Base class function called!");
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.pGetBaseGeometry(),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(interface_obj.pGetBaseGeometry(),
         "Error: Base class function called!");
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(interface_obj.Coordinates()[i], 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(interface_obj.Coordinates()[i], 0.0);
 
     array_1d<double, 3> new_coords;
     new_coords[0] = -5.3;
@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
     interface_obj.Coordinates() = new_coords;
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(interface_obj.Coordinates()[i], new_coords[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(interface_obj.Coordinates()[i], new_coords[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite)
@@ -54,13 +54,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceNode>(node_1.get()));
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseGeometry(),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseGeometry(),
         "Error: Base class function called!");
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], coords[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(p_interface_obj->Coordinates()[i], coords[i]);
 
-    KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseNode()), *node_1);
+    KRATOS_EXPECT_EQ(*(p_interface_obj->pGetBaseNode()), *node_1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSuite)
@@ -76,15 +76,15 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSui
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceGeometryObject>(p_quad.get()));
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseNode(),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseNode(),
         "Error: Base class function called!");
 
     Point center_coords(5.0, 5.0, 0.0);
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], center_coords[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(p_interface_obj->Coordinates()[i], center_coords[i]);
 
-    // KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseGeometry()), *p_quad); // does not compile ...
+    // KRATOS_EXPECT_EQ(*(p_interface_obj->pGetBaseGeometry()), *p_quad); // does not compile ...
 }
 
 }  // namespace Kratos::Testing

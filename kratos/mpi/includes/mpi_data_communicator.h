@@ -60,6 +60,12 @@ void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS_
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(...)                                  \
+std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const override;                               \
+std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const override;
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(...)                                            \
 __VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const override;                                                     \
@@ -217,6 +223,13 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
 
+    // MinLoc and MaxLoc AllReduce operations
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(double)
+
     // Reduce operations
 
     bool AndReduce(
@@ -261,15 +274,51 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief Get the parallel rank for this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_rank.
+     * @return The parallel rank of the current process.
+     */
     int Rank() const override;
 
+    /**
+     * @brief Get the parallel size of this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_size.
+     * @return The parallel size of the communicator.
+     */
     int Size() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator is aware of parallelism.
+     * @return True if the DataCommunicator is distributed, otherwise false.
+     */
     bool IsDistributed() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator involves the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is defined on the current rank, otherwise false.
+     */
     bool IsDefinedOnThisRank() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator is MPI_COMM_NULL for the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is MPI_COMM_NULL, otherwise false.
+     */
     bool IsNullOnThisRank() const override;
+
+    /**
+     * @brief Get a sub-data communicator.
+     * @details This function returns a sub-data communicator based on the provided ranks and a new communicator name.
+     * @param rRanks               The ranks to include in the sub-communicator.
+     * @param rNewCommunicatorName The name of the new sub-communicator.
+     * @return The sub-data communicator.
+     */
+    const DataCommunicator& GetSubDataCommunicator(
+        const std::vector<int>& rRanks,
+        const std::string& rNewCommunicatorName
+        ) const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI
@@ -379,6 +428,20 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllReduceDetailVector(
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
+
+    /**
+    * @brief Performs an AllReduce operation with location information (the partition where the reduced value was found).
+    * @details This function performs an AllReduce operation on a pair of data and an integer location using the specified MPI operation. The AllReduce operation combines the data from all processes and stores the result in the pair's first element. The location information (integer) is the partition where the reduced value was found.
+    * @tparam TDataType The data type of the pair's first element.
+    * @param rLocalValues A pair containing the local data and location information to be reduced.
+    * @param Operation The MPI operation to use for the reduction.
+    * @return A pair where the first element contains the result of the AllReduce operation, and the second element is the partition where the reduced value was found.
+    */
+    template<class TDataType>
+    std::pair<TDataType, int> AllReduceDetailWithLocation(
+        const std::pair<TDataType, int>& rLocalValues,
+        MPI_Op Operation
+        ) const;
 
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,

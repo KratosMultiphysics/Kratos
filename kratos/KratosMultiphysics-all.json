@@ -15,10 +15,11 @@
         "KratosLinearSolversApplication==${KRATOS_VERSION}",
         "KratosMappingApplication==${KRATOS_VERSION}",
         "KratosMeshingApplication==${KRATOS_VERSION}",
-        "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
+        "KratosMPMApplication==${KRATOS_VERSION}",
         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
         "KratosShallowWaterApplication==${KRATOS_VERSION}",
-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"
+        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
+        "KratosGeoMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",

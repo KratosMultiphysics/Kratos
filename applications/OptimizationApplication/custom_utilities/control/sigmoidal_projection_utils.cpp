@@ -69,7 +69,7 @@ IndexType GetUpperValueRangeIndex(
         }
     }
 
-    return std::clamp(upper_index, 1UL, size - 1);
+    return std::clamp<IndexType>(upper_index, 1UL, size - 1);
 }
 
 double ProjectValueForward(
@@ -87,7 +87,7 @@ double ProjectValueForward(
     const double y2 = rYLimits[upper_index];
 
     const double limit = std::log1p(std::numeric_limits<double>::max());
-    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2)  * PenaltyFactor;
+    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2);
     pow_val = std::clamp(pow_val, -limit, limit);
     return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)), PenaltyFactor) + y1;
 }
@@ -137,7 +137,7 @@ double ComputeFirstDerivativeAtValue(
     const double y2 = rYLimits[upper_index];
 
     const double limit = std::log1p(std::numeric_limits<double>::max());
-    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2) * PenaltyFactor;
+    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2);
     pow_val = std::clamp(pow_val, -limit, limit);
     return (y2 - y1) * (1.0 / std::pow(1 + std::exp(pow_val), PenaltyFactor + 1)) *
            PenaltyFactor * 2.0 * Beta * std::exp(pow_val);
