@@ -80,7 +80,8 @@ build_dir="${source_dir}/build"                 # <== path to the build director
 install_dir="$(get_site_packages_dir)"          # <== path to install kratos to
 clean=0                                         # <== clean the build and install directories, then exit
 app_names=""                                    # <== list of app names to build
-cmake_arguments=()                              # <== list of options to pass to CMake
+cmake_arguments=""                              # <== semicolon-separated list of options to pass to CMake
+cmake_cxx_flags=""                              # <== value to set for CMAKE_CXX_FLAGS
 
 # Function to append the list of built applications
 add_app() {
@@ -137,7 +138,11 @@ while getopts ":h C b: i: t: j: a: o:" arg; do
             add_app "$OPTARG"
             ;;
         o)  # Add CMake option
-            cmake_arguments=("${cmake_arguments[@]}" "$OPTARG")
+            if [[ "$OPTARG" == -DCMAKE_CXX_FLAGS* ]]; then
+                cmake_cxx_flags="${cmake_cxx_flags}${OPTARG#*-DCMAKE_CXX_FLAGS=} "
+            else
+                cmake_arguments="$cmake_arguments;$OPTARG"
+            fi
             ;;
         \?) # Unrecognized argumnet
             echo "Error: unrecognized argument: -$OPTARG"
@@ -196,23 +201,33 @@ if ! command -v brew &> /dev/null; then
     exit 1
 fi
 
-check_homebrew_package() {
-    if ! brew list "$1" >/dev/null 2>&1; then
-        echo "Error: missing dependency: $1"
-        echo "Consider running 'brew install $1'"
-        exit 1
-    fi
+found_package=""
+get_homebrew_package() {
+    found_package=""
+    package_versions="$(brew search --formula "/$1@[0-9]+/")"
+    for package_version in $(echo $package_versions | tr ' ' '\n' | sort -r | tr '\n' ' '); do
+        if brew list "$package_version" >/dev/null 2>&1; then
+            found_package="$package_version"
+            echo "using '$package_version' for dependency '$1'"
+            return 0
+        fi
+    done
+
+    echo "Error: no installed version of '$1' was found."
+    echo "Consider running 'brew install $1'."
+    exit 1
 }
 
 # Check whether LLVM is installed, and populate related paths
-check_homebrew_package llvm
-toolchain_root="$(brew --prefix llvm)"
+get_homebrew_package llvm
+toolchain_root="$(brew --prefix $found_package)"
 toolchain_bin="${toolchain_root}/bin"
 toolchain_lib="${toolchain_root}/lib"
 toolchain_include="${toolchain_root}/include"
+cmake_cxx_flags="-L${toolchain_lib}/c++ -L${toolchain_lib} -lunwind $cmake_cxx_flags"
 
 # Check other required homebrew dependencies
-check_homebrew_package boost
+get_homebrew_package boost
 
 check_recommended_homebrew_package() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -257,10 +272,7 @@ if ! cmake                                                  \
     "-DCMAKE_BUILD_TYPE:STRING=${build_type}"               \
     "-DCMAKE_C_COMPILER:STRING=${toolchain_bin}/clang"      \
     "-DCMAKE_CXX_COMPILER:STRING=${toolchain_bin}/clang++"  \
-    "-DOPENMP_LIBRARIES:STRING=${toolchain_lib}"            \
-    "-DOPENMP_INCLUDES:STRING=${toolchain_include}"         \
-    "-DOPENMP_C:STRING=${toolchain_bin}/clang"              \
-    "-DOPENMP_CXX:STRING=${toolchain_bin}/clang++"          \
+    "-DCMAKE_CXX_FLAGS=${cmake_cxx_flags}"                  \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
     "$ccache_flag"                                          \
     "-DUSE_MPI:BOOL=$mpi_flag"                              \
