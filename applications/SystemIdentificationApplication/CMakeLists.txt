@@ -6,6 +6,7 @@ message("**** configuring KratosSystemIdentificationApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( $(KRATOS_SOURCE_DIR)/external_libraries/nanoflann )
 
 ## SystemIdentification Core sources
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_CORE
