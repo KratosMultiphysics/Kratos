@@ -24,6 +24,7 @@
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/smooth_clamper.h"
 #include "custom_utilities/distance_matrix.h"
+#include "custom_utilities/sensor_mask_status.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -73,6 +74,16 @@ void AddMaskUtilsToPython(pybind11::module& m)
     m.def("Scale", &MaskUtils::Scale<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("ClusterMasks", &MaskUtils::ClusterMasks<TContainerType>, py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask<TContainerType>, py::arg(("reference_" + lower_prefix + "_mask_expression").c_str()), py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
+
+    py::class_<SensorMaskStatus<TContainerType>, typename SensorMaskStatus<TContainerType>::Pointer>(m, ("Sensor" + upper_prefix + "MaskStatus").c_str())
+        .def(py::init<ModelPart&, const std::vector<ContainerExpression<TContainerType>>&>(), py::arg("sensor_model_part"), py::arg("sensor_masks"))
+        .def("GetMasks", &SensorMaskStatus<TContainerType>::GetMasks)
+        .def("GetMaskStatuses", py::overload_cast<>(&SensorMaskStatus<TContainerType>::GetMaskStatuses, py::const_))
+        .def("GetSensorModelPart", &SensorMaskStatus<TContainerType>::GetSensorModelPart)
+        .def("GetMaskLocalContainer", &SensorMaskStatus<TContainerType>::GetMaskLocalContainer)
+        .def("GetDataCommunicator", &SensorMaskStatus<TContainerType>::GetDataCommunicator)
+        .def("Update", &SensorMaskStatus<TContainerType>::Update)
+        ;
 }
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
