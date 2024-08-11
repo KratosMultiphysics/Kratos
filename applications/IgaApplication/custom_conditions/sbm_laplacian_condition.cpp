@@ -122,7 +122,6 @@ namespace Kratos
         Vector projection(3);
         projection = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].Coordinates() ;
 
-
         d.resize(3);
         noalias(d) = projection - r_geometry.Center().Coordinates();
 
@@ -253,12 +252,13 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
+        KRATOS_TRY
+
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
 
         // loopIdentifier is inner or outer
         std::string loopIdentifier = this->GetValue(IDENTIFIER);
 
-        KRATOS_TRY
         const auto& r_geometry = this->GetGeometry();
         const SizeType number_of_nodes = r_geometry.PointsNumber();
         if (rRightHandSideVector.size() != number_of_nodes) {
@@ -289,17 +289,10 @@ namespace Kratos
         {
             // Obtaining the projection from the closest skin segment
             Vector projection(3);
-            projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
-            projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
-            projection[2] = candidateClosestSkinSegment1.GetGeometry()[0].Z() ;
+            projection = candidateClosestSkinSegment1.GetGeometry()[0].Coordinates() ;
 
             Vector d(3);
-            d[0] = projection[0] - r_geometry.Center().X();
-            d[1] = projection[1] - r_geometry.Center().Y();
-            d[2] = projection[2] - r_geometry.Center().Z();
-            // d[0] = 0;
-            // d[1] = 0;
-            // d[2] = 0;
+            noalias(d) = projection - r_geometry.Center().Coordinates();
 
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
@@ -343,12 +336,6 @@ namespace Kratos
                     true_n = - true_n / MathUtils<double>::Norm(true_n) ;
                 }
             }
-
-            // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-            std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-            outputFile << projection[0] << " " << projection[1] << " " << projection[2] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " "
-                                        << true_n[0] << " " << true_n[1]  << " " << true_n[2] << "\n";
-            outputFile.close();
 
             // Compute all the derivatives of the basis functions involved
             std::vector<Matrix> nShapeFunctionDerivatives;
