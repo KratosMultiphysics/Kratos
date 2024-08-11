@@ -232,11 +232,16 @@ namespace Kratos
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-        BoundaryConditionType GetBoundaryConditionType(const std::string& type) {
-            if (type == "dirichlet") return BoundaryConditionType::Dirichlet;
-            if (type == "neumann") return BoundaryConditionType::Neumann;
-            throw std::invalid_argument("Invalid boundary condition type");
+        BoundaryConditionType GetBoundaryConditionType(const std::string& rType)
+        {
+            KRATOS_ERROR_IF_NOT(rType == "dirichlet" || rType == "neumann") << "Invalid boundary condition type."  << std::endl;
+            if (rType == "dirichlet") {
+                return BoundaryConditionType::Dirichlet;
+            } else {    
+                return BoundaryConditionType::Neumann;
+            }
         }
+
 
         unsigned long long factorial(IndexType n); 
 
