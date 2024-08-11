@@ -216,10 +216,11 @@ public:
      */
 
     static void CalculateRelaxationFactor(const double NominalUniaxialStress,
+                                          const double UniaxialResidualStress,    
                                            const double Threshold,
                                            double& rRelaxationFactor)
     {       
-        rRelaxationFactor = -0.05276 * ((NominalUniaxialStress) / Threshold) + 0.487;
+        rRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487;
         rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
     }
 
