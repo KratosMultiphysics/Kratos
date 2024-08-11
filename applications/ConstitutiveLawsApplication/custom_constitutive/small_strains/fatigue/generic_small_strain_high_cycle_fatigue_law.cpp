@@ -88,7 +88,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double min_stress;
     double uniaxial_stress;
     double ultimate_stress;
-    double initial_threshold = mInitialTherhold;
     double relaxation_factor = mRelaxationFactor;
     bool first_cycle_nonlinearity = mFirstCycleNonlinearity;
     bool first_max_indicator = mFirstMaxDetected;
@@ -342,7 +341,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         // Converged values
         double damage = this->GetDamage();
         double threshold = this->GetThreshold() * (1 - damage);
-        unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+        double initial_threshold = mInitialTherhold;
         double relaxation_factor = mRelaxationFactor;
         bool first_cycle_nonlinearity = mFirstCycleNonlinearity;
 
@@ -370,7 +369,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         if (F > threshold_tolerance && first_cycle_nonlinearity) {
             HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(nominal_uniaxial_stress,
                                                                         uniaxial_residual_stress,
-                                                                        threshold,          
+                                                                        initial_threshold,          
                                                                         relaxation_factor);
             mRelaxationFactor = relaxation_factor;
             predictive_stress_vector = aux_predictive_stress_vector + relaxation_factor * predictive_residual_stress_vector;
@@ -392,7 +391,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             }
         } else { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-            double initial_threshold = mInitialTherhold;
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,

@@ -206,22 +206,19 @@ public:
 
     /**
      * @brief This method computes the relaxation factor of the residual stresses
-     * @param MaxStress Signed maximum stress in the current cycle.
-     * @param MinStress Signed minimum stress in the current cycle.
-     * @param Threshold Damage threshold.
-     * @param LocalNumberOfCycles Number of cycles in the current load.
-     * @param rFirstCycleRelaxationFactor Relaxation factor of the residual stresses at the first cycle
+     * @param NominalUniaxialStress Equivalent stress of the applied load.
+     * @param UniaxialResidualStress Initial equivalent stress.
+     * @param InitialThreshold Initial damage threshold.
      * @param rRelaxationFactor Relaxation factor of the residual stresses
      * @param AdvanceStrategyApplied Bool that indicates if the AITS is active
      */
 
     static void CalculateRelaxationFactor(const double NominalUniaxialStress,
                                           const double UniaxialResidualStress,    
-                                           const double Threshold,
+                                           const double InitialThreshold,
                                            double& rRelaxationFactor)
     {       
-        rRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487;
-        rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
+        rRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / InitialThreshold) + 0.487;
     }
 
     /**
