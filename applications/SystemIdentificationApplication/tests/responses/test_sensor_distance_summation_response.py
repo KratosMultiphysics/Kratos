@@ -95,12 +95,10 @@ class TestSensorDistanceSummationResponse(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.mask_model_part, parameters)
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
         for i, sensor in enumerate(cls.sensors):
-            loc = sensor.GetLocation()
-            node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
-            node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [

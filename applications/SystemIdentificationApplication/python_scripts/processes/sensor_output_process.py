@@ -50,7 +50,9 @@ class SensorOutputProcess(Kratos.OutputProcess):
         if optimization_problem is None:
             self.initialized_sensors = True
             self.compute_sensor_value = True
-            self.list_of_sensors = GetSensors(self.model_part, settings["list_of_sensors"].values())
+            full_model_part_name = self.model_part.FullName().replace(".", "#")
+            sensor_model_part = self.model_part.GetModel().CreateModelPart(f"{full_model_part_name}_sensors")
+            self.list_of_sensors = GetSensors(sensor_model_part, self.model_part, settings["list_of_sensors"].values())
         else:
             self.initialized_sensors = False
             self.compute_sensor_value = False

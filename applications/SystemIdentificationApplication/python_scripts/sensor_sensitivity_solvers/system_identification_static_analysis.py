@@ -22,6 +22,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
             "list_of_sensors"              : [],
+            "sensor_model_part_name"       : "sensors",
             "output_settings"              : {
                 "output_sensor_sensitivity_fields": false,
                 "output_folder"                   : "Optimization_Results/sensor_sensitivity_fields"
@@ -34,11 +35,16 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
         model_part.ProcessInfo[KratosSI.PERTURBATION_SIZE] = sensor_settings["perturbation_size"].GetDouble()
         model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
-        self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
+
+        sensor_model_part_name = sensor_settings["sensor_model_part_name"].GetString()
+        if self.model.HasModelPart(sensor_model_part_name):
+            raise RuntimeError(f"The sensor model part name \"{sensor_model_part_name}\" already exists.")
+        self.sensor_model_part = self.model.CreateModelPart(sensor_model_part_name)
+        self.listof_sensors = GetSensors(self.sensor_model_part, model_part, sensor_settings["list_of_sensors"].values())
 
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction()
         for sensor in self.listof_sensors:
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)
 
         self.measurement_residual_response_function.Initialize()

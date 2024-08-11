@@ -27,21 +27,21 @@ namespace Kratos {
 /// Constructor.
 StrainSensor::StrainSensor(
     const std::string& rName,
-    const Point& rLocation,
+    Node::Pointer pNode,
     const Variable<Matrix>& rStrainVariable,
     const StrainType& rStrainType,
     const Element& rElement,
     const double Weight)
-    : BaseType(rName, rLocation, Weight),
+    : BaseType(rName, pNode, Weight),
       mElementId(rElement.Id()),
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetNode()->Coordinates(), mLocalPoint))
+        << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
-    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+    this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
 Parameters StrainSensor::GetDefaultParameters()
@@ -73,7 +73,7 @@ const Parameters StrainSensor::GetSensorParameters() const
     })" );
     parameters["name"].SetString(this->GetName());
     parameters["value"].SetDouble(this->GetSensorValue());
-    parameters["location"].SetVector(this->GetLocation());
+    parameters["location"].SetVector(this->GetNode()->Coordinates());
     parameters["weight"].SetDouble(this->GetWeight());
 
     switch (mStrainType) {
@@ -288,7 +288,6 @@ void StrainSensor::PrintInfo(std::ostream& rOStream) const
 void StrainSensor::PrintData(std::ostream& rOStream) const
 {
     PrintInfo(rOStream);
-    rOStream << "    Location: " << this->GetLocation() << std::endl;
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
@@ -312,7 +311,7 @@ void StrainSensor::PrintData(std::ostream& rOStream) const
             rOStream << "    Direction: STRAIN_YZ";
             break;
     }
-    DataValueContainer::PrintData(rOStream);
+    GetNode()->PrintData(rOStream);
 }
 
 void StrainSensor::SetVectorToZero(

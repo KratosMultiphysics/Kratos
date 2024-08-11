@@ -9,6 +9,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
+        cls.sensor_model_part = cls.model.CreateModelPart("sensors")
         cls.model_part = cls.model.CreateModelPart("Test")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
@@ -68,7 +69,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
 
     def test_CalculateValue(self):
@@ -82,7 +83,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for i, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
@@ -189,7 +190,8 @@ class TestStrainSensor(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensor_model_part = cls.model.CreateModelPart("sensors")
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0.5, -1.5, 4.5, 0.5]
 
     def test_CalculateValue(self):
@@ -203,7 +205,7 @@ class TestStrainSensor(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for i, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)

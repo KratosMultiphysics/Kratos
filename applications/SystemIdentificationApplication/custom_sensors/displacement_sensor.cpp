@@ -27,11 +27,11 @@ namespace Kratos {
 /// Constructor.
 DisplacementSensor::DisplacementSensor(
     const std::string& rName,
-    const Point& rLocation,
+    Node::Pointer pNode,
     const array_1d<double, 3>& rDirection,
     const Element& rElement,
     const double Weight)
-    : BaseType(rName, rLocation, Weight),
+    : BaseType(rName, pNode, Weight),
       mElementId(rElement.Id()),
       mDirection(rDirection)
 {
@@ -41,11 +41,11 @@ DisplacementSensor::DisplacementSensor(
         mDirection /= direction_norm;
     }
 
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetNode()->Coordinates(), mLocalPoint))
+        << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
-    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+    this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
 const Parameters DisplacementSensor::GetSensorParameters() const
@@ -61,7 +61,7 @@ const Parameters DisplacementSensor::GetSensorParameters() const
     })" );
     parameters["name"].SetString(this->GetName());
     parameters["value"].SetDouble(this->GetSensorValue());
-    parameters["location"].SetVector(this->GetLocation());
+    parameters["location"].SetVector(this->GetNode()->Coordinates());
     parameters["direction"].SetVector(mDirection);
     parameters["weight"].SetDouble(this->GetWeight());
     return parameters;
@@ -232,12 +232,11 @@ void DisplacementSensor::PrintInfo(std::ostream& rOStream) const
 void DisplacementSensor::PrintData(std::ostream& rOStream) const
 {
     PrintInfo(rOStream);
-    rOStream << "    Location: " << this->GetLocation() << std::endl;
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Direction: " << mDirection << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
-    DataValueContainer::PrintData(rOStream);
+    this->GetNode()->PrintData(rOStream);
 }
 
 void DisplacementSensor::SetVectorToZero(

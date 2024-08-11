@@ -50,7 +50,7 @@ public:
     /// Constructor.
     DisplacementSensor(
         const std::string& rName,
-        const Point& rLocation,
+        Node::Pointer pNode,
         const array_1d<double, 3>& rDirection,
         const Element& rElement,
         const double Weight);

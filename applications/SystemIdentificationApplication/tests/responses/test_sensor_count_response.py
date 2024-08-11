@@ -1,5 +1,5 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
@@ -94,12 +94,11 @@ class TestSensorCountResponse(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.mask_model_part, parameters)
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
-        for i, sensor in enumerate(cls.sensors):
-            loc = sensor.GetLocation()
-            node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
-            node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
+        cls.sensors = GetSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
+        for sensor in cls.sensors:
+            node = sensor.GetNode()
+            node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
@@ -116,14 +115,14 @@ class TestSensorCountResponse(UnitTest.TestCase):
         ref_value = self.response.CalculateValue()
         collective_exp = KratosOA.CollectiveExpression()
         collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        self.response.CalculateGradient({KratosDT.SENSOR_STATUS: collective_exp})
+        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
         analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
-            node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) + delta)
+            node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
-            node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) - delta)
+            node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])
 
 if __name__ == '__main__':

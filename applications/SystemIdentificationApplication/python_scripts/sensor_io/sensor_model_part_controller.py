@@ -32,7 +32,7 @@ class SensorModelPartController(ModelPartController):
 
     def ImportModelPart(self) -> None:
         self.targe_model_part = self.model[self.target_model_part_name]
-        self.list_of_sensors = GetSensors(self.targe_model_part, self.parameters["list_of_sensors"].values())
+        self.list_of_sensors = GetSensors(self.sensor_model_part, self.targe_model_part, self.parameters["list_of_sensors"].values())
 
         # add the list of sensors to optimization problem
         sensors = ComponentDataView("sensors", self.optimization_problem)

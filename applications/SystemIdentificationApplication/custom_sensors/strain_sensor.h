@@ -64,7 +64,7 @@ public:
     /// Constructor.
     StrainSensor(
         const std::string& rName,
-        const Point& rLocation,
+        Node::Pointer pNode,
         const Variable<Matrix>& rStrainVariable,
         const StrainType& rStrainType,
         const Element& rElement,
