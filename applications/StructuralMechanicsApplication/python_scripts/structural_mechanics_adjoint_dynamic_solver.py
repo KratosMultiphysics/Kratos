@@ -19,6 +19,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "scheme_settings" : {}, 
             "response_function_settings" : {},
             "sensitivity_settings" : {}
         }""")
