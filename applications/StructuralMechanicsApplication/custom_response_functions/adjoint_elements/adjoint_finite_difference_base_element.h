@@ -162,6 +162,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this, mHasRotationDofs));
     }
 
     void ResetConstitutiveLaw() override
