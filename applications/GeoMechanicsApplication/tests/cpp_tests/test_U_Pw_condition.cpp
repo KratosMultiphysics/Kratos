@@ -10,8 +10,6 @@
 //  Main authors:    Aron Noordam
 //
 
-#include <string>
-
 // Project includes
 #include "custom_elements/U_Pw_condition.hpp"
 
