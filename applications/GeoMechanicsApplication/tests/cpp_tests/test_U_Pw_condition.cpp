@@ -30,13 +30,13 @@ namespace Kratos::Testing {
             Model current_model;
             auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);	
 
-			// create geometry as UPwCondition needs a geometry to be initialized
+            // create geometry as UPwCondition needs a geometry to be initialized
             auto node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-			std::vector< ModelPart::IndexType> element_nodes{ 1};
-			auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
-
-			// create UPwCondition
-			auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
+            std::vector< ModelPart::IndexType> element_nodes{ 1};
+            auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
+            
+            // create UPwCondition
+            auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
             
             // calculate left hand side matrix
             Matrix left_hand_side_matrix = ZeroMatrix(6, 6);
