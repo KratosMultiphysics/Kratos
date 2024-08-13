@@ -9,7 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kr
 if not CheckIfApplicationsAvailable("MPMApplication"):
     raise ImportError("The MPMApplication is not available!")
 import KratosMultiphysics.MPMApplication as KPM
-from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
 # Other imports
 import math
@@ -22,7 +22,7 @@ class MPMDirichletWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """It is designed for the Dirichlet Interface in the MPMApplication"""
 
     def _CreateAnalysisStage(self):
-        return MPMAnalysis(self.model, self.project_parameters)
+        return MpmAnalysis(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
         coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface")
