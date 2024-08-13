@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "custom_elements/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.hpp"
 
 #include "geo_mechanics_fast_suite.h"
 
