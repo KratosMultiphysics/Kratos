@@ -15,6 +15,7 @@
 
 #include "geo_mechanics_fast_suite.h"
 
+using namespace Kratos;
 namespace Kratos::Testing {
 
 
@@ -27,14 +28,19 @@ namespace Kratos::Testing {
         {
 
             Model current_model;
-            auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
-            const auto& r_process_info = r_model_part.GetProcessInfo();
-            
-            auto p_cond = std::make_shared<UPwCondition<2, 2>>(1, nullptr);
+            auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);	
+
+			// create geometry as UPwCondition needs a geometry to be initialized
+            auto node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+			std::vector< ModelPart::IndexType> element_nodes{ 1};
+			auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
+
+			// create UPwCondition
+			auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
             
             // calculate left hand side matrix
             Matrix left_hand_side_matrix = ZeroMatrix(6, 6);
-            p_cond->CalculateLeftHandSide(left_hand_side_matrix, r_process_info);
+            cond.CalculateLeftHandSide(left_hand_side_matrix, ProcessInfo{});
             
             // set expected_results
             Matrix expected_matrix = ZeroMatrix(0, 0);
