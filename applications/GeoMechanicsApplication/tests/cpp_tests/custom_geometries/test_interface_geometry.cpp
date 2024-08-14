@@ -44,6 +44,23 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     KRATOS_EXPECT_NE(new_geometry, nullptr);
     KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 2);
+    KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndId,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto          geometry = LineInterfaceGeometry();
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
+
+    const auto new_geometry = geometry.Create(1, nodes);
+
+    KRATOS_EXPECT_NE(new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 2);
+    KRATOS_EXPECT_EQ(new_geometry->Id(), 1);
 }
 
 } // namespace Kratos::Testing

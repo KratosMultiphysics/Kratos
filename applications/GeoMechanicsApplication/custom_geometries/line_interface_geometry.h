@@ -31,9 +31,21 @@ public:
     {
     }
 
+    LineInterfaceGeometry(const IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
+        : Geometry<Node>(NewGeometryId, rThisPoints)
+    {
+    }
+
     [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
     {
-        return std::make_shared<LineInterfaceGeometry>(rThisPoints);
+        const auto id = IndexType{0};
+        return Create(id, rThisPoints);
+    }
+
+    [[nodiscard]] Geometry<Node>::Pointer Create(const IndexType        NewGeometryId,
+                                                 const PointsArrayType& rThisPoints) const override
+    {
+        return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 };
 
