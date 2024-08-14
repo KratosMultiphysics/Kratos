@@ -32,9 +32,6 @@ SensorMaskStatus::SensorMaskStatus(
     : mpSensorModelPart(&rSensorModelPart),
       mMaskPointersList(rMaskPointersList)
 {
-    KRATOS_TRY
-
-    KRATOS_CATCH("");
 }
 
 const Matrix& SensorMaskStatus::GetMaskStatuses() const
@@ -70,7 +67,7 @@ void SensorMaskStatus::Update()
 
     auto& r_mask_statuses = mSensorMasks;
 
-    std::visit([&r_mask_statuses](const auto& rMasksPointersList) {
+    const auto number_of_entities = std::visit([&r_mask_statuses](const auto& rMasksPointersList) {
         const IndexType number_of_entities = rMasksPointersList.front()->GetContainer().size();
         const IndexType number_of_masks = rMasksPointersList.size();
 
@@ -83,6 +80,8 @@ void SensorMaskStatus::Update()
                 r_mask_statuses(iEntity, i_mask) = rMasksPointersList[i_mask]->GetExpression().Evaluate(iEntity, iEntity, 0);
             }
         });
+        return number_of_entities;
+
     }, mMaskPointersList);
 
     Vector sensor_status(mSensorMasks.size2());
@@ -90,6 +89,10 @@ void SensorMaskStatus::Update()
     IndexPartition<IndexType>(sensor_status.size()).for_each([&](const auto iSensor) {
         sensor_status[iSensor] = (mpSensorModelPart->NodesBegin() + iSensor)->GetValue(SENSOR_STATUS);
     });
+
+    if (mSensorMaskStatuses.size1() != number_of_entities || mSensorMaskStatuses.size2() != number_of_masks) {
+        mSensorMaskStatuses.resize(number_of_entities, number_of_masks, false);
+    }
 
     IndexPartition<IndexType>(mSensorMaskStatuses.size1()).for_each([&](const auto iEntity) {
         const Vector& r_values = row(mSensorMasks, iEntity);
