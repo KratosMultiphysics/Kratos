@@ -63,4 +63,21 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->Id(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto          geometry = LineInterfaceGeometry();
+    PointerVector<Node> nodes;
+    auto                node_1 = Kratos::make_intrusive<Node>(1, -1.0, 0.0, 0.0);
+    nodes.push_back(node_1);
+    auto node_2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    nodes.push_back(node_2);
+
+    const auto new_geometry = geometry.Create(1, nodes);
+
+    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(0, *node_1), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(1, *node_1), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(1, *node_2), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(0, *node_2), 0.0);
+}
+
 } // namespace Kratos::Testing

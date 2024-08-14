@@ -47,6 +47,12 @@ public:
     {
         return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
+
+    double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
+    {
+        Line2D2<Node> line(this->Points());
+        return line.ShapeFunctionValue(ShapeFunctionIndex, rCoordinates);
+    }
 };
 
 } // namespace Kratos
