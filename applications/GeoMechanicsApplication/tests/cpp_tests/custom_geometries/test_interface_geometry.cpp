@@ -66,26 +66,24 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoLines,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto          geometry = LineInterfaceGeometry();
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.0, 0.0));
-
-    const auto new_geometry = geometry.Create(1, nodes);
+    const auto geometry = LineInterfaceGeometry(1, nodes);
 
     // First pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(0, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(0, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(2, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(2, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
 
     // Second pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(1, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(1, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(3, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(new_geometry->ShapeFunctionValue(3, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
 }
 
 } // namespace Kratos::Testing
