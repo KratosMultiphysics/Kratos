@@ -149,9 +149,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeo
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
-    // KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry(nodes), "Number of nodes must be even");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry(1, nodes),
-                                      "Number of nodes must be even");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be even")
+    constexpr auto geometry_id = 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
+                                      "Number of nodes must be even")
 }
 
 } // namespace Kratos::Testing
