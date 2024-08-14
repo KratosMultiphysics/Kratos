@@ -64,6 +64,12 @@ GeometryData::IntegrationMethod AxisymmetricUPwNormalFaceLoadCondition<TDim, TNu
     return GI_GAUSS;
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
+{
+    return "AxisymmetricUPwNormalFaceLoadCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2, 2>;

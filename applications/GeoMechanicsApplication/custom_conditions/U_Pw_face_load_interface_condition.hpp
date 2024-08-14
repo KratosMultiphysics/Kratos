@@ -65,6 +65,8 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::string Info() const override;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -109,7 +111,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
+};
 
-}; // class UPwFaceLoadInterfaceCondition.
+// class UPwFaceLoadInterfaceCondition.
 
 } // namespace Kratos.

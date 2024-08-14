@@ -101,6 +101,8 @@ public:
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::string Info() const override;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -222,7 +224,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
+};
 
-}; // class UPwLysmerAbsorbingCondition.
+// class UPwLysmerAbsorbingCondition.
 
 } // namespace Kratos.
