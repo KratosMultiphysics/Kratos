@@ -19,9 +19,17 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestConstructInterfaceGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstructInterfaceGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-       LineInterfaceGeometry geometry;
+    const auto geometry = LineInterfaceGeometry();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry      = LineInterfaceGeometry();
+    auto       base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
+
+    KRATOS_EXPECT_NE(base_geometry, nullptr);
 }
 
 } // namespace Kratos::Testing

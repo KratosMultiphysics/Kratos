@@ -13,10 +13,12 @@
 
 #pragma once
 
+#include "geometries/geometry.h"
+
 namespace Kratos
 {
 
-class LineInterfaceGeometry
+class LineInterfaceGeometry : public Geometry<Node>
 {
 };
 
