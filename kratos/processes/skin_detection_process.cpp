@@ -219,12 +219,57 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
-    // Now we set the flag on the nodes. The list of nodes of the auxiliary model part
+    // Verify that nodes are in the corresponding model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
+    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_data_communicator.IsDistributed()) {
+        // Wait until all the nodes are created
+        r_data_communicator.Barrier();
+
+        // First look into potential nodes to ensure
+        const int rank = r_data_communicator.Rank();
+        const int world_size = r_data_communicator.Size();
+        std::vector<std::vector<std::size_t>> nodes_to_ensure(world_size);
+        for (auto& r_node : r_nodes_array) {
+            const int partition_index = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
+            if (rank != partition_index) {
+                nodes_to_ensure[partition_index].push_back(r_node.Id());
+            }
+        }
+
+        // Now we ensure the nodes
+        int tag_send = 0;
+        int tag_recv = 0;
+        std::vector<std::size_t> nodes_to_bring;
+        for (int i = 0; i < world_size; ++i) {
+            if (i != rank) {
+                // Compute the tag hashing origin rank and destination rank
+                tag_send = 1000 * rank + i;
+                r_data_communicator.Send(nodes_to_ensure[i], i, tag_send);
+            } else {
+                for (int j = 0; j < world_size; ++j) {
+                    if (j != rank) {
+                        // Compute the tag hashing origin rank and destination rank
+                        tag_recv = 1000 * j + rank;
+                        std::vector<std::size_t> rec_nodes_to_ensure;
+                        r_data_communicator.Recv(rec_nodes_to_ensure, j, tag_recv);
+                        for (auto node_id : rec_nodes_to_ensure) {
+                            if (!rAuxiliaryModelPart.HasNode(node_id)) {
+                                nodes_to_bring.push_back(node_id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        rAuxiliaryModelPart.AddNodes(nodes_to_bring);
+    }
+
+    // Now we set the flag on the nodes. The list of nodes of the auxiliary model part
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 
     // In case we are in MPI we synchronize the INTERFACE flag
-     mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
+    mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
 }
 
 /***********************************************************************************/
