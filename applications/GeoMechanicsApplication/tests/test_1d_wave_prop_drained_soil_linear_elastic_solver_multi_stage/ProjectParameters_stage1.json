@@ -19,7 +19,7 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.0025,
+            "time_step":                0.05,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
@@ -31,16 +31,16 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "prebuild_dynamics":                  true,
-        "solution_type":                      "Dynamic",
-        "scheme_type":                        "Newmark",
+        "prebuild_dynamics":                  false,
+        "solution_type":                      "Quasi-Static",
+        "scheme_type":                        "backward_euler",
         "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.02,
         "rayleigh_k":                         6e-6,
-        "strategy_type":                      "newton_raphson_linear_elastic",
+        "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-12,
         "displacement_absolute_tolerance":    1.0E-12,
@@ -111,7 +111,7 @@
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
             "value":           [0.0,-1000,0.0],
-            "table":           [0,1,0]
+            "table":           [0,0,0]
         }
     }],
         "auxiliar_process_list": [
@@ -122,9 +122,9 @@
             "process_name": "JsonOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.output",
-                "output_file_name": "calculated_result.json",
-				"output_variables": ["VELOCITY_Y"],
-				"time_frequency"                : 0.005,
+                "output_file_name": "calculated_result_stage1.json",
+				"output_variables": ["DISPLACEMENT_Y"],
+				"time_frequency"                : 0.05,
 				"historical_value"              : true,
 				"resultant_solution"            : false,
 				"use_node_coordinates"          : false

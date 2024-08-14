@@ -79,6 +79,18 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
                                    KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
 
     def test_wave_through_drained_linear_elastic_soil_linear_elastic_solver_initial_acceleration(self):
+        """
+        Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
+        on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
+        bottom of the geometry such that half the stress in the soil column is cancelled out. In this a solver is used
+        which is designed for linear elastic systems, thus matrices, are not recalculated every step and the linear
+        solver is factorized only once. Furthermore, the initial acceleration is calculated such that the first step is
+        in equilibrium.
+
+        Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
+        time step size is increased for faster calculation
+
+        """
         test_name = 'test_1d_wave_prop_drained_soil_linear_elastic_solver_initial_acceleration'
 
         simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name)
@@ -86,6 +98,44 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         # check if the correct solver is used
         self.assertTrue(isinstance(simulation._GetSolver().solver,
                                    KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
+
+    def test_wave_through_drained_linear_elastic_soil_linear_elastic_solver_multi_stage(self):
+        """
+        Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
+        on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
+        bottom of the geometry such that half the stress in the soil column is cancelled out. In this a solver is used
+        which is designed for linear elastic systems, thus matrices, are not recalculated every step and the linear
+        solver is factorized only once. Furthermore, the initial acceleration is calculated such that the first step is
+        in equilibrium.
+
+        Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
+        time step size is increased for faster calculation
+
+        """
+        test_name = 'test_1d_wave_prop_drained_soil_linear_elastic_solver_multi_stage'
+
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        n_stages = 3
+
+        # run simulation
+        test_helper.run_stages(file_path, n_stages)
+
+        where = "NODE_41"
+        what = "DISPLACEMENT_Y"
+        calculated_displacement = []
+
+        # get calculated results per stage
+        for i in range(n_stages):
+            with open(os.path.join(file_path, "calculated_result_stage" + str(i+1) + ".json")) as fp:
+                calculated_result = json.load(fp)
+
+            calculated_displacement.extend(calculated_result[where][what])
+
+        # get expected results
+        with open(os.path.join(file_path, "expected_result.json")) as fp:
+            expected_result = json.load(fp)
+
+        self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what])
 
     def run_wave_through_drained_linear_elastic_soil_test(self, test_name):
         """

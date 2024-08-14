@@ -113,6 +113,7 @@ class GeoMechanicalSolver(PythonSolver):
             "rotation_dofs"              : false,
             "block_builder"              : true,
             "prebuild_dynamics"          : false,
+            "initialize_acceleration"    : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
@@ -499,11 +500,18 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_linear_elastic":
 
+            # check if the solver_type, solution_type and scheme_type are set to the correct values
             if ((self.settings["solver_type"].GetString().lower() != "u_pw")
                     or (self.settings["solution_type"].GetString().lower() != "dynamic")
                     or (self.settings["scheme_type"].GetString().lower() != "newmark")):
-                raise Exception("The selected strategy is only available for the U-Pw solver, "
-                                "dynamic solution type and newmark scheme")
+                raise Exception(f"The selected strategy, {strategy_type.lower()}, is only available for the "
+                                f"U-Pw solver, dynamic solution type and newmark scheme")
+
+            # check if the reduction_factor and increase_factor are set to 1.0
+            if (self.settings["reduction_factor"].GetDouble() != 1.0
+                    or self.settings["increase_factor"].GetDouble() != 1.0):
+                raise Exception(f"The selected strategy, {strategy_type.lower()}, requires a reduction_factor and "
+                                f"an increase_factor of 1.0.")
 
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
@@ -511,7 +519,7 @@ class GeoMechanicalSolver(PythonSolver):
 
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
-            calculate_initial_acceleration = False
+            calculate_initial_acceleration = self.settings["initialize_acceleration"].GetBool()
 
             # delta time has to be initialized before solving solution steps
             self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
