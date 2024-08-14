@@ -32,4 +32,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSu
     KRATOS_EXPECT_NE(base_geometry, nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto          geometry = LineInterfaceGeometry();
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+
+    const auto new_geometry = geometry.Create(nodes);
+
+    KRATOS_EXPECT_NE(new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
+}
+
 } // namespace Kratos::Testing
