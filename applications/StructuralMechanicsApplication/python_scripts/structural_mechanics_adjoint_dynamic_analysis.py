@@ -27,7 +27,7 @@ class StructuralMechanicsAdjointDynamicAnalysis(StructuralMechanicsAnalysis):
             project_parameters["problem_data"].AddEmptyValue("end_time")
             project_parameters["problem_data"]["end_time"].SetDouble( \
                             project_parameters["problem_data"]["start_step"].GetDouble() + \
-                            project_parameters["problem_data"]["nsteps"].GetInt()*solver_settings["time_stepping"]["time_step"].GetDouble()
+                            (project_parameters["problem_data"]["nsteps"].GetInt()-0.5)*solver_settings["time_stepping"]["time_step"].GetDouble()
                         )
         
         super().__init__(model, project_parameters)
