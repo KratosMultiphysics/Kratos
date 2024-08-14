@@ -10,18 +10,18 @@
 //  Main authors:    Aron Noordam
 //
 
-#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "tests/cpp_tests/test_utilities/custom_element.h"
+#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 #include "tests/cpp_tests/test_utilities/custom_condition.h"
+#include "tests/cpp_tests/test_utilities/custom_element.h"
 
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
-#include "linear_solvers/linear_solver.h"
 #include "../LinearSolversApplication/custom_solvers/eigen_sparse_lu_solver.h"
 #include "factories/linear_solver_factory.h"
+#include "linear_solvers/linear_solver.h"
 
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 
@@ -29,8 +29,8 @@ namespace Kratos::Testing
 {
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType   = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
 /// <summary>
@@ -42,44 +42,44 @@ class NewtonRaphsonStrategyLinearElasticDynamicTester
 public:
     Model mModel;
 
-    explicit NewtonRaphsonStrategyLinearElasticDynamicTester()
-    {
-        CreateValidModelPart();
-    }
+    explicit NewtonRaphsonStrategyLinearElasticDynamicTester() { CreateValidModelPart(); }
 
     /// <summary>
-	/// Creates the valid model part with 2 degrees of freedom.
+    /// Creates the valid model part with 2 degrees of freedom.
     /// </summary>
     void CreateValidModelPart()
     {
-		// Register custom test elements and conditions
-        GeoCustomElement custom_element{ 0, Kratos::make_shared<Point2D<Node>>(Element::GeometryType::PointsArrayType(1)) };
+        // Register custom test elements and conditions
+        GeoCustomElement custom_element{
+            0, Kratos::make_shared<Point2D<Node>>(Element::GeometryType::PointsArrayType(1))};
         KRATOS_REGISTER_ELEMENT("CustomElement", custom_element)
 
-        GeoCustomCondition custom_condition{ 0, Kratos::make_shared<Point2D<Node>>(Condition::GeometryType::PointsArrayType(1)) };
+        GeoCustomCondition custom_condition{
+            0, Kratos::make_shared<Point2D<Node>>(Condition::GeometryType::PointsArrayType(1))};
         KRATOS_REGISTER_CONDITION("CustomCondition", custom_condition)
-        
+
         // add solution step variables
         auto& result = mModel.CreateModelPart("model_part", 2);
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(VELOCITY);
         result.AddNodalSolutionStepVariable(ACCELERATION);
 
-		// add nodes, elements and conditions
-        auto p_node = result.CreateNewNode(0, 0.0, 0.0, 0.0);
-        const auto node_ids = std::vector<ModelPart::IndexType>{ 0 };
-		auto p_element = result.CreateNewElement("CustomElement", 0, node_ids, result.CreateNewProperties(0));
-		auto p_condition = result.CreateNewCondition("CustomCondition", 0, node_ids, result.pGetProperties(0));
+        // add nodes, elements and conditions
+        auto       p_node   = result.CreateNewNode(0, 0.0, 0.0, 0.0);
+        const auto node_ids = std::vector<ModelPart::IndexType>{0};
+        auto       p_element =
+            result.CreateNewElement("CustomElement", 0, node_ids, result.CreateNewProperties(0));
+        auto p_condition =
+            result.CreateNewCondition("CustomCondition", 0, node_ids, result.pGetProperties(0));
 
-		// add dofs
+        // add dofs
         p_node->AddDof(DISPLACEMENT_X);
         p_node->pGetDof(DISPLACEMENT_X)->SetEquationId(0);
 
         p_node->AddDof(DISPLACEMENT_Y);
         p_node->pGetDof(DISPLACEMENT_Y)->SetEquationId(1);
 
-
-		// initialize nodal values
+        // initialize nodal values
         p_node->FastGetSolutionStepValue(VELOCITY, 0) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
         p_node->FastGetSolutionStepValue(ACCELERATION, 0) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
         p_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -87,164 +87,153 @@ public:
         p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
         p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
         p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
-
     }
 
     /// <summary>
-	/// Gets the test model part
+    /// Gets the test model part
     /// </summary>
-    /// <returns> 
-	/// The test model part
-	/// </returns>
+    /// <returns>
+    /// The test model part
+    /// </returns>
     ModelPart& GetModelPart() { return mModel.GetModelPart("model_part"); }
 
-
-    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(ModelPart& rModelPart, double RelativeTollerance, double AbsoluteTollerance, bool CalculateInitialSecondDerivative)
+    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
+        ModelPart& rModelPart, double RelativeTollerance, double AbsoluteTollerance, bool CalculateInitialSecondDerivative)
     {
-		double beta = 0.25;
-		double gamma = 0.5;
+        double beta  = 0.25;
+        double gamma = 0.5;
         // create strategy
-        auto pScheme = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>::Pointer(new NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>(beta, gamma, 0.75));
-		auto factory = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
+        auto pScheme = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>::Pointer(
+            new NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>(beta, gamma, 0.75));
+        auto factory       = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
         auto pLinearSolver = factory.Create(Parameters(R"({ "solver_type": "sparse_lu" })"));
-        auto pBuilderAndSolver = ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer(new ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(pLinearSolver,0.25,0.5, CalculateInitialSecondDerivative));
-        auto pConvergenceCriteria = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>::Pointer(new DisplacementCriteria<SparseSpaceType, LocalSpaceType>(RelativeTollerance, AbsoluteTollerance));
+        auto pBuilderAndSolver =
+            ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer(
+                new ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
+                    pLinearSolver, 0.25, 0.5, CalculateInitialSecondDerivative));
+        auto pConvergenceCriteria = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>::Pointer(
+            new DisplacementCriteria<SparseSpaceType, LocalSpaceType>(RelativeTollerance, AbsoluteTollerance));
 
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
-            rModelPart,
-            pScheme,
-            pLinearSolver,
-            pConvergenceCriteria,
-            pBuilderAndSolver,
-            Parameters(),
-			beta,
-			gamma,
-            30,
-            false,
-            false
-	);
+            rModelPart, pScheme, pLinearSolver, pConvergenceCriteria, pBuilderAndSolver,
+            Parameters(), beta, gamma, 30, false, false);
     }
-
 };
 
-
-
-void TestNewtonRaphsonLinearElasticDynamic(double RelativeConvergenceTollerance, double AbsoluteConvergenceTollerance, double DeltaTime, 
-	bool CalculateInitialAcceleration, const std::vector<double>& rExpectedDisplacementX, const std::vector<double>& rExpectedDisplacementY)
+void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeConvergenceTollerance,
+                                           double                     AbsoluteConvergenceTollerance,
+                                           double                     DeltaTime,
+                                           bool                       CalculateInitialAcceleration,
+                                           const std::vector<double>& rExpectedDisplacementX,
+                                           const std::vector<double>& rExpectedDisplacementY)
 {
-	NewtonRaphsonStrategyLinearElasticDynamicTester tester;
+    NewtonRaphsonStrategyLinearElasticDynamicTester tester;
 
+    // set up model and solver
+    ModelPart& model_part = tester.GetModelPart();
 
+    auto& r_current_process_info = model_part.GetProcessInfo();
 
-	// set up model and solver
-	ModelPart& model_part = tester.GetModelPart();
+    r_current_process_info[TIME]       = 0.0;
+    r_current_process_info[DELTA_TIME] = DeltaTime;
 
-	auto& r_current_process_info = model_part.GetProcessInfo();
+    auto& stiffness_matrix = Matrix(2, 2);
+    stiffness_matrix(0, 0) = 6.0;
+    stiffness_matrix(0, 1) = -2.0;
+    stiffness_matrix(1, 0) = -2.0;
+    stiffness_matrix(1, 1) = 4.0;
 
-	r_current_process_info[TIME] = 0.0;
-	r_current_process_info[DELTA_TIME] = DeltaTime;
+    auto& mass_matrix = Matrix(2, 2);
+    mass_matrix(0, 0) = 2.0;
+    mass_matrix(0, 1) = 0.0;
+    mass_matrix(1, 0) = 0.0;
+    mass_matrix(1, 1) = 1.0;
 
+    auto& damping_matrix = Matrix(2, 2);
+    damping_matrix(0, 0) = 0.0;
+    damping_matrix(0, 1) = 0.0;
+    damping_matrix(1, 0) = 0.0;
+    damping_matrix(1, 1) = 0.0;
 
-	auto& stiffness_matrix = Matrix(2, 2);
-	stiffness_matrix(0, 0) = 6.0;
-	stiffness_matrix(0, 1) = -2.0;
-	stiffness_matrix(1, 0) = -2.0;
-	stiffness_matrix(1, 1) = 4.0;
+    auto& rhs = Vector(2);
+    rhs(0)    = 0.0;
+    rhs(1)    = 10.0;
 
-	auto& mass_matrix = Matrix(2, 2);
-	mass_matrix(0, 0) = 2.0;
-	mass_matrix(0, 1) = 0.0;
-	mass_matrix(1, 0) = 0.0;
-	mass_matrix(1, 1) = 1.0;
+    model_part.GetElement(0).CalculateLeftHandSide(stiffness_matrix, r_current_process_info);
+    model_part.GetElement(0).CalculateMassMatrix(mass_matrix, r_current_process_info);
+    model_part.GetElement(0).CalculateDampingMatrix(damping_matrix, r_current_process_info);
 
-	auto& damping_matrix = Matrix(2, 2);
-	damping_matrix(0, 0) = 0.0;
-	damping_matrix(0, 1) = 0.0;
-	damping_matrix(1, 0) = 0.0;
-	damping_matrix(1, 1) = 0.0;
+    model_part.GetCondition(0).CalculateRightHandSide(rhs, r_current_process_info);
 
-	auto& rhs = Vector(2);
-	rhs(0) = 0.0;
-	rhs(1) = 10.0;
+    // create strategy with high tollerance to avoid non linear iterations
+    auto& r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTollerance,
+                                                AbsoluteConvergenceTollerance, CalculateInitialAcceleration);
 
+    // initialize solver
+    r_solver.Initialize();
 
-	model_part.GetElement(0).CalculateLeftHandSide(stiffness_matrix, r_current_process_info);
-	model_part.GetElement(0).CalculateMassMatrix(mass_matrix, r_current_process_info);
-	model_part.GetElement(0).CalculateDampingMatrix(damping_matrix, r_current_process_info);
+    std::vector<double> calculated_displacement_x;
+    std::vector<double> calculated_displacement_y;
 
-	model_part.GetCondition(0).CalculateRightHandSide(rhs, r_current_process_info);
+    // run test solution loop
+    for (int i = 0; i < 12; i++) {
+        double new_time = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
 
-	// create strategy with high tollerance to avoid non linear iterations
-	auto& r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTollerance, AbsoluteConvergenceTollerance, CalculateInitialAcceleration);
+        r_current_process_info[STEP] += 1;
+        model_part.CloneTimeStep(new_time);
+        r_current_process_info[TIME] = new_time;
 
-	// initialize solver
-	r_solver.Initialize();
+        r_solver.InitializeSolutionStep();
+        r_solver.Predict();
+        r_solver.SolveSolutionStep();
 
-	std::vector<double> calculated_displacement_x;
-	std::vector<double> calculated_displacement_y;
+        r_solver.SetStiffnessMatrixIsBuilt(true);
+        r_solver.FinalizeSolutionStep();
 
-	// run test solution loop
-	for (int i = 0; i < 12; i++)
-	{
+        // store calculated results
+        auto p_node = model_part.pGetNode(0);
+        calculated_displacement_x.push_back(p_node->FastGetSolutionStepValue(DISPLACEMENT_X, 0));
+        calculated_displacement_y.push_back(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y, 0));
+    }
 
-		double new_time = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
-
-		r_current_process_info[STEP] += 1;
-		model_part.CloneTimeStep(new_time);
-		r_current_process_info[TIME] = new_time;
-
-		r_solver.InitializeSolutionStep();
-		r_solver.Predict();
-		r_solver.SolveSolutionStep();
-
-		r_solver.SetStiffnessMatrixIsBuilt(true);
-		r_solver.FinalizeSolutionStep();
-
-		// store calculated results
-		auto p_node = model_part.pGetNode(0);
-		calculated_displacement_x.push_back(p_node->FastGetSolutionStepValue(DISPLACEMENT_X, 0));
-		calculated_displacement_y.push_back(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y, 0));
-
-	}
-
-
-	// check results
-	KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_x, rExpectedDisplacementX, 0.01);
-	KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_y, rExpectedDisplacementY, 0.01);
+    // check results
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_x, rExpectedDisplacementX, 0.01);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_y, rExpectedDisplacementY, 0.01);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAccelerationNoIterations,
                           KratosGeoMechanicsFastSuite)
 {
-	// set up expected results
-	std::vector<double> expected_displacement_x = { 0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58, 2.23, 2.76, 3.0, 2.85, 2.28, 1.40 };
-	std::vector<double> expected_displacement_y = { 0.364, 1.35, 2.68, 4.00, 4.95, 5.34, 5.13, 4.48, 3.64, 2.90, 2.44, 2.31 };
+    // set up expected results
+    std::vector<double> expected_displacement_x = {0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58,
+                                                   2.23,    2.76,   3.0,   2.85,  2.28,  1.40};
+    std::vector<double> expected_displacement_y = {0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
+                                                   5.13,  4.48, 3.64, 2.90, 2.44, 2.31};
 
-	TestNewtonRaphsonLinearElasticDynamic(100, 100, 0.28, true, expected_displacement_x, expected_displacement_y);
-
+    TestNewtonRaphsonLinearElasticDynamic(100, 100, 0.28, true, expected_displacement_x, expected_displacement_y);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAccelerationWithIterations,
-	KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuite)
 {
-	// set up expected results
-	std::vector<double> expected_displacement_x = { 0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58, 2.23, 2.76, 3.0, 2.85, 2.28, 1.40 };
-	std::vector<double> expected_displacement_y = { 0.364, 1.35, 2.68, 4.00, 4.95, 5.34, 5.13, 4.48, 3.64, 2.90, 2.44, 2.31 };
+    // set up expected results
+    std::vector<double> expected_displacement_x = {0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58,
+                                                   2.23,    2.76,   3.0,   2.85,  2.28,  1.40};
+    std::vector<double> expected_displacement_y = {0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
+                                                   5.13,  4.48, 3.64, 2.90, 2.44, 2.31};
 
-	TestNewtonRaphsonLinearElasticDynamic(1e-12, 1e-12, 0.28, true, expected_displacement_x, expected_displacement_y);
-
+    TestNewtonRaphsonLinearElasticDynamic(1e-12, 1e-12, 0.28, true, expected_displacement_x, expected_displacement_y);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicZeroInitialAccelerationNoIterations,
-	KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicZeroInitialAccelerationNoIterations, KratosGeoMechanicsFastSuite)
 {
-	// set up expected results
-	std::vector<double> expected_displacement_x = { 0.996, 1.01, 0.982, 1.02, 0.969, 1.04, 0.957, 1.05, 0.947, 1.06, 0.940, 1.06 };
-	std::vector<double> expected_displacement_y = { 2.99, 3.02, 2.97, 3.04, 2.95, 3.06, 2.93, 3.08, 2.91, 3.09, 2.90, 3.11 };
+    // set up expected results
+    std::vector<double> expected_displacement_x = {0.996, 1.01, 0.982, 1.02, 0.969, 1.04,
+                                                   0.957, 1.05, 0.947, 1.06, 0.940, 1.06};
+    std::vector<double> expected_displacement_y = {2.99, 3.02, 2.97, 3.04, 2.95, 3.06,
+                                                   2.93, 3.08, 2.91, 3.09, 2.90, 3.11};
 
-	TestNewtonRaphsonLinearElasticDynamic(100, 100, 28.0, false, expected_displacement_x, expected_displacement_y);
-
+    TestNewtonRaphsonLinearElasticDynamic(100, 100, 28.0, false, expected_displacement_x, expected_displacement_y);
 }
-
 
 } // namespace Kratos::Testing
