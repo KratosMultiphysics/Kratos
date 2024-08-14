@@ -186,6 +186,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+				       const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS

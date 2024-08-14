@@ -81,6 +81,64 @@ PointLoadCondition::~PointLoadCondition()
 }
 
 //************************************************************************************
+//************************************************************************************//************************************************************************************
+//************************************************************************************
+
+void PointLoadCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+			       const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int NumberOfNodes = GetGeometry().size();
+    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    const unsigned int MatSize = NumberOfNodes * Dimension;
+
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
+   
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void PointLoadCondition::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int NumberOfNodes = GetGeometry().size();
+    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    const unsigned int MatSize = NumberOfNodes * Dimension;
+
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void PointLoadCondition::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int NumberOfNodes = GetGeometry().size();
+    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    const unsigned int MatSize = NumberOfNodes * Dimension;
+
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
 //************************************************************************************
 
 void PointLoadCondition::CalculateAll(
