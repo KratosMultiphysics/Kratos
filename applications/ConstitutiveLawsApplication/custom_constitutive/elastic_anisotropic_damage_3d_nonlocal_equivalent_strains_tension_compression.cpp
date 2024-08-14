@@ -197,7 +197,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
-        KRATOS_WATCH(r_strain_vector)
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         Matrix r_elasticity_matrix;
         r_elasticity_matrix.resize(6, 6, false);
@@ -235,6 +234,11 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         TransformPrincipalDamageIncrementToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
         total_damage_tensor += damage_increment_tensor;
         GetTotalPrincipalDamageVector(principal_damage_vector,total_damage_tensor);
+        for(SizeType i =0; i < Dimension; ++i){
+            if(principal_damage_vector[i] > 0.99){
+                principal_damage_vector[i] = 0.99;
+            }
+        }
         if(principal_damage_increment_vector[0] > 0.0 || principal_damage_increment_vector[1] > 0.0 || principal_damage_increment_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, principal_damage_vector);
             GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
@@ -248,7 +252,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
             }
         }
         AssembleConstitutiveMatrix(r_constitutive_matrix, r_elasticity_matrix, H_NL1u, H_NL2u, H_uNL1, H_uNL2, H_NLNL);
-        KRATOS_WATCH(r_constitutive_matrix)
         rInternalDamageVariables.DamageMatrix = total_damage_tensor;
         rInternalDamageVariables.PrincipalDamageVector = principal_damage_vector;
         CalculateLocalEquivalentStrains(local_equivalent_strains, rParametersValues, principal_strains);
@@ -256,8 +259,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         rInternalDamageVariables.kappa = rModelParameters.kappa ;
         rInternalDamageVariables.StrainHistoryParameter = rModelParameters.strain_history_parameter;
         }
-        KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME])
-        KRATOS_WATCH("-------------------------------------------------------")
     KRATOS_CATCH("")
 }
 
