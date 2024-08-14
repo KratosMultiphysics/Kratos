@@ -161,8 +161,10 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
+        KRATOS_TRY;
         mpPrimalElement->Initialize(rCurrentProcessInfo);
         this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this, mHasRotationDofs));
+        KRATOS_CATCH("")
     }
 
     void ResetConstitutiveLaw() override
@@ -202,8 +204,11 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo) override
     {
+        KRATOS_TRY;
         mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
                                                rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix; // Negative sign needed for adjoint bossak scheme. May lead to problems in the adjoint static scheme
+        KRATOS_CATCH("")
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -225,8 +230,11 @@ public:
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					        const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
+        KRATOS_TRY;
+        mpPrimalElement->CalculateDampingMatrix(rLeftHandSideMatrix,
+                                                rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+        KRATOS_CATCH("")
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
@@ -248,8 +256,11 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					       const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
+        KRATOS_TRY;
+        mpPrimalElement->CalculateMassMatrix(rLeftHandSideMatrix,
+                                             rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = - rLeftHandSideMatrix;
+        KRATOS_CATCH("")
     }
 
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
