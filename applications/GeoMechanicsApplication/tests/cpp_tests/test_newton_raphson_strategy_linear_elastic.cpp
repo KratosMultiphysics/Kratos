@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Aron Noordam
 //
 
 #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
@@ -16,16 +16,9 @@
 #include "tests/cpp_tests/test_utilities/custom_element.h"
 #include "tests/cpp_tests/test_utilities/custom_condition.h"
 
-//#include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
-//#include "includes/define.h"
-//#include "includes/model_part.h"
-////#include "solving_strategy.h"
-//#include "solving_strategies/schemes/scheme.h"
-//#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-//#include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "../LinearSolversApplication/custom_solvers/eigen_sparse_lu_solver.h"
 #include "factories/linear_solver_factory.h"
