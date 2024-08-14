@@ -26,92 +26,64 @@
 
 namespace Kratos {
 
-template<class TContainerType>
-SensorMaskStatus<TContainerType>::SensorMaskStatus(
-    ModelPart& rSensorModelPart,
-    const std::vector<ContainerExpression<TContainerType>>& rMasksList)
-    : mpSensorModelPart(&rSensorModelPart)
+SensorMaskStatus::SensorMaskStatus(
+    const ModelPart& rSensorModelPart,
+    const MasksListType& rMaskPointersList)
+    : mpSensorModelPart(&rSensorModelPart),
+      mMaskPointersList(rMaskPointersList)
 {
     KRATOS_TRY
-
-    KRATOS_ERROR_IF(rMasksList.empty())
-        << "Please provide non-empty masks list.";
-
-    KRATOS_ERROR_IF_NOT(mpSensorModelPart->NumberOfNodes() == rMasksList.size())
-        << "Number of sensors and number of masks mismatch [ number of sensors = "
-        << mpSensorModelPart->NumberOfNodes() << ", number of masks = "
-        << rMasksList.size() << " ].";
-
-    mpMaskModelPart = &*(rMasksList.front().pGetModelPart());
-    mpMaskContainer = &(rMasksList.front().GetContainer());
-    mpDataCommunicator = &(rMasksList.front().GetModelPart().GetCommunicator().GetDataCommunicator());
-
-    const IndexType number_of_sensors = rMasksList.size();
-    const IndexType number_of_entities = mpMaskContainer->size();
-
-    mSensorMasks.resize(number_of_entities, number_of_sensors, false);
-    mSensorMaskStatuses.resize(number_of_entities, number_of_sensors, false);
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto iEntity) {
-        for (IndexType i_sensor = 0; i_sensor < number_of_sensors; ++i_sensor) {
-            mSensorMasks(iEntity, i_sensor) = rMasksList[i_sensor].GetExpression().Evaluate(iEntity, iEntity, 0);
-        }
-    });
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-Matrix& SensorMaskStatus<TContainerType>::GetMaskStatuses()
+const Matrix& SensorMaskStatus::GetMaskStatuses() const
 {
     return mSensorMaskStatuses;
 }
 
-template<class TContainerType>
-const Matrix& SensorMaskStatus<TContainerType>::GetMaskStatuses() const
-{
-    return mSensorMaskStatuses;
-}
-
-template<class TContainerType>
-const Matrix& SensorMaskStatus<TContainerType>::GetMasks() const
+const Matrix& SensorMaskStatus::GetMasks() const
 {
     return mSensorMasks;
 }
 
-template<class TContainerType>
-ModelPart& SensorMaskStatus<TContainerType>::GetSensorModelPart() const
+const ModelPart& SensorMaskStatus::GetSensorModelPart() const
 {
     return *mpSensorModelPart;
 }
 
-template<class TContainerType>
-const TContainerType& SensorMaskStatus<TContainerType>::GetMaskLocalContainer() const
-{
-    return *mpMaskContainer;
-}
-
-template<class TContainerType>
-ModelPart& SensorMaskStatus<TContainerType>::GetMaskModelPart()
-{
-    return *mpMaskModelPart;
-}
-
-template<class TContainerType>
-const DataCommunicator& SensorMaskStatus<TContainerType>::GetDataCommunicator() const
-{
-    return *mpDataCommunicator;
-}
-
-template<class TContainerType>
-void SensorMaskStatus<TContainerType>::Update()
+void SensorMaskStatus::Update()
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mpSensorModelPart->NumberOfNodes() == mSensorMasks.size2())
-        << "Number of sensors in the model part and number of stored sensor masks mismatch [ number of sensors in model part = "
-        << mpSensorModelPart->NumberOfNodes() << ", number of stored sensor masks = "
-        << mSensorMasks.size2() << " ].";
+    KRATOS_ERROR_IF(std::visit([&](const auto& rMasksPointersList)
+                               { return rMasksPointersList.empty(); }, mMaskPointersList))
+        << "Please provide non-empty masks list.";
+
+    const auto number_of_masks = std::visit([](const auto& rMasksPointersList)
+                                            { return rMasksPointersList.size(); }, mMaskPointersList);
+
+    KRATOS_ERROR_IF_NOT(number_of_masks == mpSensorModelPart->NumberOfNodes())
+        << "Number of nodes and number of masks mismatch [ number of nodes = "
+        << mpSensorModelPart->NumberOfNodes() << ", number of masks = "
+        << number_of_masks << " ].";
+
+    auto& r_mask_statuses = mSensorMasks;
+
+    std::visit([&r_mask_statuses](const auto& rMasksPointersList) {
+        const IndexType number_of_entities = rMasksPointersList.front()->GetContainer().size();
+        const IndexType number_of_masks = rMasksPointersList.size();
+
+        if (r_mask_statuses.size1() != number_of_entities || r_mask_statuses.size2() != number_of_masks) {
+            r_mask_statuses.resize(number_of_entities, number_of_masks, false);
+        }
+
+        IndexPartition<IndexType>(number_of_entities).for_each([&rMasksPointersList, &r_mask_statuses, number_of_masks](const auto iEntity) {
+            for (IndexType i_mask = 0; i_mask < number_of_masks; ++i_mask) {
+                r_mask_statuses(iEntity, i_mask) = rMasksPointersList[i_mask]->GetExpression().Evaluate(iEntity, iEntity, 0);
+            }
+        });
+    }, mMaskPointersList);
 
     Vector sensor_status(mSensorMasks.size2());
 
@@ -128,10 +100,5 @@ void SensorMaskStatus<TContainerType>::Update()
 
     KRATOS_CATCH("");
 }
-
-// template instantiations
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorMaskStatus<ModelPart::NodesContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorMaskStatus<ModelPart::ConditionsContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorMaskStatus<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

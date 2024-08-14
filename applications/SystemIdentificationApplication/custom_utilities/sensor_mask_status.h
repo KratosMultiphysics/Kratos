@@ -30,13 +30,18 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TContainerType>
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorMaskStatus {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
+
+    using MasksListType = std::variant<
+                                std::vector<ContainerExpression<ModelPart::NodesContainerType>::Pointer>,
+                                std::vector<ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>,
+                                std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>
+                            >;
 
     KRATOS_CLASS_POINTER_DEFINITION(SensorMaskStatus);
 
@@ -45,21 +50,12 @@ public:
     ///@{
 
     SensorMaskStatus(
-        ModelPart& rSensorModelPart,
-        const std::vector<ContainerExpression<TContainerType>>& rMasksList);
+        const ModelPart& rSensorModelPart,
+        const MasksListType& rMaskPointersList);
 
     ///@}
     ///@name Public operations
     ///@{
-
-    /**
-     * @brief Get the mask statuses.
-     * @details This method returns the masks multiplied with the corresponding SENSOR_STATUS.
-     *          The rows of the return matrix returns number of entities, and columns of the return
-     *          matrix represents number of sensors.
-     * @return const Matrix&        Mask statuses matrix.
-     */
-    Matrix& GetMaskStatuses();
 
     /**
      * @brief Get the mask statuses.
@@ -79,21 +75,9 @@ public:
     const Matrix& GetMasks() const;
 
     /**
-     * @brief Get the Sensor Model Part
+     * @brief Get the Sensor Model Part object
      */
-    ModelPart& GetSensorModelPart() const;
-
-    /**
-     * @brief Get local container for all the masks
-     */
-    const TContainerType& GetMaskLocalContainer() const;
-
-    ModelPart& GetMaskModelPart();
-
-    /**
-     * @brief Get the Data Communicator used in the mask model part.
-     */
-    const DataCommunicator& GetDataCommunicator() const;
+    const ModelPart& GetSensorModelPart() const;
 
     /**
      * @brief Updates the masks with the corresponding SENSOR_STATUS.
@@ -106,13 +90,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    ModelPart * const mpSensorModelPart;
+    ModelPart const * const mpSensorModelPart;
 
-    ModelPart * mpMaskModelPart;
-
-    TContainerType const * mpMaskContainer;
-
-    DataCommunicator const * mpDataCommunicator;
+    const MasksListType mMaskPointersList;
 
     Matrix mSensorMaskStatuses;
 
