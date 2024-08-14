@@ -27,13 +27,14 @@ public:
     LineInterfaceGeometry() = default;
 
     explicit LineInterfaceGeometry(const Geometry<Node>::PointsArrayType& rThisPoints)
-        : Geometry<Node>(rThisPoints)
+        : LineInterfaceGeometry(0, rThisPoints)
     {
     }
 
     LineInterfaceGeometry(const IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
         : Geometry<Node>(NewGeometryId, rThisPoints)
     {
+        KRATOS_ERROR_IF_NOT(rThisPoints.size() % 2 == 0) << "Number of nodes must be even\n";
     }
 
     [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
