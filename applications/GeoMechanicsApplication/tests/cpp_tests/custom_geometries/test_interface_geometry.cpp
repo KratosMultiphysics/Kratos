@@ -87,28 +87,28 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->Id(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoLines,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
 
-    const auto ksi_1 = array_1d<double, 3>{-1.0, 0.0, 0.0};
-    const auto ksi_2 = array_1d<double, 3>{1.0, 0.0, 0.0};
+    const auto ksi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
+    const auto ksi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
 
     // First pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_1), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_2), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_1), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_2), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_start), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_end), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_start), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_end), 0.0);
 
     // Second pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_1), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_2), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_1), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_2), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_start), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_end), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_start), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_end), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoThreeNodedLines,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForSixNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
