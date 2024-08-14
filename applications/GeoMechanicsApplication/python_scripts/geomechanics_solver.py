@@ -507,18 +507,19 @@ class GeoMechanicalSolver(PythonSolver):
 
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-
-            # a direct solver is needed which can be pre-factorized
-            linear_solver = KratosMultiphysics.python_linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+            self.strategy_params.AddValue("loads_variable_list", self.settings["loads_variable_list"])
 
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
-            calculate_initial_acceleration = True
+            calculate_initial_acceleration = False
 
             # delta time has to be initialized before solving solution steps
             self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
 
+            # Note that the linear solver and the builder_and_solver are changed but not stored in self. This is because
+            # this can result in unexpected behavior in a multi-stage analysis.
+            # a direct solver is needed which can be pre-factorized
+            linear_solver = KratosMultiphysics.python_linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
             new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(linear_solver, beta, gamma, calculate_initial_acceleration)
 
             solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
