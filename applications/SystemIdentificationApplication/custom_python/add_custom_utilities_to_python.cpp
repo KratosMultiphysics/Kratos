@@ -74,16 +74,6 @@ void AddMaskUtilsToPython(pybind11::module& m)
     m.def("Scale", &MaskUtils::Scale<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("ClusterMasks", &MaskUtils::ClusterMasks<TContainerType>, py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask<TContainerType>, py::arg(("reference_" + lower_prefix + "_mask_expression").c_str()), py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
-
-    py::class_<SensorMaskStatus<TContainerType>, typename SensorMaskStatus<TContainerType>::Pointer>(m, ("Sensor" + upper_prefix + "MaskStatus").c_str())
-        .def(py::init<ModelPart&, const std::vector<ContainerExpression<TContainerType>>&>(), py::arg("sensor_model_part"), py::arg("sensor_masks"))
-        .def("GetMasks", &SensorMaskStatus<TContainerType>::GetMasks)
-        .def("GetMaskStatuses", py::overload_cast<>(&SensorMaskStatus<TContainerType>::GetMaskStatuses, py::const_))
-        .def("GetSensorModelPart", &SensorMaskStatus<TContainerType>::GetSensorModelPart)
-        .def("GetMaskLocalContainer", &SensorMaskStatus<TContainerType>::GetMaskLocalContainer)
-        .def("GetDataCommunicator", &SensorMaskStatus<TContainerType>::GetDataCommunicator)
-        .def("Update", &SensorMaskStatus<TContainerType>::Update)
-        ;
 }
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
@@ -113,6 +103,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
+
+    py::class_<SensorMaskStatus, SensorMaskStatus::Pointer>(m, "SensorMaskStatus")
+        .def(py::init<const ModelPart&, const SensorMaskStatus::MasksListType&>(), py::arg("sensor_model_part"), py::arg("sensor_masks_list"))
+        .def("GetMasks", &SensorMaskStatus::GetMasks)
+        .def("GetMaskStatuses", &SensorMaskStatus::GetMaskStatuses)
+        .def("GetSensorModelPart", &SensorMaskStatus::GetSensorModelPart)
+        .def("Update", &SensorMaskStatus::Update)
+        ;
 }
 
 } // namespace Kratos::Python
