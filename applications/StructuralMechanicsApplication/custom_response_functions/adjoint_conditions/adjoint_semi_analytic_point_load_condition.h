@@ -19,6 +19,8 @@
 
 // Project includes
 #include "adjoint_semi_analytic_base_condition.h"
+#include "utilities/adjoint_extensions.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -46,6 +48,32 @@ template <typename TPrimalCondition>
 class AdjointSemiAnalyticPointLoadCondition
     : public AdjointSemiAnalyticBaseCondition<TPrimalCondition>
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        explicit ThisExtensions(Condition* pCondition);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -107,6 +135,14 @@ public:
     {
         return Kratos::make_intrusive<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
             NewId, pGeometry, pProperties);
+    }
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        BaseType::mpPrimalCondition->Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+        KRATOS_CATCH("")
     }
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
