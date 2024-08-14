@@ -14,15 +14,27 @@
 #include "../geo_mechanics_fast_suite.h"
 #include "custom_geometries/line_interface_geometry.h"
 
+namespace
+{
+
+using namespace Kratos;
+
+LineInterfaceGeometry CreateLineInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.0, 0.0));
+    return {1, nodes};
+}
+
+} // namespace
+
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
-
-KRATOS_TEST_CASE_IN_SUITE(ConstructInterfaceGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = LineInterfaceGeometry();
-}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -66,24 +78,22 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoLines,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.0, 0.0));
-    const auto geometry = LineInterfaceGeometry(1, nodes);
+    const auto geometry = CreateLineInterfaceGeometry();
+
+    const auto ksi_1 = array_1d<double, 3>{-1.0, 0.0, 0.0};
+    const auto ksi_2 = array_1d<double, 3>{1.0, 0.0, 0.0};
 
     // First pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, array_1d<double, 3>{-1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, array_1d<double, 3>{1.0, 0.0, 0.0}), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_1), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_2), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_1), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_2), 0.0);
 
     // Second pair of nodes
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, array_1d<double, 3>{-1.0, 0.0, 0.0}), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, array_1d<double, 3>{1.0, 0.0, 0.0}), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_1), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_2), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_1), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_2), 1.0);
 }
 
 } // namespace Kratos::Testing
