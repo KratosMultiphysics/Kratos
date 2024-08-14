@@ -51,9 +51,18 @@ public:
     double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
     {
         PointsArrayType points = this->Points();
-        points.resize(2);
-        Line2D2<Node> line(points);
-        return line.ShapeFunctionValue(ShapeFunctionIndex % 2, rCoordinates);
+        points.resize(points.size() / 2);
+
+        switch (points.size()) {
+        case 2: {
+            const Line2D2<Node> line(points);
+            return line.ShapeFunctionValue(ShapeFunctionIndex % 2, rCoordinates);
+        }
+        case 3: {
+            const Line2D3<Node> line(points);
+            return line.ShapeFunctionValue(ShapeFunctionIndex % 3, rCoordinates);
+        }
+        }
     }
 };
 
