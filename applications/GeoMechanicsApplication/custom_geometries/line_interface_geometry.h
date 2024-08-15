@@ -66,11 +66,7 @@ public:
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        rResult.resize(mLineGeometry->PointsNumber());
-        for (auto i = IndexType{0}; i < mLineGeometry->PointsNumber(); ++i) {
-            rResult[i] = this->ShapeFunctionValue(i, rCoordinates);
-        }
-        return rResult;
+        return mLineGeometry->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
