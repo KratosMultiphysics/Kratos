@@ -73,6 +73,11 @@ public:
         return rResult;
     }
 
+    Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
+    {
+        return mLineGeometry->ShapeFunctionsLocalGradients(rResult, rPoint);
+    }
+
 private:
     std::unique_ptr<Geometry<Node>> mLineGeometry;
 };
