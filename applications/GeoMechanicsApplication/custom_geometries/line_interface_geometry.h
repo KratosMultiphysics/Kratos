@@ -92,6 +92,11 @@ public:
         return mLineGeometry->Jacobian(rResult, rCoordinates);
     }
 
+    [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const override
+    {
+        return mLineGeometry->DeterminantOfJacobian(rPoint);
+    }
+
 private:
     std::unique_ptr<Geometry<Node>> mLineGeometry;
 };

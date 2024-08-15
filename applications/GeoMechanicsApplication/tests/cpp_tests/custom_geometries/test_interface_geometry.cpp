@@ -248,4 +248,26 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedG
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForFourNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    const auto result = geometry.DeterminantOfJacobian(ksi);
+
+    KRATOS_EXPECT_RELATIVE_NEAR(result, 3.25, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForSixNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    const auto result = geometry.DeterminantOfJacobian(ksi);
+
+    KRATOS_EXPECT_RELATIVE_NEAR(result, 3.0, 1e-6)
+}
+
 } // namespace Kratos::Testing
