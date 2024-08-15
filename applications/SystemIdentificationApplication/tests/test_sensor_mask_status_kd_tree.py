@@ -38,25 +38,24 @@ class TestSensorMaskStatusKDTree(UnitTest.TestCase):
     def test_RadiusSearch(self):
         mask_status = self.sensor_mask_status.GetMaskStatuses()
 
-        query_point_index = 1
         radius = 0.03
+        for query_point_index in range(mask_status.Size1()):
+            ref_neighbours: 'list[tuple[int, float]]' = []
+            for i in range(mask_status.Size1()):
+                distance = 0.0
+                for k in range(mask_status.Size2()):
+                    distance += fabs(mask_status[i, k] - mask_status[query_point_index, k])
+                if distance <= radius:
+                    ref_neighbours.append((i, distance))
 
-        ref_neighbours: 'list[tuple[int, float]]' = []
-        for i in range(mask_status.Size1()):
-            distance = 0.0
-            for k in range(mask_status.Size2()):
-                distance += fabs(mask_status[i, k] - mask_status[query_point_index, k])
-            if distance <= radius:
-                ref_neighbours.append((i, distance))
+            query_point = Kratos.Vector(self.sensor_model_part.NumberOfNodes())
+            for i in range(query_point.Size()):
+                query_point[i] = mask_status[query_point_index, i]
 
-        query_point = Kratos.Vector(self.sensor_model_part.NumberOfNodes())
-        for i in range(query_point.Size()):
-            query_point[i] = mask_status[query_point_index, i]
+            neighbours = self.sensor_mask_status_kd_tree.RadiusSearch(query_point, radius)
+            neighbours = sorted(neighbours, key=lambda x: x[0])
 
-        neighbours = self.sensor_mask_status_kd_tree.RadiusSearch(query_point, radius)
-        neighbours = sorted(neighbours, key=lambda x: x[0])
-
-        self.assertEqual(neighbours, ref_neighbours)
+            self.assertEqual(neighbours, ref_neighbours)
 
 if __name__ == '__main__':
     UnitTest.main()
