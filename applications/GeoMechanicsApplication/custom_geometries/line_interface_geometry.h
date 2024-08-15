@@ -38,11 +38,17 @@ public:
             << "Number of nodes must be four or six\n";
 
         auto points = this->Points();
-        points.resize(points.size() / 2);
-        if (points.size() == 2) {
+        if (points.size() == 4) {
+            points.resize(points.size() / 2);
             mLineGeometry = std::make_unique<Line2D2<Node>>(points);
         } else {
-            mLineGeometry = std::make_unique<Line2D3<Node>>(points);
+            auto new_points = PointerVector<Node>{};
+
+            new_points.push_back(make_intrusive<Node>(1, (points[0] + points[3]) / 2));
+            new_points.push_back(make_intrusive<Node>(2, (points[1] + points[4]) / 2));
+            new_points.push_back(make_intrusive<Node>(3, (points[2] + points[5]) / 2));
+
+            mLineGeometry = std::make_unique<Line2D3<Node>>(new_points);
         }
     }
 
@@ -72,6 +78,11 @@ public:
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
     {
         return mLineGeometry->ShapeFunctionsLocalGradients(rResult, rPoint);
+    }
+
+    Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        return mLineGeometry->Jacobian(rResult, rCoordinates);
     }
 
 private:
