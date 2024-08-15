@@ -204,4 +204,18 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForSixNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    Matrix result;
+    geometry.ShapeFunctionsLocalGradients(result, ksi);
+
+    Matrix expected_result(3, 1);
+    expected_result <<= 0.0, 1.0, -1.0;
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+}
+
 } // namespace Kratos::Testing
