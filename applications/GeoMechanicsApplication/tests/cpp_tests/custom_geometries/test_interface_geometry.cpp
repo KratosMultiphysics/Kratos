@@ -270,4 +270,15 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     KRATOS_EXPECT_RELATIVE_NEAR(result, 3.0, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    Matrix result;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.InverseOfJacobian(result, ksi),
+        "Inverse of Jacobian is not implemented for the line interface geometry");
+}
+
 } // namespace Kratos::Testing

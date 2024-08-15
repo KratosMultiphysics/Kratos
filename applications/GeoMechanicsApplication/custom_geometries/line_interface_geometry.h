@@ -97,6 +97,11 @@ public:
         return mLineGeometry->DeterminantOfJacobian(rPoint);
     }
 
+    Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
+    }
+
 private:
     std::unique_ptr<Geometry<Node>> mLineGeometry;
 };
