@@ -34,7 +34,16 @@ public:
     LineInterfaceGeometry(const IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
         : Geometry<Node>(NewGeometryId, rThisPoints)
     {
-        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6)) << "Number of nodes must be four or six\n";
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
+            << "Number of nodes must be four or six\n";
+
+        auto points = this->Points();
+        points.resize(points.size() / 2);
+        if (points.size() == 2) {
+            mLineGeometry = std::make_unique<Line2D2<Node>>(points);
+        } else {
+            mLineGeometry = std::make_unique<Line2D3<Node>>(points);
+        }
     }
 
     [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
@@ -51,20 +60,11 @@ public:
 
     double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
     {
-        PointsArrayType points = this->Points();
-        points.resize(points.size() / 2);
-
-        switch (points.size()) {
-        case 2: {
-            const Line2D2<Node> line(points);
-            return line.ShapeFunctionValue(ShapeFunctionIndex % 2, rCoordinates);
-        }
-        case 3: {
-            const Line2D3<Node> line(points);
-            return line.ShapeFunctionValue(ShapeFunctionIndex % 3, rCoordinates);
-        }
-        }
+        return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex % mLineGeometry->PointsNumber(), rCoordinates);
     }
+
+private:
+    std::unique_ptr<Geometry<Node>> mLineGeometry;
 };
 
 } // namespace Kratos
