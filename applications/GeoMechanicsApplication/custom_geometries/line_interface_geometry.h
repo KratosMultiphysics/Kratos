@@ -61,13 +61,13 @@ public:
     [[nodiscard]] double ShapeFunctionValue(IndexType                   ShapeFunctionIndex,
                                             const CoordinatesArrayType& rCoordinates) const override
     {
-        return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex % mLineGeometry->PointsNumber(), rCoordinates);
+        return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rCoordinates);
     }
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        rResult.resize(this->PointsNumber());
-        for (auto i = IndexType{0}; i < this->PointsNumber(); ++i) {
+        rResult.resize(mLineGeometry->PointsNumber());
+        for (auto i = IndexType{0}; i < mLineGeometry->PointsNumber(); ++i) {
             rResult[i] = this->ShapeFunctionValue(i, rCoordinates);
         }
         return rResult;

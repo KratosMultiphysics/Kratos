@@ -124,17 +124,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     const auto ksi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
     const auto ksi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
 
-    // First pair of nodes
+    // Values for first shape function
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_start), 1.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_end), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_start), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_end), 0.0);
 
-    // Second pair of nodes
+    // Values for second shape function
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_end), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_end), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForSixNodedGeometry,
@@ -146,29 +142,20 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     const auto ksi_end    = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto ksi_middle = array_1d<double, 3>{0.0, 0.0, 0.0};
 
-    // First pair of nodes
+    // Values for first shape function
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_start), 1.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_end), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_middle), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_start), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_end), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(3, ksi_middle), 0.0);
 
-    // Second pair of nodes
+    // Values for second shape function
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_end), 1.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_middle), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(4, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(4, ksi_end), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(4, ksi_middle), 0.0);
 
-    // Third pair of nodes
+    // Values for third shape function
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_end), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_middle), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_end), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_middle), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForFourNodedGeometry,
@@ -181,8 +168,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     Vector result;
     geometry.ShapeFunctionsValues(result, ksi);
 
-    Vector expected_result{4};
-    expected_result <<= 0.25, 0.75, 0.25, 0.75;
+    // Note that the shape function values are evaluated per nodal pair!
+    Vector expected_result{2};
+    expected_result <<= 0.25, 0.75;
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
 }
 
@@ -196,8 +184,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     Vector result;
     geometry.ShapeFunctionsValues(result, ksi);
 
-    Vector expected_result{6};
-    expected_result <<= -0.125, 0.375, 0.75, -0.125, 0.375, 0.75;
+    // Note that the shape function values are evaluated per nodal pair!
+    Vector expected_result{3};
+    expected_result <<= -0.125, 0.375, 0.75;
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
 }
 
