@@ -25,8 +25,8 @@ LineInterfaceGeometry CreateFourNodedLineInterfaceGeometry()
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.2, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.2, 0.0));
     return {1, nodes};
 }
 
@@ -226,6 +226,21 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGe
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.0, 0.0;
+
+    Matrix result;
+    geometry.Jacobian(result, ksi);
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    Matrix expected_result(2, 1);
+    expected_result <<= 3.25, 0.0;
 
     Matrix result;
     geometry.Jacobian(result, ksi);
