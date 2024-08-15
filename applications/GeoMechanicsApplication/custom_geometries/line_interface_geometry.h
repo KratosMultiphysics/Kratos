@@ -58,9 +58,19 @@ public:
         return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
-    [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
+    [[nodiscard]] double ShapeFunctionValue(IndexType                   ShapeFunctionIndex,
+                                            const CoordinatesArrayType& rCoordinates) const override
     {
         return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex % mLineGeometry->PointsNumber(), rCoordinates);
+    }
+
+    Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        rResult.resize(this->PointsNumber());
+        for (auto i = IndexType{0}; i < this->PointsNumber(); ++i) {
+            rResult[i] = this->ShapeFunctionValue(i, rCoordinates);
+        }
+        return rResult;
     }
 
 private:

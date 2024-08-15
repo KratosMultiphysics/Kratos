@@ -13,6 +13,7 @@
 
 #include "../geo_mechanics_fast_suite.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -97,7 +98,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenCreatingInterfaceGivenTwoNodes, KratosG
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be four or six")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
+                                      "Number of nodes must be four or six")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -107,7 +109,8 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeo
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be four or six")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
+                                      "Number of nodes must be four or six")
     constexpr auto geometry_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
                                       "Number of nodes must be four or six")
@@ -166,6 +169,36 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_end), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_middle), 1.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForFourNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+
+    const auto ksi = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    Vector result;
+    geometry.ShapeFunctionsValues(result, ksi);
+
+    Vector expected_result{4};
+    expected_result <<= 0.25, 0.75, 0.25, 0.75;
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForSixNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+
+    const auto ksi = array_1d<double, 3>{0.5, 0.0, 0.0};
+
+    Vector result;
+    geometry.ShapeFunctionsValues(result, ksi);
+
+    Vector expected_result{6};
+    expected_result <<= -0.125, 0.375, 0.75, -0.125, 0.375, 0.75;
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
 }
 
 } // namespace Kratos::Testing
