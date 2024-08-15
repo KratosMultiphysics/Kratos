@@ -35,6 +35,8 @@ public:
         : Geometry<Node>(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT(rThisPoints.size() % 2 == 0) << "Number of nodes must be even\n";
+
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6)) << "Number of nodes must be four or six\n";
     }
 
     [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
