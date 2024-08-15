@@ -58,7 +58,7 @@ public:
         return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
-    double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
+    [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates) const override
     {
         return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex % mLineGeometry->PointsNumber(), rCoordinates);
     }
