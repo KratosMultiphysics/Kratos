@@ -100,6 +100,19 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenCreatingInterfaceGivenTwoNodes, KratosG
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be four or six")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be four or six")
+    constexpr auto geometry_id = 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
+                                      "Number of nodes must be four or six")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -153,19 +166,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_end), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(5, ksi_middle), 1.0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes}, "Number of nodes must be even")
-    constexpr auto geometry_id = 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
-                                      "Number of nodes must be even")
 }
 
 } // namespace Kratos::Testing
