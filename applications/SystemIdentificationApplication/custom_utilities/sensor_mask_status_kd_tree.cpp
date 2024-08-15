@@ -41,7 +41,7 @@ SensorMaskStatus::Pointer SensorMaskStatusKDTree::GetSensorMaskStatus() const
 void SensorMaskStatusKDTree::RadiusSearch(
     const Vector& rQueryPoint,
     const double Radius,
-    std::vector<nanoflann::ResultItem<unsigned int, double>> &IndicesDistances) const
+    std::vector<ResultType> &IndicesDistances) const
 {
     KRATOS_TRY
 
