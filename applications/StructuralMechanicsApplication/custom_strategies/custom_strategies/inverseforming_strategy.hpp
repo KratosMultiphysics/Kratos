@@ -88,22 +88,22 @@ private:
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
-            KRATOS_WATCH(r_node.FastGetSolutionStepValue(DISPLACEMENT))
-            KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
+            // KRATOS_WATCH(r_node.FastGetSolutionStepValue(DISPLACEMENT))
+            // KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
 
             disp_non_historical = disp_non_historical + disp;
-            KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
-            KRATOS_INFO("InverseFormingStrategy") << "Hello, inside UpdateDatabase function" << std::endl;
-            std::cout << "disp: " << disp << std::endl;
+            // KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
+            // KRATOS_INFO("InverseFormingStrategy") << "Hello, inside UpdateDatabase function" << std::endl;
+            // std::cout << "disp: " << disp << std::endl;
 
             array_1d<double, 3> CurrentCoords;
             CurrentCoords[0] = r_node.X();
             CurrentCoords[1] = r_node.Y();
             CurrentCoords[2] = r_node.Z();
-            std::cout << "CurrentCoords: " << CurrentCoords << std::endl;
+            // std::cout << "CurrentCoords: " << CurrentCoords << std::endl;
 
             array_1d<double, 3> InitCoords = (CurrentCoords - disp);
-            std::cout << "InitCoords: " << InitCoords << std::endl;
+            // std::cout << "InitCoords: " << InitCoords << std::endl;
             r_node.SetInitialPosition(InitCoords[0], InitCoords[1], InitCoords[2]);
             // r_node.GetInitialPosition() += disp;
             // double X0_new = r_node.X0() + disp[0];

@@ -158,10 +158,10 @@ public:
         ) override
     {
         KRATOS_TRY
-        KRATOS_INFO("scheme Update()") << "before updateDofs" << std::endl;
+        // KRATOS_INFO("scheme Update()") << "before updateDofs" << std::endl;
 
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
-        KRATOS_INFO("scheme Update()") << "after updateDofs" << std::endl;
+        // KRATOS_INFO("scheme Update()") << "after updateDofs" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -182,7 +182,7 @@ public:
         ) override
     {
         KRATOS_TRY
-        KRATOS_INFO("") << "scheme Predict()" << std::endl;
+        // KRATOS_INFO("") << "scheme Predict()" << std::endl;
 
         KRATOS_CATCH("")
     }

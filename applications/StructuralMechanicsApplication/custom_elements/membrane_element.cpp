@@ -726,8 +726,8 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         double det_B = MathUtils<double>::Det(left_cauchy_green_tensor);
         // Thickness stretch L3
         double L3 = 1 / det_B;
-        KRATOS_WATCH(det_B)
-        KRATOS_WATCH(L3)
+        // KRATOS_WATCH(det_B)
+        // KRATOS_WATCH(L3)
         /* // Eigenvalues of B matrix
         Matrix EigenVectorsMatrix, EigenValuesMatrix;
         MathUtils<double>::GaussSeidelEigenSystem(left_cauchy_green_tensor, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-18, 20);
@@ -746,7 +746,7 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         double thickness_update = thickness * L3;
         SetValue(THICKNESS, thickness_update);
         // KRATOS_WATCH(thickness)
-        KRATOS_WATCH(thickness_update)
+        // KRATOS_WATCH(thickness_update)
         // KRATOS_WATCH(GetProperties()[THICKNESS])
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
