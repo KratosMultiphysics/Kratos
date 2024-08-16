@@ -166,8 +166,8 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.GetNode().SetValue(var, value_func(var_value))
 
-# def CreateSensors(optimization_problem: OptimizationProblem) -> 'list[KratosSI.Sensors.Sensor]':
-#     return ComponentDataView("sensors", optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+def GetSensors(optimization_problem: OptimizationProblem) -> 'list[KratosSI.Sensors.Sensor]':
+    return ComponentDataView("sensors", optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
 
 def AddSensorStatusControlUpdater(name: str, sensor_status_control_updater: typing.Any, optimization_problem: OptimizationProblem) -> None:
     if not hasattr(sensor_status_control_updater, "Update"):

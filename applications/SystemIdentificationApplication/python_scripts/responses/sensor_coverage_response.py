@@ -8,10 +8,10 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import HasSensorStatusControlUpdater
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensorStatusControlUpdater
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import AddSensorStatusControlUpdater
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -52,7 +52,7 @@ class SensorCoverageResponse(ResponseFunction):
         self.model_part = self.model_part_operation.GetModelPart()
 
         if not HasSensorStatusControlUpdater("sensor_mask_status", self.optimization_problem):
-            list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+            list_of_sensors = GetSensors(self.optimization_problem)
             sensor_mask_status = KratosSI.SensorMaskStatus(self.model_part, [sensor.GetContainerExpression(self.sensor_mask_name) for sensor in list_of_sensors], self.echo_level)
             AddSensorStatusControlUpdater("sensor_mask_status", sensor_mask_status, self.optimization_problem)
 
