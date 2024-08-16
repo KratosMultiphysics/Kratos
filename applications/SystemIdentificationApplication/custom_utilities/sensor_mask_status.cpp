@@ -67,7 +67,16 @@ SensorMaskStatus::MaskContainerPointerType SensorMaskStatus::pGetMaskContainer()
 
     return std::visit([](const auto& rMasksPointersList) -> MaskContainerPointerType {
         auto& r_container = rMasksPointersList.front()->GetContainer();
-        return std::shared_ptr<std::remove_reference_t<decltype(r_container)>>(&r_container);
+        using container_type = std::remove_reference_t<decltype(r_container)>;
+        if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
+            return rMasksPointersList.front()->pGetModelPart()->pConditions();
+        } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
+            return rMasksPointersList.front()->pGetModelPart()->pElements();
+        } else {
+            static_assert(!std::is_same_v<container_type, container_type>)
+                << "Unsupported container type.";
+            return rMasksPointersList.front()->pGetModelPart()->pElements();
+        }
     }, mMaskPointersList);
 
     KRATOS_CATCH("");
