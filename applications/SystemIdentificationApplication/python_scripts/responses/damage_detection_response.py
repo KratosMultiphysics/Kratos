@@ -92,16 +92,11 @@ class DamageDetectionResponse(ResponseFunction):
 
     def Check(self) -> None:
         pass
-
+    
     def Finalize(self) -> None:
         self.adjoint_analysis.Finalize()
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if self.model_part is None:
-            raise RuntimeError("Please call DamageDetectionResponse::Initialize first.")
-        return self.model_part
-
-    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.analysis_model_part is None:
             raise RuntimeError("Please call DamageDetectionResponse::Initialize first.")
         return self.analysis_model_part
