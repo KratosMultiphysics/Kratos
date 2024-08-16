@@ -20,6 +20,7 @@
 // Application includes
 #include "custom_utilities/response/sensor_distance_summation_response_utils.h"
 #include "custom_utilities/response/sensor_isolation_response_utils.h"
+#include "custom_utilities/response/sensor_coverage_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utils_to_python.h"
@@ -38,6 +39,11 @@ void AddCustomResponseUtilsToPython(pybind11::module& m)
     m.def_submodule("SensorIsolationResponseUtils")
         .def("CalculateValue", &SensorIsolationResponseUtils::CalculateValue, py::arg("model_part"), py::arg("radius"), py::arg("distance_matrix"))
         .def("CalculateGradient", &SensorIsolationResponseUtils::CalculateGradient, py::arg("model_part"), py::arg("radius"), py::arg("distance_matrix"))
+        ;
+
+    m.def_submodule("SensorCoverageResponseUtils")
+        .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue, py::arg("sensor_mask_status"))
+        .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient, py::arg("sensor_mask_status"))
         ;
 }
 
