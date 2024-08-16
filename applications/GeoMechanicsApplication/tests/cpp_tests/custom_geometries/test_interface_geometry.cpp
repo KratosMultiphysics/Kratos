@@ -216,33 +216,31 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
-
-    Matrix expected_result(2, 1);
-    expected_result <<= 3.0, -0.1;
-
-    Matrix result;
-    geometry.Jacobian(result, ksi);
-
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
     const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
+    Matrix result;
+    geometry.Jacobian(result, ksi);
+
     Matrix expected_result(2, 1);
     expected_result <<= 3.25, 0.0;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
     geometry.Jacobian(result, ksi);
 
+    Matrix expected_result(2, 1);
+    expected_result <<= 3.0, -0.1;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
@@ -252,9 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
     const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    const auto result = geometry.DeterminantOfJacobian(ksi);
-
-    KRATOS_EXPECT_RELATIVE_NEAR(result, 3.25, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(ksi), 3.25, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForSixNodedGeometry,
@@ -263,9 +259,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
     const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    const auto result = geometry.DeterminantOfJacobian(ksi);
-
-    KRATOS_EXPECT_RELATIVE_NEAR(result, std::sqrt(9.01), 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(ksi), std::sqrt(9.01), 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -288,15 +282,6 @@ KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_LengthReturnsTheLengthO
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
-
-    constexpr auto expected_length = 6.5;
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -304,6 +289,15 @@ KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_LengthReturnsTheLengthOf
 
     constexpr auto expected_length = 6.504159;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+
+    constexpr auto expected_length = 6.5;
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
