@@ -26,6 +26,7 @@
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "includes/global_variables.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -656,7 +657,23 @@ public:
         const Vector& b
         )
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(a.size() == 3) << "The size of the first vector is not 3. Size: " << a.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(b.size() == 3) << "The size of the second vector is not 3. Size: " << b.size() << std::endl;
         return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
+    }
+
+    /**
+     * @brief Computes the dot product of two 1D arrays of doubles with size 3.
+     * @param rA The first array.
+     * @param rB The second array.
+     * @return double The dot product of the two arrays.
+     */
+    static inline double Dot3(
+        const array_1d<double, 3>& rA,
+        const array_1d<double, 3>& rB
+        )
+    {
+        return (rA[0]*rB[0] + rA[1]*rB[1] + rA[2]*rB[2]);
     }
 
     /**
@@ -679,6 +696,34 @@ public:
         }
         return temp;
         //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), 0.0);
+    }
+
+    /**
+     * @brief Clamps a value between a minimum and maximum range.
+     * @details This function ensures that the given value `rX` lies within the specified
+     * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+     * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+     * Otherwise, it returns `rX`.
+     * @tparam T The type of the value and bounds, typically a numeric type.
+     * @param rX The value to clamp.
+     * @param rMinimum The minimum bound.
+     * @param rMaximum The maximum bound.
+     * @return The clamped value.
+     */
+    template <typename T>
+    static inline T Clamp(
+        const T& rX,
+        const T& rMinimum,
+        const T& rMaximum
+        )
+    {
+        if (rX < rMinimum) {
+            return rMinimum;
+        } else if (rX > rMaximum) {
+            return rMaximum;
+        } else {
+            return rX;
+        }
     }
 
     /**

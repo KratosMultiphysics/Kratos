@@ -378,8 +378,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Mixed displacement - volumetric strain tests
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCookMembrane]))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
