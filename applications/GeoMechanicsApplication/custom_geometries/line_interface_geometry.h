@@ -117,6 +117,11 @@ public:
         return mLineGeometry->PointLocalCoordinates(rResult, rPoint);
     }
 
+    Matrix& PointsLocalCoordinates(Matrix& rResult) const override
+    {
+        return mLineGeometry->PointsLocalCoordinates(rResult);
+    }
+
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     void PrintData(std::ostream& rOStream) const override { mLineGeometry->PrintData(rOStream); }

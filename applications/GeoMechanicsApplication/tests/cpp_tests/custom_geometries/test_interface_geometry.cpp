@@ -343,4 +343,17 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinateFo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfSixNodedLineInterfaceGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+
+    Matrix result;
+    geometry.PointsLocalCoordinates(result);
+
+    Matrix expected_result{3, 1};
+    expected_result <<= -1.0, 1.0, 0.0;
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+}
+
 } // namespace Kratos::Testing
