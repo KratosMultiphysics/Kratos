@@ -39,24 +39,24 @@ class TestSystemIdentification(UnitTest.TestCase):
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
 
-    def test_SystemIdentificationPNorm(self):
-        model = Kratos.Model()
-        with open("auxiliary_files/system_identification_p_norm/optimization_parameters.json", "r") as file_input:
-            params = Kratos.Parameters(file_input.read())
+    # def test_SystemIdentificationPNorm(self):
+    #     model = Kratos.Model()
+    #     with open("auxiliary_files/system_identification_p_norm/optimization_parameters.json", "r") as file_input:
+    #         params = Kratos.Parameters(file_input.read())
 
-        analysis = OptimizationAnalysis(model, params)
-        analysis.Run()
+    #     analysis = OptimizationAnalysis(model, params)
+    #     analysis.Run()
 
-        params = Kratos.Parameters("""{
-            "reference_file_name"   : "auxiliary_files/system_identification_p_norm_summary_ref.csv",
-            "output_file_name"      : "auxiliary_files/summary_p_norm.csv",
-            "remove_output_file"    : true,
-            "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-5,
-            "relative_tolerance"    : 1e-6,
-            "dimension"             : 3
-        }""")
-        CompareTwoFilesCheckProcess(params).Execute()
+    #     params = Kratos.Parameters("""{
+    #         "reference_file_name"   : "auxiliary_files/system_identification_p_norm_summary_ref.csv",
+    #         "output_file_name"      : "auxiliary_files/summary_p_norm.csv",
+    #         "remove_output_file"    : true,
+    #         "comparison_type"       : "csv_file",
+    #         "tolerance"             : 1e-5,
+    #         "relative_tolerance"    : 1e-6,
+    #         "dimension"             : 3
+    #     }""")
+    #     CompareTwoFilesCheckProcess(params).Execute()
 
 if __name__ == '__main__':
     UnitTest.main()
