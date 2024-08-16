@@ -9,6 +9,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+import numpy
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -111,6 +113,7 @@ class SimpControl(Control):
         # filtering settings
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.DENSITY, Kratos.Globals.DataLocation.Element, parameters["filter_settings"])
 
+    @time_decorator()
     def Initialize(self) -> None:
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
 
@@ -130,8 +133,43 @@ class SimpControl(Control):
         KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
         self.simp_physical_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(density, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
 
+        # calculate phi from existing E
+        import os
+        import numpy
+        path = os.getcwd()
+        E_data = numpy.load(path + "/Kratos_setup_origin/system_identification/E_numpy.npy")
+        # E_data = numpy.load(path + "/E_numpy.npy")
+        print(E_data)
+        temp_mp = self.model["Structure"].GetSubModelPart("concrete_model_part")
+        # temp_mp = self.model["Structure"].GetSubModelPart("all_nodes_elements_model_part")
+        youngs_modulus_exp_2 = Kratos.Expression.ElementExpression(temp_mp)
+        Kratos.Expression.CArrayExpressionIO.Read(youngs_modulus_exp_2, E_data)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(temp_mp, temp_mp.Elements)
+        KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus_exp_2, Kratos.YOUNG_MODULUS)
+
+        temp_mp = self.model["AdjointStructure"].GetSubModelPart("concrete_model_part")
+        # temp_mp = self.model["Structure"].GetSubModelPart("all_nodes_elements_model_part")
+        youngs_modulus_exp_2 = Kratos.Expression.ElementExpression(temp_mp)
+        Kratos.Expression.CArrayExpressionIO.Read(youngs_modulus_exp_2, E_data)
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(temp_mp, temp_mp.Elements)
+        KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus_exp_2, Kratos.YOUNG_MODULUS)
+
+        # for model_part_name in self.model["Structure"].GetSubModelPartNames():
+        #     model_part = self.model["Structure"].GetSubModelPart(model_part_name)
+        #     print("Name: ", model_part_name)
+        #     print("KratosExecutionPolicy:", model_part)
+        #     cond_field = Kratos.Expression.ElementExpression(model_part)
+        #     KratosOA.PropertiesVariableExpressionIO.Read(cond_field, Kratos.YOUNG_MODULUS)
+        #     print(cond_field.Evaluate())
+        #     # for value in cond_field.Evaluate():
+        #     #     print(value)
+
+        # exit()
+
         # get the control field
-        self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
+        # self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
+
+        # print("SIMP:", self.model_part)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -150,6 +188,7 @@ class SimpControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
+        self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
         return self.control_phi.Clone()
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:

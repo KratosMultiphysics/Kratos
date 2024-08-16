@@ -59,3 +59,9 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
+    
+    def ExportData(self, data_config):
+        if data_config["type"] == "repeat_time_step":
+            pass
+        else:
+            super().ExportData(data_config)

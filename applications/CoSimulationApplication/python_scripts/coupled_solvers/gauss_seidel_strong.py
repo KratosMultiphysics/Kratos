@@ -105,22 +105,22 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
-                self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
+                # self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
+
                 return True
 
             if k+1 >= self.num_coupling_iterations:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
-                self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
+                # self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
                 return False
 
             # if it reaches here it means that the coupling has not converged and this was not the last coupling iteration
-            self.__CommunicateIfTimeStepNeedsToBeRepeated(True)
-
+            # self.__CommunicateIfTimeStepNeedsToBeRepeated(True)
+ 
             # do relaxation only if this iteration is not the last iteration of this timestep
             for conv_acc in self.convergence_accelerators_list:
                 conv_acc.ComputeAndApplyUpdate()
-
 
     def Check(self):
         super().Check()

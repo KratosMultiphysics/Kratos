@@ -7,6 +7,7 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+import KratosMultiphysics.OptimizationApplication as KratosOA
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("name"):
@@ -29,6 +30,8 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
                      "nodal_solution_step_data_variables": [],
                      "nodal_data_value_variables"        : [],
                      "element_data_value_variables"      : [],
+                     "element_properties_data_value_variables": [],
+                     "condition_properties_data_value_variables": [],
                      "condition_data_value_variables"    : []
             }
         }""")
@@ -48,7 +51,7 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
 
         self.model_parts: 'list[Kratos.ModelPart]' = []
-        self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
+        self.analysis: AnalysisStage = getattr(import_module(analysis_full_module, package=None), analysis_type)(self.model, analysis_settings.Clone())
 
         analysis_output_settings = self.parameters["analysis_output_settings"]
         analysis_output_settings.ValidateAndAssignDefaults(default_settings["analysis_output_settings"])
@@ -56,6 +59,8 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         self.nodal_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["nodal_data_value_variables"].GetStringArray())
         self.element_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["element_data_value_variables"].GetStringArray())
         self.condition_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["condition_data_value_variables"].GetStringArray())
+        self.element_properties_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["element_properties_data_value_variables"].GetStringArray())
+        self.condition_properties_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["condition_properties_data_value_variables"].GetStringArray())
 
     def GetAnalysisModelPart(self):
         return self.analysis._GetSolver().GetComputingModelPart()
@@ -100,6 +105,14 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             for variable in self.condition_data_value_variables:
                 cond_field = Kratos.Expression.ConditionExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(cond_field, variable)
+                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+            for variable in self.element_properties_data_value_variables:
+                cond_field = Kratos.Expression.ElementExpression(model_part)
+                KratosOA.PropertiesVariableExpressionIO.Read(cond_field, variable)
+                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+            for variable in self.condition_properties_data_value_variables:
+                cond_field = Kratos.Expression.ConditionExpression(model_part)
+                KratosOA.PropertiesVariableExpressionIO.Read(cond_field, variable)
                 unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
 
     @staticmethod

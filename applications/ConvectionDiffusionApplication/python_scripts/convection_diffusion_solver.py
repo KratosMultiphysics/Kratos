@@ -326,7 +326,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             else:
                 flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
-            tmoc(self.main_model_part,throw_errors, flags).Execute()
+            #tmoc(self.main_model_part,throw_errors, flags).Execute()
 
             self._set_and_fill_buffer()
 

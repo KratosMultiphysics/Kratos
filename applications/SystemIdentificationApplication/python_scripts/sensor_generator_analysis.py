@@ -54,13 +54,14 @@ class SensorGeneratorAnalysis:
         if not sensor_params.Has("location"):
             sensor_params.AddVector("location", Kratos.Vector())
 
-        location = sensor_group_params["location"].GetString()
         if container_type == "nodes":
             location_retrieval = lambda x: [x.X, x.Y, x.Z]
-        elif location == "center":
-            location_retrieval = lambda x: x.GetGeometry().Center()
-        else:
-            raise RuntimeError(f"Unsupported location = \"{location}\".")
+        elif location in ["elements", "conditions"]:
+            if location == "center":
+                location = sensor_group_params["location"].GetString()  
+                location_retrieval = lambda x: x.GetGeometry().Center()
+            else:
+                raise RuntimeError(f"Unsupported location = \"{location}\".")
 
         for entity in container:
             current_params = sensor_params.Clone()
