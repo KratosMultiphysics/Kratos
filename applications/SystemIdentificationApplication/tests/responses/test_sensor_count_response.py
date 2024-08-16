@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_count_response import SensorCountResponse
 
 class TestSensorCountResponse(UnitTest.TestCase):
@@ -95,7 +95,7 @@ class TestSensorCountResponse(UnitTest.TestCase):
         ]
 
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
         for sensor in cls.sensors:
             node = sensor.GetNode()
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)

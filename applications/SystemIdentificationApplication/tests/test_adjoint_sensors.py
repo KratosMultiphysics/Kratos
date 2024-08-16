@@ -4,7 +4,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 class TestDisplacementSensor(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -69,7 +69,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
 
     def test_CalculateValue(self):
@@ -191,7 +191,7 @@ class TestStrainSensor(UnitTest.TestCase):
         ]
 
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
         cls.ref_values = [0.5, -1.5, 4.5, 0.5]
 
     def test_CalculateValue(self):

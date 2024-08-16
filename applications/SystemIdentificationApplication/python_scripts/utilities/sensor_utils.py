@@ -12,7 +12,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
 
-def GetSensors(sensor_model_part: Kratos.ModelPart, analysis_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
+def CreateSensors(sensor_model_part: Kratos.ModelPart, analysis_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
     """Get list of sensors from given parameters.
 
     This generates list of sensors from given list of parameters. Each parameter
@@ -166,7 +166,7 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.GetNode().SetValue(var, value_func(var_value))
 
-# def GetSensors(optimization_problem: OptimizationProblem) -> 'list[KratosSI.Sensors.Sensor]':
+# def CreateSensors(optimization_problem: OptimizationProblem) -> 'list[KratosSI.Sensors.Sensor]':
 #     return ComponentDataView("sensors", optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
 
 def AddSensorStatusControlUpdater(name: str, sensor_status_control_updater: typing.Any, optimization_problem: OptimizationProblem) -> None:

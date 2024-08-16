@@ -5,7 +5,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpression
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionDataLocation
@@ -40,7 +40,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         if self.model.HasModelPart(sensor_model_part_name):
             raise RuntimeError(f"The sensor model part name \"{sensor_model_part_name}\" already exists.")
         self.sensor_model_part = self.model.CreateModelPart(sensor_model_part_name)
-        self.listof_sensors = GetSensors(self.sensor_model_part, model_part, sensor_settings["list_of_sensors"].values())
+        self.listof_sensors = CreateSensors(self.sensor_model_part, model_part, sensor_settings["list_of_sensors"].values())
 
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction()
         for sensor in self.listof_sensors:

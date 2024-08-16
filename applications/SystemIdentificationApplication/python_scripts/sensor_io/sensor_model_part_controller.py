@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosDT
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
@@ -32,7 +32,7 @@ class SensorModelPartController(ModelPartController):
 
     def ImportModelPart(self) -> None:
         self.targe_model_part = self.model[self.target_model_part_name]
-        self.list_of_sensors = GetSensors(self.sensor_model_part, self.targe_model_part, self.parameters["list_of_sensors"].values())
+        self.list_of_sensors = CreateSensors(self.sensor_model_part, self.targe_model_part, self.parameters["list_of_sensors"].values())
 
         # add the list of sensors to optimization problem
         sensors = ComponentDataView("sensors", self.optimization_problem)

@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_isolation_response import SensorIsolationResponse
 
@@ -96,7 +96,7 @@ class TestSensorIsolationResponse(UnitTest.TestCase):
         ]
 
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
-        cls.sensors = GetSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
