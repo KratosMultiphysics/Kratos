@@ -902,6 +902,8 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
+        KRATOS_WATCH(BaseType::mRebuildLevel)
+        KRATOS_WATCH(BaseType::mStiffnessMatrixIsBuilt)
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
             TSparseSpace::SetToZero(rA);
@@ -910,13 +912,17 @@ class ResidualBasedNewtonRaphsonStrategy
 
             if (mUseOldStiffnessInFirstIteration){
                 p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+                KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "mUseOldStiffnessInFirstIteration in SolveSolutionStep" << std::endl;
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "BuildAndSolve in SolveSolutionStep" << std::endl;
             }
         } else {
+            KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "no RebuildLevel or StiffnessMatrixIsRebuilt in SolveSolutionStep" << std::endl;
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
 
+            KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "about to enter BuildRHSAndSolve in SolveSolutionStep" << std::endl;
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         }
 
@@ -965,6 +971,7 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
+                        KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "BuildAndSolve in SolveSolutionStep Iteration Cycle" << std::endl;
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                     else
@@ -972,6 +979,7 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
+                        KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "BuildRHSAndSolve in SolveSolutionStep Iteration Cycle" << std::endl;
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                 }
