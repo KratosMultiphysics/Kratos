@@ -31,18 +31,18 @@ public:
     {
     }
 
-    LineInterfaceGeometry(const IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
+    LineInterfaceGeometry(IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
         : Geometry<Node>(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be four or six\n";
 
-        const auto new_points = CreatePointsOfMidLine();
+        const auto points_of_mid_line = CreatePointsOfMidLine();
 
-        if (new_points.size() == 2) {
-            mLineGeometry = std::make_unique<Line2D2<Node>>(new_points);
+        if (points_of_mid_line.size() == 2) {
+            mMidLineGeometry = std::make_unique<Line2D2<Node>>(points_of_mid_line);
         } else {
-            mLineGeometry = std::make_unique<Line2D3<Node>>(new_points);
+            mMidLineGeometry = std::make_unique<Line2D3<Node>>(points_of_mid_line);
         }
     }
 
@@ -61,27 +61,27 @@ public:
     [[nodiscard]] double ShapeFunctionValue(IndexType                   ShapeFunctionIndex,
                                             const CoordinatesArrayType& rCoordinates) const override
     {
-        return mLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rCoordinates);
+        return mMidLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rCoordinates);
     }
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        return mLineGeometry->ShapeFunctionsValues(rResult, rCoordinates);
+        return mMidLineGeometry->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
     {
-        return mLineGeometry->ShapeFunctionsLocalGradients(rResult, rPoint);
+        return mMidLineGeometry->ShapeFunctionsLocalGradients(rResult, rPoint);
     }
 
     Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        return mLineGeometry->Jacobian(rResult, rCoordinates);
+        return mMidLineGeometry->Jacobian(rResult, rCoordinates);
     }
 
     [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const override
     {
-        return mLineGeometry->DeterminantOfJacobian(rPoint);
+        return mMidLineGeometry->DeterminantOfJacobian(rPoint);
     }
 
     Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
@@ -89,29 +89,30 @@ public:
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
     }
 
-    [[nodiscard]] double Length() const override { return mLineGeometry->Length(); }
+    [[nodiscard]] double Length() const override { return mMidLineGeometry->Length(); }
 
-    [[nodiscard]] double DomainSize() const override { return mLineGeometry->DomainSize(); }
+    [[nodiscard]] double DomainSize() const override { return mMidLineGeometry->DomainSize(); }
 
     [[nodiscard]] std::string Info() const override
     {
-        return "An interface geometry consisting of two sub-geometries with Info: " + mLineGeometry->Info();
+        return "An interface geometry consisting of two sub-geometries with Info: " +
+               mMidLineGeometry->Info();
     }
 
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType&       rResult,
                                                 const CoordinatesArrayType& rPoint) const override
     {
-        return mLineGeometry->PointLocalCoordinates(rResult, rPoint);
+        return mMidLineGeometry->PointLocalCoordinates(rResult, rPoint);
     }
 
     Matrix& PointsLocalCoordinates(Matrix& rResult) const override
     {
-        return mLineGeometry->PointsLocalCoordinates(rResult);
+        return mMidLineGeometry->PointsLocalCoordinates(rResult);
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-    void PrintData(std::ostream& rOStream) const override { mLineGeometry->PrintData(rOStream); }
+    void PrintData(std::ostream& rOStream) const override { mMidLineGeometry->PrintData(rOStream); }
 
 private:
     [[nodiscard]] PointerVector<Node> CreatePointsOfMidLine() const
@@ -127,7 +128,7 @@ private:
         return result;
     }
 
-    std::unique_ptr<Geometry<Node>> mLineGeometry;
+    std::unique_ptr<Geometry<Node>> mMidLineGeometry;
 };
 
 } // namespace Kratos
