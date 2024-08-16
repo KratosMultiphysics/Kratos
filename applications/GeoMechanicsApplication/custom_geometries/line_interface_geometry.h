@@ -24,15 +24,17 @@ class LineInterfaceGeometry : public Geometry<Node>
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineInterfaceGeometry);
 
+    using BaseType = Geometry<Node>;
+
     LineInterfaceGeometry() = default;
 
-    explicit LineInterfaceGeometry(const Geometry<Node>::PointsArrayType& rThisPoints)
+    explicit LineInterfaceGeometry(const PointsArrayType& rThisPoints)
         : LineInterfaceGeometry(0, rThisPoints)
     {
     }
 
-    LineInterfaceGeometry(IndexType NewGeometryId, const Geometry<Node>::PointsArrayType& rThisPoints)
-        : Geometry<Node>(NewGeometryId, rThisPoints)
+    LineInterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
+        : BaseType(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be four or six\n";
@@ -46,14 +48,13 @@ public:
         }
     }
 
-    [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
+    [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
     {
         constexpr auto id = IndexType{0};
         return Create(id, rThisPoints);
     }
 
-    [[nodiscard]] Geometry<Node>::Pointer Create(const IndexType        NewGeometryId,
-                                                 const PointsArrayType& rThisPoints) const override
+    [[nodiscard]] BaseType::Pointer Create(const IndexType NewGeometryId, const PointsArrayType& rThisPoints) const override
     {
         return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
@@ -128,7 +129,7 @@ private:
         return result;
     }
 
-    std::unique_ptr<Geometry<Node>> mMidLineGeometry;
+    std::unique_ptr<BaseType> mMidLineGeometry;
 };
 
 } // namespace Kratos
