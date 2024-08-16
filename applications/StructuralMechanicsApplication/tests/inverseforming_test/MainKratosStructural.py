@@ -1,5 +1,5 @@
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.inverseforming_analysis import InverseFormingAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
@@ -12,5 +12,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model,parameters)
+    simulation = InverseFormingAnalysis(model,parameters)
     simulation.Run()

@@ -59,12 +59,12 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        self.originalZ = []
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            self.originalZ.append(node.Z)
+        # self.originalZ = []
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     self.originalZ.append(node.Z)
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
-            self.ScalingGeometry()
+            # self.ScalingGeometry()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
@@ -119,13 +119,13 @@ class AnalysisStage(object):
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    def ScalingGeometry(self):
-        self.scaling = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        current_step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
-        print("scaling", self.scaling)
-        print("current step:", current_step)
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z = self.originalZ[node.Id - 1] * self.scaling * current_step
+    # def ScalingGeometry(self):
+    #     self.scaling = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    #     current_step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+    #     print("scaling", self.scaling)
+    #     print("current step:", current_step)
+    #     for node in self._GetSolver().GetComputingModelPart().Nodes:
+    #         node.Z = self.originalZ[node.Id - 1] * self.scaling * current_step
 
     def Finalize(self):
         """This function finalizes the AnalysisStage

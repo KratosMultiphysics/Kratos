@@ -48,15 +48,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             if self.echo_level == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-    def ModifyInitialGeometry(self):
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z0 = 0.0
-        KratosMultiphysics.Logger.PrintInfo("::[StructuralMechanicsAnalysis]:: ", "InitialGeometry flattened")
-         # *CHECK* Correct place to calculate normals? Possible in element, strategy or else?
-        normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
-        normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
-        print("UnitNormals Calculated\n")
-
     def ApplyBoundaryConditions(self):
         super().ApplyBoundaryConditions()
         # # *CHECK* if correct place to initialize guess. Possibly in strategy or elsewhere. Called ONCE before solution-loop
