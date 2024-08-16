@@ -14,6 +14,8 @@
 #pragma once
 
 #include "geometries/geometry.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "includes/node.h"
 
 namespace Kratos

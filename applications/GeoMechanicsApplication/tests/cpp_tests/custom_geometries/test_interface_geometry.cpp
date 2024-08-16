@@ -11,8 +11,9 @@
 //                   Anne van de Graaf
 //
 
-#include "../geo_mechanics_fast_suite.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -84,12 +85,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
 
-    const auto new_geometry = geometry.Create(1, nodes);
+    constexpr auto new_geometry_id = 1;
+    const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
 
     KRATOS_EXPECT_NE(new_geometry, nullptr);
     KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), 1);
+    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenCreatingInterfaceGivenTwoNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
