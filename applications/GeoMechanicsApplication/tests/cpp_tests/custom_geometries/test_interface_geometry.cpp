@@ -290,4 +290,13 @@ KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_LengthReturnsTheLengthO
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+
+    constexpr auto expected_length = 6.5;
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
+}
+
 } // namespace Kratos::Testing

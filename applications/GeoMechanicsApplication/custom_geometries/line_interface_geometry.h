@@ -104,6 +104,8 @@ public:
 
     [[nodiscard]] double Length() const override { return mLineGeometry->Length(); }
 
+    [[nodiscard]] double DomainSize() const override { return mLineGeometry->DomainSize(); }
+
     [[nodiscard]] std::string Info() const override
     {
         return "An interface geometry consisting of two sub-geometries with Info: " + mLineGeometry->Info();
