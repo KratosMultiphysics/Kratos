@@ -38,10 +38,13 @@ public:
     using IndexType = std::size_t;
 
     using MasksListType = std::variant<
-                                std::vector<ContainerExpression<ModelPart::NodesContainerType>::Pointer>,
                                 std::vector<ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>,
                                 std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>
                             >;
+
+    using MaskContainerPointerType = std::variant<
+                                        ModelPart::ConditionsContainerType::Pointer,
+                                        ModelPart::ElementsContainerType::Pointer>;
 
     KRATOS_CLASS_POINTER_DEFINITION(SensorMaskStatus);
 
@@ -50,8 +53,9 @@ public:
     ///@{
 
     SensorMaskStatus(
-        const ModelPart& rSensorModelPart,
-        const MasksListType& rMaskPointersList);
+        ModelPart& rSensorModelPart,
+        const MasksListType& rMaskPointersList,
+        const IndexType EchoLevel);
 
     ///@}
     ///@name Public operations
@@ -80,6 +84,16 @@ public:
     const ModelPart& GetSensorModelPart() const;
 
     /**
+     * @brief Get the Sensor Model Part object
+     */
+    ModelPart* pGetSensorModelPart() const;
+
+    /**
+     * @brief Returns a pointer to the local container of the masks.
+     */
+    MaskContainerPointerType pGetMaskContainer() const;
+
+    /**
      * @brief Updates the masks with the corresponding SENSOR_STATUS.
      */
     void Update();
@@ -90,9 +104,11 @@ private:
     ///@name Private member variables
     ///@{
 
-    ModelPart const * const mpSensorModelPart;
+    ModelPart * const mpSensorModelPart;
 
     const MasksListType mMaskPointersList;
+
+    const IndexType mEchoLevel;
 
     Matrix mSensorMaskStatuses;
 

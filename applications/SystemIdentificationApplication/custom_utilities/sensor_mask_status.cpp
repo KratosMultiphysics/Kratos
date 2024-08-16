@@ -27,10 +27,12 @@
 namespace Kratos {
 
 SensorMaskStatus::SensorMaskStatus(
-    const ModelPart& rSensorModelPart,
-    const MasksListType& rMaskPointersList)
+    ModelPart& rSensorModelPart,
+    const MasksListType& rMaskPointersList,
+    const IndexType EchoLevel)
     : mpSensorModelPart(&rSensorModelPart),
-      mMaskPointersList(rMaskPointersList)
+      mMaskPointersList(rMaskPointersList),
+      mEchoLevel(EchoLevel)
 {
 }
 
@@ -49,11 +51,33 @@ const ModelPart& SensorMaskStatus::GetSensorModelPart() const
     return *mpSensorModelPart;
 }
 
+ModelPart * SensorMaskStatus::pGetSensorModelPart() const
+{
+    return mpSensorModelPart;
+}
+
+
+SensorMaskStatus::MaskContainerPointerType SensorMaskStatus::pGetMaskContainer() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(std::visit([](const auto& rMasksPointersList)
+                               { return rMasksPointersList.empty(); }, mMaskPointersList))
+        << "Please provide non-empty masks list.";
+
+    return std::visit([](const auto& rMasksPointersList) -> MaskContainerPointerType {
+        auto& r_container = rMasksPointersList.front()->GetContainer();
+        return std::shared_ptr<std::remove_reference_t<decltype(r_container)>>(&r_container);
+    }, mMaskPointersList);
+
+    KRATOS_CATCH("");
+}
+
 void SensorMaskStatus::Update()
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(std::visit([&](const auto& rMasksPointersList)
+    KRATOS_ERROR_IF(std::visit([](const auto& rMasksPointersList)
                                { return rMasksPointersList.empty(); }, mMaskPointersList))
         << "Please provide non-empty masks list.";
 
@@ -100,6 +124,10 @@ void SensorMaskStatus::Update()
             mSensorMaskStatuses(iEntity, i_sensor) = r_values[i_sensor] * sensor_status[i_sensor];
         }
     });
+
+    KRATOS_INFO_IF("SensorMaskStatus", mEchoLevel > 0)
+        << "Updated sensor mask status in "
+        << mpSensorModelPart->FullName() << ".";
 
     KRATOS_CATCH("");
 }
