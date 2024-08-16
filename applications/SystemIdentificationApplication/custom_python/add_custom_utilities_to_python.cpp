@@ -106,7 +106,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
 
     py::class_<SensorMaskStatus, SensorMaskStatus::Pointer>(m, "SensorMaskStatus")
-        .def(py::init<const ModelPart&, const SensorMaskStatus::MasksListType&>(), py::arg("sensor_model_part"), py::arg("sensor_masks_list"))
+        .def(py::init<ModelPart&, const SensorMaskStatus::MasksListType&, const IndexType>(), py::arg("sensor_model_part"), py::arg("sensor_masks_list"), py::arg("echo_level"))
         .def("GetMasks", &SensorMaskStatus::GetMasks)
         .def("GetMaskStatuses", &SensorMaskStatus::GetMaskStatuses)
         .def("GetSensorModelPart", &SensorMaskStatus::GetSensorModelPart)
@@ -114,7 +114,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<SensorMaskStatusKDTree, SensorMaskStatusKDTree::Pointer>(m, "SensorMaskStatusKDTree")
-        .def(py::init<SensorMaskStatus::Pointer, const IndexType>(), py::arg("sensor_mask_status"), py::arg("leaf_max_size"))
+        .def(py::init<SensorMaskStatus::Pointer, const IndexType, const IndexType>(), py::arg("sensor_mask_status"), py::arg("leaf_max_size"), py::arg("echo_level"))
         .def("RadiusSearch", [](const SensorMaskStatusKDTree& rSelf, const Vector& rQueryPoint, const double Radius)
              {
                 std::vector<nanoflann::ResultItem<unsigned int, double>> result;
