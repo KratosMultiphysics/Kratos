@@ -356,4 +356,20 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfSixNodedLineInterfaceGe
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Area(),
+                                      "Calling base class 'Area' method instead of derived class "
+                                      "one. Please check the definition of derived class. ")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Volume(),
+                                      "Calling base class 'Volume' method instead of derived class "
+                                      "one. Please check the definition of derived class. ")
+}
+
 } // namespace Kratos::Testing
