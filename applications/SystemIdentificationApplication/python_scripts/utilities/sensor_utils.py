@@ -2,14 +2,15 @@ import typing
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import SupportedValueUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import SupportedVariableUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetParameterToKratosValuesConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
 
 def GetSensors(sensor_model_part: Kratos.ModelPart, analysis_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
     """Get list of sensors from given parameters.
@@ -164,3 +165,11 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
         var = Kratos.KratosGlobals.GetVariable(var_name)
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.GetNode().SetValue(var, value_func(var_value))
+
+def UpdateSensorControlData(optimization_problem: OptimizationProblem) -> None:
+    data = ComponentDataView("sensors", optimization_problem).GetUnBufferedData()
+    if data.HasValue("control_updated"):
+        update_data: BufferedDict = data.GetValue("control_updated")
+        for _, v in update_data.GetMap().items():
+            v.Update()
+
