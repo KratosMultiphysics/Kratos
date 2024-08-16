@@ -102,6 +102,8 @@ public:
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
     }
 
+    [[nodiscard]] double Length() const override { return mLineGeometry->Length(); }
+
     [[nodiscard]] std::string Info() const override
     {
         return "An interface geometry consisting of two sub-geometries with Info: " + mLineGeometry->Info();

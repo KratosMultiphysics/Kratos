@@ -278,7 +278,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, K
     Matrix result;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.InverseOfJacobian(result, ksi),
-        "Inverse of Jacobian is not implemented for the line interface geometry");
+        "Inverse of Jacobian is not implemented for the line interface geometry")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+
+    constexpr auto expected_length = 6.5;
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
 } // namespace Kratos::Testing
