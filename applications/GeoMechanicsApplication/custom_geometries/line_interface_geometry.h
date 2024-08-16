@@ -111,6 +111,12 @@ public:
         return "An interface geometry consisting of two sub-geometries with Info: " + mLineGeometry->Info();
     }
 
+    CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType&       rResult,
+                                                const CoordinatesArrayType& rPoint) const override
+    {
+        return mLineGeometry->PointLocalCoordinates(rResult, rPoint);
+    }
+
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     void PrintData(std::ostream& rOStream) const override { mLineGeometry->PrintData(rOStream); }

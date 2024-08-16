@@ -317,4 +317,17 @@ KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_DomainSizeReturnsTheLeng
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinateForFourNodedLineInterfaceGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+
+    auto       result          = array_1d<double, 3>{};
+    const auto global_position = array_1d<double, 3>{4.375, 0.1, 0.0};
+    result                     = geometry.PointLocalCoordinates(result, global_position);
+
+    const auto expected_result = array_1d<double, 3>{0.5, 0.0, 0.0};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
+}
+
 } // namespace Kratos::Testing
