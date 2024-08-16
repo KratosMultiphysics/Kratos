@@ -38,7 +38,7 @@ LineInterfaceGeometry CreateSixNodedLineInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(3, 2.5, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 0.2, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 7.0, 0.2, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 3.5, 0.2, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 3.5, 0.4, 0.0));
     return {1, nodes};
 }
 
@@ -225,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGe
     const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix expected_result(2, 1);
-    expected_result <<= 3.0, 0.0;
+    expected_result <<= 3.0, -0.1;
 
     Matrix result;
     geometry.Jacobian(result, ksi);
@@ -267,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
 
     const auto result = geometry.DeterminantOfJacobian(ksi);
 
-    KRATOS_EXPECT_RELATIVE_NEAR(result, 3.0, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(result, std::sqrt(9.01), 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
