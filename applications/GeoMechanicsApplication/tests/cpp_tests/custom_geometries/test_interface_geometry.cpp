@@ -121,8 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
-
+    const auto geometry  = CreateFourNodedLineInterfaceGeometry();
     const auto ksi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
     const auto ksi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
 
@@ -138,8 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForSixNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
-
+    const auto geometry   = CreateSixNodedLineInterfaceGeometry();
     const auto ksi_start  = array_1d<double, 3>{-1.0, 0.0, 0.0};
     const auto ksi_end    = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto ksi_middle = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -164,8 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-
-    const auto ksi = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
     geometry.ShapeFunctionsValues(result, ksi);
@@ -180,8 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
-
-    const auto ksi = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
     geometry.ShapeFunctionsValues(result, ksi);
