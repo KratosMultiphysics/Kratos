@@ -99,7 +99,8 @@ public:
 
     SensorMaskStatusKDTree(
         SensorMaskStatus::Pointer pSensorMaskStatus,
-        const IndexType LeafMaxSize);
+        const IndexType LeafMaxSize,
+        const IndexType EchoLevel);
 
     ///@}
     ///@name Public operations
@@ -127,6 +128,8 @@ private:
     const SensorMaskStatus::Pointer mpSensorMaskStatus;
 
     const IndexType mLeafMaxSize;
+
+    const IndexType mEchoLevel;
 
     std::unique_ptr<KratosMatrixKDTreeAdapter> mpKratosMatrixKDTreeAdapter;
 

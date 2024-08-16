@@ -27,9 +27,11 @@ namespace Kratos {
 
 SensorMaskStatusKDTree::SensorMaskStatusKDTree(
     SensorMaskStatus::Pointer pSensorMaskStatus,
-    const IndexType LeafMaxSize)
+    const IndexType LeafMaxSize,
+    const IndexType EchoLevel)
     : mpSensorMaskStatus(pSensorMaskStatus),
-      mLeafMaxSize(LeafMaxSize)
+      mLeafMaxSize(LeafMaxSize),
+      mEchoLevel(EchoLevel)
 {
 }
 
@@ -63,6 +65,10 @@ void SensorMaskStatusKDTree::Update()
         nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
 
     mpKDTreeIndex->buildIndex();
+
+    KRATOS_INFO_IF("SensorMaskStatusKDTree", mEchoLevel > 0)
+        << "Updated sensor mask status kd tree in "
+        << mpSensorMaskStatus->GetSensorModelPart().FullName() << ".";
 
     KRATOS_CATCH("");
 }
