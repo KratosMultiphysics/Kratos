@@ -61,7 +61,7 @@ public:
 
     [[nodiscard]] Geometry<Node>::Pointer Create(const Geometry<Node>::PointsArrayType& rThisPoints) const override
     {
-        const auto id = IndexType{0};
+        constexpr auto id = IndexType{0};
         return Create(id, rThisPoints);
     }
 
@@ -101,6 +101,15 @@ public:
     {
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
     }
+
+    [[nodiscard]] std::string Info() const override
+    {
+        return "An interface geometry consisting of two sub-geometries with Info: " + mLineGeometry->Info();
+    }
+
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+
+    void PrintData(std::ostream& rOStream) const override { mLineGeometry->PrintData(rOStream); }
 
 private:
     std::unique_ptr<Geometry<Node>> mLineGeometry;
