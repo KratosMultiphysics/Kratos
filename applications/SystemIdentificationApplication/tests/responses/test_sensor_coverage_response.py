@@ -7,7 +7,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils i
 from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_coverage_response import SensorCoverageResponse
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import UpdateSensorControlData
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import UpdateSensorStatusControlUpdaters
 
 class TestSensorCoverageResponse(UnitTest.TestCase):
     @classmethod
@@ -138,11 +138,11 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
             total_mask += mask * sensor_status
 
         total_mask = KratosSI.ElementSmoothClamper(0, 1).ProjectForward(total_mask)
-        UpdateSensorControlData(self.optimization_problem)
+        UpdateSensorStatusControlUpdaters(self.optimization_problem)
         self.assertAlmostEqual(self.response.CalculateValue(), Kratos.Expression.Utils.InnerProduct(domain_size_exp, total_mask) / Kratos.Expression.Utils.Sum(domain_size_exp))
 
     def test_CalculateGradient(self):
-        UpdateSensorControlData(self.optimization_problem)
+        UpdateSensorStatusControlUpdaters(self.optimization_problem)
         ref_value = self.response.CalculateValue()
         collective_exp = KratosOA.CollectiveExpression()
         collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
@@ -152,7 +152,7 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
-            UpdateSensorControlData(self.optimization_problem)
+            UpdateSensorStatusControlUpdaters(self.optimization_problem)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])

@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import UpdateSensorStatusControlUpdaters
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -114,9 +115,9 @@ class SensorStatusControl(Control):
 
         # now update physical field
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosSI.SENSOR_STATUS, False)
-        list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
-        for i, node in enumerate(self.model_part.Nodes):
-            list_of_sensors[i].SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS))
+
+        # now update the sensor status control updaters
+        UpdateSensorStatusControlUpdaters(self.optimization_problem)
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = self.projection.ForwardProjectionGradient(self.physical_phi_field)

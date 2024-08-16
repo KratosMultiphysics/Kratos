@@ -166,10 +166,39 @@ def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.GetNode().SetValue(var, value_func(var_value))
 
-def UpdateSensorControlData(optimization_problem: OptimizationProblem) -> None:
+# def GetSensors(optimization_problem: OptimizationProblem) -> 'list[KratosSI.Sensors.Sensor]':
+#     return ComponentDataView("sensors", optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+
+def AddSensorStatusControlUpdater(name: str, sensor_status_control_updater: typing.Any, optimization_problem: OptimizationProblem) -> None:
+    if not hasattr(sensor_status_control_updater, "Update"):
+        raise RuntimeError(f"The sensor status control update {sensor_status_control_updater} does not have the Update method.")
+
     data = ComponentDataView("sensors", optimization_problem).GetUnBufferedData()
-    if data.HasValue("control_updated"):
-        update_data: BufferedDict = data.GetValue("control_updated")
-        for _, v in update_data.GetMap().items():
-            v.Update()
+    if not data.HasValue("sensor_status_control_updaters"):
+        data.SetValue("sensor_status_control_updaters", [])
+    list_of_sensor_status_control_updaters: 'list[tuple[str, typing.Any]]' = data.GetValue("sensor_status_control_updaters")
+    list_of_sensor_status_control_updaters.append((name, sensor_status_control_updater))
+
+def GetSensorStatusControlUpdater(query_name: str, optimization_problem: OptimizationProblem) -> typing.Any:
+    for updater_name, updater in GetListOfSensorStatusControlUpdaters(optimization_problem):
+        if updater_name == query_name:
+            return updater
+    raise RuntimeError(f"The queried sensor status control updater with name = \"{query_name}\" not found.")
+
+def GetListOfSensorStatusControlUpdaters(optimization_problem: OptimizationProblem) -> 'list[tuple[str, typing.Any]]':
+    data = ComponentDataView("sensors", optimization_problem).GetUnBufferedData()
+    if data.HasValue("sensor_status_control_updaters"):
+        return data.GetValue("sensor_status_control_updaters")
+    else:
+        return []
+
+def HasSensorStatusControlUpdater(query_name: str, optimization_problem: OptimizationProblem) -> bool:
+    for updater_name, _ in GetListOfSensorStatusControlUpdaters(optimization_problem):
+        if updater_name == query_name:
+            return True
+    return False
+
+def UpdateSensorStatusControlUpdaters(optimization_problem: OptimizationProblem) -> None:
+    for _, updater in GetListOfSensorStatusControlUpdaters(optimization_problem):
+        updater.Update()
 
