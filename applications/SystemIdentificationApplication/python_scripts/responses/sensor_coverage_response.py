@@ -51,10 +51,11 @@ class SensorCoverageResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        if not HasSensorStatusControlUpdater("sensor_mask_status", self.optimization_problem):
+        if not HasSensorStatusControlUpdater(f"sensor_mask_status_{self.sensor_mask_name}", self.optimization_problem):
             list_of_sensors = GetSensors(self.optimization_problem)
             sensor_mask_status = KratosSI.SensorMaskStatus(self.model_part, [sensor.GetContainerExpression(self.sensor_mask_name) for sensor in list_of_sensors], self.echo_level)
-            AddSensorStatusControlUpdater("sensor_mask_status", sensor_mask_status, self.optimization_problem)
+            AddSensorStatusControlUpdater(f"sensor_mask_status_{self.sensor_mask_name}", sensor_mask_status, self.optimization_problem)
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created sensor mask status for \"{self.sensor_mask_name}\".")
 
     def Check(self) -> None:
         pass
@@ -68,7 +69,7 @@ class SensorCoverageResponse(ResponseFunction):
         return self.model_part
 
     def CalculateValue(self) -> float:
-        sensor_mask_status: KratosSI.SensorMaskStatus = GetSensorStatusControlUpdater("sensor_mask_status", self.optimization_problem)
+        sensor_mask_status: KratosSI.SensorMaskStatus = GetSensorStatusControlUpdater(f"sensor_mask_status_{self.sensor_mask_name}", self.optimization_problem)
         return KratosSI.SensorCoverageResponseUtils.CalculateValue(sensor_mask_status)
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
@@ -77,7 +78,7 @@ class SensorCoverageResponse(ResponseFunction):
             for container_expression in collective_expression.GetContainerExpressions():
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
 
-        sensor_mask_status: KratosSI.SensorMaskStatus = GetSensorStatusControlUpdater("sensor_mask_status", self.optimization_problem)
+        sensor_mask_status: KratosSI.SensorMaskStatus = GetSensorStatusControlUpdater(f"sensor_mask_status_{self.sensor_mask_name}", self.optimization_problem)
         physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(KratosSI.SensorCoverageResponseUtils.CalculateGradient(sensor_mask_status).GetExpression())
 
     def __str__(self) -> str:
