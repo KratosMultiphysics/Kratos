@@ -4,9 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         DigitalTwinApplication/license.txt
+//  License:         BSD License
+//                   license: SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 #pragma once
