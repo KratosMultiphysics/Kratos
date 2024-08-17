@@ -137,9 +137,6 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
 
         UpdateSensorStatusControlUpdaters(cls.optimization_problem)
 
-    def test_Hello(self):
-        pass
-
     def test_CalculateValue1(self):
         self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
         self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 0)
