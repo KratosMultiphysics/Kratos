@@ -84,6 +84,11 @@ public:
     const ModelPart& GetSensorModelPart() const;
 
     /**
+     * @brief Get the mask model part
+     */
+    ModelPart* pGetMaskModelPart() const;
+
+    /**
      * @brief Get the Sensor Model Part object
      */
     ModelPart* pGetSensorModelPart() const;

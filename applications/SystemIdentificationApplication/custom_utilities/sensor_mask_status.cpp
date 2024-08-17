@@ -56,6 +56,21 @@ ModelPart * SensorMaskStatus::pGetSensorModelPart() const
     return mpSensorModelPart;
 }
 
+ModelPart * SensorMaskStatus::pGetMaskModelPart() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(std::visit([](const auto& rMasksPointersList)
+                               { return rMasksPointersList.empty(); }, mMaskPointersList))
+        << "Please provide non-empty masks list.";
+
+    return std::visit([](const auto& rMasksPointersList) {
+        return rMasksPointersList.front()->pGetModelPart();
+    }, mMaskPointersList);
+
+    KRATOS_CATCH("");
+}
+
 
 SensorMaskStatus::MaskContainerPointerType SensorMaskStatus::pGetMaskContainer() const
 {
