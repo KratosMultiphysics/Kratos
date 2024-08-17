@@ -13,7 +13,7 @@
                 "PRESTRESS_AXIS_1_GLOBAL" : [0.0,0.0,0.0],
                 "DENSITY"                 : 0.0,
                 "YOUNG_MODULUS"           : 210,
-                "POISSON_RATIO"           : 0.0
+                "POISSON_RATIO"           : 0.499
             },
             "Tables"           : null
         }

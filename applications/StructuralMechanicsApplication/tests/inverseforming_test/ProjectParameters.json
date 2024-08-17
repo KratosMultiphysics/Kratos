@@ -17,12 +17,15 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "sphere"
+            "input_filename" : "LDH"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
         },
-        "line_search"                          : true,
+        "solving_strategy_settings" : {
+            "advanced_settings"         : {},
+            "type"                             : "newton_raphson"
+        },
         "convergence_criterion"                : "residual_criterion",
         "displacement_relative_tolerance"      : 1e-15,
         "displacement_absolute_tolerance"      : 1e-15,
