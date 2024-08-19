@@ -77,6 +77,65 @@ KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedra, KratosCoreFas
     KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfConditions(), 1200);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedraNonUniform, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+    Node::Pointer p_point2(new Node(2, 10.00, 0.00, 0.00));
+    Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+    Node::Pointer p_point4(new Node(4, 0.00, 10.00, 0.00));
+    Node::Pointer p_point5(new Node(5, 0.00, 0.00, 10.00));
+    Node::Pointer p_point6(new Node(6, 10.00, 0.00, 10.00));
+    Node::Pointer p_point7(new Node(7, 10.00, 10.00, 10.00));
+    Node::Pointer p_point8(new Node(8, 0.00, 10.00, 10.00));
+
+    Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions_X":10,
+        "number_of_divisions_Y":20,
+        "number_of_divisions_Z":1,
+        "create_skin_sub_model_part": true,
+        "skin_sub_model_part_name": "Skin",
+        "element_name": "Element3D4N",
+        "condition_name": "SurfaceCondition"
+    }  )");
+
+    std::size_t number_of_divisions_X = mesher_parameters["number_of_divisions_X"].GetInt();
+    std::size_t number_of_divisions_Y = mesher_parameters["number_of_divisions_Y"].GetInt();
+    std::size_t number_of_divisions_Z = mesher_parameters["number_of_divisions_Z"].GetInt();
+
+
+
+    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+    std::size_t number_of_nodes = (number_of_divisions_X + 1) * (number_of_divisions_Y + 1) * (number_of_divisions_Z + 1);
+    std::size_t number_of_elements = number_of_divisions_X * number_of_divisions_Y * number_of_divisions_Z * 6;
+    KRATOS_EXPECT_EQ(model_part.NumberOfNodes(), number_of_nodes);
+    KRATOS_EXPECT_EQ(model_part.NumberOfElements(), number_of_elements) << " Number of elements = " << model_part.NumberOfElements() ;
+
+    double total_volume = 0.00;
+    for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++) {
+        double element_volume = i_element->GetGeometry().Volume();
+        KRATOS_EXPECT_GT(element_volume, 0.00) << " for element #" << i_element->Id() << " with nodes ["
+            << i_element->GetGeometry()[0].Id()
+            << "," << i_element->GetGeometry()[1].Id()
+            << "," << i_element->GetGeometry()[2].Id()
+            << "," << i_element->GetGeometry()[3].Id() << "] with volume : " << element_volume << std::endl << *i_element;
+        total_volume += element_volume;
+    }
+    KRATOS_EXPECT_NEAR(total_volume, 1000., 1.E-6) << "with total_volume = " << total_volume;
+
+    KRATOS_EXPECT_TRUE(model_part.HasSubModelPart("Skin"));
+
+    KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfNodes(), 462);
+    KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfConditions(), 400);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCoreFastSuite)
 {
     Model current_model;
