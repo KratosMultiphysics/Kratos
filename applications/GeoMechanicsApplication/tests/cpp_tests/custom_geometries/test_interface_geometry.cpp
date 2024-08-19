@@ -121,51 +121,51 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry  = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
-    const auto ksi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
+    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto xi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
+    const auto xi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
 
     // Values for first shape function
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_start), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_end), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_start), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_end), 0.0);
 
     // Values for second shape function
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_end), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_start), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_end), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForSixNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry   = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi_start  = array_1d<double, 3>{-1.0, 0.0, 0.0};
-    const auto ksi_end    = array_1d<double, 3>{1.0, 0.0, 0.0};
-    const auto ksi_middle = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto geometry  = CreateSixNodedLineInterfaceGeometry();
+    const auto xi_start  = array_1d<double, 3>{-1.0, 0.0, 0.0};
+    const auto xi_end    = array_1d<double, 3>{1.0, 0.0, 0.0};
+    const auto xi_middle = array_1d<double, 3>{0.0, 0.0, 0.0};
 
     // Values for first shape function
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_start), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_end), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, ksi_middle), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_start), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_end), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_middle), 0.0);
 
     // Values for second shape function
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_end), 1.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, ksi_middle), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_start), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_end), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_middle), 0.0);
 
     // Values for third shape function
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_start), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_end), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, ksi_middle), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_start), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_end), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_middle), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForFourNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
-    geometry.ShapeFunctionsValues(result, ksi);
+    geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{2};
@@ -177,10 +177,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
-    geometry.ShapeFunctionsValues(result, ksi);
+    geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{3};
@@ -192,10 +192,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
-    geometry.ShapeFunctionsLocalGradients(result, ksi);
+    geometry.ShapeFunctionsLocalGradients(result, xi);
 
     Matrix expected_result(2, 1);
     expected_result <<= -0.5, 0.5;
@@ -206,10 +206,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
-    geometry.ShapeFunctionsLocalGradients(result, ksi);
+    geometry.ShapeFunctionsLocalGradients(result, xi);
 
     Matrix expected_result(3, 1);
     expected_result <<= 0.0, 1.0, -1.0;
@@ -220,10 +220,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedG
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
-    geometry.Jacobian(result, ksi);
+    geometry.Jacobian(result, xi);
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.25, 0.0;
@@ -234,10 +234,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGe
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
-    geometry.Jacobian(result, ksi);
+    geometry.Jacobian(result, xi);
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.0, -0.1;
@@ -248,28 +248,28 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(ksi), 3.25, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), 3.25, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForSixNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateSixNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(ksi), std::sqrt(9.01), 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), std::sqrt(9.01), 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateFourNodedLineInterfaceGeometry();
-    const auto ksi      = array_1d<double, 3>{0.5, 0.0, 0.0};
+    const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        geometry.InverseOfJacobian(result, ksi),
+        geometry.InverseOfJacobian(result, xi),
         "Inverse of Jacobian is not implemented for the line interface geometry")
 }
 
