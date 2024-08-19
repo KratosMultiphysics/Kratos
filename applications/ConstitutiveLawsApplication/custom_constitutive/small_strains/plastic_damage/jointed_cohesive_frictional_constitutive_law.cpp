@@ -62,15 +62,16 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 {
     KRATOS_TRY;
 
-    Flags &r_constitutive_law_options = rValues.GetOptions();
+    Flags &r_cl_options = rValues.GetOptions();
     const auto& r_strain_vector = rValues.GetStrainVector();
     const auto strain_increment = r_strain_vector - mOldStrainVector;
 
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        const auto &r_props = rValues.GetMaterialProperties();
         // We retrieve material properties
-        const double E  = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-        const double nu = rValues.GetMaterialProperties()[POISSON_RATIO];
-        const Vector &r_joint_cl_props = rValues.GetMaterialProperties()[CURVE_FITTING_PARAMETERS];
+        const double E  = r_props[YOUNG_MODULUS];
+        const double nu = r_props[POISSON_RATIO];
+        const Vector &r_joint_cl_props = r_props[CURVE_FITTING_PARAMETERS];
         const double fc  = r_joint_cl_props[0];
         const double ft  = r_joint_cl_props[1];
         const double Kn  = r_joint_cl_props[2];
@@ -131,7 +132,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
     }
 
 
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         CalculateTangentTensor(rValues);
     }
 
