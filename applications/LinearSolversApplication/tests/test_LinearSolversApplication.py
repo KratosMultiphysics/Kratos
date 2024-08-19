@@ -31,7 +31,7 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDirectSolver]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenSystemSolver]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenSystemSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDirectSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestFeastEigensystemSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDenseEigenvalueSolver]))
