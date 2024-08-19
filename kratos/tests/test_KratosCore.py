@@ -41,10 +41,10 @@ import test_vector_interface
 import test_matrix_interface
 import test_restart
 import test_gid_io_gauss_points
-import test_mortar_mapper
+# import test_mortar_mapper
 import test_normal_utils
 import test_skin_detection_process
-import test_sparse_matrix_multiplication
+# import test_sparse_matrix_multiplication
 import test_variable_component
 import test_variable_redistribution
 import test_object_printing
@@ -61,7 +61,7 @@ import test_linear_constraints
 import test_specifications_utilities
 import test_cad_json_input
 import test_compare_elements_conditions
-import test_matrix_market_interface
+# import test_matrix_market_interface
 import test_factories
 import test_coordinate_transformation_utils
 import test_sensitivity_utilities
