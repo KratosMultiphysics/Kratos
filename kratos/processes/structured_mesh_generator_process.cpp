@@ -35,13 +35,16 @@ StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryTyp
 
     TheParameters["element_name"]; // Should be given by caller! if not thorws an error
 
-    TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    ValidateTheDefaultParameters(TheParameters);
 
     mStartNodeId = TheParameters["start_node_id"].GetInt();
     mStartElementId = TheParameters["start_element_id"].GetInt();
     mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
-    mNumberOfDivisions = TheParameters["number_of_divisions"].GetInt();
+    mNumberOfDivisions[0] = TheParameters["number_of_divisions_X"].GetInt();
+    mNumberOfDivisions[1] = TheParameters["number_of_divisions_Y"].GetInt();
+    mNumberOfDivisions[2] = TheParameters["number_of_divisions_Z"].GetInt();
+
     mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
     mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
     mElementName = TheParameters["element_name"].GetString();
@@ -111,6 +114,23 @@ void StructuredMeshGeneratorProcess::Execute()
 
 }
 
+void StructuredMeshGeneratorProcess::ValidateTheDefaultParameters(Parameters TheParameters)
+{
+    if(TheParameters.Has("number_of_divisions")){
+        if(TheParameters["number_of_divisions"].IsInt() && (!TheParameters.Has("number_of_divisions_X") && !TheParameters.Has("number_of_divisions_Y") && !TheParameters.Has("number_of_divisions_Z"))) 
+        {
+            int ndivisions = TheParameters["number_of_divisions"].GetInt();
+            TheParameters.RemoveValue("number_of_divisions");
+            TheParameters.AddInt("number_of_divisions_X", ndivisions);
+            TheParameters.AddInt("number_of_divisions_Y", ndivisions);
+            TheParameters.AddInt("number_of_divisions_Z", ndivisions);
+        } else {
+            KRATOS_THROW_ERROR(std::invalid_argument, "Please specify number_of_divisions as an int or the component of each direction","")
+        }
+    }
+    TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+}
+
 const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters(R"(
@@ -122,7 +142,9 @@ const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
         "start_node_id"              : 1,
         "start_element_id"           : 1,
         "start_condition_id"         : 1,
-        "number_of_divisions"        : 1,
+        "number_of_divisions_X"      : 1,
+        "number_of_divisions_Y"      : 1,
+        "number_of_divisions_Z"      : 1,
         "elements_properties_id"     : 0,
         "conditions_properties_id"   : 0,
         "element_name"               : "PLEASE SPECIFY IT",
@@ -171,14 +193,15 @@ void StructuredMeshGeneratorProcess::Generate3DMesh()
 void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint)
 {
     GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
-    local_element_size /= mNumberOfDivisions;
+    local_element_size[0] /= mNumberOfDivisions[0];
+    local_element_size[1] /= mNumberOfDivisions[1];
     //const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
     Point local_coordinates = rMinPoint;
     auto global_coordinates = Point{ZeroVector(3)};
     std::size_t node_id = mStartNodeId;
 
-    for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
-        for (std::size_t i = 0; i <= mNumberOfDivisions; i++) {
+    for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
+        for (std::size_t i = 0; i <= mNumberOfDivisions[0]; i++) {
             local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
             local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
             mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
@@ -192,14 +215,15 @@ void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Poi
 void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint)
 {
     GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
-    local_element_size /= mNumberOfDivisions;
-    Point local_coordinates = rMinPoint;
+    local_element_size[0] /= mNumberOfDivisions[0];
+    local_element_size[1] /= mNumberOfDivisions[1];
+    local_element_size[2] /= mNumberOfDivisions[2];    Point local_coordinates = rMinPoint;
     auto global_coordinates = Point{ZeroVector(3)};
     std::size_t node_id = mStartNodeId;
 
-    for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
-        for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
-            for (std::size_t i = 0; i <= mNumberOfDivisions; i++) {
+    for (std::size_t k = 0; k <= mNumberOfDivisions[2]; k++) {
+        for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
+            for (std::size_t i = 0; i <= mNumberOfDivisions[0]; i++) {
                 local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
                 local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
                 local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
@@ -219,8 +243,8 @@ void StructuredMeshGeneratorProcess::GenerateTriangularElements()
     Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
     std::vector<ModelPart::IndexType> element_connectivity(3);
 
-    for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
-        for (std::size_t i = 0; i < mNumberOfDivisions; i++) {
+    for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+        for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
             element_connectivity = { GetNodeId(i,j,0), GetNodeId(i + 1,j + 1,0), GetNodeId(i + 1,j,0) };
             mrOutputModelPart.CreateNewElement(mElementName, element_id++, element_connectivity, p_properties);
 
@@ -234,9 +258,9 @@ void StructuredMeshGeneratorProcess::GenerateTetrahedraElements()
 {
     Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
-    for (std::size_t k = 0; k < mNumberOfDivisions; k++) {
-        for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
-            for (std::size_t i = 0; i < mNumberOfDivisions; i++) {
+    for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+        for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+            for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
                 CreateCellTetrahedra(i, j, k, p_properties);
             }
         }
@@ -268,7 +292,7 @@ void  StructuredMeshGeneratorProcess::CreateCellTetrahedra(std::size_t I, std::s
 
 std::size_t StructuredMeshGeneratorProcess::GetNodeId(std::size_t I, std::size_t J, std::size_t K)
 {
-    return mStartNodeId + (K * (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1)) + (J * (mNumberOfDivisions + 1)) + I;
+    return mStartNodeId + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
 }
 
 void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint)
@@ -298,7 +322,9 @@ int StructuredMeshGeneratorProcess::Check()
         (mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
         KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 
-    KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+    KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[0], 0);
+    KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[1], 0);
+    KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions[2], 0);
 
     return 0;
 
