@@ -217,7 +217,8 @@ void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Poi
     GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
     local_element_size[0] /= mNumberOfDivisions[0];
     local_element_size[1] /= mNumberOfDivisions[1];
-    local_element_size[2] /= mNumberOfDivisions[2];    Point local_coordinates = rMinPoint;
+    local_element_size[2] /= mNumberOfDivisions[2];
+    Point local_coordinates = rMinPoint;
     auto global_coordinates = Point{ZeroVector(3)};
     std::size_t node_id = mStartNodeId;
 
