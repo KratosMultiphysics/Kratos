@@ -206,7 +206,8 @@ public:
 
     double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+protected:
+    void FinalizeMaterialResponse(double Strain, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**
