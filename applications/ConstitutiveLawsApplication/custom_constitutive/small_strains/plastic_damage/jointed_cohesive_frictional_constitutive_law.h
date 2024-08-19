@@ -310,7 +310,7 @@ public:
         const double fc) const
     {
         const double one_minus_D = 1.0 - D;
-        return std::pow(ts, 2) - (one_minus_D * std::pow(mu0, 2) + D * std::pow(mu, 2)) * std::pow((tn - one_minus_D * ft), 2) -
+        return std::pow(ts, 2) - (one_minus_D * std::pow(mu0, 2) + D * std::pow(mu, 2)) * std::pow((tn - one_minus_D * ft), 2) +
                m * fc * one_minus_D * (tn - one_minus_D * ft);
     }
 
