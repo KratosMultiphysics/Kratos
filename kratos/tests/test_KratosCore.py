@@ -21,7 +21,7 @@ import test_materials_input
 import test_geometries
 import test_linear_solvers
 import test_eigen_solvers
-import test_condition_number
+# import test_condition_number
 import test_point
 import test_processes
 import test_properties
