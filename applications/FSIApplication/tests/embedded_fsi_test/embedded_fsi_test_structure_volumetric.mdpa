@@ -438,7 +438,7 @@ Begin SubModelPart Solid // Group Structure // Subtree Parts_Solid
            80
     End SubModelPartElements
 End SubModelPart
-Begin SubModelPart LeftEdge // Group LeftEdge // Subtree DISPLACEMENT
+Begin SubModelPart Fixed // Group Fixed // Subtree DISPLACEMENT
     Begin SubModelPartNodes
           101
           102
