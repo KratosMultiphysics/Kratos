@@ -111,8 +111,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-};
-
-// class UPwFaceLoadInterfaceCondition.
+}; // class UPwFaceLoadInterfaceCondition.
 
 } // namespace Kratos.

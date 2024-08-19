@@ -92,8 +92,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-};
-
-// class UPwForceCondition.
+}; // class UPwForceCondition.
 
 } // namespace Kratos.

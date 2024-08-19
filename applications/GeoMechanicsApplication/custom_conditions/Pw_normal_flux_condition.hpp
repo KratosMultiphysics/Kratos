@@ -104,8 +104,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-};
-
-// class PwNormalFluxCondition.
+}; // class PwNormalFluxCondition.
 
 } // namespace Kratos.
