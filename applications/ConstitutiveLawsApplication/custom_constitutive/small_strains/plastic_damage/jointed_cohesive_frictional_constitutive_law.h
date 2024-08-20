@@ -403,8 +403,8 @@ private:
     double mDamage = 0.0;                            // Damage Variable "D"
     double mTheta  = 0.0;                            // Orientation of the joint plane, it defines "n"
     Vector mLocalTraction = ZeroVector(Dimension);   // The traction vector in local axes of the joint "tc"
-    Vector mU  = ZeroVector(Dimension);              // The displacement jump "[[u]]"
-    Vector mUp = ZeroVector(Dimension);              // The displacement jump "[[up]]"
+    Vector mUc  = ZeroVector(Dimension);             // The local displacement jump "[[uc]]"
+    Vector mUcp = ZeroVector(Dimension);             // The local plastic displacement jump "[[ucp]]" 
     Vector mOldStrainVector = ZeroVector(VoigtSize); // The previous converged strain vector
     Vector mOldStressVector = ZeroVector(VoigtSize); // The previous converged stress vector
 

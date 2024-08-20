@@ -72,22 +72,25 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         const double E  = r_props[YOUNG_MODULUS];
         const double nu = r_props[POISSON_RATIO];
         const Vector &r_joint_cl_props = r_props[CURVE_FITTING_PARAMETERS];
-        const double fc  = r_joint_cl_props[0];
-        const double ft  = r_joint_cl_props[1];
-        const double Kn  = r_joint_cl_props[2];
-        const double Ks  = r_joint_cl_props[3];
-        const double muy = r_joint_cl_props[4];
+        const double fc      = r_joint_cl_props[0];
+        const double ft      = r_joint_cl_props[1];
+        const double Kn      = r_joint_cl_props[2];
+        const double Ks      = r_joint_cl_props[3];
+        const double muy     = r_joint_cl_props[4];
         const double delta_0 = r_joint_cl_props[5];
-        const double H = r_joint_cl_props[6];
-        const double m = r_joint_cl_props[7];
-        const double muy0   = r_joint_cl_props[8];
-        const double alpha0 = r_joint_cl_props[9];
-        const double beta   = r_joint_cl_props[10];
-        const double gamma  = r_joint_cl_props[11];
-        Matrix Kc(Dimension, Dimension);
-        Kc.clear();
-        Kc(0, 0) = Kn;
-        Kc(1, 1) = Ks;
+        const double H       = r_joint_cl_props[6];
+        const double m       = r_joint_cl_props[7];
+        const double muy0    = r_joint_cl_props[8];
+        const double alpha0  = r_joint_cl_props[9];
+        const double beta    = r_joint_cl_props[10];
+        const double gamma   = r_joint_cl_props[11];
+
+        Matrix KcE(Dimension, Dimension);
+        KcE.clear();
+        const double one_minus_D = 1.0 - mDamage;
+        const double pred_Heaviside = (mLocalTraction[0] > 0.0) ? 1.0 : 0.0;
+        KcE(0, 0) = Kn * pred_Heaviside * one_minus_D;
+        KcE(1, 1) = Ks * one_minus_D;
 
         this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
         Matrix &a0 = rValues.GetConstitutiveMatrix();
@@ -101,9 +104,10 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         Matrix n(VoigtSize, Dimension);
 
         // Estimate joint orientation with respect to some trial stress
-        CalculateJointOrientation(R, n, mOldStressVector + stress_increment_trial, mDamage, muy0, muy, ft, m, fc);
+        const Vector stress_vector_trial = mOldStressVector + stress_increment_trial;
+        CalculateJointOrientation(R, n, stress_vector_trial, mDamage, muy0, muy, ft, m, fc);
 
-        const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(Kc, R)));
+        const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R))); // Dim x Dim
         Matrix inv_C(Dimension, Dimension);
         double det_C;
         MathUtils<double>::InvertMatrix(C, inv_C, det_C);
@@ -112,23 +116,68 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         const Vector delta_uc_trial = prod(R, delta_u_trial);
         const Vector delta_stress_trial = stress_increment_trial - prod(a0, Vector(prod(n, delta_u_trial))) / H;
         const Vector tc_trial = mLocalTraction + prod(R, Vector(prod(trans(n), delta_stress_trial)));
+        const Vector uc_trial = mUc + delta_uc_trial;
 
         const double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
 
-        if (yield < tolerance) { // Elastic condition
-            noalias(rValues.GetStressVector()) = mOldStressVector + delta_stress_trial;
+        if (yield <= tolerance) { // Elastic condition
+            noalias(rValues.GetStressVector()) = stress_vector_trial;
             // update int vars in finalize...
         } else { // Non-linear behaviour
-            
+
+            // copy of internal variables...
+            double damage = mDamage;
+            Vector ucp = mUcp;
+
+            const double tn = tc_trial[0];
+            const double ts = tc_trial[1];
+
+            const double Heaviside = (tn > 0.0) ? 1.0 : 0.0;
+
+            // dy_dtc
+            Vector dy_dtc(Dimension);
+            dy_dtc[0] = -2.0 * (tn - one_minus_D * ft) * (one_minus_D * std::pow(muy0, 2) + mDamage * std::pow(muy, 2)) + m * fc * one_minus_D;
+            dy_dtc[1] = 2.0 * ts;
+
+            // dtc_dupc
+            const Matrix dtc_dupc = -KcE;
+
+            // dg_dtc
+            Vector dg_dtc(Dimension);
+            dg_dtc[0] = dy_dtc[0];
+            dg_dtc[1] = dy_dtc[1] * gamma;
+
+            // dtc_dD
+            Vector dtc_dD(Dimension);
+            dtc_dD[0] = -Kn * Heaviside * (uc_trial[0] - ucp[0]);
+            dtc_dD[1] = -Ks * (uc_trial[1] - ucp[1]);
+
+            // dy_dD
+            const double aux_1 = (tn - one_minus_D * ft);
+            const double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * (one_minus_D * std::pow(muy0, 2) + mDamage * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * one_minus_D * ft;
+
+            const double alpha = alpha0 * std::exp(-tn / ft);
+            const double up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
+            const double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
+
+            // compute dlamda
+            const double plastic_denom_1 = inner_prod(dy_dtc, Vector(prod(dtc_dupc, dg_dtc)));
+            const double plastic_denom_2 = P * inner_prod(dy_dtc, dtc_dD);
+            const double plastic_denom_3 = P * dy_dD;
+            const double dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
+
+            // plastic displacement increment
+            const Vector dupc = dlambda * dg_dtc;
+            const double dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+
+            // Update traction
+            const Vector AAA = dlambda * P * dtc_dD;
+
+            Vector tc = tc_trial + AAA + prod(dtc_dupc, dupc);
+            const Vector residual = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+            KRATOS_WATCH(residual)
+            KRATOS_ERROR << "EEEEEE" << std::endl;
         }
-
-
-
-
-
-
-
-
     }
 
 
