@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
         r_model_part, test_parameters))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessForShortDomain,
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesCorrectPressure_WhenPhreaticLineDoesNotSpanEntireDomain,
                           KratosGeoMechanicsFastSuite)
 {
     auto  model           = Model{};
