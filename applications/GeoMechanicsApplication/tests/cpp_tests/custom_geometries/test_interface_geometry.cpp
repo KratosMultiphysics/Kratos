@@ -21,7 +21,7 @@ namespace
 
 using namespace Kratos;
 
-LineInterfaceGeometry CreateFourNodedLineInterfaceGeometry()
+LineInterfaceGeometry CreateTwoPlusTwoNodedLineInterfaceGeometry()
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -31,7 +31,7 @@ LineInterfaceGeometry CreateFourNodedLineInterfaceGeometry()
     return {1, nodes};
 }
 
-LineInterfaceGeometry CreateSixNodedLineInterfaceGeometry()
+LineInterfaceGeometry CreateThreePlusThreeNodedLineInterfaceGeometry()
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -53,7 +53,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry      = LineInterfaceGeometry();
-    auto       base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
+    const auto base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
 
     KRATOS_EXPECT_NE(base_geometry, nullptr);
 }
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenCreatingInterfaceGivenTwoNodes, KratosG
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
-                                      "Number of nodes must be four or six")
+                                      "Number of nodes must be 2+2 or 3+3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -112,16 +112,16 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeo
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
-                                      "Number of nodes must be four or six")
+                                      "Number of nodes must be 2+2 or 3+3")
     constexpr auto geometry_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
-                                      "Number of nodes must be four or six")
+                                      "Number of nodes must be 2+2 or 3+3")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForFourNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};
     const auto xi_end   = array_1d<double, 3>{1.0, 0.0, 0.0};
 
@@ -134,10 +134,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_end), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForSixNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForThreePlusThreeNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry  = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry  = CreateThreePlusThreeNodedLineInterfaceGeometry();
     const auto xi_start  = array_1d<double, 3>{-1.0, 0.0, 0.0};
     const auto xi_end    = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto xi_middle = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -158,10 +158,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_middle), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForFourNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
@@ -173,10 +173,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForSixNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForThreePlusThreeNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Vector result;
@@ -188,10 +188,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForFourNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
@@ -202,10 +202,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForSixNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForThreePlusThreeNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
@@ -216,10 +216,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
@@ -230,10 +230,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForFourNodedG
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusThreeNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
@@ -244,19 +244,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForSixNodedGe
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForFourNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), 3.25, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForSixNodedGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForThreePlusThreeNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), std::sqrt(9.01), 1e-6)
@@ -264,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     Matrix result;
@@ -273,46 +273,46 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, K
         "Inverse of Jacobian is not implemented for the line interface geometry")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
 
     constexpr auto expected_length = 6.5;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
     constexpr auto expected_length = 6.504159;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FourNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
 
     constexpr auto expected_length = 6.5;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SixNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
     constexpr auto expected_length = 6.504159;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinateForFourNodedLineInterfaceGeometry,
+KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForTwoPlusTwoNodedLineInterfaceGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateFourNodedLineInterfaceGeometry();
+    const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
 
     auto       result          = array_1d<double, 3>{};
     const auto global_position = array_1d<double, 3>{4.375, 0.1, 0.0};
@@ -322,23 +322,23 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinateFo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinateForSixNodedLineInterfaceGeometry,
+KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForThreePlusThreeNodedLineInterfaceGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
-    auto       result          = array_1d<double, 3>{};
     const auto global_position = array_1d<double, 3>{4.5625, 0.175, 0.0};
+    auto       result          = array_1d<double, 3>{};
     result                     = geometry.PointLocalCoordinates(result, global_position);
 
     const auto expected_result = array_1d<double, 3>{0.5, 0.0, 0.0};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfSixNodedLineInterfaceGeometry,
+KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLineInterfaceGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
     Matrix result;
     geometry.PointsLocalCoordinates(result);
@@ -350,7 +350,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfSixNodedLineInterfaceGe
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Area(),
                                       "Calling base class 'Area' method instead of derived class "
                                       "one. Please check the definition of derived class. ")
@@ -358,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMec
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry = CreateSixNodedLineInterfaceGeometry();
+    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Volume(),
                                       "Calling base class 'Volume' method instead of derived class "
                                       "one. Please check the definition of derived class. ")

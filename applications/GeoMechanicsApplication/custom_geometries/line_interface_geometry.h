@@ -39,7 +39,7 @@ public:
         : BaseType(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
-            << "Number of nodes must be four or six\n";
+            << "Number of nodes must be 2+2 or 3+3\n";
 
         const auto points_of_mid_line = CreatePointsOfMidLine();
 
@@ -61,33 +61,33 @@ public:
         return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
-    [[nodiscard]] double ShapeFunctionValue(IndexType                   ShapeFunctionIndex,
-                                            const CoordinatesArrayType& rCoordinates) const override
+    [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
+                                            const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rCoordinates);
+        return mMidLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
     }
 
-    Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
+    Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsValues(rResult, rCoordinates);
+        return mMidLineGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
     }
 
-    Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
+    Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsLocalGradients(rResult, rPoint);
+        return mMidLineGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
     }
 
-    Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
+    Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->Jacobian(rResult, rCoordinates);
+        return mMidLineGeometry->Jacobian(rResult, rLocalCoordinate);
     }
 
-    [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const override
+    [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->DeterminantOfJacobian(rPoint);
+        return mMidLineGeometry->DeterminantOfJacobian(rLocalCoordinate);
     }
 
-    Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rCoordinates) const override
+    Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
     }
@@ -102,10 +102,10 @@ public:
                mMidLineGeometry->Info();
     }
 
-    CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType&       rResult,
-                                                const CoordinatesArrayType& rPoint) const override
+    CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
+                                                const CoordinatesArrayType& rGlobalCoordinate) const override
     {
-        return mMidLineGeometry->PointLocalCoordinates(rResult, rPoint);
+        return mMidLineGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
     }
 
     Matrix& PointsLocalCoordinates(Matrix& rResult) const override
