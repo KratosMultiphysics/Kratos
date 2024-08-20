@@ -295,6 +295,11 @@ public:
         return (Number > machine_tolerance) ? Number : 0.0;
     }
 
+    double Heaviside(const double Number)
+    {
+        return (Number >= 0) ? 1.0 : 0.0;
+    }
+
     /**
      * @brief This method returns the value of the yield surface
      * defined in Eq. (12) in Lihn et al.
