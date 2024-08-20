@@ -434,29 +434,17 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
     """
     # check if the value is a dictionary and check the dictionary
     if isinstance(expected, dict):
-        # check if the value is a dictionary and check the dictionary
-        if not are_dictionaries_almost_equal(expected, actual):
-            return False
+        return are_dictionaries_almost_equal(expected, actual)
     elif isinstance(expected, str):
-        # check if the value is a string and compare the strings
-        if expected != actual:
-            return False
+        return expected == actual
     elif isinstance(expected, (list, tuple, set)):
-        # check if the value is a list, tuple or set and compare the values
-        if not are_iterables_almost_equal(expected, actual):
-            return False
+        return are_iterables_almost_equal(expected, actual)
     elif expected is None:
-        # check if the value is None and compare the values
-        if actual is not None:
-            return False
+        return actual is None
     elif isinstance(expected, (float, int, complex)):
-        # The value is a number and compare the values
-        if not math.isclose(expected, actual, abs_tol=abs_tolerance):
-            return False
+        return math.isclose(expected, actual, abs_tol=abs_tolerance)
     else:
         raise Exception(f"Unsupported type {type(expected)}")
-
-    return True
 
 
 def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
@@ -497,6 +485,8 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
         - True if the dictionaries are equal, False otherwise.
 
     """
+    if len(expected) != len(actual):
+        return False
 
     for k, v in expected.items():
 
@@ -510,6 +500,7 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
 
     # all checks passed
     return True
+
 
 class GiDOutputFileReader:
     def __init__(self):
