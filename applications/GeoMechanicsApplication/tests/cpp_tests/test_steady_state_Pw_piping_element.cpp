@@ -14,8 +14,8 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

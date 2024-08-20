@@ -75,7 +75,8 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         ascii_writer_params.AddEmptyValue("file_extension")
         ascii_writer_params["file_extension"].SetString(Path(self.file_name).suffix)
         header = "# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n" + "# TIME\t\t" + settings["variable_name"].GetString() + "\n"
-        self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()

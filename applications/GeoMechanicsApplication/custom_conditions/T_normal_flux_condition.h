@@ -19,13 +19,14 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "includes/serializer.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTNormalFluxCondition
-    : public GeoTCondition<TDim, TNumNodes> {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTNormalFluxCondition : public GeoTCondition<TDim, TNumNodes>
+{
 public:
-    using GeometryType = Geometry<Node>;
+    using GeometryType   = Geometry<Node>;
     using PropertiesType = Properties;
     using NodesArrayType = GeometryType::PointsArrayType;
 
@@ -35,23 +36,16 @@ public:
 
     GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    GeoTNormalFluxCondition(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties);
+    GeoTNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTNormalFluxCondition() override;
-
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& rThisNodes,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoTNormalFluxCondition>(
             NewId, this->GetGeometry().Create(rThisNodes), pProperties);
     }
 
 protected:
-    void CalculateRHS(Vector& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
     friend class Serializer;

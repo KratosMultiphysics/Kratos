@@ -114,8 +114,8 @@ class convergence_criterion:
                     (StructuralMechanicsApplication.NODAL_STRAIN_VECTOR, D_RT, D_AT)])
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             elif(convergence_crit == "residual_criterion"):
-                # self.mechanical_convergence_criterion = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "NODAL_STRAIN_VECTOR")
-                self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                self.mechanical_convergence_criterion = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "NODAL_STRAIN_VECTOR")
+                # self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
         # Convergence criteria without rotation DOFs

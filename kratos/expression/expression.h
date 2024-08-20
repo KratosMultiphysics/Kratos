@@ -51,7 +51,7 @@ public:
     ///@name Public classes
     ///@{
 
-    class ExpressionIterator {
+    class KRATOS_API(KRATOS_CORE) ExpressionIterator {
     public:
         ///@name Type definitions
         ///@{

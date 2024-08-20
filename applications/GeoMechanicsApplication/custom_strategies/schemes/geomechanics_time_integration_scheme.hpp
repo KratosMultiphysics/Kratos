@@ -117,11 +117,6 @@ public:
             rElementOrCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
-    void Initialize(ModelPart& rModelPart) override
-    {
-        Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
-    }
-
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         this->UpdateVariablesDerivatives(rModelPart);

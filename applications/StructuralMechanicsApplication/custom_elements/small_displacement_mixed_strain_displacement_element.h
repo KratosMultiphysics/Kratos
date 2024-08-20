@@ -336,8 +336,41 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -351,6 +384,29 @@ public:
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+      * @brief Set a int Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+      * @brief Set a double Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     ///@}
     ///@name Access
@@ -423,9 +479,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;                     /// Currently selected integration methods
+    IntegrationMethod mThisIntegrationMethod;                     /// Integration method for stress related terms (Lobatto)
+    IntegrationMethod mMassThisIntegrationMethod;                 /// Integration method for the rest (Gauss)
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    IntegrationPointsArrayType mIntegrationPointsArray;
 
     ///@}
     ///@name Protected Operators
@@ -492,10 +548,11 @@ protected:
      */
     const double GetScalingFactor()
     {
-        const auto &r_props = GetProperties();
-        const double E  = r_props[YOUNG_MODULUS];
-        const double nu = r_props[POISSON_RATIO];
-        return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
+        return 1.0;
+        // const auto &r_props = GetProperties();
+        // const double E  = r_props[YOUNG_MODULUS];
+        // const double nu = r_props[POISSON_RATIO];
+        // return (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu));
     }
 
     /**
@@ -702,6 +759,8 @@ private:
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Recompute the kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
             // Set the constitutive variables
             SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);

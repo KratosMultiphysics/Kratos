@@ -208,7 +208,8 @@ class VertexMorphingShapeControl(Control):
                     # now fix the design surface component
                     Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetModelPart().Nodes)
                     # now fix boundary condition components
-                    for model_part in self.filter.GetBoundaryConditions()[i_comp]:
+                    model_parts = self.filter.GetBoundaryConditions()
+                    for model_part in model_parts[i_comp]:
                         Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, model_part.Nodes)
 
                 # solve for the volume mesh displacements

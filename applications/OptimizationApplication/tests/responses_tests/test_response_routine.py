@@ -127,5 +127,4 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         self.assertEqual(Kratos.Expression.Utils.NormInf(control_4_gradient), 0.0)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
