@@ -97,6 +97,11 @@ namespace Kratos {
             //RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's
         }
 
+        // Finding overlapping of initial configurations
+        if (r_process_info[CLEAN_INDENT_OPTION]) {
+            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
+        }
+
         if (fem_model_part.Nodes().size() > 0) {
             SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             SearchRigidFaceNeighbours();
@@ -125,11 +130,6 @@ namespace Kratos {
             SetInitialDemContacts();
             ComputeNewNeighboursHistoricalData();
         }
-
-
-
-
-
 
         AttachSpheresToStickyWalls();
 
@@ -654,9 +654,19 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
         const int number_of_elements = r_model_part.GetCommunicator().LocalMesh().NumberOfElements();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++) {
-            mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (added_search_distance + mListOfSphericContinuumParticles[i]->GetRadius()));
+        if (GetDeltaOption() == 3){
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
+            const double search_radius_multiplier = added_search_distance;
+            #pragma omp parallel for
+            for (int i = 0; i < number_of_elements; i++) {
+                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * ((1 + search_radius_multiplier) * mListOfSphericContinuumParticles[i]->GetRadius()));
+            }
+        }
+        else{
+            #pragma omp parallel for
+            for (int i = 0; i < number_of_elements; i++) {
+                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (added_search_distance + mListOfSphericContinuumParticles[i]->GetRadius()));
+            }
         }
         KRATOS_CATCH("")
     }

@@ -52,13 +52,10 @@ class MassResponseFunction(ResponseFunction):
     def Finalize(self) -> None:
         pass
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
             raise RuntimeError("Please call MassResponseFunction::Initialize first.")
         return self.model_part
-
-    def GetAnalysisModelPart(self) -> None:
-        return None
 
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)

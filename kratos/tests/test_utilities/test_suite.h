@@ -60,6 +60,10 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuiteWithoutKernel : public ::testing::Test
+{
+};
+
 // Define some suits that are needed by core tests
 class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};

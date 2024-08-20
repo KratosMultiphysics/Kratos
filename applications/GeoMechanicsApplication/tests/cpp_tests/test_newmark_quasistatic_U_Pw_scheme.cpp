@@ -65,13 +65,13 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkUPwScheme_ReturnsZeroForValidScheme, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkUPwScheme_ReturnsZeroForValidScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
     KRATOS_EXPECT_EQ(tester.mScheme.Check(tester.GetModelPart()), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoM
                             expected_velocity_coefficient);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
                             expected_dt_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkQuasistaticUPwSchemeTester tester;
     auto& model_part = tester.mModel.CreateModelPart("MissingAcceleration", 2);
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkUPwScheme_Throws, Krato
                                       "ACCELERATION variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBeta_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidBeta_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double invalid_beta = -2.3;
     using SchemeType              = NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidBeta_CheckNewmarkUPwScheme_Throws, KratosGeo
                                       "Beta must be larger than zero, but got -2.3")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double invalid_gamma = -2.5;
     using SchemeType               = NewmarkQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;

@@ -119,6 +119,12 @@ double UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoeffici
     return IntegrationPoints[PointNumber].Weight();
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFaceLoadCondition";
+}
+
 template class UPwNormalFaceLoadCondition<2, 2>;
 template class UPwNormalFaceLoadCondition<2, 3>;
 template class UPwNormalFaceLoadCondition<2, 4>;
