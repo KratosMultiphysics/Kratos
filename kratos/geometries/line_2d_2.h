@@ -1071,7 +1071,7 @@ public:
         const auto unity_line_direction             = (r_second_point - r_first_point) / Length();
         const auto projection_on_line               = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
-        // Conversion to local space. Note that projection_on_line could be negative
+        // Conversion to local space 
         rResult[0] = 2.0 * projection_on_line/Length() - 1.0;
 
         return rResult ;
