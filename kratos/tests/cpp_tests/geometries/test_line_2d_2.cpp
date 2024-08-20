@@ -278,7 +278,7 @@ namespace Testing {
         // Create the test line
         auto geom = GeneratePointsDiagonalLine2D2();
 
-        // Set the point to be checked, starting at the center and moving in the normal direction
+        // Set the point to be checked, starting at the center and move it in the normal direction
         Point test_point(0.5 - 0.1,0.5 + 0.1,0.0);
 
         // Compute the centre local coordinates
