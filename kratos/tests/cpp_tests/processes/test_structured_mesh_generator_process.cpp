@@ -133,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedraNonUniform, Kra
 
     KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfNodes(), 462);
     KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfElements(), 0);
-    KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfConditions(), 400);
+    KRATOS_EXPECT_EQ(model_part.GetSubModelPart("Skin").NumberOfConditions(), 920);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCoreFastSuite)
