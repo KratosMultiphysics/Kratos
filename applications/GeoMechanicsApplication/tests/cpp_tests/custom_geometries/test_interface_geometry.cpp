@@ -314,8 +314,8 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_F
 {
     const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
 
-    auto       result          = array_1d<double, 3>{};
     const auto global_position = array_1d<double, 3>{4.375, 0.1, 0.0};
+    auto       result          = array_1d<double, 3>{};
     result                     = geometry.PointLocalCoordinates(result, global_position);
 
     const auto expected_result = array_1d<double, 3>{0.5, 0.0, 0.0};
