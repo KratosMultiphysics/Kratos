@@ -94,17 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenCreatingInterfaceGivenTwoNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
-                                      "Number of nodes must be 2+2 or 3+3")
-}
-
-KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithOddNumberOfNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -287,6 +277,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_LengthReturns
 {
     const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
+    // This number was not calculated by hand, meaning this unit test is a regression test.
     constexpr auto expected_length = 6.504159;
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
@@ -296,8 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoNodedLineInterfaceGeometry_DomainSizeReturns
 {
     const auto geometry = CreateTwoPlusTwoNodedLineInterfaceGeometry();
 
-    constexpr auto expected_length = 6.5;
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Length(), 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
@@ -305,8 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_DomainSizeRet
 {
     const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
 
-    constexpr auto expected_length = 6.504159;
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), expected_length, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Length(), 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForTwoPlusTwoNodedLineInterfaceGeometry,

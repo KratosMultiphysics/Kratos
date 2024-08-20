@@ -121,12 +121,12 @@ private:
     [[nodiscard]] PointerVector<Node> CreatePointsOfMidLine() const
     {
         const auto points                  = this->Points();
-        auto       result                  = PointerVector<Node>{};
         const auto number_of_midline_nodes = std::size_t{points.size() / 2};
 
+        auto result = PointerVector<Node>{};
         for (std::size_t i = 0; i < number_of_midline_nodes; ++i) {
             const auto mid_point = (points[i] + points[i + number_of_midline_nodes]) / 2;
-            result.push_back(make_intrusive<Node>(i + 1, mid_point));
+            result.push_back(make_intrusive<Node>(points[i].Id(), mid_point));
         }
         return result;
     }
