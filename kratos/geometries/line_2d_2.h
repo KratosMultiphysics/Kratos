@@ -1064,28 +1064,15 @@ public:
         rResult.clear();
 
         const TPointType& r_first_point  = BaseType::GetPoint(0);
-        const TPointType& r_second_point = BaseType::GetPoint(1);
+        const TPointType& r_second_point  = BaseType::GetPoint(1);
 
-        // Project point
-        const double tolerance = 1e-14; // Tolerance
+        // Project the point on the line in global space
+        const auto vector_from_first_point_to_input = rPoint - r_first_point;
+        const auto unity_line_direction = (r_second_point - r_first_point) / Length();
+        const double projection_on_line = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
-        const double length = Length();
-
-        const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
-                    + std::pow(rPoint[1] - r_first_point[1], 2));
-
-        const double length_2 = std::sqrt( std::pow(rPoint[0] - r_second_point[0], 2)
-                    + std::pow(rPoint[1] - r_second_point[1], 2));
-
-        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
-            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-        } else {
-            if (length_1 > length_2) {
-                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-            } else {
-                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
-            }
-        }
+        // Conversion to local space. Note that projection_on_line could be negative
+        rResult[0] = 2.0 * projection_on_line/Length() - 1.0;
 
         return rResult ;
     }

@@ -270,6 +270,48 @@ namespace Testing {
         KRATOS_EXPECT_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
     }
 
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point 'above' the line is selected (meaning it moved a bit in the direction normal to the line).
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinates_NotAligned, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked, starting at the center and moving in the normal direction
+        Point test_point(0.5 - 0.1,0.5 + 0.1,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        // Since we started at the center and moved in the normal direction, we expect the local
+        // coordinate to be (0, 0, 0)
+        KRATOS_EXPECT_NEAR(test_point_local_coords(0), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside and not aligned with the line is selected. In this case the distance from first node is larger than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePointNotAligned, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked (moved in the normal direction)
+        Point test_point(-1.5 - 0.1,-1.5 + 0.1,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_EXPECT_NEAR(test_point_local_coords(0), -4.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */
