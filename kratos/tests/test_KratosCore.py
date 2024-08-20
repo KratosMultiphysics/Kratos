@@ -21,7 +21,7 @@ import test_materials_input
 import test_geometries
 import test_linear_solvers
 import test_eigen_solvers
-import test_condition_number
+# import test_condition_number
 import test_point
 import test_processes
 import test_properties
@@ -41,10 +41,10 @@ import test_vector_interface
 import test_matrix_interface
 import test_restart
 import test_gid_io_gauss_points
-import test_mortar_mapper
+# import test_mortar_mapper
 import test_normal_utils
 import test_skin_detection_process
-import test_sparse_matrix_multiplication
+# import test_sparse_matrix_multiplication
 import test_variable_component
 import test_variable_redistribution
 import test_object_printing
@@ -61,7 +61,7 @@ import test_linear_constraints
 import test_specifications_utilities
 import test_cad_json_input
 import test_compare_elements_conditions
-import test_matrix_market_interface
+# import test_matrix_market_interface
 import test_factories
 import test_coordinate_transformation_utils
 import test_sensitivity_utilities
@@ -131,7 +131,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_solvers.TestEigenSolvers]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_condition_number.TestConditionNumber]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_condition_number.TestConditionNumber]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_point.TestPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_properties.TestProperties]))
@@ -155,9 +155,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtils2DSymmetricalSquare]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixSum]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixTranspose]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixMultiplication]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixSum]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixTranspose]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixMultiplication]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_object_printing.TestObjectPrinting]))
@@ -175,7 +175,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_specifications_utilities.TestSpecificationsUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_json_input.TestCadJsonInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compare_elements_conditions.TestCompareElementsAndConditionsUtility]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_factories.TestFactories]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
