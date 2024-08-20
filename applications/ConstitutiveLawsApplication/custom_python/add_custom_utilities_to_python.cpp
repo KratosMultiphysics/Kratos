@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
+#include "custom_utilities/compute_cauchy_stress_history.h"
 
 //Utilities
 
@@ -27,6 +28,10 @@ namespace Kratos::Python {
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         namespace py = pybind11;
+
+        py::class_<ComputeCauchyStressHistoryUtility>(m,"ComputeCauchyStressHistoryUtility")
+            .def(py::init<>())
+            .def("ComputeStressHistory",&ComputeCauchyStressHistoryUtility::ComputeStressHistory);
     }
 
 }  // namespace Kratos::Python..
