@@ -96,18 +96,16 @@ KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedraNonUniform, Kra
 
     Parameters mesher_parameters(R"(
     {
-        "number_of_divisions_X":10,
-        "number_of_divisions_Y":20,
-        "number_of_divisions_Z":1,
+        "number_of_divisions": [10, 20, 1],
         "create_skin_sub_model_part": true,
         "skin_sub_model_part_name": "Skin",
         "element_name": "Element3D4N",
         "condition_name": "SurfaceCondition"
     }  )");
 
-    std::size_t number_of_divisions_X = mesher_parameters["number_of_divisions_X"].GetInt();
-    std::size_t number_of_divisions_Y = mesher_parameters["number_of_divisions_Y"].GetInt();
-    std::size_t number_of_divisions_Z = mesher_parameters["number_of_divisions_Z"].GetInt();
+    std::size_t number_of_divisions_X = 10;
+    std::size_t number_of_divisions_Y = 20;
+    std::size_t number_of_divisions_Z = 1;
 
 
 

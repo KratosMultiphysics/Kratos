@@ -25,6 +25,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
 #include "processes/skin_detection_process.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -41,9 +42,18 @@ StructuredMeshGeneratorProcess::StructuredMeshGeneratorProcess(const GeometryTyp
     mStartElementId = TheParameters["start_element_id"].GetInt();
     mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
-    mNumberOfDivisions[0] = TheParameters["number_of_divisions_X"].GetInt();
-    mNumberOfDivisions[1] = TheParameters["number_of_divisions_Y"].GetInt();
-    mNumberOfDivisions[2] = TheParameters["number_of_divisions_Z"].GetInt();
+    if(TheParameters["number_of_divisions"].IsInt()) {
+        mNumberOfDivisions[0] = TheParameters["number_of_divisions"].GetInt();
+        mNumberOfDivisions[1] = mNumberOfDivisions[0];
+        mNumberOfDivisions[2] = mNumberOfDivisions[0];
+    } else if(TheParameters["number_of_divisions"].IsVector()) {
+        array_1d<double,3> my_divisions = TheParameters["number_of_divisions"].GetVector();
+        mNumberOfDivisions[0] = static_cast<int>(my_divisions[0]);
+        mNumberOfDivisions[1] = static_cast<int>(my_divisions[1]);
+        mNumberOfDivisions[2] = static_cast<int>(my_divisions[2]);
+    } else {
+        KRATOS_THROW_ERROR(std::invalid_argument, "Please specify number_of_divisions as an int or the component of each direction","")
+    }
 
     mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
     mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
@@ -116,19 +126,20 @@ void StructuredMeshGeneratorProcess::Execute()
 
 void StructuredMeshGeneratorProcess::ValidateTheDefaultParameters(Parameters TheParameters)
 {
+    Parameters default_parameters = this->GetDefaultParameters();
     if(TheParameters.Has("number_of_divisions")){
-        if(TheParameters["number_of_divisions"].IsInt() && (!TheParameters.Has("number_of_divisions_X") && !TheParameters.Has("number_of_divisions_Y") && !TheParameters.Has("number_of_divisions_Z"))) 
-        {
-            int ndivisions = TheParameters["number_of_divisions"].GetInt();
-            TheParameters.RemoveValue("number_of_divisions");
-            TheParameters.AddInt("number_of_divisions_X", ndivisions);
-            TheParameters.AddInt("number_of_divisions_Y", ndivisions);
-            TheParameters.AddInt("number_of_divisions_Z", ndivisions);
+        if(TheParameters["number_of_divisions"].IsInt()) {
+            default_parameters.AddInt("number_of_divisions", 1);
+        } else if(TheParameters["number_of_divisions"].IsVector() && TheParameters["number_of_divisions"].GetVector().size()==3) {
+            Vector my_tmp_vector(3, 1.0);
+            default_parameters.AddVector("number_of_divisions", my_tmp_vector);
         } else {
             KRATOS_THROW_ERROR(std::invalid_argument, "Please specify number_of_divisions as an int or the component of each direction","")
         }
+    } else {
+        default_parameters.AddInt("number_of_divisions", 1);
     }
-    TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    TheParameters.ValidateAndAssignDefaults(default_parameters);
 }
 
 const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
@@ -142,9 +153,6 @@ const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
         "start_node_id"              : 1,
         "start_element_id"           : 1,
         "start_condition_id"         : 1,
-        "number_of_divisions_X"      : 1,
-        "number_of_divisions_Y"      : 1,
-        "number_of_divisions_Z"      : 1,
         "elements_properties_id"     : 0,
         "conditions_properties_id"   : 0,
         "element_name"               : "PLEASE SPECIFY IT",
