@@ -44,7 +44,7 @@ import test_gid_io_gauss_points
 # import test_mortar_mapper
 import test_normal_utils
 import test_skin_detection_process
-# import test_sparse_matrix_multiplication
+import test_sparse_matrix_multiplication
 import test_variable_component
 import test_variable_redistribution
 import test_object_printing
@@ -155,9 +155,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtils2DSymmetricalSquare]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixSum]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixTranspose]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixMultiplication]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixSum]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixTranspose]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_multiplication.TestSparseMatrixMultiplication]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_object_printing.TestObjectPrinting]))
