@@ -161,26 +161,29 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
         "condition_name": "LineCondition",
         "create_skin_sub_model_part": true
     })");
-
     StructuredMeshGeneratorProcess(domain_geometry, r_model_part, mesher_parameters).Execute();
 
     auto  test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "variable_name": "WATER_PRESSURE",
+                "specific_weight": 10000.0,
                 "x_coordinates": [0.0, 1.0, 2.0],
                 "y_coordinates": [1.0, 1.0, 1.0],
                 "z_coordinates": [0.0, 0.0, 0.0],
-                "gravity_direction": 1,
-                "out_of_plane_direction": 2,
-                "is_seepage": true
+                "gravity_direction": 1
             }  )"};
 
     ApplyConstantPhreaticMultiLinePressureProcess process{r_model_part, test_parameters};
     process.ExecuteInitialize();
 
-    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.Nodes()[7].FastGetSolutionStepValue(WATER_PRESSURE, 0), -10000.0);
-    KRATOS_EXPECT_DOUBLE_EQ(r_model_part.Nodes()[8].FastGetSolutionStepValue(WATER_PRESSURE, 0), -5000.0);
+    const auto phreatic_line_position = 1.0;
+    const auto specific_height = 10000.0;
+    block_for_each(r_model_part.Nodes(),
+                      [&phreatic_line_position, &specific_height](auto& node) {
+                          const auto water_pressure = (node.Y() - phreatic_line_position) * specific_height;
+         KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(WATER_PRESSURE, 0), water_pressure);
+       });
 }
 
 } // namespace Kratos::Testing
