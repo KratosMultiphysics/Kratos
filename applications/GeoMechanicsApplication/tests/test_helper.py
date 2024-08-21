@@ -444,7 +444,7 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
     elif isinstance(expected, (float, int, complex)):
         return math.isclose(expected, actual, abs_tol=abs_tolerance)
     else:
-        raise Exception(f"Unsupported type {type(expected)}")
+        raise TypeError(f"Unsupported type {type(expected)}")
 
 
 def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
