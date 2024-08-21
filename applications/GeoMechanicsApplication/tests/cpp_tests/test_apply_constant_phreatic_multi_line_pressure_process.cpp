@@ -177,8 +177,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
     ApplyConstantPhreaticMultiLinePressureProcess process{r_model_part, test_parameters};
     process.ExecuteInitialize();
 
-    const auto phreatic_line_position = 1.0;
-    const auto specific_weight = 10000.0;
+    const auto phreatic_line_position = process.YCoordinates()[0];
+    const auto specific_weight = process.SpecificWeight();
     block_for_each(r_model_part.Nodes(),
                       [&phreatic_line_position, &specific_weight](auto& node) {
                           const auto water_pressure = (node.Y() - phreatic_line_position) * specific_weight;
