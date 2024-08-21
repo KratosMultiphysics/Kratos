@@ -9,13 +9,13 @@ In this test case, a two-dimentional axisymmetric soil block with dimensions of 
 
 The geometry and boundary conditions are shown below:
 
-<img src="../documentation_data/test_fixed_temperature_boundary_conditions.svg" alt="Visualization of the Boundary conditions" title="Visualization of the Boundary conditions" width="600">
+<img src="../documentation_data/test_constant_point_load_2d_axi_conditions.svg" alt="Visualization of the geometry and the boundary conditions" title="Visualization of the geometry and the boundary conditions" width="600">
 
 ## Results
 
 The picture below illustrates the variation in vertical displacement over time for node 191, which is 3 meters away from the loading point. The results are compared with the semi-analytical solution.
 
-<img src="../documentation_data/test_thermal_fixed_temperature_2D9N_result.png" alt="Temperature within the box width at the last time step" title="Temperature within the box width at the last time step" width="600">
+<img src="../documentation_data/test_constant_point_load_2d_axi_results.png" alt="The vertical displacement, compared with semi-analytical solution" title="Temperature within the box width at the last time step" width="600">
 
 In the semi-analytical solution, there is a singulair point around $\tau = 1.1$. However, this behavior, which is caused by the arrival of the Rayleigh wave, is captured by a peak in the numerical solution. 
 
