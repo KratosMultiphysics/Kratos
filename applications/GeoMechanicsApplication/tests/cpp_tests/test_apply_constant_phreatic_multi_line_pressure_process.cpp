@@ -178,10 +178,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
     process.ExecuteInitialize();
 
     const auto phreatic_line_position = 1.0;
-    const auto specific_height = 10000.0;
+    const auto specific_weight = 10000.0;
     block_for_each(r_model_part.Nodes(),
-                      [&phreatic_line_position, &specific_height](auto& node) {
-                          const auto water_pressure = (node.Y() - phreatic_line_position) * specific_height;
+                      [&phreatic_line_position, &specific_weight](auto& node) {
+                          const auto water_pressure = (node.Y() - phreatic_line_position) * specific_weight;
          KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(WATER_PRESSURE, 0), water_pressure);
        });
 }
