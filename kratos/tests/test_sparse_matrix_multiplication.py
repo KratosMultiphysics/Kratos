@@ -22,8 +22,8 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         # Read the matrices
         A = KratosMultiphysics.CompressedMatrix()
         B = KratosMultiphysics.CompressedMatrix()
-        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
-        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
 
         # A_python = io.mmread(GetFilePath(file_name))
         # A_python.toarray()
