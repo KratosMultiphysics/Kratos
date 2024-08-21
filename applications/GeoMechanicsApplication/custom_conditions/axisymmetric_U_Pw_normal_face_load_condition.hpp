@@ -64,6 +64,8 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
+    std::string Info() const override;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
