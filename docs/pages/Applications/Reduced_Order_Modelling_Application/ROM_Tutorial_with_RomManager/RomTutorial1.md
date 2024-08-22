@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 Indeed, by running the above code, a unique case is launched, obtaining a single column vector, which is used for creating a ROM. Then, a ROM is also launched and the results of FOM and ROM are compared with the PrintErrors() method. This workflow looks as follows:
 
-![](../RomTutorial_3_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_3_1.png)
 
 
 The parameters vector $\mu$ contains the pressure loads speficied in the ProjectParameters.json, that is [10, 10, 10].
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
 By running the above code, a unique *time dependent* case is launched, obtaining a *matrix with one column per time step*. This matrix is used for creating a ROM. Then, a ROM is also launched and the results of FOM and ROM are compared with the PrintErrors() method. This workflow looks as follows:
 
-![](../RomTutorial_4_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_4_1.png)
 
 
 In order to vary the *viscosity* of the fluid, we pass a function to the RomManager with the keyword argument *UpdateMaterialParametersFile*. This function should accept the name of the file to modify, with the keyword argument *UpdateMaterialParametersFile*,  and a single list containing the parameters to modify with the keyword argument *mu*. For this example, the funcition looks like this:
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
 The obtained plot should look like this:
 
-![](../RomTutorial_6_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_6_1.png)
 
 
 
@@ -292,7 +292,7 @@ A video version of this section is available [here](https://youtu.be/iP8dX1M_NhA
 
 In nonlinear simulations, iterations are performed until some convergence criterion is fullfilled. These nonconverged solutions are usually not relevant, but they can help enrich the traning data for constructing the ROMs.
 
-![](../RomTutorial_7_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_7_1.png)
 
 To store and use the FOM nonconverged solutions to enlarge the training data for the ROMs, one should include in the main filed of the *general_rom_manager_parameters* the flag:
 
@@ -309,7 +309,7 @@ Moreover, to use the nonconverged solutions inside the process to create a ROM, 
 When using both flags, the ROM workflow looks like this:
 
 
-![](../RomTutorial_7_2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_7_2.png)
 
 
 ## Linear and Nonlinear Decoders
@@ -332,7 +332,7 @@ Currently, there are two types of decoders in the RomApplication accesible using
     ```
 
     When using the linear decoder, the optimization of the snapsthos matrix looks like this:
-    ![](../RomTutorial_8_1.png)
+    ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_1.png)
 
 - **Nonlinear (ANN-Enhanced)**.  To select the nonlinear decoder in the RomManager, one should enter:
 
@@ -342,7 +342,7 @@ Currently, there are two types of decoders in the RomApplication accesible using
 
     in the main field of the *general_rom_manager_parameters* passed to the RomManager. [This paper](https://doi.org/10.1016/j.jcp.2023.112420) explains the technical details of the method, while the following figure depicts it graphically.
 
-    ![](../RomTutorial_8_2.png)
+    ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_2.png)
 
     As can be seen, the snapshots matrix is passed to the SVD, therefore the truncation tolerance is managed still with this value in the "ROM" field of the *general_rom_manger_parameters*:
 
@@ -380,7 +380,7 @@ Currently, there are two types of decoders in the RomApplication accesible using
 To close this section we clarify the jargon "decoder", which refers to the fact that the ROM solver computes reduced coefficient $\mathbf{q} \in \mathbb{R}^N$, or $\mathbf{q} \in \mathbb{R}^{N_{inf}}$. This small vectors are decoded either linearly, by multiplying the $\tilde{\boldsymbol{u}} = \boldsymbol{\Phi}\boldsymbol{q}$ or nonlinearly $\tilde{\boldsymbol{u}} = \boldsymbol{\Phi}_{inf} \boldsymbol{q}_{inf} + \boldsymbol{\Phi}_{sup} NN(\boldsymbol{q}_{inf}) $, or expressed graphically:
 
 
-![](../RomTutorial_8_3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_3.png)
 
 
 Among the upcoming decoder alernatives is the quadratic decoder.
@@ -393,7 +393,7 @@ A video version of this section is available [here](https://youtu.be/ayJI-OXWVt8
 
 This this section considers a linear decoder, but it can readily be exteded the case to the nonlinear decoder case by substituting in the correct derivative of the decoder with respect to the reduced parameters $\boldsymbol{q}$. For the linear case this is simply $\boldsymbol{\Phi}$, while for the nonlinear it can be called $\boldsymbol{V}$, as shown in this figure
 
-![](../RomTutorial_8_3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_3.png)
 
 
 In this section we present the different projection strategies currently available in the RomApplication through the RomManager. These are:
@@ -407,18 +407,18 @@ In this section we present the different projection strategies currently availab
 
 
 
-![](../RomTutorial_9_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_1.png)
 
 
-![](../RomTutorial_9_2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_2.png)
 
 
-![](../RomTutorial_9_3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_3.png)
 
 
-![](../RomTutorial_9_4.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_4.png)
 
-![](../RomTutorial_9_5.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_5.png)
 
 
 
@@ -428,18 +428,18 @@ In this section we present the different projection strategies currently availab
 A video version of this section is available [here](https://youtu.be/gDn4Dbb_1t0?si=5xrQiGTwoepemUMa), while the files used are available [here](https://github.com/KratosMultiphysics/Documentation/tree/master/RomApp_Tutorial/RomAppTutorial_Part10).
 
 
-![](../RomTutorial_10_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_1.png)
 
 
-![](../RomTutorial_10_2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_2.png)
 
 
-![](../RomTutorial_10_3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_3.png)
 
 
-![](../RomTutorial_10_4.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_4.png)
 
-![](../RomTutorial_10_5.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_5.png)
 
 
-![](../RomTutorial_10_6.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_6.png)
