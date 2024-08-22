@@ -12,10 +12,10 @@
 //
 
 #include "custom_geometries/line_interface_geometry.h"
+#include "geometries/geometry_data.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <utilities/exact_mortar_segmentation_utility.h>
 
 namespace
 {
@@ -363,7 +363,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     Vector                                      dummy_vector;
     Matrix                                      dummy_matrix;
     IndexType                                   dummy_index = 0;
-    IntegrationMethod dummy_integration_method              = IntegrationMethod::GI_GAUSS_1;
+    GeometryData::IntegrationMethod dummy_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
     Geometry<Node>::IntegrationPointsArrayType dummy_integration_points;
     IntegrationInfo dummy_integration_info(dummy_index, dummy_integration_method);
     Geometry<Node>::GeometriesArrayType     dummy_geometries;
