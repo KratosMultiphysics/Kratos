@@ -319,7 +319,9 @@ A video version of this section is available [here](https://youtu.be/sg51zx1gHH8
 
 Currently, there are two types of decoders in the RomApplication accesible using the RomManager
 
-- **Linear**. The linear decoder is the default option in the main field of the *general_rom_manger_parameters*. It can be changed by modifying:
+- **Linear**.
+
+    The linear decoder is the default option in the main field of the *general_rom_manger_parameters*. It can be changed by modifying:
 
     ```json
     "type_of_decoder" : "linear",      // "linear" "ann_enhanced",  TODO: add "quadratic"
@@ -334,7 +336,8 @@ Currently, there are two types of decoders in the RomApplication accesible using
     When using the linear decoder, the optimization of the snapsthos matrix looks like this:
     ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_1.png)
 
-- **Nonlinear (ANN-Enhanced)**.  To select the nonlinear decoder in the RomManager, one should enter:
+- **Nonlinear (ANN-Enhanced)**.
+    To select the nonlinear decoder in the RomManager, one should enter:
 
     ```json
     "type_of_decoder" : "ann_enhanced",      // "linear" "ann_enhanced",  TODO: add "quadratic"
@@ -391,55 +394,109 @@ Among the upcoming decoder alernatives is the quadratic decoder.
 A video version of this section is available [here](https://youtu.be/ayJI-OXWVt8?si=OqoZ3wa1fzyFAn6C), while the files used are available [here](https://github.com/KratosMultiphysics/Documentation/tree/master/RomApp_Tutorial/RomAppTutorial_Part9).
 
 
-This this section considers a linear decoder, but it can readily be exteded the case to the nonlinear decoder case by substituting in the correct derivative of the decoder with respect to the reduced parameters $\boldsymbol{q}$. For the linear case this is simply $\boldsymbol{\Phi}$, while for the nonlinear it can be called $\boldsymbol{V}$, as shown in this figure
-
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_8_3.png)
+This section considers a linear decoder, but it can be readily extended to the nonlinear case by using the correct derivative of the decoder. For the linear case, the derivative of the decoder w.r.t. $\boldsymbol{q}$ is simply $\frac{\partial \boldsymbol{\Phi} \boldsymbol{q} }{\partial \boldsymbol{q}} = \boldsymbol{\Phi} \in \mathbb{R}^{ N_{\text{\tiny{dof}}} \times N }$. For the nonlinear case this derivative is $\frac{\partial \boldsymbol{\Phi}_{\text{\tiny inf}} \boldsymbol{q}  +  \boldsymbol{\Phi}_{\text{\tiny sup}} NN(\boldsymbol{q}) }{\partial \boldsymbol{q}} = \boldsymbol{V} \in \mathbb{R}^{ N_{\text{\tiny{dof}}} \times N_{\text{\tiny{inf}}} }$. Therefore, to consider the nonlinear case, substutute $\boldsymbol{\Phi}$ by $\boldsymbol{V}$ in the following parts of this section.
 
 
-In this section we present the different projection strategies currently available in the RomApplication through the RomManager. These are:
-
-- **Galerkin**
-
-- **Least Squares Petrov-Galerkin (LSPG)**
-
-- **Petrov-Galerkin**
-
-
-
-
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_1.png)
-
+Let us start by considering the linear system of equations that is solved on every nonlinear iteration of the FOM solver, this is shown in the following figure
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_2.png)
 
+Where $\boldsymbol{R} \in \mathbb{R}^{N_{\text{\tiny dof}}}$ is the residual vector $\boldsymbol{J} \in \mathbb{R}^{N_{\text{\tiny dof}} \times N_{\text{\tiny dof}}}$ is a Jacobian matrix, and $\boldsymbol{p} \in \mathbb{R}^{N_{\text{\tiny dof}}}$ is an increment. Currently there are 3 projection strategies in the RomApplication accesible through the RomManager. These are:
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_3.png)
+- **Galerkin**
+
+    The Galerkin projection is shown in the following figure
+
+    ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_3.png)
+
+    As can be seen, $\boldsymbol{\Phi}$ (the derivative of the decoder) is used to pre and post multiply the original system.
 
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_4.png)
+- **Least Squares Petrov-Galerkin (LSPG)**
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_5.png)
+    The LSPG projection is shown in the following figure
+
+    ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_4.png)
+
+    In this case, $\boldsymbol{\Phi}$ is still used to post multiply the original system, but the pre-multiplication on both sides of the equation is done with a changing matrix $\boldsymbol{J}\boldsymbol{\Phi}$.
+
+    The original paper introducing this method can be accessed [here](https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.3050)
 
 
+- **Petrov-Galerkin**
+
+    The LSPG projection is shown in the following figure
+
+    ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_9_5.png)
+
+    The pre and post-multiplication of the system is performed using matrices $\boldsymbol{\Phi}$(derivative of the decoder) and a fixed matrix $\boldsymbol{\Psi}$, resulting in a small rectangular system of dimension $m \times N$.
+
+    The original paper introducing this method can be accessed [here](https://doi.org/10.1016/j.cma.2023.116298)
+
+
+
+To change the projection strategy , one should change
+```json
+"projection_strategy": "petrov_galerkin",       //"lspg","galerkin","petrov_galerkin"
+```
+in the main field of the *general_rom_manager_parameters* passed to the RomManager.
 
 
 ## Hyper-Reduction HROM
 
 A video version of this section is available [here](https://youtu.be/gDn4Dbb_1t0?si=5xrQiGTwoepemUMa), while the files used are available [here](https://github.com/KratosMultiphysics/Documentation/tree/master/RomApp_Tutorial/RomAppTutorial_Part10).
 
+Previous sections convered the first stage of reduction, which consists on the projection of the system onto a reduced space. This was done by setting the field
+```json
+"stages_to_train": ["ROM"],       //"ROM", "HROM"
+```
+
+in the main field of the *general_rom_manager_parameters* passed to the RomManager, and then calling the Fit() method, as shown in the figure.
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_1.png)
 
+This still have the caveat that, even though the system of equations is relatively small ($N \times N$ instead of $N_{\text{\tiny dof}} \times N_{\text{\tiny dof}}$), the assembly is still expensive, as it requires to visit every element and assemble the contribution either in a global or local fasion, as shown in the following figure.
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_2.png)
 
+To change the assembly strategy , one should change
+```json
+ "assembling_strategy": "global",            // "global", "elemental"
+```
+in the main field of the *general_rom_manager_parameters* passed to the RomManager.
+
+To speed-up further the ROMs, one can activate the training of the hyperreduction stage by entering  "HROM" in the stages to train as
+
+```json
+"stages_to_train": ["ROM","HROM"],       //"ROM", "HROM"
+```
+
+The workflow when activating the HROM training loos as follows:
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_3.png)
 
+Where a second training consiting on an SVD, followed by the [Empirical Cubature Method (ECM)](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/RomApplication/python_scripts/empirical_cubature_method.py) algorithm are activated and the result is an HROM that takes, not only the basis (or basis + NN, if the decoder is selected to be nonlinear), but also extra data. This data consists on a set of indices and weights such that the assembly of the reduced system of equations is performed faster.
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_4.png)
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_5.png)
+In the above figure, only a subset of elements are visited, either in an elemental or global fassion, and their *weighted* contributions are assembled to the reduced system.
 
+
+We finalize this section by covering the RunHROM() method of the RomManager. Similarly to RunFOM and RunROM, this method does not produce an overhead by storing data, it simply launches the HROM simulation for the parameters contained the the list of lists mu_run. The workflow when calling the RunHROM() method looks then as follows
+
+
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_5..png)
+
+The only comment on that is that by default, the RomManager loads an optimized geometry that contains only the selected HROM elements.
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/RomApp_Tutorial/Figures/RomTutorial_10_6.png)
+
+If one is interested in plotting the solution over the entire geometry, one can take either one of two options
+- **Pass the keyword argument**
+    ```python
+    rom_manager.RunHROM(mu_run, use_full_model_part=True)
+    ```
+    The above will produce regular vtk or GiD output, but it might not be as efficient computationally, specially when deployed on edge devides.
+- **Use a postprocess of the reduced solutions**
+    TODO Add explanation of the postprocess here
+    [ROMPostProcess](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/RomApplication/python_scripts/save_rom_coefficients_process.py)
