@@ -191,16 +191,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    template <typename MatrixType>
-    static inline void AssembleDensityMatrix(MatrixType& DensityMatrix, double Density)
-    {
-        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
-            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
-    }
-
     template <typename MatrixType1, typename MatrixType2>
     static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
     {
