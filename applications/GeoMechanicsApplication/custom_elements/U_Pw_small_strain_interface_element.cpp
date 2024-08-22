@@ -151,14 +151,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    // Resizing mass matrix, no mass in these interface elements
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-    rMassMatrix.resize(N_DOF, N_DOF, false);
-    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-    KRATOS_CATCH("")
+    // Resizing mass matrix, no mass in these interface elements.
+    rMassMatrix = ZeroMatrix(this->GetNumberOfDOF(), this->GetNumberOfDOF());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
