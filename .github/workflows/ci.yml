@@ -244,7 +244,7 @@ jobs:
 
 
   windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -456,7 +456,7 @@ jobs:
 
 
   windows-core-without-unity:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
