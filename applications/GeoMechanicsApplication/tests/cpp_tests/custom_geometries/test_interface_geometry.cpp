@@ -15,6 +15,7 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <utilities/exact_mortar_segmentation_utility.h>
 
 namespace
 {
@@ -353,4 +354,60 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoM
                                       "one. Please check the definition of derived class. ")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedToIntegrationPoints,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto                          geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
+    Geometry<Node>::JacobiansType dummy_jacobian;
+    Geometry<Node>::ShapeFunctionsGradientsType dummy_shape_functions_gradients;
+    Vector                                      dummy_vector;
+    Matrix                                      dummy_matrix;
+    IndexType                                   dummy_index = 0;
+    IntegrationMethod dummy_integration_method              = IntegrationMethod::GI_GAUSS_1;
+    Geometry<Node>::IntegrationPointsArrayType dummy_integration_points;
+    IntegrationInfo dummy_integration_info(dummy_index, dummy_integration_method);
+    Geometry<Node>::GeometriesArrayType     dummy_geometries;
+    std::vector<Node::CoordinatesArrayType> dummy_coordinates;
+    const std::string                       message =
+        "This Geometry type does not support calculations on integration points.\n";
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Normal(dummy_index), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Normal(dummy_index, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.UnitNormal(dummy_index), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.UnitNormal(dummy_index, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Jacobian(dummy_jacobian, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.Jacobian(dummy_jacobian, dummy_integration_method, dummy_matrix), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.Jacobian(dummy_matrix, dummy_index, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.Jacobian(dummy_matrix, dummy_index, dummy_integration_method, dummy_matrix), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.DeterminantOfJacobian(dummy_vector, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.DeterminantOfJacobian(dummy_index, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.InverseOfJacobian(dummy_jacobian, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.InverseOfJacobian(dummy_matrix, dummy_index, dummy_integration_method), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.ShapeFunctionsIntegrationPointsGradients(
+                                          dummy_shape_functions_gradients, dummy_integration_method),
+                                      message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.ShapeFunctionsIntegrationPointsGradients(
+                                          dummy_shape_functions_gradients, dummy_vector, dummy_integration_method),
+                                      message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.ShapeFunctionsIntegrationPointsGradients(
+            dummy_shape_functions_gradients, dummy_vector, dummy_integration_method, dummy_matrix),
+        message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.CreateIntegrationPoints(dummy_integration_points, dummy_integration_info), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.GetDefaultIntegrationInfo(), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.CreateQuadraturePointGeometries(dummy_geometries, dummy_index,
+                                                 dummy_integration_points, dummy_integration_info),
+        message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.CreateQuadraturePointGeometries(dummy_geometries, dummy_index, dummy_integration_info), message)
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geometry.GlobalSpaceDerivatives(dummy_coordinates, dummy_index, dummy_index), message)
+}
 } // namespace Kratos::Testing

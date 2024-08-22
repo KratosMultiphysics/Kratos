@@ -117,6 +117,128 @@ public:
 
     void PrintData(std::ostream& rOStream) const override { mMidLineGeometry->PrintData(rOStream); }
 
+    std::string IntegrationCalculationNotImplementedMessage() const
+    {
+        return "This Geometry type does not support calculations on integration points.\n";
+    }
+
+    array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    array_1d<double, 3> Normal(IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    array_1d<double, 3> UnitNormal(IndexType IntegrationPointIndex) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    array_1d<double, 3> UnitNormal(IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& DeltaPosition) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    Matrix& Jacobian(Matrix&           rResult,
+                     IndexType         IntegrationPointIndex,
+                     IntegrationMethod ThisMethod,
+                     const Matrix&     rDeltaPosition) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    Vector& DeterminantOfJacobian(Vector& rResult, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    double DeterminantOfJacobian(IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    JacobiansType& InverseOfJacobian(JacobiansType& rResult, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    Matrix& InverseOfJacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
+                                                  IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
+                                                  Vector&           rDeterminantsOfJacobian,
+                                                  IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
+                                                  Vector&           rDeterminantsOfJacobian,
+                                                  IntegrationMethod ThisMethod,
+                                                  Matrix& ShapeFunctionsIntegrationPointsValues) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void CreateIntegrationPoints(IntegrationPointsArrayType& rIntegrationPoints,
+                                 IntegrationInfo&            rIntegrationInfo) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void CreateQuadraturePointGeometries(GeometriesArrayType& rResultGeometries,
+                                     IndexType            NumberOfShapeFunctionDerivatives,
+                                     const IntegrationPointsArrayType& rIntegrationPoints,
+                                     IntegrationInfo& rIntegrationInfo) override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void CreateQuadraturePointGeometries(GeometriesArrayType& rResultGeometries,
+                                         IndexType            NumberOfShapeFunctionDerivatives,
+                                         IntegrationInfo&     rIntegrationInfo) override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
+    void GlobalSpaceDerivatives(std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+                                IndexType                          IntegrationPointIndex,
+                                const SizeType                     DerivativeOrder) const override
+    {
+        KRATOS_ERROR << IntegrationCalculationNotImplementedMessage();
+    }
+
 private:
     [[nodiscard]] PointerVector<Node> CreatePointsOfMidLine() const
     {
