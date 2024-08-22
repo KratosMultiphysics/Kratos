@@ -42,7 +42,7 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 cmake                                                 ^
-  -G"Visual Studio 16 2022"                           ^
+  -G"Visual Studio 17 2022"                           ^
   -H"%KRATOS_SOURCE%"                                 ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
   -DBOOST_ROOT="%TEMP%\boost"                         ^
