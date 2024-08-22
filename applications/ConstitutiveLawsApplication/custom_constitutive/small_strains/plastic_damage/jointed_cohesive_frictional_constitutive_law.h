@@ -78,6 +78,7 @@ public:
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
     static constexpr double tolerance = 1.0e-8;
+    static constexpr double ratio_tolerance = 1.0e-5;
 
     /// The node definition
     using NodeType = Node;
@@ -406,12 +407,12 @@ private:
     ///@{
 
     double mDamage = 0.0;                            // Damage Variable "D"
-    double mTheta  = 0.0;                            // Orientation of the joint plane, it defines "n"
     Vector mLocalTraction = ZeroVector(Dimension);   // The traction vector in local axes of the joint "tc"
     Vector mUc  = ZeroVector(Dimension);             // The local displacement jump "[[uc]]"
     Vector mUcp = ZeroVector(Dimension);             // The local plastic displacement jump "[[ucp]]" 
     Vector mOldStrainVector = ZeroVector(VoigtSize); // The previous converged strain vector
     Vector mOldStressVector = ZeroVector(VoigtSize); // The previous converged stress vector
+    double mUp = 0.0;                                // 1d version of the plastic displacements
 
     ///@}
     ///@name Private Operators

@@ -152,7 +152,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * one_minus_D * ft;
 
             double alpha = alpha0 * std::exp(-tc_trial[0] / ft);
-            double up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
+            double up = 1.0 / delta_0 * std::sqrt(std::pow(alpha * ucp[0], 2) + std::pow(beta * ucp[1], 2));
             double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
             // compute dlamda
@@ -163,10 +163,11 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
             // plastic displacement increment
             Vector dupc = dlambda * dg_dtc;
-            double dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+            noalias(ucp) += dupc;
+            D = 1.0 - std::exp(-up);
 
             // Update traction
-            const Vector AAA = dlambda * P * dtc_dD;
+            Vector AAA = dlambda * P * dtc_dD;
 
             noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
             Vector residual = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
@@ -181,6 +182,8 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 KcE(0, 0) = Kn * Heaviside(tc[0]) * one_minus_D;
                 KcE(1, 1) = Ks * one_minus_D;
 
+                alpha = alpha0 * std::exp(-tc[0] / ft);
+
                 const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
 
                 Matrix inv_mat(Dimension, Dimension);
@@ -189,45 +192,28 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
                 noalias(du) = prod(inv_mat, residual);
                 noalias(duc) = prod(R, du);
-                noalias(ducp) = dlambda * dg_dtc;
 
-                // Update displacements and plastic displ.
-                noalias(uc) += duc;
-                noalias(ucp) += ducp;
+                noalias(tc_trial) = tc + prod(KcE, duc);
 
-                const Vector AAA = dlambda * P * dtc_dD;
-                noalias(dtc) = prod(KcE, duc) + AAA + prod(dtc_dupc, dupc);
+                yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
 
-                // Update tc and stress
-                noalias(tc) += dtc;
-                noalias(dsigma) = -1.0 / H * prod(a0, Vector(prod(n, du)));
-                noalias(stress_vector_trial) += dsigma;
-
-                // Check residual again
-                noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
-                ratio_norm_residual = norm_2(residual) / norm_2(tc);
-
-                // Check and update the yield surface
-                yield = YieldSurfaceValue(tc[1], D, muy0, muy, tc[0], ft, m, fc);
 
                 // Update derivatives
-                dy_dtc[0] = -2.0 * (tc[0] - one_minus_D * ft) * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * one_minus_D;
-                dy_dtc[1] = 2.0 * tc[1];
+                dy_dtc[0] = -2.0 * (tc_trial[0] - one_minus_D * ft) * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * one_minus_D;
+                dy_dtc[1] = 2.0 * tc_trial[1];
 
                 noalias(dtc_dupc) = -KcE;
 
                 dg_dtc[0] = dy_dtc[0];
                 dg_dtc[1] = dy_dtc[1] * gamma;
 
-                dtc_dD[0] = -Kn * Heaviside(tc[0]) * (uc_trial[0] - ucp[0]);
-                dtc_dD[1] = -Ks * (uc_trial[1] - ucp[1]);
+                dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+                dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
 
-                aux_1 = (tc[0] - one_minus_D * ft);
+                aux_1 = (tc_trial[0] - one_minus_D * ft);
                 dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * one_minus_D * ft;
 
-                alpha = alpha0 * std::exp(-tc[0] / ft);
-                up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
-                D = 1.0 - std::exp(-up);
+
                 P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
                 // compute dlamda
@@ -236,9 +222,30 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 plastic_denom_3 = P * dy_dD;
                 dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
 
+                noalias(ducp) = dlambda * dg_dtc;
+
+                // Update traction
+                Vector AAA = dlambda * P * dtc_dD;
+
+                noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+
+                noalias(dsigma) = -prod(a0, Vector(prod(n, du))) / H;
+                noalias(stress_vector_trial) += dsigma;
+
+                noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+                ratio_norm_residual = norm_2(residual) / norm_2(tc);
+
+                noalias(ucp) += ducp;
+                noalias(uc) += duc;
+
+                up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
+                D = 1.0 - std::exp(-up);
+
                 iteration++;
             } // while loop
             noalias(rValues.GetStressVector()) = stress_vector_trial;
+            KRATOS_WATCH(ratio_norm_residual)
+            KRATOS_WATCH(iteration)
         } // non linear behaviour
     } // compute stresses
 
@@ -256,12 +263,12 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+
     KRATOS_TRY;
 
     Flags &r_cl_options = rValues.GetOptions();
     const auto& r_strain_vector = rValues.GetStrainVector();
     const auto strain_increment = r_strain_vector - mOldStrainVector;
-    // Store old strain
 
     const auto &r_props = rValues.GetMaterialProperties();
     // We retrieve material properties
@@ -317,15 +324,15 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
     double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
 
     if (yield <= tolerance) { // Elastic condition
-        noalias(mOldStressVector) = stress_vector_trial;
+        noalias(rValues.GetStressVector()) = stress_vector_trial;
         noalias(mLocalTraction) = tc_trial;
         noalias(mUc) = uc_trial;
     } else { // Non-linear behaviour
 
-        Vector& uc  = mUc;
-        Vector& ucp = mUcp;
-        Vector& tc  = mLocalTraction;
-        double& D   = mDamage;
+        Vector uc  = mUc;
+        Vector ucp = mUcp;
+        Vector tc  = mLocalTraction;
+        double D   = mDamage;
 
         // dy_dtc
         Vector dy_dtc(Dimension);
@@ -350,7 +357,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
         double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * one_minus_D * ft;
 
         double alpha = alpha0 * std::exp(-tc_trial[0] / ft);
-        double up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
+        double up = 1.0 / delta_0 * std::sqrt(std::pow(alpha * ucp[0], 2) + std::pow(beta * ucp[1], 2));
         double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
         // compute dlamda
@@ -361,10 +368,11 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
 
         // plastic displacement increment
         Vector dupc = dlambda * dg_dtc;
-        double dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+        noalias(ucp) += dupc;
+        D = 1.0 - std::exp(-up);
 
         // Update traction
-        const Vector AAA = dlambda * P * dtc_dD;
+        Vector AAA = dlambda * P * dtc_dD;
 
         noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
         Vector residual = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
@@ -379,6 +387,8 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
             KcE(0, 0) = Kn * Heaviside(tc[0]) * one_minus_D;
             KcE(1, 1) = Ks * one_minus_D;
 
+            alpha = alpha0 * std::exp(-tc[0] / ft);
+
             const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
 
             Matrix inv_mat(Dimension, Dimension);
@@ -387,45 +397,28 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
 
             noalias(du) = prod(inv_mat, residual);
             noalias(duc) = prod(R, du);
-            noalias(ducp) = dlambda * dg_dtc;
 
-            // Update displacements and plastic displ.
-            noalias(uc) += duc;
-            noalias(ucp) += ducp;
+            noalias(tc_trial) = tc + prod(KcE, duc);
 
-            const Vector AAA = dlambda * P * dtc_dD;
-            noalias(dtc) = prod(KcE, duc) + AAA + prod(dtc_dupc, dupc);
+            yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
 
-            // Update tc and stress
-            noalias(tc) += dtc;
-            noalias(dsigma) = -1.0 / H * prod(a0, Vector(prod(n, du)));
-            noalias(stress_vector_trial) += dsigma;
-
-            // Check residual again
-            noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
-            ratio_norm_residual = norm_2(residual) / norm_2(tc);
-
-            // Check and update the yield surface
-            yield = YieldSurfaceValue(tc[1], D, muy0, muy, tc[0], ft, m, fc);
 
             // Update derivatives
-            dy_dtc[0] = -2.0 * (tc[0] - one_minus_D * ft) * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * one_minus_D;
-            dy_dtc[1] = 2.0 * tc[1];
+            dy_dtc[0] = -2.0 * (tc_trial[0] - one_minus_D * ft) * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * one_minus_D;
+            dy_dtc[1] = 2.0 * tc_trial[1];
 
             noalias(dtc_dupc) = -KcE;
 
             dg_dtc[0] = dy_dtc[0];
             dg_dtc[1] = dy_dtc[1] * gamma;
 
-            dtc_dD[0] = -Kn * Heaviside(tc[0]) * (uc_trial[0] - ucp[0]);
-            dtc_dD[1] = -Ks * (uc_trial[1] - ucp[1]);
+            dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+            dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
 
-            aux_1 = (tc[0] - one_minus_D * ft);
+            aux_1 = (tc_trial[0] - one_minus_D * ft);
             dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * (one_minus_D * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * one_minus_D * ft;
 
-            alpha = alpha0 * std::exp(-tc[0] / ft);
-            up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
-            D = 1.0 - std::exp(-up);
+
             P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
             // compute dlamda
@@ -434,13 +427,41 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
             plastic_denom_3 = P * dy_dD;
             dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
 
+            noalias(ducp) = dlambda * dg_dtc;
+
+            // Update traction
+            Vector AAA = dlambda * P * dtc_dD;
+
+            noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+
+            noalias(dsigma) = -prod(a0, Vector(prod(n, du))) / H;
+            noalias(stress_vector_trial) += dsigma;
+
+            noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+            ratio_norm_residual = norm_2(residual) / norm_2(tc);
+
+            noalias(ucp) += ducp;
+            noalias(uc) += duc;
+
+            up = std::sqrt(std::pow(alpha * ucp[0] / delta_0, 2) + std::pow(beta * ucp[1] / delta_0, 2));
+            D = 1.0 - std::exp(-up);
+
             iteration++;
         } // while loop
-        noalias(mOldStressVector) = stress_vector_trial;
-    } // non linear behaviour
-    noalias(mOldStrainVector) = r_strain_vector;
+        noalias(rValues.GetStressVector()) = stress_vector_trial;
+
+        noalias(mUc) = uc;
+        noalias(mUcp) = ucp;
+        noalias(mLocalTraction) = tc;
+        mDamage = D;
+
+    } // compute stresses
+
+    noalias(mOldStressVector) = rValues.GetStressVector();
+    noalias(mOldStrainVector) = rValues.GetStrainVector();
 
     KRATOS_CATCH("");
+
 }
 
 /***********************************************************************************/
