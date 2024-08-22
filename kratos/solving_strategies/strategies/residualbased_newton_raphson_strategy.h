@@ -1102,6 +1102,9 @@ class ResidualBasedNewtonRaphsonStrategy
             }
         }
 
+        TSparseSpace::SetToZero(rb);
+        p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+
         return is_converged;
     }
 

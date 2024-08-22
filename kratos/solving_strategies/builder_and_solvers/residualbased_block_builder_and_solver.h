@@ -184,6 +184,21 @@ public:
     ///@name Operations
     ///@{
 
+
+
+
+
+
+
+
+
+    Vector GetCurrentResidual(){
+        return mCurrentResidual;
+    };
+
+
+
+
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number
      * of dofs or as the number of unrestrained ones
@@ -695,6 +710,8 @@ public:
         });
 
         Timer::Stop("BuildRHS");
+
+        mCurrentResidual = b;
 
         KRATOS_CATCH("")
     }
@@ -1215,6 +1232,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    Vector mCurrentResidual;
     TSystemMatrixType mT;                             /// This is matrix containing the global relation for the constraints
     TSystemVectorType mConstantVector;                /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;                 /// The equation ids of the slaves
