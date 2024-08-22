@@ -155,7 +155,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
     // Resizing mass matrix, no mass in these interface elements
     const unsigned int N_DOF = this->GetNumberOfDOF();
-    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
+    rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
     KRATOS_CATCH("")
