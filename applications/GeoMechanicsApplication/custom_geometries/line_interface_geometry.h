@@ -117,7 +117,7 @@ public:
 
     void PrintData(std::ostream& rOStream) const override { mMidLineGeometry->PrintData(rOStream); }
 
-    std::string IntegrationCalculationNotImplementedMessage() const
+    [[nodiscard]] static std::string IntegrationCalculationNotImplementedMessage()
     {
         return "This Geometry type does not support calculations on integration points.\n";
     }
