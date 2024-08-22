@@ -270,7 +270,7 @@ namespace Testing {
         KRATOS_EXPECT_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
     }
 
-    /** Checks the point local coordinates for a given point respect to the line.
+    /** Checks the point local coordinates for a given point with respect to the line.
     * A point 'above' the line is selected (meaning it moved a bit in the direction normal to the line).
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinates_NotAligned, KratosCoreGeometriesFastSuite)
@@ -292,7 +292,7 @@ namespace Testing {
         KRATOS_EXPECT_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
     }
 
-    /** Checks the point local coordinates for a given point respect to the line.
+    /** Checks the point local coordinates for a given point with respect to the line.
     * A point outside and not aligned with the line is selected. In this case the distance from first node is larger than the length
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePointNotAligned, KratosCoreGeometriesFastSuite)

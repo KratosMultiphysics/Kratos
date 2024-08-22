@@ -1071,10 +1071,11 @@ public:
         const auto unity_line_direction             = (r_second_point - r_first_point) / Length();
         const auto projection_on_line               = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
-        // Conversion to local space 
-        rResult[0] = 2.0 * projection_on_line/Length() - 1.0;
+        // Conversion to local space
+        constexpr double tolerance = 1e-14;
+        rResult[0] = 2.0 * projection_on_line/(Length() + tolerance) - 1.0;
 
-        return rResult ;
+        return rResult;
     }
 
     ///@}
