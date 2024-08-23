@@ -52,10 +52,17 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasTwoInteg
     KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWithLessThanTwoPoints,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0}, "Can't construct Lobatto integration scheme: no support for 0 point(s)")
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1}, "Can't construct Lobatto integration scheme: no support for 1 point(s)")}
+KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWhenNumberOfPointsIsNotEqualToTwo,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto some_unsupported_numbers_of_nodes = std::vector<std::size_t>{0, 1, 3, 4, 5, 6, 7};
+
+    for (auto number : some_unsupported_numbers_of_nodes) {
+        const auto expected_error_message =
+            "Can't construct Lobatto integration scheme: no support for " + std::to_string(number) + " point(s)";
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, expected_error_message)
+    }
+}
 
 KRATOS_TEST_CASE_IN_SUITE(ATwoPointLobattoIntegrationSchemeUsesEndPointsOfLineWithUnityWeight,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
