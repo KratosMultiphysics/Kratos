@@ -19,9 +19,9 @@ using namespace Kratos;
 namespace
 {
 
-void ExpectIntegrationPointsArNear(const Geo::IntegrationPointVectorType& rExpectedIntegrationPoints,
-                                   const Geo::IntegrationPointVectorType& rActualIntegrationPoints,
-                                   double                                 RelativeTolerance)
+void ExpectIntegrationPointsAreNear(const Geo::IntegrationPointVectorType& rExpectedIntegrationPoints,
+                                    const Geo::IntegrationPointVectorType& rActualIntegrationPoints,
+                                    double                                 RelativeTolerance)
 {
     KRATOS_EXPECT_EQ(rExpectedIntegrationPoints.size(), rActualIntegrationPoints.size());
 
@@ -62,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPoi
     KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), integration_points.size());
 
     constexpr auto relative_tolerance = 1.0e-6;
-    ExpectIntegrationPointsArNear(
+    ExpectIntegrationPointsAreNear(
         integration_points, lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
 }
 
