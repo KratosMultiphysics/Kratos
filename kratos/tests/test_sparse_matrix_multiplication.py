@@ -91,7 +91,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationRMerge(A, A, A2)
 
         for i, j in np.nditer(A2_python.nonzero()):
-            self.assertAlmostEqual(A2[int(i), int(j)], A2_python[int(i), int(j)], 1e-3)
+            self.assertAlmostEqual(A2[int(i), int(j)], A2_python[int(i), int(j)], places=3)
 
     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
     def test_sparse_matrix_multiplication_saad_small(self):
