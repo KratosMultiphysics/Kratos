@@ -369,7 +369,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     Geometry<Node>::GeometriesArrayType     dummy_geometries;
     std::vector<Node::CoordinatesArrayType> dummy_coordinates;
     const std::string                       message =
-        "This Geometry type does not support calculations on integration points.\n";
+        "This Geometry type does not support functionality related to integration schemes.\n";
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Normal(dummy_index), message)
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Normal(dummy_index, dummy_integration_method), message)
