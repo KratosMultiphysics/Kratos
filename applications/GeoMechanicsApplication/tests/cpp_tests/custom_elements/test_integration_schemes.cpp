@@ -16,6 +16,24 @@
 
 using namespace Kratos;
 
+namespace
+{
+
+void ExpectIntegrationPointsArNear(const IntegrationScheme::IntegrationPointVectorType& rExpectedIntegrationPoints,
+                                   const IntegrationScheme::IntegrationPointVectorType& rActualIntegrationPoints,
+                                   double RelativeTolerance)
+{
+    KRATOS_EXPECT_EQ(rExpectedIntegrationPoints.size(), rActualIntegrationPoints.size());
+
+    for (auto i = 0; i < rExpectedIntegrationPoints.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rExpectedIntegrationPoints[i], rActualIntegrationPoints[i], RelativeTolerance)
+        KRATOS_EXPECT_RELATIVE_NEAR(rExpectedIntegrationPoints[i].Weight(),
+                                    rActualIntegrationPoints[i].Weight(), RelativeTolerance)
+    }
+}
+
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -33,6 +51,19 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegr
 
     KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), 0);
     KRATOS_EXPECT_TRUE(lobatto_integration_scheme.GetIntegrationPoints().empty())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPointsCanReturnThem,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto integration_points = IntegrationScheme::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
+    const auto lobatto_integration_scheme = LobattoIntegrationScheme{integration_points};
+
+    KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), integration_points.size());
+
+    constexpr auto relative_tolerance = 1.0e-6;
+    ExpectIntegrationPointsArNear(
+        integration_points, lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
 }
 
 } // namespace Kratos::Testing

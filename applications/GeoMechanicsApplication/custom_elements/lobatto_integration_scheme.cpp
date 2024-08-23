@@ -15,11 +15,19 @@
 namespace Kratos
 {
 
-std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const { return 0; }
+LobattoIntegrationScheme::LobattoIntegrationScheme(const IntegrationScheme::IntegrationPointVectorType& rIntegrationPoints)
+    : mIntegrationPoints(rIntegrationPoints)
+{
+}
+
+std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const
+{
+    return mIntegrationPoints.size();
+}
 
 IntegrationScheme::IntegrationPointVectorType LobattoIntegrationScheme::GetIntegrationPoints() const
 {
-    return {};
+    return mIntegrationPoints;
 }
 
-}
+} // namespace Kratos
