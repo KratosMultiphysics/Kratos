@@ -32,6 +32,14 @@ void ExpectIntegrationPointsAreNear(const Geo::IntegrationPointVectorType& rExpe
     }
 }
 
+double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
+{
+    auto weights = std::vector<double>{};
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(weights),
+                   [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
+    return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -73,6 +81,8 @@ KRATOS_TEST_CASE_IN_SUITE(ATwoPointLobattoIntegrationSchemeUsesEndPointsOfLineWi
     constexpr auto relative_tolerance = 1.0e-6;
     ExpectIntegrationPointsAreNear(expected_integration_points,
                                    lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
+
+    KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme.GetIntegrationPoints()), 2.0, relative_tolerance)
 }
 
 } // namespace Kratos::Testing
