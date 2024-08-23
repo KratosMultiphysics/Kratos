@@ -15,11 +15,6 @@
 namespace Kratos
 {
 
-LobattoIntegrationScheme::LobattoIntegrationScheme(Geo::IntegrationPointVectorType IntegrationPoints)
-    : mIntegrationPoints(std::move(IntegrationPoints))
-{
-}
-
 LobattoIntegrationScheme::LobattoIntegrationScheme(std::size_t NumberOfPoints)
 {
     KRATOS_ERROR_IF_NOT(NumberOfPoints == 2) << "Can't construct Lobatto integration scheme: got "

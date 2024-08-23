@@ -69,17 +69,4 @@ KRATOS_TEST_CASE_IN_SUITE(ATwoPointLobattoIntegrationSchemeUsesEndPointsOfLineWi
                                    lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPointsCanReturnThem,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto integration_points = Geo::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
-    const auto lobatto_integration_scheme = LobattoIntegrationScheme{integration_points};
-
-    KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), integration_points.size());
-
-    constexpr auto relative_tolerance = 1.0e-6;
-    ExpectIntegrationPointsAreNear(
-        integration_points, lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
-}
-
 } // namespace Kratos::Testing

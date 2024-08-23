@@ -25,7 +25,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public In
 {
 public:
     LobattoIntegrationScheme() = default;
-    explicit LobattoIntegrationScheme(Geo::IntegrationPointVectorType IntegrationPoints);
     explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
 
     [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const;
