@@ -26,8 +26,8 @@ public:
     LobattoIntegrationScheme() = default;
     explicit LobattoIntegrationScheme(IntegrationPointVectorType IntegrationPoints);
 
-    [[nodiscard]] std::size_t                GetNumberOfIntegrationPoints() const;
-    [[nodiscard]] IntegrationPointVectorType GetIntegrationPoints() const;
+    [[nodiscard]] std::size_t                       GetNumberOfIntegrationPoints() const;
+    [[nodiscard]] const IntegrationPointVectorType& GetIntegrationPoints() const;
 
 private:
     IntegrationPointVectorType mIntegrationPoints;

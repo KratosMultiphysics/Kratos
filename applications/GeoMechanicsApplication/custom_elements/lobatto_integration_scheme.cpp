@@ -25,7 +25,7 @@ std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const
     return mIntegrationPoints.size();
 }
 
-IntegrationScheme::IntegrationPointVectorType LobattoIntegrationScheme::GetIntegrationPoints() const
+const IntegrationScheme::IntegrationPointVectorType& LobattoIntegrationScheme::GetIntegrationPoints() const
 {
     return mIntegrationPoints;
 }
