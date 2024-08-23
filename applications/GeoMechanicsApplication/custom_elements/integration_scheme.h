@@ -12,18 +12,11 @@
 
 #pragma once
 
-#include "integration/integration_point.h"
-
-#include <vector>
-
 namespace Kratos
 {
 
 class IntegrationScheme
 {
-public:
-    using IntegrationPointType       = IntegrationPoint<3>;
-    using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 };
 
 } // namespace Kratos

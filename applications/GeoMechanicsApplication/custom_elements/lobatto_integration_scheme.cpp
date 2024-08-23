@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-LobattoIntegrationScheme::LobattoIntegrationScheme(IntegrationScheme::IntegrationPointVectorType IntegrationPoints)
+LobattoIntegrationScheme::LobattoIntegrationScheme(Geo::IntegrationPointVectorType IntegrationPoints)
     : mIntegrationPoints(std::move(IntegrationPoints))
 {
 }
@@ -25,7 +25,7 @@ std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const
     return mIntegrationPoints.size();
 }
 
-const IntegrationScheme::IntegrationPointVectorType& LobattoIntegrationScheme::GetIntegrationPoints() const
+const Geo::IntegrationPointVectorType& LobattoIntegrationScheme::GetIntegrationPoints() const
 {
     return mIntegrationPoints;
 }

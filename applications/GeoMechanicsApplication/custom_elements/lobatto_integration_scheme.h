@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "geo_aliases.h"
 #include "includes/kratos_export_api.h"
 #include "integration_scheme.h"
 
@@ -24,13 +25,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public In
 {
 public:
     LobattoIntegrationScheme() = default;
-    explicit LobattoIntegrationScheme(IntegrationPointVectorType IntegrationPoints);
+    explicit LobattoIntegrationScheme(Geo::IntegrationPointVectorType IntegrationPoints);
 
-    [[nodiscard]] std::size_t                       GetNumberOfIntegrationPoints() const;
-    [[nodiscard]] const IntegrationPointVectorType& GetIntegrationPoints() const;
+    [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const;
+    [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const;
 
 private:
-    IntegrationPointVectorType mIntegrationPoints;
+    Geo::IntegrationPointVectorType mIntegrationPoints;
 };
 
 } // namespace Kratos

@@ -19,9 +19,9 @@ using namespace Kratos;
 namespace
 {
 
-void ExpectIntegrationPointsArNear(const IntegrationScheme::IntegrationPointVectorType& rExpectedIntegrationPoints,
-                                   const IntegrationScheme::IntegrationPointVectorType& rActualIntegrationPoints,
-                                   double RelativeTolerance)
+void ExpectIntegrationPointsArNear(const Geo::IntegrationPointVectorType& rExpectedIntegrationPoints,
+                                   const Geo::IntegrationPointVectorType& rActualIntegrationPoints,
+                                   double                                 RelativeTolerance)
 {
     KRATOS_EXPECT_EQ(rExpectedIntegrationPoints.size(), rActualIntegrationPoints.size());
 
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegr
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPointsCanReturnThem,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto integration_points = IntegrationScheme::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
+    const auto integration_points = Geo::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
     const auto lobatto_integration_scheme = LobattoIntegrationScheme{integration_points};
 
     KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), integration_points.size());
