@@ -14,13 +14,14 @@ The geometry and boundary conditions are shown below:
 The shear wave velocity $c_s$ and compression wave velocity $c_p$ can be calculated as:
 
 $$ c_s = \sqrt{\frac{G}{\rho}} $$
+
 $$ c_p = \sqrt{\frac{M}{\rho}} $$
 
 where $G$ and $M$ are shear modulus and P-wave modulus, respectively. They are defined as:
 
 $$ G = \frac{E}{2  \left(1 + \nu \right)} $$
 
-$$ M = frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) * \left(1 - 2 \nu \right)} $$
+$$ M = \frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) \left(1 - 2 \nu \right)} $$
 
 - $G$		= Shear modulus $\mathrm{[Pa]}$
 - $M$		= P-wave modulus  $\mathrm{[Pa]}$
