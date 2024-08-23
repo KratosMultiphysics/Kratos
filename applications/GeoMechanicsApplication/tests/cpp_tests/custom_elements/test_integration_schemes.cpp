@@ -53,12 +53,20 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegr
     KRATOS_EXPECT_TRUE(lobatto_integration_scheme.GetIntegrationPoints().empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWithLessThanTwoPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWithLessThanTwoPoints,
+                          KratosGeoMechanicsFastSuiteWithoutKernel){
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0}, "Can't construct Lobatto integration scheme: got 0 point(s)")
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1}, "Can't construct Lobatto integration scheme: got 1 point(s)")}
+
+KRATOS_TEST_CASE_IN_SUITE(ATwoPointLobattoIntegrationSchemeUsesEndPointsOfLineWithUnityWeight,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0},
-                                      "Can't construct Lobatto integration scheme: got 0 point(s)")
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1},
-                                      "Can't construct Lobatto integration scheme: got 1 point(s)")
+    const auto lobatto_integration_scheme = LobattoIntegrationScheme{2};
+
+    const auto expected_integration_points = Geo::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
+    constexpr auto relative_tolerance = 1.0e-6;
+    ExpectIntegrationPointsAreNear(expected_integration_points,
+                                   lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPointsCanReturnThem,
