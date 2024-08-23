@@ -20,6 +20,11 @@ LobattoIntegrationScheme::LobattoIntegrationScheme(Geo::IntegrationPointVectorTy
 {
 }
 
+LobattoIntegrationScheme::LobattoIntegrationScheme(std::size_t NumberOfPoints)
+{
+    KRATOS_ERROR << "Can't construct Lobatto integration scheme: got " << NumberOfPoints << " point(s)" << std::endl;
+}
+
 std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const
 {
     return mIntegrationPoints.size();

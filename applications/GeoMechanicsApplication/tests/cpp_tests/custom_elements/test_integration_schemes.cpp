@@ -53,6 +53,14 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegr
     KRATOS_EXPECT_TRUE(lobatto_integration_scheme.GetIntegrationPoints().empty())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWithLessThanTwoPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0},
+                                      "Can't construct Lobatto integration scheme: got 0 point(s)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1},
+                                      "Can't construct Lobatto integration scheme: got 1 point(s)")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeConstructedFromIntegrationPointsCanReturnThem,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
