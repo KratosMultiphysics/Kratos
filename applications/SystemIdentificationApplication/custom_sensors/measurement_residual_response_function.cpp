@@ -6,7 +6,8 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya,
+//                   Ihar Antonau
 //
 
 // System includes
@@ -174,34 +175,25 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     rResponseGradient.clear();
 
     auto& local_sensor_response_gradient = mResponseGradientList[OpenMPUtils::ThisThread()];
-    // if (mPCoefficient == 1){
 
-    //     for (auto& p_sensor : mpSensorsList) {
-    //         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-    //         noalias(rResponseGradient) += local_sensor_response_gradient * (p_sensor->GetWeight() * (p_sensor->GetSensorValue() - p_sensor->GetValue(SENSOR_MEASURED_VALUE)));
-    //     }
-    // }
-    // else {
-        double temp = 0.0;
-        for (auto& p_sensor : mpSensorsList) {
-            temp += ( std::pow( p_sensor->GetValue(SENSOR_ERROR) * p_sensor->GetWeight(), mPCoefficient ) );
-        }
-        const double c1 = 1 / mPCoefficient * std::pow( temp, 1/mPCoefficient - 1 );
+    double temp = 0.0;
+    for (auto& p_sensor : mpSensorsList) {
+        temp += ( std::pow( p_sensor->GetValue(SENSOR_ERROR) * p_sensor->GetWeight(), mPCoefficient ) );
+    }
+    const double c1 = 1 / mPCoefficient * std::pow( temp, 1/mPCoefficient - 1 );
 
-        temp = 0.0;
-        for (auto& p_sensor : mpSensorsList) {
-            temp += std::pow( p_sensor->GetWeight() * p_sensor->GetValue(SENSOR_ERROR), mPCoefficient - 1 );
-        }
+    temp = 0.0;
+    for (auto& p_sensor : mpSensorsList) {
+        temp += std::pow( p_sensor->GetWeight() * p_sensor->GetValue(SENSOR_ERROR), mPCoefficient - 1 );
+    }
 
-        const double c2 = mPCoefficient * temp;
+    const double c2 = mPCoefficient * temp;
 
-
-        for (auto& p_sensor : mpSensorsList) {
-            TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-            const double error = 2 * std::sqrt( p_sensor->GetValue(SENSOR_ERROR) );
-            noalias(rResponseGradient) += c1 * c2 * error *  local_sensor_response_gradient;
-        }
-    // }
+    for (auto& p_sensor : mpSensorsList) {
+        TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
+        const double error = 2 * ( p_sensor->GetSensorValue() - p_sensor->GetValue(SENSOR_MEASURED_VALUE) );
+        noalias(rResponseGradient) += c1 * c2 * error *  local_sensor_response_gradient;
+    }
 
     KRATOS_CATCH("");
 }
