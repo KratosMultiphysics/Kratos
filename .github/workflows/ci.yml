@@ -251,6 +251,9 @@ jobs:
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
+    container:
+      image: kratosmultiphysics/kratos-wheelbuilder-windows
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
@@ -456,12 +459,15 @@ jobs:
 
 
   windows-core-without-unity:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
+
+    container:
+      image: kratosmultiphysics/kratos-wheelbuilder-windows
 
     steps:
     - uses: actions/checkout@v4
@@ -489,8 +495,8 @@ jobs:
 
     - name: Build
       shell: cmd
+      # call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
       run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
         set CC=cl.exe
         set CXX=cl.exe
@@ -506,7 +512,7 @@ jobs:
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
         cmake                                                 ^
-          -G"Visual Studio 17 2022"                           ^
+          -G"Visual Studio 16 2019"                           ^
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^
