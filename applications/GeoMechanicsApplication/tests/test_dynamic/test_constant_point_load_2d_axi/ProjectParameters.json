@@ -61,37 +61,7 @@
         "processes_sub_model_part_list"      : ["load","base_fixed","side_rollers","zero_water_pressure"],
         "body_domain_sub_model_part_list"    : ["soil_block"]
     },
-    "output_processes": {
-            "gid_output" : [{
-            "python_module"                           : "gid_output_process",
-            "kratos_module"                           : "KratosMultiphysics",
-            "process_name"                            : "GiDOutputProcess",
-            "Parameters"                              : {
-                "model_part_name"                     : "PorousDomain.porous_computational_model_part",
-                "output_name"                         : "gid_output/test_constant_point_load_2d_axisymmetric",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags" : {
-                            "WriteDeformedMeshFlag"   : "WriteUndeformed",
-                            "WriteConditionsFlag"     : "WriteElementsOnly",
-                            "GiDPostMode"             : "GiD_PostAscii",
-                            "MultiFileFlag"           : "SingleFile"
-                        },
-                        "file_label"                  : "step",
-                        "output_control_type"         : "step",
-                        "output_interval"             : 1,
-                        "body_output"                 : true,
-                        "node_output"                 : false,
-                        "skin_output"                 : false,
-                        "plane_output"                : [],
-                        "nodal_results"               : ["DISPLACEMENT"],
-                        "gauss_point_results"         : ["CAUCHY_STRESS_TENSOR"]
-                    },
-                    "point_data_configuration"        : []
-                }
-            }
-        }]
-    },
+    "output_processes": {},
     "processes": {
         "json_output": [
             {
@@ -133,6 +103,19 @@
                     "variable_name"                : "DISPLACEMENT",
                     "table"                        : [0,0,0]
                 }
+            },
+            {
+                "python_module"                    : "apply_scalar_constraint_table_process",
+                "kratos_module"                    : "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name"                     : "ApplyScalarConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name"              : "PorousDomain.zero_water_pressure",
+                    "variable_name"                : "WATER_PRESSURE",
+                    "table"                        : 0,
+                    "value"                        : 0.0,
+                    "is_fixed"                     : true,
+                    "fluid_pressure_type"          : "Uniform"
+                }
             }
         ],
         "loads_process_list": [
@@ -146,19 +129,6 @@
                     "model_part_name"              : "PorousDomain.load",
                     "variable_name"                : "POINT_LOAD",
                     "table"                        : [0,1,0]
-                }
-            },
-            {
-                "python_module"                    : "apply_scalar_constraint_table_process",
-                "kratos_module"                    : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"                     : "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name"              : "PorousDomain.zero_water_pressure",
-                    "variable_name"                : "WATER_PRESSURE",
-                    "table"                        : 0,
-                    "value"                        : 0.0,
-                    "is_fixed"                     : true,
-                    "fluid_pressure_type"          : "Uniform"
                 }
             }
         ],

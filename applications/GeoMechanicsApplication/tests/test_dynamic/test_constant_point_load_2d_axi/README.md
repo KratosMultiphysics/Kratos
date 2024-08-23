@@ -11,12 +11,35 @@ The geometry and boundary conditions are shown below:
 
 <img src="../documentation_data/test_constant_point_load_2d_axi_conditions.svg" alt="Visualization of the geometry and the boundary conditions" title="Visualization of the geometry and the boundary conditions" width="600">
 
+The shear wave velocity $c_s$ and compression wave velocity $c_p$ can be calculated as:
+
+$$ c_s = \sqrt{\frac{G}{\rho} $$
+$$ c_p = \sqrt{\frac{M}{\rho} $$
+
+where $G$ and $M$ are shear modulus and P-wave modulus, respectively. They are defined as:
+
+$$ G = \frac{E}{2  \left(1 + \nu \right)} $$
+$$ M = frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) * \left(1 - 2 \nu \right)} $$
+
+- $G$		= Shear modulus $\mathrm{[Pa]}$
+- $M$		= P-wave modulus  $\mathrm{[Pa]}$
+- $E$		= Young's modulus  $\mathrm{[Pa]}$
+- $\nu$		= Poissopn's ratio  $\mathrm{[-]}$
+- $\rho$	= Mass density $\mathrm{[kg/m^3]}$
+
+In this test case, $E = 91800 \mathrm{Pa}$ and $\nu = 0.25$. This leads to shear and compression wave velocities of $6 \mathrm{m/s}$ and $10.39 \mathrm{m/s}$, respectively. Hence, in order to avoid the effects of reflecting waves from the boundaries, considering a domain of $10 \mathrm{m} × 10 \mathrm{m}$ with a simulation time of 1 second is sufficient.
+
 ## Results
 
-The picture below illustrates the variation in vertical displacement over time for node 191, which is 3 meters away from the loading point. The results are compared with the semi-analytical solution.
+The picture below illustrates the variation in vertical displacement over time for node 191, which is 3 meters away from the loading point. The results are compared with the semi-analytical solution. The semi-analytical solution is based on the following publication:
+
+<em> An Introduction to Soil Dynamics , Verruijt A., 2009, Delft University of Technology, Chapter 13.2 </em>
 
 <img src="../documentation_data/test_constant_point_load_2d_axi_results.png" alt="The vertical displacement, compared with semi-analytical solution" title="Temperature within the box width at the last time step" width="600">
 
 In the semi-analytical solution, there is a singulair point around $\tau = 1.1$. However, this behavior, which is caused by the arrival of the Rayleigh wave, is captured by a peak in the numerical solution. 
 
-Note: To avoid numerical oscillations, the force is gradually applied over a time span of 0.1 seconds. 
+Note: To avoid numerical oscillations, the force is gradually applied over a time span of 0.1 seconds.
+
+
+
