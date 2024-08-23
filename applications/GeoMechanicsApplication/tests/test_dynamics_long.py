@@ -145,7 +145,6 @@ class KratosGeoMechanicsDynamicsLongTests(KratosUnittest.TestCase):
                 material_parameters = json.load(fp)
 
             material_variables = material_parameters["properties"][0]["Material"]["Variables"]
-            process_info = simulation.model.GetModelPart('PorousDomain.porous_computational_model_part').ProcessInfo
 
             load_value = -1000.0  # follows from table in the mdpa file
 
