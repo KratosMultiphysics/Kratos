@@ -10,20 +10,11 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#pragma once
-
-#include "includes/kratos_export_api.h"
-#include "integration_scheme.h"
-
-#include <cstddef>
+#include "lobatto_integration_scheme.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public IntegrationScheme
-{
-public:
-    std::size_t GetNumberOfIntegrationPoints() const;
-};
+std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const { return 0; }
 
-} // namespace Kratos
+}
