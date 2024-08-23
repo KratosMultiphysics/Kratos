@@ -13,12 +13,13 @@ The geometry and boundary conditions are shown below:
 
 The shear wave velocity $c_s$ and compression wave velocity $c_p$ can be calculated as:
 
-$$ c_s = \sqrt{\frac{G}{\rho} $$
-$$ c_p = \sqrt{\frac{M}{\rho} $$
+$$ c_s = \sqrt{\frac{G}{\rho}} $$
+$$ c_p = \sqrt{\frac{M}{\rho}} $$
 
 where $G$ and $M$ are shear modulus and P-wave modulus, respectively. They are defined as:
 
 $$ G = \frac{E}{2  \left(1 + \nu \right)} $$
+
 $$ M = frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) * \left(1 - 2 \nu \right)} $$
 
 - $G$		= Shear modulus $\mathrm{[Pa]}$
@@ -31,7 +32,7 @@ In this test case, $E = 91800 \mathrm{Pa}$ and $\nu = 0.25$. This leads to shear
 
 ## Results
 
-The picture below illustrates the variation in vertical displacement over time for node 191, which is 3 meters away from the loading point. The results are compared with the semi-analytical solution. The semi-analytical solution is based on the following publication:
+The picture below illustrates the variation in vertical displacement over time for node 191, which is 3 meters away from the loading point (at coordinate of $x = 3$ and $y = 0$). The results are compared with the semi-analytical solution. The semi-analytical solution is based on the following publication:
 
 <em> An Introduction to Soil Dynamics , Verruijt A., 2009, Delft University of Technology, Chapter 13.2 </em>
 
