@@ -54,8 +54,8 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasTwoInteg
 
 KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWithLessThanTwoPoints,
                           KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0}, "Can't construct Lobatto integration scheme: got 0 point(s)")
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1}, "Can't construct Lobatto integration scheme: got 1 point(s)")}
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{0}, "Can't construct Lobatto integration scheme: no support for 0 point(s)")
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{1}, "Can't construct Lobatto integration scheme: no support for 1 point(s)")}
 
 KRATOS_TEST_CASE_IN_SUITE(ATwoPointLobattoIntegrationSchemeUsesEndPointsOfLineWithUnityWeight,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
