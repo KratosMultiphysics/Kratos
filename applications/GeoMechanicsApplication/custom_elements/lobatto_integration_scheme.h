@@ -31,6 +31,8 @@ public:
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const;
 
 private:
+    void CreateIntegrationPoints(std::size_t NumberOfPoints);
+
     Geo::IntegrationPointVectorType mIntegrationPoints;
 };
 
