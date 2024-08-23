@@ -17,4 +17,9 @@ namespace Kratos
 
 std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const { return 0; }
 
+IntegrationScheme::IntegrationPointVectorType LobattoIntegrationScheme::GetIntegrationPoints() const
+{
+    return {};
+}
+
 }

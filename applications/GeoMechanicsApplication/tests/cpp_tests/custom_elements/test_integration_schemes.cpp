@@ -26,11 +26,13 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasNoIntegrationPoints,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto lobatto_integration_scheme = LobattoIntegrationScheme{};
 
     KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), 0);
+    KRATOS_EXPECT_TRUE(lobatto_integration_scheme.GetIntegrationPoints().empty())
 }
 
 } // namespace Kratos::Testing
