@@ -836,17 +836,27 @@ class DEMAnalysisStage(AnalysisStage):
                     z_1 = element.GetNode(1).Z
                     r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
                     r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-                    r   = 0.5 * (r_0 + r_1)
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
 
-                    if (center_to_sphere_distance_0 < (radius - r)) and (center_to_sphere_distance_1 < (radius - r)):
-                        total_particle_number += 2
-                        total_contact_number += 2
-                    elif (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
-                        total_particle_number += 1
+                    if center_to_sphere_distance_0 < (radius - r_0):
                         total_contact_number += 1
+
+                    if center_to_sphere_distance_1 < (radius - r_1):
+                        total_contact_number += 1
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+                        total_particle_number += 1    
                 
                 if total_particle_number:
                     measured_coordination_number = total_contact_number / total_particle_number
@@ -861,6 +871,7 @@ class DEMAnalysisStage(AnalysisStage):
             if self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 total_tensor = np.empty((3, 3))
+                total_tensor[:] = 0.0
                 total_contact_number  = 0
 
                 for element in self.contact_model_part.Elements:
@@ -873,25 +884,40 @@ class DEMAnalysisStage(AnalysisStage):
                     z_1 = element.GetNode(1).Z
                     r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
                     r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-                    r   = 0.5 * (r_0 + r_1)
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
 
-                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
-                        
+                    if center_to_sphere_distance_0 < (radius - r_0):
+
                         vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        vector2 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        tensor = np.outer(vector1, vector2)
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
+                        total_tensor += tensor
+                        total_contact_number += 1
+
+                    elif center_to_sphere_distance_1 < (radius - r_1):
+
+                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
                         total_tensor += tensor
                         total_contact_number += 1
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
 
+                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+
+                second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
+
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
                 
-                return eigenvalues
+                return eigenvalues, second_invariant_of_deviatoric_tensor
 
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
