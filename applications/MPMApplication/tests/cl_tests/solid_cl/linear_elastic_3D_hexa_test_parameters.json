@@ -59,10 +59,10 @@
             }
         }],
         "list_other_processes": [{
-            "python_module"   : "particle_from_json_check_result_process",
+            "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "help"                  : "",
-            "process_name"          : "ParticleFromJsonCheckResultProcess",
+            "process_name"          : "MPMFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
                 "input_file_name"  : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",
@@ -72,10 +72,10 @@
         }]
     },
     "print_output_process" : [{
-        "python_module"   : "particle_json_output_process",
+        "python_module"   : "mpm_json_output_process",
         "kratos_module" : "KratosMultiphysics.MPMApplication",
         "help"                  : "",
-        "process_name"          : "ParticleJsonOutputProcess",
+        "process_name"          : "MPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
             "output_file_name"              : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",

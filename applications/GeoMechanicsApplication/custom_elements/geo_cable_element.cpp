@@ -75,14 +75,10 @@ void GeoCableElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& 
 
     if (mIsCompressed) {
         rLocalStiffnessMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
-    } else {
-        this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
-
-        FullDofMatrixType K_geo;
-        this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
-
-        rLocalStiffnessMatrix += K_geo;
+        return;
     }
+
+    BaseType::CreateElementStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

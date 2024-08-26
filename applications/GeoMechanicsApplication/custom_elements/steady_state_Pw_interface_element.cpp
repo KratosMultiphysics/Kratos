@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

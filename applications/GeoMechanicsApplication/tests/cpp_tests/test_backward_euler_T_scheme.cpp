@@ -21,7 +21,7 @@ using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerTScheme_UpdatesVariablesDerivatives_WhenP
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_TEMPERATURE, 0), expected_dt_temperature);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerTScheme_SetsTimeFactors, Kratos
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT], 1.0 / delta_time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerTScheme_Throws, K
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackwardEulerTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckBackw
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckBackwardEulerTScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerTScheme<SparseSpaceType, LocalSpaceType> scheme;
 
