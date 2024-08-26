@@ -32,28 +32,32 @@ double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }
 
-void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints, double Tolerance)
+void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
-    auto contains_lower_bound_of_xi = [Tolerance](const auto& rPoint) {
-        return std::abs(rPoint[0] + 1.0) <= Tolerance;
+    constexpr auto tolerance = 1.0e-6;
+
+    auto contains_lower_bound_of_xi = [tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0] + 1.0) <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_lower_bound_of_xi))
 
-    auto contains_upper_bound_of_xi = [Tolerance](const auto& rPoint) {
-        return std::abs(rPoint[0] - 1.0) <= Tolerance;
+    auto contains_upper_bound_of_xi = [tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0] - 1.0) <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_upper_bound_of_xi))
 }
 
-void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints, double Tolerance)
+void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
-    auto xi_is_in_range = [Tolerance](const auto& rPoint) {
-        return std::abs(rPoint[0]) - 1.0 <= Tolerance;
+    constexpr auto tolerance = 1.0e-6;
+
+    auto xi_is_in_range = [tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0]) - 1.0 <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), xi_is_in_range))
 
-    auto non_xi_coordinates_must_be_near_zero = [Tolerance](const auto& rPoint) {
-        return (std::abs(rPoint[1]) <= Tolerance) && (std::abs(rPoint[2]) <= Tolerance);
+    auto non_xi_coordinates_must_be_near_zero = [tolerance](const auto& rPoint) {
+        return (std::abs(rPoint[1]) <= tolerance) && (std::abs(rPoint[2]) <= tolerance);
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(),
                                    non_xi_coordinates_must_be_near_zero))
@@ -104,12 +108,11 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
 {
     const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
-    constexpr auto tolerance = 1.0e-6;
     for (auto number : supported_numbers_of_points) {
         const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
 
-        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
-        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
+        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme->GetIntegrationPoints());
+        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme->GetIntegrationPoints());
     }
 }
 
