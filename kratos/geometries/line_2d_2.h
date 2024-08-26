@@ -1067,9 +1067,9 @@ public:
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
         // Project the point on the line in global space
-        const auto vector_from_first_point_to_input = rPoint - r_first_point;
-        const auto unity_line_direction             = (r_second_point - r_first_point) / Length();
-        const auto projection_on_line               = inner_prod(vector_from_first_point_to_input, unity_line_direction);
+        const array_1d<double, 3> vector_from_first_point_to_input = rPoint - r_first_point;
+        const array_1d<double, 3> unity_line_direction             = (r_second_point - r_first_point) / Length();
+        const auto projection_on_line                              = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
         // Conversion to local space
         constexpr double tolerance = 1e-14;
