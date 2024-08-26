@@ -20,6 +20,7 @@ class IntegrationScheme
 public:
     virtual ~IntegrationScheme() = default;
 
+    [[nodiscard]] virtual std::size_t GetNumberOfIntegrationPoints() const                    = 0;
     [[nodiscard]] virtual const Geo::IntegrationPointVectorType& GetIntegrationPoints() const = 0;
 };
 

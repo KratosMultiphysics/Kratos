@@ -27,7 +27,7 @@ public:
     explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
     ~LobattoIntegrationScheme() override = default;
 
-    [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const;
+    [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const override;
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const override;
 
 private:

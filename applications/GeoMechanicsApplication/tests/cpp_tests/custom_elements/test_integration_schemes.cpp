@@ -66,6 +66,18 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
+
+    for (auto number : supported_numbers_of_points) {
+        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
+
+        KRATOS_EXPECT_EQ(lobatto_integration_scheme->GetNumberOfIntegrationPoints(), number);
+        KRATOS_EXPECT_EQ(lobatto_integration_scheme->GetIntegrationPoints().size(), number);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
