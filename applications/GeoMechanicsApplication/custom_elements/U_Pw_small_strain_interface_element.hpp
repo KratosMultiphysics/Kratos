@@ -25,8 +25,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement
-    : public UPwBaseElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : public UPwBaseElement
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwSmallStrainInterfaceElement);
@@ -38,21 +37,20 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
 
-    /// Default Constructor
-    UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
@@ -60,7 +58,7 @@ public:
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
@@ -69,7 +67,7 @@ public:
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -107,6 +105,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    
+    using UPwBaseElement::CalculateOnIntegrationPoints;
 
 protected:
     struct SFGradAuxVariables {
@@ -123,10 +123,6 @@ protected:
         /// Properties variables
         bool   IgnoreUndrained;
         double DynamicViscosityInverse;
-        double FluidDensity;
-        double SolidDensity;
-        double Density;
-        double Porosity;
         double BiotCoefficient;
         double BiotModulusInverse;
 
@@ -162,17 +158,8 @@ protected:
         array_1d<double, TDim>                        BodyAcceleration;
         array_1d<double, TDim>                        SoilGamma;
 
-        double                                                    IntegrationCoefficient;
-        double                                                    JointWidth;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
-        BoundedMatrix<double, TDim, TDim>                         DimMatrix;
-        BoundedMatrix<double, TNumNodes * TDim, TDim>             UDimMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
-        array_1d<double, TNumNodes * TDim>                        UVector;
-        array_1d<double, TNumNodes>                               PVector;
+        double IntegrationCoefficient;
+        double JointWidth;
 
         /// Retention Law parameters
         double FluidPressure;
@@ -210,8 +197,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     virtual void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                             const GeometryType&        Geom,
@@ -243,46 +230,42 @@ protected:
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                        const InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                      InterfaceElementVariables& rVariables);
+                                                      const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                                   InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                                   const InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                                     InterfaceElementVariables& rVariables,
                                     unsigned int               GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType&                rRightHandSideVector,
-                                       InterfaceElementVariables& rVariables,
-                                       unsigned int               GPoint);
+    void CalculateAndAddStiffnessForce(VectorType&                      rRightHandSideVector,
+                                       const InterfaceElementVariables& rVariables,
+                                       unsigned int                     GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddCompressibilityFlow(VectorType&                rRightHandSideVector,
-                                                    InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
+                                                    const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityFlow(VectorType&                rRightHandSideVector,
-                                                 InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
+                                                 const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddFluidBodyFlow(VectorType&                rRightHandSideVector,
-                                              InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddFluidBodyFlow(VectorType&                      rRightHandSideVector,
+                                              const InterfaceElementVariables& rVariables);
 
     void InterpolateOutputDoubles(std::vector<double>& rOutput, const std::vector<double>& GPValues);
 
     template <class TValueType>
     void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
-
-    void SetRetentionParameters(const InterfaceElementVariables& rVariables,
-                                RetentionLaw::Parameters&        rRetentionParameters);
-
-    double CalculateFluidPressure(const InterfaceElementVariables& rVariables);
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
 
@@ -293,11 +276,6 @@ protected:
                                     unsigned int               GPoint);
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
-
-    void CalculateSoilDensity(InterfaceElementVariables& rVariables);
-
-    void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
-                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     Vector SetFullStressVector(const Vector& rStressVector);
 

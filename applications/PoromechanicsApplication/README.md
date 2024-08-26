@@ -28,4 +28,6 @@ Mises)
 damage model with the insertion of interface elements after remeshing
 with GiD
 
+- GiD GUI available in [KratosPoroGiDInterface](https://github.com/ipouplana/KratosPoroGiDInterface)
+
 

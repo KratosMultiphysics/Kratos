@@ -63,8 +63,10 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    GeoCurvedBeamElement(IndexType NewId = 0) : GeoStructuralBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit GeoCurvedBeamElement(IndexType NewId = 0)
+        : GeoStructuralBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -85,8 +87,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoCurvedBeamElement() {}
+    ~GeoCurvedBeamElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -160,11 +161,11 @@ protected:
                                          const ElementVariables& rVariables,
                                          BoundedMatrix<double, TDim, TDim>& DeterminantJacobian) const;
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint) const;
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
     void InitializeElementVariables(ElementVariables&            rVariables,

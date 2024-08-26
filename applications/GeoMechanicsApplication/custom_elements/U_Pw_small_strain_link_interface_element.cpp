@@ -13,6 +13,8 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -288,8 +290,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                        VectorType& rRightHandSideVector,
                                                                        const ProcessInfo& CurrentProcessInfo,
-                                                                       const bool CalculateStiffnessMatrixFlag,
-                                                                       const bool CalculateResidualVectorFlag)
+                                                                       bool CalculateStiffnessMatrixFlag,
+                                                                       bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -321,17 +323,22 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     // Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
-    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+                                                        Variables.ConstitutiveMatrix, Variables.Np,
+                                                        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -362,9 +369,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);

@@ -20,7 +20,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "spaces/ublas_space.h"
 #include "../../trilinos_cpp_test_utilities.h"
 #include "containers/model.h"
@@ -860,7 +860,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -934,7 +934,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDynamicAllocationBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosDynamicAllocationBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1011,7 +1011,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system with zero contribution
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithZeroContribution, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithZeroContribution, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1085,7 +1085,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1155,7 +1155,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithInactiveConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithInactiveConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1228,7 +1228,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDynamicAllocationBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosDynamicAllocationBasicDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1267,7 +1267,10 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 2 * (world_size + 1));
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 2 * (world_size + 1));
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 16 + 14 * (world_size - 1));
+
+        // 16 + 14 * (world_size - 1) stands for the size of the system wiothout constraints
+        //       6 * (world_size - 1) represents de constraints contrirbutions
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 16 + 14 * (world_size - 1) + 6 * (world_size - 1));
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3};
@@ -1320,7 +1323,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system with auxiliary node
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1356,7 +1359,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 32);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 36);
 
         // Values to check
         auto p_prop = r_model_part.pGetProperties(1);
@@ -1390,7 +1393,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system with auxiliary node (inverted)
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1426,7 +1429,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 38);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 48);
 
         // Values to check
         auto p_prop = r_model_part.pGetProperties(1);
@@ -1460,7 +1463,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMaster, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMaster, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1496,7 +1499,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 43);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 66);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1528,7 +1531,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1564,7 +1567,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 39);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 44);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1597,7 +1600,7 @@ namespace Kratos::Testing
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the system
     // */
-    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementEliminationBuilderAndSolverWithZeroContribution, KratosTrilinosApplicationMPITestSuite)
+    // KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementEliminationBuilderAndSolverWithZeroContribution, KratosTrilinosApplicationMPITestSuite)
     // {
     //     // The base model part
     //     Model current_model;
@@ -1644,7 +1647,7 @@ namespace Kratos::Testing
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the system with zero contribution
     // */
-    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementEliminationBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    // KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementEliminationBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     // {
     //     // The base model part
     //     Model current_model;
@@ -1688,7 +1691,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the extended system
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1740,7 +1743,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementBlockBuilderAndSolverWithConstraints, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1811,7 +1814,7 @@ namespace Kratos::Testing
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the extended system
     // */
-    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementEliminationBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    // KRATOS_TEST_CASE_IN_SUITE(TrilinosExtendedDisplacementEliminationBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     // {
     //     // The base model part
     //     Model current_model;
@@ -1857,7 +1860,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -1937,7 +1940,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
     */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolverInverted, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosStructuralDisplacementBlockBuilderAndSolverInverted, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;

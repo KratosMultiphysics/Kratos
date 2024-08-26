@@ -10,13 +10,13 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
 

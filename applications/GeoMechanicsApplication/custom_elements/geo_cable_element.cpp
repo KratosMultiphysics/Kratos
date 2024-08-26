@@ -75,14 +75,10 @@ void GeoCableElement<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& 
 
     if (mIsCompressed) {
         rLocalStiffnessMatrix = ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
-    } else {
-        this->CalculateElasticStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
-
-        FullDofMatrixType K_geo;
-        this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
-
-        rLocalStiffnessMatrix += K_geo;
+        return;
     }
+
+    BaseType::CreateElementStiffnessMatrix(rLocalStiffnessMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -154,7 +150,7 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     f_local[TDim]                                   = 1.00 * normal_force;
     rInternalForces                                 = ZeroVector(TDim * TNumNodes);
     noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

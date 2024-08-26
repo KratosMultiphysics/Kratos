@@ -57,7 +57,7 @@ public:
     using FullDofMatrixType    = BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes>;
     using FullDofVectorType    = BoundedVector<double, TDim * TNumNodes>;
 
-    GeoTrussElementBase(){};
+    GeoTrussElementBase() = default;
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
@@ -206,7 +206,8 @@ public:
 
     double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+protected:
+    void FinalizeMaterialResponse(double Strain, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**
