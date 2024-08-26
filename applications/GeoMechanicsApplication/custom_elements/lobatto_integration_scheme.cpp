@@ -40,6 +40,12 @@ void LobattoIntegrationScheme::CreateIntegrationPoints(std::size_t NumberOfPoint
         mIntegrationPoints.emplace_back(1.0, 1.0);
         break;
 
+    case 3:
+        mIntegrationPoints.emplace_back(-1.0, 1.0 / 3.0);
+        mIntegrationPoints.emplace_back(0.0, 4.0 / 3.0);
+        mIntegrationPoints.emplace_back(1.0, 1.0 / 3.0);
+        break;
+
     default:
         KRATOS_ERROR << "Can't construct Lobatto integration scheme: no support for " << NumberOfPoints
                      << " point(s)" << std::endl;

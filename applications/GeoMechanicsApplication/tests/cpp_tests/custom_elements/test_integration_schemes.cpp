@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasTwoInteg
 KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWhenNumberOfPointsIsNotEqualToTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto some_unsupported_numbers_of_nodes = std::vector<std::size_t>{0, 1, 3, 4, 5, 6, 7};
+    const auto some_unsupported_numbers_of_nodes = std::vector<std::size_t>{0, 1, 4, 5, 6, 7};
 
     for (auto number : some_unsupported_numbers_of_nodes) {
         const auto expected_error_message =
@@ -83,19 +83,28 @@ KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWhenNumberOfPoin
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto lobatto_integration_scheme = LobattoIntegrationScheme{2};
+    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
     constexpr auto relative_tolerance = 1.0e-6;
-    KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme.GetIntegrationPoints()), 2.0, relative_tolerance)
+    for (auto number : supported_numbers_of_points) {
+        const auto lobatto_integration_scheme = LobattoIntegrationScheme{number};
+
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme.GetIntegrationPoints()),
+                                    2.0, relative_tolerance)
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PointsOfAnyLobattoSchemeMustBeInRangeAndIncludeBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto lobatto_integration_scheme = LobattoIntegrationScheme{2};
+    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
     constexpr auto tolerance = 1.0e-6;
-    ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
-    ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
+    for (auto number : supported_numbers_of_points) {
+        const auto lobatto_integration_scheme = LobattoIntegrationScheme{number};
+
+        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
+        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
+    }
 }
 
 } // namespace Kratos::Testing
