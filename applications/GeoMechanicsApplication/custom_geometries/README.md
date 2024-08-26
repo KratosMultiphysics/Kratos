@@ -6,12 +6,12 @@ The Line Interface Geometry is a custom geometry that can be used to define a li
 
 The geometry is defined by two lines, one on each side of the interface, where they can connect to the larger body of the domains separated by the interface. Most calculations are performed on the 'midline', which is defined by the midpoints of the two lines. They are depicted as the grey lines in the figures below. Meaning that if a certain property is queried at a certain position, the call is forwarded to the underlying midline geometry. 
 
-The following line interface geometries are supported at this moment:
-The 2+2 line interface geometry has the following node numbering for its four nodes:
+At this point, the 2+2 and 3+3 line interface geometries are implemented.
+When creating The 2+2 line interface geometry (by inputting 4 nodes), the following node numbering is used:
 
 ![2Plus2NodedGeometry](2Plus2NodedLineGeometry.svg)
 
-The 3+3 line interface geometry has the following node numbering for its six nodes:
+Similarly, the 3+3 line interface geometry has the following node numbering for its six nodes:
 
 ![3Plus3NodedGeometry](3Plus3NodedLineGeometry.svg)
 
