@@ -19,6 +19,11 @@ using namespace Kratos;
 namespace
 {
 
+std::unique_ptr<IntegrationScheme> MakeLobattoIntegrationScheme(std::size_t NumberOfPoints)
+{
+    return std::make_unique<LobattoIntegrationScheme>(NumberOfPoints);
+}
+
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
@@ -80,9 +85,9 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
 
     constexpr auto relative_tolerance = 1.0e-6;
     for (auto number : supported_numbers_of_points) {
-        const auto lobatto_integration_scheme = LobattoIntegrationScheme{number};
+        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
 
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme.GetIntegrationPoints()),
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme->GetIntegrationPoints()),
                                     2.0, relative_tolerance)
     }
 }
@@ -93,10 +98,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAnyLobattoSchemeMustBeInRangeAndIncludeBounds,
 
     constexpr auto tolerance = 1.0e-6;
     for (auto number : supported_numbers_of_points) {
-        const auto lobatto_integration_scheme = LobattoIntegrationScheme{number};
+        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
 
-        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
-        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
+        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
+        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
     }
 }
 

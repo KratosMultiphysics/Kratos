@@ -17,6 +17,10 @@ namespace Kratos
 
 class IntegrationScheme
 {
+public:
+    virtual ~IntegrationScheme() = default;
+
+    [[nodiscard]] virtual const Geo::IntegrationPointVectorType& GetIntegrationPoints() const = 0;
 };
 
 } // namespace Kratos
