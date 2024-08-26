@@ -188,12 +188,13 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_xy = sig_integrationpoint1_element126[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
-    def test_k0_procedure_k0_nc_ocr(self):
+    def test_k0_procedure_k0_nc_ocr_field(self):
         """
-        Test to check if CAUCHY_STRESS_XX is correctly derived from CAUCHY_STRESS_YY using K0_NC and OCR
+        Test to check if CAUCHY_STRESS_XX is correctly derived from CAUCHY_STRESS_YY using K0_NC and
+        an OCR supplied from a set_parameter_field_proces
         """
 
-        test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_ocr")
+        test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_ocr_field")
         file_path = test_helper.get_file_path(test_name)
 
         # run simulation
