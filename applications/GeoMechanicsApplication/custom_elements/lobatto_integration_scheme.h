@@ -24,7 +24,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public IntegrationScheme
 {
 public:
-    explicit LobattoIntegrationScheme(std::size_t NumberOfPoints = 2);
+    explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
 
     [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const;
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const;

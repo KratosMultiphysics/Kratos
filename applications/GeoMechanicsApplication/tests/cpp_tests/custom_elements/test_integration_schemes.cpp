@@ -55,17 +55,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto lobatto_integration_scheme = LobattoIntegrationScheme{};
+    constexpr auto number_of_points           = 2;
+    const auto     lobatto_integration_scheme = LobattoIntegrationScheme{number_of_points};
 
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ADefaultConstructedLobattoIntegrationSchemeHasTwoIntegrationPoints,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto lobatto_integration_scheme = LobattoIntegrationScheme{};
-
-    KRATOS_EXPECT_EQ(lobatto_integration_scheme.GetNumberOfIntegrationPoints(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWhenNumberOfPointsIsNotEqualToTwo,
