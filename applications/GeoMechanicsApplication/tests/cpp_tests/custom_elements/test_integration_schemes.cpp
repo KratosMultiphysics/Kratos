@@ -14,6 +14,12 @@
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <algorithm>
+#include <cstdlib>
+#include <memory>
+#include <numeric>
+#include <string>
+
 using namespace Kratos;
 
 namespace
