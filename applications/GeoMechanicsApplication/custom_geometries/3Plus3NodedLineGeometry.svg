@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="1.4627806"
-     inkscape:cx="6.8362952"
-     inkscape:cy="-100.83535"
+     inkscape:zoom="2.9255612"
+     inkscape:cx="69.730211"
+     inkscape:cy="-19.312534"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -33,7 +33,27 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="mid_line" />
   <defs
-     id="defs1" />
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="DartArrow"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Dart arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         transform="scale(-0.5)"
+         id="path6" />
+    </marker>
+  </defs>
   <g
      inkscape:label="Laag 1"
      inkscape:groupmode="layer"
@@ -186,6 +206,38 @@
          style="fill:#6e6e6e;stroke:#000000;stroke-width:0.300003"
          d="M 74.743077,141.98397 H 129.08819"
          id="path2" />
+      <g
+         id="g11"
+         transform="translate(-0.132956,-0.93353387)">
+        <path
+           d="m 117.85218,143.49141 v 0.10358 q -0.26713,0.0382 -0.26713,0.23443 0,0.21261 0.30529,0.27258 0.17446,-0.18809 0.41161,-0.32982 0.23715,-0.14447 0.4225,-0.14447 0.13902,0 0.13902,0.12538 0,0.16627 -0.27259,0.3271 -0.27258,0.16083 -0.65147,0.16627 -0.22352,0.22625 -0.22352,0.47975 0,0.26713 0.26168,0.43886 0.39252,-0.21535 0.82866,-0.21535 0.29983,0 0.29983,0.14993 0,0.10086 -0.15809,0.17173 -0.1581,0.0709 -0.45522,0.0709 -0.24805,0 -0.48246,-0.0354 -0.7169,0.45794 -0.7169,1.03854 0,0.25623 0.17991,0.42522 0.1799,0.16901 0.58333,0.16901 0.0709,0 0.19081,-0.008 0.31347,-0.0245 0.4225,-0.0245 0.32982,0 0.47975,0.21261 0.14992,0.21261 0.14992,0.53155 0,0.44704 -0.24532,0.67873 -0.24532,0.23443 -0.55334,0.23443 -0.16355,0 -0.26986,-0.0682 -0.10631,-0.0654 -0.10631,-0.1799 0,-0.0818 0.0545,-0.13084 0.0573,-0.0491 0.12811,-0.0491 0.0491,0 0.13903,0.03 0.16899,0.0545 0.26985,0.0545 0.18535,0 0.29168,-0.12811 0.1063,-0.12812 0.1063,-0.32166 0,-0.13629 -0.0818,-0.24259 -0.0818,-0.10359 -0.26713,-0.10359 -0.0818,0 -0.19625,0.005 -0.34074,0.0191 -0.45522,0.0191 -0.48521,0 -0.77415,-0.28349 -0.28893,-0.28349 -0.28893,-0.7278 0,-0.69782 0.7687,-1.16938 -0.27804,-0.22079 -0.27804,-0.50429 0,-0.26713 0.23443,-0.53154 -0.3898,-0.0981 -0.3898,-0.39798 0,-0.33528 0.46612,-0.34346 z"
+           id="path1-2"
+           style="fill:#6e6e6e;fill-opacity:1;stroke:#6e6e6e;stroke-width:0.0147116;stroke-opacity:1"
+           inkscape:label="path1-2" />
+        <g
+           id="g10"
+           transform="translate(0.0452196,-0.67829405)">
+          <path
+             style="fill:#6e6e6e;stroke:#6e6e6e;stroke-width:0.300003;stroke-opacity:1;marker-end:url(#DartArrow)"
+             d="m 101.91563,147.34878 h 12.72609"
+             id="path2-3" />
+          <text
+             xml:space="preserve"
+             style="font-size:2.82543px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#6e6e6e;fill-opacity:1;stroke:#6e6e6e;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+             x="97.35437"
+             y="148.14697"
+             id="text8"><tspan
+               sodipodi:role="line"
+               id="tspan8-1"
+               style="font-weight:normal;stroke-width:0;stroke-dasharray:none"
+               x="97.35437"
+               y="148.14697">0.0</tspan></text>
+          <path
+             style="fill:#6e6e6e;fill-opacity:1;stroke:#6a6a6a;stroke-width:0.300002;stroke-dasharray:none;stroke-opacity:1"
+             d="m 101.91563,149.25012 v -1.90134 -1.78264"
+             id="path10" />
+        </g>
+      </g>
     </g>
   </g>
 </svg>

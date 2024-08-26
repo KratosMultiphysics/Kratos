@@ -4,9 +4,9 @@ Geometries are responsible for calculating several geometric properties, such as
 ## Line Interface Geometry
 The Line Interface Geometry is a custom geometry that can be used to define a line interface between two different domains. 
 
-The geometry is defined by two lines, one on each side of the interface, where they can connect to the larger body of the domains separated by the interface. Most calculations are performed on the 'midline', which is defined by the midpoints of the two lines. They are depicted as the grey lines in the figures below. Meaning that if a certain property is queried at a certain position, the call is forwarded to the underlying midline geometry. 
+The geometry is defined by two lines, one on each side of the interface. The two sides of the interface connect to other model parts. Most calculations are performed on the 'midline', which is defined by the midpoints of the two lines. They are depicted as the grey lines in the figures below. This means, that if a certain property is queried at a certain position on the interface, the call is forwarded to the underlying midline geometry. 
 
-At this point, the 2+2 and 3+3 line interface geometries are implemented.
+At this point, the 2+2 and 3+3 line interface geometries are implemented, which depend on the [2D2Line](../../../kratos/geometries/line_2d_2.h) and [2D3Line](../../../kratos/geometries/line_2d_3.h) geometries respectively.
 When creating The 2+2 line interface geometry (by inputting 4 nodes), the following node numbering is used:
 
 ![2Plus2NodedGeometry](2Plus2NodedLineGeometry.svg)
