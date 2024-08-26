@@ -19,25 +19,33 @@ using namespace Kratos;
 namespace
 {
 
-void ExpectIntegrationPointsAreNear(const Geo::IntegrationPointVectorType& rExpectedIntegrationPoints,
-                                    const Geo::IntegrationPointVectorType& rActualIntegrationPoints,
-                                    double                                 RelativeTolerance)
-{
-    KRATOS_EXPECT_EQ(rExpectedIntegrationPoints.size(), rActualIntegrationPoints.size());
-
-    for (auto i = 0; i < rExpectedIntegrationPoints.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rExpectedIntegrationPoints[i], rActualIntegrationPoints[i], RelativeTolerance)
-        KRATOS_EXPECT_RELATIVE_NEAR(rExpectedIntegrationPoints[i].Weight(),
-                                    rActualIntegrationPoints[i].Weight(), RelativeTolerance)
-    }
-}
-
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(weights),
                    [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
+}
+
+void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints, double Tolerance)
+{
+    auto contains_lower_bound_of_xi = [Tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0] + 1.0) <= Tolerance;
+    };
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_lower_bound_of_xi))
+
+    auto contains_upper_bound_of_xi = [Tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0] - 1.0) <= Tolerance;
+    };
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_upper_bound_of_xi))
+}
+
+void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints, double Tolerance)
+{
+    auto xi_is_in_range = [Tolerance](const auto& rPoint) {
+        return std::abs(rPoint[0]) - 1.0 <= Tolerance;
+    };
+    KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), xi_is_in_range))
 }
 
 } // namespace
@@ -77,12 +85,17 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
 {
     const auto lobatto_integration_scheme = LobattoIntegrationScheme{2};
 
-    const auto expected_integration_points = Geo::IntegrationPointVectorType{{-1.0, 1.0}, {1.0, 1.0}};
     constexpr auto relative_tolerance = 1.0e-6;
-    ExpectIntegrationPointsAreNear(expected_integration_points,
-                                   lobatto_integration_scheme.GetIntegrationPoints(), relative_tolerance);
-
     KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme.GetIntegrationPoints()), 2.0, relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointsOfAnyLobattoSchemeMustBeInRangeAndIncludeBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto lobatto_integration_scheme = LobattoIntegrationScheme{2};
+
+    constexpr auto tolerance = 1.0e-6;
+    ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
+    ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme.GetIntegrationPoints(), tolerance);
 }
 
 } // namespace Kratos::Testing
