@@ -16,8 +16,8 @@ namespace Kratos
 {
 
 LobattoIntegrationScheme::LobattoIntegrationScheme(std::size_t NumberOfPoints)
+    : mIntegrationPoints(CreateIntegrationPoints(NumberOfPoints))
 {
-    CreateIntegrationPoints(NumberOfPoints);
 }
 
 std::size_t LobattoIntegrationScheme::GetNumberOfIntegrationPoints() const
@@ -30,25 +30,20 @@ const Geo::IntegrationPointVectorType& LobattoIntegrationScheme::GetIntegrationP
     return mIntegrationPoints;
 }
 
-void LobattoIntegrationScheme::CreateIntegrationPoints(std::size_t NumberOfPoints)
+Geo::IntegrationPointVectorType LobattoIntegrationScheme::CreateIntegrationPoints(std::size_t NumberOfPoints)
 {
     // A table with the positions of the points and the corresponding weights can be found, for
     // instance, here: https://en.wikipedia.org/wiki/Gaussian_quadrature#Gauss%E2%80%93Lobatto_rules
     switch (NumberOfPoints) {
     case 2:
-        mIntegrationPoints.emplace_back(-1.0, 1.0);
-        mIntegrationPoints.emplace_back(1.0, 1.0);
-        break;
+        return {{-1.0, 1.0}, {1.0, 1.0}};
 
     case 3:
-        mIntegrationPoints.emplace_back(-1.0, 1.0 / 3.0);
-        mIntegrationPoints.emplace_back(0.0, 4.0 / 3.0);
-        mIntegrationPoints.emplace_back(1.0, 1.0 / 3.0);
-        break;
+        return {{-1.0, 1.0 / 3.0}, {0.0, 4.0 / 3.0}, {1.0, 1.0 / 3.0}};
 
     default:
-        KRATOS_ERROR << "Can't construct Lobatto integration scheme: no support for " << NumberOfPoints
-                     << " point(s)" << std::endl;
+        KRATOS_ERROR << "Can't construct Lobatto integration scheme: no support for "
+                     << NumberOfPoints << " point(s)" << std::endl;
     }
 }
 

@@ -31,7 +31,7 @@ public:
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const override;
 
 private:
-    void CreateIntegrationPoints(std::size_t NumberOfPoints);
+    static Geo::IntegrationPointVectorType CreateIntegrationPoints(std::size_t NumberOfPoints);
 
     Geo::IntegrationPointVectorType mIntegrationPoints;
 };
