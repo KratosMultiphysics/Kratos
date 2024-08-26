@@ -496,8 +496,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         mpFileHandler->GetMeshName());
 
     // create SubModelPart hierarchy
-    for (auto& r_map : groups_by_fam) {
-        for (auto& r_smp_name : r_map.second) {
+    for (const auto& r_map : groups_by_fam) {
+        for (const auto& r_smp_name : r_map.second) {
             if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
                 rThisModelPart.CreateSubModelPart(r_smp_name);
             }
