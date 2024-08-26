@@ -22,6 +22,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos {
 
@@ -65,29 +66,6 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
 void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
 {
     KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
-}
-
-bool IsNotPaddingCharacter(std::string::value_type character) noexcept
-{
-    return !(std::isspace(character) || character == '\0');
-}
-
-// The names in the MED-file often have trailing null-chars, which need to be removed
-// this can otherwise make debugging very tricky
-void RemovePadding(std::string& rInput)
-{
-    // Trime left
-    rInput.erase(rInput.begin(),
-                 std::find_if(rInput.begin(),
-                              rInput.end(),
-                              IsNotPaddingCharacter));
-
-    // Trim right
-    rInput.erase(std::find_if(rInput.rbegin(),
-                              rInput.rend(),
-                              IsNotPaddingCharacter).base(),
-                 rInput.end());
-    rInput.erase(std::find(rInput.begin(), rInput.end(), '\0'), rInput.end());
 }
 
 template<typename T>
@@ -345,8 +323,7 @@ auto GetGroupsByFamily(
         std::vector<std::string> group_names(num_groups);
         // split the goup names
         for (int i = 0; i < num_groups; i++) {
-            group_names[i] = c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE);
-            RemovePadding(group_names[i]);
+            group_names[i] = StringUtilities::Trim(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE), /*RemoveNullChar=*/true);
         }
 
         groups_by_family[family_number] = std::move(group_names);
@@ -440,7 +417,7 @@ public:
                 axis_unit.data());
             CheckMEDErrorCode(err, "MEDmeshInfo");
 
-            RemovePadding(mMeshName);
+            mMeshName = StringUtilities::Trim(mMeshName, /*RemoveNullChar=*/true);
             mDimension = space_dim;
         }
 
@@ -521,7 +498,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     // create SubModelPart hierarchy
     for (auto& r_map : groups_by_fam) {
         for (auto& r_smp_name : r_map.second) {
-            RemovePadding(r_smp_name);
             if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
                 rThisModelPart.CreateSubModelPart(r_smp_name);
             }
