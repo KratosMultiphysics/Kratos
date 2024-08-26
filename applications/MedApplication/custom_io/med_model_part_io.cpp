@@ -491,7 +491,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     const int dimension = mpFileHandler->GetDimension();
 
     // read family info => Map from family number to group names aka SubModelPart names
-    auto groups_by_fam = GetGroupsByFamily(
+    const auto groups_by_fam = GetGroupsByFamily(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName());
 
