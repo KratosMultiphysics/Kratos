@@ -66,18 +66,6 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CantConstructALobattoIntegrationSchemeWhenNumberOfPointsIsNotEqualToTwo,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto some_unsupported_numbers_of_nodes = std::vector<std::size_t>{0, 1, 4, 5, 6, 7};
-
-    for (auto number : some_unsupported_numbers_of_nodes) {
-        const auto expected_error_message =
-            "Can't construct Lobatto integration scheme: no support for " + std::to_string(number) + " point(s)";
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, expected_error_message)
-    }
-}
-
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -92,7 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointsOfAnyLobattoSchemeMustBeInRangeAndIncludeBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncludeBounds,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
@@ -102,6 +91,18 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAnyLobattoSchemeMustBeInRangeAndIncludeBounds,
 
         ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
         ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme->GetIntegrationPoints(), tolerance);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberOfPointsRaisesAnError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto some_unsupported_numbers_of_points = std::vector<std::size_t>{0, 1, 4, 5, 6, 7};
+
+    for (auto number : some_unsupported_numbers_of_points) {
+        const auto expected_error_message =
+            "Can't construct Lobatto integration scheme: no support for " + std::to_string(number) + " point(s)";
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, expected_error_message)
     }
 }
 
