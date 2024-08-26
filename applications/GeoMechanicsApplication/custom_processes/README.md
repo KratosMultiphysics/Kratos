@@ -59,5 +59,69 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
+## $K0$ procedure process
+For the initialization of an in-situ stress field, the $K0$ procedure derives the norizontal effective stresses from a field of vertical effective stresses.
+Pre-requisite is a computed stress field with the desired normal effective stresses in the direction indicated with "K0_MAIN_DIRECTION". The normal effective stress in "K0_MAIN_DIRECTION" remains as is. Effective normal stresses in the other two directions are affected by the $K_0$ value, all shear stresses are erased.
+
+
+Depending on the given input parameters, the following scheme is adapted for computation of the $K0$ value.
+$K0_NC$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
+
+$$K0_NC = 1.0 - \sin \phi$$
+
+When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal consolidation value $K0_NC$ is modified:
+
+$$K0 = OCR \cdot K0_NC +  \frac{\nu_ur}{1 - \nu_ur} ( OCR - 1 )$$
+$$sig^'_initial = \begin{bmatrix} K0 \cdot \sigma^'_zz & 0 & 0 \\ 0 & K0 \cdot \sigma^'_zz & 0 \\ 0 & 0 & \sigma^'_zz \end{bmatrix}$$
+
+Alternaternively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
+$$sig^'_initial = \begin{bmatrix} K0_NC \cdot (\sigma^'_zz + POP ) & 0 & 0 \\ 0 & K0_NC \cdot (\sigma^'_zz + POP) & 0 \\ 0 & 0 & \sigma^'_zz \end{bmatrix}$$
+
+###Note:
+After the stress adaptation by the $K0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.  
+
+
+
+
+### Usage
+The process is defined as follows in json (also found in some of the [integration tests](../tests/test_k0_procedure_process)):
+```json
+{
+  "auxilliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name": "PorousDomain.porous_computational_model_part",
+        "variable_name": "CAUCHY_STRESS_TENSOR"
+      }
+    }
+  ]
+}
+```
+The apply_k0_procedure_process need the following material parameter input.
+```json
+{
+  "Variables": {
+    "K0_MAIN_DIRECTION":           1,
+    "K0_NC":                       0.6,
+    "UDSM_NAME"                :  "MohrCoulomb64.dll",
+    "IS_FORTRAN_UDSM"          :  true,
+    "NUMBER_OF_UMAT_PARAMETERS":  6,
+    "INDEX_OF_UMAT_PHI_PARAMETER": 4,
+    "UMAT_PARAMETERS"          :  [30000000,
+                                   0.2,
+                                   1000.0,
+                                   30,
+                                   0.0,
+                                   1000],
+    "OCR":                         1.4,
+    "POISSON_UNLOADING_RELOADING": 0.35,
+    "POP":                         800.0
+  },
+}
+```
+
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.
