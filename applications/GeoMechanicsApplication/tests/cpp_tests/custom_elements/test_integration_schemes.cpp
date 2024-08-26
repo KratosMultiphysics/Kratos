@@ -47,15 +47,15 @@ void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorT
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto contains_lower_bound_of_xi = [tolerance](const auto& rPoint) {
+    auto is_at_lower_bound_of_xi = [tolerance](const auto& rPoint) {
         return std::abs(rPoint[0] + 1.0) <= tolerance;
     };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_lower_bound_of_xi))
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_xi))
 
-    auto contains_upper_bound_of_xi = [tolerance](const auto& rPoint) {
+    auto is_at_upper_bound_of_xi = [tolerance](const auto& rPoint) {
         return std::abs(rPoint[0] - 1.0) <= tolerance;
     };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), contains_upper_bound_of_xi))
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_xi))
 }
 
 void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints)
