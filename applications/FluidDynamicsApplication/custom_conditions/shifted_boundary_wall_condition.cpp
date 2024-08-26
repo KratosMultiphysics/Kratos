@@ -208,7 +208,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const double penalty = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
     const double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
-    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
+    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity EMBEDDED_VELOCITY for FM-ALE) for all cloud nodes
     Vector unknown_values(local_size);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);

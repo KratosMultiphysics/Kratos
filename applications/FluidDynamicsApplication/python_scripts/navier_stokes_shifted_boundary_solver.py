@@ -36,7 +36,7 @@ class ShiftedBoundaryFormulation(object):
             "slip_length": 1.0e8,
             "penalty_coefficient": 10.0,
             "dynamic_tau": 1.0,
-            "level_set_type": "continuous",
+            "level_set_type": "point-based",
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1
@@ -48,8 +48,8 @@ class ShiftedBoundaryFormulation(object):
         self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         # Error that discontinuous is not supported yet
-        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous" and self.level_set_type != "iga":
-            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\', \'discontinuous\' and \'iga\'.'
+        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous" and self.level_set_type != "point-based":
+            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\', \'discontinuous\' and \'point-based\'.'
             raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -182,8 +182,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
@@ -207,7 +208,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             ## Sets the shifted-boundary formulation configuration
             self.__SetShiftedBoundaryFormulation()
             ## Setting the nodal distance
-            self.__SetDistanceFunction()
+            if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
+                self.__SetDistanceFunction()
 
     def Initialize(self):
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
@@ -228,11 +230,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
         #TODO OR
         # Avoid zeros with positive epsilon
-        tol = 1.0e-10
-        for node in self.GetComputingModelPart().Nodes:
-            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            if abs(dist) < tol:
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
+        if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
+            tol = 1.0e-10
+            for node in self.GetComputingModelPart().Nodes:
+                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if abs(dist) < tol:
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
 
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
@@ -306,13 +309,18 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
-        if self.level_set_type == "iga":
+        #TODO allow different geometries/ model parts --> separate interface utility for each model part?
+        # FM-ALE would also need to deal separately with different model parts?
+
+        if self.level_set_type == "point-based":
             # Calculate the required neighbors
             elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbours_process.Execute()
 
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
-            settings.AddEmptyValue("interpolate_boundary").SetBool(False)
+            settings.AddEmptyValue("active_side_of_skin").SetString("negative")
+            settings.AddEmptyValue("use_tessellated_boundary").SetBool(True)
+            settings.AddEmptyValue("interpolate_boundary").SetBool(True)
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary point-based interface utility created.")
 

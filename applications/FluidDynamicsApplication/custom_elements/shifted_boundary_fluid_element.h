@@ -87,7 +87,7 @@ public:
     constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
-    using ShiftedBoundaryElementData = EmbeddedData<BaseElementData>;  //TODO
+    using ShiftedBoundaryElementData = BaseElementData;  //NOTE EmbeddedData<BaseElementData> for (dis-)continuous level set
 
     ///@}
     ///@name Life Cycle
@@ -161,8 +161,8 @@ public:
                             Properties::Pointer pProperties) const override;
 
     /// Set up the element for solution.
-    /** For ShiftedBoundaryFluidElement, this initializes the discontinuous
-     * level set (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
+    /** For discontinuous level set instead of point-based, this needs to initialize the discontinuous
+     * level set distances (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 

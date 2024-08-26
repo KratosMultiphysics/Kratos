@@ -75,17 +75,16 @@ Element::Pointer ShiftedBoundaryFluidElement<TBaseElement>::Create(
 template <class TBaseElement>
 void ShiftedBoundaryFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
-
     // Call the base element initialize method to set the constitutive law
     TBaseElement::Initialize(rCurrentProcessInfo);
 
+    KRATOS_TRY;
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
-    if (!this->Has(ELEMENTAL_DISTANCES)) {
+    //NOTE necessary for discontinuous level set ?!
+    /*if (!this->Has(ELEMENTAL_DISTANCES)) {
         Vector zero_vector(NumNodes, 0.0);
         this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
-    }
-
+    }*/
     KRATOS_CATCH("");
 }
 
@@ -107,7 +106,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         // Initialize the element data
         ShiftedBoundaryElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
-        this->InitializeGeometryData(data);
+        //this->InitializeGeometryData(data);  //NOTE necessary for (dis-)continuous level set
 
         // Get the surrogate faces local IDs.
         // Note that it might happen that an INTERFACE element has no surrogate face (i.e. a unique node in the surrogate skin)
@@ -127,16 +126,20 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             //const double size2_parent = ElementSizeCalculator<Dim,BlockSize>::AverageElementSize(r_parent_geom);
 
             // Initialize counter for the surrogate integration point
-            std::size_t surrogate_pt_index = data.PositiveSideWeights.size();
-            //TODO: choose - Integration method for a surrogate boundary face
-            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;  // r_boundaries[0].GetDefaultIntegrationMethod();
+            //TODO not necessary because integration point index is not used anyways?!
+            Vector volume_weights;
+            Matrix shape_functions;
+            GeometryData::ShapeFunctionsGradientsType shape_derivatives;
+            this->CalculateGeometryData(volume_weights, shape_functions, shape_derivatives);
+            std::size_t surrogate_pt_index = volume_weights.size();  // NOTE can be used for EmbeddedData: data.PositiveSideWeights.size();
+            const GeometryData::IntegrationMethod integration_method = r_boundaries[0].GetDefaultIntegrationMethod();  //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
             // Loop the surrogate faces of the element
             // NOTE that there is the chance that the surrogate face is not unique
             for (std::size_t sur_bd_id : sur_bd_ids_vect) {
                 // Get the current surrogate face geometry information
                 const auto& r_bd_geom = r_boundaries[sur_bd_id];
-                //TODO: ERROR in laplacian/small_displ?? face is column not row, for triangle row works as well because of symmetry
+                //NOTE: Face is column not row, for triangle row works as well because of symmetry
                 // Elemental/ local node IDs of a face's nodes - NOTE that first entry is local ID of the face's opposite point (for tri and tetra)
                 const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_integration_points = r_bd_geom.IntegrationPoints(integration_method);
@@ -166,7 +169,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 r_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
 
                 // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
-                //TODO: There is only one integration point !?
                 for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
                     // Scale integration point weight (necessary if it's more than one integration point per boundary face!)
                     // const double int_pt_weight = weight * r_integration_points[i_int_pt].Weight();
@@ -312,7 +314,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
     double& rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    //TODO calculate cutted area?
+    //TODO calculate cut area?
 
     TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
@@ -382,7 +384,7 @@ const Parameters ShiftedBoundaryFluidElement<TBaseElement>::GetSpecifications() 
             "nodal_non_historical"   : ["EMBEDDED_VELOCITY"],
             "entity"                 : []
         },
-        "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],
+        "required_variables"         : ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],  //NOTE necessary for (dis-)continuous level set: "DISTANCE"
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
@@ -435,7 +437,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::PrintInfo(std::ostream& rOStream
 template <class TBaseElement>
 void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBoundaryElementData& rData) const
 {
-    rData.PositiveIndices.clear();
+    //NOTE necessary for (dis-)continuous level set with EmbeddedData
+    /*rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
 
     // Number of positive and negative distance function values
@@ -451,7 +454,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBo
     }
     rData.NumNegativeNodes = 0;
     rData.NumPositiveNodes = NumNodes;
-    this->CalculateGeometryData(rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);
+    this->CalculateGeometryData(rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
