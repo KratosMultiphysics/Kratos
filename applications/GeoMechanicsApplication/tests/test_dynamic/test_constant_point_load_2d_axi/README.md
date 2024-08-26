@@ -26,7 +26,7 @@ $$ M = \frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) \left(1 - 2 \nu \ri
 - $G$		= Shear modulus $\mathrm{[Pa]}$
 - $M$		= P-wave modulus  $\mathrm{[Pa]}$
 - $E$		= Young's modulus  $\mathrm{[Pa]}$
-- $\nu$		= Poissopn's ratio  $\mathrm{[-]}$
+- $\nu$		= Poisson's ratio  $\mathrm{[-]}$
 - $\rho$	= Mass density $\mathrm{[kg/m^3]}$
 
 In this test case, $E = 91800 \mathrm{Pa}$ and $\nu = 0.25$. This leads to shear and compression wave velocities of $6 \mathrm{m/s}$ and $10.39 \mathrm{m/s}$, respectively. Hence, in order to avoid the effects of reflecting waves from the boundaries, considering a domain of $10 \mathrm{m} × 10 \mathrm{m}$ with a simulation time of 1 second is sufficient.
