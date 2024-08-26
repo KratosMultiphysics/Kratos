@@ -23,6 +23,7 @@
 #include "includes/smart_pointers.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
+#include "input_output/logger.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
@@ -32,8 +33,9 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/shifted_boundary_point_based_interface_utility.h"
-
 #include "utilities/binbased_fast_point_locator.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
+
 #include <cstddef>
 #include <ostream>
 #include <utility>
@@ -81,8 +83,22 @@ namespace Kratos
         KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
         mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
 
+        // Set which side of the skin model part is considered
+        const std::string active_side_of_skin = ThisParameters["active_side_of_skin"].GetString();
+        if (active_side_of_skin != "positive" && active_side_of_skin != "negative" && active_side_of_skin != "both") {
+            KRATOS_ERROR << "Unknown 'active_side_of_skin' given. 'positive', 'negative' or 'both' sides are supported by point based shifted boundary interface utility." << std::endl;
+        }
+        if (active_side_of_skin == "positive") {
+            mNegativeSideIsActive = false;
+        } else if (active_side_of_skin == "negative") {
+            mPositiveSideIsActive = false;
+        }
+
+        // If true then elements will be declared BOUNDARY which are intersected by the tessellated skin geometry
+        mUseTessellatedBoundary = ThisParameters["use_tessellated_boundary"].GetBool();
         // If true then elements will be declared BOUNDARY which are located directly in between elements in which boundary points were located
         mInterpolateBoundary = ThisParameters["interpolate_boundary"].GetBool();
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mUseTessellatedBoundary && mInterpolateBoundary) << "Using the tessellated boundary is given precedence over interpolating the boundary." << std::endl;
     };
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions()
@@ -100,6 +116,8 @@ namespace Kratos
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
+            "active_side_of_skin" : "both",
+            "use_tessellated_boundary" : false,
             "interpolate_boundary" : false
         })" );
 
@@ -125,11 +143,11 @@ namespace Kratos
             default:
                 KRATOS_ERROR << "Wrong domain size.";
         }
-        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Skin points were mapped to volume mesh elements.");
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Skin points were mapped to volume mesh elements." << std::endl;
 
         // Set the required interface flags (ACTIVE, BOUNDARY, INTERFACE)
         SetInterfaceFlags(skin_points_map);
-        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Interface flags were set.");
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Interface flags were set." << std::endl;
 
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
@@ -137,12 +155,16 @@ namespace Kratos
         SidesVectorToElementsMapType sides_vector_map;
         AverageSkinToElementsMapType avg_skin_map;
         SetSidesVectorsAndSkinNormalsForSplitElements(skin_points_map, sides_vector_map, avg_skin_map);
-        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Sides vectors and skin normals were set.");
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Sides vectors and skin normals were set." << std::endl;
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         NodesCloudMapType ext_op_map;
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
-        KRATOS_WATCH("ShiftedBoundaryPointBasedInterfaceUtility: Extension operators were set.");
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
+
+        // Set the pressure of the first node of an enclosed volume to zero if one side is not active.
+        auto p_element = sides_vector_map.begin()->first;
+        SetFirstEnclosedNodesPressure(*p_element, sides_vector_map[p_element]);
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -194,6 +216,7 @@ namespace Kratos
                 ext_op_map, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Skin point wall conditions were created." << std::endl;
     }
 
     template <std::size_t TDim>
@@ -211,7 +234,7 @@ namespace Kratos
         point_locator.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
 
-        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
         //const std::size_t n_gp_per_element = mpSkinModelPart->ElementsBegin()->GetGeometry().IntegrationPointsNumber(integration_method);
         //const std::size_t n_skin_points = mpSkinModelPart->NumberOfElements() * n_gp_per_element;
@@ -225,6 +248,9 @@ namespace Kratos
             const auto& r_skin_geom = rSkinElement.GetGeometry();
             const std::size_t n_gp = r_skin_geom.IntegrationPointsNumber(integration_method);
             const GeometryType::IntegrationPointsArrayType& integration_points = r_skin_geom.IntegrationPoints(integration_method);
+            // Get detJ for all integration points of the skin element
+            Vector integration_point_jacobians;
+            r_skin_geom.DeterminantOfJacobian(integration_point_jacobians, integration_method);
 
             for (std::size_t i_gp = 0; i_gp < n_gp; ++i_gp) {
                 // Get position of skin point
@@ -234,7 +260,11 @@ namespace Kratos
 
                 // Get normal at the skin point and make its length a measure of the area/ integration weight
                 array_1d<double,3> skin_pt_area_normal = r_skin_geom.Normal(skin_pt_local_coords);
-                //KRATOS_WATCH(norm_2(skin_pt_area_normal));
+                // Normalize normal
+                skin_pt_area_normal /= std::max(norm_2(skin_pt_area_normal), 1e-10);  // tolerance = std::pow(1e-3 * h, Dim-1)
+                // Scale normal with integration weight
+                const double integration_weight = integration_point_jacobians(i_gp) * integration_points[i_gp].Weight();
+                skin_pt_area_normal *= integration_weight;
 
                 // Search for the skin point in the volume mesh to get the element containing the point
                 Vector aux_N(TDim+1);
@@ -298,147 +328,34 @@ namespace Kratos
         // Deactivate split elements and mark them as BOUNDARY (gamma)
         // Note that the split elements BC is applied by means of the extension operators
         //TODO: parallel
+        //TODO do not make elements in which skin points are located BOUNDARY if exact locations in combination with a tessellated boundary are being used!?!
+        // Otherwise BOUNDARY elements from rSkinPointsMap might be bordered by BOUNDARY elements from the tessellated boundary and support nodes can not be found?!
+        // Is it a problem if wall conditions are added for an element that is ACTIVE?!
         for (const auto& [p_element, _]: rSkinPointsMap) {
             p_element->Set(ACTIVE, false);
             p_element->Set(BOUNDARY, true);
         }
 
-        // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
-        if (mInterpolateBoundary) {
-            //TODO can be made parallel if 'p_elem->Set(ACTIVE, false); p_elem->Set(BOUNDARY, true);' is made unique
-            if (mpModelPart->GetProcessInfo()[DOMAIN_SIZE] == 2) {
-                for (auto& rNode : mpModelPart->Nodes()) {
-                    auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
-                    const std::size_t n_neighs = r_neigh_elems.size();
-                    std::vector<std::size_t> boundary_indices;
+        // Make elements BOUNDARY that are split by the tessellated skin geometry
+        if (mUseTessellatedBoundary) {
+            FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart);
+            find_intersected_objects_process.ExecuteInitialize();
+            find_intersected_objects_process.FindIntersections();
+            std::vector<PointerVector<GeometricalObject>>&  r_intersected_objects = find_intersected_objects_process.GetIntersections();
+            const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
+            auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
 
-                    // Check which elements neighboring the node are part of the boundary
-                    for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
-                        auto p_neigh = r_neigh_elems(i_n).get();
-                        if (p_neigh->Is(BOUNDARY)) {
-                        //if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
-                            boundary_indices.push_back(i_n);
-                        }
-                    }
-
-                    // Continue with next iteration if there is only one or none boundary element neighboring the node
-                    if (boundary_indices.size() < 2) {
-                        continue;
-                    }
-
-                    // Sort neighboring elements around the node starting with index 0 (can be clockwise or anti-clockwise)
-                    //TODO how can this be done for 3D???
-                    std::vector<std::size_t> neigh_indices_sorted(n_neighs);
-                    neigh_indices_sorted[0] = 0;
-                    auto p_neigh_previous = r_neigh_elems(0).get();
-                    auto p_neigh_current = r_neigh_elems(0).get();
-                    for (std::size_t i_n = 1; i_n < n_neighs; ++i_n) {
-                        // Get neighboring elements of current neighbor of the node
-                        auto& r_elem_neigh_elems = p_neigh_current->GetValue(NEIGHBOUR_ELEMENTS);
-                        // Find the next element around the node
-                        bool next_neigh_found = false;
-                        for (std::size_t i_nn = 0; i_nn < r_elem_neigh_elems.size(); ++i_nn) {
-                            auto p_nn = r_elem_neigh_elems(i_nn).get();
-                            for (std::size_t j_n = 0; j_n < n_neighs; ++j_n) {
-                                // Check whether neighbor element's neighbor is a neighbor element and whether it is not the previous element
-                                if (p_nn->Id() == r_neigh_elems(j_n).get()->Id() && p_nn->Id() != p_neigh_previous->Id()) {
-                                    // Check if
-                                    neigh_indices_sorted[i_n] = j_n;
-                                    p_neigh_previous = p_neigh_current;
-                                    p_neigh_current = r_neigh_elems(j_n).get();
-                                    next_neigh_found = true;
-                                    break;
-                                }
-                            } //TODO use inline function with return for this??
-                            if (next_neigh_found) {
-                                break;
-                            }
-                        }
-                    }
-
-                    // Check if boundary elements are connected or isolated
-                    std::vector<std::vector<std::size_t>> non_boundary_groups;
-                    std::size_t n_groups = 0;
-                    std::size_t group_internal_counter = 0;
-                    for (std::size_t index_n : neigh_indices_sorted) {
-                        const bool is_boundary = std::find(boundary_indices.begin(), boundary_indices.end(), index_n) != boundary_indices.end();
-                        if (!is_boundary) {
-                            if (group_internal_counter == 0) {
-                                std::vector<std::size_t> new_group;
-                                new_group.push_back(index_n);
-                                non_boundary_groups.push_back(new_group);
-                                n_groups++;
-                                group_internal_counter++;
-                            } else {
-                                non_boundary_groups.back().push_back(index_n);
-                                group_internal_counter++;
-                            }
-                        } else {
-                            group_internal_counter = 0;
-                        }
-                    }
-
-                    // Continue with next iteration if there is only one or none non-boundary group
-                    if (n_groups < 2) {
-                        continue;
-                    }
-
-                    // Check if the first and last group are actually connected
-                    const std::size_t first_entry = non_boundary_groups[0][0];
-                    const std::size_t last_entry = non_boundary_groups.back().back();
-                    if (first_entry == neigh_indices_sorted[0] && last_entry == neigh_indices_sorted.back()) {
-                        //Check again if there is really only one non-boundary group
-                        if (n_groups == 2) {
-                            continue;
-                        }
-                        // Add last group to first group and delete last group
-                        auto& first_group = non_boundary_groups[0];
-                        const auto& last_group = non_boundary_groups.back();
-                        first_group.insert( first_group.end(), last_group.begin(), last_group.end() );
-                        non_boundary_groups.pop_back();
-                        n_groups--;
-                    }
-
-                    // Get the non-boundary group sizes
-                    std::vector<std::size_t> group_sizes(n_groups);
-                    for (std::size_t i_group = 0; i_group < n_groups; ++i_group) {
-                        group_sizes[i_group] = non_boundary_groups[i_group].size();
-                    }
-
-                    // As long as there is more than one non-boundary group make the smallest group boundary
-                    while (n_groups > 1) {
-                        // Find smallest sized group
-                        const auto it_smallest_group = std::min_element(std::begin(group_sizes), std::end(group_sizes));
-                        const std::size_t index_smallest_group = std::distance(std::begin(group_sizes), it_smallest_group);
-                        const auto& smallest_group = non_boundary_groups[index_smallest_group];
-                        // Deactivate all elements of the smallest group and make them BOUNDARY
-                        for (std::size_t index_n : smallest_group) {
-                            auto p_neigh = r_neigh_elems(index_n).get();
-                            p_neigh->Set(ACTIVE, false);
-                            p_neigh->Set(BOUNDARY, true);
-                        }
-                        group_sizes[index_smallest_group] = 100;
-                        n_groups--;
-                    }
-
-                }
-            } else {
-                for (auto& rElement : mpModelPart->Elements()) {
-                    std::size_t n_boundary_neighbors = 0;
-                    const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
-                    auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-                    for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                        auto p_neigh_elem = r_neigh_elems(i_face).get();
-                        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
-                            n_boundary_neighbors++;
-                        }
-                    }
-                    if (n_boundary_neighbors > 1) {
-                        rElement.Set(ACTIVE, false);
-                        rElement.Set(BOUNDARY, true);
-                    }
+            #pragma omp parallel for schedule(dynamic)
+            for (std::size_t i = 0; i < n_elements; ++i) {
+                if (!r_intersected_objects[i].empty()) {
+                    r_elements[i]->Set(ACTIVE, false);
+                    r_elements[i]->Set(BOUNDARY, true);
                 }
             }
+        }
+        // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
+        else if (mInterpolateBoundary) {
+            DeclareIntermediateElementsBoundary();
         }
 
         // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
@@ -457,6 +374,145 @@ namespace Kratos
                             p_neigh_elem->Set(INTERFACE, true);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::DeclareIntermediateElementsBoundary()
+    {
+        //TODO can be made parallel if 'p_elem->Set(ACTIVE, false); p_elem->Set(BOUNDARY, true);' is made unique
+        if (mpModelPart->GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            for (auto& rNode : mpModelPart->Nodes()) {
+                auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
+                const std::size_t n_neighs = r_neigh_elems.size();
+                std::vector<std::size_t> boundary_indices;
+
+                // Check which elements neighboring the node are part of the boundary
+                for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
+                    auto p_neigh = r_neigh_elems(i_n).get();
+                    if (p_neigh->Is(BOUNDARY)) {
+                    //if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
+                        boundary_indices.push_back(i_n);
+                    }
+                }
+
+                // Continue with next node if there is only one or none boundary element neighboring the current node
+                if (boundary_indices.size() < 2) {
+                    continue;
+                }
+
+                // Sort neighboring elements around the node starting with index 0 (can be clockwise or anti-clockwise)
+                //TODO how can this be done for 3D???
+                std::vector<std::size_t> neigh_indices_sorted(n_neighs);
+                neigh_indices_sorted[0] = 0;
+                auto p_neigh_previous = r_neigh_elems(0).get();
+                auto p_neigh_current = r_neigh_elems(0).get();
+                for (std::size_t i_n = 1; i_n < n_neighs; ++i_n) {
+                    // Get neighboring elements of current neighbor of the node
+                    auto& r_elem_neigh_elems = p_neigh_current->GetValue(NEIGHBOUR_ELEMENTS);
+                    // Find the next element around the node
+                    bool next_neigh_found = false;
+                    for (std::size_t i_nn = 0; i_nn < r_elem_neigh_elems.size(); ++i_nn) {
+                        auto p_nn = r_elem_neigh_elems(i_nn).get();
+                        for (std::size_t j_n = 0; j_n < n_neighs; ++j_n) {
+                            // Check whether neighbor element's neighbor is a neighbor element and whether it is not the previous element
+                            if (p_nn->Id() == r_neigh_elems(j_n).get()->Id() && p_nn->Id() != p_neigh_previous->Id()) {
+                                // Check if
+                                neigh_indices_sorted[i_n] = j_n;
+                                p_neigh_previous = p_neigh_current;
+                                p_neigh_current = r_neigh_elems(j_n).get();
+                                next_neigh_found = true;
+                                break;
+                            }
+                        } //TODO use inline function with return for this??
+                        if (next_neigh_found) {
+                            break;
+                        }
+                    }
+                }
+
+                // Check if boundary elements are connected or isolated
+                std::vector<std::vector<std::size_t>> non_boundary_groups;
+                std::size_t n_groups = 0;
+                std::size_t group_internal_counter = 0;
+                for (std::size_t index_n : neigh_indices_sorted) {
+                    const bool is_boundary = std::find(boundary_indices.begin(), boundary_indices.end(), index_n) != boundary_indices.end();
+                    if (!is_boundary) {
+                        if (group_internal_counter == 0) {
+                            std::vector<std::size_t> new_group;
+                            new_group.push_back(index_n);
+                            non_boundary_groups.push_back(new_group);
+                            n_groups++;
+                            group_internal_counter++;
+                        } else {
+                            non_boundary_groups.back().push_back(index_n);
+                            group_internal_counter++;
+                        }
+                    } else {
+                        group_internal_counter = 0;
+                    }
+                }
+
+                // Continue with next iteration if there is only one or none non-boundary group
+                if (n_groups < 2) {
+                    continue;
+                }
+
+                // Check if the first and last group are actually connected
+                const std::size_t first_entry = non_boundary_groups[0][0];
+                const std::size_t last_entry = non_boundary_groups.back().back();
+                if (first_entry == neigh_indices_sorted[0] && last_entry == neigh_indices_sorted.back()) {
+                    //Check again if there is really only one non-boundary group
+                    if (n_groups == 2) {
+                        continue;
+                    }
+                    // Add last group to first group and delete last group
+                    auto& first_group = non_boundary_groups[0];
+                    const auto& last_group = non_boundary_groups.back();
+                    first_group.insert( first_group.end(), last_group.begin(), last_group.end() );
+                    non_boundary_groups.pop_back();
+                    n_groups--;
+                }
+
+                // Get the non-boundary group sizes
+                std::vector<std::size_t> group_sizes(n_groups);
+                for (std::size_t i_group = 0; i_group < n_groups; ++i_group) {
+                    group_sizes[i_group] = non_boundary_groups[i_group].size();
+                }
+
+                // For as long as there is more than one non-boundary group make the smallest group boundary
+                while (n_groups > 1) {
+                    // Find smallest sized group
+                    const auto it_smallest_group = std::min_element(std::begin(group_sizes), std::end(group_sizes));
+                    const std::size_t index_smallest_group = std::distance(std::begin(group_sizes), it_smallest_group);
+                    const auto& smallest_group = non_boundary_groups[index_smallest_group];
+                    // Deactivate all elements of the smallest group and make them BOUNDARY
+                    for (std::size_t index_n : smallest_group) {
+                        auto p_neigh = r_neigh_elems(index_n).get();
+                        p_neigh->Set(ACTIVE, false);
+                        p_neigh->Set(BOUNDARY, true);
+                    }
+                    group_sizes[index_smallest_group] = 100;
+                    n_groups--;
+                }
+
+            }
+        } else {
+            // Make elements BOUNDARY that are most likely split as they are adjacent to at least two elements containing skin points
+            for (auto& rElement : mpModelPart->Elements()) {
+                std::size_t n_boundary_neighbors = 0;
+                const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
+                auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                    auto p_neigh_elem = r_neigh_elems(i_face).get();
+                    if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
+                        n_boundary_neighbors++;
+                    }
+                }
+                if (n_boundary_neighbors > 1) {
+                    rElement.Set(ACTIVE, false);
+                    rElement.Set(BOUNDARY, true);
                 }
             }
         }
@@ -767,7 +823,7 @@ namespace Kratos
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddIntegrationPointCondition(
-        const ElementType& rElement,
+        ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -786,6 +842,16 @@ namespace Kratos
         const std::size_t n_dim = r_geom.WorkingSpaceDimension();
         Vector N_container = ZeroVector(n_cl_nodes);
         Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
+
+        // TODO NEXT Check whether sufficient number of support nodes is reached --> if not, then do not add condition and mark element as BOUNDARY for testing
+        // Therefore Element can not be const
+        // TODO Add contribution of a node only if node is ACTIVE, deactivate all nodes that are surrounded by deactivated elements
+        if (n_cl_nodes < GetRequiredNumberOfPoints()) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Number of cloud nodes is not sufficient - interface condition will not be added!" << std::endl;
+            rElement.Set(BOUNDARY, true); //TODO does not make sense, element is already BOUNDARY
+            return;
+        }
+        return;
 
         // Loop the nodes that are involved in the current element
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
@@ -846,6 +912,22 @@ namespace Kratos
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetFirstEnclosedNodesPressure(
+        ElementType& rElement,
+        const Vector& rSidesVector)
+    {
+        auto& r_geom = rElement.GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            if ((!mPositiveSideIsActive && rSidesVector[i_node] > 0) or (!mNegativeSideIsActive && rSidesVector[i_node] < 0)) {
+                auto& r_node = r_geom[i_node];
+                r_node.Fix(PRESSURE);
+                r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
+                return;
+            }
+        }
     }
 
     ShiftedBoundaryPointBasedInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetMLSShapeFunctionsFunction() const

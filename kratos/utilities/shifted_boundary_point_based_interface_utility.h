@@ -177,7 +177,11 @@ protected:
 
     const Condition* mpConditionPrototype;
 
+    bool mPositiveSideIsActive = true;
+    bool mNegativeSideIsActive = true;
+
     bool mInterpolateBoundary;
+    bool mUseTessellatedBoundary;
 
     /// @brief Protected empty constructor for derived classes
     ShiftedBoundaryPointBasedInterfaceUtility() {}
@@ -200,7 +204,7 @@ protected:
     void CalculateMeshlessBasedConformingExtensionBasis();
 
     /**
-     * @brief TODO
+     * @brief TODO. This method requires the skin to be stored in mpSkinModelPart as a Kratos model part with elements, integration points and area normals.
      *
      * @tparam TDim Working space dimension
      * @param rSkinPointsMap
@@ -218,6 +222,9 @@ protected:
      * element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
      */
     void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
+
+    /**TODO*/
+    void DeclareIntermediateElementsBoundary();
 
     /**TODO*/
     void SetSidesVectorsAndSkinNormalsForSplitElements(
@@ -282,7 +289,7 @@ protected:
 
     /* TODO */
     void AddIntegrationPointCondition(
-        const ElementType& rElement,
+        ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -293,6 +300,10 @@ protected:
         const Matrix& rIntPtShapeFunctionDerivatives,
         const std::size_t ConditionId,
         bool ConsiderPositiveSide);
+
+    void SetFirstEnclosedNodesPressure(
+        ElementType& rElement,
+        const Vector& rSidesVector);
 
     /**
      * @brief Get the MLS shape functions factory object
