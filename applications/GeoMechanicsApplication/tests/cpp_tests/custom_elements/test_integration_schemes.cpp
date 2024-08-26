@@ -67,6 +67,7 @@ void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIn
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), xi_is_in_range))
 
+    // The isoparametric space is 1D (xi only), so the other parameters should be equal to zero
     auto non_xi_coordinates_must_be_near_zero = [tolerance](const auto& rPoint) {
         return (std::abs(rPoint[1]) <= tolerance) && (std::abs(rPoint[2]) <= tolerance);
     };
