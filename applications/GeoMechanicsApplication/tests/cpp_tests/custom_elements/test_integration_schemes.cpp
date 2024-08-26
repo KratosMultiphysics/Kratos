@@ -51,6 +51,12 @@ void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIn
         return std::abs(rPoint[0]) - 1.0 <= Tolerance;
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), xi_is_in_range))
+
+    auto non_xi_coordinates_must_be_near_zero = [Tolerance](const auto& rPoint) {
+        return (std::abs(rPoint[1]) <= Tolerance) && (std::abs(rPoint[2]) <= Tolerance);
+    };
+    KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(),
+                                   non_xi_coordinates_must_be_near_zero))
 }
 
 } // namespace
@@ -66,7 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
