@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="65.073997mm"
-   height="26.655001mm"
-   viewBox="0 0 65.074512 26.655212"
+   width="69.980057mm"
+   height="32.283745mm"
+   viewBox="0 0 69.98061 32.284001"
    version="1.1"
    id="svg1"
    sodipodi:docname="3Plus3NodedLineGeometry.svg"
@@ -24,8 +24,8 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="2.9255612"
-     inkscape:cx="69.730211"
-     inkscape:cy="-19.312534"
+     inkscape:cx="95.708133"
+     inkscape:cy="83.915524"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -53,12 +53,52 @@
          transform="scale(-0.5)"
          id="path6" />
     </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-0"
+       refX="2"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-0-0"
+       refX="2"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-2-8" />
+    </marker>
   </defs>
   <g
      inkscape:label="Laag 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-70.412571,-135.48418)">
+     transform="translate(-63.533349,-137.11208)">
     <g
        id="g5"
        transform="translate(2.0278704,1.6279057)">
@@ -237,6 +277,39 @@
              d="m 101.91563,149.25012 v -1.90134 -1.78264"
              id="path10" />
         </g>
+      </g>
+      <g
+         id="g7"
+         inkscape:label="Axes"
+         transform="matrix(0.53242603,0,0,0.53242603,55.215183,47.780909)">
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0)"
+           d="M 34.738756,225.71196 H 17.953546"
+           id="path4-89" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0-0)"
+           d="m 18.328212,209.2175 v 16.78521"
+           id="path4-89-7" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           x="16.694675"
+           y="205.15634"
+           id="text5-4"><tspan
+             sodipodi:role="line"
+             id="tspan6-9"
+             x="16.694675"
+             y="205.15634">y</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           x="37.213131"
+           y="227.39787"
+           id="text5-4-2"><tspan
+             sodipodi:role="line"
+             id="tspan7-3"
+             x="37.213131"
+             y="227.39787">x</tspan></text>
       </g>
     </g>
   </g>
