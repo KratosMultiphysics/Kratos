@@ -70,10 +70,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    constexpr auto number_of_points           = 2;
-    const auto     lobatto_integration_scheme = LobattoIntegrationScheme{number_of_points};
+    constexpr auto number_of_points = 2;
+    const auto     scheme           = LobattoIntegrationScheme{number_of_points};
 
-    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&lobatto_integration_scheme), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&scheme), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
@@ -82,10 +82,10 @@ KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGiven
     const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
     for (auto number : supported_numbers_of_points) {
-        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
+        const auto scheme = MakeLobattoIntegrationScheme(number);
 
-        KRATOS_EXPECT_EQ(lobatto_integration_scheme->GetNumberOfIntegrationPoints(), number);
-        KRATOS_EXPECT_EQ(lobatto_integration_scheme->GetIntegrationPoints().size(), number);
+        KRATOS_EXPECT_EQ(scheme->GetNumberOfIntegrationPoints(), number);
+        KRATOS_EXPECT_EQ(scheme->GetIntegrationPoints().size(), number);
     }
 }
 
@@ -96,10 +96,9 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
 
     constexpr auto relative_tolerance = 1.0e-6;
     for (auto number : supported_numbers_of_points) {
-        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
+        const auto scheme = MakeLobattoIntegrationScheme(number);
 
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(lobatto_integration_scheme->GetIntegrationPoints()),
-                                    2.0, relative_tolerance)
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(scheme->GetIntegrationPoints()), 2.0, relative_tolerance)
     }
 }
 
@@ -109,10 +108,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
     const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
 
     for (auto number : supported_numbers_of_points) {
-        const auto lobatto_integration_scheme = MakeLobattoIntegrationScheme(number);
+        const auto scheme = MakeLobattoIntegrationScheme(number);
 
-        ExpectLocalCoordinatesAreInRange(lobatto_integration_scheme->GetIntegrationPoints());
-        ExpectLocalCoordinatesIncludeRangeBounds(lobatto_integration_scheme->GetIntegrationPoints());
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints());
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints());
     }
 }
 
