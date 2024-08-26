@@ -30,6 +30,11 @@ std::unique_ptr<IntegrationScheme> MakeLobattoIntegrationScheme(std::size_t Numb
     return std::make_unique<LobattoIntegrationScheme>(NumberOfPoints);
 }
 
+std::vector<std::size_t> SupportedNumbersOfPointsForLobattoIntegration()
+{
+    return {2, 3};
+}
+
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
@@ -85,9 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
 KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
-
-    for (auto number : supported_numbers_of_points) {
+    for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto scheme = MakeLobattoIntegrationScheme(number);
 
         KRATOS_EXPECT_EQ(scheme->GetNumberOfIntegrationPoints(), number);
@@ -98,10 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGiven
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
-
     constexpr auto relative_tolerance = 1.0e-6;
-    for (auto number : supported_numbers_of_points) {
+    for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto scheme = MakeLobattoIntegrationScheme(number);
 
         KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(scheme->GetIntegrationPoints()), 2.0, relative_tolerance)
@@ -111,9 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
 KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncludeBounds,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto supported_numbers_of_points = std::vector<std::size_t>{2, 3};
-
-    for (auto number : supported_numbers_of_points) {
+    for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto scheme = MakeLobattoIntegrationScheme(number);
 
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints());
