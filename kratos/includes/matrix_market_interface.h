@@ -64,7 +64,7 @@ inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<do
     return i == 4;
 }
 
-template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
+template <typename CompressedMatrixType> bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
     typedef typename CompressedMatrixType::value_type ValueType;
 
