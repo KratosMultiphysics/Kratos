@@ -17,9 +17,22 @@
 namespace Kratos
 {
 
-class LineInterfaceElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LineInterfaceElement : public Element
 {
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineInterfaceElement);
 
+    using Element::GeometryType;
+    using Element::PropertiesType;
+
+    LineInterfaceElement();
+
+    LineInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+    {
+    }
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 };
 
-}
+} // namespace Kratos

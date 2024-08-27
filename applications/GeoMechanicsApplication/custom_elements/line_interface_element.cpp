@@ -14,4 +14,13 @@
 namespace Kratos
 {
 
+LineInterfaceElement::LineInterfaceElement() = default;
+
+Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
+                                              GeometryType::Pointer   pGeom,
+                                              PropertiesType::Pointer pProperties) const
+{
+    return {make_intrusive<LineInterfaceElement>(NewId, pGeom, pProperties)};
 }
+
+} // namespace Kratos
