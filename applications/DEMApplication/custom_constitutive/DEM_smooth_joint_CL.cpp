@@ -224,19 +224,23 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS];
     kt_el = (*mpProperties)[JOINT_TANGENTIAL_STIFFNESS];
 
-    double GlobalJointNormal[3] = {0.0};
-    GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
-    GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
-    GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z];
+    mGlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X]; // X = -1 * sin(alpha) 
+    mGlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y]; // Y = cos(alpha)
+    mGlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z]; // Z = 0
     array_1d<double, 3> OtherToMeVector;
     noalias(OtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double LocalCoordSystem[3][3];
     double Distance = DEM_MODULUS_3(OtherToMeVector);
     GeometryFunctions::ComputeContactLocalCoordSystem(OtherToMeVector, Distance, LocalCoordSystem);
-    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalJointNormal, mLocalJointNormal);
-
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mGlobalJointNormal, mLocalJointNormal);
     KRATOS_CATCH("")
 
+}
+
+void DEM_smooth_joint::GetGlobalJointNormal(double GlobalJointNormal[3]){
+    GlobalJointNormal[0] = mGlobalJointNormal[0];
+    GlobalJointNormal[1] = mGlobalJointNormal[1];
+    GlobalJointNormal[2] = mGlobalJointNormal[2];
 }
 
 double DEM_smooth_joint::LocalMaxSearchDistance(const int i,
@@ -299,6 +303,7 @@ void DEM_smooth_joint::CalculateForces(const ProcessInfo& r_process_info,
                             double equiv_young,
                             double equiv_shear,
                             double indentation,
+                            double indentation_particle,
                             double calculation_area,
                             double& acumulated_damage,
                             SphericContinuumParticle* element1,
@@ -317,6 +322,7 @@ void DEM_smooth_joint::CalculateForces(const ProcessInfo& r_process_info,
                         kn_el,
                         equiv_young,
                         indentation,
+                        indentation_particle,
                         calculation_area,
                         acumulated_damage,
                         element1,
@@ -346,7 +352,52 @@ void DEM_smooth_joint::CalculateForces(const ProcessInfo& r_process_info,
                             sliding,
                             r_process_info,
                             time_steps);
+    
+    /*
+    bool is_normal_force_smaller_than_zero = false;
+    if (LocalElasticContactForce[2] < 0.0){
+        is_normal_force_smaller_than_zero = true;
+    }
 
+    double temp_GlobalElasticContactForce[3] = {0.0};
+    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, temp_GlobalElasticContactForce);
+
+    double temp_GlobalElasticContactForce_Normal = 0.0;
+    temp_GlobalElasticContactForce_Normal = GeometryFunctions::DotProduct(temp_GlobalElasticContactForce, mGlobalJointNormal);
+
+    double temp_GlobalElasticContactForce_Tangential[2] = {0.0};
+
+    //temp_GlobalElasticContactForce_Tangential[0] = temp_GlobalElasticContactForce[0] - temp_GlobalElasticContactForce_Normal * mGlobalJointNormal[0];
+    //temp_GlobalElasticContactForce_Tangential[1] = temp_GlobalElasticContactForce[2] - temp_GlobalElasticContactForce_Normal * mGlobalJointNormal[2];
+    temp_GlobalElasticContactForce_Tangential[0] = temp_GlobalElasticContactForce[0];
+    temp_GlobalElasticContactForce_Tangential[1] = temp_GlobalElasticContactForce[2];
+
+    //LocalElasticContactForce is already a global vector
+    LocalElasticContactForce[0] = temp_GlobalElasticContactForce_Tangential[0];
+    LocalElasticContactForce[1] = temp_GlobalElasticContactForce_Normal;
+    LocalElasticContactForce[2] = temp_GlobalElasticContactForce_Tangential[1];
+
+    if(calculation_area){
+        contact_sigma = temp_GlobalElasticContactForce_Normal / calculation_area;
+        
+        bool is_global_normal_force_smaller_than_zero = false;
+        if (temp_GlobalElasticContactForce_Normal < 0.0){
+            is_global_normal_force_smaller_than_zero = true;
+        }
+        if ((is_normal_force_smaller_than_zero == false && is_global_normal_force_smaller_than_zero == true) || (is_normal_force_smaller_than_zero == true && is_global_normal_force_smaller_than_zero == false)) {
+            contact_sigma *= -1;
+        }
+    }
+
+    double temp_current_tangential_force_module = 0.0;
+    temp_current_tangential_force_module = sqrt(temp_GlobalElasticContactForce_Tangential[0] * temp_GlobalElasticContactForce_Tangential[0]
+                                                 + temp_GlobalElasticContactForce_Tangential[1] * temp_GlobalElasticContactForce_Tangential[1]);
+
+    if (calculation_area){
+        contact_tau = temp_current_tangential_force_module / calculation_area;
+    }
+    */
+    
     KRATOS_CATCH("") 
 }
 
@@ -354,6 +405,7 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
                 double indentation,
+                double indentation_particle,
                 double calculation_area,
                 double& acumulated_damage,
                 SphericContinuumParticle* element1,
@@ -448,7 +500,7 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
         current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
                                                  + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
-        double friction_force = 0.5 * LocalElasticContactForce[2];
+        double friction_force = (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2];
         if (current_tangential_force_module > friction_force){
             if (current_tangential_force_module > 0.0){
                 const double fraction = friction_force / current_tangential_force_module;
@@ -458,9 +510,13 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         }
     }
 
-    current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
-                                                 + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
+    if (mGlobalJointNormal[0] == 0.0 && mGlobalJointNormal[1] == 1.0 && mGlobalJointNormal[2] == 0.0) {
+        JointLocalElasticContactForce[0] = 0.0;
+        JointLocalElasticContactForce[1] = 0.0;
+    }
 
+    current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
+                                            + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
 
     if (calculation_area){
         contact_tau = current_tangential_force_module / calculation_area;
@@ -485,7 +541,8 @@ void DEM_smooth_joint::CalculateMoments(SphericContinuumParticle* element,
                     double ElasticLocalRotationalMoment[3], 
                     double ViscoLocalRotationalMoment[3], 
                     double equiv_poisson, 
-                    double indentation, 
+                    double indentation,
+                    double indentation_particle, 
                     double LocalElasticContactForce[3],
                     double normalLocalContactForce,
                     double GlobalElasticContactForces[3],
@@ -549,7 +606,10 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
             failure_type = 2; // failure in shear
             contact_sigma = 0.0;
             contact_tau = 0.0;
+            LocalElasticContactForce[0] = 0.0;
+            LocalElasticContactForce[1] = 0.0;
             LocalElasticContactForce[2] = 0.0;
+            /*
             double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
             double friction_force = (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2];
@@ -559,10 +619,14 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
                     LocalElasticContactForce[0] *= fraction;
                     LocalElasticContactForce[1] *= fraction;
                 }
+            } else {
+                LocalElasticContactForce[0] = 0.0;
+                LocalElasticContactForce[1] = 0.0;
             }
-        } 
-        
-    }
+            LocalElasticContactForce[2] = 0.0;
+            */
+        }   
+    } 
 
     KRATOS_CATCH("")    
 }//CheckFailure

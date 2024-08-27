@@ -22,6 +22,7 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/normal_calculation_utils.h"
 

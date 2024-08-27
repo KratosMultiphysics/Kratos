@@ -16,6 +16,7 @@
 
 // Project includes
 #include "geo_mechanics_application_variables.h"
+#include "includes/element.h"
 
 // Application includes
 #include "includes/kratos_export_api.h"

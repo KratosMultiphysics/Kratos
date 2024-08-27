@@ -47,7 +47,7 @@ class CombinedResponseFunction(ResponseFunction):
         for response_params in parameters["combining_responses"].values():
             response_params.ValidateAndAssignDefaults(default_settings["combining_responses"].values()[0])
             response_name = response_params["response_name"].GetString()
-            
+
             if response_name not in [response.GetName() for response in optimization_problem.GetListOfResponses()]:
                 raise RuntimeError(f"\"{response_name}\" not found in the optimization problem. Please check whether this reponse is defined before the \"{self.GetName()}\".")
 
@@ -66,24 +66,10 @@ class CombinedResponseFunction(ResponseFunction):
             variables_list.extend(response.GetImplementedPhysicalKratosVariables())
         return list(set(variables_list))
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if all([response.GetEvaluatedModelPart() != None for response, _ in self.list_of_responses]):
-            raise RuntimeError(f"Mixing of adjoint and direct responses are prohibited.")
-
-        if self.model_part == None:
-            evaluated_model_part_names = [response.GetEvaluatedModelPart().FullName() for response, _ in self.list_of_responses]
-            model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
-            self.model_part = model_part_operation.GetModelPart()
-        return self.model_part
-
-    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-        if all([response.GetAnalysisModelPart() != None for response, _ in self.list_of_responses]):
-            raise RuntimeError(f"Mixing of adjoint and direct responses are prohibited.")
-
-        if self.model_part == None:
-            evaluated_model_part_names = [response.GetAnalysisModelPart().FullName() for response, _ in self.list_of_responses]
-            model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
-            self.model_part = model_part_operation.GetModelPart()
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
+        influencing_model_part_names = [response.GetInfluencingModelPart().FullName() for response, _ in self.list_of_responses]
+        model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", influencing_model_part_names, False)
+        self.model_part = model_part_operation.GetModelPart()
         return self.model_part
 
     def Initialize(self) -> None:

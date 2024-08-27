@@ -19,7 +19,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const double stretch = 2.0;
     Matrix Fmatrix = ZeroMatrix(3,3);
@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, Kra
     KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[5]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const double RotationAngle = 1.0;
     Matrix Fmatrix(2,2);
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFast
     KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[3]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const double gamma = 0.5;
     Matrix Fmatrix = IdentityMatrix (2,2);

@@ -86,6 +86,12 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRi
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFluxCondition";
+}
+
 template class UPwNormalFluxCondition<2, 2>;
 template class UPwNormalFluxCondition<2, 3>;
 template class UPwNormalFluxCondition<2, 4>;
