@@ -308,4 +308,6 @@ Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
     return result;
 }
 
+std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffOrderCondition"; }
+
 } // Namespace Kratos.
