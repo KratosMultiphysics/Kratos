@@ -12,6 +12,7 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
@@ -19,6 +20,11 @@ namespace Kratos
 ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::WorkingSpaceDimension()
 {
     return 2;
+}
+
+ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize() const
+{
+    return VOIGT_SIZE_2D_INTERFACE;
 }
 
 } // namespace Kratos
