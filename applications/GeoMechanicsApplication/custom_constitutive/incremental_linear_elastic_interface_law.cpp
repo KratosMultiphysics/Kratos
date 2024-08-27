@@ -60,4 +60,14 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
     return 0;
 }
 
+void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    const auto& relative_displacement = rValues.GetStrainVector();
+    auto&       traction              = rValues.GetStressVector();
+    auto        constitutive_matrix   = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
+    constitutive_matrix(0, 0)         = rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS];
+    constitutive_matrix(1, 1)         = rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS];
+    traction += prod(constitutive_matrix, relative_displacement);
+}
+
 } // namespace Kratos

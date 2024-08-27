@@ -29,6 +29,7 @@ public:
     int           Check(const Properties&   rMaterialProperties,
                         const GeometryType& rElementGeometry,
                         const ProcessInfo&  rCurrentProcessInfo) const override;
+    void          CalculateMaterialResponseCauchy(Parameters& rValues) override;
 };
 
 } // namespace Kratos

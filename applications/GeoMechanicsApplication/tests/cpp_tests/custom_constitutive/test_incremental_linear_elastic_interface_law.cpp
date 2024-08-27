@@ -18,6 +18,8 @@
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <boost/numeric/ublas/assignment.hpp>
+
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -100,6 +102,29 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectGeometry,
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, line_3d_geometry, process_info),
         "Expected a line interface geometry, but got 1 dimensional line with 2 nodes in 3D space")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law_parameters         = ConstitutiveLaw::Parameters{};
+    auto relative_displacement  = Vector{2};
+    relative_displacement <<= 0.1, 0.3;
+    law_parameters.SetStrainVector(relative_displacement);
+    auto traction = Vector{ZeroVector{2}};
+    law_parameters.SetStressVector(traction);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
+    law_parameters.SetMaterialProperties(properties);
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    law.CalculateMaterialResponseCauchy(law_parameters);
+
+    auto expected_traction = Vector{2};
+    expected_traction <<= 2.0, 3.0;
+    constexpr auto relative_tolerance = 1.0e-6;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
 }
 
 } // namespace Kratos::Testing
