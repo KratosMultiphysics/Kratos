@@ -32,4 +32,9 @@ ConstitutiveLaw::StressMeasure GeoIncrementalLinearElasticInterfaceLaw::GetStres
     return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 
+bool GeoIncrementalLinearElasticInterfaceLaw::IsIncremental()
+{
+    return true;
+}
+
 } // namespace Kratos

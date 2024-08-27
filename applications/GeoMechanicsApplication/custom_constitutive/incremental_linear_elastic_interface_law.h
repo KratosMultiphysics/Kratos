@@ -25,6 +25,7 @@ public:
     SizeType WorkingSpaceDimension() override;
     SizeType GetStrainSize() const override;
     StressMeasure GetStressMeasure() override;
+    bool          IsIncremental() override;
 };
 
 } // namespace Kratos
