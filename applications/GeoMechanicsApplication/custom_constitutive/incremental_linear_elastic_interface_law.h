@@ -22,14 +22,19 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
-    SizeType WorkingSpaceDimension() override;
-    SizeType GetStrainSize() const override;
+    SizeType      WorkingSpaceDimension() override;
+    SizeType      GetStrainSize() const override;
     StressMeasure GetStressMeasure() override;
     bool          IsIncremental() override;
     int           Check(const Properties&   rMaterialProperties,
                         const GeometryType& rElementGeometry,
                         const ProcessInfo&  rCurrentProcessInfo) const override;
     void          CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    void          InitializeMaterialResponseCauchy(Parameters& rValues) override;
+
+private:
+    Vector mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
+    Vector mPreviousTraction             = ZeroVector{GetStrainSize()};
 };
 
 } // namespace Kratos

@@ -127,4 +127,28 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law_parameters         = ConstitutiveLaw::Parameters{};
+    auto relative_displacement  = Vector{2};
+    relative_displacement <<= 0.1, 0.3;
+    law_parameters.SetStrainVector(relative_displacement);
+    auto traction = Vector{ScalarVector{2, 0.5}};
+    law_parameters.SetStressVector(traction);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
+    law_parameters.SetMaterialProperties(properties);
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    law.InitializeMaterialResponseCauchy(law_parameters);
+    relative_displacement *= 2.0;
+    law.CalculateMaterialResponseCauchy(law_parameters);
+
+    auto expected_traction = Vector{2};
+    expected_traction <<= 2.5, 3.5;
+    constexpr auto relative_tolerance = 1.0e-6;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
+}
+
 } // namespace Kratos::Testing
