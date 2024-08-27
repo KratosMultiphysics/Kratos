@@ -19,16 +19,7 @@ LineInterfaceElement::LineInterfaceElement() = default;
 
 void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
-    DofsVectorType dofs;
-    GetDofList(dofs, rCurrentProcessInfo);
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(dofs);
-}
-
-void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
-{
-    // At this point we only look at the U dofs, so we leave the water pressure nodes empty.
-    rElementalDofList = Geo::DofUtilities::ExtractUPwDofsFromNodes(
-        GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
@@ -43,6 +34,18 @@ Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
                                               PropertiesType::Pointer pProperties) const
 {
     return {make_intrusive<LineInterfaceElement>(NewId, pGeometry, pProperties)};
+}
+
+void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+{
+    rElementalDofList = GetDofs();
+}
+
+Element::DofsVectorType LineInterfaceElement::GetDofs() const
+{
+    // At this point we only look at the U dofs, so we leave the water pressure nodes empty.
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), Geometry<Node>(),
+                                                      GetGeometry().WorkingSpaceDimension());
 }
 
 } // namespace Kratos
