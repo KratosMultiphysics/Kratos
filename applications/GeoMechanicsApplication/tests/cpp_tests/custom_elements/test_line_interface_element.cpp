@@ -14,6 +14,24 @@
 #include "custom_geometries/line_interface_geometry.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+namespace
+{
+
+using namespace Kratos;
+
+PointerVector<Node> CreateNodes()
+{
+    PointerVector<Node> result;
+    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0));
+
+    return result;
+}
+
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -26,22 +44,36 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementIsAnElement, KratosGeoMechanicsFas
     KRATOS_CHECK_NOT_EQUAL(casted_element, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const LineInterfaceElement element;
-
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0));
-    const auto geometry = std::make_shared<LineInterfaceGeometry>(nodes);
-
-    auto properties = std::make_shared<Properties>();
+    const auto                 geometry   = std::make_shared<LineInterfaceGeometry>(CreateNodes());
+    auto                       properties = std::make_shared<Properties>();
 
     // Act
     auto created_element = element.Create(1, geometry, properties);
+
+    // Assert
+    EXPECT_NE(created_element, nullptr);
+    EXPECT_EQ(created_element->Id(), 1);
+    EXPECT_NE(created_element->pGetGeometry(), nullptr);
+    EXPECT_NE(created_element->pGetProperties(), nullptr);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto nodes      = CreateNodes();
+    auto properties = std::make_shared<Properties>();
+
+    // The source element needs to have a geometry, otherwise the version of the
+    // Create method with a node input will fail.
+    const auto                 geometry = std::make_shared<LineInterfaceGeometry>(nodes);
+    const LineInterfaceElement element(1, geometry, properties);
+
+    // Act
+    auto created_element = element.Create(1, nodes, properties);
 
     // Assert
     EXPECT_NE(created_element, nullptr);

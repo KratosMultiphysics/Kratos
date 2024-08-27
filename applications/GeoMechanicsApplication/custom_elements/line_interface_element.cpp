@@ -17,10 +17,17 @@ namespace Kratos
 LineInterfaceElement::LineInterfaceElement() = default;
 
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
-                                              GeometryType::Pointer   pGeom,
+                                              const NodesArrayType&   rNodes,
                                               PropertiesType::Pointer pProperties) const
 {
-    return {make_intrusive<LineInterfaceElement>(NewId, pGeom, pProperties)};
+    return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
+}
+
+Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
+                                              GeometryType::Pointer   pGeometry,
+                                              PropertiesType::Pointer pProperties) const
+{
+    return {make_intrusive<LineInterfaceElement>(NewId, pGeometry, pProperties)};
 }
 
 } // namespace Kratos
