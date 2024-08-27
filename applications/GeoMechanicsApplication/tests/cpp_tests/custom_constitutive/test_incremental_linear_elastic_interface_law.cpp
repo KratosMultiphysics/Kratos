@@ -48,4 +48,16 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesIsIncremental, KratosGeoM
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialProperties,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto law          = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto properties   = Properties{};
+    const auto geometry     = Geometry<Node>{};
+    const auto process_info = ProcessInfo{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "No interface normal stiffness defined")
+}
+
 } // namespace Kratos::Testing

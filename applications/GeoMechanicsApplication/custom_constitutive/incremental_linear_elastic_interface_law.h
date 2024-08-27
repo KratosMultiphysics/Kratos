@@ -26,6 +26,9 @@ public:
     SizeType GetStrainSize() const override;
     StressMeasure GetStressMeasure() override;
     bool          IsIncremental() override;
+    int           Check(const Properties&   rMaterialProperties,
+                        const GeometryType& rElementGeometry,
+                        const ProcessInfo&  rCurrentProcessInfo) const override;
 };
 
 } // namespace Kratos
