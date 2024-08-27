@@ -27,4 +27,9 @@ ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize
     return VOIGT_SIZE_2D_INTERFACE;
 }
 
+ConstitutiveLaw::StressMeasure GeoIncrementalLinearElasticInterfaceLaw::GetStressMeasure()
+{
+    return ConstitutiveLaw::StressMeasure_Cauchy;
+}
+
 } // namespace Kratos

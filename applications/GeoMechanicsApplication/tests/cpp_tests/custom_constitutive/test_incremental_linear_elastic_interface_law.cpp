@@ -34,4 +34,11 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHasStrainSizeOfTwo, Krato
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesInfinitesimalStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    KRATOS_EXPECT_EQ(law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
 } // namespace Kratos::Testing

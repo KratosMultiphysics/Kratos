@@ -24,6 +24,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 public:
     SizeType WorkingSpaceDimension() override;
     SizeType GetStrainSize() const override;
+    StressMeasure GetStressMeasure() override;
 };
 
 } // namespace Kratos
