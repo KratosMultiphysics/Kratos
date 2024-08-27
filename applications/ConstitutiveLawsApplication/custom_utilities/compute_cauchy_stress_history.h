@@ -143,6 +143,7 @@ class ComputeCauchyStressHistoryUtility
 
         for (unsigned int step = 0; step < n_steps; ++step) {
             noalias(strain_vector) = row(rStrainHistory, step);
+            noalias(cl_parameters.GetStressVector()) = ZeroVector(strain_size);
 
             if (requires_initialize_resp)
                 pConstitutiveLaw->InitializeMaterialResponse(cl_parameters, r_stress_measure);

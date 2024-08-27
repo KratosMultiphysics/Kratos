@@ -78,7 +78,7 @@ public:
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
     static constexpr double tolerance = 1.0e-8;
-    static constexpr double ratio_tolerance = 1.0e-5;
+    static constexpr double ratio_tolerance = 1.0e-4;
 
     /// The node definition
     using NodeType = Node;
@@ -413,6 +413,7 @@ private:
     Vector mOldStrainVector = ZeroVector(VoigtSize); // The previous converged strain vector
     Vector mOldStressVector = ZeroVector(VoigtSize); // The previous converged stress vector
     double mUp = 0.0;                                // 1d version of the plastic displacements
+    bool mDoubleScale = false;                       // Indicates if the crack path has been opened
 
     ///@}
     ///@name Private Operators
