@@ -17,6 +17,13 @@ namespace Kratos
 
 LineInterfaceElement::LineInterfaceElement() = default;
 
+void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+{
+    DofsVectorType dofs;
+    GetDofList(dofs, rCurrentProcessInfo);
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(dofs);
+}
+
 void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     // At this point we only look at the U dofs, so we leave the water pressure nodes empty.

@@ -124,4 +124,48 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = std::make_shared<Properties>();
+
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    int i = 0;
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+        node.AddDof(DISPLACEMENT_Z);
+
+        node.pGetDof(DISPLACEMENT_X)->SetEquationId(++i);
+        node.pGetDof(DISPLACEMENT_Y)->SetEquationId(++i);
+        node.pGetDof(DISPLACEMENT_Z)->SetEquationId(++i);
+    }
+
+    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 3.0};
+    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{4.0, 5.0, 6.0};
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 9.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{10.0, 11.0, 12.0};
+
+    // Act
+    Element::EquationIdVectorType equation_id_vector;
+    element->EquationIdVector(equation_id_vector, {});
+
+    // Assert
+    KRATOS_EXPECT_EQ(equation_id_vector.size(), 12);
+    const std::vector<int> expected_ids = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids);
+}
+
 } // namespace Kratos::Testing
