@@ -60,10 +60,28 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialP
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
                                       "No interface normal stiffness defined")
 
-    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0;
+    properties[INTERFACE_NORMAL_STIFFNESS] = -5.0;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "Interface normal stiffness must be positive, but got -5")
 
+    properties[INTERFACE_NORMAL_STIFFNESS] = 0.0;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "Interface normal stiffness must be positive, but got 0")
+
+    properties[INTERFACE_NORMAL_STIFFNESS] = 5.0;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
                                       "No interface shear stiffness defined")
+
+    properties[INTERFACE_SHEAR_STIFFNESS] = -2.5;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "Interface shear stiffness must be positive, but got -2.5")
+
+    properties[INTERFACE_SHEAR_STIFFNESS] = 0.0;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "Interface shear stiffness must be positive, but got 0")
+
+    properties[INTERFACE_SHEAR_STIFFNESS] = 2.5;
+    KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
 }
 
 } // namespace Kratos::Testing
