@@ -12,6 +12,7 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
+#include "custom_geometries/line_interface_geometry.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -52,6 +53,9 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
     KRATOS_ERROR_IF_NOT(rMaterialProperties[INTERFACE_SHEAR_STIFFNESS] > 0.0)
         << "Interface shear stiffness must be positive, but got "
         << rMaterialProperties[INTERFACE_SHEAR_STIFFNESS] << std::endl;
+
+    KRATOS_ERROR_IF_NOT(dynamic_cast<const LineInterfaceGeometry*>(&rElementGeometry))
+        << "Expected a line interface geometry, but got " << rElementGeometry.Info() << std::endl;
 
     return 0;
 }
