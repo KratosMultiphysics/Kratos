@@ -82,4 +82,46 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, Kr
     EXPECT_NE(created_element->pGetProperties(), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = std::make_shared<Properties>();
+
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+        node.AddDof(DISPLACEMENT_Z);
+    }
+
+    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 3.0};
+    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{4.0, 5.0, 6.0};
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 9.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{10.0, 11.0, 12.0};
+
+    // Act
+    Element::DofsVectorType degrees_of_freedom;
+    element->GetDofList(degrees_of_freedom, {});
+
+    // Assert
+    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 12);
+    const std::vector<double> expected_dof_values = {1.0, 2.0, 3.0, 4.0,  5.0,  6.0,
+                                                     7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
+    for (int i = 0; i < degrees_of_freedom.size(); i++) {
+        KRATOS_EXPECT_DOUBLE_EQ(degrees_of_freedom[i]->GetSolutionStepValue(), expected_dof_values[i]);
+    }
+}
+
 } // namespace Kratos::Testing

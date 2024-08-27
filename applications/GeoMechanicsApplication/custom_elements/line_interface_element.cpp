@@ -10,11 +10,19 @@
 //  Main authors:    Richard Faasse
 //
 #include "line_interface_element.h"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
 
 LineInterfaceElement::LineInterfaceElement() = default;
+
+void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+{
+    // At this point we only look at the U dofs, so we leave the water pressure nodes empty.
+    rElementalDofList = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
+}
 
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
                                               const NodesArrayType&   rNodes,
