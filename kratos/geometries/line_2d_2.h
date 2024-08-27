@@ -1066,14 +1066,17 @@ public:
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
+        // The length
+        const double length = Length();
+
         // Project the point on the line in global space
         const array_1d<double, 3> vector_from_first_point_to_input = rPoint - r_first_point;
-        const array_1d<double, 3> unity_line_direction             = (r_second_point - r_first_point) / Length();
+        const array_1d<double, 3> unity_line_direction             = (r_second_point - r_first_point) / length;
         const auto projection_on_line                              = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
         // Conversion to local space
         constexpr double tolerance = 1e-14;
-        rResult[0] = 2.0 * projection_on_line/(Length() + tolerance) - 1.0;
+        rResult[0] = 2.0 * projection_on_line/(length + tolerance) - 1.0;
 
         return rResult;
     }
