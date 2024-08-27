@@ -42,6 +42,9 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACE_NORMAL_STIFFNESS))
         << "No interface normal stiffness defined" << std::endl;
 
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACE_SHEAR_STIFFNESS))
+        << "No interface shear stiffness defined" << std::endl;
+
     return 0;
 }
 

@@ -12,6 +12,7 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -52,12 +53,17 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialP
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto law          = GeoIncrementalLinearElasticInterfaceLaw{};
-    const auto properties   = Properties{};
+    auto       properties   = Properties{};
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
                                       "No interface normal stiffness defined")
+
+    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
+                                      "No interface shear stiffness defined")
 }
 
 } // namespace Kratos::Testing
