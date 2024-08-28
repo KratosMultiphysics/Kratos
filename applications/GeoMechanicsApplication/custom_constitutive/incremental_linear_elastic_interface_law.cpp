@@ -76,4 +76,12 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterialResponseCauchy(C
     mPreviousTraction             = rValues.GetStressVector();
 }
 
+void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Properties&,
+                                                                 const ConstitutiveLaw::GeometryType&,
+                                                                 const Vector&)
+{
+    mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
+    mPreviousTraction             = ZeroVector{GetStrainSize()};
+}
+
 } // namespace Kratos

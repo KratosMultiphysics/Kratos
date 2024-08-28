@@ -118,6 +118,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     law_parameters.SetMaterialProperties(properties);
     auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto dummy_geometry = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 
     law.CalculateMaterialResponseCauchy(law_parameters);
 
@@ -140,6 +143,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     law_parameters.SetMaterialProperties(properties);
     auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto dummy_geometry = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 
     law.InitializeMaterialResponseCauchy(law_parameters);
     relative_displacement *= 2.0;

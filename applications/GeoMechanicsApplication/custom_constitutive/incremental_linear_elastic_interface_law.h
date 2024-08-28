@@ -31,10 +31,11 @@ public:
                         const ProcessInfo&  rCurrentProcessInfo) const override;
     void          CalculateMaterialResponseCauchy(Parameters& rValues) override;
     void          InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
 
 private:
-    Vector mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
-    Vector mPreviousTraction             = ZeroVector{GetStrainSize()};
+    Vector mPreviousRelativeDisplacement;
+    Vector mPreviousTraction;
 };
 
 } // namespace Kratos
