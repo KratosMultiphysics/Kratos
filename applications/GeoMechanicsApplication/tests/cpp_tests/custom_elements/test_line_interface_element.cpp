@@ -153,11 +153,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
         node.pGetDof(DISPLACEMENT_Z)->SetEquationId(++i);
     }
 
-    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 3.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{4.0, 5.0, 6.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 9.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{10.0, 11.0, 12.0};
-
     // Act
     Element::EquationIdVectorType equation_id_vector;
     element->EquationIdVector(equation_id_vector, {});
