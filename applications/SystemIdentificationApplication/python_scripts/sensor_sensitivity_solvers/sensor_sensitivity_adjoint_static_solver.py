@@ -45,7 +45,7 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
             self.sensitivity_builder.Initialize()
             self.sensitivity_builder_initialized = True
 
-    def GetSensitivtyVariables(self) -> 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]':
+    def GetSensitivityVariables(self) -> 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]':
         sensitivity_settings = self.settings["sensitivity_settings"]
         return {
             ExpressionDataLocation.NodeHistorical: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray()],
