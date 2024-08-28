@@ -88,15 +88,16 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         Vector stress_increment_trial(VoigtSize);
         noalias(stress_increment_trial) = prod(a0, strain_increment);
 
-        // Rotation and normal matrices
-        Matrix R(Dimension, Dimension);
-        Matrix n(VoigtSize, Dimension);
-
-        // Estimate joint orientation with respect to some trial stress
         const Vector aux_stress_vector_trial = mOldStressVector + stress_increment_trial;
-        CalculateJointOrientation(R, n, aux_stress_vector_trial, mDamage, muy0, muy, ft, m, fc);
 
         if (!mDoubleScale) { // Crack not opened
+
+            // Rotation and normal matrices
+            Matrix& R = mR;
+            Matrix& n = mn;
+
+            // Estimate joint orientation with respect to some trial stress
+            CalculateJointOrientation(R, n, aux_stress_vector_trial, mDamage, muy0, muy, ft, m, fc);
 
             Vector tc_trial = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
             double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
@@ -106,7 +107,8 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             } else { // crack starts...
                 mDoubleScale = true;
 
-                Vector tc = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
+                //Vector tc = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
+                Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
 
                 Matrix KcE(Dimension, Dimension);
                 KcE.clear();
@@ -139,6 +141,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
                 if (yield <= ratio_tolerance) { // Unloading/reloading
                     noalias(rValues.GetStressVector()) = stress_vector_trial;
+                    noalias(mUc) = uc;
                     noalias(tc) = tc_trial;
                 } else { // damage and plast increase, ln170 matlab
                     Vector ucp = mUcp;
@@ -270,8 +273,10 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
         } else { // mDoubleScale == true already, ln 277 matlab
+            Matrix& R = mR;
+            Matrix& n = mn;
 
-            Vector tc = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
+            Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
 
             Matrix KcE(Dimension, Dimension);
             KcE.clear();
@@ -282,7 +287,8 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             double det_KcE;
             MathUtils<double>::InvertMatrix(KcE, KcE_inv, det_KcE);
 
-            Vector uc = prod(KcE_inv, tc);
+            /*Vector uc = prod(KcE_inv, tc);*/
+            Vector uc = mUc;
 
             const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
             Matrix inv_C(Dimension, Dimension);
@@ -436,11 +442,11 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
         } // already open crack
     }
     noalias(mOldStressVector) = rValues.GetStressVector();
-    noalias(mOldStrainVector) = r_strain_vector;
+    noalias(mOldStrainVector) = rValues.GetStrainVector();
 
-    if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        CalculateTangentTensor(rValues);
-    }
+    // if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    //     CalculateTangentTensor(rValues);
+    // }
 
     KRATOS_CATCH("");
 }

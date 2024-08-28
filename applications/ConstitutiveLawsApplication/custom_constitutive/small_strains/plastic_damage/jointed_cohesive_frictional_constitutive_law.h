@@ -414,6 +414,8 @@ private:
     Vector mOldStressVector = ZeroVector(VoigtSize); // The previous converged stress vector
     double mUp = 0.0;                                // 1d version of the plastic displacements
     bool mDoubleScale = false;                       // Indicates if the crack path has been opened
+    Matrix mR = ZeroMatrix(Dimension, Dimension);    // Rotation matrix of the crack plane
+    Matrix mn = ZeroMatrix((VoigtSize, Dimension));  // n matrix of the crack plane
 
     ///@}
     ///@name Private Operators
