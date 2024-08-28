@@ -4,6 +4,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
 from KratosMultiphysics.SystemIdentificationApplication.responses.sensor_coverage_response import SensorCoverageResponse
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -102,7 +103,7 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
 
         cls.sensor_model_part = cls.model.CreateModelPart("sensors")
         cls.sensors = CreateSensors(cls.sensor_model_part, cls.mask_model_part, parameters)
-        ComponentDataView("sensors", cls.optimization_problem).GetUnBufferedData().SetValue("list_of_sensors", cls.sensors)
+        SetSensors(cls.sensors, cls.optimization_problem)
         for i, sensor in enumerate(cls.sensors):
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
