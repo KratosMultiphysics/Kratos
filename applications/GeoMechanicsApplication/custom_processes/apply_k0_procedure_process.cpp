@@ -117,12 +117,14 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
     }
     const auto PoissonUR = rProp.Has(POISSON_UNLOADING_RELOADING) ? rProp[POISSON_UNLOADING_RELOADING] : 0.;
 
-    // Determine OCR dependent K0 values ( constant per element! )
+    double POP_value = 0.0;
     if ((rProp.Has(K0_NC) || rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER)) && rProp.Has(OCR)) {
-        // Modify for presence of OCR (or POP?) field values
+        // Determine OCR dependent K0 values ( constant per element! )
         k0_vector *= rProp[OCR];
         array_1d<double, 3> correction(3, (PoissonUR / (1.0 - PoissonUR)) * (rProp[OCR] - 1.0));
         k0_vector -= correction;
+    } else if (rProp.Has(POP)) {
+        POP_value = -rProp[POP];
     }
     // Get element stress vectorsn
     const ProcessInfo& rCurrentProcessInfo = this->mrModelPart.GetProcessInfo();
@@ -137,7 +139,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVectors[g_point][i_dir] = k0_vector[i_dir] * rStressVectors[g_point][k0_main_direction];
+                rStressVectors[g_point][i_dir] = k0_vector[i_dir] * (rStressVectors[g_point][k0_main_direction] + POP_value);
             }
         }
         // Erase shear stresses
