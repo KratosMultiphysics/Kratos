@@ -30,7 +30,8 @@ public:
                         const GeometryType& rElementGeometry,
                         const ProcessInfo&  rCurrentProcessInfo) const override;
     void          CalculateMaterialResponseCauchy(Parameters& rValues) override;
-    void          InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    bool          RequiresInitializeMaterialResponse() override;
+    void          FinalizeMaterialResponseCauchy(Parameters& rValues) override;
     void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
 
 private:

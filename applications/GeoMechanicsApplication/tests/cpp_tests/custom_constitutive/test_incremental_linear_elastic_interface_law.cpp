@@ -53,6 +53,14 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesIsIncremental, KratosGeoM
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesDoesNotRequireInitializationOfMaterialResponse,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    KRATOS_EXPECT_FALSE(law.RequiresInitializeMaterialResponse())
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -107,8 +115,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectGeometry,
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law_parameters         = ConstitutiveLaw::Parameters{};
-    auto relative_displacement  = Vector{2};
+    auto law_parameters        = ConstitutiveLaw::Parameters{};
+    auto relative_displacement = Vector{2};
     relative_displacement <<= 0.1, 0.3;
     law_parameters.SetStrainVector(relative_displacement);
     auto traction = Vector{ZeroVector{2}};
@@ -117,8 +125,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     law_parameters.SetMaterialProperties(properties);
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
-    const auto dummy_geometry = Geometry<Node>{};
+    auto       law                         = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto dummy_geometry              = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
     law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 
@@ -132,27 +140,32 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law_parameters         = ConstitutiveLaw::Parameters{};
-    auto relative_displacement  = Vector{2};
-    relative_displacement <<= 0.1, 0.3;
+    auto law_parameters        = ConstitutiveLaw::Parameters{};
+    auto relative_displacement = Vector{ZeroVector{2}};
     law_parameters.SetStrainVector(relative_displacement);
-    auto traction = Vector{ScalarVector{2, 0.5}};
+    auto traction = Vector{ZeroVector{2}};
     law_parameters.SetStressVector(traction);
     auto properties                        = Properties{};
     properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     law_parameters.SetMaterialProperties(properties);
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
-    const auto dummy_geometry = Geometry<Node>{};
+    auto       law                         = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto dummy_geometry              = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
     law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 
-    law.InitializeMaterialResponseCauchy(law_parameters);
+    // First step
+    relative_displacement <<= 0.1, 0.3;
+    law.CalculateMaterialResponseCauchy(law_parameters);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
+
+    // Second step
     relative_displacement *= 2.0;
     law.CalculateMaterialResponseCauchy(law_parameters);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
 
     auto expected_traction = Vector{2};
-    expected_traction <<= 2.5, 3.5;
+    expected_traction <<= 4.0, 6.0;
     constexpr auto relative_tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
 }

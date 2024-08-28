@@ -70,18 +70,23 @@ void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(Co
     traction = mPreviousTraction + prod(constitutive_matrix, relative_displacement - mPreviousRelativeDisplacement);
 }
 
-void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    mPreviousRelativeDisplacement = rValues.GetStrainVector();
-    mPreviousTraction             = rValues.GetStressVector();
-}
-
 void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Properties&,
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
     mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
     mPreviousTraction             = ZeroVector{GetStrainSize()};
+}
+
+bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse()
+{
+    return false;
+}
+
+void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    mPreviousRelativeDisplacement = rValues.GetStrainVector();
+    mPreviousTraction             = rValues.GetStressVector();
 }
 
 } // namespace Kratos
