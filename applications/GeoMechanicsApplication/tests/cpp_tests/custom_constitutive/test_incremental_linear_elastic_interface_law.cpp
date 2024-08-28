@@ -53,6 +53,16 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesIsIncremental, KratosGeoM
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfacesIsIndependentOfOriginal, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto original_law = GeoIncrementalLinearElasticInterfaceLaw{};
+    auto       p_cloned_law = original_law.Clone();
+
+    KRATOS_EXPECT_NE(p_cloned_law.get(), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_law.get(), &original_law);
+    KRATOS_EXPECT_NE(dynamic_cast<const GeoIncrementalLinearElasticInterfaceLaw*>(p_cloned_law.get()), nullptr);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesDoesNotRequireInitializationOfMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

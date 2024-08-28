@@ -22,6 +22,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
+    Pointer       Clone() const override;
     SizeType      WorkingSpaceDimension() override;
     SizeType      GetStrainSize() const override;
     StressMeasure GetStressMeasure() override;

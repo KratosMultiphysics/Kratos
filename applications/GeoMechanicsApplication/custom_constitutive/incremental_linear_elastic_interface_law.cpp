@@ -89,4 +89,9 @@ void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(Con
     mPreviousTraction             = rValues.GetStressVector();
 }
 
+ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
+{
+    return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(*this);
+}
+
 } // namespace Kratos
