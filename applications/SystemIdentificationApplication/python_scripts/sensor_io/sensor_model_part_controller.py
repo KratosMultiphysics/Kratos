@@ -3,6 +3,8 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosDT
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensorModelPart
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
@@ -29,6 +31,7 @@ class SensorModelPartController(ModelPartController):
         if model.HasModelPart(sensor_model_part_name):
             raise RuntimeError(f"The sensor model part name \"{sensor_model_part_name}\" already exists.")
         self.sensor_model_part = model.CreateModelPart(sensor_model_part_name)
+        SetSensorModelPart(self.sensor_model_part, self.optimization_problem)
 
     def ImportModelPart(self) -> None:
         self.targe_model_part = self.model[self.target_model_part_name]
@@ -37,7 +40,8 @@ class SensorModelPartController(ModelPartController):
         # add the list of sensors to optimization problem
         sensors = ComponentDataView("sensors", self.optimization_problem)
         sensors.SetDataBuffer(1)
-        sensors.GetUnBufferedData().SetValue("list_of_sensors", self.list_of_sensors)
+
+        SetSensors(self.list_of_sensors, self.optimization_problem)
 
         for i, sensor in enumerate(self.list_of_sensors):
             location = sensor.GetLocation()
