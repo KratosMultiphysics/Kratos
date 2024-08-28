@@ -484,11 +484,15 @@ public:
     {
         using ValueType = typename AMatrix::value_type;
 
+        std::cout << "Debug -- A" << std::endl;
+
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
         const IndexType* index2 = rB.index2_data().begin();
         const ValueType* data = rB.value_data().begin();
         const SizeType transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
+
+        std::cout << "Debug -- B" << std::endl;
 
         const SizeType size_system_1 = rB.size1();
         const SizeType size_system_2 = rB.size2();
@@ -497,12 +501,16 @@ public:
             rA.resize(size_system_2, size_system_1, false);
         }
 
+        std::cout << "Debug -- C" << std::endl;
+
         IndexVectorType new_a_ptr(size_system_2 + 1);
         IndexPartition<IndexType>(size_system_2 + 1).for_each([&](IndexType i) {
             new_a_ptr[i] = 0;
         });
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
+
+        std::cout << "Debug -- D" << std::endl;
 
         // Auxiliary index 1
         const IndexType aux_1_index = 1;
@@ -516,13 +524,19 @@ public:
             }
         });
 
+        std::cout << "Debug -- E" << std::endl;
+
         // We initialize the blocks sparse matrix
         std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
+
+        std::cout << "Debug -- F" << std::endl;
 
         IndexVectorType aux_indexes(size_system_2);
         IndexPartition<IndexType>(size_system_2).for_each([&](IndexType i) {
             aux_indexes[i] = 0;
         });
+
+        std::cout << "Debug -- G" << std::endl;
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
@@ -543,11 +557,17 @@ public:
 
         }
 
+        std::cout << "Debug -- H" << std::endl;
+
         // We reorder the rows
         SortRows(&new_a_ptr[0], size_system_2, size_system_1, &aux_index2_new_a[0], &aux_val_new_a[0]);
 
+        std::cout << "Debug -- I" << std::endl;
+
         // We fill the matrix
         CreateSolutionMatrix(rA, size_system_2, size_system_1, &new_a_ptr[0], &aux_index2_new_a[0], &aux_val_new_a[0]);
+
+        std::cout << "Debug -- J" << std::endl;
     }
 
     /**
