@@ -22,6 +22,11 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
+void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    rLeftHandSideMatrix = ZeroMatrix{GetDofs().size(), GetDofs().size()};
+}
+
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
                                               const NodesArrayType&   rNodes,
                                               PropertiesType::Pointer pProperties) const

@@ -163,4 +163,37 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = std::make_shared<Properties>();
+
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    int i = 0;
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+        node.AddDof(DISPLACEMENT_Z);
+    }
+
+    // Act
+    Matrix left_hand_side;
+    element->CalculateLeftHandSide(left_hand_side, {});
+
+    KRATOS_EXPECT_EQ(left_hand_side.size1(), 12);
+    KRATOS_EXPECT_EQ(left_hand_side.size2(), 12);
+}
+
 } // namespace Kratos::Testing
