@@ -314,13 +314,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         if self.level_set_type == "point-based":
             # Calculate the required neighbors
-            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbours_process.Execute()
+            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbors_process.Execute()
 
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
-            settings.AddEmptyValue("active_side_of_skin").SetString("negative")
+            #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
+            settings.AddEmptyValue("enclosed_area").SetString("negative")
+            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)
             settings.AddEmptyValue("use_tessellated_boundary").SetBool(True)
-            settings.AddEmptyValue("interpolate_boundary").SetBool(True)
+            settings.AddEmptyValue("interpolate_boundary").SetBool(False)
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary point-based interface utility created.")
 
@@ -329,8 +331,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         elif self.level_set_type == "discontinuous":
             # Calculate the required neighbors
-            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbours_process.Execute()
+            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbors_process.Execute()
 
             #
             settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
@@ -344,8 +346,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Calculate the required neighbors
             nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
             nodal_neighbours_process.Execute()
-            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbours_process.Execute()
+            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbors_process.Execute()
 
             settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)

@@ -88,15 +88,32 @@ namespace Kratos
         if (active_side_of_skin != "positive" && active_side_of_skin != "negative" && active_side_of_skin != "both") {
             KRATOS_ERROR << "Unknown 'active_side_of_skin' given. 'positive', 'negative' or 'both' sides are supported by point based shifted boundary interface utility." << std::endl;
         }
+        //TODO actually deactivate side that is not considered and do not apply wall conditions and interface terms 
+        //--> flood fill and majority vote like Manuel
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", active_side_of_skin != "both") << "So far always both sides of the skin are being considered." << std::endl;
         if (active_side_of_skin == "positive") {
             mNegativeSideIsActive = false;
         } else if (active_side_of_skin == "negative") {
             mPositiveSideIsActive = false;
         }
 
-        // If true then elements will be declared BOUNDARY which are intersected by the tessellated skin geometry
+        // Set which side of the skin model part is an enclosed area
+        const std::string enclosed_area = ThisParameters["enclosed_area"].GetString();
+        if (enclosed_area != "positive" && enclosed_area != "negative" && enclosed_area != "none") {
+            KRATOS_ERROR << "Unknown 'enclosed_area' keyword given. 'positive' or 'negative' side or 'none' are supported by point based shifted boundary interface utility." << std::endl;
+        }
+        if (enclosed_area == "positive") {
+            mPositiveSideIsEnclosed = true;
+        } else if (enclosed_area == "negative") {
+            mNegativeSideIsEnclosed = true;
+        }
+
+        // If true, then the support cloud for a node can be found beyond a first layer of deactivated BOUNDARY elements (direct neighbors)
+        mCrossBoundaryNeighbors = ThisParameters["cross_boundary_neighbors"].GetBool();
+
+        // If true, then elements will be declared BOUNDARY which are intersected by the tessellated skin geometry
         mUseTessellatedBoundary = ThisParameters["use_tessellated_boundary"].GetBool();
-        // If true then elements will be declared BOUNDARY which are located directly in between elements in which boundary points were located
+        // If true, then elements will be declared BOUNDARY which are located directly in between elements in which boundary points were located
         mInterpolateBoundary = ThisParameters["interpolate_boundary"].GetBool();
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mUseTessellatedBoundary && mInterpolateBoundary) << "Using the tessellated boundary is given precedence over interpolating the boundary." << std::endl;
     };
@@ -117,6 +134,8 @@ namespace Kratos
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
             "active_side_of_skin" : "both",
+            "enclosed_area" : "none",
+            "cross_boundary_neighbors" : true,
             "use_tessellated_boundary" : false,
             "interpolate_boundary" : false
         })" );
@@ -163,12 +182,13 @@ namespace Kratos
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
 
-        // Set the pressure of the first node of an enclosed volume to zero if one side is not active.
-        //TODO NEXT variable for saying whether pos/neg/none inside instead of considering a side, because maybe inside is to be considered
+        // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = sides_vector_map.begin();
         bool set_enclosed_pressure = false;
+        //TODO p=0 for all nodes bounding the enclosed area, so no wall conditions are needed
+        //while (skin_pt_element_iter != sides_vector_map.end()) {
         while (!set_enclosed_pressure && skin_pt_element_iter != sides_vector_map.end()) {
-            set_enclosed_pressure = SetFirstEnclosedNodesPressure(*(skin_pt_element_iter->first), skin_pt_element_iter->second);
+            set_enclosed_pressure = SetEnclosedNodesPressure(*(skin_pt_element_iter->first), skin_pt_element_iter->second);
             skin_pt_element_iter++;
         }
 
@@ -213,7 +233,7 @@ namespace Kratos
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
-                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
+                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal, 
                 ext_op_map, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
@@ -574,7 +594,7 @@ namespace Kratos
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto& r_node = r_geom[i_node];
-                array_1d<double, 3> skin_pt_to_node = avg_position - r_node.Coordinates();
+                array_1d<double, 3> skin_pt_to_node = r_node.Coordinates() - avg_position;
                 if (inner_prod(skin_pt_to_node, avg_normal) > 0.0) {
                     sides_vector[i_node] =  1.0;
                 } else {
@@ -628,7 +648,7 @@ namespace Kratos
                                 elem_neg_nodes.push_back(r_geom(j_node));
                             }
                         }
-                        // NOTE that average normal is inverted, so that dot product between normal and vector support node should be positive
+                        // NOTE that average normal is inverted for negative side, so that dot product between normal and vector to support node should be positive
                         SetLateralSupportCloud(elem_neg_nodes, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/false);
 
                     // Node is on negative side of the boundary
@@ -648,6 +668,7 @@ namespace Kratos
                     if (n_cloud_nodes < GetRequiredNumberOfPoints()) {
                         KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Number of support nodes not sufficient for Node No." << p_node->Id() << ". Extension operator will not be calculated. " << std::endl;
                         aux_set_insufficient.insert(p_node);
+                        //p_node->Set(BOUNDARY, true); //DEBUGGING
                         continue;
                     }
 
@@ -677,7 +698,7 @@ namespace Kratos
         const array_1d<double,3>& rSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
-        bool ConsiderPositiveSide)
+        const bool ConsiderPositiveSide)
     {
         // Find the same side support cloud of nodes
         // Note that we use an unordered_set to ensure that these are unique
@@ -693,92 +714,73 @@ namespace Kratos
         // Add first given nodes to cloud nodes set (1st layer of sampling points)
         for (std::size_t i_node = 0; i_node < n_same_side_nodes; ++i_node) {
             const auto p_node = rSameSideNodes[i_node];
-            aux_set.insert(p_node);
             prev_layer_nodes.push_back(p_node);
+            aux_set.insert(p_node);
         }
 
-        // Add several layers of neighbors to the cloud nodes
+        // Add second layer of nodal neighbors. These are the nodal neighbors of the given nodes in direction of the skin point normal
+        // NOTE that the support nodes can be taken from BOUNDARY elements (direct neighbors) for this second layer of nodes if mCrossBoundaryNeighbors is true.
+        if (mCrossBoundaryNeighbors) {
+            AddLateralSupportLayerCrossingBoudary(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+        } else {
+            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+        }
+        prev_layer_nodes = cur_layer_nodes;
+        cur_layer_nodes.clear();
+
+        // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
         // NOTE that we check the order of the MLS interpolation to add nodes from enough interior
-        // NOTE that we start from 1 here as the first layer already has been added
-        for (std::size_t i_layer = 1; i_layer < n_layers; ++i_layer) {
-
-            // Find elemental neighbors of the nodes of the previous layer
-            for (auto& p_node : prev_layer_nodes) {
-                auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
-
-                // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY and in normal direction
-                // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
-                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                    if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
-                        const auto& r_geom = p_elem_neigh->GetGeometry();
-                        for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
-                            // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
-                            // NOTE this is done for a more robust separation of both sides of the boundary
-                            NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                            const array_1d<double, 3> avg_skin_pt_to_node = rSkinPosition - p_neigh->Coordinates();
-                            if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
-                                if (ConsiderPositiveSide) {
-                                    p_neigh->Set(INTERFACE, true);
-                                } else {
-                                    p_neigh->Set(BOUNDARY, true);
-                                }
-                                aux_set.insert(p_neigh);
-                                cur_layer_nodes.push_back(p_neigh);
-                            }
-                        }
-                    }
-                }
-            }
+        // NOTE that we start from 2 here as the first and second layer already have been added
+        for (std::size_t i_layer = 2; i_layer < n_layers; ++i_layer) {
+            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
-
-        // Check that the current nodes are active and enough to perform the MLS calculation
-        // If not sufficient, add the nodal neighbors of the current nodes to the cloud of points
-        std::size_t n_cloud_nodes_temp = 0;
-        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-            if ((*it_set)->Is(ACTIVE)) {
-                n_cloud_nodes_temp++;
-            }
-        }
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_cloud_nodes_temp < n_same_side_nodes) << "Degenerated case with no neighbors. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
-        if (n_cloud_nodes_temp < GetRequiredNumberOfPoints()) {
-            NodesCloudSetType aux_extra_set(aux_set);
-            for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-                auto& r_elem_neigh_vect = (*it_set)->GetValue(NEIGHBOUR_ELEMENTS);
-                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                    if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
-                        const auto& r_geom = p_elem_neigh->GetGeometry();
-                        for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
-                            NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                            if (ConsiderPositiveSide) {
-                                p_neigh->Set(INTERFACE, true);
-                            } else {
-                                p_neigh->Set(BOUNDARY, true);
-                            }
-                            aux_extra_set.insert(p_neigh);
-                        }
-                    }
-                }
-            }
-            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Extra set of points needed for MLS calculation." << std::endl;
-            aux_set = aux_extra_set;
+        
+        if (aux_set.size() == n_same_side_nodes) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Degenerated case with no neighboring active element's nodes normal to skin. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
+            return;
         }
 
-        // Add obtained active cloud nodes to vector and sort them by id
+        // Check how many of the current support nodes are active
         std::size_t n_cloud_nodes = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             if ((*it_set)->Is(ACTIVE)) {
                 n_cloud_nodes++;
             }
         }
+
+        // If there are not enough active support nodes to perform the MLS calculation add another layer of neighboring nodes
+        // Add maximal two extra layers
+        std::size_t n_extra_layers = 0;
+        while (n_cloud_nodes < GetRequiredNumberOfPoints() && n_extra_layers < 2) {
+            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            n_extra_layers++;
+            n_cloud_nodes = 0;
+            for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+                if ((*it_set)->Is(ACTIVE)) {
+                    n_cloud_nodes++;
+                }
+            }
+            prev_layer_nodes = cur_layer_nodes;
+            cur_layer_nodes.clear();
+        }
+        if (n_extra_layers > 0) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layer(s) of points needed for MLS calculation." << std::endl;
+        }  
+
+        // Add obtained active cloud nodes to vector and sort them by id
         rCloudNodes.resize(n_cloud_nodes);
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             if ((*it_set)->Is(ACTIVE)) {
                 rCloudNodes(aux_i++) = *it_set;
+                // Mark active support nodes as BOUNDARY if they are on the positive side (support for negative side) and INTERFACE for the negative side (support for positive side)
+                if (ConsiderPositiveSide) {
+                    (*it_set)->Set(BOUNDARY, true);
+                } else {
+                    (*it_set)->Set(INTERFACE, true);
+                }
             }
         }
         std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
@@ -791,6 +793,70 @@ namespace Kratos
             rCloudCoordinates(iNode, 1) = rAuxCoordTLS[1];
             rCloudCoordinates(iNode, 2) = rAuxCoordTLS[2];
         });
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::AddLateralSupportLayer(
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
+        const std::vector<NodeType::Pointer>& PreviousLayerNodes,
+        std::vector<NodeType::Pointer>& CurrentLayerNodes,
+        NodesCloudSetType& SupportNodesSet)
+    {
+        // Find elemental neighbors of the nodes of the previous layer
+        for (auto& p_node : PreviousLayerNodes) {
+            auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+
+            // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY and in normal direction
+            // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
+            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
+                    const auto& r_geom = p_elem_neigh->GetGeometry();
+                    for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                        // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
+                        // NOTE this is done for a more robust separation of both sides of the boundary
+                        NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+                        const array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rSkinPosition;
+                        if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
+                            CurrentLayerNodes.push_back(p_neigh);
+                            SupportNodesSet.insert(p_neigh);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::AddLateralSupportLayerCrossingBoudary(
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
+        const std::vector<NodeType::Pointer>& PreviousLayerNodes,
+        std::vector<NodeType::Pointer>& CurrentLayerNodes,
+        NodesCloudSetType& SupportNodesSet)
+    {
+        // Find elemental neighbors of the nodes of the previous layer
+        for (auto& p_node : PreviousLayerNodes) {
+            auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+
+            // Add all nodes of neighboring elements to cloud nodes set in normal direction
+            // NOTE that nodes of BOUNDARY elements can be taken here, this way the boundary can be crossed
+            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                if (p_elem_neigh != nullptr) {
+                    const auto& r_geom = p_elem_neigh->GetGeometry();
+                    for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                        // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
+                        // NOTE this is done for a more robust separation of both sides of the boundary
+                        NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+                        const array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rSkinPosition;
+                        if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
+                            CurrentLayerNodes.push_back(p_neigh);
+                            SupportNodesSet.insert(p_neigh);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CreateCloudNodeVectorsForSplitElement(
@@ -975,14 +1041,14 @@ namespace Kratos
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
     }
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::SetFirstEnclosedNodesPressure(
+    bool ShiftedBoundaryPointBasedInterfaceUtility::SetEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector)
     {
         auto& r_geom = rElement.GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            if ((!mPositiveSideIsActive && rSidesVector[i_node] > 0) or (!mNegativeSideIsActive && rSidesVector[i_node] < 0)) {
+            if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
                 auto& r_node = r_geom[i_node];
                 if (r_node.Is(ACTIVE)) {
                     r_node.Fix(PRESSURE);

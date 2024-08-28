@@ -179,6 +179,11 @@ protected:
 
     bool mPositiveSideIsActive = true;
     bool mNegativeSideIsActive = true;
+    
+    bool mPositiveSideIsEnclosed = false;
+    bool mNegativeSideIsEnclosed = false;
+
+    bool mCrossBoundaryNeighbors = true;
 
     bool mInterpolateBoundary;
     bool mUseTessellatedBoundary;
@@ -260,7 +265,23 @@ protected:
         const array_1d<double,3>& rSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
-        bool ConsiderPositiveSide);
+        const bool ConsiderPositiveSide);
+
+    //TODO
+    void AddLateralSupportLayer(
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
+        const std::vector<NodeType::Pointer>& PreviousLayerNodes,
+        std::vector<NodeType::Pointer>& CurrentLayerNodes,
+        NodesCloudSetType& SupportNodesSet);
+
+    //TODO
+    void AddLateralSupportLayerCrossingBoudary(
+        const array_1d<double,3>& rSkinPosition,
+        const array_1d<double,3>& rSkinNormal,
+        const std::vector<NodeType::Pointer>& PreviousLayerNodes,
+        std::vector<NodeType::Pointer>& CurrentLayerNodes,
+        NodesCloudSetType& SupportNodesSet);
 
     /**
      * @brief Create a pointer vector of pointers to all the nodes affecting the respective side of a split element's boundary.
@@ -301,7 +322,7 @@ protected:
         const std::size_t ConditionId,
         bool ConsiderPositiveSide);
 
-    bool SetFirstEnclosedNodesPressure(
+    bool SetEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector);
 
