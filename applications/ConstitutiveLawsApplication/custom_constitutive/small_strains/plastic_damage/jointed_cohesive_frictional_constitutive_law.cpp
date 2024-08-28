@@ -311,6 +311,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             if (yield <= ratio_tolerance) { // Unloading/reloading
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
                 noalias(tc) = tc_trial;
+                noalias(mUc) = uc;
             } else { // damage and plast increase, ln170 matlab
                 Vector ucp = mUcp;
                 double D = mDamage;
@@ -337,7 +338,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 double aux_1 = (tc_trial[0] - (1.0 - D) * ft);
                 double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
 
-                double alpha = alpha0 * std::exp(-tc_trial[0] / ft);
+                double alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
                 double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
                 // compute dlamda
@@ -368,7 +369,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 while (ratio_norm_residual >= ratio_tolerance && iteration < max_iter) {
                     KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - D);
                     KcE(1, 1) = Ks * (1.0 - D);
-                    alpha = alpha0 * std::exp(-tc[0] / ft);
+                    alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
 
                     const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
                     Matrix inv_mat(Dimension, Dimension);
