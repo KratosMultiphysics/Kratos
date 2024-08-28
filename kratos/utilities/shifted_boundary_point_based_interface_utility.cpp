@@ -158,13 +158,19 @@ namespace Kratos
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Sides vectors and skin normals were set." << std::endl;
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
+        // NOTE that no extension bases will be calculated and added for a node for which not a sufficient number of support nodes were found
         NodesCloudMapType ext_op_map;
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
 
         // Set the pressure of the first node of an enclosed volume to zero if one side is not active.
-        auto p_element = sides_vector_map.begin()->first;
-        SetFirstEnclosedNodesPressure(*p_element, sides_vector_map[p_element]);
+        //TODO NEXT variable for saying whether pos/neg/none inside instead of considering a side, because maybe inside is to be considered
+        auto skin_pt_element_iter = sides_vector_map.begin();
+        bool set_enclosed_pressure = false;
+        while (!set_enclosed_pressure && skin_pt_element_iter != sides_vector_map.end()) {
+            set_enclosed_pressure = SetFirstEnclosedNodesPressure(*(skin_pt_element_iter->first), skin_pt_element_iter->second);
+            skin_pt_element_iter++;
+        }
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -328,9 +334,9 @@ namespace Kratos
         // Deactivate split elements and mark them as BOUNDARY (gamma)
         // Note that the split elements BC is applied by means of the extension operators
         //TODO: parallel
-        //TODO do not make elements in which skin points are located BOUNDARY if exact locations in combination with a tessellated boundary are being used!?!
+        //TODO do not make elements in which skin points are located BOUNDARY if exact locations in combination with a tessellated boundary are being used??
         // Otherwise BOUNDARY elements from rSkinPointsMap might be bordered by BOUNDARY elements from the tessellated boundary and support nodes can not be found?!
-        // Is it a problem if wall conditions are added for an element that is ACTIVE?!
+        // Is it a problem if wall conditions are added for an element that is ACTIVE?! No separation at wall conditions might cause more problems than no wall condition at all
         for (const auto& [p_element, _]: rSkinPointsMap) {
             p_element->Set(ACTIVE, false);
             p_element->Set(BOUNDARY, true);
@@ -356,6 +362,26 @@ namespace Kratos
         // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
         else if (mInterpolateBoundary) {
             DeclareIntermediateElementsBoundary();
+        }
+
+        // Deactivate nodes that do not belong to any active element (anymore)
+        //TODO make parallel and check only nodes of BOUNDARY elements?
+        for (auto& rNode : mpModelPart->Nodes()) {
+            // Check whether any of the element surrounding the node is active
+            auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
+            bool active_neighbor_found = false;
+            for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
+                auto p_neigh = r_neigh_elems(i_n).get();
+                // Continue with next node if the current node is part of an active element
+                if (p_neigh->Is(ACTIVE)) {
+                    active_neighbor_found = true;
+                    break;
+                }
+            }
+            // If there is no active element around the current node, we will deactivate it
+            if (!active_neighbor_found) {
+                rNode.Set(ACTIVE, false); 
+            } 
         }
 
         // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
@@ -389,7 +415,7 @@ namespace Kratos
                 std::vector<std::size_t> boundary_indices;
 
                 // Check which elements neighboring the node are part of the boundary
-                for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
+                for (std::size_t i_n = 0; i_n < n_neighs; ++i_n) {
                     auto p_neigh = r_neigh_elems(i_n).get();
                     if (p_neigh->Is(BOUNDARY)) {
                     //if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
@@ -568,6 +594,10 @@ namespace Kratos
         // Get the MLS shape functions function
         auto p_meshless_sh_func = GetMLSShapeFunctionsFunction();
 
+        // Create auxiliary set of nodes for which support cloud was calculated but insufficient
+        // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
+        NodesCloudSetType aux_set_insufficient;
+
         for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
             const auto r_geom = p_element->GetGeometry();
 
@@ -580,8 +610,9 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 const auto p_node = r_geom(i_node);
                 // Calculate extension basis of the node if it has not already been done
-                const std::size_t found = rExtensionOperatorMap.count(p_node);
-                if (!found) {
+                const std::size_t found_in_map = rExtensionOperatorMap.count(p_node);
+                const std::size_t found_insufficient = aux_set_insufficient.count(p_node);
+                if (!found_in_map && !found_insufficient) {
 
                     // Get the support/ cloud nodes for the respective node
                     //TODO only once per side necessary, currently done multiple times (for each node on each side)
@@ -612,6 +643,14 @@ namespace Kratos
                         SetLateralSupportCloud(elem_pos_nodes, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/true);
                     }
 
+                    // Continue with next node if number of support nodes is not sufficient for the calculation of the extension operator for the current node
+                    const std::size_t n_cloud_nodes = cloud_nodes.size();
+                    if (n_cloud_nodes < GetRequiredNumberOfPoints()) {
+                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Number of support nodes not sufficient for Node No." << p_node->Id() << ". Extension operator will not be calculated. " << std::endl;
+                        aux_set_insufficient.insert(p_node);
+                        continue;
+                    }
+
                     // Calculate the extension basis in the current node (MLS shape functions)
                     Vector N_container;
                     const array_1d<double,3> r_coords = p_node->Coordinates();
@@ -619,9 +658,8 @@ namespace Kratos
                     p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
 
                     // Save the extension operator nodal data to the extension operator map
-                    std::size_t n_cl_nod = cloud_nodes.size();
-                    CloudDataVectorType cloud_data_vector(n_cl_nod);
-                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
+                    CloudDataVectorType cloud_data_vector(n_cloud_nodes);
+                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cloud_nodes; ++i_cl_nod) {
                         auto p_cl_node = cloud_nodes(i_cl_nod);
                         auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
                         cloud_data_vector(i_cl_nod) = i_data;
@@ -668,7 +706,7 @@ namespace Kratos
             for (auto& p_node : prev_layer_nodes) {
                 auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
-                // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY
+                // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY and in normal direction
                 // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
                 for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                     auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
@@ -696,10 +734,15 @@ namespace Kratos
             cur_layer_nodes.clear();
         }
 
-        // Check that the current nodes are enough to perform the MLS calculation
+        // Check that the current nodes are active and enough to perform the MLS calculation
         // If not sufficient, add the nodal neighbors of the current nodes to the cloud of points
-        const std::size_t n_cloud_nodes_temp = aux_set.size();
-        KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbors. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
+        std::size_t n_cloud_nodes_temp = 0;
+        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+            if ((*it_set)->Is(ACTIVE)) {
+                n_cloud_nodes_temp++;
+            }
+        }
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_cloud_nodes_temp < n_same_side_nodes) << "Degenerated case with no neighbors. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
         if (n_cloud_nodes_temp < GetRequiredNumberOfPoints()) {
             NodesCloudSetType aux_extra_set(aux_set);
             for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
@@ -720,16 +763,23 @@ namespace Kratos
                     }
                 }
             }
-            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Extra set of points needed for MLS calculation!!" << std::endl;
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Extra set of points needed for MLS calculation." << std::endl;
             aux_set = aux_extra_set;
         }
 
-        // Sort the obtained nodes by id
-        const std::size_t n_cloud_nodes = aux_set.size();
+        // Add obtained active cloud nodes to vector and sort them by id
+        std::size_t n_cloud_nodes = 0;
+        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+            if ((*it_set)->Is(ACTIVE)) {
+                n_cloud_nodes++;
+            }
+        }
         rCloudNodes.resize(n_cloud_nodes);
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-            rCloudNodes(aux_i++) = *it_set;
+            if ((*it_set)->Is(ACTIVE)) {
+                rCloudNodes(aux_i++) = *it_set;
+            }
         }
         std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
@@ -751,6 +801,8 @@ namespace Kratos
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide)
     {
         // Create an auxiliary set with all the cloud nodes that affect the current element for each side separately
+                // NOTE that a node can only be found if sufficient cloud nodes were found for the creation of the extension basis
+                // NOTE that only active nodes are part of the node cloud
         NodesCloudSetType cloud_nodes_set_pos;
         NodesCloudSetType cloud_nodes_set_neg;
         const auto& r_geom = rElement.GetGeometry();
@@ -758,21 +810,27 @@ namespace Kratos
             NodeType::Pointer p_node = r_geom(i_node);
             if (rSidesVector(i_node) > 0.0) {
                 // Add positive side node to cloud nodes set of positive side of the boundary //TODO: really necessary? these nodes should be there already as other sides cloud nodes?!
-                cloud_nodes_set_pos.insert(p_node);
+                //cloud_nodes_set_pos.insert(p_node);
                 // Add positive side's node's cloud nodes to cloud nodes set of negative side of the boundary
-                auto& r_ext_op_data = rExtensionOperatorMap[p_node];
-                for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
-                    auto& p_node = std::get<0>(*it_data);
-                    cloud_nodes_set_neg.insert(p_node);
+                const std::size_t found = rExtensionOperatorMap.count(p_node);
+                if (found) {
+                    auto& r_ext_op_data = rExtensionOperatorMap[p_node];
+                    for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
+                        auto& p_node = std::get<0>(*it_data);
+                        cloud_nodes_set_neg.insert(p_node);
+                    }
                 }
             } else {
                 // Add negative side node to cloud nodes set of negative side of the boundary //TODO: really necessary? these nodes should be there already as other sides cloud nodes?!
-                cloud_nodes_set_neg.insert(p_node);
+                //cloud_nodes_set_neg.insert(p_node);
                 // Add negative side's node's cloud nodes to cloud nodes set of positive side of the boundary
-                auto& r_ext_op_data = rExtensionOperatorMap[p_node];
-                for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
-                    auto& p_node = std::get<0>(*it_data);
-                    cloud_nodes_set_pos.insert(p_node);
+                const std::size_t found = rExtensionOperatorMap.count(p_node);
+                if (found) {
+                    auto& r_ext_op_data = rExtensionOperatorMap[p_node];
+                    for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
+                        auto& p_node = std::get<0>(*it_data);
+                        cloud_nodes_set_pos.insert(p_node);
+                    }
                 }
             }
         }
@@ -823,7 +881,7 @@ namespace Kratos
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddIntegrationPointCondition(
-        ElementType& rElement,
+        const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -843,25 +901,21 @@ namespace Kratos
         Vector N_container = ZeroVector(n_cl_nodes);
         Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
 
-        // TODO NEXT Check whether sufficient number of support nodes is reached --> if not, then do not add condition and mark element as BOUNDARY for testing
-        // Therefore Element can not be const
-        // TODO Add contribution of a node only if node is ACTIVE, deactivate all nodes that are surrounded by deactivated elements
-        if (n_cl_nodes < GetRequiredNumberOfPoints()) {
-            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Number of cloud nodes is not sufficient - interface condition will not be added!" << std::endl;
-            rElement.Set(BOUNDARY, true); //TODO does not make sense, element is already BOUNDARY
-            return;
-        }
-        return;
-
         // Loop the nodes that are involved in the current element
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            const auto& r_node = r_geom[i_node];
+            const auto p_node = r_geom(i_node);
             // If node is on the side that is being considered, then add the standard shape function contribution of the node at the position of the skin point
             if (ConsiderPositiveSide != (rSidesVector[i_node] <= 0.0)) {
+                // If a node on the side that is being considered is not active, then no wall condition is created
+                //TODO redistribute shape functions? Or calculate extension basis for skin point directly??
+                if (!p_node->Is(ACTIVE)) {
+                    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
+                    return;
+                }
                 // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
                 for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
                     auto& p_cl_node = rCloudNodeVector(i_cl);
-                    if (r_node.Id() == p_cl_node->Id()) {
+                    if (p_node->Id() == p_cl_node->Id()) {
                         N_container(i_cl) += rIntPtShapeFunctionValues(i_node);
                         for (std::size_t d = 0; d < n_dim; ++d) {
                             DN_DX_container(i_cl, d) += rIntPtShapeFunctionDerivatives(i_node, d);
@@ -875,8 +929,15 @@ namespace Kratos
                 const double i_node_N = rIntPtShapeFunctionValues(i_node);
                 const auto i_node_grad_N = row(rIntPtShapeFunctionDerivatives, i_node);
 
+                // If node on the other side does not have an extension basis, then no wall condition is created
+                const std::size_t found = rExtensionOperatorMap.count(p_node);
+                if (!found) {
+                    KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because no extension operator was available for Node No." << p_node->Id() << std::endl;
+                    return;
+                }
+
                 // Get the node's extension operator data
-                auto& ext_op_data = rExtensionOperatorMap[r_geom(i_node)];
+                auto& ext_op_data = rExtensionOperatorMap[p_node];
 
                 // Iterate over the node's extension operator data and apply the cloud node weight (i_cl_node_N) to make the basis conformant
                 // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
@@ -914,7 +975,7 @@ namespace Kratos
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::SetFirstEnclosedNodesPressure(
+    bool ShiftedBoundaryPointBasedInterfaceUtility::SetFirstEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector)
     {
@@ -923,11 +984,14 @@ namespace Kratos
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             if ((!mPositiveSideIsActive && rSidesVector[i_node] > 0) or (!mNegativeSideIsActive && rSidesVector[i_node] < 0)) {
                 auto& r_node = r_geom[i_node];
-                r_node.Fix(PRESSURE);
-                r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
-                return;
+                if (r_node.Is(ACTIVE)) {
+                    r_node.Fix(PRESSURE);
+                    r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
+                    return true;
+                }
             }
         }
+        return false;
     }
 
     ShiftedBoundaryPointBasedInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryPointBasedInterfaceUtility::GetMLSShapeFunctionsFunction() const

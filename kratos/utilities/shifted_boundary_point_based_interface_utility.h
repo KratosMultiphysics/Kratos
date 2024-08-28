@@ -289,7 +289,7 @@ protected:
 
     /* TODO */
     void AddIntegrationPointCondition(
-        ElementType& rElement,
+        const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,
         const array_1d<double,3>& rIntPtCoordinates,
@@ -301,7 +301,7 @@ protected:
         const std::size_t ConditionId,
         bool ConsiderPositiveSide);
 
-    void SetFirstEnclosedNodesPressure(
+    bool SetFirstEnclosedNodesPressure(
         ElementType& rElement,
         const Vector& rSidesVector);
 
