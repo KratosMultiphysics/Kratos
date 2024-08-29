@@ -64,11 +64,11 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
 
 void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    auto constitutive_matrix  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
-    constitutive_matrix(0, 0) = rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS];
-    constitutive_matrix(1, 1) = rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS];
     rValues.GetStressVector() =
-        mPreviousTraction + prod(constitutive_matrix, rValues.GetStrainVector() - mPreviousRelativeDisplacement);
+        mPreviousTraction +
+        prod(MakeConstitutiveMatrix(rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
+                                    rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS]),
+             rValues.GetStrainVector() - mPreviousRelativeDisplacement);
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Properties&,
@@ -120,6 +120,15 @@ void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.load("PreviousTraction", mPreviousTraction);
+}
+
+Matrix GeoIncrementalLinearElasticInterfaceLaw::MakeConstitutiveMatrix(double NormalStiffness,
+                                                                       double ShearStiffness) const
+{
+    auto result  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
+    result(0, 0) = NormalStiffness;
+    result(1, 1) = ShearStiffness;
+    return result;
 }
 
 } // namespace Kratos

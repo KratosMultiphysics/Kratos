@@ -40,6 +40,8 @@ public:
     using BaseType::GetValue;
 
 private:
+    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
