@@ -33,7 +33,7 @@ class SensorSensitivityStaticAnalysis(SensorSensitivityAnalysis):
         return SensorSensitivityAdjointStaticSolver(self.model, self.project_parameters["solver_settings"])
 
     def _GetSimulationName(self) -> str:
-        return "::[SensorSensitivityStaticAnalysis]:: "
+        return "SensorSensitivityStaticAnalysis"
 
     def CalculateGradient(self, sensor: KratosSI.Sensors.Sensor) -> dict[str, ContainerExpressionTypes]:
         computing_model_part: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
@@ -67,7 +67,7 @@ class SensorSensitivityStaticAnalysis(SensorSensitivityAnalysis):
 
     def PrintAnalysisStageProgressInformation(self):
         process_info: Kratos.ProcessInfo = self._GetSolver().GetComputingModelPart().ProcessInfo
-        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Sensor Id: {process_info[Kratos.STEP]} - {process_info[KratosSI.SENSOR_NAME]}")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Sensor Id = {process_info[Kratos.STEP]:05d}, Sensor name = {process_info[KratosSI.SENSOR_NAME]}")
 
     def GetSensitivityModelPart(self) -> Kratos.ModelPart:
         return self._GetSolver().GetSensitivityModelPart()

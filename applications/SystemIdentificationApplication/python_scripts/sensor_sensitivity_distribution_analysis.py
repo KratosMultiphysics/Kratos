@@ -99,7 +99,7 @@ class SensorSensitivityDistributionAnalysis:
                     sensor.AddContainerExpression(f"{test_analysis_name}_{var_name}", expression.Clone())
 
                     # add to optimization problem for output and other uses
-                    ComponentDataView("sensors").GetUnBufferedData().SetValue(f"{sensor.GetName()}/{sensor.GetName()}_{var_name}", expression.Clone())
+                    ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().SetValue(f"{sensor.GetName()}/{sensor.GetName()}_{var_name}", expression.Clone())
 
                 for process_type in self.__sensor_analysis.GetProcessesOrder():
                     CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalizeSolutionStep)
