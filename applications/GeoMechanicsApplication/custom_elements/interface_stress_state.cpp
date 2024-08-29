@@ -37,7 +37,7 @@ double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node
                                                              double                DetJ,
                                                              const Geometry<Node>& rGeometry) const
 {
-    return 0.0;
+    return rIntegrationPoint.Weight() * DetJ;
 }
 
 Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const

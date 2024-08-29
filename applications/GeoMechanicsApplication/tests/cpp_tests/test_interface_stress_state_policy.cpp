@@ -21,16 +21,10 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CanCreateInterfaceStressState, KratosGeoMechanicsFastSuite)
-{
-    auto p_stress_state_policy = std::make_unique<InterfaceStressState>();
-
-    KRATOS_EXPECT_NE(p_stress_state_policy, nullptr);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy = std::make_unique<InterfaceStressState>();
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<InterfaceStressState>();
 
     KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_stress_state_policy->Clone().get()), nullptr);
 }
@@ -38,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, Krat
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsEmptyBMatrixWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = InterfaceStressState{};
 
     const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {});
 
@@ -48,14 +42,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsEmptyBMatrixWhenInputtingE
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = InterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = InterfaceStressState{};
 
     const auto voigt_vector = stress_state_policy.GetVoigtVector();
 
@@ -67,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, Krato
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto p_stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = InterfaceStressState{};
 
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -81,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
     Vector shape_function_values(3);
     shape_function_values <<= -0.125, 0.375, 0.75; // Shape function values for xi = 0.5
 
-    const auto b_matrix = p_stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry);
+    const auto b_matrix = stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry);
 
     // clang-format off
     Matrix expected_b_matrix(2, 12);
@@ -92,9 +86,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, 1.0e-6);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto interface_stress_state = InterfaceStressState{};
+
+    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
+
+    constexpr auto detJ                   = 2.0;
+    const auto     calculated_coefficient = interface_stress_state.CalculateIntegrationCoefficient(
+        integration_point, detJ, LineInterfaceGeometry<Line2D3<Node>>());
+
+    // The expected number is calculated as follows:
+    // 2.0 (detJ) * 0.5 (weight) = 1.0
+    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
+}
+
 } // namespace Kratos::Testing
-
-// VoigtVector -> [1,0]
-// B matrix -> (Voigt size * n u dof) size
-
-// Bmatrix, op de eerste rij, normaal, komt node n1(4 - node 1), n2(node 5 - node 2), n3(node 6 - node 3)
