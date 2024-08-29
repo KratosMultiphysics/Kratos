@@ -42,7 +42,7 @@ double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node
 
 Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    KRATOS_ERROR << "For interfaces, it is not possible to calculate the green lagrange "
+    KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green Lagrange "
                     "strain based on a deformation gradient.\n";
 }
 

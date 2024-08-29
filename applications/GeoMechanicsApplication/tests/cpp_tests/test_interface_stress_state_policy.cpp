@@ -107,8 +107,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
-        "For interfaces, it is not possible to calculate the green "
-        "lagrange strain based on a deformation gradient.");
+        "For interfaces, it is not possible to calculate the Green "
+        "Lagrange strain based on a deformation gradient.");
 }
 
 } // namespace Kratos::Testing
