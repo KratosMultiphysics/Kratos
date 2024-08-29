@@ -88,8 +88,7 @@ SensorMaskStatus::MaskContainerPointerType SensorMaskStatus::pGetMaskContainer()
         } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
             return rMasksPointersList.front()->pGetModelPart()->pElements();
         } else {
-            static_assert(!std::is_same_v<container_type, container_type>)
-                << "Unsupported container type.";
+            static_assert(!std::is_same_v<container_type, container_type>, "Unsupported container type.");
             return rMasksPointersList.front()->pGetModelPart()->pElements();
         }
     }, mMaskPointersList);
