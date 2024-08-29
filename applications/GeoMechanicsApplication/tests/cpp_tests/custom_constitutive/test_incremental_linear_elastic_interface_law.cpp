@@ -16,11 +16,15 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_3d_2.h"
 #include "includes/checks.h"
+#include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <sstream>
+#include <string>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -178,6 +182,48 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     expected_traction <<= 4.0, 6.0;
     constexpr auto relative_tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       law                           = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
+    const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
+
+    const auto dummy_properties            = Properties{};
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+
+    auto law_parameters        = ConstitutiveLaw::Parameters{};
+    auto relative_displacement = Vector{2};
+    relative_displacement <<= 0.1, 0.3;
+    law_parameters.SetStrainVector(relative_displacement);
+    auto traction = Vector{2};
+    traction <<= 20.0, 45.0;
+    law_parameters.SetStressVector(traction);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
+
+    auto       serializer = Serializer{new std::stringstream{}};
+    const auto tag        = "test_tag"s;
+    serializer.save(tag, law);
+
+    auto restored_law = GeoIncrementalLinearElasticInterfaceLaw{};
+    serializer.load(tag, restored_law);
+
+    auto value = Vector{};
+    restored_law.GetValue(STRAIN, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, 1.0e-6)
+    restored_law.GetValue(CAUCHY_STRESS_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, 1.0e-6)
+    KRATOS_EXPECT_TRUE(restored_law.HasInitialState())
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStrainVector(),
+                                       initial_relative_displacement, 1.0e-6)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStressVector(),
+                                       initial_traction, 1.0e-6)
 }
 
 } // namespace Kratos::Testing

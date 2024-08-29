@@ -78,10 +78,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
     mPreviousTraction             = ZeroVector{GetStrainSize()};
 }
 
-bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse()
-{
-    return false;
-}
+bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
 
 void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
@@ -92,6 +89,31 @@ void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(Con
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
     return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(*this);
+}
+
+Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    if (rThisVariable == STRAIN) {
+        rValue = mPreviousRelativeDisplacement;
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        rValue = mPreviousTraction;
+    }
+
+    return rValue;
+}
+
+void GeoIncrementalLinearElasticInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+    rSerializer.save("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
+    rSerializer.save("PreviousTraction", mPreviousTraction);
+}
+
+void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+    rSerializer.load("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
+    rSerializer.load("PreviousTraction", mPreviousTraction);
 }
 
 } // namespace Kratos

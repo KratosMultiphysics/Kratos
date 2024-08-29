@@ -22,6 +22,8 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
+    using BaseType = ConstitutiveLaw;
+
     Pointer       Clone() const override;
     SizeType      WorkingSpaceDimension() override;
     SizeType      GetStrainSize() const override;
@@ -34,8 +36,14 @@ public:
     bool          RequiresInitializeMaterialResponse() override;
     void          FinalizeMaterialResponseCauchy(Parameters& rValues) override;
     void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
+    Vector&       GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using BaseType::GetValue;
 
 private:
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     Vector mPreviousRelativeDisplacement;
     Vector mPreviousTraction;
 };
