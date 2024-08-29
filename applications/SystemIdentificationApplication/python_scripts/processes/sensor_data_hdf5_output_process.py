@@ -30,38 +30,16 @@ class SensorDataOutputController(Kratos.OutputProcess):
         return True
 
     def PrintOutput(self) -> None:
-        return super().PrintOutput()
-
-    def ImportModelPart(self) -> None:
         list_of_sensors = GetSensors(self.optimization_problem)
 
-        with h5py.File(self.h5_file_name, "r") as h5_file:
+        with h5py.File(self.h5_file_name, "a") as h5_file:
             for sensor in list_of_sensors:
-                sensor.GetContainerExpressionsMap().items()
                 sensor_id = sensor.GetNode().Id
                 sensor_name = sensor.GetName()
-                current_sensor_data_field_name = self.data_field_name.replace("<SENSOR_NAME>", sensor_name)
-                current_sensor_data_field_name = current_sensor_data_field_name.replace("<SENSOR_ID>", sensor_id)
+                current_sensor_group = self.data_field_prefix.replace("<SENSOR_NAME>", sensor_name)
+                current_sensor_group = current_sensor_group.replace("<SENSOR_ID>", str(sensor_id))
 
-                dataset = h5_file.get(current_sensor_data_field_name)
-                if isinstance(dataset, h5py.Dataset):
-                    raise RuntimeError(f"The sensor data not found or not a dataset at \"{current_sensor_data_field_name}\" [ sensor name = \"{sensor_name}\", sensor id = \"{sensor_id}\" ].")
-
-                expression_name = current_sensor_data_field_name.split("/")[-1]
-                container_type = dataset.attrs["__container_type"]
-                model_part = self.model[dataset.attrs["__model_part_name"]]
-                if container_type == "NODES":
-                    expression = Kratos.Expression.NodalExpression(model_part)
-                elif container_type == "CONDITIONS":
-                    expression = Kratos.Expression.ConditionExpression(model_part)
-                elif container_type == "ELEMENTS":
-                    expression = Kratos.Expression.ElementExpression(model_part)
-                else:
-                    raise RuntimeError(f"Unsupported container type = \"{container_type}\" requested for dataset at \"{current_sensor_data_field_name}\".")
-
-                Kratos.Expression.CArrayExpressionIO.Read(expression, dataset)
-                sensor.AddContainerExpression(expression_name, expression)
-
-    def GetModelPart(self) -> Kratos.ModelPart:
-        for sensor in GetSensors(self.optimization_problem):
-            return list(sensor.GetContainerExpressionsMap().values())[0].GetModelPart()
+                for expression_name, expression in sensor.GetContainerExpressionsMap().items():
+                    h5_file[f"/{current_sensor_group}/{expression_name}"] = expression.Evaluate()
+                    h5_file[f"/{current_sensor_group}/{expression_name}"].attrs["__model_part_name"] = expression.GetModelPart().FullName()
+                    h5_file[f"/{current_sensor_group}/{expression_name}"].attrs["__container_type"] = expression.__class__.__name__
