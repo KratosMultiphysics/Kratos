@@ -32,6 +32,17 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, Krat
     KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_stress_state_policy->Clone().get()), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsEmptyBMatrixWhenInputtingEmptyShapeFunctionValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto p_stress_state_policy = InterfaceStressState{};
+
+    const auto b_matrix = p_stress_state_policy.CalculateBMatrix({}, {}, {});
+
+    KRATOS_EXPECT_EQ(b_matrix.size1(), 0);
+    KRATOS_EXPECT_EQ(b_matrix.size2(), 0);
+}
+
 } // namespace Kratos::Testing
 
 // VoigtVector -> [1,0]
