@@ -36,7 +36,7 @@ public:
     }
 
     LineInterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
-        : BaseType(NewGeometryId, rThisPoints)
+        : BaseType(NewGeometryId, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
@@ -119,7 +119,8 @@ public:
 
     [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
     {
-        return "This Geometry type does not support functionality related to integration schemes.\n";
+        return "This Geometry type does not support functionality related to integration "
+               "schemes.\n";
     }
 
     array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
@@ -218,9 +219,9 @@ public:
     }
 
     void CreateQuadraturePointGeometries(GeometriesArrayType& rResultGeometries,
-                                     IndexType            NumberOfShapeFunctionDerivatives,
-                                     const IntegrationPointsArrayType& rIntegrationPoints,
-                                     IntegrationInfo& rIntegrationInfo) override
+                                         IndexType            NumberOfShapeFunctionDerivatives,
+                                         const IntegrationPointsArrayType& rIntegrationPoints,
+                                         IntegrationInfo& rIntegrationInfo) override
     {
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
     }
@@ -253,7 +254,15 @@ private:
         return result;
     }
 
-    std::unique_ptr<BaseType> mMidLineGeometry;
+    std::unique_ptr<BaseType>      mMidLineGeometry;
+    static const GeometryData      msGeometryData;
+    static const GeometryDimension msGeometryDimension;
 };
+
+const GeometryData LineInterfaceGeometry::msGeometryData(
+    &msGeometryDimension, IntegrationMethod::GI_GAUSS_1, {}, {}, {});
+
+// For the moment the line interface geometry is always 2D
+const GeometryDimension LineInterfaceGeometry::msGeometryDimension(2, 1);
 
 } // namespace Kratos
