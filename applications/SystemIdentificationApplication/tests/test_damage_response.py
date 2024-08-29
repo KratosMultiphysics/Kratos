@@ -37,26 +37,44 @@ class TestDamageDetectionResponseBase(kratos_unittest.TestCase, ABC):
             model_part = response.GetInfluencingModelPart()
 
             for index, element in enumerate(model_part.Elements):
-                print(element.Properties[Kratos.YOUNG_MODULUS])
-                element.Properties[Kratos.YOUNG_MODULUS] += 1e-6
-                print(element.Properties[Kratos.YOUNG_MODULUS])
+                element.Properties[Kratos.YOUNG_MODULUS] += 1e3
                 new_value = response.CalculateValue()
-                print(new_value, ref_value)
-                sensitivity = (new_value - ref_value) / 1e-6
-                print(sensitivity)
-                print(gradients[index])
-                raise RuntimeError(1)
-                element.Properties[Kratos.YOUNG_MODULUS] -= 1
-                print(element.Properties[Kratos.YOUNG_MODULUS])
-                
+                sensitivity = (new_value - ref_value) / 1e3
+                self.assertAlmostEqual(gradients[index], sensitivity, 12)
+                element.Properties[Kratos.YOUNG_MODULUS] -= 1e3
+                if index == 9:
+                    break
 
-            # for 
+    def test_damage_response_p_norm(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files/system_identification_p_norm/optimization_parameters.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
 
-
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
             
-            
-    
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+            var = objective.GetRequiredPhysicalGradients()
+            print(var)
+            response = analysis.optimization_problem.GetResponse("damage_response")
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 0.00021482979760591695, 12)
+            sensitivity = analysis.optimization_problem.GetComponent("master_control", MasterControl).GetEmptyField()
+            response.CalculateGradient(var)
+            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
 
+            model_part = response.GetInfluencingModelPart()
+
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += 1e3
+                new_value = response.CalculateValue()
+                sensitivity = (new_value - ref_value) / 1e3
+                self.assertAlmostEqual(gradients[index], sensitivity, 12)
+                element.Properties[Kratos.YOUNG_MODULUS] -= 1e3
+                if index == 9:
+                    break
 
 if __name__ == "__main__":
     kratos_unittest.main()
