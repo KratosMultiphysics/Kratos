@@ -24,19 +24,19 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 public:
     using BaseType = ConstitutiveLaw;
 
-    Pointer       Clone() const override;
-    SizeType      WorkingSpaceDimension() override;
-    SizeType      GetStrainSize() const override;
-    StressMeasure GetStressMeasure() override;
-    bool          IsIncremental() override;
-    int           Check(const Properties&   rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const ProcessInfo&  rCurrentProcessInfo) const override;
-    void          CalculateMaterialResponseCauchy(Parameters& rValues) override;
-    bool          RequiresInitializeMaterialResponse() override;
-    void          FinalizeMaterialResponseCauchy(Parameters& rValues) override;
-    void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
-    Vector&       GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    [[nodiscard]] Pointer  Clone() const override;
+    SizeType               WorkingSpaceDimension() override;
+    [[nodiscard]] SizeType GetStrainSize() const override;
+    StressMeasure          GetStressMeasure() override;
+    bool                   IsIncremental() override;
+    int                    Check(const Properties&   rMaterialProperties,
+                                 const GeometryType& rElementGeometry,
+                                 const ProcessInfo&  rCurrentProcessInfo) const override;
+    void                   CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    bool                   RequiresInitializeMaterialResponse() override;
+    void                   FinalizeMaterialResponseCauchy(Parameters& rValues) override;
+    void    InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using BaseType::GetValue;
 
 private:
