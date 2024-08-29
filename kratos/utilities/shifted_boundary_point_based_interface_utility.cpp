@@ -36,6 +36,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
+#include <boost/numeric/ublas/vector_expression.hpp>
 #include <cstddef>
 #include <ostream>
 #include <utility>
@@ -108,7 +109,8 @@ namespace Kratos
             mNegativeSideIsEnclosed = true;
         }
 
-        // If true, then the support cloud for a node can be found beyond a first layer of deactivated BOUNDARY elements (direct neighbors)
+        // If true, then the support cloud for a node can be found beyond a first layer of deactivated BOUNDARY elements (direct neighbors) in normal direction
+        // NOTE that this is beneficial for small cuts and overlapping boundaries
         mCrossBoundaryNeighbors = ThisParameters["cross_boundary_neighbors"].GetBool();
 
         // If true, then elements will be declared BOUNDARY which are intersected by the tessellated skin geometry
@@ -184,11 +186,14 @@ namespace Kratos
 
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = sides_vector_map.begin();
-        bool set_enclosed_pressure = false;
+        bool enclosed_pressure_is_set = false;
         //TODO p=0 for all nodes bounding the enclosed area, so no wall conditions are needed
         //while (skin_pt_element_iter != sides_vector_map.end()) {
-        while (!set_enclosed_pressure && skin_pt_element_iter != sides_vector_map.end()) {
-            set_enclosed_pressure = SetEnclosedNodesPressure(*(skin_pt_element_iter->first), skin_pt_element_iter->second);
+        while (!enclosed_pressure_is_set && skin_pt_element_iter != sides_vector_map.end()) {
+            auto p_elem = skin_pt_element_iter->first;
+            const array_1d<double, 3> avg_skin_position = avg_skin_map[p_elem].first;
+            const array_1d<double, 3> avg_skin_normal = avg_skin_map[p_elem].second;
+            enclosed_pressure_is_set = SetEnclosedNodesPressure(*p_elem, skin_pt_element_iter->second, avg_skin_position, avg_skin_normal);
             skin_pt_element_iter++;
         }
 
@@ -363,6 +368,7 @@ namespace Kratos
         }
 
         // Make elements BOUNDARY that are split by the tessellated skin geometry
+        // NOTE that using a tessellated boundary is given precedence here over interpolating the boundary
         if (mUseTessellatedBoundary) {
             FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart);
             find_intersected_objects_process.ExecuteInitialize();
@@ -694,8 +700,8 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::SetLateralSupportCloud(
         const std::vector<NodeType::Pointer>& rSameSideNodes,
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
         const bool ConsiderPositiveSide)
@@ -714,32 +720,40 @@ namespace Kratos
         // Add first given nodes to cloud nodes set (1st layer of sampling points)
         for (std::size_t i_node = 0; i_node < n_same_side_nodes; ++i_node) {
             const auto p_node = rSameSideNodes[i_node];
+            // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
+            array_1d<double, 3> avg_skin_pt_to_node = p_node->Coordinates() - rAvgSkinPosition;
+            avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+            const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+            if (dot_product > 0.1) {
+                aux_set.insert(p_node);
+            }
             prev_layer_nodes.push_back(p_node);
-            aux_set.insert(p_node);
         }
 
-        // Add second layer of nodal neighbors. These are the nodal neighbors of the given nodes in direction of the skin point normal
-        // NOTE that the support nodes can be taken from BOUNDARY elements (direct neighbors) for this second layer of nodes if mCrossBoundaryNeighbors is true.
+        // Add second layer of nodal neighbors. These are the nodal neighbors of the given nodes in direction of the average skin normal
+        // NOTE that if mCrossBoundaryNeighbors is true, then nodes can be taken from BOUNDARY elements (direct neighbors) if the dot product is sufficiently high.
         if (mCrossBoundaryNeighbors) {
-            AddLateralSupportLayerCrossingBoudary(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            AddLateralSupportLayerCrossingBoundary(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
         } else {
-            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
         }
         prev_layer_nodes = cur_layer_nodes;
         cur_layer_nodes.clear();
 
         // Add more layers of nodal neighbors of the current nodes to the cloud of nodes
         // NOTE that we check the order of the MLS interpolation to add nodes from enough interior
-        // NOTE that we start from 2 here as the first and second layer already have been added
+        // NOTE that we start from 2 here as the first and second layer already have been added (so for 2D linear operators there is no iteration)
         for (std::size_t i_layer = 2; i_layer < n_layers; ++i_layer) {
-            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+            AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
         
-        if (aux_set.size() == n_same_side_nodes) {
+        if (aux_set.size() <= n_same_side_nodes) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Degenerated case with no neighboring active element's nodes normal to skin. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
-            return;
+            if (!mCrossBoundaryNeighbors) {
+                return;
+            }
         }
 
         // Check how many of the current support nodes are active
@@ -751,10 +765,10 @@ namespace Kratos
         }
 
         // If there are not enough active support nodes to perform the MLS calculation add another layer of neighboring nodes
-        // Add maximal two extra layers
+        // Add maximal three extra layers
         std::size_t n_extra_layers = 0;
-        while (n_cloud_nodes < GetRequiredNumberOfPoints() && n_extra_layers < 2) {
-            AddLateralSupportLayer(rSkinPosition, rSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
+        while (n_cloud_nodes < GetRequiredNumberOfPoints()+1 && n_extra_layers < 3) {
+            AddLateralSupportLayer(rAvgSkinPosition, rAvgSkinNormal, prev_layer_nodes, cur_layer_nodes, aux_set);
             n_extra_layers++;
             n_cloud_nodes = 0;
             for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
@@ -796,8 +810,8 @@ namespace Kratos
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddLateralSupportLayer(
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesCloudSetType& SupportNodesSet)
@@ -816,10 +830,16 @@ namespace Kratos
                         // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
                         // NOTE this is done for a more robust separation of both sides of the boundary
                         NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                        const array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rSkinPosition;
-                        if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
-                            CurrentLayerNodes.push_back(p_neigh);
-                            SupportNodesSet.insert(p_neigh);
+                        // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
+                        array_1d<double, 3> avg_skin_pt_to_node = p_node->Coordinates() - rAvgSkinPosition;
+                        avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+                        const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+                        if (dot_product > 0.1) {
+                            auto set_return = SupportNodesSet.insert(p_neigh);
+                            // If the node was inserted into the set as a new element, than add it to the current layer
+                            if (set_return.second) {
+                                CurrentLayerNodes.push_back(p_neigh);
+                            }
                         }
                     }
                 }
@@ -827,9 +847,9 @@ namespace Kratos
         }
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::AddLateralSupportLayerCrossingBoudary(
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+    void ShiftedBoundaryPointBasedInterfaceUtility::AddLateralSupportLayerCrossingBoundary(
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesCloudSetType& SupportNodesSet)
@@ -838,20 +858,28 @@ namespace Kratos
         for (auto& p_node : PreviousLayerNodes) {
             auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
-            // Add all nodes of neighboring elements to cloud nodes set in normal direction
-            // NOTE that nodes of BOUNDARY elements can be taken here, this way the boundary can be crossed
+            // Add all nodes of neighboring elements to cloud nodes set if node is in normal direction
+            // NOTE that nodes of BOUNDARY elements can be taken as well here if the dot product and distance are sufficiently high. 
+            // This way the boundary can be crossed.
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
                 if (p_elem_neigh != nullptr) {
                     const auto& r_geom = p_elem_neigh->GetGeometry();
                     for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
                         // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
-                        // NOTE this is done for a more robust separation of both sides of the boundary
+                        // NOTE this is done for a separation of both sides of the boundary here
                         NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                        const array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rSkinPosition;
-                        if (inner_prod(avg_skin_pt_to_node, rSkinNormal) > 0.0) {
-                            CurrentLayerNodes.push_back(p_neigh);
-                            SupportNodesSet.insert(p_neigh);
+                        // Calculate the distance between average skin point and node and normalize the vector
+                        array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
+                        const double d = norm_2(avg_skin_pt_to_node);
+                        avg_skin_pt_to_node /= d;
+                        const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+                        const double h = GetElementSizeFunction(r_geom)(r_geom);
+                        if ( (!p_elem_neigh->Is(BOUNDARY) && dot_product > 0.1) || (dot_product > 0.5 && d > 0.5*h) ) {
+                            auto set_return = SupportNodesSet.insert(p_neigh);
+                            if (set_return.second) {
+                                CurrentLayerNodes.push_back(p_neigh);
+                            }
                         }
                     }
                 }
@@ -1043,14 +1071,24 @@ namespace Kratos
 
     bool ShiftedBoundaryPointBasedInterfaceUtility::SetEnclosedNodesPressure(
         ElementType& rElement,
-        const Vector& rSidesVector)
+        const Vector& rSidesVector,
+        const array_1d<double, 3>& rAvgSkinPosition,
+        const array_1d<double, 3>& rAvgSkinNormal)
     {
         auto& r_geom = rElement.GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             if ((mPositiveSideIsEnclosed && rSidesVector[i_node] > 0) or (mNegativeSideIsEnclosed && rSidesVector[i_node] < 0)) {
+
                 auto& r_node = r_geom[i_node];
-                if (r_node.Is(ACTIVE)) {
+                // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
+                array_1d<double, 3> avg_skin_pt_to_node = r_node.Coordinates() - rAvgSkinPosition;
+                avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+                double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+                if (mNegativeSideIsEnclosed) {
+                    dot_product *= -1;
+                }
+                if (dot_product > 0.1 && r_node.Is(ACTIVE)) {
                     r_node.Fix(PRESSURE);
                     r_node.FastGetSolutionStepValue(PRESSURE) = 0.0;
                     return true;

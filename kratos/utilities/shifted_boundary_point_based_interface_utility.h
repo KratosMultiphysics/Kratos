@@ -261,24 +261,24 @@ protected:
      */
     void SetLateralSupportCloud(
         const std::vector<NodeType::Pointer>& rSameSideNodes,
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates,
         const bool ConsiderPositiveSide);
 
     //TODO
     void AddLateralSupportLayer(
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesCloudSetType& SupportNodesSet);
 
     //TODO
-    void AddLateralSupportLayerCrossingBoudary(
-        const array_1d<double,3>& rSkinPosition,
-        const array_1d<double,3>& rSkinNormal,
+    void AddLateralSupportLayerCrossingBoundary(
+        const array_1d<double,3>& rAvgSkinPosition,
+        const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
         NodesCloudSetType& SupportNodesSet);
@@ -324,7 +324,9 @@ protected:
 
     bool SetEnclosedNodesPressure(
         ElementType& rElement,
-        const Vector& rSidesVector);
+        const Vector& rSidesVector,
+        const array_1d<double, 3>& rAvgSkinPosition,
+        const array_1d<double, 3>& rAvgSkinNormal);
 
     /**
      * @brief Get the MLS shape functions factory object
