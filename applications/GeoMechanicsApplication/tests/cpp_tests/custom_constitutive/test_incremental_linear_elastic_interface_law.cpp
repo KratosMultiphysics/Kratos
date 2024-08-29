@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHasStrainSizeOfTwo, Krato
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesInfinitesimalStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = GeoIncrementalLinearElasticInterfaceLaw{};
 
@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectGeometry,
     properties[INTERFACE_NORMAL_STIFFNESS] = 5.0;
     properties[INTERFACE_SHEAR_STIFFNESS]  = 2.5;
     const auto node1                       = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto node2                       = make_intrusive<Node>(2, 5.0, 5.0, 5.0);
+    const auto node2                       = make_intrusive<Node>(2, 5.0, 5.0, 0.0);
     const auto line_3d_geometry            = Line3D2<Node>{node1, node2};
     const auto process_info                = ProcessInfo{};
 
@@ -254,14 +254,15 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
 
     auto value = Vector{};
     restored_law.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, 1.0e-6)
+    constexpr auto relative_tolerance = 1.0e-6;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, relative_tolerance)
     restored_law.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, 1.0e-6)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, relative_tolerance)
     KRATOS_EXPECT_TRUE(restored_law.HasInitialState())
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStrainVector(),
-                                       initial_relative_displacement, 1.0e-6)
+                                       initial_relative_displacement, relative_tolerance)
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStressVector(),
-                                       initial_traction, 1.0e-6)
+                                       initial_traction, relative_tolerance)
 }
 
 } // namespace Kratos::Testing
