@@ -21,6 +21,7 @@
 namespace Kratos
 {
 
+template <typename MidGeometryType>
 class LineInterfaceGeometry : public Geometry<Node>
 {
 public:
@@ -36,7 +37,7 @@ public:
     }
 
     LineInterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
-        : BaseType(NewGeometryId, rThisPoints, &msGeometryData)
+        : BaseType(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
@@ -44,9 +45,9 @@ public:
         const auto points_of_mid_line = CreatePointsOfMidLine();
 
         if (points_of_mid_line.size() == 2) {
-            mMidLineGeometry = std::make_unique<Line2D2<Node>>(points_of_mid_line);
+            mMidLineGeometry = std::make_unique<MidGeometryType>(points_of_mid_line);
         } else {
-            mMidLineGeometry = std::make_unique<Line2D3<Node>>(points_of_mid_line);
+            mMidLineGeometry = std::make_unique<MidGeometryType>(points_of_mid_line);
         }
     }
 
@@ -254,15 +255,7 @@ private:
         return result;
     }
 
-    std::unique_ptr<BaseType>      mMidLineGeometry;
-    static const GeometryData      msGeometryData;
-    static const GeometryDimension msGeometryDimension;
+    std::unique_ptr<BaseType> mMidLineGeometry;
 };
-
-const GeometryData LineInterfaceGeometry::msGeometryData(
-    &msGeometryDimension, IntegrationMethod::GI_GAUSS_1, {}, {}, {});
-
-// For the moment the line interface geometry is always 2D
-const GeometryDimension LineInterfaceGeometry::msGeometryDimension(2, 1);
 
 } // namespace Kratos

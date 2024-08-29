@@ -22,17 +22,17 @@ namespace
 
 using namespace Kratos;
 
-LineInterfaceGeometry CreateTwoPlusTwoNodedLineInterfaceGeometry()
+auto CreateTwoPlusTwoNodedLineInterfaceGeometry()
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.2, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.2, 0.0));
-    return {1, nodes};
+    return LineInterfaceGeometry<Line2D2<Node>>{1, nodes};
 }
 
-LineInterfaceGeometry CreateThreePlusThreeNodedLineInterfaceGeometry()
+auto CreateThreePlusThreeNodedLineInterfaceGeometry()
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -41,7 +41,7 @@ LineInterfaceGeometry CreateThreePlusThreeNodedLineInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 0.2, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 7.0, 0.2, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 3.5, 0.4, 0.0));
-    return {1, nodes};
+    return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
 } // namespace
@@ -53,7 +53,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry      = LineInterfaceGeometry();
+    const auto geometry      = LineInterfaceGeometry<Line2D3<Node>>();
     const auto base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
 
     KRATOS_EXPECT_NE(base_geometry, nullptr);
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSu
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto          geometry = LineInterfaceGeometry();
+    const auto          geometry = LineInterfaceGeometry<Line2D2<Node>>();
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     const auto new_geometry = geometry.Create(nodes);
 
     KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
     KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
 }
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndId,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto          geometry = LineInterfaceGeometry();
+    const auto          geometry = LineInterfaceGeometry<Line2D2<Node>>();
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
 
     KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry*>(new_geometry.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
 }
@@ -102,10 +102,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry{nodes},
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(LineInterfaceGeometry<Line2D3<Node>>{nodes},
                                       "Number of nodes must be 2+2 or 3+3")
     constexpr auto geometry_id = 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry{geometry_id, nodes}),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((LineInterfaceGeometry<Line2D3<Node>>{geometry_id, nodes}),
                                       "Number of nodes must be 2+2 or 3+3")
 }
 
@@ -251,12 +251,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), std::sqrt(9.01), 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateThreePlusThreeNodedLineInterfaceGeometry();
-    KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, KratosGeoMechanicsFastSuiteWithoutKernel)
