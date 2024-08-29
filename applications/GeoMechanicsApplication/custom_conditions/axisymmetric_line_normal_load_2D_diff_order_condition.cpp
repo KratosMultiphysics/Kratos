@@ -68,4 +68,9 @@ double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoeff
     KRATOS_CATCH("")
 }
 
+std::string AxisymmetricLineNormalLoad2DDiffOrderCondition::Info() const
+{
+    return "AxisymmetricLineNormalLoad2DDiffOrderCondition";
+}
+
 } // Namespace Kratos.

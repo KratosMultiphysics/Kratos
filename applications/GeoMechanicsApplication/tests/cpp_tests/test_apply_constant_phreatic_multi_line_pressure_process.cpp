@@ -13,6 +13,8 @@
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "geo_mechanics_fast_suite.h"
 #include "includes/checks.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "processes/structured_mesh_generator_process.h"
 
 using namespace Kratos;
 
@@ -138,6 +140,50 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
 
     KRATOS_EXPECT_TRUE(CanCreateInstanceOfApplyConstantPhreaticMultiLinePressureProcessWithoutFailure(
         r_model_part, test_parameters))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesCorrectPressure_WhenPhreaticLineDoesNotSpanEntireDomain,
+                          KratosGeoMechanicsFastSuite)
+{
+    auto  model           = Model{};
+    auto& r_model_part    = model.CreateModelPart("foo");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Set up the test model part mesh
+    auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    auto p_point_3 = Kratos::make_intrusive<Node>(3, 5.0, 1.0, 0.0);
+    auto p_point_4 = Kratos::make_intrusive<Node>(4, 5.0, 0.0, 0.0);
+    Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Parameters mesher_parameters(R"({
+        "number_of_divisions": 2,
+        "element_name": "Element2D3N",
+        "condition_name": "LineCondition",
+        "create_skin_sub_model_part": true
+    })");
+    StructuredMeshGeneratorProcess(domain_geometry, r_model_part, mesher_parameters).Execute();
+
+    auto  test_parameters = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "variable_name": "WATER_PRESSURE",
+                "specific_weight": 10000.0,
+                "x_coordinates": [0.0, 1.0, 2.0],
+                "y_coordinates": [1.0, 1.0, 1.0],
+                "z_coordinates": [0.0, 0.0, 0.0],
+                "gravity_direction": 1
+            }  )"};
+
+    ApplyConstantPhreaticMultiLinePressureProcess process{r_model_part, test_parameters};
+    process.ExecuteInitialize();
+
+    const auto phreatic_line_position = 1.0;
+    const auto specific_weight = 10000.0;
+    block_for_each(r_model_part.Nodes(),
+                      [&phreatic_line_position, &specific_weight](auto& node) {
+                          const auto water_pressure = (node.Y() - phreatic_line_position) * specific_weight;
+         KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(WATER_PRESSURE, 0), water_pressure);
+       });
 }
 
 } // namespace Kratos::Testing
