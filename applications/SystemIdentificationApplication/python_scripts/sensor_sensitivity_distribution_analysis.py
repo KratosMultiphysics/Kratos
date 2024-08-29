@@ -85,8 +85,6 @@ class SensorSensitivityDistributionAnalysis:
             # run the test analysis corresponding to a given load case
             test_analysis.Run()
 
-            raise RuntimeError(1)
-
             for sensor in sensors_list:
                 sensor_model_part.ProcessInfo[KratosSI.SENSOR_NAME] = sensor.GetName()
 
