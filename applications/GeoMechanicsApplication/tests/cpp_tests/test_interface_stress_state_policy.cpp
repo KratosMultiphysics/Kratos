@@ -53,6 +53,17 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosG
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto stress_state_policy = InterfaceStressState{};
+
+    const auto voigt_vector = stress_state_policy.GetVoigtVector();
+
+    Vector expected_voigt_vector(2);
+    expected_voigt_vector <<= 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, voigt_vector, 1.0e-6);
+}
+
 } // namespace Kratos::Testing
 
 // VoigtVector -> [1,0]

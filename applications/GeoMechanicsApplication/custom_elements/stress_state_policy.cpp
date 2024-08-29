@@ -24,7 +24,16 @@ Vector StressStatePolicy::DefineVoigtVector(std::size_t Dimension)
     return VoigtVector;
 }
 
+Vector StressStatePolicy::DefineInterfaceVoigtVector(std::size_t Dimension)
+{
+    Vector VoigtVector = ZeroVector(GetInterfaceVoigtSize(Dimension));
+    VoigtVector[0]     = 1.0;
+
+    return VoigtVector;
+}
+
 const Vector StressStatePolicy::VoigtVector2D = StressStatePolicy::DefineVoigtVector(2);
 const Vector StressStatePolicy::VoigtVector3D = StressStatePolicy::DefineVoigtVector(3);
+const Vector StressStatePolicy::VoigtVectorInterface2D = StressStatePolicy::DefineInterfaceVoigtVector(2);
 
 } // namespace Kratos
