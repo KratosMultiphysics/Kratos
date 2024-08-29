@@ -27,24 +27,24 @@ public:
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
     [[nodiscard]] SizeType GetStrainSize() const override;
-    StressMeasure          GetStressMeasure() override;
-    bool                   IsIncremental() override;
-    int                    Check(const Properties&   rMaterialProperties,
-                                 const GeometryType& rElementGeometry,
-                                 const ProcessInfo&  rCurrentProcessInfo) const override;
-    void                   CalculateMaterialResponseCauchy(Parameters& rValues) override;
-    bool                   RequiresInitializeMaterialResponse() override;
-    void                   FinalizeMaterialResponseCauchy(Parameters& rValues) override;
-    void    InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    Vector&                GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using BaseType::GetValue;
+    StressMeasure GetStressMeasure() override;
+    bool          IsIncremental() override;
+    void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    bool RequiresInitializeMaterialResponse() override;
+    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
+    int  Check(const Properties&   rMaterialProperties,
+               const GeometryType& rElementGeometry,
+               const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
-    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
+
+    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
 
     Vector mPreviousRelativeDisplacement;
     Vector mPreviousTraction;
