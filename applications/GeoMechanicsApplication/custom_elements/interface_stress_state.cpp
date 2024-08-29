@@ -21,19 +21,13 @@ Matrix InterfaceStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector
     Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
 
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        result(0, i * rGeometry.WorkingSpaceDimension())     = 0;
         result(0, i * rGeometry.WorkingSpaceDimension() + 1) = -rN[i];
-
         result(1, i * rGeometry.WorkingSpaceDimension())     = -rN[i];
-        result(1, i * rGeometry.WorkingSpaceDimension() + 1) = 0;
     }
 
     for (unsigned int i = rGeometry.size() / 2; i < rGeometry.size(); ++i) {
-        result(0, i * rGeometry.WorkingSpaceDimension())     = 0;
         result(0, i * rGeometry.WorkingSpaceDimension() + 1) = rN[i - rGeometry.size() / 2];
-
         result(1, i * rGeometry.WorkingSpaceDimension())     = rN[i - rGeometry.size() / 2];
-        result(1, i * rGeometry.WorkingSpaceDimension() + 1) = 0;
     }
 
     return result;
