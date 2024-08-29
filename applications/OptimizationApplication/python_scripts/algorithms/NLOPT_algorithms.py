@@ -59,6 +59,7 @@ class NLOPTAlgorithms(Algorithm):
 
         # controls
         self.master_control = MasterControl()
+        self._optimization_problem.AddComponent(self.master_control)
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
@@ -66,9 +67,12 @@ class NLOPTAlgorithms(Algorithm):
 
         # objective & constraints
         self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__constraints = []
         for constraint_settings in parameters["constraints"]:
-            self.__constraints.append(StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem))
+            constraint = StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem)
+            self._optimization_problem.AddComponent(constraint)
+            self.__constraints.append(constraint)
 
         # nlopt settings
         NLOPT_settings = parameters["NLOPT_settings"]

@@ -94,6 +94,12 @@ void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& 
     }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwNormalFluxInterfaceCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFluxInterfaceCondition<2, 2>;

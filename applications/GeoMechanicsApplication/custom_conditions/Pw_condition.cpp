@@ -133,6 +133,12 @@ Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class PwCondition<2, 1>;
 template class PwCondition<2, 2>;
