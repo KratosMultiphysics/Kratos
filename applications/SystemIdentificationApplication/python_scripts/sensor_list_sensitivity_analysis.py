@@ -14,7 +14,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils i
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensorModelPart
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_analysis import SensorSensitivityAnalysis
 
-class SensorSensitivityDistributionAnalysis:
+class SensorListSensitivityAnalysis:
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -111,7 +111,7 @@ class SensorSensitivityDistributionAnalysis:
                 if process.IsOutputStep():
                     process.PrintOutput()
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"{sensor_model_part.ProcessInfo[Kratos.STEP]:5d}: Finished sensor analysis for \"{test_analysis_name}\" - \"{sensor.GetName()}\"." )
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Finished sensor analysis for \"{test_analysis_name}\"." )
 
         self.Finalize()
 

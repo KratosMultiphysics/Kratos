@@ -61,7 +61,7 @@ class SensorSensitivityStaticAnalysis(SensorSensitivityAnalysis):
         for data_location, variables in sensitivity_variables.items():
             for variable in variables:
                 # first read the variable
-                gradients[variable.Name] = GetContainerExpression(sensitivity_model_part, data_location, variable)
+                gradients[variable.Name()] = GetContainerExpression(sensitivity_model_part, data_location, variable)
 
         return gradients
 
