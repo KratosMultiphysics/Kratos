@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, Krato
 {
     const auto stress_state_policy = InterfaceStressState{};
 
-    const auto voigt_vector = stress_state_policy.GetVoigtVector();
+    const auto& voigt_vector = stress_state_policy.GetVoigtVector();
 
     Vector expected_voigt_vector(2);
     expected_voigt_vector <<= 1.0, 0.0;
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoeffici
 {
     const auto interface_stress_state = InterfaceStressState{};
 
-    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
+    const Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
 
     constexpr auto detJ                   = 2.0;
     const auto     calculated_coefficient = interface_stress_state.CalculateIntegrationCoefficient(
