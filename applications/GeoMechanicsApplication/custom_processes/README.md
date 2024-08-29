@@ -73,15 +73,15 @@ When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal
 
 $$K_0 = OCR \cdot K_{0_{NC}} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
-$$\sigma^{'}_{initial} = \begin{bmatrix} K_0 \cdot \sigma^{'}_{zz} & 0 & 0 \\
-                                         0 & K_0 \cdot \sigma^{'}_{zz} & 0 \\
-                                         0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
+$$\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \cdot \sigma^{'}_{zz}} & 0 & 0 \\
+                                         0 & {K_0 \cdot \sigma^{'}_{zz}} & 0 \\
+                                         0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}$$
 
 Alternaternively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-$$\sigma^{'}_{initial} = \begin{bmatrix} K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP ) & 0 & 0 \\
-                                         0 & K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP) & 0 \\
-                                         0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
+$$\sigma^{'}_{initial} = \begin{bmatrix} {K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP )} & 0 & 0 \\
+                                         0 & {K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP)} & 0 \\
+                                         0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}$$
 
 ###Note:
 After the stress adaptation by the $K_0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.
