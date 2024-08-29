@@ -126,6 +126,44 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectGeometry,
         "Expected a line interface geometry, but got 1 dimensional line with 2 nodes in 3D space")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    const auto dummy_properties            = Properties{};
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+
+    auto value = Vector{};
+    law.GetValue(STRAIN, value);
+    KRATOS_EXPECT_VECTOR_NEAR(value, ZeroVector{2}, 1.0e-6)
+    law.GetValue(CAUCHY_STRESS_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_NEAR(value, ZeroVector{2}, 1.0e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       law                           = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
+    const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
+
+    const auto dummy_properties            = Properties{};
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+
+    auto value = Vector{};
+    law.GetValue(STRAIN, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement, 1.0e-6)
+    law.GetValue(CAUCHY_STRESS_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, 1.0e-6)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

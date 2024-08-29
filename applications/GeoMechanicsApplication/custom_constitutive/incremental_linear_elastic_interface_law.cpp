@@ -74,8 +74,13 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
-    mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
-    mPreviousTraction             = ZeroVector{GetStrainSize()};
+    if (HasInitialState()) {
+        mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
+        mPreviousTraction             = GetInitialState().GetInitialStressVector();
+    } else {
+        mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
+        mPreviousTraction             = ZeroVector{GetStrainSize()};
+    }
 }
 
 bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
