@@ -25,6 +25,13 @@ KRATOS_TEST_CASE_IN_SUITE(CanCreateInterfaceStressState, KratosGeoMechanicsFastS
     KRATOS_EXPECT_NE(p_stress_state_policy, nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy = std::make_unique<InterfaceStressState>();
+
+    KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_stress_state_policy->Clone().get()), nullptr);
+}
+
 } // namespace Kratos::Testing
 
 // VoigtVector -> [1,0]

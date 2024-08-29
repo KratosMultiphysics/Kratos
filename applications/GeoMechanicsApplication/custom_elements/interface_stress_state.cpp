@@ -31,7 +31,10 @@ Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix& rDeforma
     return {};
 }
 
-std::unique_ptr<StressStatePolicy> InterfaceStressState::Clone() const { return nullptr; }
+std::unique_ptr<StressStatePolicy> InterfaceStressState::Clone() const
+{
+    return std::make_unique<InterfaceStressState>();
+}
 
 const Vector& InterfaceStressState::GetVoigtVector() const { return {}; }
 
