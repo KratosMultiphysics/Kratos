@@ -101,4 +101,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoeffici
     KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = InterfaceStressState{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
+        "For interfaces, it is not possible to calculate the green "
+        "lagrange strain based on a deformation gradient.");
+}
+
 } // namespace Kratos::Testing
