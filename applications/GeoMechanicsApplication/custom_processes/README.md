@@ -59,31 +59,32 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## $K0$ procedure process
-For the initialization of an in-situ stress field, the $K0$ procedure derives the horizontal effective stresses from a field of vertical effective stresses.
+## $K_0$ procedure process
+For the initialization of an in-situ stress field, the $K_0$ procedure derives the horizontal effective stresses from a field of vertical effective stresses.
 Pre-requisite is a computed stress field with the desired normal effective stresses in the direction indicated with "K0_MAIN_DIRECTION". The normal effective stress in "K0_MAIN_DIRECTION" remains as is. Effective normal stresses in the other two directions are affected by the $K_0$ value, all shear stresses are erased.
 
 
-Depending on the given input parameters, the following scheme is adapted for computation of the $K0$ value.
-$K0_{NC}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
+Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
+$K_{0_{NC}}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
 
-$$K0_{NC} = 1.0 - \sin \phi$$
+$$K_{0_{NC}} = 1.0 - \sin \phi$$
 
-When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal consolidation value $K0_NC$ is modified:
+When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal consolidation value $K_{0_{NC}}$ is modified:
 
-$$K0 = OCR \cdot K0_{NC} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
+$$K_0 = OCR \cdot K_{0_{NC}} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
-$$\sigma^{'}_{initial} = \begin{bmatrix} K0 \cdot \sigma^{'}_{zz} & 0 & 0 \\ 0 & K0 \cdot \sigma^{'}_{zz} & 0 \\ 0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
+$$\sigma^{'}_{initial} = \begin{bmatrix} K_0 \cdot \sigma^{'}_{zz} & 0 & 0 \\
+                                         0 & K_0 \cdot \sigma^{'}_{zz} & 0 \\
+                                         0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
 
 Alternaternively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-$$\sigma^{'}_{initial} = \begin{bmatrix} K0_{NC} \cdot (\sigma^{'}_{zz} + POP ) & 0 & 0 \\ 0 & K0_{NC} \cdot (\sigma^{'}_{zz} + POP) & 0 \\ 0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
+$$\sigma^{'}_{initial} = \begin{bmatrix} K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP ) & 0 & 0 \\
+                                         0 & K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP) & 0 \\
+                                         0 & 0 & \sigma^{'}_{zz} \end{bmatrix}$$
 
 ###Note:
-After the stress adaptation by the $K0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.  
-
-
-
+After the stress adaptation by the $K_0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_k0_procedure_process)):
