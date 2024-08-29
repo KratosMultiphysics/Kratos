@@ -38,7 +38,7 @@ std::unique_ptr<StressStatePolicy> InterfaceStressState::Clone() const
 
 const Vector& InterfaceStressState::GetVoigtVector() const { return {}; }
 
-SizeType InterfaceStressState::GetVoigtSize() const { return 0; }
+SizeType InterfaceStressState::GetVoigtSize() const { return GetVoigtSizeInterface2D(); }
 
 SizeType InterfaceStressState::GetStressTensorSize() const { return 0; }
 

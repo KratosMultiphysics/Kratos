@@ -11,7 +11,10 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
+#include "custom_geometries/line_interface_geometry.h"
 #include "geo_mechanics_fast_suite.h"
+
+#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -35,12 +38,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, Krat
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsEmptyBMatrixWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto p_stress_state_policy = InterfaceStressState{};
+    auto stress_state_policy = InterfaceStressState{};
 
-    const auto b_matrix = p_stress_state_policy.CalculateBMatrix({}, {}, {});
+    const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {});
 
     KRATOS_EXPECT_EQ(b_matrix.size1(), 0);
     KRATOS_EXPECT_EQ(b_matrix.size2(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto stress_state_policy = InterfaceStressState{};
+
+    KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
 } // namespace Kratos::Testing

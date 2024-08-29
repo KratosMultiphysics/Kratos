@@ -43,6 +43,8 @@ protected:
 
     static constexpr SizeType GetVoigtSize2D() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
 
+    static constexpr SizeType GetVoigtSizeInterface2D() { return VOIGT_SIZE_2D_INTERFACE; }
+
     static constexpr SizeType GetVoigtSize3D() { return VOIGT_SIZE_3D; }
 
     static constexpr SizeType GetStressTensorSize2D() { return STRESS_TENSOR_SIZE_2D; }
