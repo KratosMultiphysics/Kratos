@@ -40,6 +40,8 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
                                                    const ConstitutiveLaw::GeometryType& rElementGeometry,
                                                    const ProcessInfo& rCurrentProcessInfo) const
 {
+    const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACE_NORMAL_STIFFNESS))
         << "No interface normal stiffness defined" << std::endl;
 
@@ -57,17 +59,16 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
     KRATOS_ERROR_IF_NOT(dynamic_cast<const LineInterfaceGeometry*>(&rElementGeometry))
         << "Expected a line interface geometry, but got " << rElementGeometry.Info() << std::endl;
 
-    return 0;
+    return result;
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const auto& relative_displacement = rValues.GetStrainVector();
-    auto&       traction              = rValues.GetStressVector();
-    auto        constitutive_matrix   = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
-    constitutive_matrix(0, 0)         = rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS];
-    constitutive_matrix(1, 1)         = rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS];
-    traction = mPreviousTraction + prod(constitutive_matrix, relative_displacement - mPreviousRelativeDisplacement);
+    auto constitutive_matrix  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
+    constitutive_matrix(0, 0) = rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS];
+    constitutive_matrix(1, 1) = rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS];
+    rValues.GetStressVector() =
+        mPreviousTraction + prod(constitutive_matrix, rValues.GetStrainVector() - mPreviousRelativeDisplacement);
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Properties&,
