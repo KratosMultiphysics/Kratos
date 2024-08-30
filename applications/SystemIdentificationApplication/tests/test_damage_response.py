@@ -26,7 +26,6 @@ class TestDamageDetectionResponseBase(kratos_unittest.TestCase, ABC):
             analysis.Check()
             objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
             var = objective.GetRequiredPhysicalGradients()
-            print(var)
             response = analysis.optimization_problem.GetResponse("damage_response")
             ref_value = response.CalculateValue()
             self.assertAlmostEqual(ref_value, 0.0007924977797682586, 12)

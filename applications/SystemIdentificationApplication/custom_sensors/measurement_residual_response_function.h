@@ -158,6 +158,8 @@ private:
 
     double mPCoefficient;
 
+    double mC1;
+    
     std::vector<Sensor::Pointer> mpSensorsList;
 
     std::vector<Vector> mResponseGradientList;
