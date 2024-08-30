@@ -215,7 +215,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                         yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
 
                         if (yield < tolerance) {
-                            // noalias(tc) = tc_trial;
                             dupc.clear();
                             dup = 0.0;
                         } else {
@@ -261,8 +260,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                         up += dup;
 
                         D = 1.0 - std::exp(-up);
-                        // if (D > 0.9999)
-                        //     D = 0.9999;
 
                         iteration++;
                     } // while
@@ -275,11 +272,10 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 noalias(mLocalTraction) = tc;
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
-        } else { // mDoubleScale == true already, ln 277 matlab
+        } else { // mDoubleScale == true already
             Matrix& R = mR;
             Matrix& n = mn;
 
-            // Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
             Vector tc = mLocalTraction;
 
             Matrix KcE(Dimension, Dimension);
@@ -291,7 +287,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             double det_KcE;
             MathUtils<double>::InvertMatrix(KcE, KcE_inv, det_KcE);
 
-            /*Vector uc = prod(KcE_inv, tc);*/
             Vector uc = mUc;
 
             const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
@@ -434,8 +429,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     up += dup;
 
                     D = 1.0 - std::exp(-up);
-                    // if (D > 0.9999)
-                    //     D = 0.9999;
 
                     iteration++;
                 } // while
@@ -446,7 +439,6 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 mUp = up;
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
-            //noalias(rValues.GetStressVector()) = stress_vector_trial;
         } // already open crack
     }
     noalias(mOldStressVector) = rValues.GetStressVector();
