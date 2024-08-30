@@ -56,6 +56,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
+    KRATOS_INFO("InitializeMaterial") << "Has initial state: " << HasInitialState() << "\n";
     if (HasInitialState()) {
         mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
         mPreviousTraction             = GetInitialState().GetInitialStressVector();
@@ -63,6 +64,9 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
         mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
         mPreviousTraction             = ZeroVector{GetStrainSize()};
     }
+
+    KRATOS_INFO("InitializeMaterial") << "Previous relative displacement: " << mPreviousRelativeDisplacement << "\n";
+    KRATOS_INFO("InitializeMaterial") << "Previous traction: " << mPreviousTraction << "\n";
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
