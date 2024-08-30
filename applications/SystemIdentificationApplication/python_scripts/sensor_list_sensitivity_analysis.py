@@ -97,6 +97,7 @@ class SensorListSensitivityAnalysis:
                 for var_name, expression in sensitivities.items():
                     # add to sensor
                     sensor.AddContainerExpression(f"{test_analysis_name}_{var_name}", expression.Clone())
+                    sensor.AddContainerExpression(f"{test_analysis_name}_{var_name}_abs", Kratos.Expression.Utils.Abs(expression))
 
                     # add to optimization problem for output and other uses
                     ComponentDataView("sensors", self.optimization_problem).GetUnBufferedData().SetValue(f"{sensor.GetName()}/{sensor.GetName()}_{var_name}", expression.Clone())
