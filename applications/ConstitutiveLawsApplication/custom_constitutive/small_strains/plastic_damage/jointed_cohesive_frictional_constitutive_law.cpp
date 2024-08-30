@@ -104,10 +104,10 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
             if (yield <= ratio_tolerance) { // we remain solid
                 noalias(rValues.GetStressVector()) = aux_stress_vector_trial;
+                noalias(mLocalTraction) = tc_trial;
             } else { // crack starts...
                 mDoubleScale = true;
 
-                //Vector tc = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
                 Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
 
                 Matrix KcE(Dimension, Dimension);
@@ -143,6 +143,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     noalias(rValues.GetStressVector()) = stress_vector_trial;
                     noalias(mUc) = uc;
                     noalias(tc) = tc_trial;
+                    noalias(mLocalTraction) = tc;
                 } else { // damage and plast increase, ln170 matlab
                     Vector ucp = mUcp;
                     double D = mDamage;
@@ -169,7 +170,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     double aux_1 = (tc_trial[0] - (1.0 - D) * ft);
                     double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
 
-                    double alpha = alpha0 * std::exp(-tc_trial[0] / ft);
+                    double alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
                     double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
 
                     // compute dlamda
@@ -200,7 +201,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     while (ratio_norm_residual >= ratio_tolerance && iteration < max_iter) {
                         KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - D);
                         KcE(1, 1) = Ks * (1.0 - D);
-                        alpha = alpha0 * std::exp(-tc[0] / ft);
+                        alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
 
                         const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
                         Matrix inv_mat(Dimension, Dimension);
@@ -260,23 +261,26 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                         up += dup;
 
                         D = 1.0 - std::exp(-up);
-                        if (D > 0.9999)
-                            D = 0.9999;
+                        // if (D > 0.9999)
+                        //     D = 0.9999;
 
                         iteration++;
                     } // while
-                noalias(mUcp) = ucp;
-                noalias(mUc) = uc;
-                mDamage = D;
-                mUp = up;
+                    noalias(mUcp) = ucp;
+                    noalias(mUc) = uc;
+                    
+                    mDamage = D;
+                    mUp = up;
                 }
+                noalias(mLocalTraction) = tc;
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
         } else { // mDoubleScale == true already, ln 277 matlab
             Matrix& R = mR;
             Matrix& n = mn;
 
-            Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
+            // Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
+            Vector tc = mLocalTraction;
 
             Matrix KcE(Dimension, Dimension);
             KcE.clear();
@@ -311,6 +315,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             if (yield <= ratio_tolerance) { // Unloading/reloading
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
                 noalias(tc) = tc_trial;
+                noalias(mLocalTraction) = tc;
                 noalias(mUc) = uc;
             } else { // damage and plast increase, ln170 matlab
                 Vector ucp = mUcp;
@@ -383,7 +388,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
 
                     if (yield < tolerance) {
-                        // noalias(tc) = tc_trial;
+                        noalias(tc) = tc_trial;
                         dupc.clear();
                         dup = 0.0;
                     } else {
@@ -429,25 +434,27 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                     up += dup;
 
                     D = 1.0 - std::exp(-up);
-                    if (D > 0.9999)
-                        D = 0.9999;
+                    // if (D > 0.9999)
+                    //     D = 0.9999;
 
                     iteration++;
                 } // while
                 noalias(mUcp) = ucp;
                 noalias(mUc) = uc;
+                noalias(mLocalTraction) = tc;
                 mDamage = D;
                 mUp = up;
+                noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
-            noalias(rValues.GetStressVector()) = stress_vector_trial;
+            //noalias(rValues.GetStressVector()) = stress_vector_trial;
         } // already open crack
     }
     noalias(mOldStressVector) = rValues.GetStressVector();
     noalias(mOldStrainVector) = rValues.GetStrainVector();
 
-    // if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-    //     CalculateTangentTensor(rValues);
-    // }
+    if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        CalculateTangentTensor(rValues);
+    }
 
     KRATOS_CATCH("");
 }
