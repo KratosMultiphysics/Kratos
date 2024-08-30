@@ -157,9 +157,6 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
     }
     mC1 = std::pow( sum_B_p, 1/mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);  
 
-    KRATOS_WATCH(value);
-    KRATOS_WATCH(std::pow(sum_B_p, 1 / mPCoefficient));
-
     return std::pow(sum_B_p, 1 / mPCoefficient);
 
 
