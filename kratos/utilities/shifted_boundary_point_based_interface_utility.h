@@ -121,6 +121,8 @@ public:
     ///@name Operations
     ///@{
 
+    void ResetInterfaceFlags();
+
     void AddSkinIntegrationPointConditions();
 
     ///@}

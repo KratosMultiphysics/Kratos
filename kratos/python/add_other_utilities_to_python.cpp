@@ -818,6 +818,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<ShiftedBoundaryPointBasedInterfaceUtility, ShiftedBoundaryPointBasedInterfaceUtility::Pointer>(m,"ShiftedBoundaryPointBasedInterfaceUtility")
         .def(py::init<Model&, Parameters>())
+        .def("ResetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetInterfaceFlags)
         .def("AddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions)
     ;
 

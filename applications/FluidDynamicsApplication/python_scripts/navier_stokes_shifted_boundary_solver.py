@@ -313,21 +313,48 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # FM-ALE would also need to deal separately with different model parts?
 
         if self.level_set_type == "point-based":
+            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
+            interface_flags_need_resetting = True
+
             # Calculate the required neighbors
             elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbors_process.Execute()
 
+            # Add more specific settings for point-based sbm utility
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
             #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
-            settings.AddEmptyValue("enclosed_area").SetString("negative")
+            settings.AddEmptyValue("enclosed_area").SetString("none")
             settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)
-            settings.AddEmptyValue("use_tessellated_boundary").SetBool(True)
+            settings.AddEmptyValue("use_tessellated_boundary").SetBool(False)  #TODO NEXT make tessellated boundary work with multiple skin geometries!
             settings.AddEmptyValue("interpolate_boundary").SetBool(False)
-            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary point-based interface utility created.")
 
-            # Add Kratos conditions for points at the boundary based on extension operators
-            sbm_interface_utility.AddSkinIntegrationPointConditions()
+            # Create an interface utility and corresponding integration point conditions for all skin model parts
+            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
+            #TODO NEXT Debug VerticalPlate2!?!
+            #TODO NEXT make overlapping skin geometries work! 
+            # problem when overlapping that nodes of conditions are not active anymore!!
+            # --> with multiple geometries interface flags need to be set for all before creating any conditions
+            for skin_model_part_name in skin_model_part_names:
+                # Adapt settings
+                settings["skin_model_part_name"].SetString(skin_model_part_name)
+                if skin_model_part_name == "Cylinder" and settings["use_tessellated_boundary"] == True:
+                    settings["enclosed_area"].SetString("negative")
+                else:
+                    settings["enclosed_area"].SetString("none")
+
+                # Create interface utility
+                sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created.")
+
+                # Reset interface flags only if it has not be done yet, otherwise previously embedded model parts would get overwritten
+                if interface_flags_need_resetting:
+                    sbm_interface_utility.ResetInterfaceFlags()
+                    interface_flags_need_resetting = False
+
+                # Add Kratos conditions for points at the boundary based on extension operators
+                # NOTE that same boundary sub model part is being used here to add conditions
+                sbm_interface_utility.AddSkinIntegrationPointConditions()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_name + ".")
 
         elif self.level_set_type == "discontinuous":
             # Calculate the required neighbors

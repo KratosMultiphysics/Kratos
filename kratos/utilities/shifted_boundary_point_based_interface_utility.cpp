@@ -89,9 +89,9 @@ namespace Kratos
         if (active_side_of_skin != "positive" && active_side_of_skin != "negative" && active_side_of_skin != "both") {
             KRATOS_ERROR << "Unknown 'active_side_of_skin' given. 'positive', 'negative' or 'both' sides are supported by point based shifted boundary interface utility." << std::endl;
         }
-        //TODO actually deactivate side that is not considered and do not apply wall conditions and interface terms 
-        //--> flood fill and majority vote like Manuel
+        //TODO actually deactivate side that is not considered --> flood fill and majority vote like Manuel
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", active_side_of_skin != "both") << "So far always both sides of the skin are being considered." << std::endl;
+        //TODO: actually being used?? - No extension operators will be calculated and no wall conditions will be created for inactive side
         if (active_side_of_skin == "positive") {
             mNegativeSideIsActive = false;
         } else if (active_side_of_skin == "negative") {
@@ -119,6 +119,26 @@ namespace Kratos
         mInterpolateBoundary = ThisParameters["interpolate_boundary"].GetBool();
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mUseTessellatedBoundary && mInterpolateBoundary) << "Using the tessellated boundary is given precedence over interpolating the boundary." << std::endl;
     };
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::ResetInterfaceFlags()
+    {
+        // Check that the volume model part has elements
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
+
+        // Activate all elements and initialize flags to false
+        // NOTE Resetting the interface flags will eliminate previously embedded model parts except for their wall conditions!
+        block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
+            rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
+            rNode.Set(BOUNDARY, false);      // TODO Nodes that belong to the surrogate boundary
+            rNode.Set(INTERFACE, false);     // TODO Nodes that belong to the cloud of points
+        });
+        block_for_each(mpModelPart->Elements(), [](Element& rElement){
+            rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
+            rElement.Set(BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma)
+            rElement.Set(INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
+        });
+    }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions()
     {
@@ -210,9 +230,9 @@ namespace Kratos
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
 
-            // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the cloud nodes that affect the current element
-            // To be used in the creation of the condition. Positive side refers to adding the negative node's support cloud nodes.
-            // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary?
+            // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the nodes that affect that side of the current element
+            // To be used in the creation of the condition. Positive side refers to adding the positive side's nodes of the element and the negative node's support cloud nodes.
+            // NOTE that the obtained clouds are sorted by id to properly get the extension operator data //TODO: necessary? ids are compared anyway?!
             PointerVector<NodeType> cloud_nodes_vector_pos;
             PointerVector<NodeType> cloud_nodes_vector_neg;
             CreateCloudNodeVectorsForSplitElement(*p_element, sides_vector_map[p_element], ext_op_map, cloud_nodes_vector_pos, cloud_nodes_vector_neg);
@@ -344,18 +364,6 @@ namespace Kratos
     void ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags(
         const SkinPointsToElementsMapType& rSkinPointsMap)
     {
-        // Initialize flags to false
-        block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-            rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
-            rNode.Set(BOUNDARY, false);      // Nodes that belong to the surrogate boundary
-            rNode.Set(INTERFACE, false);     // Nodes that belong to the cloud of points
-        });
-        block_for_each(mpModelPart->Elements(), [](Element& rElement){
-            rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
-            rElement.Set(BOUNDARY, false);   // Intersected elements
-            rElement.Set(INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
-        });
-
         // Deactivate split elements and mark them as BOUNDARY (gamma)
         // Note that the split elements BC is applied by means of the extension operators
         //TODO: parallel
@@ -393,7 +401,7 @@ namespace Kratos
         // Deactivate nodes that do not belong to any active element (anymore)
         //TODO make parallel and check only nodes of BOUNDARY elements?
         for (auto& rNode : mpModelPart->Nodes()) {
-            // Check whether any of the element surrounding the node is active
+            // Check whether any of the elements surrounding the node is active
             auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             bool active_neighbor_found = false;
             for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
@@ -620,10 +628,8 @@ namespace Kratos
         // Get the MLS shape functions function
         auto p_meshless_sh_func = GetMLSShapeFunctionsFunction();
 
-        // Create auxiliary set of nodes for which support cloud was calculated but insufficient
+        // Get support nodes for both sides of all split elements and calculate extension operators for all nodes of split elements
         // NOTE that only extension operators are calculated and added to the map if a sufficient number of support nodes was found
-        NodesCloudSetType aux_set_insufficient;
-
         for (const auto& [p_element, sides_vector]: rSidesVectorMap) {
             const auto r_geom = p_element->GetGeometry();
 
@@ -632,67 +638,118 @@ namespace Kratos
             const array_1d<double, 3> avg_position = std::get<0>(avg_position_and_normal);
             const array_1d<double, 3> avg_normal = std::get<1>(avg_position_and_normal);
 
-            // All nodes of intersected elements are either part of one side of the boundary or the other side of the boundary
-            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            // Check for which nodes and sides the extension operator has not been calculated (successfully) yet
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            Vector ex_op_was_calculated(n_nodes);
+            bool calculatePositiveSupport = false;
+            bool calculateNegativeSupport = false;
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto p_node = r_geom(i_node);
-                // Calculate extension basis of the node if it has not already been done
                 const std::size_t found_in_map = rExtensionOperatorMap.count(p_node);
-                const std::size_t found_insufficient = aux_set_insufficient.count(p_node);
-                if (!found_in_map && !found_insufficient) {
-
-                    // Get the support/ cloud nodes for the respective node
-                    //TODO only once per side necessary, currently done multiple times (for each node on each side)
-                    Matrix cloud_nodes_coordinates;
-                    PointerVector<NodeType> cloud_nodes;
-
-                    // Node is on positive side of the boundary
+                if (found_in_map) {
+                    ex_op_was_calculated[i_node] =  1.0;
+                // Extension operator for node still needs to be calculated
+                } else {
+                    ex_op_was_calculated[i_node] =  0.0;
+                    // If node is on the positive side, then its extension operator needs support nodes on the negative side
                     if (sides_vector[i_node] > 0.0) {
-                        // Get the element's negative nodes and that sides neighboring nodes
-                        std::vector<NodeType::Pointer> elem_neg_nodes;
-                        for (std::size_t j_node = 0; j_node < r_geom.PointsNumber(); ++j_node) {
-                            if (sides_vector[j_node] <= 0.0) {
-                                elem_neg_nodes.push_back(r_geom(j_node));
-                            }
-                        }
-                        // NOTE that average normal is inverted for negative side, so that dot product between normal and vector to support node should be positive
-                        SetLateralSupportCloud(elem_neg_nodes, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/false);
-
-                    // Node is on negative side of the boundary
+                        calculateNegativeSupport = true;
+                    // If node is on the negative side, then its extension operator needs support nodes on the positive side
                     } else {
-                        // Get the element's positive nodes and that sides neighboring nodes
-                        std::vector<NodeType::Pointer> elem_pos_nodes;
-                        for (std::size_t j_node = 0; j_node < r_geom.PointsNumber(); ++j_node) {
-                            if (sides_vector[j_node] > 0.0) {
-                                elem_pos_nodes.push_back(r_geom(j_node));
+                        calculatePositiveSupport = true;
+                    }
+                }
+            }
+                
+            // Calculate support for the positive side using support nodes from the positive side
+            if (calculatePositiveSupport) {
+                // Initialize the storage for the support/ cloud nodes and their coordinates
+                Matrix cloud_nodes_coordinates;
+                PointerVector<NodeType> cloud_nodes;
+
+                // Get the element's positive nodes as search basis and support nodes on the positive side
+                std::vector<NodeType::Pointer> elem_pos_nodes;
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    if (sides_vector[i_node] > 0.0) {
+                        elem_pos_nodes.push_back(r_geom(i_node));
+                    }
+                }
+                SetLateralSupportCloud(elem_pos_nodes, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/true);
+
+                // Continue if the number of support nodes is sufficient for the calculation of the extension operator
+                // NOTE that an extension operator might be calculated successfully for the respective node(s) with another element as basis
+                const std::size_t n_cloud_nodes = cloud_nodes.size();
+                if (n_cloud_nodes >= GetRequiredNumberOfPoints()) {
+
+                    // Add the extension operator for all nodes on the negative side of the element for which is has not been calculated yet
+                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                        if (ex_op_was_calculated[i_node] < 1.0 && sides_vector[i_node] < 0.0) {
+                            const auto p_node = r_geom(i_node);
+                            
+                            // Calculate the extension basis in the current node (MLS shape functions)
+                            Vector N_container;
+                            const array_1d<double,3> r_coords = p_node->Coordinates();
+                            const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+                            p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
+
+                            // Save the extension operator nodal data to the extension operator map
+                            CloudDataVectorType cloud_data_vector(n_cloud_nodes);
+                            for (std::size_t i_cl_nod = 0; i_cl_nod < n_cloud_nodes; ++i_cl_nod) {
+                                auto p_cl_node = cloud_nodes(i_cl_nod);
+                                auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
+                                cloud_data_vector(i_cl_nod) = i_data;
                             }
+                            auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
+                            rExtensionOperatorMap.insert(ext_op_key_data);                            
                         }
-                        SetLateralSupportCloud(elem_pos_nodes, avg_position, avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/true);
                     }
 
-                    // Continue with next node if number of support nodes is not sufficient for the calculation of the extension operator for the current node
-                    const std::size_t n_cloud_nodes = cloud_nodes.size();
-                    if (n_cloud_nodes < GetRequiredNumberOfPoints()) {
-                        KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Number of support nodes not sufficient for Node No." << p_node->Id() << ". Extension operator will not be calculated. " << std::endl;
-                        aux_set_insufficient.insert(p_node);
-                        //p_node->Set(BOUNDARY, true); //DEBUGGING
-                        continue;
+                }
+            }
+
+            // Calculate support for the negative side using support nodes from the negative side
+            if (calculateNegativeSupport) {
+                // Initialize the storage for the support/ cloud nodes and their coordinates
+                Matrix cloud_nodes_coordinates;
+                PointerVector<NodeType> cloud_nodes;
+
+                // Get the element's negative nodes as search basis and support nodes on the negative side
+                std::vector<NodeType::Pointer> elem_neg_nodes;
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    if (sides_vector[i_node] < 0.0) {
+                        elem_neg_nodes.push_back(r_geom(i_node));
+                    }
+                }
+                SetLateralSupportCloud(elem_neg_nodes, avg_position, -avg_normal, cloud_nodes, cloud_nodes_coordinates, /*ConsiderPositiveSide=*/false);
+
+                // Continue if the number of support nodes is sufficient for the calculation of the extension operator
+                // NOTE that an extension operator might be calculated successfully for the respective node(s) with another element as basis
+                const std::size_t n_cloud_nodes = cloud_nodes.size();
+                if (n_cloud_nodes >= GetRequiredNumberOfPoints()) {
+
+                    // Add the extension operator for all nodes on the positive side of the element for which is has not been calculated yet
+                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                        if (ex_op_was_calculated[i_node] < 1.0 && sides_vector[i_node] > 0.0) {
+                            const auto p_node = r_geom(i_node);
+                            
+                            // Calculate the extension basis in the current node (MLS shape functions)
+                            Vector N_container;
+                            const array_1d<double,3> r_coords = p_node->Coordinates();
+                            const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+                            p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
+
+                            // Save the extension operator nodal data to the extension operator map
+                            CloudDataVectorType cloud_data_vector(n_cloud_nodes);
+                            for (std::size_t i_cl_nod = 0; i_cl_nod < n_cloud_nodes; ++i_cl_nod) {
+                                auto p_cl_node = cloud_nodes(i_cl_nod);
+                                auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
+                                cloud_data_vector(i_cl_nod) = i_data;
+                            }
+                            auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
+                            rExtensionOperatorMap.insert(ext_op_key_data);                            
+                        }
                     }
 
-                    // Calculate the extension basis in the current node (MLS shape functions)
-                    Vector N_container;
-                    const array_1d<double,3> r_coords = p_node->Coordinates();
-                    const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-                    p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
-
-                    // Save the extension operator nodal data to the extension operator map
-                    CloudDataVectorType cloud_data_vector(n_cloud_nodes);
-                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cloud_nodes; ++i_cl_nod) {
-                        auto p_cl_node = cloud_nodes(i_cl_nod);
-                        auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
-                        cloud_data_vector(i_cl_nod) = i_data;
-                    }
-                    auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
-                    rExtensionOperatorMap.insert(ext_op_key_data);
                 }
             }
         }
@@ -707,7 +764,8 @@ namespace Kratos
         const bool ConsiderPositiveSide)
     {
         // Find the same side support cloud of nodes
-        // Note that we use an unordered_set to ensure that these are unique
+        // NOTE that we use an unordered_set to ensure that these are unique
+        // NOTE that we might add deactivated nodes to the set here to facilitate the search
         NodesCloudSetType aux_set;
         std::vector<NodeType::Pointer> cur_layer_nodes;
         std::vector<NodeType::Pointer> prev_layer_nodes;
@@ -751,6 +809,7 @@ namespace Kratos
         
         if (aux_set.size() <= n_same_side_nodes) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Degenerated case with no neighboring active element's nodes normal to skin. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
+            // If boundary can not be crossed, then no additional nodes can be found for the next layer anyway, so we can return here.
             if (!mCrossBoundaryNeighbors) {
                 return;
             }
@@ -783,7 +842,8 @@ namespace Kratos
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layer(s) of points needed for MLS calculation." << std::endl;
         }  
 
-        // Add obtained active cloud nodes to vector and sort them by id
+        // Add obtained cloud nodes to the cloud node vector if they are active and sort them by id
+        //TODO sorting really necessary or helpful??
         rCloudNodes.resize(n_cloud_nodes);
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
@@ -821,7 +881,7 @@ namespace Kratos
             auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
             // Add all nodes of neighboring elements to cloud nodes set if element is not (!) BOUNDARY and in normal direction
-            // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here)
+            // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here?)
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
                 if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
@@ -836,7 +896,7 @@ namespace Kratos
                         const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
                         if (dot_product > 0.1) {
                             auto set_return = SupportNodesSet.insert(p_neigh);
-                            // If the node was inserted into the set as a new element, than add it to the current layer
+                            // If the node was inserted into the set as a new element, then add it to the current layer
                             if (set_return.second) {
                                 CurrentLayerNodes.push_back(p_neigh);
                             }
@@ -877,6 +937,7 @@ namespace Kratos
                         const double h = GetElementSizeFunction(r_geom)(r_geom);
                         if ( (!p_elem_neigh->Is(BOUNDARY) && dot_product > 0.1) || (dot_product > 0.5 && d > 0.5*h) ) {
                             auto set_return = SupportNodesSet.insert(p_neigh);
+                            // Only add nodes as basis for the next layer if they have not been added to the set already (because then they would be considered again and again)
                             if (set_return.second) {
                                 CurrentLayerNodes.push_back(p_neigh);
                             }
@@ -895,16 +956,17 @@ namespace Kratos
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide)
     {
         // Create an auxiliary set with all the cloud nodes that affect the current element for each side separately
-                // NOTE that a node can only be found if sufficient cloud nodes were found for the creation of the extension basis
-                // NOTE that only active nodes are part of the node cloud
+        // NOTE that a node can only be found if sufficient cloud nodes were found for the creation of the extension basis
+        // NOTE that only active nodes are part of the node cloud
         NodesCloudSetType cloud_nodes_set_pos;
         NodesCloudSetType cloud_nodes_set_neg;
         const auto& r_geom = rElement.GetGeometry();
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
             if (rSidesVector(i_node) > 0.0) {
-                // Add positive side node to cloud nodes set of positive side of the boundary //TODO: really necessary? these nodes should be there already as other sides cloud nodes?!
-                //cloud_nodes_set_pos.insert(p_node);
+                // Add positive side node to cloud nodes set of positive side of the boundary 
+                // NOTE they might not be part of the negative node's support because they are too close to the other side or not active
+                cloud_nodes_set_pos.insert(p_node);
                 // Add positive side's node's cloud nodes to cloud nodes set of negative side of the boundary
                 const std::size_t found = rExtensionOperatorMap.count(p_node);
                 if (found) {
@@ -915,8 +977,9 @@ namespace Kratos
                     }
                 }
             } else {
-                // Add negative side node to cloud nodes set of negative side of the boundary //TODO: really necessary? these nodes should be there already as other sides cloud nodes?!
-                //cloud_nodes_set_neg.insert(p_node);
+                // Add negative side node to cloud nodes set of negative side of the boundary
+                // NOTE they might not be part of the positive node's support because they are too close to the other side or not active
+                cloud_nodes_set_neg.insert(p_node);
                 // Add negative side's node's cloud nodes to cloud nodes set of positive side of the boundary
                 const std::size_t found = rExtensionOperatorMap.count(p_node);
                 if (found) {
@@ -943,7 +1006,7 @@ namespace Kratos
             rCloudNodeVectorNegativeSide(aux_i++) = *it_set;
         }
 
-        // Sort obtained cloud node vectors by ID to properly get the extension operator data
+        // Sort obtained cloud node vectors by ID to properly get the extension operator data  //TODO really necessary or faster??
         std::sort(rCloudNodeVectorPositiveSide.ptr_begin(), rCloudNodeVectorPositiveSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
         std::sort(rCloudNodeVectorNegativeSide.ptr_begin(), rCloudNodeVectorNegativeSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
     }
@@ -1006,7 +1069,7 @@ namespace Kratos
                     KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
                     return;
                 }
-                // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
+                // Note that we need to check for the ids to match as we do not know the node's position in the node vector
                 for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
                     auto& p_cl_node = rCloudNodeVector(i_cl);
                     if (p_node->Id() == p_cl_node->Id()) {
@@ -1034,7 +1097,7 @@ namespace Kratos
                 auto& ext_op_data = rExtensionOperatorMap[p_node];
 
                 // Iterate over the node's extension operator data and apply the cloud node weight (i_cl_node_N) to make the basis conformant
-                // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
+                // Note that we need to check for the ids to match as we do not know the node's position in the node vector
                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
                     auto& r_node_data = *it_data;
                     std::size_t data_node_id = (std::get<0>(r_node_data))->Id();
