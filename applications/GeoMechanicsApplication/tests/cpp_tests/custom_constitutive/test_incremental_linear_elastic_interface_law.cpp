@@ -145,11 +145,12 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     auto value = Vector{};
     law.GetValue(STRAIN, value);
     KRATOS_INFO("Unit test") << "Retrieved relative displacement: " << value << "\n";
-    KRATOS_EXPECT_VECTOR_NEAR(value, ZeroVector{2}, 1.0e-6)
+    const auto zero_vector = ZeroVector{2};
+    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, 1.0e-6)
     KRATOS_INFO("Unit test") << "Compared relative displacement\n";
     law.GetValue(CAUCHY_STRESS_VECTOR, value);
     KRATOS_INFO("Unit test") << "Retrieved traction: " << value << "\n";
-    KRATOS_EXPECT_VECTOR_NEAR(value, ZeroVector{2}, 1.0e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, 1.0e-6)
     KRATOS_INFO("Unit test") << "Compared traction\n";
 }
 
