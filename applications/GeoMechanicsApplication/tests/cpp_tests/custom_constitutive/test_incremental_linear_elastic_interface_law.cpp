@@ -142,6 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
 
     KRATOS_INFO("Unit test") << "Initialized material\n";
     KRATOS_INFO("Unit test") << "Attempt to raise bad_index...\n";
+    KRATOS_INFO("Unit test") << "BOOST_UBLAS_CHECK_ENABLE: " << BOOST_UBLAS_CHECK_ENABLE << "\n";
     BOOST_UBLAS_CHECK_FALSE (bad_index ());
 
     auto value = Vector{};
