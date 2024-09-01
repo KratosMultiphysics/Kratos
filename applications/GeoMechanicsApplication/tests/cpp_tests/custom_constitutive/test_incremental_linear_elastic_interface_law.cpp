@@ -129,33 +129,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectGeometry,
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_INFO("Unit test") << "Start printing for debugging purposes\n";
-
     auto law = GeoIncrementalLinearElasticInterfaceLaw{};
-
-    KRATOS_INFO("Unit test") << "Constructed GeoIncrementalLinearElasticInterfaceLaw object\n";
 
     const auto dummy_properties            = Properties{};
     const auto dummy_geometry              = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
     law.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
 
-    KRATOS_INFO("Unit test") << "Initialized material\n";
-    KRATOS_INFO("Unit test") << "Attempt to raise bad_index...\n";
-    KRATOS_INFO("Unit test") << "BOOST_UBLAS_CHECK_ENABLE: " << BOOST_UBLAS_CHECK_ENABLE << "\n";
-    BOOST_UBLAS_CHECK_FALSE (bad_index ());
-
     auto value = Vector{};
     law.GetValue(STRAIN, value);
-    KRATOS_INFO("Unit test") << "Retrieved relative displacement: " << value << "\n";
     const auto zero_vector = Vector{ZeroVector{2}};
-    KRATOS_INFO("Unit test") << "Zero vector: " << zero_vector << "\n";
     KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, 1.0e-6)
-    KRATOS_INFO("Unit test") << "Compared relative displacement\n";
     law.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_INFO("Unit test") << "Retrieved traction: " << value << "\n";
     KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, 1.0e-6)
-    KRATOS_INFO("Unit test") << "Compared traction\n";
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
