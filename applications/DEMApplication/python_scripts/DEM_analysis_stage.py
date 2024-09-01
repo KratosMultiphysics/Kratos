@@ -910,6 +910,8 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
+                else:
+                    measured_fabric_tensor = np.empty((3, 3))
 
                 deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
 
