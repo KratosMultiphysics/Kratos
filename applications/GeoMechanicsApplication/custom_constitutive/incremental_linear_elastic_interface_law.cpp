@@ -56,13 +56,10 @@ void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Propertie
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
-    if (HasInitialState()) {
-        mPreviousRelativeDisplacement = GetInitialState().GetInitialStrainVector();
-        mPreviousTraction             = GetInitialState().GetInitialStressVector();
-    } else {
-        mPreviousRelativeDisplacement = ZeroVector{GetStrainSize()};
-        mPreviousTraction             = ZeroVector{GetStrainSize()};
-    }
+    mPreviousRelativeDisplacement =
+        HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
+    mPreviousTraction =
+        HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
