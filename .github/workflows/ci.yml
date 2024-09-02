@@ -22,7 +22,6 @@ jobs:
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
     steps:
@@ -77,7 +76,6 @@ jobs:
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
 
     steps:
