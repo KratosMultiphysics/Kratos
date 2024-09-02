@@ -9,7 +9,7 @@ In this test case, a three-dimentional soil block with dimensions of 10 m x 10 m
 
 The geometry and boundary conditions are shown below:
 
-<img src="../documentation_data/test_constant_point_load_3d_conditions.svg" alt="Visualization of the geometry and the boundary conditions" title="Visualization of the geometry and the boundary conditions" width="600">
+<img src="../documentation_data/test_constant_point_load_3d_conditions.svg" alt="Visualization of the geometry and the boundary conditions" title="Visualization of the geometry and the boundary conditions" width="800">
 
 The shear wave velocity $c_s$ and compression wave velocity $c_p$ can be calculated as:
 
