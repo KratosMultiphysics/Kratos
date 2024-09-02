@@ -19,7 +19,6 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
@@ -73,7 +72,6 @@ jobs:
 
   windows-core-without-unity:
     runs-on: windows-2022
-    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
