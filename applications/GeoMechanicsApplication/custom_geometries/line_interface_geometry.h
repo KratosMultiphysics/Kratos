@@ -48,6 +48,8 @@ public:
         } else {
             mMidLineGeometry = std::make_unique<Line2D3<Node>>(points_of_mid_line);
         }
+
+        this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
