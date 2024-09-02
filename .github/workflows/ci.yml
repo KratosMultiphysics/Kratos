@@ -55,249 +55,247 @@ jobs:
   #   steps:
   #   - uses: actions/checkout@v4
 
-    # - name: Installing dependencies
-    # => must be added to the docker container to avoid reinstalling it in every CI run
+  #   - name: Installing dependencies
+  #   => must be added to the docker container to avoid reinstalling it in every CI run
 
-    # - name: CI configuration
-    #   shell: bash
-    #   run: python3 kratos/python_scripts/testing/ci_utilities.py
+  #   - name: CI configuration
+  #     shell: bash
+  #     run: python3 kratos/python_scripts/testing/ci_utilities.py
 
-    # - name: Build
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       export CC=/usr/bin/gcc-12
-    #       export CXX=/usr/bin/g++-12
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
-    #     elif [ ${{ matrix.compiler }} = clang ]; then
-    #       export CC=/usr/bin/clang-14
-    #       export CXX=/usr/bin/clang++-14
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
-    #     else
-    #       echo 'Unsupported compiler: ${{ matrix.compiler }}'
-    #       exit 1
-    #     fi
-    #     source /opt/intel/oneapi/setvars.sh
-    #     cp .github/workflows/configure_core.sh configure.sh
-    #     python3 kratos/python_scripts/testing/ci_utilities.py
-    #     bash configure.sh
-    #     rm -r ${GITHUB_WORKSPACE}/build
+  #   - name: Build
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         export CC=/usr/bin/gcc-12
+  #         export CXX=/usr/bin/g++-12
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+  #       elif [ ${{ matrix.compiler }} = clang ]; then
+  #         export CC=/usr/bin/clang-14
+  #         export CXX=/usr/bin/clang++-14
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
+  #       else
+  #         echo 'Unsupported compiler: ${{ matrix.compiler }}'
+  #         exit 1
+  #       fi
+  #       source /opt/intel/oneapi/setvars.sh
+  #       cp .github/workflows/configure_core.sh configure.sh
+  #       python3 kratos/python_scripts/testing/ci_utilities.py
+  #       bash configure.sh
+  #       rm -r ${GITHUB_WORKSPACE}/build
 
-    # - name: Build Dependencies
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       export CC=/usr/bin/gcc-12
-    #       export CXX=/usr/bin/g++-12
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
-    #     elif [ ${{ matrix.compiler }} = clang ]; then
-    #       export CC=/usr/bin/clang-14
-    #       export CXX=/usr/bin/clang++-14
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
-    #     else
-    #       echo 'Unsupported compiler: ${{ matrix.compiler }}'
-    #       exit 1
-    #     fi
-    #     source /opt/intel/oneapi/setvars.sh
-    #     cp .github/workflows/configure_dependencies.sh configure.sh
-    #     bash configure.sh
-    #     rm -r ${GITHUB_WORKSPACE}/build
+  #   - name: Build Dependencies
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         export CC=/usr/bin/gcc-12
+  #         export CXX=/usr/bin/g++-12
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+  #       elif [ ${{ matrix.compiler }} = clang ]; then
+  #         export CC=/usr/bin/clang-14
+  #         export CXX=/usr/bin/clang++-14
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
+  #       else
+  #         echo 'Unsupported compiler: ${{ matrix.compiler }}'
+  #         exit 1
+  #       fi
+  #       source /opt/intel/oneapi/setvars.sh
+  #       cp .github/workflows/configure_dependencies.sh configure.sh
+  #       bash configure.sh
+  #       rm -r ${GITHUB_WORKSPACE}/build
 
-    # - name: Build Core Apps
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       export CC=/usr/bin/gcc-12
-    #       export CXX=/usr/bin/g++-12
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS=""
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
-    #     elif [ ${{ matrix.compiler }} = clang ]; then
-    #       export CC=/usr/bin/clang-14
-    #       export CXX=/usr/bin/clang++-14
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS=""
-    #     else
-    #       echo 'Unsupported compiler: ${{ matrix.compiler }}'
-    #       exit 1
-    #     fi
-    #     source /opt/intel/oneapi/setvars.sh
-    #     cp .github/workflows/configure_core_applications.sh configure.sh
-    #     bash configure.sh
-    #     rm -r ${GITHUB_WORKSPACE}/build
+  #   - name: Build Core Apps
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         export CC=/usr/bin/gcc-12
+  #         export CXX=/usr/bin/g++-12
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS=""
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+  #       elif [ ${{ matrix.compiler }} = clang ]; then
+  #         export CC=/usr/bin/clang-14
+  #         export CXX=/usr/bin/clang++-14
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS=""
+  #       else
+  #         echo 'Unsupported compiler: ${{ matrix.compiler }}'
+  #         exit 1
+  #       fi
+  #       source /opt/intel/oneapi/setvars.sh
+  #       cp .github/workflows/configure_core_applications.sh configure.sh
+  #       bash configure.sh
+  #       rm -r ${GITHUB_WORKSPACE}/build
 
-    # - name: Build Research Apps
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       export CC=/usr/bin/gcc-12
-    #       export CXX=/usr/bin/g++-12
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS=""
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
-    #     elif [ ${{ matrix.compiler }} = clang ]; then
-    #       export CC=/usr/bin/clang-14
-    #       export CXX=/usr/bin/clang++-14
-    #       export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-    #       export KRATOS_CMAKE_OPTIONS_FLAGS=""
-    #     else
-    #       echo 'Unsupported compiler: ${{ matrix.compiler }}'
-    #       exit 1
-    #     fi
-    #     source /opt/intel/oneapi/setvars.sh
-    #     cp .github/workflows/configure_research_applications.sh configure.sh
-    #     bash configure.sh
-    #     rm -r ${GITHUB_WORKSPACE}/build
+  #   - name: Build Research Apps
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         export CC=/usr/bin/gcc-12
+  #         export CXX=/usr/bin/g++-12
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS=""
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+  #       elif [ ${{ matrix.compiler }} = clang ]; then
+  #         export CC=/usr/bin/clang-14
+  #         export CXX=/usr/bin/clang++-14
+  #         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+  #         export KRATOS_CMAKE_OPTIONS_FLAGS=""
+  #       else
+  #         echo 'Unsupported compiler: ${{ matrix.compiler }}'
+  #         exit 1
+  #       fi
+  #       source /opt/intel/oneapi/setvars.sh
+  #       cp .github/workflows/configure_research_applications.sh configure.sh
+  #       bash configure.sh
+  #       rm -r ${GITHUB_WORKSPACE}/build
 
-    # - name: Running C++ tests
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_cpp_tests.py
+  #   - name: Running C++ tests
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_cpp_tests.py
 
-    # - name: Running python tests
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
+  #   - name: Running python tests
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
 
-    # - name: Prepare Parallel Env
-    #   shell: bash
-    #   run: |
-    #     echo "localhost slots=2" >> ${GITHUB_WORKSPACE}/ci_hostfile
+  #   - name: Prepare Parallel Env
+  #     shell: bash
+  #     run: |
+  #       echo "localhost slots=2" >> ${GITHUB_WORKSPACE}/ci_hostfile
 
-    # - name: Running MPI C++ tests (2 Cores)
-    #   shell: bash
-    #   timeout-minutes : 10
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 2
+  #   - name: Running MPI C++ tests (2 Cores)
+  #     shell: bash
+  #     timeout-minutes : 10
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 2
 
-    # - name: Running MPI C++ tests (3 Cores)
-    #   shell: bash
-    #   timeout-minutes : 10
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 3
+  #   - name: Running MPI C++ tests (3 Cores)
+  #     shell: bash
+  #     timeout-minutes : 10
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 3
 
-    # - name: Running MPI C++ tests (4 Cores)
-    #   shell: bash
-    #   timeout-minutes : 10
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 4
+  #   - name: Running MPI C++ tests (4 Cores)
+  #     shell: bash
+  #     timeout-minutes : 10
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 4
 
-    # - name: Running Python MPI tests (2 Cores)
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export OMP_NUM_THREADS=1
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 2
+  #   - name: Running Python MPI tests (2 Cores)
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export OMP_NUM_THREADS=1
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 2
 
-    # - name: Running Python MPI tests (3 Cores)
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export OMP_NUM_THREADS=1
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 3
+  #   - name: Running Python MPI tests (3 Cores)
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export OMP_NUM_THREADS=1
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 3
 
-    # - name: Running Python MPI tests (4 Cores)
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ matrix.compiler }} = gcc ]; then
-    #       source /opt/intel/oneapi/setvars.sh
-    #     fi
-    #     export OMP_NUM_THREADS=1
-    #     export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-    #     python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 4
+  #   - name: Running Python MPI tests (4 Cores)
+  #     shell: bash
+  #     run: |
+  #       if [ ${{ matrix.compiler }} = gcc ]; then
+  #         source /opt/intel/oneapi/setvars.sh
+  #       fi
+  #       export OMP_NUM_THREADS=1
+  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+  #       python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 4
 
+  # windows:
+  #   runs-on: windows-2022
+  #   needs: changed-files
+  #   env:
+  #     KRATOS_BUILD_TYPE: Custom
+  #     KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+  #     KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
-  windows:
-    runs-on: windows-2022
-    needs: changed-files
-    env:
-      KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
-      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.10'
 
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+  #   - name: CI configuration
+  #     shell: bash
+  #     run: python3 kratos/python_scripts/testing/ci_utilities.py
 
-    - name: CI configuration
-      shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py
+  #   - name: Download boost
+  #     run: |
+  #       $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
+  #       (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+  #       7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+  #       7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
-    - name: Download boost
-      run: |
-        $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+  #   - name: Installing dependencies
+  #     shell: cmd
+  #     run: |
+  #       pip install numpy
+  #       pip install sympy
+  #       pip install scipy
+  #       pip install h5py
+  #       pip install parameterized
 
-    - name: Installing dependencies
-      shell: cmd
-      run: |
-        pip install numpy
-        pip install sympy
-        pip install scipy
-        pip install h5py
-        pip install parameterized
+  #   - name: Build
+  #     shell: cmd
+  #     run: |
+  #       copy .\.github\workflows\configure.cmd
+  #       python kratos/python_scripts/testing/ci_utilities.py
+  #       configure.cmd
 
-    - name: Build
-      shell: cmd
-      run: |
-        copy .\.github\workflows\configure.cmd
-        python kratos/python_scripts/testing/ci_utilities.py
-        configure.cmd
+  #   - name: Running C++ tests
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/python_scripts/testing/run_cpp_tests.py
 
-    - name: Running C++ tests
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_cpp_tests.py
-
-    - name: Running python tests
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
-
+  #   - name: Running python tests
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
 
   # centos:
   #   runs-on: ubuntu-latest
@@ -453,7 +451,6 @@ jobs:
   #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
   #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
   #       python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
-
 
   windows-core-without-unity:
     runs-on: windows-2022
