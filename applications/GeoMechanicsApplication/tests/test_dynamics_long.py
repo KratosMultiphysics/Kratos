@@ -195,3 +195,6 @@ class KratosGeoMechanicsDynamicsLongTests(KratosUnittest.TestCase):
 
     def test_constant_point_load_2d_axi(self):
         self.constant_point_load('test_constant_point_load_2d_axi')
+
+    def test_constant_point_load_3d(self):
+        self.constant_point_load('test_constant_point_load_3d')
