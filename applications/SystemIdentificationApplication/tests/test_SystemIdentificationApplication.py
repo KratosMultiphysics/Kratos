@@ -4,7 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_adjoint_sensors
 import test_sensor_output_process
 import test_system_identification
-import test_damage_response
+import applications.SystemIdentificationApplication.tests.responses.test_damage_response as test_damage_response
 import test_smooth_clamper
 
 def AssembleTestSuites():
