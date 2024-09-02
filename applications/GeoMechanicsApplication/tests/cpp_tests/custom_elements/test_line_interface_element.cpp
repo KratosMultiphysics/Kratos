@@ -14,6 +14,8 @@
 #include "custom_geometries/line_interface_geometry.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <cstddef>
+
 namespace
 {
 
@@ -119,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 12);
     const std::vector<double> expected_dof_values = {1.0, 2.0, 3.0, 4.0,  5.0,  6.0,
                                                      7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
-    for (int i = 0; i < degrees_of_freedom.size(); i++) {
+    for (std::size_t i = 0; i < degrees_of_freedom.size(); i++) {
         KRATOS_EXPECT_DOUBLE_EQ(degrees_of_freedom[i]->GetSolutionStepValue(), expected_dof_values[i]);
     }
 }
