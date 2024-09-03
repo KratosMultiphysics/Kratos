@@ -147,14 +147,12 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
     KRATOS_TRY
 
     double sum_B_p = 0.0;
-    double value = 0.0;
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
         p_sensor->SetSensorValue(sensor_value);
         const double current_sensor_error = sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
         p_sensor->SetValue(SENSOR_ERROR, current_sensor_error);
         sum_B_p += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
-        value += p_sensor->GetWeight() * std::pow(sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE), 2) * 0.5;
     }
     mC1 = std::pow( sum_B_p, 1/mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);  
 
