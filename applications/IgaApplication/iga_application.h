@@ -27,6 +27,7 @@
 #include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/plain_stress_element.h"
 #include "custom_elements/conv_diff_IGA_element.h"
+#include "custom_elements/stokes_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -135,6 +136,7 @@ private:
     const LaplacianIGAElement mLaplacianIGAElement;
     const PlainStressElement mPlainStressElement;
     const ConvDiffIGAElement mConvDiffIGAElement; 
+    const StokesElement mStokesElement;
 
     //Conditions
     const OutputCondition mOutputCondition;

@@ -513,13 +513,13 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
                     // Fundamental for use Manufactured solution -> how to change this?
-                    // t_N[i] = cos(projection[0]) * sinh(projection[1]) * true_n[0] + sin(projection[0]) * cosh(projection[1])  * true_n[1] ;
+                    t_N[i] = cos(projection[0]) * sinh(projection[1]) * true_n[0] + sin(projection[0]) * cosh(projection[1])  * true_n[1] ;
                     
                     // 3D flux  
                     // true sol: sin(sqrt(2)*x)*sinh(y)*cosh(z)"
-                    t_N[i] = sqrt(2) * cos(sqrt(2)*projection[0]) * sinh(projection[1]) *  cosh(projection[2]) * true_n[0] + 
-                                       sin(sqrt(2)*projection[0]) * cosh(projection[1]) *  cosh(projection[2]) * true_n[1] +
-                                       sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
+                    // t_N[i] = sqrt(2) * cos(sqrt(2)*projection[0]) * sinh(projection[1]) *  cosh(projection[2]) * true_n[0] + 
+                    //                    sin(sqrt(2)*projection[0]) * cosh(projection[1]) *  cosh(projection[2]) * true_n[1] +
+                    //                    sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
                     // double x = r_geometry.Center().X(); double y = r_geometry.Center().Y(); double z = r_geometry.Center().Z();
                     // t_N[i] = sqrt(2) * cos(sqrt(2)*x) * sinh(y) *  cosh(z) * true_n[0] + 
                     //                    sin(sqrt(2)*x) * cosh(y) *  cosh(z) * true_n[1] +
