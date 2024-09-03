@@ -12,23 +12,28 @@
 
 #include "geo_mechanics_fast_suite.h"
 
+#include <custom_geometries/line_interface_geometry.h>
 #include <custom_utilities/interface_element_utilities.hpp>
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixDoesNotChangeLength, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForHorizontalInterfaceIsIdentityMatrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    Vector vector = ScalarVector{2, 1.0};
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 5.0, 0.0, 0.0));
+    LineInterfaceGeometry geometry(1, nodes);
+
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix();
-    Vector rotated_vector = prod(rotation_matrix, vector);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
 
     // Assert
-    KRATOS_CHECK_NEAR(norm_2(rotated_vector), norm_2(vector), 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6);
 }
 
-
-}
+} // namespace Kratos::Testing

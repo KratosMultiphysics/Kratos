@@ -190,7 +190,7 @@ public:
         rPermeabilityMatrix(2, 2) = JointWidth * JointWidth / 12.0;
     }
 
-    static Matrix Calculate2DRotationMatrix()
+    static Matrix Calculate2DRotationMatrix(const Geometry<Node>& rGeometry)
     {
         return IdentityMatrix(2);
     }
