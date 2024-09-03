@@ -13,31 +13,41 @@
 
 #pragma once
 
-#include "geo_mechanics_application.h"
-#include "linear_solvers_application.h"
 #include "testing/testing.h"
+
+namespace Kratos
+{
+class KratosGeoMechanicsApplication;
+class KratosLinearSolversApplication;
+} // namespace Kratos
 
 namespace Kratos::Testing
 {
 
- class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite
- {
- public:
-     KratosGeoMechanicsFastSuite();
+class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite
+{
+public:
+    KratosGeoMechanicsFastSuite();
 
- private:
-     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
- };
+private:
+   std::shared_ptr<KratosGeoMechanicsApplication>  mpGeoApp;
+   std::shared_ptr<KratosLinearSolversApplication> mpLinearSolversApp;
+};
 
- class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
- {
- public:
-     KratosGeoMechanicsIntegrationSuite();
+class KratosGeoMechanicsFastSuiteWithoutKernel : public KratosCoreFastSuiteWithoutKernel
+{
+public:
+    KratosGeoMechanicsFastSuiteWithoutKernel();
+};
 
- private:
-     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
- };
+class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
+{
+public:
+    KratosGeoMechanicsIntegrationSuite();
+
+private:
+    std::shared_ptr<KratosGeoMechanicsApplication>  mpGeoApp;
+    std::shared_ptr<KratosLinearSolversApplication> mpLinearSolversApp;
+};
 
 } // namespace Kratos::Testing

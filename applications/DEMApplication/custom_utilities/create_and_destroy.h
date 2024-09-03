@@ -68,6 +68,8 @@ public:
     virtual double SelectRadius(bool initial,
                                 ModelPart& r_sub_model_part_with_parameters,
                                 std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
+    virtual double SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node ::Pointer& pnew_node,

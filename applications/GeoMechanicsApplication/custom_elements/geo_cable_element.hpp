@@ -48,7 +48,6 @@ public:
     using VectorType     = Element::VectorType;
 
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
-    using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
     using GeoTrussElement<TDim, TNumNodes>::mInternalStressesFinalizedPrevious;
@@ -102,7 +101,7 @@ public:
 
 private:
     // boolean for the cable --> does not resist to compression
-    bool mIsCompressed;
+    bool mIsCompressed = false;
 
     friend class Serializer;
 

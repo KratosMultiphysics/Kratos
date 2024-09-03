@@ -358,8 +358,11 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
             # Convert the pressure scalar load to a traction vector one
             # This is required in the IBQN case as the structure and fluid interface residual sizes must match
+            # Note that we do not swap the traction sign as the normal considered is the positive interface outwards one
+            # As a difference to the standard body-fitted solver, which uses the fluid reaction that points to the fluid
+            # the positive interface outwards normal alredy points to the structure
             if self._GetConvergenceAccelerator().IsBlockNewton():
-                swap_traction_sign = True
+                swap_traction_sign = False
                 self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
                     self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                     KratosMultiphysics.POSITIVE_FACE_PRESSURE,
@@ -395,7 +398,10 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 0)
 
             # Convert the pressure scalar load to a traction vector one
-            swap_traction_sign = True
+            # Note that we do not swap the traction sign as the normal considered is the positive interface outwards one
+            # As a difference to the standard body-fitted solver, which uses the fluid reaction that points to the fluid
+            # the positive interface outwards normal alredy points to the structure
+            swap_traction_sign = False
             self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,

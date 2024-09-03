@@ -18,7 +18,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
