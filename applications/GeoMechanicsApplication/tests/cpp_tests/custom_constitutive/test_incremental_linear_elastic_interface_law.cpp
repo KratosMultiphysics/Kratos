@@ -209,24 +209,31 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     law_parameters.SetMaterialProperties(properties);
-    auto       law                         = GeoIncrementalLinearElasticInterfaceLaw{};
+    auto       law                           = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto initial_relative_displacement = Vector{ScalarVector{2, 5.0}};
+    const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
     const auto dummy_geometry              = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
     law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 
     // First step
-    relative_displacement <<= 0.1, 0.3;
+    relative_displacement <<= 5.1, 5.3;
     law.CalculateMaterialResponseCauchy(law_parameters);
     law.FinalizeMaterialResponseCauchy(law_parameters);
 
     // Second step
-    relative_displacement *= 2.0;
+    relative_displacement <<= 5.2, 5.6;
     law.CalculateMaterialResponseCauchy(law_parameters);
     law.FinalizeMaterialResponseCauchy(law_parameters);
 
     auto expected_traction = Vector{2};
-    expected_traction <<= 4.0, 6.0;
+    expected_traction <<= 30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0, 30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
+    auto expected_relative_displacement = Vector{2};
+    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(), expected_relative_displacement, relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer,
