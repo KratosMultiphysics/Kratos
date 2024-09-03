@@ -180,7 +180,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, Krato
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
-    int i = 0;
     for (auto& node : element->GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
