@@ -336,8 +336,8 @@ public:
         const double m,
         const double fc)
     {
-        const double pi_over_180 = Globals::Pi / 180.0;
-        double theta = 0.0, y_max = -std::numeric_limits<double>::infinity(), theta_incr = 0.1;
+        const long double pi_over_180 = Globals::Pi / 180.0;
+        long double theta = 0.0, y_max = -std::numeric_limits<double>::infinity(), theta_incr = 0.01;
         Matrix n_trial(VoigtSize, Dimension), R_trial(Dimension, Dimension);
         Vector tc_trial = ZeroVector(Dimension);
         n_trial.clear();
@@ -348,13 +348,16 @@ public:
 
         if (rn.size1() != VoigtSize || rn.size1() != Dimension)
             rn.resize(VoigtSize, Dimension, false);
+        rR.clear();
+        rn.clear();
 
-        while (theta <= 180.0) {
-            const double angle_radians = theta * pi_over_180;
-            const double n1 = std::cos(angle_radians);
-            const double n2 = std::sin(angle_radians);
-            const double m1 = -n2;
-            const double m2 = n1;
+        double aux_theta = 0.0;
+        while (theta < 180.0) {
+            const long double angle_radians = theta * pi_over_180;
+            const long double n1 = std::cos(angle_radians);
+            const long double n2 = std::sin(angle_radians);
+            const long double m1 = -n2;
+            const long double m2 = n1;
 
             R_trial(0, 0) = n1;
             R_trial(0, 1) = n2;
@@ -367,15 +370,17 @@ public:
             n_trial(2, 1) = n1;
 
             noalias(tc_trial) = prod(R_trial, Vector(prod(trans(n_trial), rStressVectorTrial)));
-            const double y_trial = YieldSurfaceValue(tc_trial[1], D, mu0, mu, tc_trial[0], ft, m, fc);
+            const long double y_trial = YieldSurfaceValue(tc_trial[1], D, mu0, mu, tc_trial[0], ft, m, fc);
 
             if (y_trial > y_max) {
                 y_max = y_trial;
                 noalias(rn) = n_trial;
                 noalias(rR) = R_trial;
+                aux_theta = theta;
             }
             theta += theta_incr;
         }
+        KRATOS_WATCH(aux_theta)
     }
 
 protected:

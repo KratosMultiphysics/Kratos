@@ -122,6 +122,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
                 Vector uc = prod(KcE_inv, tc);
 
                 const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
+
                 Matrix inv_C(Dimension, Dimension);
                 double det_C;
                 MathUtils<double>::InvertMatrix(C, inv_C, det_C);
@@ -441,6 +442,7 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             }
         } // already open crack
     }
+
     noalias(mOldStressVector) = rValues.GetStressVector();
     noalias(mOldStrainVector) = rValues.GetStrainVector();
 
