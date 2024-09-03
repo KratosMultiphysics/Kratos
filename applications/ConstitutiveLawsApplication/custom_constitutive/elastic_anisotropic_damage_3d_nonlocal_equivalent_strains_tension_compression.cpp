@@ -12,7 +12,7 @@
 //  Collaborators:
 //
 //ToDo: Transform the calculated dHdEpseq_tension and dHdEpseq_compression in to global coordinates.
-// Changes from version 1: Strain equivalence, definition of m changed
+// Changes from version 1: Strain equivalence, definition of m changed, also calculation of material tangents
 // Project includes
 #include "elastic_anisotropic_damage_3d_nonlocal_equivalent_strains_tension_compression.h"
 #include "constitutive_laws_application_variables.h"

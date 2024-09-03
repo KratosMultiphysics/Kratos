@@ -254,6 +254,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage", mElasticAnisotropicDamage);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropicDamage3DNonLocalEquivalentStrain", mElasticIsotropicDamage3DNonLocalEquivalentStrain);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DNonLocalEquivalentStrain", mElasticAnisotropicDamage3DNonLocalEquivalentStrain);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DTwoNLEquivalentStrains", mElasticAnisotropicDamage3DTwoNLEquivalentStrains);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC", mElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC);
 
     // HCF (High Cycle Fatigue)

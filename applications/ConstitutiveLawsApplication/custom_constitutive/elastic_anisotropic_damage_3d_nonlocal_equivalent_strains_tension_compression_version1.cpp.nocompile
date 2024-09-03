@@ -12,6 +12,7 @@
 //  Collaborators:
 //
 //ToDo: Transform the calculated dHdEpseq_tension and dHdEpseq_compression in to global coordinates.
+// This the old version with principal of energy equivalence and some other changes(calculation of material tangents)
 // Project includes
 #include "elastic_anisotropic_damage_3d_nonlocal_equivalent_strains_tension_compression.h"
 #include "constitutive_laws_application_variables.h"

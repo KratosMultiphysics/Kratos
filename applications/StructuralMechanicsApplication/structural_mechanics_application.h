@@ -319,7 +319,9 @@ private:
     const SmallDisplacement mSmallDisplacement3D27N;
 
     const SmallDisplacementNonLocalHex mSmallDisplacementNonLocalHex3D8N;
+    const SmallDisplacementNonLocalHex mSmallDisplacementNonLocal3D4N;
     const SmallDisplacementHexTwoNonLocalVariables mSmallDisplacementHexTwoNonLocalVariables3D8N;
+    const SmallDisplacementHexTwoNonLocalVariables mSmallDisplacementTwoNonLocalVariables3D4N;
 
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;

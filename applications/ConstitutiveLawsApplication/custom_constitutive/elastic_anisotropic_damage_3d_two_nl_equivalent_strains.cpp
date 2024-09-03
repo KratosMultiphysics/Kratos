@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "elastic_anisotropic_damage_3d_nonlocal_equivalent_strain.h"
+#include "elastic_anisotropic_damage_3d_two_nl_equivalent_strains.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
@@ -26,7 +26,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ElasticAnisotropicDamage3DNonLocalEquivalentStrain()
+ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoNLEquivalentStrains()
     : ElasticIsotropic3D()
 {
 }
@@ -34,7 +34,7 @@ ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ElasticAnisotropicDamage3DNo
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ElasticAnisotropicDamage3DNonLocalEquivalentStrain(const ElasticAnisotropicDamage3DNonLocalEquivalentStrain &rOther)
+ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoNLEquivalentStrains(const ElasticAnisotropicDamage3DTwoNLEquivalentStrains &rOther)
     : ElasticIsotropic3D(rOther)
 {
 }
@@ -42,22 +42,22 @@ ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ElasticAnisotropicDamage3DNo
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Clone() const
+ConstitutiveLaw::Pointer ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Clone() const
 {
-    return Kratos::make_shared<ElasticAnisotropicDamage3DNonLocalEquivalentStrain>(ElasticAnisotropicDamage3DNonLocalEquivalentStrain(*this));
+    return Kratos::make_shared<ElasticAnisotropicDamage3DTwoNLEquivalentStrains>(ElasticAnisotropicDamage3DTwoNLEquivalentStrains(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DNonLocalEquivalentStrain::~ElasticAnisotropicDamage3DNonLocalEquivalentStrain()
+ElasticAnisotropicDamage3DTwoNLEquivalentStrains::~ElasticAnisotropicDamage3DTwoNLEquivalentStrains()
 {
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-int ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Check(
+int ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -77,7 +77,7 @@ int ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Check(
 //************************************************************************************
 //************************************************************************************
 
-bool ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<double>& rThisVariable)
+bool ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == STRAIN_ENERGY){
         // explicitly returning "false", so the element calls CalculateValue(...)
@@ -92,7 +92,7 @@ bool ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<doub
 //************************************************************************************
 //************************************************************************************
 
-bool ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<Vector>& rThisVariable)
+bool ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         // explicitly returning "false", so the element calls CalculateValue(...)s
@@ -111,7 +111,7 @@ bool ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<Vect
 //************************************************************************************
 //************************************************************************************
 
-double& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetValue(
+double& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -127,7 +127,7 @@ double& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::SetValue(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rProcessInfo
@@ -142,7 +142,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::SetValue(
 //************************************************************************************
 //************************************************************************************
 
-Vector& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetValue(
+Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValues
     )
@@ -158,7 +158,7 @@ Vector& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::SetValue(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValues,
     const ProcessInfo& rProcessInfo
@@ -173,7 +173,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::SetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::InitializeMaterial(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -185,7 +185,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::FinalizeMaterialResponseCauchy(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
@@ -200,7 +200,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::FinalizeMaterialRespons
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialResponsePK2(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
@@ -214,7 +214,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialRespon
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rDamageVector,
     double& rEquivalentStrain)
@@ -315,7 +315,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetEigenValues(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetEigenValues(
     BoundedVectorType& Pri_Values,
     const Variable<Vector>& rThisVariable,
     const Vector& VectorForm)
@@ -336,7 +336,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetEigenValues(
 //************************************************************************************
 //************************************************************************************
 
-double& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
+double& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateValue(
     ConstitutiveLaw::Parameters& rParametersValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -356,7 +356,7 @@ double& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
 //************************************************************************************
 //***********************************************************************************
 
-Vector& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
+Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateValue(
     ConstitutiveLaw::Parameters& rParametersValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -379,7 +379,7 @@ Vector& ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
 //************************************************************************************
 //***********************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetDamageEffectTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetDamageEffectTensor(
     BoundedMatrixVoigtType& DamageEffectTensor,
     const BoundedVectorType& DamageVector
 )
@@ -400,7 +400,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetDamageEffectTensor(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetTransformedDamageEffectTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetTransformedDamageEffectTensor(
     BoundedMatrixVoigtType& TransformedDamageEffectTensor,
     const BoundedMatrixVoigtType& DamageEffectTensor,
     const Vector& StrainVector
@@ -505,7 +505,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetTransformedDamageEff
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::VectorToTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::VectorToTensor(
     BoundedMatrixType& TensorForm,
     const Vector& VectorForm,
     const Variable<Vector>& rThisVariable
@@ -530,7 +530,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::VectorToTensor(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ScaleNonlocalEquivalentStrain(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ScaleNonlocalEquivalentStrain(
     BoundedVectorType& Principal_Nonlocal_Equivalent_Strain,
     const BoundedVectorType& Principal_Strains,
     const double& Nonlocal_Equivalent_Strain,
@@ -548,7 +548,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::ScaleNonlocalEquivalent
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Calculate_tangent_HuNL(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HuNL(
     BoundedVectorVoigtType& H_uNL,
     ConstitutiveLaw::Parameters& rParametersValues,
     const Vector& Damage_Vector,
@@ -591,7 +591,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Calculate_tangent_HuNL(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Calculate_tangent_HNLu(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HNLu(
     BoundedVectorVoigtType& H_NLu,
     ConstitutiveLaw::Parameters& rParametersValues,
     const BoundedVectorType& Principal_Strains
@@ -616,7 +616,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::Calculate_tangent_HNLu(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateDerivativesofEigenvalues(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateDerivativesofEigenvalues(
      BoundedMatrix3x6Type &DerivativesofEigenvalues,
      const BoundedVectorType &EigenvaluesVector,
      const BoundedVectorVoigtType &Voigtform,
@@ -652,7 +652,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateDerivativesofE
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::AssembleConstitutiveMatrix(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::AssembleConstitutiveMatrix(
     Matrix& ConstitutiveMatrix,
     const Matrix& H_uu,
     const Vector& H_NLu,
@@ -684,7 +684,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::AssembleConstitutiveMat
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetLawFeatures(Features& rFeatures)
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -699,7 +699,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetLawFeatures(Features
 
 
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSerializer) const
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mEquivalentStrain", mEquivalentStrain);
@@ -709,7 +709,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSeria
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::load(Serializer& rSerializer)
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mEquivalentStrain", mEquivalentStrain);

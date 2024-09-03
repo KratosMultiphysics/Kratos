@@ -279,16 +279,16 @@ void SmallDisplacementNonLocalHex::CalculateAll(
     KRATOS_TRY;
 
     auto& r_geometry = this->GetGeometry();
-    constexpr SizeType number_of_nodes = 8;
-    constexpr SizeType dimension = 3;
-    constexpr SizeType strain_size = 6;
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = (dimension == 3) ? 6 : 4;
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
     NonLocalConstitutiveVariables this_non_local_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
-    constexpr SizeType mat_size = number_of_nodes * (dimension+1);
+    const SizeType mat_size = number_of_nodes * (dimension+1);
 
     if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size )
