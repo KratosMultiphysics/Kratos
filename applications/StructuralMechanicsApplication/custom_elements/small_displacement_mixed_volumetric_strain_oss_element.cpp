@@ -253,6 +253,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
     }
 
     // Substract the OSS projections to the current residual
+    // Note that the OSS stabilization projection operator already includes the minus sign
     VectorType proj_vect(matrix_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_us_proj = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
@@ -467,7 +468,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
             const auto& r_body_force = gauss_point_auxiliary_variables.BodyForce;
             const auto& r_grad_eps = gauss_point_auxiliary_variables.VolumetricStrainGradient;
             for (IndexType d = 0; d < dim; ++d) {
-                aux_proj[d] = -r_body_force[d] - gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d];
+                aux_proj[d] = r_body_force[d] + gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d];
             }
 
             // Nodal assembly of the projection contributions

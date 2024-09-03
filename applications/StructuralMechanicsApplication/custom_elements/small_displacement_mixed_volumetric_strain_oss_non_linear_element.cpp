@@ -288,17 +288,19 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
     if (rRightHandSideVector.size() != matrix_size_full) {
         rRightHandSideVector.resize(matrix_size_full, false);
     }
+    rRightHandSideVector.clear();
 
-    // Call the base element to get the standard residual matrix
+    // Call the base element to get the standard residual vector
+    // Note that this already includes the substraction of the OSS projections
     VectorType aux_rhs(block_size * n_nodes);
     BaseType::CalculateRightHandSide(
         aux_rhs,
         rCurrentProcessInfo);
 
     // Call the base element OSS operator
-    MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
-    CalculateOrthogonalSubScalesStabilizationOperator(
-        aux_oss_stab_operator,
+    MatrixType aux_oss_operator(matrix_size, matrix_size);
+    CalculateOrthogonalSubScalesOperator(
+        aux_oss_operator,
         rCurrentProcessInfo);
 
     // Call the base element OSS lumped projection operator
@@ -339,13 +341,12 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
     }
 
     // Calculate auxiliary arrays
-    const VectorType oss_stab_times_unk = prod(trans(aux_oss_stab_operator), aux_unk);
-    const VectorType oss_stab_times_proj = prod(aux_oss_stab_operator, aux_projection);
+    const VectorType oss_stab_times_unk = prod(aux_oss_operator, aux_unk);
     const VectorType lumped_mass_times_proj = prod(aux_lumped_mass_operator, aux_projection);
 
     // Assemble the extended modal analysis RHS
     for (IndexType i = 0; i < matrix_size; ++i) {
-        rRightHandSideVector(i) = aux_rhs(i) - oss_stab_times_proj(i);
+        rRightHandSideVector(i) = aux_rhs(i); // Note that this already includes the projections substraction
         rRightHandSideVector(matrix_size + i) = - oss_stab_times_unk(i) - lumped_mass_times_proj(i);
     }
 }
@@ -426,7 +427,7 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::GetSecondDerivat
     rValues.clear();
 
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        const SizeType index = i_node * block_size_full;
+        const SizeType index = i_node * block_size;
         const auto& r_acc = r_geometry[i_node].FastGetSolutionStepValue(ACCELERATION, Step);
         for(IndexType d = 0; d < dim; ++d) {
             rValues[index + d] = r_acc[d];
