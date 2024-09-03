@@ -4,7 +4,7 @@
 ## Incremental linear elastic interface law
 The constitutive law for an interface element relates tractions $\tau$ to relative displacement $\Delta u$.
 Relative displacement for interface element is the differential motion between the two sides of the interface. As a
-consequence the relative displacement has unit of length [$\mathrm{L}$] and the stiffness has unit of force over cubic length [$\mathrm{F/L^3}$].
+consequence the relative displacement has unit of length $[\mathrm{L}]$ and the stiffness has unit of force over cubic length $[\mathrm{F/L^3}]$.
 
 ### Relative displacement and traction
 In 2D plane strain $y$ is the opening/closing direction of the interface, while differential motion in the tangential direction
