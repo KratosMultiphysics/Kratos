@@ -33,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForHorizontalI
     Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
 
     // Assert
-    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForInclinedInterface,
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     // Assert
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5 * sqrt(3), -0.5, 0.5, 0.5 * sqrt(3); // Rotation of 30 degrees counterclockwise
-    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForInclinedInterface2,
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     // Assert
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5, -0.5 * sqrt(3), 0.5 * sqrt(3), 0.5; // rotation of 60 degrees counterclockwise
-    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForInclinedInterface_WithNonUnitLength,
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     // Assert
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5 * sqrt(3), -0.5, 0.5, 0.5 * sqrt(3); // Rotation of 30 degrees counterclockwise
-    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForVerticalElement_WithNonUnitLength,
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     // Assert
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.0, 1.0, -1.0, 0.0; // Rotation of 270 degrees counterclockwise
-    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedInterface_WithNonUnitLength,
@@ -128,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedI
     Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
 
     // Assert
-    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
 } // namespace Kratos::Testing
