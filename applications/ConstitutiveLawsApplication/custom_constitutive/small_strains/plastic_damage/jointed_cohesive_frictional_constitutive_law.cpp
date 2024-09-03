@@ -104,9 +104,9 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
             if (yield <= ratio_tolerance) { // we remain solid
                 noalias(rValues.GetStressVector()) = aux_stress_vector_trial;
-                noalias(mLocalTraction) = tc_trial;
+                // noalias(mLocalTraction) = tc_trial;
             } else { // crack starts...
-                mDoubleScale = true;
+                // mDoubleScale = true;
 
                 Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
 
@@ -142,9 +142,9 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
                 if (yield <= ratio_tolerance) { // Unloading/reloading
                     noalias(rValues.GetStressVector()) = stress_vector_trial;
-                    noalias(mUc) = uc;
-                    noalias(tc) = tc_trial;
-                    noalias(mLocalTraction) = tc;
+                    // noalias(mUc) = uc;
+                    // noalias(tc) = tc_trial;
+                    // noalias(mLocalTraction) = tc;
                 } else { // damage and plast increase, ln170 matlab
                     Vector ucp = mUcp;
                     double D = mDamage;
@@ -264,13 +264,13 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
                         iteration++;
                     } // while
-                    noalias(mUcp) = ucp;
-                    noalias(mUc) = uc;
+                    // noalias(mUcp) = ucp;
+                    // noalias(mUc) = uc;
                     
-                    mDamage = D;
-                    mUp = up;
+                    // mDamage = D;
+                    // mUp = up;
                 }
-                noalias(mLocalTraction) = tc;
+                // noalias(mLocalTraction) = tc;
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
         } else { // mDoubleScale == true already
@@ -311,8 +311,8 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
             if (yield <= ratio_tolerance) { // Unloading/reloading
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
                 noalias(tc) = tc_trial;
-                noalias(mLocalTraction) = tc;
-                noalias(mUc) = uc;
+                // noalias(mLocalTraction) = tc;
+                // noalias(mUc) = uc;
             } else { // damage and plast increase, ln170 matlab
                 Vector ucp = mUcp;
                 double D = mDamage;
@@ -433,18 +433,18 @@ void JointedCohesiveFrictionalConstitutiveLaw::CalculateMaterialResponsePK2(
 
                     iteration++;
                 } // while
-                noalias(mUcp) = ucp;
-                noalias(mUc) = uc;
-                noalias(mLocalTraction) = tc;
-                mDamage = D;
-                mUp = up;
+                // noalias(mUcp) = ucp;
+                // noalias(mUc) = uc;
+                // noalias(mLocalTraction) = tc;
+                // mDamage = D;
+                // mUp = up;
                 noalias(rValues.GetStressVector()) = stress_vector_trial;
             }
         } // already open crack
     }
 
-    noalias(mOldStressVector) = rValues.GetStressVector();
-    noalias(mOldStrainVector) = rValues.GetStrainVector();
+    // noalias(mOldStressVector) = rValues.GetStressVector();
+    // noalias(mOldStrainVector) = rValues.GetStrainVector();
 
     if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         CalculateTangentTensor(rValues);
@@ -461,6 +461,395 @@ void JointedCohesiveFrictionalConstitutiveLaw::FinalizeMaterialResponseCauchy(
     )
 {
 
+    KRATOS_TRY;
+
+    Flags &r_cl_options = rValues.GetOptions();
+    const auto& r_strain_vector = rValues.GetStrainVector();
+    const auto strain_increment = r_strain_vector - mOldStrainVector;
+
+    const auto &r_props = rValues.GetMaterialProperties();
+    // We retrieve material properties
+    const double E  = r_props[YOUNG_MODULUS];
+    const double nu = r_props[POISSON_RATIO];
+    const Vector &r_joint_cl_props = r_props[CURVE_FITTING_PARAMETERS];
+    const double fc      = r_joint_cl_props[0];
+    const double ft      = r_joint_cl_props[1];
+    const double Kn      = r_joint_cl_props[2];
+    const double Ks      = r_joint_cl_props[3];
+    const double muy     = r_joint_cl_props[4];
+    const double delta_0 = r_joint_cl_props[5];
+    const double H       = r_joint_cl_props[6];
+    const double m       = r_joint_cl_props[7];
+    const double muy0    = r_joint_cl_props[8];
+    const double alpha0  = r_joint_cl_props[9];
+    const double beta    = r_joint_cl_props[10];
+    const double gamma   = r_joint_cl_props[11];
+
+    this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+    Matrix &a0 = rValues.GetConstitutiveMatrix();
+
+    // Compute the trial stress
+    Vector stress_increment_trial(VoigtSize);
+    noalias(stress_increment_trial) = prod(a0, strain_increment);
+
+    const Vector aux_stress_vector_trial = mOldStressVector + stress_increment_trial;
+
+    if (!mDoubleScale) { // Crack not opened
+
+        // Rotation and normal matrices
+        Matrix& R = mR;
+        Matrix& n = mn;
+
+        // Estimate joint orientation with respect to some trial stress
+        CalculateJointOrientation(R, n, aux_stress_vector_trial, mDamage, muy0, muy, ft, m, fc);
+
+        Vector tc_trial = prod(R, Vector(prod(trans(n), aux_stress_vector_trial)));
+        double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
+
+        if (yield <= ratio_tolerance) { // we remain solid
+            noalias(rValues.GetStressVector()) = aux_stress_vector_trial;
+            noalias(mLocalTraction) = tc_trial;
+        } else { // crack starts...
+            mDoubleScale = true;
+
+            Vector tc = prod(R, Vector(prod(trans(n), mOldStressVector)));
+
+            Matrix KcE(Dimension, Dimension);
+            KcE.clear();
+            KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - mDamage);
+            KcE(1, 1) = Ks * (1.0 - mDamage);
+
+            Matrix KcE_inv(Dimension, Dimension);
+            double det_KcE;
+            MathUtils<double>::InvertMatrix(KcE, KcE_inv, det_KcE);
+
+            Vector uc = prod(KcE_inv, tc);
+
+            const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
+
+            Matrix inv_C(Dimension, Dimension);
+            double det_C;
+            MathUtils<double>::InvertMatrix(C, inv_C, det_C);
+
+            const Matrix aux = prod(inv_C, trans(n));
+            const Vector delta_u_trial = prod(aux, stress_increment_trial);
+            const Vector delta_uc_trial = prod(R, delta_u_trial);
+
+            const Vector delta_stress_trial = stress_increment_trial - prod(a0, Vector(prod(n, delta_u_trial))) / H;
+            Vector stress_vector_trial = mOldStressVector + delta_stress_trial;
+
+            Vector tc_trial = tc + prod(R, Vector(prod(trans(n), delta_stress_trial)));
+
+            noalias(uc) += delta_uc_trial;
+
+            double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
+
+            if (yield <= ratio_tolerance) { // Unloading/reloading
+                noalias(rValues.GetStressVector()) = stress_vector_trial;
+                noalias(mUc) = uc;
+                noalias(tc) = tc_trial;
+                noalias(mLocalTraction) = tc;
+            } else { // damage and plast increase, ln170 matlab
+                Vector ucp = mUcp;
+                double D = mDamage;
+                double up = mUp;
+                // dy_dtc
+                Vector dy_dtc(Dimension);
+                dy_dtc[0] = -2.0 * (tc_trial[0] - (1.0 - D) * ft) * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * (1.0 - D);
+                dy_dtc[1] = 2.0 * tc_trial[1];
+
+                // dtc_dupc
+                Matrix dtc_dupc = -KcE;
+
+                // dg_dtc
+                Vector dg_dtc(Dimension);
+                dg_dtc[0] = dy_dtc[0];
+                dg_dtc[1] = dy_dtc[1] * gamma;
+
+                // dtc_dD
+                Vector dtc_dD(Dimension);
+                dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+                dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
+
+                // dy_dD
+                double aux_1 = (tc_trial[0] - (1.0 - D) * ft);
+                double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
+
+                double alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
+                double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
+
+                // compute dlamda
+                double plastic_denom_1 = inner_prod(dy_dtc, Vector(prod(dtc_dupc, dg_dtc)));
+                double plastic_denom_2 = P * inner_prod(dy_dtc, dtc_dD);
+                double plastic_denom_3 = P * dy_dD;
+                double dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
+
+                // plastic displacement increment
+                Vector dupc = dlambda * dg_dtc;
+                double dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+
+                // Update traction
+                Vector AAA = dlambda * P * dtc_dD;
+
+                noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+
+                Vector residual = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+                double ratio_norm_residual = (norm_2(tc) > tolerance) ? norm_2(residual) / norm_2(tc) : norm_2(residual);
+
+                up += dup;
+                noalias(ucp) += dupc;
+                D = 1.0 - std::exp(-up);
+
+                // Return mapping algorithm...
+                int iteration = 1, max_iter = 100;
+                Vector dsigma(VoigtSize), du(Dimension), duc(Dimension);
+                while (ratio_norm_residual >= ratio_tolerance && iteration < max_iter) {
+                    KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - D);
+                    KcE(1, 1) = Ks * (1.0 - D);
+                    alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
+
+                    const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
+                    Matrix inv_mat(Dimension, Dimension);
+                    double det_mat;
+                    MathUtils<double>::InvertMatrix(aux_to_inv, inv_mat, det_mat);
+
+                    noalias(du) = prod(inv_mat, residual);
+                    noalias(duc) = prod(R, du);
+
+                    noalias(tc_trial) = tc + prod(KcE, duc);
+                    yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
+
+                    if (yield < tolerance) {
+                        dupc.clear();
+                        dup = 0.0;
+                    } else {
+                        // Update derivatives
+                        dy_dtc[0] = -2.0 * (tc_trial[0] - (1.0 - D) * ft) * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * (1.0 - D);
+                        dy_dtc[1] = 2.0 * tc_trial[1];
+
+                        noalias(dtc_dupc) = -KcE;
+
+                        dg_dtc[0] = dy_dtc[0];
+                        dg_dtc[1] = dy_dtc[1] * gamma;
+
+                        dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+                        dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
+
+                        aux_1 = (tc_trial[0] - (1.0 - D) * ft);
+                        dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
+
+                        P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
+
+                        // compute dlamda
+                        plastic_denom_1 = inner_prod(dy_dtc, Vector(prod(dtc_dupc, dg_dtc)));
+                        plastic_denom_2 = P * inner_prod(dy_dtc, dtc_dD);
+                        plastic_denom_3 = P * dy_dD;
+                        dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
+
+                        noalias(dupc) = dlambda * dg_dtc;
+                        dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+
+                        // Update traction
+                        Vector AAA = dlambda * P * dtc_dD;
+                        noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+                    }
+                    // Update stress
+                    noalias(dsigma) = -prod(a0, Vector(prod(n, du))) / H;
+                    noalias(stress_vector_trial) += dsigma;
+
+                    noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+                    ratio_norm_residual = (norm_2(tc) > tolerance) ? norm_2(residual) / norm_2(tc) : norm_2(residual);
+                
+                    noalias(ucp) += dupc;
+                    noalias(uc) += duc;
+                    up += dup;
+
+                    D = 1.0 - std::exp(-up);
+
+                    iteration++;
+                } // while
+                noalias(mUcp) = ucp;
+                noalias(mUc) = uc;
+                
+                mDamage = D;
+                mUp = up;
+            }
+            noalias(mLocalTraction) = tc;
+            noalias(rValues.GetStressVector()) = stress_vector_trial;
+        }
+    } else { // mDoubleScale == true already
+        Matrix& R = mR;
+        Matrix& n = mn;
+
+        Vector tc = mLocalTraction;
+
+        Matrix KcE(Dimension, Dimension);
+        KcE.clear();
+        KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - mDamage);
+        KcE(1, 1) = Ks * (1.0 - mDamage);
+
+        Matrix KcE_inv(Dimension, Dimension);
+        double det_KcE;
+        MathUtils<double>::InvertMatrix(KcE, KcE_inv, det_KcE);
+
+        Vector uc = mUc;
+
+        const Matrix C = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
+        Matrix inv_C(Dimension, Dimension);
+        double det_C;
+        MathUtils<double>::InvertMatrix(C, inv_C, det_C);
+
+        const Matrix aux = prod(inv_C, trans(n));
+        const Vector delta_u_trial = prod(aux, stress_increment_trial);
+        const Vector delta_uc_trial = prod(R, delta_u_trial);
+
+        const Vector delta_stress_trial = stress_increment_trial - prod(a0, Vector(prod(n, delta_u_trial))) / H;
+        Vector stress_vector_trial = mOldStressVector + delta_stress_trial;
+
+        Vector tc_trial = tc + prod(R, Vector(prod(trans(n), delta_stress_trial)));
+
+        noalias(uc) += delta_uc_trial;
+
+        double yield = YieldSurfaceValue(tc_trial[1], mDamage, muy0, muy, tc_trial[0], ft, m, fc);
+
+        if (yield <= ratio_tolerance) { // Unloading/reloading
+            noalias(rValues.GetStressVector()) = stress_vector_trial;
+            noalias(tc) = tc_trial;
+            noalias(mLocalTraction) = tc;
+            noalias(mUc) = uc;
+        } else { // damage and plast increase, ln170 matlab
+            Vector ucp = mUcp;
+            double D = mDamage;
+            double up = mUp;
+            // dy_dtc
+            Vector dy_dtc(Dimension);
+            dy_dtc[0] = -2.0 * (tc_trial[0] - (1.0 - D) * ft) * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * (1.0 - D);
+            dy_dtc[1] = 2.0 * tc_trial[1];
+
+            // dtc_dupc
+            Matrix dtc_dupc = -KcE;
+
+            // dg_dtc
+            Vector dg_dtc(Dimension);
+            dg_dtc[0] = dy_dtc[0];
+            dg_dtc[1] = dy_dtc[1] * gamma;
+
+            // dtc_dD
+            Vector dtc_dD(Dimension);
+            dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+            dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
+
+            // dy_dD
+            double aux_1 = (tc_trial[0] - (1.0 - D) * ft);
+            double dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
+
+            double alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
+            double P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
+
+            // compute dlamda
+            double plastic_denom_1 = inner_prod(dy_dtc, Vector(prod(dtc_dupc, dg_dtc)));
+            double plastic_denom_2 = P * inner_prod(dy_dtc, dtc_dD);
+            double plastic_denom_3 = P * dy_dD;
+            double dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
+
+            // plastic displacement increment
+            Vector dupc = dlambda * dg_dtc;
+            double dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+
+            // Update traction
+            Vector AAA = dlambda * P * dtc_dD;
+
+            noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+
+            Vector residual = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+            double ratio_norm_residual = (norm_2(tc) > tolerance) ? norm_2(residual) / norm_2(tc) : norm_2(residual);
+
+            up += dup;
+            noalias(ucp) += dupc;
+            D = 1.0 - std::exp(-up);
+
+            // Return mapping algorithm...
+            int iteration = 1, max_iter = 100;
+            Vector dsigma(VoigtSize), du(Dimension), duc(Dimension);
+            while (ratio_norm_residual >= ratio_tolerance && iteration < max_iter) {
+                KcE(0, 0) = Kn * Heaviside(tc[0]) * (1.0 - D);
+                KcE(1, 1) = Ks * (1.0 - D);
+                alpha = (tc_trial[0] < 0.0) ? alpha0 * std::exp(-tc_trial[0] / ft) : alpha0;
+
+                const Matrix aux_to_inv = prod(trans(n), Matrix(prod(a0, n))) / H + prod(trans(R), Matrix(prod(KcE, R)));
+                Matrix inv_mat(Dimension, Dimension);
+                double det_mat;
+                MathUtils<double>::InvertMatrix(aux_to_inv, inv_mat, det_mat);
+
+                noalias(du) = prod(inv_mat, residual);
+                noalias(duc) = prod(R, du);
+
+                noalias(tc_trial) = tc + prod(KcE, duc);
+                yield = YieldSurfaceValue(tc_trial[1], D, muy0, muy, tc_trial[0], ft, m, fc);
+
+                if (yield < tolerance) {
+                    noalias(tc) = tc_trial;
+                    dupc.clear();
+                    dup = 0.0;
+                } else {
+                    // Update derivatives
+                    dy_dtc[0] = -2.0 * (tc_trial[0] - (1.0 - D) * ft) * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) + m * fc * (1.0 - D);
+                    dy_dtc[1] = 2.0 * tc_trial[1];
+
+                    noalias(dtc_dupc) = -KcE;
+
+                    dg_dtc[0] = dy_dtc[0];
+                    dg_dtc[1] = dy_dtc[1] * gamma;
+
+                    dtc_dD[0] = -Kn * Heaviside(tc_trial[0]) * (uc[0] - ucp[0]);
+                    dtc_dD[1] = -Ks * (uc[1] - ucp[1]);
+
+                    aux_1 = (tc_trial[0] - (1.0 - D) * ft);
+                    dy_dD = (std::pow(muy0, 2) - std::pow(muy, 2)) * std::pow(aux_1, 2) - 2.0 * ((1.0 - D) * std::pow(muy0, 2) + D * std::pow(muy, 2)) * aux_1 * ft - m * fc * aux_1 + m * fc * (1.0 - D) * ft;
+
+                    P = std::exp(-up) / delta_0 * std::sqrt(std::pow(alpha * dg_dtc[0], 2) + std::pow(beta * dg_dtc[1], 2));
+
+                    // compute dlamda
+                    plastic_denom_1 = inner_prod(dy_dtc, Vector(prod(dtc_dupc, dg_dtc)));
+                    plastic_denom_2 = P * inner_prod(dy_dtc, dtc_dD);
+                    plastic_denom_3 = P * dy_dD;
+                    dlambda = -yield / (plastic_denom_1 + plastic_denom_2 + plastic_denom_3);
+
+                    noalias(dupc) = dlambda * dg_dtc;
+                    dup = 1.0 / delta_0 * std::sqrt(std::pow(alpha * dupc[0], 2) + std::pow(beta * dupc[1], 2));
+
+                    // Update traction
+                    Vector AAA = dlambda * P * dtc_dD;
+                    noalias(tc) = tc_trial + AAA + prod(dtc_dupc, dupc);
+                }
+                // Update stress
+                noalias(dsigma) = -prod(a0, Vector(prod(n, du))) / H;
+                noalias(stress_vector_trial) += dsigma;
+
+                noalias(residual) = prod(trans(n), stress_vector_trial) - prod(trans(R), tc);
+                ratio_norm_residual = (norm_2(tc) > tolerance) ? norm_2(residual) / norm_2(tc) : norm_2(residual);
+            
+                noalias(ucp) += dupc;
+                noalias(uc) += duc;
+                up += dup;
+
+                D = 1.0 - std::exp(-up);
+
+                iteration++;
+            } // while
+            noalias(mUcp) = ucp;
+            noalias(mUc) = uc;
+            noalias(mLocalTraction) = tc;
+            mDamage = D;
+            mUp = up;
+            noalias(rValues.GetStressVector()) = stress_vector_trial;
+        }
+    } // already open crack
+
+    noalias(mOldStressVector) = rValues.GetStressVector();
+    noalias(mOldStrainVector) = rValues.GetStrainVector();
+
+    KRATOS_CATCH("");
 
 }
 

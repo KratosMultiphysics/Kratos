@@ -351,7 +351,6 @@ public:
         rR.clear();
         rn.clear();
 
-        double aux_theta = 0.0;
         while (theta < 180.0) {
             const long double angle_radians = theta * pi_over_180;
             const long double n1 = std::cos(angle_radians);
@@ -376,11 +375,9 @@ public:
                 y_max = y_trial;
                 noalias(rn) = n_trial;
                 noalias(rR) = R_trial;
-                aux_theta = theta;
             }
             theta += theta_incr;
         }
-        KRATOS_WATCH(aux_theta)
     }
 
 protected:
