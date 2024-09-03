@@ -72,4 +72,9 @@ double AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::CalculateIntegration
     KRATOS_CATCH("")
 }
 
+std::string AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Info() const
+{
+    return "AxisymmetricLineNormalFluidFlux2DDiffOrderCondition";
+}
+
 } // Namespace Kratos.
