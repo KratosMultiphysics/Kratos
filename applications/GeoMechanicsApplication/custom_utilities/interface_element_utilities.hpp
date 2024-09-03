@@ -190,6 +190,11 @@ public:
         rPermeabilityMatrix(2, 2) = JointWidth * JointWidth / 12.0;
     }
 
+    static Matrix Calculate2DRotationMatrix()
+    {
+        return IdentityMatrix(2);
+    }
+
 }; /* Class InterfaceElementUtilities*/
 } /* namespace Kratos.*/
 
