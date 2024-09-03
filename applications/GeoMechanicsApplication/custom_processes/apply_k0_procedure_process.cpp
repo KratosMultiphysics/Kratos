@@ -124,6 +124,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         array_1d<double, 3> correction(3, (PoissonUR / (1.0 - PoissonUR)) * (rProp[OCR] - 1.0));
         k0_vector -= correction;
     } else if (rProp.Has(POP)) {
+        // POP is entered as positive value, convention here is compression negative.
         POP_value = -rProp[POP];
     }
     // Get element stress vectorsn

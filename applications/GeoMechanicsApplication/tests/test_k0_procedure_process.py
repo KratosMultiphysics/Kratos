@@ -230,9 +230,9 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         # retrieve Cauchy stress tensor
         cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
 
-        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.
+        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
         k0_nc      = 0.6
-        poisson_ur = 0.
+        poisson_ur = 0.0
         ocr        = 1.5
         k0 = k0_nc * ocr + ( poisson_ur / ( 1.0 - poisson_ur ) ) * ( ocr - 1.0 )
         sig_integrationpoint1_element1 = cauchy_stresses[0][0]
@@ -257,9 +257,9 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         # retrieve Cauchy stress tensor
         cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
 
-        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.
+        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
         k0_nc = 0.6
-        # POP 0.4 * sig'_yy_bottom
+        # POP 0.4 * sig'_yy_bottom, to mimic an OCR = sig'_p / sig'_yy = 1.4
         pop   = -0.4 * (((1-0.3)*2338.2845492937236 + 0.3*1000)*9.81*100 - 1000*9.81*100)
         k0    = k0_nc
         sig_integrationpoint1_element1 = cauchy_stresses[0][0]

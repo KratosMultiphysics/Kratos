@@ -65,13 +65,13 @@ Pre-requisite is a computed stress field with the desired normal effective stres
 
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
-$K_{0_{NC}}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
+$K_{0^{nc}}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
 
-$$K_{0_{NC}} = 1.0 - \sin \phi$$
+$$K_0^{nc} = 1.0 - \sin \phi$$
 
 When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal consolidation value $K_{0_{NC}}$ is modified:
 
-$$K_0 = OCR \cdot K_{0_{NC}} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
+$$K_0 = OCR \cdot K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
 $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \cdot \sigma^{'}_{zz}} & 0 & 0 \\
                                          0 & {K_0 \cdot \sigma^{'}_{zz}} & 0 \\
@@ -79,15 +79,15 @@ $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \cdot \sigma^{'}_{zz}} & 0 & 0 \\
 
 Alternaternively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-$$\sigma^{'}_{initial} = \begin{bmatrix} {K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP )} & 0 & 0 \\
-                                         0 & {K_{0_{NC}} \cdot (\sigma^{'}_{zz} + POP)} & 0 \\
+$$\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} \cdot (\sigma^{'}_{zz} + POP )} & 0 & 0 \\
+                                         0 & {K_0^{nc} \cdot (\sigma^{'}_{zz} + POP)} & 0 \\
                                          0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}$$
 
-###Note:
+### Note:
 After the stress adaptation by the $K_0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.
 
 ### Usage
-The process is defined as follows in json (also found in some of the [integration tests](../tests/test_k0_procedure_process)):
+The process is defined as follows in json (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
   "auxilliary_process_list": [
@@ -103,7 +103,7 @@ The process is defined as follows in json (also found in some of the [integratio
   ]
 }
 ```
-The apply_k0_procedure_process need the following material parameter input.
+The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
   "Variables": {
