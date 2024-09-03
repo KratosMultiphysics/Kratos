@@ -42,14 +42,7 @@ public:
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
 
-        const auto points_of_mid_line = CreatePointsOfMidLine();
-
-        if (points_of_mid_line.size() == 2) {
-            mMidLineGeometry = std::make_unique<MidGeometryType>(points_of_mid_line);
-        } else {
-            mMidLineGeometry = std::make_unique<MidGeometryType>(points_of_mid_line);
-        }
-
+        mMidLineGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
         this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
     }
 
