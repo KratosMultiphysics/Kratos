@@ -51,6 +51,7 @@ namespace Testing
         node1.SetValue(TEMPERATURE, 99.0);
         node2.SetValue(TEMPERATURE, 199.0);
         node3.SetValue(TEMPERATURE, 1199.0);
+        node1.SetValue(HEAT_FLUX, 1.0); // Set the HEAT_FLUX for Neumann Conditions
         Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
 
         Condition::Pointer p_cond1 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1000, 1001}}, p_cond_prop );
@@ -214,7 +215,7 @@ namespace Testing
         const double tolerance = 1.0e-4;
 
         const std::array<double, 8> expected_LHS{-0.0189816,-0.00803494,0.00620128,0.00273667,0.00463952,0.00803494,0.0045553,0.000848855};
-        const std::array<double, 8> expected_RHS{0.00107745,0.00161618,0.000808089,0.000134682,5.6708e-05,8.5062e-05,4.2531e-05,7.0885e-06};
+        const std::array<double, 8> expected_RHS{0.0125166,0.0187749,0.00938743,0.00156457,0.000658767,0.000988151,0.000494075,8.23459e-05};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);

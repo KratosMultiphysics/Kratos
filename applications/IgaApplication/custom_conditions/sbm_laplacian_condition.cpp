@@ -106,13 +106,13 @@ namespace Kratos
         penalty = basis_functions_order * basis_functions_order * penalty / h;
 
         // Find the closest node in condition
-        auto GP_parameter_coord = r_geometry.Center();
         int closestNodeId;
         if (dim > 2) {
             double incumbent_dist = 1e16;
-            for (unsigned int i = 0; i < dim; i++) {
-                if (norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-GP_parameter_coord) < incumbent_dist) {
-                    incumbent_dist = norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-GP_parameter_coord);
+            // Loop over the three nodes of the closest skin element
+            for (unsigned int i = 0; i < 3; i++) {
+                if (norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                    incumbent_dist = norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-r_geometry.Center());
                     closestNodeId = i;
                 }
             }
@@ -286,10 +286,25 @@ namespace Kratos
         const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
-        {
+        {           
+            // Find the closest node in condition
+            int closestNodeId;
+            if (dim > 2) {
+                double incumbent_dist = 1e16;
+                // Loop over the three nodes of the closest skin element
+                for (unsigned int i = 0; i < 3; i++) {
+                    if (norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                        incumbent_dist = norm_2(candidateClosestSkinSegment1.GetGeometry()[i]-r_geometry.Center());
+                        closestNodeId = i;
+                    }
+                }
+            } else {
+                closestNodeId = 0;
+            }
+
             // Obtaining the projection from the closest skin segment
             Vector projection(3);
-            projection = candidateClosestSkinSegment1.GetGeometry()[0].Coordinates() ;
+            projection = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].Coordinates() ;
 
             Vector d(3);
             noalias(d) = projection - r_geometry.Center().Coordinates();
@@ -431,14 +446,7 @@ namespace Kratos
 
                 for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
-                    // 2D flux -- Fundamental for use Manufactured solution 
-                    t_N[i] = cos(projection[0]) * sinh(projection[1]) * true_n[0] + sin(projection[0]) * cosh(projection[1])  * true_n[1] ;
-                    
-                    // 3D flux -- Fundamental for use Manufactured solution   
-                    // true sol: sin(sqrt(2)*x)*sinh(y)*cosh(z)"
-                    // t_N[i] = sqrt(2) * cos(sqrt(2)*projection[0]) * sinh(projection[1]) *  cosh(projection[2]) * true_n[0] + 
-                    //                    sin(sqrt(2)*projection[0]) * cosh(projection[1]) *  cosh(projection[2]) * true_n[1] +
-                    //                    sin(sqrt(2)*projection[0]) * sinh(projection[1]) *  sinh(projection[2]) * true_n[2];
+                    t_N[i] = candidateClosestSkinSegment1.GetGeometry()[closestNodeId].GetValue(HEAT_FLUX);
                 }
                 // Neumann Contributions
                 noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * n_ntilde * r_integration_points[point_number].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
