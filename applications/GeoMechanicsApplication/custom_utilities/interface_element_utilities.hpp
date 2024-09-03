@@ -194,7 +194,7 @@ public:
     {
         Matrix rotation_matrix = ZeroMatrix(2, 2);
 
-        array_1d<double,3> xi{-1.0, 0.0, 0.0};
+        array_1d<double,3> xi{0.0, 0.0, 0.0};
         Matrix shape_functions_gradients;
         rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, xi);
 
