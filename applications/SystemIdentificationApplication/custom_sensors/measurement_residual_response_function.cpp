@@ -6,7 +6,8 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya,
+//                   Ihar Antonau
 //
 
 // System includes
