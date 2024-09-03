@@ -861,6 +861,8 @@ bool JointedCohesiveFrictionalConstitutiveLaw::Has(
     )
 {
     bool has = false;
+    if (rThisVariable == DAMAGE)
+        has = true;
     return has;
 }
 
@@ -884,6 +886,8 @@ double& JointedCohesiveFrictionalConstitutiveLaw::GetValue(
     )
 {
     rValue = 0.0;
+    if (rThisVariable == DAMAGE)
+        rValue = mDamage;
     return rValue;
 }
 
