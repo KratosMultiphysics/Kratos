@@ -40,7 +40,7 @@ Both stiffness values have dimension $\mathrm{F/L^3}$.
 
 The relation between the traction and the relative displacement for a given time increment is given by the following incremental equation:
 
-$$ \tau_{t + \Delta t} = \tau_t + C \cdot Delta \Delta u $$
+$$ \tau_{t + \Delta t} = \tau_t + C \cdot \Delta \Delta u $$
 
 Where:
 * $\tau_{t + \Delta t}$: The traction at the updated time $t + \Delta t$.
