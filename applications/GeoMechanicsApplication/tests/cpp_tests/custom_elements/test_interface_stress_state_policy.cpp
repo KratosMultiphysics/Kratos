@@ -55,10 +55,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenInputtingEmptyShapeFunc
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
-        "Shape function values are empty, cannot compute the B matrix.");
+        "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNotExactlyOneShapeFunctionValuePerNodePair,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = InterfaceStressState{};
@@ -70,7 +70,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNotExactlyOneShapeFunct
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix =
             stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry),
-        "Each node pair must have exactly one shape function value, cannot compute the B matrix.");
+        "The number of shape functions should be equal to the number of node pairs. Therefore, "
+        "the B matrix can not be computed.\n");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -132,8 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
-        "For interfaces, it is not possible to calculate the Green "
-        "Lagrange strain based on a deformation gradient.")
+        "For interfaces, it is not possible to calculate the Green-Lagrange "
+        "strain based on a deformation gradient.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)

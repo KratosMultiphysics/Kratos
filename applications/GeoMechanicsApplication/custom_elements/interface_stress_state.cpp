@@ -20,10 +20,10 @@ namespace Kratos
 Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
     KRATOS_ERROR_IF(rN.empty())
-        << "Shape function values are empty, cannot compute the B matrix.\n";
+        << "Shape function values are empty. Therefore, the B matrix can not be computed.\n";
     KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
-        << "Each node pair must have exactly one shape function value, cannot compute the B "
-           "matrix.\n";
+        << "The number of shape functions should be equal to the number of node pairs. Therefore, "
+           "the B matrix can not be computed.\n";
 
     Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
 
@@ -48,7 +48,7 @@ double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node
 
 Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
-    KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green Lagrange "
+    KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green-Lagrange "
                     "strain based on a deformation gradient.\n";
 }
 

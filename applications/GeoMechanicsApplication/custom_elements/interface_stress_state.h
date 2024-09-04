@@ -20,9 +20,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceStressState : public StressStatePolicy
 {
 public:
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
-                                          const Vector&         rN,
-                                          const Geometry<Node>& rGeometry) const override;
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,
                                                          const Geometry<Node>& rGeometry) const override;
@@ -31,8 +29,10 @@ public:
     [[nodiscard]] const Vector&                      GetVoigtVector() const override;
     [[nodiscard]] SizeType                           GetVoigtSize() const override;
     [[nodiscard]] SizeType                           GetStressTensorSize() const override;
-    static const Vector                              VoigtVectorInterface2D;
-    static Vector                                    DefineInterfaceVoigtVector();
+
+private:
+    static const Vector VoigtVectorInterface2D;
+    static Vector       DefineInterfaceVoigtVector();
 };
 
 } // namespace Kratos
