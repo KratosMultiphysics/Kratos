@@ -61,7 +61,10 @@ const Vector& InterfaceStressState::GetVoigtVector() const { return VoigtVectorI
 
 SizeType InterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
-SizeType InterfaceStressState::GetStressTensorSize() const { return 0; }
+SizeType InterfaceStressState::GetStressTensorSize() const
+{
+    KRATOS_ERROR << "For interfaces, the stress tensor size is not implemented.\n";
+}
 
 Vector InterfaceStressState::DefineInterfaceVoigtVector()
 {

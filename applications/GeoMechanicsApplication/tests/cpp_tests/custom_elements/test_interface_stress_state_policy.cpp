@@ -136,4 +136,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
         "Lagrange strain based on a deformation gradient.")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = InterfaceStressState{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
+        "For interfaces, the stress tensor size is not implemented.")
+}
+
 } // namespace Kratos::Testing
