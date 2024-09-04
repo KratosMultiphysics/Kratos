@@ -199,30 +199,46 @@ public:
         KRATOS_INFO("Calculate2DRotationMatrix")
             << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
 
-        std::vector<array_1d<double, 3>> mid_points;
-        for (std::size_t i = 0; i < rGeometry.size() / 2; ++i) {
-            mid_points.push_back(0.5 * (rGeometry[i] + rGeometry[i + rGeometry.size() / 2]));
-        }
+        const auto mid_points = CalculateMidPoints(rGeometry);
 
         KRATOS_INFO("Calculate2DRotationMatrix") << "mid_points: " << mid_points << std::endl;
 
-        array_1d<double, 3> tangential_vector = ZeroVector(3);
-        for (std::size_t i = 0; i < mid_points.size(); ++i) {
-            tangential_vector += mid_points[i] * shape_functions_gradients(0, i);
-        }
-
-        tangential_vector /= norm_2(tangential_vector);
+        const auto tangential_vector = CalculateTangentialVector(shape_functions_gradients, mid_points);
         KRATOS_INFO("Calculate2DRotationMatrix") << "tangential_vector: " << tangential_vector << std::endl;
-        auto out_of_plane = array_1d<double, 3>{0.0, 0.0, 1.0};
-        array_1d<double, 3> normal_vector = MathUtils<double>::CrossProduct(tangential_vector, out_of_plane);
 
         // clang-format off
-        Matrix rotation_matrix = ZeroMatrix(2, 2);
+        Matrix rotation_matrix(2, 2);
         rotation_matrix <<= tangential_vector[0], -tangential_vector[1],
                             tangential_vector[1], tangential_vector[0];
         // clang-format on
 
         return rotation_matrix;
+    }
+
+private:
+    static std::vector<array_1d<double, 3>> CalculateMidPoints(const Geometry<Node>& rGeometry)
+    {
+        std::vector<array_1d<double, 3>> mid_points;
+
+        const auto half_way_point = rGeometry.begin() + rGeometry.PointsNumber() / 2;
+        std::transform(rGeometry.begin(), half_way_point, half_way_point, std::back_inserter(mid_points),
+                       [](const Node& rNode1, const Node& rNode2) -> array_1d<double, 3> {
+            return 0.5 * (rNode1 + rNode2);
+        });
+
+        return mid_points;
+    }
+
+    static array_1d<double, 3> CalculateTangentialVector(const Matrix& rShapeFunctionGradients,
+                                                         const std::vector<array_1d<double, 3>>& rLocations)
+    {
+        array_1d<double, 3> tangential_vector = ZeroVector(3);
+        for (std::size_t i = 0; i < rLocations.size(); ++i) {
+            tangential_vector += rLocations[i] * rShapeFunctionGradients(0, i);
+        }
+        tangential_vector /= norm_2(tangential_vector);
+
+        return tangential_vector;
     }
 
 }; /* Class InterfaceElementUtilities*/
