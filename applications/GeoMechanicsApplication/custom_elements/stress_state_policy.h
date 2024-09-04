@@ -40,15 +40,10 @@ public:
 protected:
     static const Vector VoigtVector2D;
     static const Vector VoigtVector3D;
-    static const Vector VoigtVectorInterface2D;
 
     static constexpr SizeType GetVoigtSize2D() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
 
-    static constexpr SizeType GetVoigtSizeInterface2D() { return VOIGT_SIZE_2D_INTERFACE; }
-
     static constexpr SizeType GetVoigtSize3D() { return VOIGT_SIZE_3D; }
-
-    static constexpr SizeType GetVoigtSizeInterface3D() { return VOIGT_SIZE_3D_INTERFACE; }
 
     static constexpr SizeType GetStressTensorSize2D() { return STRESS_TENSOR_SIZE_2D; }
 
@@ -56,16 +51,10 @@ protected:
 
 private:
     static Vector DefineVoigtVector(std::size_t Dimension);
-    static Vector DefineInterfaceVoigtVector(std::size_t Dimension);
 
     static constexpr std::size_t GetVoigtSize(std::size_t Dimension)
     {
         return Dimension == N_DIM_3D ? GetVoigtSize3D() : GetVoigtSize2D();
-    }
-
-    static constexpr std::size_t GetInterfaceVoigtSize(std::size_t Dimension)
-    {
-        return Dimension == N_DIM_3D ? GetVoigtSizeInterface3D() : GetVoigtSizeInterface2D();
     }
 
     static constexpr std::size_t GetStressTensorSize(std::size_t Dimension)

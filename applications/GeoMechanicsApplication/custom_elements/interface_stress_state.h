@@ -31,6 +31,8 @@ public:
     [[nodiscard]] const Vector&                      GetVoigtVector() const override;
     [[nodiscard]] SizeType                           GetVoigtSize() const override;
     [[nodiscard]] SizeType                           GetStressTensorSize() const override;
+    static const Vector                              VoigtVectorInterface2D;
+    static Vector                                    DefineInterfaceVoigtVector();
 };
 
 } // namespace Kratos
