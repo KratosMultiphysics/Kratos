@@ -197,11 +197,14 @@ public:
         array_1d<double,3> xi{0.0, 0.0, 0.0};
         Matrix shape_functions_gradients;
         rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, xi);
+        KRATOS_INFO("Calculate2DRotationMatrix") << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
 
         std::vector<array_1d<double, 3>> mid_points;
         for (std::size_t i = 0; i < rGeometry.size()/2; ++i) {
             mid_points.push_back(0.5 * (rGeometry[i] + rGeometry[i + rGeometry.size()/2]));
         }
+
+        KRATOS_INFO("Calculate2DRotationMatrix") << "mid_points: " << mid_points << std::endl;
 
         array_1d<double, 3> tangential_vector = ZeroVector(3);
         for (std::size_t i = 0; i < mid_points.size(); ++i) {
@@ -213,7 +216,6 @@ public:
         auto out_of_plane = array_1d<double, 3> {0.0, 0.0, 1.0};
         array_1d<double, 3> normal_vector = MathUtils<double>::CrossProduct(tangential_vector, out_of_plane);
 
-        KRATOS_INFO("Calculate2DRotationMatrix") << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
 
         rotation_matrix(0,0) = tangential_vector[0];
         rotation_matrix(0,1) = -tangential_vector[1];

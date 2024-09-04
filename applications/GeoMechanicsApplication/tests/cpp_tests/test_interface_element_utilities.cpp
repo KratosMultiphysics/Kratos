@@ -131,23 +131,23 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedI
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationForCurved3Plus3NodedInterface_WithNonUnitLength,
-//                           KratosGeoMechanicsFastSuiteWithoutKernel)
-// {
-//     PointerVector<Node> nodes;
-//     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-//     nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, -1.0, 0.0));
-//     nodes.push_back(Kratos::make_intrusive<Node>(3, 2.0, 0.0, 0.0));
-//     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-//     nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, -1.0, 0.0));
-//     nodes.push_back(Kratos::make_intrusive<Node>(6, 2.0, 0.0, 0.0));
-//     LineInterfaceGeometry geometry(1, nodes);
-//
-//     // Act
-//     Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
-//
-//     // Assert
-//     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
-// }
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationForCurved3Plus3NodedInterface_WithNonUnitLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 2.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 1.0, -1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 2.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, -1.0, 0.0));
+    LineInterfaceGeometry geometry(1, nodes);
+
+    // Act
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+
+    // Assert
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
+}
 
 } // namespace Kratos::Testing
