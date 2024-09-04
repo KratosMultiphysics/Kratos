@@ -40,8 +40,6 @@ namespace Kratos
         
         const unsigned int dim = DN_De[0].size2();
         Matrix DN_DX(number_of_nodes,dim);
-
-        typedef typename GeometryType::CoordinatesArrayType  CoordinatesArrayType;
         
         // Compute the normals
         array_1d<double, 3> normal_physical_space;
