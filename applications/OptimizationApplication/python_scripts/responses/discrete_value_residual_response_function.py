@@ -130,4 +130,4 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
                             exp.SetExpression(exp.GetExpression() + (((values - value_i) ** (-2)) * (values - value_i) * 2.0).GetExpression())
                     exp.SetExpression(Kratos.Expression.Utils.Collapse(exp).GetExpression())
             else:
-                raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\tSHAPE")
+                raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\t{self.variable.Name()}")

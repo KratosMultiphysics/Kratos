@@ -87,6 +87,12 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
     rRightHandSideVector += rVariables.PVector;
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwNormalFluxCondition";
+}
+
 template class PwNormalFluxCondition<2, 2>;
 template class PwNormalFluxCondition<2, 3>;
 template class PwNormalFluxCondition<2, 4>;

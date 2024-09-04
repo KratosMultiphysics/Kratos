@@ -85,4 +85,9 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vect
     }
 }
 
+std::string LineNormalFluidFlux2DDiffOrderCondition::Info() const
+{
+    return "LineNormalFluidFlux2DDiffOrderCondition";
+}
+
 } // Namespace Kratos.

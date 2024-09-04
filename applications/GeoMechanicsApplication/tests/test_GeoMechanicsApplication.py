@@ -16,6 +16,7 @@ from test_benchmark_set_2 import KratosGeoMechanicsBenchmarkSet2
 from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInteractionTests
 from test_water_pressure import KratosGeoMechanicsWaterPressureTests
 from test_dynamics import KratosGeoMechanicsDynamicsTests
+from test_dynamics_long import KratosGeoMechanicsDynamicsLongTests
 from test_elements import KratosGeoMechanicsElementTypeTests
 from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGroundWaterFlowTests
 from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWaterFlowTests
@@ -130,7 +131,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsBenchmarkSet1,
                         KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
-                        TestSellmeijersRuleValidation
+                        TestSellmeijersRuleValidation,
+                        KratosGeoMechanicsDynamicsLongTests
                         ]
 
     # Create an array that contains all the tests from every testCase
