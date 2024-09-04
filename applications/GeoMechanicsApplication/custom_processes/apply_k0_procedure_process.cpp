@@ -116,18 +116,21 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         KRATOS_ERROR << "Insufficient material data for K0 procedure process: " << std::endl;
     }
     const auto PoissonUR = rProp.Has(POISSON_UNLOADING_RELOADING) ? rProp[POISSON_UNLOADING_RELOADING] : 0.;
+    const auto PoissonURfactor = PoissonUR / (1. - PoissonUR);
 
     double POP_value = 0.0;
-    if ((rProp.Has(K0_NC) || rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER)) && rProp.Has(OCR)) {
-        // Determine OCR dependent K0 values ( constant per element! )
-        k0_vector *= rProp[OCR];
-        array_1d<double, 3> correction(3, (PoissonUR / (1.0 - PoissonUR)) * (rProp[OCR] - 1.0));
-        k0_vector -= correction;
-    } else if (rProp.Has(POP)) {
-        // POP is entered as positive value, convention here is compression negative.
-        POP_value = -rProp[POP];
+    if (rProp.Has(K0_NC) || rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER)) {
+        if (rProp.Has(OCR)) {
+            // Determine OCR dependent K0 values ( constant per element! )
+            k0_vector *= rProp[OCR];
+            array_1d<double, 3> correction(3, PoissonURfactor * (rProp[OCR] - 1.0));
+            k0_vector -= correction;
+        } else if (rProp.Has(POP)) {
+            // POP is entered as positive value, convention here is compression negative.
+            POP_value = -rProp[POP];
+        }
     }
-    // Get element stress vectorsn
+    // Get element stress vectors
     const ProcessInfo& rCurrentProcessInfo = this->mrModelPart.GetProcessInfo();
     std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
     rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
@@ -140,7 +143,9 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVectors[g_point][i_dir] = k0_vector[i_dir] * (rStressVectors[g_point][k0_main_direction] + POP_value);
+                rStressVectors[g_point][i_dir] =
+                    k0_vector[i_dir] * (rStressVectors[g_point][k0_main_direction] + POP_value);
+                rStressVectors[g_point][i_dir] -= PoissonURfactor * POP_value;
             }
         }
         // Erase shear stresses
