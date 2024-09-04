@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/element.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
@@ -192,16 +193,15 @@ public:
 
     static Matrix Calculate2DRotationMatrix(const Geometry<Node>& rGeometry)
     {
-        Matrix rotation_matrix = ZeroMatrix(2, 2);
-
-        array_1d<double,3> xi{0.0, 0.0, 0.0};
-        Matrix shape_functions_gradients;
+        array_1d<double, 3> xi{0.0, 0.0, 0.0};
+        Matrix              shape_functions_gradients;
         rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, xi);
-        KRATOS_INFO("Calculate2DRotationMatrix") << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
+        KRATOS_INFO("Calculate2DRotationMatrix")
+            << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
 
         std::vector<array_1d<double, 3>> mid_points;
-        for (std::size_t i = 0; i < rGeometry.size()/2; ++i) {
-            mid_points.push_back(0.5 * (rGeometry[i] + rGeometry[i + rGeometry.size()/2]));
+        for (std::size_t i = 0; i < rGeometry.size() / 2; ++i) {
+            mid_points.push_back(0.5 * (rGeometry[i] + rGeometry[i + rGeometry.size() / 2]));
         }
 
         KRATOS_INFO("Calculate2DRotationMatrix") << "mid_points: " << mid_points << std::endl;
@@ -213,14 +213,15 @@ public:
 
         tangential_vector /= norm_2(tangential_vector);
         KRATOS_INFO("Calculate2DRotationMatrix") << "tangential_vector: " << tangential_vector << std::endl;
-        auto out_of_plane = array_1d<double, 3> {0.0, 0.0, 1.0};
+        auto out_of_plane = array_1d<double, 3>{0.0, 0.0, 1.0};
         array_1d<double, 3> normal_vector = MathUtils<double>::CrossProduct(tangential_vector, out_of_plane);
 
+        // clang-format off
+        Matrix rotation_matrix = ZeroMatrix(2, 2);
+        rotation_matrix <<= tangential_vector[0], -tangential_vector[1],
+                            tangential_vector[1], tangential_vector[0];
+        // clang-format on
 
-        rotation_matrix(0,0) = tangential_vector[0];
-        rotation_matrix(0,1) = -tangential_vector[1];
-        rotation_matrix(1,0) = tangential_vector[1];
-        rotation_matrix(1,1) = tangential_vector[0];
         return rotation_matrix;
     }
 
