@@ -216,8 +216,8 @@ public:
         KRATOS_INFO("Calculate2DRotationMatrix") << "shape_functions_gradients: " << shape_functions_gradients << std::endl;
 
         rotation_matrix(0,0) = tangential_vector[0];
-        rotation_matrix(0,1) = tangential_vector[1];
-        rotation_matrix(1,0) = -tangential_vector[1];
+        rotation_matrix(0,1) = -tangential_vector[1];
+        rotation_matrix(1,0) = tangential_vector[1];
         rotation_matrix(1,1) = tangential_vector[0];
         return rotation_matrix;
     }
