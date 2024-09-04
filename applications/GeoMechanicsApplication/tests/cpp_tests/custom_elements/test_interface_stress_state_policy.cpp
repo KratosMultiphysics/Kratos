@@ -12,11 +12,28 @@
 
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/line_interface_geometry.h"
-#include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
+
+namespace
+{
+
+auto CreateThreePlusThree2DLineInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 2.5, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 5.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 2.5, 0.0, 0.0));
+    return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
+}
+
+} // namespace
 
 namespace Kratos::Testing
 {
@@ -26,18 +43,34 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, Krat
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<InterfaceStressState>();
 
-    KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_stress_state_policy->Clone().get()), nullptr);
+    const auto p_cloned_policy = p_stress_state_policy->Clone();
+    KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_cloned_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsEmptyBMatrixWhenInputtingEmptyShapeFunctionValues,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = InterfaceStressState{};
 
-    const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {});
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
+        "Shape function values are empty, cannot compute the B matrix.");
+}
 
-    KRATOS_EXPECT_EQ(b_matrix.size1(), 0);
-    KRATOS_EXPECT_EQ(b_matrix.size2(), 0);
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNotExactlyOneShapeFunctionValuePerNodePair,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = InterfaceStressState{};
+    const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
+
+    Vector shape_function_values(2);
+    shape_function_values <<= 1.0, 2.0;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto b_matrix =
+            stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry),
+        "Each node pair must have exactly one shape function value, cannot compute the B matrix.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -62,15 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = InterfaceStressState{};
-
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 2.5, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 2.5, 0.0, 0.0));
-    auto geometry = LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
+    const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
     Vector shape_function_values(3);
     shape_function_values <<= -0.125, 0.375, 0.75; // Shape function values for xi = 0.5
@@ -97,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoeffici
         integration_point, detJ, LineInterfaceGeometry<Line2D3<Node>>());
 
     // The expected number is calculated as follows:
-    // 2.0 (detJ) * 0.5 (weight) = 1.0
+    // weight * detJ = 0.5 * 2.0 = 1.0
     KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
 }
 

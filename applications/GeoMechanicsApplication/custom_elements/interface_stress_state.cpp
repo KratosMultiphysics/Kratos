@@ -10,15 +10,20 @@
 //  Main authors:    Richard Faasse
 //
 #include "interface_stress_state.h"
+#include "geo_mechanics_application_constants.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
 
-Matrix InterfaceStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN, const Geometry<Node>& rGeometry) const
+Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
-    if (rN.empty()) return {};
+    KRATOS_ERROR_IF(rN.empty())
+        << "Shape function values are empty, cannot compute the B matrix.\n";
+    KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
+        << "Each node pair must have exactly one shape function value, cannot compute the B "
+           "matrix.\n";
 
     Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
 
