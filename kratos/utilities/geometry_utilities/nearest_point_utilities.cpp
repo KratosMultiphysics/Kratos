@@ -25,7 +25,8 @@ namespace Kratos
 Point NearestPointUtilities::LineNearestPoint(
     const array_1d<double, 3>& rPoint,
     const array_1d<double, 3>& rLinePointA,
-    const array_1d<double, 3>& rLinePointB
+    const array_1d<double, 3>& rLinePointB,
+    const double Tolerance
     )
 {
     // Project point globally into the line
@@ -37,33 +38,27 @@ Point NearestPointUtilities::LineNearestPoint(
     double lx = rLinePointA[0] - rLinePointB[0];
     double ly = rLinePointA[1] - rLinePointB[1];
     double lz = rLinePointA[2] - rLinePointB[2];
-    double square_length = lx * lx + ly * ly + lz * lz;
+    const double square_length = lx * lx + ly * ly + lz * lz;
 
     // Compute square_length of the projection (A)
     lx = result[0] - rLinePointA[0];
     ly = result[1] - rLinePointA[1];
     lz = result[2] - rLinePointA[2];
-    double square_length_1 = lx * lx + ly * ly + lz * lz;
+    const double square_length_1 = lx * lx + ly * ly + lz * lz;
 
     // Compute square_length of the projection (B)
     lx = result[0] - rLinePointB[0];
     ly = result[1] - rLinePointB[1];
     lz = result[2] - rLinePointB[2];
-    double square_length_2 = lx * lx + ly * ly + lz * lz;
+    const double square_length_2 = lx * lx + ly * ly + lz * lz;
 
     // Project point locally into the line
     array_1d<double,3> projected_local;
-    const double tolerance = 1e-14; // Tolerance
-
-    if (square_length_1 <= (square_length + tolerance) && square_length_2 <= (square_length + tolerance)) {
+    if (square_length_1 <= (square_length + Tolerance) && square_length_2 <= (square_length + Tolerance)) {
         return result;
     } else {
         // If the projected point is outside the line, return the nearest end point
-        array_1d<double, 3> auxiliary_values = rLinePointA - result;
-        const double distance1 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
-        noalias(auxiliary_values) = rLinePointB - result;
-        const double distance2 = MathUtils<double>::Dot3(auxiliary_values, auxiliary_values);
-        if (distance1 < distance2) {
+        if (square_length_1 < square_length_2) {
             noalias(result.Coordinates()) = rLinePointA;
         } else {
             noalias(result.Coordinates()) = rLinePointB;

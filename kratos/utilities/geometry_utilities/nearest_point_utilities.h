@@ -99,7 +99,7 @@ public:
     /**
      * @brief Finds the nearest point to the given point on a line segment.
      * @details It first projects the point into the line. If the projected point is inside the segment boundary
-     * it returns the projected point. If not it returns the nearest end point of the line.
+     * it returns the projected point. If not it returns the nearest end point of the line. Implementation based on shadertoy.com/view/ttfGWl.
      * @tparam Type of the Point
      * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
@@ -109,28 +109,31 @@ public:
     template<class TGeometryType>
     static Point LineNearestPoint(
         const array_1d<double, 3>& rPoint,
-        const TGeometryType& rLine
+        const TGeometryType& rLine,
+        const double Tolerance = 1.0e-14
         )
     {
         KRATOS_DEBUG_ERROR_IF_NOT(rLine.size() == 2) << "This function only accepts Line2D2 as input" << std::endl;
-        return LineNearestPoint(rPoint, rLine[0], rLine[1]);
+        return LineNearestPoint(rPoint, rLine[0], rLine[1], Tolerance);
     }
 
     /**
      * @brief Finds the nearest point to the given point on a line segment (given 2 points).
      * @details It first projects the point into the line. If the projected point is inside the segment boundary
-     * it returns the projected point. If not it returns the nearest end point of the line.
+     * it returns the projected point. If not it returns the nearest end point of the line. Implementation based on shadertoy.com/view/ttfGWl.
      * @tparam Type of the Point
      * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
      * @param rPoint The query point which we want to get nearest point to it on the line
      * @param rLinePointA The first point of the line
      * @param rLinePointB The second point of the line
+     * @param Tolerance The tolerance to consider the point inside the line
      * @return The nearest point to rPoint
      */
     static Point LineNearestPoint(
         const array_1d<double, 3>& rPoint,
         const array_1d<double, 3>& rLinePointA,
-        const array_1d<double, 3>& rLinePointB
+        const array_1d<double, 3>& rLinePointB,
+        const double Tolerance = 1.0e-14
         );
 
     /**
