@@ -77,7 +77,8 @@ public:
             else
             {
                 pOutputVariable =
-                    &KratosComponents<Variable<TDataType>>::Get(rName + output_suffix);
+                    &KratosComponents<Variable<TDataType>>::Get(rName.substr(0,9) + output_suffix + rName.substr(9,2));
+                    //&KratosComponents<Variable<TDataType>>::Get(rName + output_suffix);
             }
             KRATOS_CATCH("");
         }

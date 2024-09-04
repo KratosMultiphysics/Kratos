@@ -218,7 +218,10 @@ void LineLoadCondition<TDim>::CalculateAll(
     if( this->Has( LINE_LOAD ) ) {
         noalias(line_load) = this->GetValue( LINE_LOAD );
     }
-
+    std::cout << LINE_LOAD << std::endl;
+    std::cout << "line load is ";
+    KRATOS_WATCH(line_load);
+    std::cout << " " << std::endl;
     // Declaring tangent and Jacobian
     array_1d<double, 3> tangent_xi, tangent_eta;
     Matrix J(TDim, 1);

@@ -49,7 +49,7 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
         sensitivity_settings = self.settings["sensitivity_settings"]
         return {
             ExpressionDataLocation.NodeHistorical: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray()],
-            ExpressionDataLocation.Condition: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray()],
+            ExpressionDataLocation.Condition: [Kratos.KratosGlobals.GetVariable("LINE_LOAD_SENSITIVITY_X") for var_name in sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray()],
             ExpressionDataLocation.Element: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray()]
         }
 

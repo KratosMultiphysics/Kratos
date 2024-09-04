@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.OptimizationApplication as KratosOA
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
@@ -32,6 +33,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosOA.LINE_LOAD_SENSITIVITY)
+        print(KratosOA.LINE_LOAD_SENSITIVITY_X)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):

@@ -597,6 +597,9 @@ private:
         rCurrentEntity.CalculateSensitivityMatrix(rVariable, mSensitivityMatrices[k], rCurrentProcessInfo);
         rCurrentEntity.GetValuesVector(mAdjointVectors[k]);
 
+        KRATOS_WATCH(mSensitivityMatrices[k]);
+        KRATOS_WATCH(mAdjointVectors[k]);
+
         KRATOS_ERROR_IF(mAdjointVectors[k].size() != mSensitivityMatrices[k].size2())
             << "mAdjointVectors.size(): " << mAdjointVectors[k].size()
             << " incompatible with mSensitivityMatrices[k].size1(): "
@@ -615,7 +618,7 @@ private:
         }
 
         noalias(rSensitivity) = prod(mSensitivityMatrices[k], mAdjointVectors[k]) + mPartialSensitivity[k];
-
+        KRATOS_WATCH(rSensitivity);
         KRATOS_CATCH("");
     }
 

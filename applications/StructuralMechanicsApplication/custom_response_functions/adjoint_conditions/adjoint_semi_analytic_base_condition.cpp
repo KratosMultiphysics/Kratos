@@ -99,12 +99,22 @@ namespace Kratos
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
+        // const GeometryType & geom = this->GetGeometry();
+        // const NodeType & iNode = geom[0];
+        // const SizeType ndofs = iNode.GetDofs().size();
+        // KRATOS_WATCH(ndofs);
+        // const SizeType num_dofs = number_of_nodes * ndofs /2 ; // coz node has adjoint + primal dofs
+        // KRATOS_WATCH(num_dofs);
+
         if (rValues.size() != num_dofs) {
             rValues.resize(num_dofs, false);
         }
+        //rValues.clear();
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
+
             const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+            //const array_1d<double, 3 > & Rotation = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
             IndexType index = i * dimension;
             for(IndexType k = 0; k < dimension; ++k) {
                 rValues[index + k] = Displacement[k];
@@ -193,6 +203,10 @@ namespace Kratos
             const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
             Vector RHS;
             Vector perturbed_RHS;
+            Vector sensitivity;
+            sensitivity.resize( 2*local_size, false);
+            sensitivity.clear();
+
             this->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
             const auto design_variable_value = this->pGetPrimalCondition()->GetValue(rDesignVariable);
@@ -201,7 +215,17 @@ namespace Kratos
             this->pGetPrimalCondition()->SetValue(rDesignVariable, (design_variable_value + delta));
             this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, rCurrentProcessInfo);
 
-            row(rOutput, 0) = (perturbed_RHS - RHS) / delta;
+            noalias(sensitivity) = (perturbed_RHS - RHS) / delta;
+            
+            for (IndexType i = 0; i < number_of_nodes; ++i)
+            {
+                //const IndexType index = i * num_dofs_per_node;
+                //const IndexType index2 = i * dimension;
+                for (IndexType j = 0; j < dimension; ++j)
+                {
+                    rOutput(0,i*dimension + j) = sensitivity[i*local_size + j];
+                }
+            }  
 
             // unperturb design variable
             this->pGetPrimalCondition()->SetValue(rDesignVariable, design_variable_value);
