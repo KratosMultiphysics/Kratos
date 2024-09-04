@@ -1,19 +1,10 @@
-from abc import ABC, abstractmethod
-import numpy
-from math import sqrt
-
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosSI
-import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
-
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.responses.damage_detection_response import DamageDetectionResponse
-from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
 class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
