@@ -18,6 +18,8 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 
 // Application includes

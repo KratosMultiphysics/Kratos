@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {

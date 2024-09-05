@@ -24,7 +24,8 @@
 namespace Kratos::Geo::DofUtilities
 {
 
-std::vector<std::size_t> KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
+std::vector<std::size_t> KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
 template <typename InputIt, typename OutputIt>
 OutputIt ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
@@ -81,12 +82,18 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::
     return ExtractUPwDofsFromNodes(rNodes, rNodes, ModelDimension);
 }
 
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractSecondTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractSecondTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
 
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
-Vector KRATOS_API(GEO_MECHANICS_APPLICATION) ExtractSecondTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractSolutionStepValuesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractFirstTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
+Vector KRATOS_API(GEO_MECHANICS_APPLICATION)
+    ExtractSecondTimeDerivativesOfUPwDofs(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
 
 } // namespace Kratos::Geo::DofUtilities
