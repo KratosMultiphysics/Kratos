@@ -39,20 +39,39 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
 
     //TODO. Ignasi
     // Provisional OGS implementation. This is only used in the Liakopoulos test
-    if (rVariables.pc < 0.0) {
-        rSl = 1.0;
-    } else {
-        rSl = std::max(rVariables.Slr,1.0 - 1.9722e-11*std::pow(rVariables.pc,2.4279));
-    }
-    double pc_max = std::pow((1.0-rVariables.Slr)/1.9722e-11,(1.0/2.4279));
-    double pc_restr = std::min(rVariables.pc,pc_max);
-    if (rVariables.pc <= 0.0) {
-        rdSldPc = 0.0;
-    } else {
-        rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
-    }
+    // if (rVariables.pc < 0.0) {
+    //     rSl = 1.0;
+    // } else {
+    //     rSl = std::max(rVariables.Slr,1.0 - 1.9722e-11*std::pow(rVariables.pc,2.4279));
+    // }
+    // double pc_max = std::pow((1.0-rVariables.Slr)/1.9722e-11,(1.0/2.4279));
+    // double pc_restr = std::min(rVariables.pc,pc_max);
+    // if (rVariables.pc <= 0.0) {
+    //     rdSldPc = 0.0;
+    // } else {
+    //     rdSldPc = -1.9722e-11*2.4279*std::pow(pc_restr,1.4279);
+    // }
     // rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
     // rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
+
+
+
+    // NOTE. This implementation is just done to validate the Khoei example
+    // B = 101325
+    // v = 5; 
+    
+    if (rVariables.pc < 0.0) {
+            rSl = 1.0;
+    } else {
+        rSl = std::exp(-rVariables.pc/101325);
+    }
+    
+    if (rVariables.pc < 0.0) {
+        rdSldPc = 0.0;
+    } else {
+        rdSldPc = (-1.0/101325)*std::exp(-rVariables.pc/101325);
+    }
+
 
 }
 
@@ -75,17 +94,31 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
 
     //TODO. Ignasi
     // Provisional OGS implementation. This is only used in the Liakopoulos test
+    // double& rSl = rValues.GetSl();
+    // if (rSl <= rVariables.Slr) {
+    //     rkrl = 0.0;
+    // } else if (rSl >= 1.0) {
+    //     rkrl = 1.0;
+    // } else {
+    //     rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
+    //     rkrl = std::max(rkrl,0.0);
+    // }
+    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
+    // rkrl = std::max(rkrl,rVariables.krmin);
+
+
+    // NOTE. This implementation is just done to validate the Khoei example
+    // B = 101325
+    // v = 5;
     double& rSl = rValues.GetSl();
-    if (rSl <= rVariables.Slr) {
+    if (rSl <= rVariables.Slr) { 
         rkrl = 0.0;
     } else if (rSl >= 1.0) {
         rkrl = 1.0;
     } else {
-        rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-        rkrl = std::max(rkrl,0.0);
+        rkrl = std::pow(rSl, 5);
     }
-    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-    // rkrl = std::max(rkrl,rVariables.krmin);
+    
 
 }
 
@@ -95,17 +128,30 @@ void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables
 {
     double& rkrg = rValues.Getkrg();
 
+    // if (rVariables.Se >= 1.0) {
+    //     // Fully saturated medium
+    //     rkrg = rVariables.krmin;
+    // } else if (rVariables.Se <= 0.0) {
+    //     // Dry medium
+    //     rkrg = 1.0;
+    // } else {
+    //     const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
+    //     rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
+    //     rkrg = std::max(rkrg,rVariables.krmin);
+    // }
+
+    // NOTE. This implementation is just done to validate the Khoei example
+    // B = 101325
+    // v = 5;
+    const double& rSl = rValues.GetSl();
     if (rVariables.Se >= 1.0) {
-        // Fully saturated medium
         rkrg = rVariables.krmin;
     } else if (rVariables.Se <= 0.0) {
-        // Dry medium
         rkrg = 1.0;
     } else {
-        const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
-        rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
-        rkrg = std::max(rkrg,rVariables.krmin);
+        rkrg = std::pow((1.0 - rSl), 5);
     }
+
 }
 
 }
