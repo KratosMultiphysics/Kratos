@@ -23,9 +23,7 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m)
@@ -42,5 +40,4 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
         .def(py::init<>());
 }
 
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python.

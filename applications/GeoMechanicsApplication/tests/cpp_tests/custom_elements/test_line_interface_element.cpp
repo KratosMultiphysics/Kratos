@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithGeometryInput
 {
     // Arrange
     const LineInterfaceElement element;
-    const auto                 geometry   = std::make_shared<LineInterfaceGeometry>(CreateNodes());
+    const auto                 geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(CreateNodes());
     auto                       properties = std::make_shared<Properties>();
 
     // Act
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, Kr
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto                 geometry = std::make_shared<LineInterfaceGeometry>(nodes);
+    const auto                 geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     const LineInterfaceElement element(1, geometry, properties);
 
     // Act
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, Krato
     result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry>(result);
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
