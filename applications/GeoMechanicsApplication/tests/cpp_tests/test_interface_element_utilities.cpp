@@ -186,4 +186,30 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationForInc
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtEdgeOfQuadraticElement_WithNonUnitLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, -1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
+    const LineInterfaceGeometry geometry(1, nodes);
+
+    // Act
+    const auto local_coordinate = array_1d<double, 3>{1.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+
+    // Assert
+    // clang-format off
+    Matrix expected_rotation_matrix(2, 2);
+    // Rotation of 63.43 (atan(2)) degrees counterclockwise
+    expected_rotation_matrix <<= std::cos(1.1071), -std::sin(1.1071),
+                                 std::sin(1.1071), std::cos(1.1071);
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
+}
+
 } // namespace Kratos::Testing
