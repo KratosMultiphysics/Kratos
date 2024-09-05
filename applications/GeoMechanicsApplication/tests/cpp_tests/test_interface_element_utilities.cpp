@@ -70,7 +70,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    // Since the gradient of the shape functions is constant, the rotation matrix is the same at
+    // point, meaning the local_coordinate should not have an effect
+    const auto local_coordinate = array_1d<double, 3>{0.5, 0.0, 0.0};
     Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
