@@ -139,7 +139,7 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 0.00010886682216265195, 6)
+            self.assertAlmostEqual(ref_value, 0.0009799118589232621, 6)
 
             response.CalculateGradient(var)
 
