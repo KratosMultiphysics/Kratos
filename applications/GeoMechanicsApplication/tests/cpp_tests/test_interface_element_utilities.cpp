@@ -52,7 +52,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     // Assert
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5 * sqrt(3), 0.5, -0.5, 0.5 * sqrt(3); // Rotation of 30 degrees clockwise
+    KRATOS_INFO("Expected rotation matrix") << expected_rotation_matrix << std::endl;
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
+    KRATOS_INFO("End test") << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForInclinedInterface2,

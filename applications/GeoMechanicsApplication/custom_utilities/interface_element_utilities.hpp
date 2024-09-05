@@ -196,14 +196,18 @@ public:
         array_1d<double, 3> xi{0.0, 0.0, 0.0};
         Matrix              shape_functions_gradients;
         rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, xi);
+        KRATOS_INFO("ShapeFunctionsGradients") << shape_functions_gradients << std::endl;
         const auto mid_points = CalculateMidPoints(rGeometry);
+        KRATOS_INFO("MidPoints") << mid_points << std::endl;
         const auto tangential_vector = CalculateTangentialVector(shape_functions_gradients, mid_points);
-
+        KRATOS_INFO("TangetialVector") << tangential_vector << std::endl;
         // clang-format off
         Matrix rotation_matrix(2, 2);
         rotation_matrix <<= tangential_vector[0], -tangential_vector[1],
                             tangential_vector[1], tangential_vector[0];
         // clang-format on
+
+        KRATOS_INFO("RotationMatrix") << rotation_matrix << std::endl;
 
         return rotation_matrix;
     }
