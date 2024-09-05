@@ -17,7 +17,7 @@
         },
         {
             "type": "displacement_sensor",
-            "name": "disp_x_1",
+            "name": "disp_x_2",
             "location": [
                 0.25,
                 0.25,
