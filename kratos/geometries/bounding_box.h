@@ -168,17 +168,20 @@ public:
     }
 
     /**
-     * @brief Checks if a point is inside the bounding box.
-     * @details This function checks if a given point is inside the bounding box defined by the
-     * minimum and maximum points. It returns true if the point is inside the bounding box,
-     * and false otherwise.
+     * @brief Checks if a point is inside the bounding box with tolerance.
+     * @details This function checks if a given point is inside the bounding box defined by the minimum and maximum points. It returns true if the point is inside the bounding box within the given tolerance, and false otherwise.
      * @param rPoint The point to be checked.
-     * @return True if the point is inside the bounding box, false otherwise.
+     * @param Tolerance A tolerance value to allow for slight inaccuracies (default is std::numeric_limits<double>::epsilon()).
+     * @return True if the point is inside the bounding box within the given tolerance, false otherwise.
      */
-    bool IsInside(const array_1d<double, 3>& rPoint) const
+    bool IsInside(
+        const array_1d<double, 3>& rPoint, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
     {
-        for (unsigned int i = 0; i < Dimension; i++){
-            if (rPoint[i] < GetMinPoint()[i] || rPoint[i] > GetMaxPoint()[i]) return false;
+        for (unsigned int i = 0; i < Dimension; i++) {
+            if (rPoint[i] < GetMinPoint()[i] - Tolerance || rPoint[i] > GetMaxPoint()[i] + Tolerance)
+                return false;
         }
         return true;
     }
