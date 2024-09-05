@@ -27,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForHorizontalI
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 5.0, 0.0, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.5 * std::sqrt(3), -0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.5 * std::sqrt(3), -0.5, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -0.5, 0.5 * std::sqrt(3), 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.5 * std::sqrt(3), -0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -0.5 * std::sqrt(3), 0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.5 * std::sqrt(3), -0.5, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -107,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 10.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, -7.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 10.0, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedI
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 2.0, 0.0, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationForCurved3Plus3
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 2.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, -1.0, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationForInc
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 2.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 2.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 0.8, 0.8, 0.0));
-    LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry geometry(1, nodes);
 
     // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};

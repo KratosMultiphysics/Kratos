@@ -12,7 +12,6 @@
 //
 
 #include "interface_element_utilities.h"
-#include "includes/element.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
@@ -177,35 +176,31 @@ void InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(BoundedMatrix<do
 Matrix InterfaceElementUtilities::Calculate2DRotationMatrix(const Geometry<Node>& rGeometry,
                                                             const array_1d<double, 3>& rLocalCoordinate)
 {
-    Matrix              shape_functions_gradients;
+    Matrix shape_functions_gradients;
     rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, rLocalCoordinate);
-    KRATOS_INFO("ShapeFunctionsGradients") << shape_functions_gradients << std::endl;
-    const auto mid_points = CalculateMidPoints(rGeometry);
-    KRATOS_INFO("MidPoints") << mid_points << std::endl;
+    const auto mid_points        = CalculateMidPoints(rGeometry);
     const auto tangential_vector = CalculateTangentialVector(shape_functions_gradients, mid_points);
-    KRATOS_INFO("TangetialVector") << tangential_vector << std::endl;
+
     // clang-format off
-        Matrix rotation_matrix(2, 2);
-        rotation_matrix <<= tangential_vector[0], -tangential_vector[1],
-                            tangential_vector[1], tangential_vector[0];
+    Matrix result(2, 2);
+    result <<= tangential_vector[0], -tangential_vector[1],
+               tangential_vector[1],  tangential_vector[0];
     // clang-format on
 
-    KRATOS_INFO("RotationMatrix") << rotation_matrix << std::endl;
-
-    return rotation_matrix;
+    return result;
 }
 
 std::vector<array_1d<double, 3>> InterfaceElementUtilities::CalculateMidPoints(const Geometry<Node>& rGeometry)
 {
-    std::vector<array_1d<double, 3>> mid_points;
+    std::vector<array_1d<double, 3>> result;
 
     const auto half_way_point = rGeometry.begin() + rGeometry.PointsNumber() / 2;
-    std::transform(rGeometry.begin(), half_way_point, half_way_point, std::back_inserter(mid_points),
+    std::transform(rGeometry.begin(), half_way_point, half_way_point, std::back_inserter(result),
                    [](const Node& rNode1, const Node& rNode2) -> array_1d<double, 3> {
         return 0.5 * (rNode1 + rNode2);
     });
 
-    return mid_points;
+    return result;
 }
 
 array_1d<double, 3> InterfaceElementUtilities::CalculateTangentialVector(
