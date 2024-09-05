@@ -105,4 +105,6 @@ void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRi
     }
 }
 
+std::string LineLoad2DDiffOrderCondition::Info() const { return "LineLoad2DDiffOrderCondition"; }
+
 } // Namespace Kratos.
