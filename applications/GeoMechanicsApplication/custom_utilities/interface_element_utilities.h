@@ -13,7 +13,10 @@
 
 #pragma once
 
-#include "includes/element.h"
+#include "containers/array_1d.h"
+#include "includes/ublas_interface.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 
 namespace Kratos
 {

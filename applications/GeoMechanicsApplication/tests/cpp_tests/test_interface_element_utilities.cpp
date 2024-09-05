@@ -10,11 +10,11 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "custom_geometries/line_interface_geometry.h"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include "custom_geometries/line_interface_geometry.h"
-#include "custom_utilities/interface_element_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -235,6 +235,25 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtArbi
                                 -0.5 * sqrt(2), 0.5 * sqrt(2); // Rotation of 45 degrees clockwise
     // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForOpenHorizontalInterfaceIsIdentityMatrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    // Make sure the two sides of the interface are separated by a distance of 2
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, -1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 5.0, -1.0, 0.0));
+    const LineInterfaceGeometry geometry(1, nodes);
+
+    // Act
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+
+    // Assert
+    KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
 } // namespace Kratos::Testing
