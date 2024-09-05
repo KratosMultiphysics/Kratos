@@ -14,13 +14,12 @@
 #pragma once
 
 #include "geometries/geometry.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
 #include "includes/node.h"
 
 namespace Kratos
 {
 
+template <typename MidGeometryType>
 class LineInterfaceGeometry : public Geometry<Node>
 {
 public:
@@ -41,13 +40,8 @@ public:
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
 
-        const auto points_of_mid_line = CreatePointsOfMidLine();
-
-        if (points_of_mid_line.size() == 2) {
-            mMidLineGeometry = std::make_unique<Line2D2<Node>>(points_of_mid_line);
-        } else {
-            mMidLineGeometry = std::make_unique<Line2D3<Node>>(points_of_mid_line);
-        }
+        mMidLineGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
+        this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
@@ -119,7 +113,8 @@ public:
 
     [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
     {
-        return "This Geometry type does not support functionality related to integration schemes.\n";
+        return "This Geometry type does not support functionality related to integration "
+               "schemes.\n";
     }
 
     array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
@@ -218,9 +213,9 @@ public:
     }
 
     void CreateQuadraturePointGeometries(GeometriesArrayType& rResultGeometries,
-                                     IndexType            NumberOfShapeFunctionDerivatives,
-                                     const IntegrationPointsArrayType& rIntegrationPoints,
-                                     IntegrationInfo& rIntegrationInfo) override
+                                         IndexType            NumberOfShapeFunctionDerivatives,
+                                         const IntegrationPointsArrayType& rIntegrationPoints,
+                                         IntegrationInfo& rIntegrationInfo) override
     {
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
     }
