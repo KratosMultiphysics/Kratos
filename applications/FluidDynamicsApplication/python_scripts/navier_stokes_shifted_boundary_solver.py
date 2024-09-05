@@ -309,13 +309,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
-        #TODO allow different geometries/ model parts --> separate interface utility for each model part?
-        # FM-ALE would also need to deal separately with different model parts?
-
         if self.level_set_type == "point-based":
-            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
-            interface_flags_need_resetting = True
-
             # Calculate the required neighbors
             elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbors_process.Execute()
@@ -323,17 +317,16 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Add more specific settings for point-based sbm utility
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
             #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
-            settings.AddEmptyValue("enclosed_area").SetString("none")
-            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)
-            settings.AddEmptyValue("use_tessellated_boundary").SetBool(False)  #TODO NEXT make tessellated boundary work with multiple skin geometries!
-            settings.AddEmptyValue("interpolate_boundary").SetBool(False)
+            settings.AddEmptyValue("enclosed_area").SetString("none")                   #TODO NEXT search_enclosed_areas instead --> flood fill
+            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)           #TODO NEXT why do local instabilities appear???
+            settings.AddEmptyValue("use_tessellated_boundary").SetBool(False)           #TODO NEXT make tessellated boundary work with multiple skin geometries!
+            #settings.AddEmptyValue("interpolate_boundary").SetBool(False)
 
-            # Create an interface utility and corresponding integration point conditions for all skin model parts
-            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
-            #TODO NEXT Debug VerticalPlate2!?!
-            #TODO NEXT make overlapping skin geometries work! 
-            # problem when overlapping that nodes of conditions are not active anymore!!
-            # --> with multiple geometries interface flags need to be set for all before creating any conditions
+            # Store names and interface utilities for all skin model parts
+            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
+            sbm_interface_utilities = []
+
+            # Create an interface utility for all skin model parts
             for skin_model_part_name in skin_model_part_names:
                 # Adapt settings
                 settings["skin_model_part_name"].SetString(skin_model_part_name)
@@ -344,17 +337,25 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
                 # Create interface utility
                 sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
+                sbm_interface_utilities.append(sbm_interface_utility)
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created.")
 
-                # Reset interface flags only if it has not be done yet, otherwise previously embedded model parts would get overwritten
-                if interface_flags_need_resetting:
-                    sbm_interface_utility.ResetInterfaceFlags()
-                    interface_flags_need_resetting = False
+            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
+            sbm_interface_utilities[0].ResetFlags()
 
-                # Add Kratos conditions for points at the boundary based on extension operators
-                # NOTE that same boundary sub model part is being used here to add conditions
+            # Locate skin model part points in the volume model part elements and set flags for all skin model parts
+            for sbm_interface_utility in sbm_interface_utilities:
+                sbm_interface_utility.LocateSkinPoints()
+                sbm_interface_utility.SetBoundaryAndInterfaceFlags()
+
+            # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
+            sbm_interface_utilities[0].DeactivateElementsAndNodes()
+
+            # Add Kratos conditions for points at the boundary based on extension operators
+            # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
+            for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
                 sbm_interface_utility.AddSkinIntegrationPointConditions()
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_name + ".")
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part " + skin_model_part_names[i_skin] + ".")
 
         elif self.level_set_type == "discontinuous":
             # Calculate the required neighbors

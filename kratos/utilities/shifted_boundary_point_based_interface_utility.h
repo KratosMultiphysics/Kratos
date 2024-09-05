@@ -121,7 +121,13 @@ public:
     ///@name Operations
     ///@{
 
-    void ResetInterfaceFlags();
+    void ResetFlags();
+
+    void LocateSkinPoints();
+
+    void SetBoundaryAndInterfaceFlags();
+
+    void DeactivateElementsAndNodes();
 
     void AddSkinIntegrationPointConditions();
 
@@ -173,6 +179,10 @@ protected:
     ModelPart* mpSkinModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
 
+    std::string mSkinModelPartName = "";
+
+    SkinPointsToElementsMapType mSkinPointsMap;  //TODO to big to store??
+
     bool mConformingBasis;
     ExtensionOperator mExtensionOperator;
     std::size_t mMLSExtensionOperatorOrder;
@@ -181,7 +191,7 @@ protected:
 
     bool mPositiveSideIsActive = true;
     bool mNegativeSideIsActive = true;
-    
+
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
 

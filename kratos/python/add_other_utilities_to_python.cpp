@@ -818,7 +818,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<ShiftedBoundaryPointBasedInterfaceUtility, ShiftedBoundaryPointBasedInterfaceUtility::Pointer>(m,"ShiftedBoundaryPointBasedInterfaceUtility")
         .def(py::init<Model&, Parameters>())
-        .def("ResetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetInterfaceFlags)
+        .def("ResetFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags)
+        .def("LocateSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints)
+        .def("SetBoundaryAndInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetBoundaryAndInterfaceFlags)
+        .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes)
         .def("AddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions)
     ;
 

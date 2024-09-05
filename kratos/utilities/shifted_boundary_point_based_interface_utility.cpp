@@ -54,10 +54,14 @@ namespace Kratos
 
         // Retrieve the required model parts
         const std::string model_part_name = ThisParameters["model_part_name"].GetString();
-        const std::string skin_model_part_name = ThisParameters["skin_model_part_name"].GetString();
+        mSkinModelPartName = ThisParameters["skin_model_part_name"].GetString();
         const std::string boundary_sub_model_part_name = ThisParameters["boundary_sub_model_part_name"].GetString();
+        // Get skin model part
+        mpSkinModelPart = &rModel.GetModelPart(mSkinModelPartName);
+        // Get volume model part and check that the volume model part has elements
         mpModelPart = &rModel.GetModelPart(model_part_name);
-        mpSkinModelPart = &rModel.GetModelPart(skin_model_part_name);
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements()) << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
+        // Get and check or create boundary model part as sub model part of the volume model part
         if (mpModelPart->HasSubModelPart(boundary_sub_model_part_name)) {
             mpBoundarySubModelPart = &(mpModelPart->GetSubModelPart(boundary_sub_model_part_name));
             KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
@@ -99,6 +103,7 @@ namespace Kratos
         }
 
         // Set which side of the skin model part is an enclosed area
+        //TODO NEXT use flood fill (--> Manuel) and Octree to check and search for enclosed areas for setting the pressure!! (robustness)
         const std::string enclosed_area = ThisParameters["enclosed_area"].GetString();
         if (enclosed_area != "positive" && enclosed_area != "negative" && enclosed_area != "none") {
             KRATOS_ERROR << "Unknown 'enclosed_area' keyword given. 'positive' or 'negative' side or 'none' are supported by point based shifted boundary interface utility." << std::endl;
@@ -120,7 +125,7 @@ namespace Kratos
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mUseTessellatedBoundary && mInterpolateBoundary) << "Using the tessellated boundary is given precedence over interpolating the boundary." << std::endl;
     };
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::ResetInterfaceFlags()
+    void ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags()
     {
         // Check that the volume model part has elements
         KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
@@ -138,10 +143,131 @@ namespace Kratos
             rElement.Set(BOUNDARY, false);   // Elements in which the skin geometry is located (true boundary gamma)
             rElement.Set(INTERFACE, false);  // Positive distance elements owning the surrogate boundary nodes
         });
+
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Boundary and interface flags were reset and all elements and nodes re-activated." << std::endl;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints()
+    {
+        // Map skin points (boundary) to elements of volume model part
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                MapSkinPointsToElements<2>(mSkinPointsMap);
+                break;
+            case 3:
+                MapSkinPointsToElements<3>(mSkinPointsMap);
+                break;
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " skin points were mapped to volume mesh elements."  << std::endl;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::SetBoundaryAndInterfaceFlags()
+    {
+        // Mark elements as BOUNDARY (gamma) in which skin points were located
+        // NOTE that BOUNDARY elements will get deactivated and that the split elements BC is applied by means of the extension operators
+        //TODO: parallel
+        for (const auto& [p_element, _]: mSkinPointsMap) {
+            p_element->Set(BOUNDARY, true);
+        }
+
+        // Make elements BOUNDARY that are split by the tessellated skin geometry
+        // NOTE that using a tessellated boundary is given precedence here over interpolating the boundary
+        // TODO NEXT why does this only work for the first geometry???
+        // TODO NEXT use slightly enlarged elements for this
+        if (mUseTessellatedBoundary) {
+
+            Flags find_intersected_options;
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, false);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, true);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, false);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, true);
+
+            FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart, find_intersected_options);
+            find_intersected_objects_process.ExecuteInitialize();
+            find_intersected_objects_process.FindIntersections();  // FindIntersectedSkinObjects
+            std::vector<PointerVector<GeometricalObject>>&  r_intersected_objects = find_intersected_objects_process.GetIntersections();
+            const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
+            auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
+
+            #pragma omp parallel for schedule(dynamic)
+            for (std::size_t i = 0; i < n_elements; ++i) {
+                if (!r_intersected_objects[i].empty()) {
+                    r_elements[i]->Set(BOUNDARY, true);
+                }
+            }
+        }
+        // Make elements BOUNDARY that are most likely split as they are surrounded by split elements to enhance robustness
+        //else if (mInterpolateBoundary) {
+        //    DeclareIntermediateElementsBoundary();
+        //}
+
+        // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
+        // Note that we rely on the fact that the neighbors are sorted according to the faces
+        // TODO faster to store BOUNDARY element pointers somewhere?
+        for (auto& rElement : mpModelPart->Elements()) {
+            if (rElement.Is(BOUNDARY)) {
+                const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
+                auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                    // The neighbour corresponding to the current face is not also BOUNDARY, it means that the current face is surrogate boundary (INTERFACE)
+                    // Flag the current neighbour owning the surrogate face as INTERFACE
+                    // The nodes will be flagged if required (MLS basis) when creating the cloud
+                    auto p_neigh_elem = r_neigh_elems(i_face).get();
+                    if (p_neigh_elem != nullptr) {
+                        if (!p_neigh_elem->Is(BOUNDARY)) {
+                            p_neigh_elem->Set(INTERFACE, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " boundary and interface flags were set." << std::endl;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes()
+    {
+        // Deactivate elements in which the (true) boundary is located
+        //TODO: make parallel
+        for (auto& rElement : mpModelPart->Elements()) {
+            if (rElement.Is(BOUNDARY)) {
+                rElement.Set(ACTIVE, false);
+            }
+        }
+
+        // Deactivate nodes that do not belong to any active element (anymore)
+        //TODO make parallel and check only nodes of BOUNDARY elements?
+        for (auto& rNode : mpModelPart->Nodes()) {
+            // Check whether any of the elements surrounding the node is active
+            auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
+            bool active_neighbor_found = false;
+            for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
+                auto p_neigh = r_neigh_elems(i_n).get();
+                // Continue with next node if the current node is part of an active element
+                if (p_neigh->Is(ACTIVE)) {
+                    active_neighbor_found = true;
+                    break;
+                }
+            }
+            // If there is no active element around the current node, we will deactivate it
+            if (!active_neighbor_found) {
+                rNode.Set(ACTIVE, false);
+            }
+        }
+
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Boundary elements and nodes were deactivated." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::AddSkinIntegrationPointConditions()
     {
+        /*ResetFlags();
+        LocateSkinPoints();
+        SetBoundaryAndInterfaceFlags();
+        DeactivateElementsAndNodes();*/
+
         CalculateMeshlessBasedConformingExtensionBasis();
     }
 
@@ -167,42 +293,19 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateMeshlessBasedConformingExtensionBasis()
     {
-        // Check that the volume model part has elements
-        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
-            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
-
-        // Map skin points (boundary) to elements of volume model part
-        SkinPointsToElementsMapType skin_points_map;
-        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        switch (n_dim) {
-            case 2:
-                MapSkinPointsToElements<2>(skin_points_map);
-                break;
-            case 3:
-                MapSkinPointsToElements<3>(skin_points_map);
-                break;
-            default:
-                KRATOS_ERROR << "Wrong domain size.";
-        }
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Skin points were mapped to volume mesh elements." << std::endl;
-
-        // Set the required interface flags (ACTIVE, BOUNDARY, INTERFACE)
-        SetInterfaceFlags(skin_points_map);
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Interface flags were set." << std::endl;
-
         // Iterate over the split elements to create a vector for each element defining both sides using the element's skin points normals and positions
         // The resulting vector is as long as the number of nodes of the element and a positive value stands for the positive side of the boundary, a negative one for the negative side.
         // Also store the average position and average normal of the skin points located in the element
         SidesVectorToElementsMapType sides_vector_map;
         AverageSkinToElementsMapType avg_skin_map;
-        SetSidesVectorsAndSkinNormalsForSplitElements(skin_points_map, sides_vector_map, avg_skin_map);
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Sides vectors and skin normals were set." << std::endl;
+        SetSidesVectorsAndSkinNormalsForSplitElements(mSkinPointsMap, sides_vector_map, avg_skin_map);
+        //KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Sides vectors and skin normals were set." << std::endl;
 
         // Iterate over the split elements to create an extension basis for each node of the element (MLS shape functions values for support cloud of node)
         // NOTE that no extension bases will be calculated and added for a node for which not a sufficient number of support nodes were found
         NodesCloudMapType ext_op_map;
         SetExtensionOperatorsForSplitElementNodes(sides_vector_map, avg_skin_map, ext_op_map);
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
+        //KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Extension operators were set." << std::endl;
 
         // Set the pressure of the first node of an enclosed volume to zero if one side is enclosed.
         auto skin_pt_element_iter = sides_vector_map.begin();
@@ -226,7 +329,8 @@ namespace Kratos
 
         // Create the interface conditions
         //TODO: THIS CAN BE PARALLEL (WE JUST NEED TO MAKE CRITICAL THE CONDITION ID UPDATE)
-        for (const auto& [p_element, skin_points_data_vector]: skin_points_map) {
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
 
@@ -258,7 +362,7 @@ namespace Kratos
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
-                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal, 
+                AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 ext_op_map, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
@@ -267,7 +371,8 @@ namespace Kratos
                 ext_op_map, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, ++max_cond_id, /*ConsiderPositiveSide=*/false);
             }
         }
-        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Skin point wall conditions were created." << std::endl;
+
+        KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << mSkinModelPartName << " skin point conditions were created." << std::endl;
     }
 
     template <std::size_t TDim>
@@ -367,9 +472,6 @@ namespace Kratos
         // Deactivate split elements and mark them as BOUNDARY (gamma)
         // Note that the split elements BC is applied by means of the extension operators
         //TODO: parallel
-        //TODO do not make elements in which skin points are located BOUNDARY if exact locations in combination with a tessellated boundary are being used??
-        // Otherwise BOUNDARY elements from rSkinPointsMap might be bordered by BOUNDARY elements from the tessellated boundary and support nodes can not be found?!
-        // Is it a problem if wall conditions are added for an element that is ACTIVE?! No separation at wall conditions might cause more problems than no wall condition at all
         for (const auto& [p_element, _]: rSkinPointsMap) {
             p_element->Set(ACTIVE, false);
             p_element->Set(BOUNDARY, true);
@@ -377,10 +479,19 @@ namespace Kratos
 
         // Make elements BOUNDARY that are split by the tessellated skin geometry
         // NOTE that using a tessellated boundary is given precedence here over interpolating the boundary
+        //TODO why does this only work for the first geometry???
+        //TODO use slightly enlarged elements for this
         if (mUseTessellatedBoundary) {
-            FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart);
+
+            Flags find_intersected_options;
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, false);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, true);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, false);
+            find_intersected_options.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, true);
+
+            FindIntersectedGeometricalObjectsProcess find_intersected_objects_process = FindIntersectedGeometricalObjectsProcess(*mpModelPart, *mpSkinModelPart, find_intersected_options);
             find_intersected_objects_process.ExecuteInitialize();
-            find_intersected_objects_process.FindIntersections();
+            find_intersected_objects_process.FindIntersections();  // FindIntersectedSkinObjects
             std::vector<PointerVector<GeometricalObject>>&  r_intersected_objects = find_intersected_objects_process.GetIntersections();
             const std::size_t n_elements = (find_intersected_objects_process.GetModelPart1()).NumberOfElements();
             auto& r_elements = (find_intersected_objects_process.GetModelPart1()).ElementsArray();
@@ -414,12 +525,13 @@ namespace Kratos
             }
             // If there is no active element around the current node, we will deactivate it
             if (!active_neighbor_found) {
-                rNode.Set(ACTIVE, false); 
-            } 
+                rNode.Set(ACTIVE, false);
+            }
         }
 
         // Find the surrogate boundary elements and mark them as INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
+        // TODO faster to store BOUNDARY element pointers somewhere?
         for (auto& rElement : mpModelPart->Elements()) {
             if (rElement.Is(BOUNDARY)) {
                 const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
@@ -584,6 +696,7 @@ namespace Kratos
         AverageSkinToElementsMapType& rAvgSkinMap)
     {
         // TODO can be parallel if insert into rSidesVectorMap is unique?
+        // TODO NEXT decide on sides based on all skin points individually using majority vote?
         for (const auto& [p_element, skin_points_data_vector]: rSkinPointsMap) {
             // Calculate average position and normal of the element's skin points
             std::size_t n_skin_points = 0;
@@ -606,15 +719,33 @@ namespace Kratos
             auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
             Vector sides_vector(n_nodes);
+            int majority_side = 0;
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto& r_node = r_geom[i_node];
                 array_1d<double, 3> skin_pt_to_node = r_node.Coordinates() - avg_position;
-                if (inner_prod(skin_pt_to_node, avg_normal) > 0.0) {
+                const double dot_product = inner_prod(skin_pt_to_node, avg_normal);
+                if (dot_product > 0.0) {
                     sides_vector[i_node] =  1.0;
-                } else {
+                    majority_side++;
+                } else if (dot_product < 0.0) {
                     sides_vector[i_node] = -1.0;
+                    majority_side--;
+                } else {
+                    sides_vector[i_node] = 0.0;
                 }
             }
+
+            // If one of the values is zero, then the (average) will go through that node, so we put the node on the other side of where the majority of the element's nodes lie
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                if (sides_vector[i_node] == 0.0) {
+                    if (majority_side > 0) {
+                        sides_vector[i_node] = -1.0;
+                    } else{
+                        sides_vector[i_node] = 1.0;
+                    }
+                }
+            }
+
             // Store the vector deciding on the positive and negative side of the element's nodes
             rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
         }
@@ -660,7 +791,7 @@ namespace Kratos
                     }
                 }
             }
-                
+
             // Calculate support for the positive side using support nodes from the positive side
             if (calculatePositiveSupport) {
                 // Initialize the storage for the support/ cloud nodes and their coordinates
@@ -685,7 +816,7 @@ namespace Kratos
                     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                         if (ex_op_was_calculated[i_node] < 1.0 && sides_vector[i_node] < 0.0) {
                             const auto p_node = r_geom(i_node);
-                            
+
                             // Calculate the extension basis in the current node (MLS shape functions)
                             Vector N_container;
                             const array_1d<double,3> r_coords = p_node->Coordinates();
@@ -700,7 +831,7 @@ namespace Kratos
                                 cloud_data_vector(i_cl_nod) = i_data;
                             }
                             auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
-                            rExtensionOperatorMap.insert(ext_op_key_data);                            
+                            rExtensionOperatorMap.insert(ext_op_key_data);
                         }
                     }
 
@@ -731,7 +862,7 @@ namespace Kratos
                     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                         if (ex_op_was_calculated[i_node] < 1.0 && sides_vector[i_node] > 0.0) {
                             const auto p_node = r_geom(i_node);
-                            
+
                             // Calculate the extension basis in the current node (MLS shape functions)
                             Vector N_container;
                             const array_1d<double,3> r_coords = p_node->Coordinates();
@@ -746,7 +877,7 @@ namespace Kratos
                                 cloud_data_vector(i_cl_nod) = i_data;
                             }
                             auto ext_op_key_data = std::make_pair(p_node, cloud_data_vector);
-                            rExtensionOperatorMap.insert(ext_op_key_data);                            
+                            rExtensionOperatorMap.insert(ext_op_key_data);
                         }
                     }
 
@@ -806,7 +937,7 @@ namespace Kratos
             prev_layer_nodes = cur_layer_nodes;
             cur_layer_nodes.clear();
         }
-        
+
         if (aux_set.size() <= n_same_side_nodes) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Degenerated case with no neighboring active element's nodes normal to skin. Check if the node " << rSameSideNodes[0]->Id() << " belongs to an intersected and isolated element." << std::endl;
             // If boundary can not be crossed, then no additional nodes can be found for the next layer anyway, so we can return here.
@@ -840,7 +971,7 @@ namespace Kratos
         }
         if (n_extra_layers > 0) {
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << n_extra_layers << " extra layer(s) of points needed for MLS calculation." << std::endl;
-        }  
+        }
 
         // Add obtained cloud nodes to the cloud node vector if they are active and sort them by id
         //TODO sorting really necessary or helpful??
@@ -849,7 +980,7 @@ namespace Kratos
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
             if ((*it_set)->Is(ACTIVE)) {
                 rCloudNodes(aux_i++) = *it_set;
-                // Mark active support nodes as BOUNDARY if they are on the positive side (support for negative side) and INTERFACE for the negative side (support for positive side)
+                // Mark active support nodes as BOUNDARY if they are on the positive side (support for negative side nodes) and INTERFACE for the negative side (support for positive side nodes)
                 if (ConsiderPositiveSide) {
                     (*it_set)->Set(BOUNDARY, true);
                 } else {
@@ -891,7 +1022,7 @@ namespace Kratos
                         // NOTE this is done for a more robust separation of both sides of the boundary
                         NodeType::Pointer p_neigh = r_geom(i_neigh_node);
                         // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
-                        array_1d<double, 3> avg_skin_pt_to_node = p_node->Coordinates() - rAvgSkinPosition;
+                        array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
                         avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
                         const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
                         if (dot_product > 0.1) {
@@ -919,7 +1050,7 @@ namespace Kratos
             auto& r_elem_neigh_vect = p_node->GetValue(NEIGHBOUR_ELEMENTS);
 
             // Add all nodes of neighboring elements to cloud nodes set if node is in normal direction
-            // NOTE that nodes of BOUNDARY elements can be taken as well here if the dot product and distance are sufficiently high. 
+            // NOTE that nodes of BOUNDARY elements can be taken as well here if the dot product and distance are sufficiently high.
             // This way the boundary can be crossed.
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
@@ -964,7 +1095,7 @@ namespace Kratos
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
             if (rSidesVector(i_node) > 0.0) {
-                // Add positive side node to cloud nodes set of positive side of the boundary 
+                // Add positive side node to cloud nodes set of positive side of the boundary
                 // NOTE they might not be part of the negative node's support because they are too close to the other side or not active
                 cloud_nodes_set_pos.insert(p_node);
                 // Add positive side's node's cloud nodes to cloud nodes set of negative side of the boundary
@@ -1064,7 +1195,7 @@ namespace Kratos
             // If node is on the side that is being considered, then add the standard shape function contribution of the node at the position of the skin point
             if (ConsiderPositiveSide != (rSidesVector[i_node] <= 0.0)) {
                 // If a node on the side that is being considered is not active, then no wall condition is created
-                //TODO redistribute shape functions? Or calculate extension basis for skin point directly??
+                //TODO NEXT redistribute shape functions? Or calculate extension basis for skin point directly??
                 if (!p_node->Is(ACTIVE)) {
                     KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "No wall condition will be created for one side of the skin point because Node No." << p_node->Id() << " is not active." << std::endl;
                     return;
