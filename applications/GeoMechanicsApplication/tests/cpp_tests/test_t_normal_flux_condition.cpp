@@ -14,6 +14,8 @@
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "geometries/line_2d_4.h"
+#include "geometries/line_2d_5.h"
 #include "includes/condition.h"
 
 using namespace Kratos;

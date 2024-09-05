@@ -14,6 +14,8 @@
 #include "custom_elements/transient_thermal_element.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;

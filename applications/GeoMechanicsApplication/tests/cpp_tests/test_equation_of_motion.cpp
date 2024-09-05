@@ -10,6 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
@@ -67,7 +68,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
 }
 
 class StubConstitutiveLaw : public ConstitutiveLaw
-{};
+{
+};
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -80,7 +82,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     // Set the element properties
     auto p_elem_prop = r_model_part.pGetProperties(0);
     // set arbitrary constitutive law
-
 
     p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
     // Please note these are not representative values, it just ensures the values are set
