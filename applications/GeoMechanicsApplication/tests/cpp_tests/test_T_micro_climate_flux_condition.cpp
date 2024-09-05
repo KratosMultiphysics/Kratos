@@ -21,13 +21,12 @@
 using namespace Kratos;
 using namespace boost::numeric::ublas;
 
-namespace
-{
+namespace {
 
 std::shared_ptr<Properties> CreateDummyConditionProperties(ModelPart& rModelPart)
 {
     constexpr auto properties_id = ModelPart::IndexType{1};
-    auto           p_result      = rModelPart.CreateNewProperties(properties_id);
+    auto p_result = rModelPart.CreateNewProperties(properties_id);
     p_result->SetValue(ALPHA_COEFFICIENT, 0.0);
     p_result->SetValue(A1_COEFFICIENT, 0.0);
     p_result->SetValue(A2_COEFFICIENT, 0.0);
@@ -39,17 +38,19 @@ std::shared_ptr<Properties> CreateDummyConditionProperties(ModelPart& rModelPart
     return p_result;
 }
 
-void CreateNodesForLineCondition(ModelPart& rModelPart, std::size_t NumberOfNodes)
+void CreateNodesForLineCondition(ModelPart& rModelPart,
+                                 std::size_t NumberOfNodes)
 {
     for (auto node_index = std::size_t{0}; node_index < NumberOfNodes; ++node_index) {
         const auto x = static_cast<double>(node_index);
         const auto y = 0.5 * x;
         const auto z = 0.0;
-        rModelPart.CreateNewNode(node_index + 1, x, y, z);
+        rModelPart.CreateNewNode(node_index+1, x, y, z);
     }
 }
 
-void CreateNodesForTriangle(ModelPart& rModelPart, bool WantMidSideNodes)
+void CreateNodesForTriangle(ModelPart& rModelPart,
+                            bool WantMidSideNodes)
 {
     rModelPart.CreateNewNode(ModelPart::IndexType{1}, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{2}, 2.0, 0.0, 0.0);
@@ -61,15 +62,17 @@ void CreateNodesForTriangle(ModelPart& rModelPart, bool WantMidSideNodes)
     }
 }
 
-enum class HigherOrderElementConfiguration { None, Serendipity, LaGrange };
+enum class HigherOrderElementConfiguration{None, Serendipity, LaGrange};
 
-void CreateNodesForQuadrilateral(ModelPart& rModelPart, HigherOrderElementConfiguration configuration)
+void CreateNodesForQuadrilateral(ModelPart& rModelPart,
+                                 HigherOrderElementConfiguration configuration )
 {
     rModelPart.CreateNewNode(ModelPart::IndexType{1}, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{2}, 2.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{3}, 2.0, 2.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{4}, 0.0, 2.0, 0.0);
-    if (configuration == HigherOrderElementConfiguration::None) return;
+    if (configuration == HigherOrderElementConfiguration::None)
+        return;
 
     rModelPart.CreateNewNode(ModelPart::IndexType{5}, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(ModelPart::IndexType{6}, 2.0, 1.0, 0.0);
@@ -80,7 +83,7 @@ void CreateNodesForQuadrilateral(ModelPart& rModelPart, HigherOrderElementConfig
     }
 }
 
-void AddSolutionStepVariablesToModelPart(ModelPart&                                  rModelPart,
+void AddSolutionStepVariablesToModelPart(ModelPart& rModelPart,
                                          const std::vector<const Variable<double>*>& rVariables)
 {
     for (auto p_variable : rVariables) {
@@ -88,7 +91,8 @@ void AddSolutionStepVariablesToModelPart(ModelPart&                             
     }
 }
 
-void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes, const Variable<double>& rVariable)
+void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes,
+                                  const Variable<double>& rVariable)
 {
     for (auto& node : rNodes) {
         node.FastGetSolutionStepValue(rVariable, 0) = 1.0;
@@ -96,7 +100,7 @@ void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes, const V
     }
 }
 
-void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType&              rNodes,
+void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType& rNodes,
                                   const std::vector<const Variable<double>*>& rVariables)
 {
     for (auto p_variable : rVariables) {
@@ -104,14 +108,19 @@ void AddSolutionStepValuesToNodes(ModelPart::NodesContainerType&              rN
     }
 }
 
-ModelPart& CreateDummyModelPartWithNodes(Model& rModel, const std::function<void(ModelPart&)>& rCreateNodesFunc)
+ModelPart& CreateDummyModelPartWithNodes(Model& rModel,
+                                         const std::function<void(ModelPart&)>& rCreateNodesFunc)
 {
     constexpr auto buffer_size = Model::IndexType{2};
-    auto&          r_result    = rModel.CreateModelPart("dummy", buffer_size);
+    auto& r_result = rModel.CreateModelPart("dummy", buffer_size);
 
-    const auto variables = std::vector<const Variable<double>*>{
-        &AIR_TEMPERATURE, &AIR_HUMIDITY, &SOLAR_RADIATION, &WIND_SPEED,
-        &PRECIPITATION,   &TEMPERATURE,  &DT_TEMPERATURE};
+    const auto variables = std::vector<const Variable<double>*>{&AIR_TEMPERATURE,
+                                                                &AIR_HUMIDITY,
+                                                                &SOLAR_RADIATION,
+                                                                &WIND_SPEED,
+                                                                &PRECIPITATION,
+                                                                &TEMPERATURE,
+                                                                &DT_TEMPERATURE};
     AddSolutionStepVariablesToModelPart(r_result, variables);
 
     rCreateNodesFunc(r_result);
@@ -122,15 +131,16 @@ ModelPart& CreateDummyModelPartWithNodes(Model& rModel, const std::function<void
     return r_result;
 }
 
-intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rModelPart,
+intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart& rModelPart,
                                                      shared_ptr<Properties> pProperties,
-                                                     std::size_t            DimensionSize)
+                                                     std::size_t DimensionSize)
 {
     constexpr auto condition_id = std::size_t{1};
-    auto           node_ids     = std::vector<ModelPart::IndexType>{};
+    auto node_ids = std::vector<ModelPart::IndexType>{};
     for (const auto& node : rModelPart.Nodes()) {
         node_ids.emplace_back(node.Id());
     }
+
     const auto condition_name = std::string{"GeoTMicroClimateFluxCondition"} +
                                 std::to_string(DimensionSize) + "D" + std::to_string(node_ids.size()) + "N";
 
@@ -185,11 +195,13 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
     return rModelPart.CreateNewCondition(condition_name, condition_id, node_ids, pProperties);
 }
 
-std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition, const ProcessInfo& rProcessInfo)
+std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition,
+                                          const ProcessInfo& rProcessInfo)
 {
     try {
         pCondition->InitializeSolutionStep(rProcessInfo);
-    } catch (const Exception& e) {
+    }
+    catch (const Exception& e) {
         return e.what();
     }
 
@@ -199,27 +211,32 @@ std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition, c
 constexpr auto relative_tolerance = 1.0e-3;
 constexpr auto absolute_tolerance = 1.0e-3;
 
-} // namespace
+}
 
-namespace Kratos::Testing
-{
+
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto create_nodes_func = [](ModelPart& rModelPart)
+    {
         constexpr auto number_of_nodes = std::size_t{2};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto p_condition =
+        CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     auto has_thrown = false;
-    try {
+    try
+    {
         p_condition->Initialize(r_model_part.GetProcessInfo());
-    } catch (const Exception&) {
+    }
+    catch (const Exception&)
+    {
         has_thrown = true;
     }
 
@@ -230,14 +247,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto number_of_nodes = std::size_t{2};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -248,14 +265,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto number_of_nodes = std::size_t{3};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -266,14 +283,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto number_of_nodes = std::size_t{4};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -284,14 +301,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto number_of_nodes = std::size_t{5};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -302,14 +319,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto want_mid_side_nodes = false;
         CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -320,14 +337,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto want_mid_side_nodes = true;
         CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -338,13 +355,13 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::None);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -355,13 +372,13 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::Serendipity);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -372,13 +389,13 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::LaGrange);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
 
     const auto error_text = ExecuteInitializeSolutionStep(p_condition, r_model_part.GetProcessInfo());
 
@@ -388,14 +405,14 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto number_of_nodes = std::size_t{3};
         CreateNodesForLineCondition(rModelPart, number_of_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{2};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
     p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
@@ -404,7 +421,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{3, 3, 0.0};
-    expected_lhs_matrix <<= 21.2568, -8.50271, 25.5081, -8.50271, 12.7541, 8.50271, 25.5081, 8.50271, 68.0217;
+    expected_lhs_matrix <<= 21.2568, -8.50271, 25.5081,
+            -8.50271, 12.7541, 8.50271,
+            25.5081, 8.50271, 68.0217;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{3, 0.0};
@@ -415,14 +434,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6N, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         constexpr auto want_mid_side_nodes = true;
         CreateNodesForTriangle(rModelPart, want_mid_side_nodes);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
     p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
@@ -431,10 +450,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{6, 6, 0.0};
-    expected_lhs_matrix <<= 1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729, -0.975729,
-        1.95146, -0.975729, 0.975729, 0.975729, -1.95146, -0.975729, -0.975729, 1.95146, -1.95146,
-        0.975729, 0.975729, 0.975729, 0.975729, -1.95146, 10.733, 7.80583, 7.80583, -1.95146, 0.975729,
-        0.975729, 7.80583, 10.733, 7.80583, 0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733;
+    expected_lhs_matrix <<= 1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729,
+            -0.975729, 1.95146, -0.975729, 0.975729, 0.975729, -1.95146,
+            -0.975729, -0.975729, 1.95146, -1.95146, 0.975729, 0.975729,
+            0.975729, 0.975729, -1.95146, 10.733, 7.80583, 7.80583,
+            -1.95146, 0.975729, 0.975729, 7.80583, 10.733, 7.80583,
+            0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{6, 0.0};
@@ -446,13 +467,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8N, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model test_model;
-    auto  create_nodes_func = [](ModelPart& rModelPart) {
+    auto  create_nodes_func = [](ModelPart& rModelPart){
         CreateNodesForQuadrilateral(rModelPart, HigherOrderElementConfiguration::Serendipity);
     };
-    auto&          r_model_part   = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
-    auto           p_properties   = CreateDummyConditionProperties(r_model_part);
+    auto& r_model_part = CreateDummyModelPartWithNodes(test_model, create_nodes_func);
+    auto  p_properties = CreateDummyConditionProperties(r_model_part);
     constexpr auto dimension_size = std::size_t{3};
-    auto p_condition = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
+    auto  p_condition  = CreateMicroClimateCondition(r_model_part, p_properties, dimension_size);
     p_condition->Initialize(r_model_part.GetProcessInfo());
     p_condition->InitializeSolutionStep(r_model_part.GetProcessInfo());
 
@@ -461,13 +482,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{8, 8, 0.0};
-    expected_lhs_matrix <<= 5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525,
-        -5.26894, 1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
-        2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525, 1.75631, 2.63447,
-        1.75631, 5.26894, -7.02525, -7.02525, -5.26894, -5.26894, -5.26894, -5.26894, -7.02525,
-        -7.02525, 28.101, 17.5631, 14.0505, 17.5631, -7.02525, -5.26894, -5.26894, -7.02525,
-        17.5631, 28.101, 17.5631, 14.0505, -7.02525, -7.02525, -5.26894, -5.26894, 14.0505, 17.5631,
-        28.101, 17.5631, -5.26894, -7.02525, -7.02525, -5.26894, 17.5631, 14.0505, 17.5631, 28.101;
+    expected_lhs_matrix <<= 5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525, -5.26894,
+            1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
+            2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525,
+            1.75631, 2.63447, 1.75631, 5.26894, -7.02525, -7.02525, -5.26894, -5.26894,
+            -5.26894, -5.26894, -7.02525, -7.02525, 28.101, 17.5631, 14.0505, 17.5631,
+            -7.02525, -5.26894, -5.26894, -7.02525, 17.5631, 28.101, 17.5631, 14.0505,
+            -7.02525, -7.02525, -5.26894, -5.26894, 14.0505, 17.5631, 28.101, 17.5631,
+            -5.26894, -7.02525, -7.02525, -5.26894, 17.5631, 14.0505, 17.5631, 28.101;
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
@@ -476,4 +498,4 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
-} // namespace Kratos::Testing
+}
