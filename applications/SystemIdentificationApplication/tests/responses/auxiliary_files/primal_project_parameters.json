@@ -87,33 +87,6 @@
         "list_other_processes": []
     },
     "output_processes": {
-        "vtk_output": [
-            {
-                "python_module": "vtk_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "VtkOutputProcess",
-                "Parameters": {
-                    "model_part_name": "Structure",
-                    "output_control_type": "step",
-                    "output_interval": 1,
-                    "file_format": "ascii",
-                    "output_precision": 7,
-                    "output_sub_model_parts": false,
-                    "output_path": "vtk_output",
-                    "save_output_files_in_folder": true,
-                    "nodal_solution_step_data_variables": [
-                        "DISPLACEMENT",
-                        "REACTION"
-                    ],
-                    "nodal_data_value_variables": [],
-                    "element_data_value_variables": [],
-                    "condition_data_value_variables": [],
-                    "gauss_point_variables_extrapolated_to_nodes": [
-                        "VON_MISES_STRESS"
-                    ]
-                }
-            }
-        ]
     },
     "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }
