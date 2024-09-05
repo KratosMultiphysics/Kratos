@@ -13,8 +13,8 @@
 #include "geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <custom_geometries/line_interface_geometry.h>
-#include <custom_utilities/interface_element_utilities.h>
+#include "custom_geometries/line_interface_geometry.h"
+#include "custom_utilities/interface_element_utilities.h"
 
 namespace Kratos::Testing
 {
