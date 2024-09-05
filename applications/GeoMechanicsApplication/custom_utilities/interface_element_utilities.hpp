@@ -24,7 +24,7 @@ namespace Kratos
 class InterfaceElementUtilities
 {
 public:
-    static inline void CalculateNuMatrix(BoundedMatrix<double, 2, 4>& rNu,
+    static void CalculateNuMatrix(BoundedMatrix<double, 2, 4>& rNu,
                                          const Matrix&                Ncontainer,
                                          const unsigned int&          GPoint)
     {
@@ -35,7 +35,7 @@ public:
         rNu(1, 3) = Ncontainer(GPoint, 1);
     }
 
-    static inline void CalculateNuMatrix(BoundedMatrix<double, 2, 8>& rNu,
+    static void CalculateNuMatrix(BoundedMatrix<double, 2, 8>& rNu,
                                          const Matrix&                Ncontainer,
                                          const unsigned int&          GPoint)
     {
@@ -51,7 +51,7 @@ public:
         rNu(1, 7) = Ncontainer(GPoint, 3);
     }
 
-    static inline void CalculateNuMatrix(BoundedMatrix<double, 3, 12>& rNu,
+    static void CalculateNuMatrix(BoundedMatrix<double, 3, 12>& rNu,
                                          const Matrix&                 Ncontainer,
                                          const unsigned int&           GPoint)
     {
@@ -71,7 +71,7 @@ public:
         rNu(2, 11) = Ncontainer(GPoint, 3);
     }
 
-    static inline void CalculateNuMatrix(BoundedMatrix<double, 3, 18>& rNu,
+    static void CalculateNuMatrix(BoundedMatrix<double, 3, 18>& rNu,
                                          const Matrix&                 Ncontainer,
                                          const unsigned int&           GPoint)
     {
@@ -97,7 +97,7 @@ public:
         rNu(2, 17) = Ncontainer(GPoint, 5);
     }
 
-    static inline void CalculateNuMatrix(BoundedMatrix<double, 3, 24>& rNu,
+    static void CalculateNuMatrix(BoundedMatrix<double, 3, 24>& rNu,
                                          const Matrix&                 Ncontainer,
                                          const unsigned int&           GPoint)
     {
@@ -130,7 +130,7 @@ public:
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
+    static void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
                                               const double&                JointWidth,
                                               const double&                Transversal_Permeability)
     {
@@ -139,7 +139,7 @@ public:
         rPermeabilityMatrix(1, 1) = Transversal_Permeability;
     }
 
-    static inline void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
+    static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
                                               const double&                JointWidth,
                                               const double&                Transversal_Permeability)
     {
@@ -150,14 +150,14 @@ public:
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateVoigtVector(array_1d<double, 2>& rVoigtVector)
+    static void CalculateVoigtVector(array_1d<double, 2>& rVoigtVector)
     {
         // Quadrilateral_interface_2d_4
         rVoigtVector[0] = 0.0;
         rVoigtVector[1] = 1.0;
     }
 
-    static inline void CalculateVoigtVector(array_1d<double, 3>& rVoigtVector)
+    static void CalculateVoigtVector(array_1d<double, 3>& rVoigtVector)
     {
         // Prism_interface_3d_6 and Hexahedral_interface_3d_8
         rVoigtVector[0] = 0.0;
@@ -166,7 +166,7 @@ public:
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
+    static void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
                                                        const double& JointWidth)
     {
         // Quadrilateral_interface_2d_4
@@ -174,7 +174,7 @@ public:
         rPermeabilityMatrix(1, 1) = JointWidth * JointWidth / 12.0;
     }
 
-    static inline void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
+    static void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
                                                        const double& JointWidth)
     {
         // Prism_interface_3d_6 and Hexahedral_interface_3d_8
