@@ -14,7 +14,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <custom_geometries/line_interface_geometry.h>
-#include <custom_utilities/interface_element_utilities.hpp>
+#include <custom_utilities/interface_element_utilities.h>
 
 namespace Kratos::Testing
 {

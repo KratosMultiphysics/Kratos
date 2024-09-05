@@ -19,7 +19,7 @@
 
 #include "custom_utilities/poro_condition_utilities.hpp"
 #include "custom_utilities/poro_element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "custom_utilities/fracture_propagation_3D_utilities.hpp"
 #include "custom_utilities/fracture_propagation_2D_utilities.hpp"
 #include "custom_utilities/nonlocal_damage_utilities.hpp"
