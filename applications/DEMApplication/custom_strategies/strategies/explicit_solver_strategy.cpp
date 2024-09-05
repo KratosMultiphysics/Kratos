@@ -631,7 +631,7 @@ namespace Kratos {
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-        SetNormalRadiiOnAllParticlesBeforeInitilization(*mpDem_model_part);
+        SetNormalRadiiOnAllParticles(*mpDem_model_part);
 
         #pragma omp parallel
         {
