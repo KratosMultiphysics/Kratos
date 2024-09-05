@@ -61,37 +61,6 @@
         "processes_sub_model_part_list"      : ["load","base_fixed","side_roller_xy","side_roller_yz","zero_water_pressure"],
         "body_domain_sub_model_part_list"    : ["soil_block"]
     },
-    "output_processes": {
-            "gid_output" : [{
-            "python_module"                           : "gid_output_process",
-            "kratos_module"                           : "KratosMultiphysics",
-            "process_name"                            : "GiDOutputProcess",
-            "Parameters"                              : {
-                "model_part_name"                     : "PorousDomain.porous_computational_model_part",
-                "output_name"                         : "gid_output/test_constant_point_load_3d",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags" : {
-                            "WriteDeformedMeshFlag"   : "WriteUndeformed",
-                            "WriteConditionsFlag"     : "WriteElementsOnly",
-                            "GiDPostMode"             : "GiD_PostAscii",
-                            "MultiFileFlag"           : "SingleFile"
-                        },
-                        "file_label"                  : "step",
-                        "output_control_type"         : "step",
-                        "output_interval"             : 50,
-                        "body_output"                 : true,
-                        "node_output"                 : false,
-                        "skin_output"                 : false,
-                        "plane_output"                : [],
-                        "nodal_results"               : ["DISPLACEMENT"],
-                        "gauss_point_results"         : ["CAUCHY_STRESS_TENSOR"]
-                    },
-                    "point_data_configuration"        : []
-                }
-            }
-        }]
-    },
     "processes": {
         "json_output": [
             {
