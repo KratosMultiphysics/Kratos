@@ -30,7 +30,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForHorizontalI
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
@@ -47,7 +48,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     Matrix expected_rotation_matrix(2, 2);
@@ -68,7 +70,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     Matrix expected_rotation_matrix(2, 2);
@@ -87,7 +90,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     Matrix expected_rotation_matrix(2, 2);
@@ -106,7 +110,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     Matrix expected_rotation_matrix(2, 2);
@@ -127,7 +132,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedI
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
@@ -146,7 +152,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationForCurved3Plus3
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
@@ -165,7 +172,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationForInc
     LineInterfaceGeometry geometry(1, nodes);
 
     // Act
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry);
+    const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
 
     // Assert
     // clang-format off

@@ -174,11 +174,11 @@ void InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(BoundedMatrix<do
     rPermeabilityMatrix(2, 2) = JointWidth * JointWidth / 12.0;
 }
 
-Matrix InterfaceElementUtilities::Calculate2DRotationMatrix(const Geometry<Node>& rGeometry)
+Matrix InterfaceElementUtilities::Calculate2DRotationMatrix(const Geometry<Node>& rGeometry,
+                                                            const array_1d<double, 3>& rLocalCoordinate)
 {
-    array_1d<double, 3> xi{0.0, 0.0, 0.0};
     Matrix              shape_functions_gradients;
-    rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, xi);
+    rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, rLocalCoordinate);
     KRATOS_INFO("ShapeFunctionsGradients") << shape_functions_gradients << std::endl;
     const auto mid_points = CalculateMidPoints(rGeometry);
     KRATOS_INFO("MidPoints") << mid_points << std::endl;
