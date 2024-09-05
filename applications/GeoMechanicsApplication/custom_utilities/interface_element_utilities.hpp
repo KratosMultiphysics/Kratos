@@ -231,7 +231,7 @@ private:
     {
         array_1d<double, 3> tangential_vector = ZeroVector(3);
         for (std::size_t i = 0; i < rLocations.size(); ++i) {
-            tangential_vector += rLocations[i] * rShapeFunctionGradients(0, i);
+            tangential_vector += rLocations[i] * rShapeFunctionGradients(i, 0);
         }
         tangential_vector /= norm_2(tangential_vector);
 
