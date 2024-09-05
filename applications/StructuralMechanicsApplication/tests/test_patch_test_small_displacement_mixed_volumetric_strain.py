@@ -103,7 +103,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         # Define a linear strategy to solve the problem
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme = StructuralMechanicsApplication.StructuralMechanicsStaticScheme(KratosMultiphysics.Parameters("{}"))
         compute_reactions = True
         reform_step_dofs = True
         calculate_norm_dx = False
@@ -116,6 +116,38 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             compute_reactions,
             reform_step_dofs,
             calculate_norm_dx,
+            move_mesh_flag)
+        strategy.SetEchoLevel(0)
+        strategy.Initialize()
+        strategy.Check()
+
+        # Solve the problem
+        strategy.Solve()
+
+    def _solve_non_linear(self, model_part, projection_variables_list = []):
+        # Define a Newton-Raphson strategy to solve the problem
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme_settings = KratosMultiphysics.Parameters("""{
+            "projection_variables_list" : []
+        }""")
+        scheme_settings["projection_variables_list"].SetStringArray(projection_variables_list)
+        scheme = StructuralMechanicsApplication.StructuralMechanicsStaticScheme(scheme_settings)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1.0e-6, 1.0e-8),
+            (KratosMultiphysics.VOLUMETRIC_STRAIN, 1.0e-6, 1.0e-8)])
+        max_iteration = 10
+        compute_reactions = False
+        reform_step_dofs = False
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+            model_part,
+            scheme,
+            convergence_criterion,
+            builder_and_solver,
+            max_iteration,
+            compute_reactions,
+            reform_step_dofs,
             move_mesh_flag)
         strategy.SetEchoLevel(0)
         strategy.Initialize()
@@ -277,6 +309,94 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
 
         self._apply_BCs(boundary_model_part, A, b)
         self._solve(model_part)
+        self._check_results(model_part, A, b)
+        self._check_stress(model_part, A, dimension)
+        if self.print_output:
+            self.__post_process(model_part)
+
+    def testSmallDisplacementMixedVolumetricStrainOssElement2DTriangle(self):
+        dimension = 2
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("MainModelPartTriangle")
+        self._add_variables(model_part)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+        self._apply_material_properties(model_part, dimension)
+
+        # Create nodes
+        model_part.CreateNewNode(1,0.5,0.5,0.0)
+        model_part.CreateNewNode(2,0.7,0.2,0.0)
+        model_part.CreateNewNode(3,0.9,0.8,0.0)
+        model_part.CreateNewNode(4,0.3,0.7,0.0)
+        model_part.CreateNewNode(5,0.6,0.6,0.0)
+
+        # Add DOFs
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, KratosMultiphysics.REACTION_FLUX, model_part)
+
+        # Create a submodelpart for boundary conditions
+        boundary_model_part = model_part.CreateSubModelPart("BoundaryCondtions")
+        boundary_model_part.AddNodes([1,2,3,4])
+
+        # Create elements
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 1, [1,2,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 2, [2,3,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 3, [3,4,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssElement2D3N", 4, [4,1,5], model_part.GetProperties()[1])
+
+        A,b = self._define_movement(dimension)
+
+        self._apply_BCs(boundary_model_part, A, b)
+        self._solve_non_linear(model_part, ["DISPLACEMENT_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION"])
+        self._check_results(model_part, A, b)
+        self._check_stress(model_part, A, dimension)
+        if self.print_output:
+            self.__post_process(model_part)
+
+    def testSmallDisplacementMixedVolumetricStrainOssNonLinearElement2DTriangle(self):
+        dimension = 2
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("MainModelPartTriangle")
+        self._add_variables(model_part)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
+        self._apply_material_properties(model_part, dimension)
+
+        # Create nodes
+        model_part.CreateNewNode(1,0.5,0.5,0.0)
+        model_part.CreateNewNode(2,0.7,0.2,0.0)
+        model_part.CreateNewNode(3,0.9,0.8,0.0)
+        model_part.CreateNewNode(4,0.3,0.7,0.0)
+        model_part.CreateNewNode(5,0.6,0.6,0.0)
+
+        # Add DOFs
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, KratosMultiphysics.REACTION_FLUX, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_PROJECTION_X, KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_PROJECTION_Y, KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_PROJECTION_Z, KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION, KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION, model_part)
+
+        # Create a submodelpart for boundary conditions
+        boundary_model_part = model_part.CreateSubModelPart("BoundaryCondtions")
+        boundary_model_part.AddNodes([1,2,3,4])
+
+        # Create elements
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 1, [1,2,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 2, [2,3,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 3, [3,4,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", 4, [4,1,5], model_part.GetProperties()[1])
+
+        A,b = self._define_movement(dimension)
+
+        self._apply_BCs(boundary_model_part, A, b)
+        self._solve_non_linear(model_part)
         self._check_results(model_part, A, b)
         self._check_stress(model_part, A, dimension)
         if self.print_output:

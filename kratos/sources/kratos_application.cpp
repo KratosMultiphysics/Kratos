@@ -122,7 +122,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
       mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {
-        
+
         Registry::SetCurrentSource(mApplicationName);
 
         for (auto component : {"geometries", "elements", "conditions", "constraints", "modelers", "constitutive_laws"}) {
@@ -356,7 +356,7 @@ void KratosApplication::DeregisterComponent(std::string const & rComponentName) 
     }
 }
 
-void KratosApplication::DeregisterCommonComponents() 
+void KratosApplication::DeregisterCommonComponents()
 {
     KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
 
@@ -369,8 +369,32 @@ void KratosApplication::DeregisterCommonComponents()
 }
 
 void KratosApplication::DeregisterApplication() {
+    DeregisterMappers();
     // DeregisterLinearSolvers();
     // DeregisterPreconditioners();
+}
+
+void KratosApplication::DeregisterMappers() {
+    // Unload the mpi branch first to avoid having a special case later
+    const std::string mpi_path = "mappers."+mApplicationName+".mpi";
+    if (Registry::HasItem(mpi_path)) {
+        auto& r_mappers = Registry::GetItem(mpi_path);
+        // Iterate over items at path. For each item, remove it from the mappers.all.mpi branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            Registry::RemoveItem("mappers.all.mpi."+*i_key);
+        }
+        Registry::RemoveItem(mpi_path);
+    }
+
+    const std::string path = "mappers."+mApplicationName;
+    if (Registry::HasItem(path)) {
+        auto& r_mappers = Registry::GetItem(path);
+        // Iterate over items at path. For each item, remove it from the mappers.all branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            Registry::RemoveItem("mappers.all."+*i_key);
+        }
+        Registry::RemoveItem(path);
+    }
 }
 
 }  // namespace Kratos.

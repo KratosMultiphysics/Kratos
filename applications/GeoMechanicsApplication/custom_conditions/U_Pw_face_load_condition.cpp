@@ -73,6 +73,12 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRig
     }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwFaceLoadCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwFaceLoadCondition";
+}
+
 template class UPwFaceLoadCondition<2, 2>;
 template class UPwFaceLoadCondition<2, 3>;
 template class UPwFaceLoadCondition<2, 4>;
