@@ -212,4 +212,29 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtEdge
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtArbitraryXiForQuadraticElement_WithNonUnitLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, -1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
+    const LineInterfaceGeometry geometry(1, nodes);
+
+    // Act
+    const auto local_coordinate = array_1d<double, 3>{-0.5, 0.0, 0.0};
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+
+    // Assert
+    // clang-format off
+    Matrix expected_rotation_matrix(2, 2);
+    expected_rotation_matrix <<= 0.5 * sqrt(2), 0.5 * sqrt(2),
+                                -0.5 * sqrt(2), 0.5 * sqrt(2); // Rotation of 45 degrees clockwise
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
+}
+
 } // namespace Kratos::Testing
