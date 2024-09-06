@@ -96,6 +96,9 @@ void GeometricalObjectsBins::SearchInRadius(
         for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
+                // First, check if the cell is empty
+                if (r_cell.empty()) continue;
+                // Check if the cell is inside the radius
                 if (IsCellBoundingBoxInsideRadius(i, j, k, rPoint, Radius)) {
                     current_size = rResults.size();
                     rResults.reserve(current_size + r_cell.size());
