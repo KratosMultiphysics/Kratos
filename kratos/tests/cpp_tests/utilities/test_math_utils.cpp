@@ -636,9 +636,9 @@ KRATOS_TEST_CASE_IN_SUITE(MathUtilsDot, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(g, 0.0);
 }
 
-/** Checks if it clamps the values correctly
-* Checks if it clamps the values correctly
-*/
+/**
+ * Checks if it clamps the values correctly
+ */
 KRATOS_TEST_CASE_IN_SUITE(MathUtilsClamp, KratosCoreFastSuite)
 {
     // Test case where value is less than the minimum
@@ -711,6 +711,100 @@ KRATOS_TEST_CASE_IN_SUITE(MathUtilsClamp, KratosCoreFastSuite)
         const double max = -1.0;
         const double clampedValue = MathUtils<double>::Clamp(value, min, max);
         KRATOS_EXPECT_EQ(clampedValue, value);
+    }
+}
+
+/**
+ * Checks if it clamps the values correctly and returns the scenario
+ */
+KRATOS_TEST_CASE_IN_SUITE(MathUtilsClampWithScenario, KratosCoreFastSuite)
+{
+    // Test case where value is less than the minimum
+    {
+        const double value = -1.0;
+        const double min = 0.0;
+        const double max = 10.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, min);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::BELOW_MINIMUM);
+    }
+
+    // Test case where value is greater than the maximum
+    {
+        const double value = 11.0;
+        const double min = 0.0;
+        const double max = 10.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, max);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::ABOVE_MAXIMUM);
+    }
+
+    // Test case where value is within the range
+    {
+        const double value = 5.0;
+        const double min = 0.0;
+        const double max = 10.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, value);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
+    }
+
+    // Test case where value is exactly the minimum
+    {
+        const double value = 0.0;
+        const double min = 0.0;
+        const double max = 10.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, min);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
+    }
+
+    // Test case where value is exactly the maximum
+    {
+        const double value = 10.0;
+        const double min = 0.0;
+        const double max = 10.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, max);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
+    }
+
+    // Test case with integers
+    {
+        const int value = 15;
+        const int min = 10;
+        const int max = 20;
+        ClampScenario scenario;
+        const int clampedValue = MathUtils<int>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, value);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
+    }
+
+    // Test case with floating-point numbers
+    {
+        const float value = 5.5f;
+        const float min = 1.0f;
+        const float max = 10.0f;
+        ClampScenario scenario;
+        const float clampedValue = MathUtils<float>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, value);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
+    }
+
+    // Test case with negative numbers
+    {
+        const double value = -5.0;
+        const double min = -10.0;
+        const double max = -1.0;
+        ClampScenario scenario;
+        const double clampedValue = MathUtils<double>::Clamp(value, min, max, scenario);
+        KRATOS_EXPECT_EQ(clampedValue, value);
+        KRATOS_EXPECT_EQ(scenario, ClampScenario::WITHIN_BOUNDS);
     }
 }
 
