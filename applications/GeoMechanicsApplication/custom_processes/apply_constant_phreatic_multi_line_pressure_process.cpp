@@ -88,10 +88,6 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() < 2)
         << "At least two coordinates in horizontal direction must be given, but got "
         << HorizontalDirectionCoordinates().size() << std::endl;
-    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].size())
-        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
-        << rParameters["table"].size() << " table references. The number of coordinates "
-        << "and table references should be equal." << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)

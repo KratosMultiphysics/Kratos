@@ -91,28 +91,6 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhe
         "At least two coordinates in horizontal direction must be given, but got 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessThrowsWhenTableLengthDoesNotMatchCoordinates,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto  model           = Model{};
-    auto& r_model_part    = model.CreateModelPart("foo");
-    auto  test_parameters = Parameters{R"(
-            {
-                "model_part_name": "foo",
-                "variable_name": "WATER_PRESSURE",
-                "x_coordinates": [0.0, 1.0],
-                "y_coordinates": [0.0, 1.0],
-                "z_coordinates": [0.0, 0.0],
-                "gravity_direction": 1,
-                "out_of_plane_direction": 2,
-                "table": [1, 2, 3, 4]
-            }  )"};
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyConstantPhreaticMultiLinePressureProcess{r_model_part, test_parameters}),
-        "Got 2 coordinates and 4 table references. The number of coordinates and table references should be equal.")
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotThrowWhenAtLeastTwoCoordinatesInGravityDirectionAreGiven,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
