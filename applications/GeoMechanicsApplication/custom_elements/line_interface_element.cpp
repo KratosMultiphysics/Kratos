@@ -36,15 +36,16 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
 
 void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    auto       shape_function_values_at_integration_points = std::vector<Vector>{};
-    const auto number_of_node_pairs                        = GetGeometry().PointsNumber() / 2;
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        auto shape_function_values = Vector{number_of_node_pairs};
-        for (auto i = std::size_t{0}; i < number_of_node_pairs; ++i) {
-            shape_function_values[i] = GetGeometry().ShapeFunctionValue(i, integration_point);
-        }
-        shape_function_values_at_integration_points.push_back(shape_function_values);
-    }
+    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
+        auto result = Vector{};
+        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
+        return result;
+    };
+    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
+    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
+    std::transform(r_integration_points.begin(), r_integration_points.end(),
+                   std::back_inserter(shape_function_values_at_integration_points),
+                   evaluate_shape_function_values);
 
     auto       b_matrices      = std::vector<Matrix>{};
     const auto dummy_gradients = Matrix{};
@@ -68,9 +69,10 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     }
 
     auto integration_coefficients = std::vector<double>{};
-    auto index = std::size_t{0};
+    auto index                    = std::size_t{0};
     for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(integration_point, determinants_of_jacobian[index], GetGeometry()));
+        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
+            integration_point, determinants_of_jacobian[index], GetGeometry()));
     }
 
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
