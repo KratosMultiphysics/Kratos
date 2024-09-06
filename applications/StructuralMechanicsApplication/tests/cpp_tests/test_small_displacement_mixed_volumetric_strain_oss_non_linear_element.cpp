@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({-23229.2769584, 56915.6143768, -51141.4304126, 23213.0307339, 55320.952803, -54407.5577499, 18445.292237, -55255.9702739, -33131.2088772, -18477.7846861, -56834.3856232, -18387.1106526, -0.000678139787215, 0.00339068835709, 401.175213675, -0.000678139787215, 0.00271254856988, 401.709401709, -0.00135627957443, 0.00271254856988, 375.534188034, -0.00135627957443, 0.00339068835709, 360.042735043});
+    const std::vector<double> expected_RHS({-23250.1102918, 56891.5759153, -51151.6206737, 23233.8640672, 55296.9143414, -54418.2821989, 18472.5358267, -55231.9318124, -33144.5228897, -18505.0282759, -56810.3471617, -18400.9588531, -0.000678139787215, 0.00339068835709, 401.175213675, -0.000678139787215, 0.00271254856988, 401.709401709, -0.00135627957443, 0.00271254856988, 375.534188034, -0.00135627957443, 0.00339068835709, 360.042735043});
     const std::vector<double> expected_LHS_row_0({519230.769231, 4807.69230769, -330870.488052, -134615.384615, -379807.692308, -303744.896563, -259615.384615, -4807.69230769, -151872.448282, -125000, 379807.692308, -165435.244026, 0, 0, 3205.12820513, 0, 0, 3205.12820513, 0, 0, 1602.56410256, 0, 0, 1602.56410256});
     const std::vector<double> expected_mass_row_0({111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 55.5555555556, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
     const std::vector<double> expected_mass_row_4({0, 55.5555555556, 0, 0, 111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -281,9 +281,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_vol_strain = 1.49650698603e-05;
-    const double expected_vol_strain_proj = -0.000313398253996;
-    const std::vector<double> expected_disp = {-0.000318007229622, 0.000347937369343, 0};
-    const std::vector<double> expected_disp_proj = {2.61074297916, -2.61074297916, 0};
+    const double expected_vol_strain_proj = -0.000585012842283;
+    const std::vector<double> expected_disp = {-0.000588353653123, 0.000618283792843, 0};
+    const std::vector<double> expected_disp_proj = {2.44159795939, -2.44159795939, 0};
     KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT), expected_disp, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION), expected_disp_proj, tolerance);
     KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);

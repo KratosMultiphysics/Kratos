@@ -149,6 +149,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
+        // Note that this calculates the LHS of the OSS stabilization operator
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -156,7 +157,6 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
     }
 
     // Substract the OSS projections to the current residual
-    // Note that the OSS stabilization projection operator already includes the minus sign
     VectorType proj_vect(matrix_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_us_proj = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
@@ -165,7 +165,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector += prod(oss_proj_op, proj_vect);
+    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -246,6 +246,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
+        // Note that this calculates the LHS of the OSS stabilization operator
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -253,7 +254,6 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
     }
 
     // Substract the OSS projections to the current residual
-    // Note that the OSS stabilization projection operator already includes the minus sign
     VectorType proj_vect(matrix_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_us_proj = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
@@ -262,7 +262,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector += prod(oss_proj_op, proj_vect);
+    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
 }
 
 

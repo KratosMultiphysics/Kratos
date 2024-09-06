@@ -240,24 +240,27 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLeftHan
         rCurrentProcessInfo);
 
     // Call the base element OSS operator
+    // Note that this calculates the LHS of the OSS stabilization operator
     MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesStabilizationOperator(
         aux_oss_stab_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS operator
+    // Call the element OSS operator
+    // Note that this calculates the LHS of the OSS operator (transpose to the stabilization operator)
     MatrixType aux_oss_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS lumped projection operator
+    // Call the element OSS lumped projection operator
+    // Note that this calculates the LHS of the lumped projection operator
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
         rCurrentProcessInfo);
 
-    // Assemble the extended modal analysis LHS
+    // Assemble the extended LHS
     for (IndexType i = 0; i < matrix_size; ++i) {
         for (IndexType j = 0; j < matrix_size; ++j) {
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
@@ -297,13 +300,15 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
         aux_rhs,
         rCurrentProcessInfo);
 
-    // Call the base element OSS operator
+    // Call the element OSS operator
+    // Note that this calculates the LHS of the OSS operator (transpose to the stabilization operator)
     MatrixType aux_oss_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS lumped projection operator
+    // Call the element OSS lumped projection operator
+    // Note that this calculates the LHS of the lumped projection operator
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
