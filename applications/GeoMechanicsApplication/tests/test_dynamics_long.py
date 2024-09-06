@@ -185,8 +185,10 @@ class KratosGeoMechanicsDynamicsLongTests(KratosUnittest.TestCase):
                 import matplotlib.pyplot as plt
                 plt.plot(time_normalized, analytical_vert_displacement, '-', color="r")
                 plt.plot(time_normalized, calculated_vert_displacement[0], '-', color="b")
+                plt.xticks(fontsize=18)
+                plt.yticks(fontsize=18)
 
-                plt.legend(["Analytical", "Calculated"])
+                plt.legend(["Analytical", "Calculated"], fontsize="20")
                 plt.show()
 
             except ImportError:
@@ -195,3 +197,6 @@ class KratosGeoMechanicsDynamicsLongTests(KratosUnittest.TestCase):
 
     def test_constant_point_load_2d_axi(self):
         self.constant_point_load('test_constant_point_load_2d_axi')
+
+    def test_constant_point_load_3d(self):
+        self.constant_point_load('test_constant_point_load_3d')
