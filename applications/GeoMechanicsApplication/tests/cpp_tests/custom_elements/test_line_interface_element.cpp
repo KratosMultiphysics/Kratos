@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_elements/line_interface_element.h"
 #include "custom_geometries/line_interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
@@ -162,15 +163,18 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     // Assert
     KRATOS_EXPECT_EQ(equation_id_vector.size(), 8);
     const std::vector<int> expected_ids = {1, 2, 3, 4, 5, 6, 7, 8};
-    KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids);
+    KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties                                  = std::make_shared<Properties>();
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = 20.0;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = 10.0;
+    auto           properties                        = std::make_shared<Properties>();
+    constexpr auto normal_stiffness                  = 20.0;
+    constexpr auto shear_stiffness                   = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
@@ -194,20 +198,24 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, Krato
     Matrix left_hand_side;
     element->CalculateLeftHandSide(left_hand_side, {});
 
-    KRATOS_INFO("Calculated LHS") << left_hand_side << "\n";
-
-    auto expected_left_hand_side = Matrix{IdentityMatrix{8}};
-    expected_left_hand_side(0, 0) = -10.0 * 0.5;
-    expected_left_hand_side(1, 1) = -20.0 * 0.5;
-    expected_left_hand_side(2, 2) = expected_left_hand_side(0, 0);
-    expected_left_hand_side(3, 3) = expected_left_hand_side(1, 1);
-    expected_left_hand_side(4, 4) = 10.0 * 0.5;
-    expected_left_hand_side(5, 5) = 20.0 * 0.5;
-    expected_left_hand_side(6, 6) = expected_left_hand_side(4, 4);
-    expected_left_hand_side(7, 7) = expected_left_hand_side(5, 5);
-
-    KRATOS_EXPECT_EQ(left_hand_side.size1(), 8);
-    KRATOS_EXPECT_EQ(left_hand_side.size2(), 8);
+    // Assert
+    auto expected_left_hand_side  = Matrix{IdentityMatrix{8}};
+    expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
+    expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
+    expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
+    expected_left_hand_side(3, 3) = normal_stiffness * 0.5;
+    expected_left_hand_side(4, 4) = shear_stiffness * 0.5;
+    expected_left_hand_side(5, 5) = normal_stiffness * 0.5;
+    expected_left_hand_side(6, 6) = shear_stiffness * 0.5;
+    expected_left_hand_side(7, 7) = normal_stiffness * 0.5;
+    expected_left_hand_side(0, 4) = -shear_stiffness * 0.5;
+    expected_left_hand_side(1, 5) = -normal_stiffness * 0.5;
+    expected_left_hand_side(2, 6) = -shear_stiffness * 0.5;
+    expected_left_hand_side(3, 7) = -normal_stiffness * 0.5;
+    expected_left_hand_side(4, 0) = -shear_stiffness * 0.5;
+    expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
+    expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
+    expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, relative_tolerance)
 }
 

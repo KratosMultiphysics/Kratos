@@ -45,6 +45,19 @@ Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>
     return rValue;
 }
 
+Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                                                const Variable<Matrix>& rThisVariable,
+                                                                Matrix& rValue)
+{
+    if (rThisVariable == CONSTITUTIVE_MATRIX) {
+        const auto& r_properties = rParameterValues.GetMaterialProperties();
+        rValue                   = MakeConstitutiveMatrix(r_properties[INTERFACE_NORMAL_STIFFNESS],
+                                                          r_properties[INTERFACE_SHEAR_STIFFNESS]);
+    }
+
+    return rValue;
+}
+
 ConstitutiveLaw::StressMeasure GeoIncrementalLinearElasticInterfaceLaw::GetStressMeasure()
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;

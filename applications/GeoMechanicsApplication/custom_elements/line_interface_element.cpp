@@ -55,13 +55,25 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
             dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
     }
 
-    const auto& properties = GetProperties();
-    auto p_constitutive_law = properties.GetValue(CONSTITUTIVE_LAW);
-    //p_constitutive_law->CalculateValue()
-    auto constitutive_matrices    = std::vector<Matrix>{mIntegrationScheme->GetNumberOfIntegrationPoints(), IdentityMatrix{2}};
+    const auto& properties         = GetProperties();
+    auto        p_constitutive_law = properties.GetValue(CONSTITUTIVE_LAW);
+    auto        law_parameters     = ConstitutiveLaw::Parameters{};
+    law_parameters.SetMaterialProperties(GetProperties());
+    auto constitutive_matrix = Matrix{};
+    p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
+    const auto constitutive_matrices =
+        std::vector<Matrix>{mIntegrationScheme->GetNumberOfIntegrationPoints(), constitutive_matrix};
 
+    auto determinants_of_jacobian = std::vector<double>{};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
+    }
 
-    auto integration_coefficients = std::vector<double>(mIntegrationScheme->GetNumberOfIntegrationPoints(), 1.0);
+    auto integration_coefficients = std::vector<double>{};
+    auto index = std::size_t{0};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(integration_point, determinants_of_jacobian[index], GetGeometry()));
+    }
 
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         b_matrices, constitutive_matrices, integration_coefficients);

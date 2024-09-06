@@ -119,6 +119,32 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialP
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContainingNormalAndShearStiffnessValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto material_properties                        = Properties{};
+    material_properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
+    material_properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
+
+    auto law_parameters = ConstitutiveLaw::Parameters{};
+    law_parameters.SetMaterialProperties(material_properties);
+
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    // Act
+    auto constitutive_matrix = Matrix{};
+    law.CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
+
+    // Assert
+    auto expected_constitutive_matrix = Matrix{2, 2};
+    // clang-format off
+    expected_constitutive_matrix <<= 20.0, 0.0,
+                                     0.0, 10.0;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(constitutive_matrix, expected_constitutive_matrix, relative_tolerance)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
