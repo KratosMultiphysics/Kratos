@@ -19,7 +19,7 @@
 
 // Application includes
 #include "custom_conditions/one-phase_flow/U_Pl_condition.hpp"
-#include "custom_utilities/interface_element_utilities.h"
+#include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
