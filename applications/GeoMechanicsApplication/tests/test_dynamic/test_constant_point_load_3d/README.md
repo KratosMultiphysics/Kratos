@@ -5,7 +5,7 @@
 **Source files:** [Dynamic solution in 3D](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_dynamic/test_constant_point_load_3d)
 
 ## Case Specification
-In this test case, a three-dimensional soil block with dimensions of 10 m x 10 m x 10 m is considered. This is a quarter of the full domain, as this case is axisymmetric. The pressure is fixed at 0 Pa throughout the entire simulation to eliminate the effect of water pressure. This is done to allow comparison of our results with published semi-analytical solutions. A sudden force of -250 N is then applied in the vertical direction at the top surface of the block. The simulation spans 1 second. This test is conducted on a mesh with tetrahedral elements of type 3D4N. The deformation at the surface is then compared with semi-analytical results.
+In this test case, a three-dimensional soil block with dimensions of 10 m x 10 m x 10 m is considered. This is a quarter of the full domain, as the physical problem is axisymmetric. The pressure is fixed at 0 Pa throughout the entire simulation to eliminate the effect of water pressure. This is done to allow comparison of our results with published semi-analytical solutions. A sudden force of -250 N is then applied in the vertical direction at the top surface of the block. The simulation spans 1 second. This test is conducted on a mesh with tetrahedral elements of type 3D4N. The deformation at the surface is then compared with semi-analytical results.
 
 The geometry and boundary conditions are shown below:
 
