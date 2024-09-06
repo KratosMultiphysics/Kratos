@@ -158,6 +158,18 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        law                                = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto& r_some_unsupported_vector_variable = GREEN_LAGRANGE_STRAIN_VECTOR;
+
+    auto value = Vector{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.GetValue(r_some_unsupported_vector_variable, value),
+        "Can't get value of GREEN_LAGRANGE_STRAIN_VECTOR: unsupported variable")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

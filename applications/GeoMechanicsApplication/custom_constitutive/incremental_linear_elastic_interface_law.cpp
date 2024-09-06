@@ -40,6 +40,8 @@ Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>
         rValue = mPreviousRelativeDisplacement;
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         rValue = mPreviousTraction;
+    } else {
+        KRATOS_ERROR << "Can't get value of " << rThisVariable.Name() << ": unsupported variable\n";
     }
 
     return rValue;
