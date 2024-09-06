@@ -12,6 +12,7 @@
 
 #include "custom_elements/line_interface_element.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <cstddef>
@@ -20,6 +21,8 @@ namespace
 {
 
 using namespace Kratos;
+
+const auto relative_tolerance = 1.0e-6;
 
 PointerVector<Node> CreateNodes()
 {
@@ -50,8 +53,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithGeometryInput
 {
     // Arrange
     const LineInterfaceElement element;
-    const auto                 geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(CreateNodes());
-    auto                       properties = std::make_shared<Properties>();
+    const auto geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(CreateNodes());
+    auto       properties = std::make_shared<Properties>();
 
     // Act
     auto created_element = element.Create(1, geometry, properties);
@@ -71,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, Kr
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto                 geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    const auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     const LineInterfaceElement element(1, geometry, properties);
 
     // Act
@@ -165,7 +168,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = std::make_shared<Properties>();
+    auto properties                                  = std::make_shared<Properties>();
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = 20.0;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = 10.0;
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
@@ -189,8 +194,21 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, Krato
     Matrix left_hand_side;
     element->CalculateLeftHandSide(left_hand_side, {});
 
+    KRATOS_INFO("Calculated LHS") << left_hand_side << "\n";
+
+    auto expected_left_hand_side = Matrix{IdentityMatrix{8}};
+    expected_left_hand_side(0, 0) = -10.0 * 0.5;
+    expected_left_hand_side(1, 1) = -20.0 * 0.5;
+    expected_left_hand_side(2, 2) = expected_left_hand_side(0, 0);
+    expected_left_hand_side(3, 3) = expected_left_hand_side(1, 1);
+    expected_left_hand_side(4, 4) = 10.0 * 0.5;
+    expected_left_hand_side(5, 5) = 20.0 * 0.5;
+    expected_left_hand_side(6, 6) = expected_left_hand_side(4, 4);
+    expected_left_hand_side(7, 7) = expected_left_hand_side(5, 5);
+
     KRATOS_EXPECT_EQ(left_hand_side.size1(), 8);
     KRATOS_EXPECT_EQ(left_hand_side.size2(), 8);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, relative_tolerance)
 }
 
 } // namespace Kratos::Testing

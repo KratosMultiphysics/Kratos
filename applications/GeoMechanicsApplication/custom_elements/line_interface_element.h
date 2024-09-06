@@ -13,6 +13,8 @@
 #pragma once
 
 #include "includes/element.h"
+#include "stress_state_policy.h"
+#include "integration_scheme.h"
 
 namespace Kratos
 {
@@ -27,10 +29,7 @@ public:
 
     LineInterfaceElement();
 
-    LineInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
-    {
-    }
+    LineInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -41,6 +40,9 @@ public:
 
 private:
     Element::DofsVectorType GetDofs() const;
+
+    std::unique_ptr<IntegrationScheme> mIntegrationScheme;
+    std::unique_ptr<StressStatePolicy> mStressStatePolicy;
 };
 
 } // namespace Kratos
