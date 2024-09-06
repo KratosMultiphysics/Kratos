@@ -79,7 +79,6 @@ void GeometricalObjectsBins::SearchInRadius(
 
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
-    std::unordered_set<GeometricalObject*> to_remove;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -102,9 +101,9 @@ void GeometricalObjectsBins::SearchInRadius(
                 if (IsCellBoundingBoxInsideRadius(i, j, k, rPoint, Radius)) {
                     current_size = rResults.size();
                     rResults.reserve(current_size + r_cell.size());
+                    // Add objects inside the radius to the results
                     for(auto p_geometrical_object : r_cell) {
-                        auto insert_result = to_remove.insert(p_geometrical_object);
-                        if (insert_result.second) {
+                        if (candidates.insert(p_geometrical_object).second) {
                             auto& r_geometry = p_geometrical_object->GetGeometry();
                             const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
                             rResults.push_back(ResultType(p_geometrical_object));
@@ -112,23 +111,26 @@ void GeometricalObjectsBins::SearchInRadius(
                         }
                     }
                 } else {
-                    for(auto p_geometrical_object : r_cell) {
-                        candidates.insert(p_geometrical_object);
-                    }
+                    // Otherwise, gather candidates for later filtering
+                    candidates.insert(r_cell.begin(), r_cell.end());
                 }
             }
         }
     }
 
-    // Clear the candidates
-    for (const auto& r_element : to_remove) {
-        candidates.erase(r_element);
-    }
-
-    // Loop over the candidates and filter by distance and fill the results
+    // Loop over the remaining candidates and filter by distance
     current_size = rResults.size();
     rResults.reserve(current_size + candidates.size());
+
     for(auto& p_geometrical_object : candidates) {
+        // Skip already processed objects
+        if (std::find_if(rResults.begin(), rResults.end(), [&](const ResultType& result) {
+            return result.Get().get() == p_geometrical_object;
+        }) != rResults.end()) {
+            continue; // This object has already been processed
+        }
+
+        // Calculate the distance and add to the results if within radius
         auto& r_geometry = p_geometrical_object->GetGeometry();
         const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if((Radius + mTolerance) > distance) {
