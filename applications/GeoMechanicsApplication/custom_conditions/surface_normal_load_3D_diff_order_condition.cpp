@@ -109,4 +109,9 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector
     }
 }
 
+std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+{
+    return "SurfaceNormalLoad3DDiffOrderCondition";
+}
+
 } // Namespace Kratos.
