@@ -19,11 +19,12 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "geo_aliases.h"
 
 namespace Kratos
 {
 
-class GeoElementUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoElementUtilities
 {
 public:
     using IndexType    = std::size_t;
@@ -603,6 +604,9 @@ public:
         }
         return nodal_hydraulic_heads;
     }
+
+    static std::vector<Vector> CalculateShapeFunctionValues(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                            const Geometry<Node>& rGeometry);
 
 private:
     template <typename VectorType1, typename VectorType2>
