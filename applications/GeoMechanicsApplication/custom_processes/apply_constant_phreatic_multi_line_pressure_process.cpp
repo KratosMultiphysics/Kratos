@@ -51,12 +51,12 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
-                "x_coordinates":           [0.0,1.0],
-                "y_coordinates":           [1.0,0.5],
-				"z_coordinates":           [0.0,0.0],
+                "x_coordinates":           [0.0, 1.0],
+                "y_coordinates":           [1.0, 0.5],
+                "z_coordinates":           [0.0, 0.0],
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
-                "table" : [0,1]
+                "table" : [0, 0]
             }  )");
 
     // Some values are mandatory, since no meaningful default value exist. For this reason try
@@ -88,6 +88,10 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() < 2)
         << "At least two coordinates in horizontal direction must be given, but got "
         << HorizontalDirectionCoordinates().size() << std::endl;
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].size())
+        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
+        << rParameters["table"].size() << " table references. The number of coordinates "
+        << "and table references should be equal." << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
@@ -172,7 +176,7 @@ std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
+    rOStream << Info();
 }
 
 const std::string& ApplyConstantPhreaticMultiLinePressureProcess::VariableName() const

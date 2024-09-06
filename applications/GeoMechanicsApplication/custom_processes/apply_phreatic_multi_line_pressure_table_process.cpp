@@ -80,7 +80,7 @@ std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
+    rOStream << Info();
 }
 
 } // namespace Kratos
