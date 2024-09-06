@@ -81,16 +81,7 @@ bool ApplyK0ProcedureProcess::UseStandardProcedure() const
     return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
 }
 
-void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
-{
-    // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp             = rElement.GetProperties();
-    const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
-    if (k0_main_direction < 0 || k0_main_direction > 1) {
-        KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
-                     << std::endl;
-    }
-
+array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProp){
     // Check for alternative K0 specifications
     array_1d<double, 3> k0_vector;
     if (rProp.Has(K0_NC)) {
@@ -113,8 +104,27 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         k0_vector[1] = rProp[K0_VALUE_YY];
         k0_vector[2] = rProp[K0_VALUE_ZZ];
     } else {
-        KRATOS_ERROR << "Insufficient material data for K0 procedure process: " << std::endl;
+        KRATOS_ERROR << "Insufficient material data for K0 procedure process. No K0_NC, "
+                     << "INDEX_OF_UMAT_PHI_PARAMETER or K0_VALUE_XX, _YY and _ZZ found."
+                     << std::endl;
     }
+    return k0_vector;
+}
+
+void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
+{
+    // Get K0 material parameters of this element ( probably there is something more efficient )
+    const Element::PropertiesType& rProp             = rElement.GetProperties();
+    const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
+    if (k0_main_direction < 0 || k0_main_direction > 1) {
+        KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
+                     << std::endl;
+    }
+
+    // Read K0 input and create k0 vector
+    auto k0_vector = CreateK0Vector(rProp);
+
+    // Corrections on k0_vector by OCR or POP
     const auto PoissonUR = rProp.Has(POISSON_UNLOADING_RELOADING) ? rProp[POISSON_UNLOADING_RELOADING] : 0.;
     const auto PoissonURfactor = PoissonUR / (1. - PoissonUR);
 

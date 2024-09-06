@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "containers/array_1d.h"
+#include "includes/element.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
@@ -32,12 +34,13 @@ public:
     void ExecuteInitialize() override;
     void ExecuteFinalize() override;
 
-    void        ExecuteFinalizeSolutionStep() override;
-    std::string Info() const override;
+    void                      ExecuteFinalizeSolutionStep() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
-    [[nodiscard]] bool UseStandardProcedure() const;
-    void               CalculateK0Stresses(Element& rElement);
+    [[nodiscard]] bool  UseStandardProcedure() const;
+    array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp);
+    void                CalculateK0Stresses(Element& rElement);
 
     ModelPart&       mrModelPart;
     const Parameters mSettings;
