@@ -17,14 +17,14 @@ $$ c_s = \sqrt{\frac{G}{\rho}} $$
 
 $$ c_p = \sqrt{\frac{M}{\rho}} $$
 
-where $G$ and $M$ are shear modulus and bulk modulus, respectively. They are defined as:
+where $G$ and $M$ are shear modulus and P-wave modulus, respectively. They are defined as:
 
 $$ G = \frac{E}{2  \left(1 + \nu \right)} $$
 
 $$ M = \frac{E \left(1 - \nu \right)}{\left( 1 + \nu \right) \left(1 - 2 \nu \right)} $$
 
 - $G$		= Shear modulus $\mathrm{[Pa]}$
-- $M$		= Bulk modulus  $\mathrm{[Pa]}$
+- $M$		= P-wave modulus  $\mathrm{[Pa]}$
 - $E$		= Young's modulus  $\mathrm{[Pa]}$
 - $\nu$		= Poisson's ratio  $\mathrm{[-]}$
 - $\rho$	= Mass density $\mathrm{[kg/m^3]}$
