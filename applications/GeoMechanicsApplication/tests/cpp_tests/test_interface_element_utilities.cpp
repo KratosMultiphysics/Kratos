@@ -27,13 +27,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForHorizontalI
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 5.0, 0.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
+    // Note that only the first component of the local coordinate is used
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
@@ -45,18 +44,17 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.5 * std::sqrt(3), -0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.5 * std::sqrt(3), -0.5, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
+    // clang-format off
     Matrix expected_rotation_matrix(2, 2);
-    expected_rotation_matrix <<= 0.5 * sqrt(3), 0.5, -0.5, 0.5 * sqrt(3); // Rotation of 30 degrees clockwise
-    KRATOS_INFO("Expected rotation matrix") << expected_rotation_matrix << std::endl;
+    expected_rotation_matrix <<= 0.5 * sqrt(3), 0.5,
+                                -0.5,           0.5 * sqrt(3); // Rotation of 30 degrees clockwise
+    // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
-    KRATOS_INFO("End test") << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrixForInclinedInterface2,
@@ -67,17 +65,18 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -0.5, 0.5 * std::sqrt(3), 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
     // Since the gradient of the shape functions is constant, the rotation matrix is the same at
-    // point, meaning the local_coordinate should not have an effect
+    // each point, meaning the local_coordinate should not have an effect
     const auto local_coordinate = array_1d<double, 3>{0.5, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
+    // clang-format off
     Matrix expected_rotation_matrix(2, 2);
-    expected_rotation_matrix <<= 0.5, 0.5 * sqrt(3), -0.5 * sqrt(3), 0.5; // rotation of 60 degrees clockwise
+    expected_rotation_matrix <<= 0.5,           0.5 * sqrt(3),
+                                -0.5 * sqrt(3), 0.5; // rotation of 60 degrees clockwise
+    // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
@@ -89,15 +88,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.5 * std::sqrt(3), -0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -0.5 * std::sqrt(3), 0.5, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.5 * std::sqrt(3), -0.5, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
+    // clang-format off
     Matrix expected_rotation_matrix(2, 2);
-    expected_rotation_matrix <<= 0.5 * sqrt(3), 0.5, -0.5, 0.5 * sqrt(3); // Rotation of 30 degrees clockwise
+    expected_rotation_matrix <<= 0.5 * sqrt(3), 0.5,
+                                -0.5,           0.5 * sqrt(3); // Rotation of 30 degrees clockwise
+    // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
@@ -109,15 +109,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationMatrix
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 10.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, -7.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 10.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
+    // clang-format off
     Matrix expected_rotation_matrix(2, 2);
-    expected_rotation_matrix <<= 0.0, -1.0, 1.0, 0.0; // Rotation of 90 degrees counterclockwise
+    expected_rotation_matrix <<= 0.0, -1.0,
+                                 1.0,  0.0; // Rotation of 90 degrees counterclockwise
+    // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
@@ -131,13 +132,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationFor3Plus3NodedI
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 2.0, 0.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
@@ -151,13 +150,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_UnityRotationForCurved3Plus3
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 2.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, -1.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
@@ -171,13 +168,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationForInc
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 2.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 2.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 0.8, 0.8, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     // clang-format off
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5 * sqrt(2), 0.5 * sqrt(2),
@@ -196,13 +191,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtEdge
     nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{1.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     // clang-format off
     Matrix expected_rotation_matrix(2, 2);
     // Rotation of 63.43 (atan(2)) degrees counterclockwise
@@ -222,13 +215,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_ReturnsCorrectRotationAtArbi
     nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{-0.5, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     // clang-format off
     Matrix expected_rotation_matrix(2, 2);
     expected_rotation_matrix <<= 0.5 * sqrt(2), 0.5 * sqrt(2),
@@ -246,13 +237,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementUtilities_RotationMatrixForOpenHorizon
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, -1.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 5.0, -1.0, 0.0));
-    const LineInterfaceGeometry geometry(1, nodes);
+    const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
-    // Act
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrix(geometry, local_coordinate);
+    Matrix rotation_matrix = InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    // Assert
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 

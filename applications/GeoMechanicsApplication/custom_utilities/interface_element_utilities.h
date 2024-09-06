@@ -51,13 +51,8 @@ public:
     static void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
                                                 const double&                JointWidth);
 
-    static Matrix Calculate2DRotationMatrix(const Geometry<Node>&      rGeometry,
+    static Matrix Calculate2DRotationMatrixForLineGeometry(const Geometry<Node>&      rGeometry,
                                             const array_1d<double, 3>& rLocalCoordinate);
-
-private:
-    static std::vector<array_1d<double, 3>> CalculateMidPoints(const Geometry<Node>& rGeometry);
-    static array_1d<double, 3> CalculateTangentialVector(const Matrix& rShapeFunctionGradients,
-                                                         const std::vector<array_1d<double, 3>>& rLocations);
 };
 
 } // namespace Kratos

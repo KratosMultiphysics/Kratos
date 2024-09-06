@@ -11,6 +11,8 @@
 //
 
 #include "interface_element_utilities.h"
+#include "math_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
@@ -172,13 +174,14 @@ void InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(BoundedMatrix<do
     rPermeabilityMatrix(2, 2) = JointWidth * JointWidth / 12.0;
 }
 
-Matrix InterfaceElementUtilities::Calculate2DRotationMatrix(const Geometry<Node>& rGeometry,
-                                                            const array_1d<double, 3>& rLocalCoordinate)
+Matrix InterfaceElementUtilities::Calculate2DRotationMatrixForLineGeometry(const Geometry<Node>& rGeometry,
+                                                                            const array_1d<double, 3>& rLocalCoordinate)
 {
-    Matrix shape_functions_gradients;
-    rGeometry.ShapeFunctionsLocalGradients(shape_functions_gradients, rLocalCoordinate);
-    const auto mid_points        = CalculateMidPoints(rGeometry);
-    const auto tangential_vector = CalculateTangentialVector(shape_functions_gradients, mid_points);
+    // Since the shape functions depend on one coordinate only
+    // for lines, the jacobian only has one column.
+    Matrix jacobian;
+    rGeometry.Jacobian(jacobian, rLocalCoordinate);
+    const auto tangential_vector = GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
 
     // clang-format off
     Matrix result(2, 2);
@@ -187,31 +190,6 @@ Matrix InterfaceElementUtilities::Calculate2DRotationMatrix(const Geometry<Node>
     // clang-format on
 
     return result;
-}
-
-std::vector<array_1d<double, 3>> InterfaceElementUtilities::CalculateMidPoints(const Geometry<Node>& rGeometry)
-{
-    std::vector<array_1d<double, 3>> result;
-
-    const auto half_way_point = rGeometry.begin() + rGeometry.PointsNumber() / 2;
-    std::transform(rGeometry.begin(), half_way_point, half_way_point, std::back_inserter(result),
-                   [](const Node& rNode1, const Node& rNode2) -> array_1d<double, 3> {
-        return 0.5 * (rNode1 + rNode2);
-    });
-
-    return result;
-}
-
-array_1d<double, 3> InterfaceElementUtilities::CalculateTangentialVector(
-    const Matrix& rShapeFunctionGradients, const std::vector<array_1d<double, 3>>& rLocations)
-{
-    array_1d<double, 3> tangential_vector = ZeroVector(3);
-    for (std::size_t i = 0; i < rLocations.size(); ++i) {
-        tangential_vector += rLocations[i] * rShapeFunctionGradients(i, 0);
-    }
-    tangential_vector /= norm_2(tangential_vector);
-
-    return tangential_vector;
 }
 
 } /* namespace Kratos.*/
