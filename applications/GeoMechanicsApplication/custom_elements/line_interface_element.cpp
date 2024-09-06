@@ -36,8 +36,6 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
 
 void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    rLeftHandSideMatrix = ZeroMatrix{GetDofs().size(), GetDofs().size()};
-
     auto       shape_function_values_at_integration_points = std::vector<Vector>{};
     const auto number_of_node_pairs                        = GetGeometry().PointsNumber() / 2;
     for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
