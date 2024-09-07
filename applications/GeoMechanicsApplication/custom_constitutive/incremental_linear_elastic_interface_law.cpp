@@ -99,9 +99,6 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
         << "Interface shear stiffness must be positive, but got "
         << rMaterialProperties[INTERFACE_SHEAR_STIFFNESS] << std::endl;
 
-    KRATOS_ERROR_IF_NOT(dynamic_cast<const LineInterfaceGeometry*>(&rElementGeometry))
-        << "Expected a line interface geometry, but got " << rElementGeometry.Info() << std::endl;
-
     return result;
 }
 
