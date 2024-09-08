@@ -171,6 +171,23 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedVolumetricStrainOssElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    BaseType::Initialize(rCurrentProcessInfo);
+
+    // Deactivate the dynamic subscales as these are not implemented in the OSS elements yet
+    mIsDynamic = 0;
+    mDisplacementSubscale1.resize(0);
+    mDisplacementSubscale2.resize(0);
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
