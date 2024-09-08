@@ -83,6 +83,23 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainOssElement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedVolumetricStrainOssElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    BaseType::Initialize(rCurrentProcessInfo);
+
+    // Deactivate the dynamic subscales as these are not implemented in the OSS elements yet
+    mIsDynamic = 0;
+    mDisplacementSubscale1.resize(0);
+    mDisplacementSubscale2.resize(0);
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -149,7 +166,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
-        // Note that this calculates the LHS of the OSS stabilization operator
+        // Note that this calculates the OSS stabilization operator to be applied to the RHS
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -165,24 +182,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedVolumetricStrainOssElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    BaseType::Initialize(rCurrentProcessInfo);
-
-    // Deactivate the dynamic subscales as these are not implemented in the OSS elements yet
-    mIsDynamic = 0;
-    mDisplacementSubscale1.resize(0);
-    mDisplacementSubscale2.resize(0);
-
-    KRATOS_CATCH( "" )
+    rRightHandSideVector += prod(oss_proj_op, proj_vect);
 }
 
 /***********************************************************************************/
@@ -263,7 +263,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
-        // Note that this calculates the LHS of the OSS stabilization operator
+        // Note that this calculates the OSS stabilization operator to be applied to the RHS
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -279,7 +279,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
         }
         proj_vect(i_node*block_size + dim) = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
     }
-    rRightHandSideVector -= prod(oss_proj_op, proj_vect);
+    rRightHandSideVector += prod(oss_proj_op, proj_vect);
 }
 
 
@@ -588,10 +588,10 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssStabilization
 
         for (IndexType j = 0; j < n_nodes; ++j) {
             const double N_j = rThisKinematicVariables.N[j];
-            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
+            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
             for (IndexType d = 0; d < dim; ++d) {
                 rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= aux_w_kappa_tau_1 * G_i[d] * N_j;
-                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= aux_w_kappa_tau_2 * psi_i[d] * N_j;
+                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
             }
         }
     }

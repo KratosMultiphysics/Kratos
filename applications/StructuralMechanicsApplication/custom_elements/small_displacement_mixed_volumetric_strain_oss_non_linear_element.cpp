@@ -247,14 +247,14 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLeftHan
         rCurrentProcessInfo);
 
     // Call the element OSS operator
-    // Note that this calculates the LHS of the OSS operator (transpose to the stabilization operator)
+    // Note that this calculates the OSS operator to be applied to the RHS (transpose to the stabilization operator)
     MatrixType aux_oss_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
     // Call the element OSS lumped projection operator
-    // Note that this calculates the LHS of the lumped projection operator
+    // Note that this calculates the lumped projection operator to be applied to the RHS
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
@@ -264,10 +264,10 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLeftHan
     for (IndexType i = 0; i < matrix_size; ++i) {
         for (IndexType j = 0; j < matrix_size; ++j) {
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
-            rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            rLeftHandSideMatrix(i, matrix_size + j) = -aux_oss_stab_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, j) = -aux_oss_operator(i,j);
             // rLeftHandSideMatrix(matrix_size + j, i) = aux_oss_stab_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = -aux_lumped_mass_operator(i,j);
         }
     }
 }
@@ -301,14 +301,14 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
         rCurrentProcessInfo);
 
     // Call the element OSS operator
-    // Note that this calculates the LHS of the OSS operator (transpose to the stabilization operator)
+    // Note that this calculates the OSS operator to be applied to the RHS (transpose to the stabilization operator)
     MatrixType aux_oss_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
     // Call the element OSS lumped projection operator
-    // Note that this calculates the LHS of the lumped projection operator
+    // Note that this calculates the lumped projection operator to be applied to the RHS
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
@@ -352,7 +352,7 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
     // Assemble the extended modal analysis RHS
     for (IndexType i = 0; i < matrix_size; ++i) {
         rRightHandSideVector(i) = aux_rhs(i); // Note that this already includes the projections substraction
-        rRightHandSideVector(matrix_size + i) = - oss_stab_times_unk(i) - lumped_mass_times_proj(i);
+        rRightHandSideVector(matrix_size + i) = lumped_mass_times_proj(i) + oss_stab_times_unk(i);
     }
 }
 
@@ -595,10 +595,10 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogo
 
             for (IndexType i = 0; i < n_nodes; ++i) {
                 const double N_i = kinematic_variables.N[i];
-                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j; // Note that we multiply by kappa*tau_2 to symmetrize
+                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j; // Note that we multiply by kappa*tau_2 to symmetrize
                 for (IndexType d = 0; d < dim; ++d) {
                     rOrthogonalSubScalesOperator(i * block_size + d, j * block_size + dim) -= aux_w_kappa_tau_1 * N_i * G_j[d]; // Note that we multiply by tau_1 to symmetrize
-                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) -= aux_w_kappa_tau_2 * N_i * psi_j[d]; // Note that we multiply by kappa*tau_2 to symmetrize
+                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) += aux_w_kappa_tau_2 * N_i * psi_j[d]; // Note that we multiply by kappa*tau_2 to symmetrize
                 }
             }
         }
