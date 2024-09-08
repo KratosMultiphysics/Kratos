@@ -145,6 +145,19 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix, relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        law                                = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto& r_some_unsupported_matrix_variable = ENGINEERING_STRAIN_TENSOR;
+    auto        dummy_parameters                   = ConstitutiveLaw::Parameters{};
+    auto        value                              = Matrix{};
+    
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.CalculateValue(dummy_parameters, r_some_unsupported_matrix_variable, value),
+        "Can't calculate value of ENGINEERING_STRAIN_TENSOR: unsupported variable")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

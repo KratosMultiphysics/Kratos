@@ -55,6 +55,8 @@ Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw:
         const auto& r_properties = rParameterValues.GetMaterialProperties();
         rValue                   = MakeConstitutiveMatrix(r_properties[INTERFACE_NORMAL_STIFFNESS],
                                                           r_properties[INTERFACE_SHEAR_STIFFNESS]);
+    } else {
+        KRATOS_ERROR << "Can't calculate value of " << rThisVariable.Name() << ": unsupported variable\n";
     }
 
     return rValue;
