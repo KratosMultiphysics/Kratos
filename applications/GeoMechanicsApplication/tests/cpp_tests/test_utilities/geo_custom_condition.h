@@ -51,7 +51,7 @@ public:
 	GeoCustomCondition& operator=(GeoCustomCondition const& rOther);
 
 
-	Condition::Pointer GeoCustomCondition::Create(
+	Pointer GeoCustomCondition::Create(
 		IndexType NewId,
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties
@@ -61,7 +61,7 @@ public:
 	}
 
 
-	Condition::Pointer Create(
+	Pointer Create(
 		IndexType NewId,
 		GeometryType::Pointer pGeom,
 		PropertiesType::Pointer pProperties
@@ -84,10 +84,10 @@ public:
 		const ProcessInfo& rCurrentProcessInfo) override;
 
 	void EquationIdVector(EquationIdVectorType& rResult, 
-		const ProcessInfo& rCurrentProcessInfo) const;
+		const ProcessInfo& rCurrentProcessInfo) const override;
 
 	void GetDofList(Condition::DofsVectorType& rDofList,
-		const ProcessInfo& rCurrentProcessInfo) const;
+		const ProcessInfo& rCurrentProcessInfo) const override;
 private:
 
 	MatrixType mMassMatrix;

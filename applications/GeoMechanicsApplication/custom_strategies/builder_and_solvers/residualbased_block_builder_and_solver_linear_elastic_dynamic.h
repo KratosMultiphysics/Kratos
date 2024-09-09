@@ -140,7 +140,6 @@ public:
     {
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        // mOutOfBalanceVector = ZeroVector(BaseType::mEquationSystemSize);
         mPreviousOutOfBalanceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         mCurrentOutOfBalanceVector  = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
@@ -153,8 +152,8 @@ public:
     {
         Timer::Start("Build");
 
-        BuildLHS(pScheme, rModelPart, rA);
-        BuildRHSNoDirichlet(pScheme, rModelPart, rb);
+        this->BuildLHS(pScheme, rModelPart, rA);
+        this->BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         Timer::Stop("Build");
 
@@ -166,13 +165,13 @@ public:
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
             << "Before the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << dummy_rDx
             << "\nRHS vector = " << rb << std::endl;
 
         if (mCalculateInitialSecondDerivative) {
-            CalculateInitialSecondDerivative(rModelPart, rA, rb);
+            this->CalculateInitialSecondDerivative(rModelPart, rA, rb);
             mCopyExternalForceVector = true;
         }
 
@@ -200,8 +199,8 @@ public:
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        InitializeDynamicMatrix(mMassMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
-        InitializeDynamicMatrix(mDampingMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
+        this->InitializeDynamicMatrix(mMassMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
+        this->InitializeDynamicMatrix(mDampingMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
 
         // Assemble all elements
         const auto timer = BuiltinTimer();
@@ -214,11 +213,11 @@ public:
         const ConditionsArrayType& r_conditions = rModelPart.Conditions();
         this->CalculateGlobalMatrices(r_conditions, rA, rModelPart);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 1)
             << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic",
-                       (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0))
+                       (BaseType::GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0))
             << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
@@ -240,9 +239,9 @@ public:
                           TSystemVectorType&            rb) override
     {
         
-        BuildRHS(pScheme, rModelPart, rb);
+        this->BuildRHS(pScheme, rModelPart, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
             << "Before the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -255,10 +254,10 @@ public:
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 1)
             << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
             << "After the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -302,11 +301,11 @@ public:
             }
         }
         else {
-            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // Prints information about the current time
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
     }
 
@@ -322,7 +321,7 @@ public:
 
         Timer::Start("BuildRHS");
 
-        BuildRHSNoDirichlet(pScheme, rModelPart, rb);
+        this->BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         // add dirichlet conditions to RHS
         this->ApplyDirichletConditionsRhs(rb);
@@ -332,7 +331,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb)
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -415,14 +414,14 @@ protected:
     {
         block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& r_node) {
             if (r_node.IsActive()) {
-                GetDerivativesForVariable(DISPLACEMENT_X, r_node, rFirstDerivativeVector, rSecondDerivativeVector);
-                GetDerivativesForVariable(DISPLACEMENT_Y, r_node, rFirstDerivativeVector, rSecondDerivativeVector);
+                this->GetDerivativesForVariable(DISPLACEMENT_X, r_node, rFirstDerivativeVector, rSecondDerivativeVector);
+                this->GetDerivativesForVariable(DISPLACEMENT_Y, r_node, rFirstDerivativeVector, rSecondDerivativeVector);
 
                 const std::vector<const Variable<double>*> optional_variables = {
                     &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
 
                 for (const auto p_variable : optional_variables) {
-                    GetDerivativesForOptionalVariable(*p_variable, r_node, rFirstDerivativeVector,
+                    this->GetDerivativesForOptionalVariable(*p_variable, r_node, rFirstDerivativeVector,
                                                       rSecondDerivativeVector);
                 }
             }
@@ -435,7 +434,7 @@ protected:
                                            TSystemVectorType&      rSecondDerivativeVector) const
     {
         if (rNode.HasDofFor(rVariable)) {
-            GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
+            this->GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
         }
     }
 
@@ -478,7 +477,7 @@ protected:
         TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0,
                                   mPreviousExternalForceVector, mCurrentOutOfBalanceVector);
 
-        AddMassAndDampingToRhs(rModelPart, mCurrentOutOfBalanceVector);
+        this->AddMassAndDampingToRhs(rModelPart, mCurrentOutOfBalanceVector);
 
         // Does: rb = mCurrentOutOfBalanceVector - mPreviousOutOfBalanceVector;
         TSparseSpace::ScaleAndAdd(1.0, mCurrentOutOfBalanceVector, -1.0, mPreviousOutOfBalanceVector, rb);
@@ -562,7 +561,6 @@ protected:
             const std::size_t col_end   = rA.index1_data()[i + 1];
 
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                const std::size_t col = rA.index2_data()[j];
                 a_values[j] += (1.0 / (mBeta * delta_time * delta_time)) * m_values[j];
                 a_values[j] += (mGamma / (mBeta * delta_time)) * c_values[j];
             }
@@ -575,14 +573,14 @@ protected:
     {
         block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
             if (rNode.IsActive()) {
-                SetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-                SetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
+                this->SetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
+                this->SetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
 
                 const std::vector<const Variable<double>*> optional_variables = {
                     &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
 
                 for (const auto p_variable : optional_variables) {
-                    SetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
+                    this->SetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
                                                       rSecondDerivativeVector);
                 }
             }
@@ -595,7 +593,7 @@ protected:
                                            const TSystemVectorType& rSecondDerivativeVector)
     {
         if (rNode.HasDofFor(rVariable)) {
-            SetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
+            this->SetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
         }
     }
 
@@ -616,37 +614,37 @@ protected:
                                           TSystemMatrixType& rStiffnessMatrix,
                                           TSystemVectorType& rExternalForce)
     {
-        TSystemVectorType& r_solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSystemVectorType& r_first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSystemVectorType& r_second_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSystemVectorType solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSystemVectorType second_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
-        auto& r_dof_set = this->GetDofSet();
+        auto& r_dof_set = BaseType::GetDofSet();
 
-        block_for_each(r_dof_set, [&r_solution_step_values](Dof<double>& r_dof) {
-            r_solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
+        block_for_each(r_dof_set, [&solution_step_values](Dof<double>& r_dof) {
+            solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
         });
 
-        this->GetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
+        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
 
         // calculate initial second derivative vector
-        TSystemVectorType& r_stiffness_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::Mult(rStiffnessMatrix, r_solution_step_values, r_stiffness_contribution);
+        TSystemVectorType stiffness_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::Mult(rStiffnessMatrix, solution_step_values, stiffness_contribution);
 
-        TSystemVectorType& r_damping_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::Mult(mDampingMatrix, r_first_derivative_vector, r_damping_contribution);
+        TSystemVectorType damping_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::Mult(mDampingMatrix, first_derivative_vector, damping_contribution);
 
-        // initial_force_vector = rExternalForce - r_stiffness_contribution - r_damping_contribution;
-        TSystemVectorType& initial_force_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::ScaleAndAdd(1.0, rExternalForce, -1.0, r_stiffness_contribution, initial_force_vector);
-        TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, r_damping_contribution);
+        // initial_force_vector = rExternalForce - stiffness_contribution - damping_contribution;
+        TSystemVectorType initial_force_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::ScaleAndAdd(1.0, rExternalForce, -1.0, stiffness_contribution, initial_force_vector);
+        TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, damping_contribution);
 
         // add dirichlet conditions to initial_force_vector
         this->ApplyDirichletConditionsRhs(initial_force_vector);
 
         // solve for initial second derivative vector
-        BaseType::mpLinearSystemSolver->Solve(mMassMatrix, r_second_derivative_vector, initial_force_vector);
+        BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
 
-        this->SetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
+        this->SetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
     }
 
 private:
@@ -695,11 +693,11 @@ private:
         // Get first and second derivative vector
         TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSystemVectorType second_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
+        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
 
         // calculate and add mass and damping contribution to rhs
-        CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);
-        CalculateAndAddDynamicContributionToRhs(first_derivative_vector, mDampingMatrix, rb);
+        this->CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);
+        this->CalculateAndAddDynamicContributionToRhs(first_derivative_vector, mDampingMatrix, rb);
     }
 
     void ApplyDirichletConditionsRhs(TSystemVectorType& rb)

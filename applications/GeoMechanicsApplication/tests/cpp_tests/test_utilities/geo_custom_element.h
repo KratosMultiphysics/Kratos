@@ -12,7 +12,6 @@
 #pragma once
 
 #include "includes/element.h"
-//#include "spy_element.h"
 
 namespace Kratos::Testing {
 
@@ -56,7 +55,7 @@ public:
 	GeoCustomElement& operator=(GeoCustomElement const& rOther);
 
 
-	Element::Pointer GeoCustomElement::Create(
+	Pointer GeoCustomElement::Create(
 		IndexType NewId,
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties
@@ -66,7 +65,7 @@ public:
 	}
 
 
-	Element::Pointer Create(
+	Pointer Create(
 		IndexType NewId,
 		GeometryType::Pointer pGeom,
 		PropertiesType::Pointer pProperties
