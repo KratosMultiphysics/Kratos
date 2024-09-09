@@ -79,6 +79,12 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
         b_matrices, constitutive_matrices, integration_coefficients);
 }
 
+void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
+                                                  const ProcessInfo&   rCurrentProcessInfo)
+{
+    rRightHandSideVector = ZeroVector{GetDofs().size()};
+}
+
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
                                               const NodesArrayType&   rNodes,
                                               PropertiesType::Pointer pProperties) const

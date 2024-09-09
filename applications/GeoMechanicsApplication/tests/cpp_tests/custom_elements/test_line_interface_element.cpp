@@ -221,4 +221,35 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumberOfUDofs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    auto properties = std::make_shared<Properties>();
+    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    // Act
+    Vector right_hand_side;
+    element->CalculateRightHandSide(right_hand_side, {});
+
+    // Assert
+    KRATOS_EXPECT_EQ(right_hand_side.size(), 8);
+}
+
 } // namespace Kratos::Testing
