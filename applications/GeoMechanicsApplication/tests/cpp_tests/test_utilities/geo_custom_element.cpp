@@ -9,26 +9,48 @@
 //
 //  Main authors:    Aron Noordam
 //
-#include "custom_condition.h"
+#include "geo_custom_element.h"
 #include "custom_utilities/dof_utilities.h"
 
 namespace Kratos::Testing {
 
-
-	void GeoCustomCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+	void GeoCustomElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 		const ProcessInfo& rCurrentProcessInfo) {
+
 
 		if (!mStiffnessMatrixSet)
 		{
-			mStiffnessMatrix = rLeftHandSideMatrix;
-			mStiffnessMatrixSet = true;
-		}
-		else
-			rLeftHandSideMatrix = mStiffnessMatrix;
+			mStiffnessMatrix.resize(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2(), false);
+			for (unsigned int i = 0; i < rLeftHandSideMatrix.size1(); i++)
+			{
+				for (unsigned int j = 0; j < rLeftHandSideMatrix.size2(); j++)
+				{
+					mStiffnessMatrix(i, j) = rLeftHandSideMatrix(i, j);
+				}
+			}
 
+			mStiffnessMatrixSet = true;
+
+			std::cout << "Stiffness matrix set" << std::endl;
+			std::cout << "mStiffnessMatrix: " << mStiffnessMatrix << std::endl;
+		}
+
+		else
+		{
+
+			rLeftHandSideMatrix.resize(mStiffnessMatrix.size1(), mStiffnessMatrix.size2(), false);
+			for (unsigned int i = 0; i < mStiffnessMatrix.size1(); i++)
+			{
+				for (unsigned int j = 0; j < mStiffnessMatrix.size2(); j++)
+				{
+					rLeftHandSideMatrix(i, j) = mStiffnessMatrix(i, j);
+				}
+			}
+		}
+ 
 	}
 
-	void GeoCustomCondition::CalculateMassMatrix(MatrixType& rMassMatrix,
+	void GeoCustomElement::CalculateMassMatrix(MatrixType& rMassMatrix,
 		const ProcessInfo& rCurrentProcessInfo) {
 
 		if (!mMassMatrixSet)
@@ -42,7 +64,6 @@ namespace Kratos::Testing {
 				}
 			}
 
-			//mMassMatrix = rMassMatrix;
 			mMassMatrixSet = true;
 		}
 
@@ -57,12 +78,11 @@ namespace Kratos::Testing {
 				}
 			}
 
-			//rMassMatrix = mMassMatrix;
 		}
 
 	}
 
-	void GeoCustomCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+	void GeoCustomElement::CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		const ProcessInfo& rCurrentProcessInfo) {
 
 		if (!mDampingMatrixSet)
@@ -75,7 +95,7 @@ namespace Kratos::Testing {
 
 	}
 
-	void GeoCustomCondition::CalculateRightHandSide(VectorType& rRightHandSideVector,
+	void GeoCustomElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 		const ProcessInfo& rCurrentProcessInfo) {
 
 		if (!mRhsSet)
@@ -87,18 +107,19 @@ namespace Kratos::Testing {
 			rRightHandSideVector = mRhs;
 	}
 
-	void GeoCustomCondition::EquationIdVector(Condition::EquationIdVectorType& rResult,
+	void GeoCustomElement::EquationIdVector(Element::EquationIdVectorType& rResult,
 									  const ProcessInfo& rCurrentProcessInfo) const
 	{
+
 
 		rResult.resize(2);
 
 		rResult[0] = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
 		rResult[1] = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
+
 	}
 
-
-	void GeoCustomCondition::GetDofList(Condition::DofsVectorType& rElementalDofList,
+	void GeoCustomElement::GetDofList(Element::DofsVectorType& rElementalDofList,
 		const ProcessInfo& rCurrentProcessInfo) const
 	{
 		rElementalDofList.resize(2);
@@ -106,5 +127,6 @@ namespace Kratos::Testing {
 		rElementalDofList[0] = GetGeometry()[0].pGetDof(DISPLACEMENT_X);
 		rElementalDofList[1] = GetGeometry()[0].pGetDof(DISPLACEMENT_Y);
 	}
+
 
 } // namespace Kratos::Testing

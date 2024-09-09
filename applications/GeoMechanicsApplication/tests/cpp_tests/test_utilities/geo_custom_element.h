@@ -16,15 +16,16 @@
 
 namespace Kratos::Testing {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCustomElement : public Element {
+//class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCustomElement : public Element {
+class GeoCustomElement : public Element {
 public:
 
-	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCustomElement);
+	//KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCustomElement);
 
 	//using Element::Element;
 	/**
- * Constructor using Geometry
- */
+    * Constructor using Geometry
+    */
 	GeoCustomElement()
 		: Element()
 	{

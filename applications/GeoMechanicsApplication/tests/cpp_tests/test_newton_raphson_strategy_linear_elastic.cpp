@@ -13,11 +13,11 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
-#include "tests/cpp_tests/test_utilities/custom_condition.h"
-#include "tests/cpp_tests/test_utilities/custom_element.h"
+#include "tests/cpp_tests/test_utilities/geo_custom_condition.h"
+#include "tests/cpp_tests/test_utilities/geo_custom_element.h"
 
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include "../LinearSolversApplication/custom_solvers/eigen_sparse_lu_solver.h"
 #include "factories/linear_solver_factory.h"
@@ -202,7 +202,7 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeCo
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAccelerationNoIterations,
-                          KratosGeoMechanicsFastSuite)
+    KratosGeoMechanicsFastSuite)
 {
     // set up expected results
     std::vector<double> expected_displacement_x = {0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58,
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAccelerationWithIterations,
-                          KratosGeoMechanicsFastSuite)
+    KratosGeoMechanicsFastSuite)
 {
     // set up expected results
     std::vector<double> expected_displacement_x = {0.00673, 0.0505, 0.189, 0.485, 0.961, 1.58,
