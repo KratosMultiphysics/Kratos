@@ -81,7 +81,8 @@ bool ApplyK0ProcedureProcess::UseStandardProcedure() const
     return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
 }
 
-array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProp){
+array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProp) const
+{
     // Check for alternative K0 specifications
     array_1d<double, 3> k0_vector;
     if (rProp.Has(K0_NC)) {
@@ -105,8 +106,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
         k0_vector[2] = rProp[K0_VALUE_ZZ];
     } else {
         KRATOS_ERROR << "Insufficient material data for K0 procedure process. No K0_NC, "
-                     << "INDEX_OF_UMAT_PHI_PARAMETER or K0_VALUE_XX, _YY and _ZZ found."
-                     << std::endl;
+                     << "INDEX_OF_UMAT_PHI_PARAMETER or K0_VALUE_XX, _YY and _ZZ found." << std::endl;
     }
     return k0_vector;
 }

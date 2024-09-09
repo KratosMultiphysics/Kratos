@@ -39,7 +39,7 @@ public:
 
 private:
     [[nodiscard]] bool  UseStandardProcedure() const;
-    array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp);
+    array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp) const;
     void                CalculateK0Stresses(Element& rElement);
 
     ModelPart&       mrModelPart;
