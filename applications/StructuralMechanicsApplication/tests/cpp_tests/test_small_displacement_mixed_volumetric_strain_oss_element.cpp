@@ -15,7 +15,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "includes/variables.h"
 #include "factories/linear_solver_factory.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElementZienki
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_vol_strain = 1.49650698603e-05;
-    const double expected_vol_strain_proj = 9.6636507888e-11;
+    const double expected_vol_strain_proj = 9.66365079115e-11;
     const std::vector<double> expected_disp = {-7.41543286634e-06, 3.73455725869e-05, 0.0};
     const std::vector<double> expected_disp_proj = {2.98507494006, -2.98507494006, 0.0};
 

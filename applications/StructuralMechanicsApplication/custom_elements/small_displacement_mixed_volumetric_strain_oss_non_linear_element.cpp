@@ -751,7 +751,7 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogo
             for (IndexType d = 0; d < dim; ++d) {
                 rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + d, i * block_size + d) += aux_w_tau_1 * N_i * sum_N_j; // Note that we multiply by tau_1 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
             }
-            rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + dim, i * block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j; // Note that we multiply by kappa*tau_2 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
+            rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + dim, i * block_size + dim) -= aux_w_kappa_tau_2 * N_i * sum_N_j; // Note that we multiply by kappa*tau_2 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
         }
     }
 }

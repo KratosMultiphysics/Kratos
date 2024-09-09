@@ -15,7 +15,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "includes/cfd_variables.h"
 #include "factories/linear_solver_factory.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({-23241.9871795, 56850.9615385, -51096.3202438, 23241.9871795, 55264.4230769, -54349.176952, 18488.7820513, -55264.4230769, -33172.2136853, -18488.7820513, -56850.9615385, -18497.6737343, 0.000708103855232, -0.00354050822974, 410.790598291, 0.000708103855232, -0.00283240437451, 420.94017094, 0.00141620771046, -0.00283240437451, 404.38034188, 0.00141620771046, -0.00354050822974, 398.504273504});
+    const std::vector<double> expected_RHS({-23241.9871795, 56850.9615385, -51096.3202438, 23241.9871795, 55264.4230769, -54349.176952, 18488.7820513, -55264.4230769, -33172.2136853, -18488.7820513, -56850.9615385, -18497.6737343, 0.000708103855232, -0.00354050822974, 401.175213675, 0.000708103855232, -0.00283240437451, 401.709401709, 0.00141620771046, -0.00283240437451, 375.534188034, 0.00141620771046, -0.00354050822974, 360.042735043});
     const std::vector<double> expected_LHS_row_0({519230.769231, 4807.69230769, -317307.692308, -134615.384615, -379807.692308, -317307.692308, -259615.384615, -4807.69230769, -158653.846154, -125000, 379807.692308, -158653.846154, -0, -0, 3205.12820513, -0, -0, 3205.12820513, -0, -0, 1602.56410256, -0, -0, 1602.56410256});
     const std::vector<double> expected_mass_row_0({111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 55.5555555556, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
     const std::vector<double> expected_mass_row_4({0, 55.5555555556, 0, 0, 111.111111111, 0, 0, 55.5555555556, 0, 0, 27.7777777778, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssNonLinearElem
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_vol_strain = 1.49650698603e-05;
-    const double expected_vol_strain_proj = -1.94252522751e-21;
+    const double expected_vol_strain_proj = 4.07734715096e-20;
     const std::vector<double> expected_disp = {-7.41552715465e-06, 3.73456668752e-05, 0};
     const std::vector<double> expected_disp_proj = {2.98507462687, -2.98507462687, 0};
 
