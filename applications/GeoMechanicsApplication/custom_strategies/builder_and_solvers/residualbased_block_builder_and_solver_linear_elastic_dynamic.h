@@ -239,8 +239,7 @@ public:
                           TSystemVectorType&            rDx,
                           TSystemVectorType&            rb) override
     {
-        KRATOS_TRY
-
+        
         BuildRHS(pScheme, rModelPart, rb);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() == 3)
@@ -251,9 +250,7 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        // this approach is not working for all solvers, this approach is meant for solvers which can be prefactorized.
-        // For future reference, use BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart) instead of the following line if a non compatible solver is required.
-        BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
+        this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
@@ -265,8 +262,52 @@ public:
             << "After the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
+    }
 
-        KRATOS_CATCH("")
+    /**
+    * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+    * @param rA The LHS matrix
+    * @param rDx The Unknowns vector
+    * @param rb The RHS vector
+    * @param rModelPart The model part of the problem to solve
+    */
+    void InternalSystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        ModelPart& rModelPart
+    )
+    {
+        double norm_b = 0.00;
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
+
+        if (norm_b != 0.00) {
+
+            // if the system is already factorized, perform solution step. In case the solver does not support this, use Solve
+            try {
+                BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
+            }
+            catch (const Kratos::Exception& e) {
+                std::string error_message = e.what();
+
+                // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
+                if (error_message.find("Error: Calling linear solver base class") != std::string::npos) {
+                    BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+                }
+                // Re-throw the exception if it's not the specific error we're looking for
+                else {
+                    throw;
+                }
+            }
+        }
+        else {
+            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
+        }
+
+        // Prints information about the current time
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
     }
 
     /**
@@ -414,7 +455,7 @@ protected:
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
     {
         // getting the array of the conditions
-        const ConditionsArrayType& r_conditions = rModelPart.Conditions();
+        const ConditionsArrayType& r_conditions = rModelPart.Conditions();  
 
         mCurrentExternalForceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
