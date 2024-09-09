@@ -19,7 +19,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontalInterfaceIsIdentityMatrix,
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal2Plus2LineInterfaceIsIdentityMatrix,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontalInterface
 
     // Note that only the first component of the local coordinate is used
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     // Since the gradient of the shape functions is constant, the rotation matrix is the same at
     // each point, meaning the local_coordinate should not have an effect
     const auto local_coordinate = array_1d<double, 3>{0.5, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -116,7 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForVerti
     const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForVerti
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationFor3Plus3NodedInterface_WithNonUnitLength,
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal3Plus3LineInterfaceIsIdentityMatrix,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
@@ -140,13 +140,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationFor3Plus3NodedInterface
     const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationForCurved3Plus3NodedInterface_WithNonUnitLength,
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationForCenterOfCurved3Plus3NodedInterface_WithNonUnitLength,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationForCurved3Plus3NodedInt
     const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationForInclinedCur
     const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtEdgeOfQuadra
     const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{1.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtArbitraryXiF
     const LineInterfaceGeometry<Line2D3<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{-0.5, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // clang-format off
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForOpenHorizontalInter
     const LineInterfaceGeometry<Line2D2<Node>> geometry(1, nodes);
 
     const auto local_coordinate = array_1d<double, 3>{0.0, 0.0, 0.0};
-    Matrix     rotation_matrix =
+    const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
