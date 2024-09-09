@@ -151,8 +151,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
 
-        node.pGetDof(DISPLACEMENT_X)->SetEquationId(++i);
-        node.pGetDof(DISPLACEMENT_Y)->SetEquationId(++i);
+        ++i;
+        node.pGetDof(DISPLACEMENT_X)->SetEquationId(i);
+        ++i;
+        node.pGetDof(DISPLACEMENT_Y)->SetEquationId(i);
     }
 
     // Act
