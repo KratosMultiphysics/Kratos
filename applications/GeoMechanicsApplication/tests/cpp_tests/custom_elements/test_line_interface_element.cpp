@@ -167,7 +167,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto           properties                        = std::make_shared<Properties>();
