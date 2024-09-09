@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <vector>
 #include <functional>
+#include <stdint.h>
 #include "clipper.core.h"
 
 namespace Clipper2Lib {
