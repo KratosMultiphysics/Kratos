@@ -25,8 +25,7 @@ std::vector<Vector> GeoElementUtilities::CalculateShapeFunctionValues(const Geo:
     };
 
     auto result = std::vector<Vector>{};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(),
-                   std::back_inserter(result),
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
                    evaluate_shape_function_values);
 
     return result;

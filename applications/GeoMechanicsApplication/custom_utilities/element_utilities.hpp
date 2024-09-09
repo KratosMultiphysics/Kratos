@@ -15,11 +15,12 @@
 
 // Project includes
 #include "includes/element.h"
+#include "includes/kratos_export_api.h"
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "geo_mechanics_application_variables.h"
 #include "geo_aliases.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
