@@ -575,7 +575,12 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 1) = v_z[1];
     rRotationMatrix(2, 2) = v_z[2];
 }
-//
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwLysmerAbsorbingCondition";
+}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

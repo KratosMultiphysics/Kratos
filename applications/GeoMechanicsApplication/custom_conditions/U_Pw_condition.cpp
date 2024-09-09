@@ -113,6 +113,12 @@ Condition::DofsVectorType UPwCondition<TDim, TNumNodes>::GetDofs() const
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), TDim);
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class UPwCondition<2, 1>;
 template class UPwCondition<2, 2>;

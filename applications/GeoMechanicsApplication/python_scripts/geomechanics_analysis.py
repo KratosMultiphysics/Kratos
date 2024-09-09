@@ -3,11 +3,6 @@ import os
 import sys
 
 sys.path.append(os.path.join('..','..','..'))
-sys.path.append(r"D:\software_development\Kratos4\bin\Debug")
-sys.path.append(r"D:\software_development\Kratos4\bin\Debug\libs")
-
-# sys.path.append(r"D:\software_development\Kratos4\bin\Release")
-# sys.path.append(r"D:\software_development\Kratos4\bin\Release\libs")
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -59,12 +54,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         total_displacement = old_total_displacement + stage_displacement
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
-
-    def _CalculateIncrementalDisplacement(self, node):
-        incremental_displacement = (node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0) -
-                                   node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1))
-        node.SetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT, incremental_displacement)
-
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):
         if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
@@ -179,8 +168,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
                 # set new_time and delta_time in the nonlinear solver
                 new_time = t + self.delta_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]       = new_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]             = new_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]       = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NUMBER_OF_CYCLES] = number_cycle
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
@@ -223,6 +213,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
                 incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
                     self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+
                 incr_process.Execute()
 
             self.FinalizeSolutionStep()
@@ -230,9 +221,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
 if __name__ == '__main__':
     from sys import argv
-
-    import cProfile
-    import pstats
 
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
@@ -243,23 +231,14 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
         raise Exception(err_msg)
 
-    os.chdir(r"D:\software_development\STEM\benchmark_tests\test_1d_wave_prop_drained_soil\inputs_kratos")
-
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "ProjectParameters_stage_1.json"
+        parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
     simulation = GeoMechanicsAnalysis(model,parameters)
-
-    #profile.run("simulation.Run()")
-    cProfile.run("simulation.Run()","profile_results.txt")
-
-    p = pstats.Stats("profile_results.txt")
-
-    p.strip_dirs().sort_stats("time").print_stats(20)
-    # simulation.Run()
+    simulation.Run()

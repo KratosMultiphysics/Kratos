@@ -17,10 +17,12 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "includes/table_accessor.h"
+
+// Application includes
 #include "structural_mechanics_application_variables.h"
 #include "custom_elements/small_displacement.h"
-#include "includes/table_accessor.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 namespace Kratos::Testing
 {
@@ -72,7 +74,7 @@ namespace Kratos::Testing
     /**
     * Checks the ThermalLinearPlaneStrain
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStrain, KratosConstitutiveLawsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStrain, KratosConstitutiveLawsWithStructuralElementsSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -119,7 +121,7 @@ namespace Kratos::Testing
     /**
     * Checks the ThermalLinearPlaneStress
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStress, KratosConstitutiveLawsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStress, KratosConstitutiveLawsWithStructuralElementsSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -165,7 +167,7 @@ namespace Kratos::Testing
     /**
     * Checks the ThermalLinearPlaneStrainWithTable
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStrainWithTable, KratosConstitutiveLawsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStrainWithTable, KratosConstitutiveLawsWithStructuralElementsSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -222,7 +224,7 @@ namespace Kratos::Testing
     /**
     * Checks the ThermalLinearIsotropic3DWithTable
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement3D4NThermalLinearIsotropic3DWithTable, KratosConstitutiveLawsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement3D4NThermalLinearIsotropic3DWithTable, KratosConstitutiveLawsWithStructuralElementsSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);

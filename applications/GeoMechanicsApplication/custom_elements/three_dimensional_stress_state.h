@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThreeDimensionalStressState : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ThreeDimensionalStressState : public StressStatePolicy
 {
 public:
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const override;

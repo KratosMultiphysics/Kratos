@@ -22,6 +22,7 @@
 #include "custom_processes/apply_boundary_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
+#include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_component_table_process.hpp"
 #include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.hpp"
@@ -44,6 +45,7 @@
 #include "custom_processes/calculate_incremental_displacement_process.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/set_parameter_field_process.hpp"
@@ -162,6 +164,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyNormalLoadTableProcess, ApplyNormalLoadTableProcess::Pointer, Process>(
         m, "ApplyNormalLoadTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<GeoExtrapolateIntegrationPointValuesToNodesProcess, GeoExtrapolateIntegrationPointValuesToNodesProcess::Pointer, Process>(
+        m, "GeoExtrapolateIntegrationPointValuesToNodesProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>(
+        m, "ApplyCPhiReductionProcess")
+        .def(py::init<ModelPart&, const Parameters>());
 
     py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>(
         m, "CalculateIncrementalDisplacementProcess")

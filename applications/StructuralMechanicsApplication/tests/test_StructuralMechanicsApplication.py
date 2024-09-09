@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import run_cpp_unit_tests
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
@@ -98,6 +97,8 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
+from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
+from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -344,6 +345,8 @@ def AssembleTestSuites():
     ### Adding Nightly Tests
     # Patch test Small Displacements
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -375,8 +378,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Mixed displacement - volumetric strain tests
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCookMembrane]))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
@@ -516,10 +518,6 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    # run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

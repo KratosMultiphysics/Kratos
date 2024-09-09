@@ -36,8 +36,6 @@ public:
 
     GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoTCondition() override;
-
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoTCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
@@ -52,6 +50,8 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
+
+    std::string Info() const override;
 
 protected:
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,

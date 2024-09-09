@@ -75,6 +75,8 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
+    std::string Info() const override;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -104,7 +106,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwCondition.
 
 } // namespace Kratos.

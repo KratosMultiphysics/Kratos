@@ -80,4 +80,9 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(V
     }
 }
 
+std::string SurfaceNormalFluidFlux3DDiffOrderCondition::Info() const
+{
+    return "SurfaceNormalFluidFlux3DDiffOrderCondition";
+}
+
 } // Namespace Kratos.
