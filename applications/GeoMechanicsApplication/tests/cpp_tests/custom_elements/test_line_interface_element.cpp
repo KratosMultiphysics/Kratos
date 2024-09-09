@@ -245,11 +245,12 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumbe
     }
 
     // Act
-    Vector right_hand_side;
-    element->CalculateRightHandSide(right_hand_side, {});
+    Vector actual_right_hand_side;
+    element->CalculateRightHandSide(actual_right_hand_side, {});
 
     // Assert
-    KRATOS_EXPECT_EQ(right_hand_side.size(), 8);
+    auto expected_right_hand_side = Vector{ZeroVector{8}};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing
