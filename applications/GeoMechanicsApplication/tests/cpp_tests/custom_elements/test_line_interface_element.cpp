@@ -15,6 +15,7 @@
 #include "custom_geometries/line_interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <cstddef>
 
@@ -22,8 +23,6 @@ namespace
 {
 
 using namespace Kratos;
-
-const auto relative_tolerance = 1.0e-6;
 
 PointerVector<Node> CreateNodes()
 {
@@ -216,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideHasCorrectSize, Krato
     expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
     expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
     expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing

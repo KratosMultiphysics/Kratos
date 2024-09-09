@@ -19,6 +19,7 @@
 #include "includes/checks.h"
 #include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
@@ -26,14 +27,6 @@
 
 using namespace Kratos;
 using namespace std::string_literals;
-
-namespace
-{
-
-constexpr auto absolute_tolerance = 1.0e-6;
-constexpr auto relative_tolerance = 1.0e-6;
-
-} // namespace
 
 namespace Kratos::Testing
 {
@@ -142,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     expected_constitutive_matrix <<= 20.0, 0.0,
                                      0.0, 10.0;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(constitutive_matrix, expected_constitutive_matrix, relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
@@ -158,9 +151,9 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     auto value = Vector{};
     law.GetValue(STRAIN, value);
     const auto zero_vector = Vector{ZeroVector{2}};
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, Defaults::absolute_tolerance)
     law.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
@@ -179,9 +172,9 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
 
     auto value = Vector{};
     law.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement, Defaults::relative_tolerance)
     law.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
@@ -206,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
 
     auto expected_traction = Vector{2};
     expected_traction <<= 2.0, 3.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -242,10 +235,11 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     auto expected_traction = Vector{2};
     expected_traction <<= 30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0,
         30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
     auto expected_relative_displacement = Vector{2};
     expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(), expected_relative_displacement, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(),
+                                       expected_relative_displacement, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer,
@@ -280,14 +274,14 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
 
     auto value = Vector{};
     restored_law.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, Defaults::relative_tolerance)
     restored_law.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, Defaults::relative_tolerance)
     KRATOS_EXPECT_TRUE(restored_law.HasInitialState())
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStrainVector(),
-                                       initial_relative_displacement, relative_tolerance)
+                                       initial_relative_displacement, Defaults::relative_tolerance)
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStressVector(),
-                                       initial_traction, relative_tolerance)
+                                       initial_traction, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing

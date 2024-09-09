@@ -12,11 +12,18 @@
 
 #pragma once
 
-#include <string>
 #include <filesystem>
 
 namespace Kratos::Testing
 {
+
+namespace Defaults
+{
+
+constexpr auto absolute_tolerance = 1.0e-6;
+constexpr auto relative_tolerance = 1.0e-6;
+
+}
 
 class TestUtilities
 {
