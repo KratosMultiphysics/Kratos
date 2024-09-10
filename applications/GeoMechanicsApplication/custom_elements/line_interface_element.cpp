@@ -51,7 +51,7 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     auto       b_matrices      = std::vector<Matrix>{};
     const auto dummy_gradients = Matrix{};
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        const auto b_matrix = prod(
+        const Matrix b_matrix = prod(
             GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
             mStressStatePolicy->CalculateBMatrix(
                 dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
