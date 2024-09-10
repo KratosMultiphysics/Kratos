@@ -89,6 +89,8 @@ Vector GeoEquationOfMotionUtilities::CalculateInternalForceVector(const std::vec
 {
     KRATOS_ERROR_IF((rBs.size() != rStressVectors.size()) || (rBs.size() != rIntegrationCoefficients.size()))
         << "Cannot calculate the internal force vector: input vectors have different sizes\n";
+    KRATOS_ERROR_IF(rBs.empty())
+        << "Cannot calculate the internal force vector: input vectors are empty\n";
 
     auto result = Vector{ZeroVector{rBs.front().size2()}};
     for (auto i = std::size_t{0}; i < rBs.size(); ++i) {
