@@ -91,6 +91,12 @@ Vector GeoEquationOfMotionUtilities::CalculateInternalForceVector(const std::vec
         << "Cannot calculate the internal force vector: input vectors have different sizes\n";
     KRATOS_ERROR_IF(rBs.empty())
         << "Cannot calculate the internal force vector: input vectors are empty\n";
+    auto has_inconsistent_sizes = [number_of_rows    = rBs.front().size1(),
+                                   number_of_columns = rBs.front().size2()](const auto& rMatrix) {
+        return (rMatrix.size1() != number_of_rows) || (rMatrix.size2() != number_of_columns);
+    };
+    KRATOS_ERROR_IF(std::any_of(rBs.begin() + 1, rBs.end(), has_inconsistent_sizes))
+        << "Cannot calculate the internal force vector: B-matrices have different sizes";
 
     auto result = Vector{ZeroVector{rBs.front().size2()}};
     for (auto i = std::size_t{0}; i < rBs.size(); ++i) {
