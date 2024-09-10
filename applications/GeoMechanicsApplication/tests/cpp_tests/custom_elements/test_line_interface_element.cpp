@@ -18,7 +18,7 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <cstddef>
-
+#include <boost/numeric/ublas/assignment.hpp>
 namespace
 {
 
@@ -218,6 +218,56 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
     expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
     expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto           properties                        = std::make_shared<Properties>();
+    constexpr auto normal_stiffness                  = 20.0;
+    constexpr auto shear_stiffness                   = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2.0), 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2.0), 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    // Act
+    Matrix left_hand_side;
+    element->CalculateLeftHandSide(left_hand_side, {});
+
+    // Assert
+
+    // clang-format off
+    auto expected_left_hand_side  = Matrix{8, 8};
+    expected_left_hand_side <<= 7.5,-2.5, 0.0, 0.0,-7.5, 2.5, 0.0, 0.0,
+                               -2.5, 7.5, 0.0, 0.0, 2.5,-7.5, 0.0, 0.0,
+                                0.0, 0.0, 7.5,-2.5, 0.0, 0.0,-7.5, 2.5,
+                                0.0, 0.0,-2.5, 7.5, 0.0, 0.0, 2.5,-7.5,
+                               -7.5, 2.5, 0.0, 0.0, 7.5,-2.5, 0.0, 0.0,
+                                2.5,-7.5, 0.0, 0.0,-2.5, 7.5, 0.0, 0.0,
+                                0.0, 0.0,-7.5, 2.5, 0.0, 0.0, 7.5,-2.5,
+                                0.0, 0.0, 2.5,-7.5, 0.0, 0.0,-2.5, 7.5;
+
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 

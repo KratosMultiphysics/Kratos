@@ -12,6 +12,7 @@
 #include "line_interface_element.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 
@@ -50,8 +51,12 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     auto       b_matrices      = std::vector<Matrix>{};
     const auto dummy_gradients = Matrix{};
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        b_matrices.push_back(mStressStatePolicy->CalculateBMatrix(
-            dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
+        const auto b_matrix = prod(
+            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
+            mStressStatePolicy->CalculateBMatrix(
+                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
+
+        b_matrices.emplace_back(b_matrix);
     }
 
     const auto& properties         = GetProperties();
