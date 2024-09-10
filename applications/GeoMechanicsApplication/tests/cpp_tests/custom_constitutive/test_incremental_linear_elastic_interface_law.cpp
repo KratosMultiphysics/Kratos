@@ -119,6 +119,45 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialP
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContainingNormalAndShearStiffnessValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto material_properties                        = Properties{};
+    material_properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
+    material_properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
+
+    auto law_parameters = ConstitutiveLaw::Parameters{};
+    law_parameters.SetMaterialProperties(material_properties);
+
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{};
+
+    // Act
+    auto actual_constitutive_matrix = Matrix{};
+    law.CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, actual_constitutive_matrix);
+
+    // Assert
+    auto expected_constitutive_matrix = Matrix{2, 2};
+    // clang-format off
+    expected_constitutive_matrix <<= 20.0, 0.0,
+                                     0.0, 10.0;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix, relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        law                                = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto& r_some_unsupported_matrix_variable = ENGINEERING_STRAIN_TENSOR;
+    auto        dummy_parameters                   = ConstitutiveLaw::Parameters{};
+    auto        value                              = Matrix{};
+    
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.CalculateValue(dummy_parameters, r_some_unsupported_matrix_variable, value),
+        "Can't calculate value of ENGINEERING_STRAIN_TENSOR: unsupported variable")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -156,6 +195,18 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement, relative_tolerance)
     law.GetValue(CAUCHY_STRESS_VECTOR, value);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto        law                                = GeoIncrementalLinearElasticInterfaceLaw{};
+    const auto& r_some_unsupported_vector_variable = GREEN_LAGRANGE_STRAIN_VECTOR;
+
+    auto value = Vector{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.GetValue(r_some_unsupported_vector_variable, value),
+        "Can't get value of GREEN_LAGRANGE_STRAIN_VECTOR: unsupported variable")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
