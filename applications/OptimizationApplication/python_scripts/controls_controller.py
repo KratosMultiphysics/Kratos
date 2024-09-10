@@ -12,6 +12,7 @@
 import KratosMultiphysics as KM 
 import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
 import KratosMultiphysics.OptimizationApplication.controls.shape.implicit_vertex_morphing as ivm
+import KratosMultiphysics.OptimizationApplication.controls.shape.subdivision_surface_control as sds
 import KratosMultiphysics.OptimizationApplication.controls.thickness.helmholtz_thickness as hlt
 import KratosMultiphysics.OptimizationApplication.controls.material.helmholtz_material as hlm
 import KratosMultiphysics.OptimizationApplication.controls.material.helmholtz_partition as hlp
@@ -52,7 +53,7 @@ class ControlsController:
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
-        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"material":["helmholtz_material","helmholtz_partition"],"thickness":["helmholtz_thickness"]}
+        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing","subdivision_surface_control"],"material":["helmholtz_material","helmholtz_partition"],"thickness":["helmholtz_thickness"]}
         # sanity checks
         self.controls_types_vars_dict = {"shape":[],"material":[],"thickness":[]}
         self.controls = {}
@@ -67,12 +68,12 @@ class ControlsController:
                 raise RuntimeError("ControlsController: Control name {} already exists.".format(control_name))            
             # check control type
             control_type = control_settings["type"].GetString()
-            if not control_type in self.supported_control_types_techniques.keys():
+            if control_type not in self.supported_control_types_techniques.keys():
                 raise RuntimeError("ControlsController: control type '{}' in control {} is not supported!, we support {} ".format(control_type,control_name,self.supported_control_types_techniques))
             self.controls_type[control_name] = control_type              
             # check control technique
             control_technique = control_settings["settings"]["technique"].GetString()
-            if not control_technique in self.supported_control_types_techniques[control_type]:
+            if control_technique not in self.supported_control_types_techniques[control_type]:
                 raise RuntimeError("ControlsController: control technique '{}' for control type {} in control {} is not supported!, we support {}".format(control_technique,control_type,control_name,self.supported_control_types_techniques))
 
             # check for repetitious control over variables
@@ -95,6 +96,8 @@ class ControlsController:
                     control = evm.ExplicitVertexMorphing(control_name,model,control_settings["settings"])   
                 elif control_technique == "implicit_vertex_morphing":
                     control = ivm.ImplicitVertexMorphing(control_name,model,control_settings["settings"])  
+                elif control_technique == "subdivision_surface_control":
+                    control = sds.SubdivisionSurfaceControl(control_name,model,control_settings["settings"])
             elif control_type == "thickness":
                 if control_technique == "helmholtz_thickness":
                     control = hlt.HelmholtzThickness(control_name,model,control_settings["settings"])    
@@ -115,14 +118,14 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def ControlMapFirstDerivative(self,control_name,derivative_name,mapped_derivative_name,raise_error=True):
         if raise_error:
-            if not control_name in self.controls.keys():
+            if control_name not in self.controls.keys():
                 raise RuntimeError("ControlsController:ControlMapFirstDerivative: Control {} does not exist.".format(control_name))
 
         self.controls[control_name].MapFirstDerivative(derivative_name,mapped_derivative_name)
 
     # --------------------------------------------------------------------------
     def CheckIfControlExists(self,control_name,raise_error=True):
-        if not control_name in self.controls.keys():
+        if control_name not in self.controls.keys():
             if raise_error:
                 raise RuntimeError("ControlsController:CheckIfControlExists: Control {} does not exist.".format(control_name))
             else: 
@@ -136,7 +139,7 @@ class ControlsController:
         
         if_exist = True
         for control_name in controls_name:
-            if not control_name in self.controls.keys():
+            if control_name not in self.controls.keys():
                 if raise_error:
                     raise RuntimeError("ControlsController:CheckIfControlsExist: Control {} does not exist!".format(control_name))
                 else:
@@ -146,28 +149,28 @@ class ControlsController:
 
     # --------------------------------------------------------------------------
     def GetControlType(self,control_name,raise_error=True):
-        if not control_name in self.controls_type.keys():
+        if control_name not in self.controls_type.keys():
             if raise_error:
                 raise RuntimeError("ControlsController:GetControlType: Control {} does not exist.".format(control_name))
         else:
             return self.controls_type[control_name]           
     # --------------------------------------------------------------------------
     def GetControlVariableName(self,control_name,raise_error=True):
-        if not control_name in self.controls_type.keys():
+        if control_name not in self.controls_type.keys():
             if raise_error:
                 raise RuntimeError("ControlsController:GetControlVariableName: Control {} does not exist.".format(control_name))
         else:
             return self.controls[control_name].GetVariableName() 
     # --------------------------------------------------------------------------
     def GetControlUpdateName(self,control_name,raise_error=True):
-        if not control_name in self.controls_type.keys():
+        if control_name not in self.controls_type.keys():
             if raise_error:
                 raise RuntimeError("ControlsController:GetControlUpdateName: Control {} does not exist.".format(control_name))
         else:
             return self.controls[control_name].GetUpdateName()  
     # --------------------------------------------------------------------------
     def GetControlOutputNames(self,control_name,raise_error=True):
-        if not control_name in self.controls_type.keys():
+        if control_name not in self.controls_type.keys():
             if raise_error:
                 raise RuntimeError("ControlsController:GetControlOutputNames: Control {} does not exist.".format(control_name))
         else:
@@ -175,7 +178,7 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def GetControlControllingObjects(self,control_name,raise_error=True):
         if raise_error:
-            if not control_name in self.controls_controlling_objects.keys():
+            if control_name not in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:GetControlControllingObjects: Control {} does not exist.".format(control_name))
        
         return self.controls[control_name].GetControllingObjects()            
@@ -183,7 +186,7 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def MapControlFirstDerivative(self, control_name, derivative_variable_name, mapped_derivative_variable_name, raise_error=True):   
         if raise_error:
-            if not control_name in self.controls_controlling_objects.keys():
+            if control_name not in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:MapControlFirstDerivative: Control {} does not exist.".format(control_name)) 
 
         self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)       
@@ -191,7 +194,7 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def UpdateControl(self, control_name, raise_error=True):   
         if raise_error:
-            if not control_name in self.controls_controlling_objects.keys():
+            if control_name not in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:UpdateControl: Control {} does not exist.".format(control_name)) 
 
         self.controls[control_name].Update()  
@@ -199,7 +202,7 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def ComputeControl(self, control_name, raise_error=True):   
         if raise_error:
-            if not control_name in self.controls_controlling_objects.keys():
+            if control_name not in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:ComputeControl: Control {} does not exist.".format(control_name)) 
 
         self.controls[control_name].Compute()          
