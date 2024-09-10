@@ -199,6 +199,9 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
                                        expected_internal_force_vector, relative_tolerance)
 }
 
+// The following tests only raise errors when using debug builds
+#ifdef KRATOS_DEBUG
+
 KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -237,5 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHav
         GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
         "Cannot calculate the internal force vector: B-matrices have different sizes")
 }
+
+#endif
 
 } // namespace Kratos::Testing
