@@ -54,6 +54,14 @@ void CheckThatStressVectorsHaveSameSize(const std::vector<Vector>& rStressVector
         << "Cannot calculate the internal force vector: stress vectors have different sizes\n";
 }
 
+void CheckThatTransposedMatrixVectorProductCanBeCalculated(const Matrix& rFirstB, const Vector& rFirstStressVector)
+{
+    // B-matrix will be transposed, so check against its number of rows rather than its number of columns!
+    KRATOS_DEBUG_ERROR_IF(rFirstB.size1() != rFirstStressVector.size())
+        << "Cannot calculate the internal force vector: matrix-vector product cannot be calculated "
+           "due to size mismatch\n";
+}
+
 void CheckInputOfCalculateInternalForceVector(const std::vector<Matrix>& rBs,
                                               const std::vector<Vector>& rStressVectors,
                                               const std::vector<double>& rIntegrationCoefficients)
@@ -61,6 +69,7 @@ void CheckInputOfCalculateInternalForceVector(const std::vector<Matrix>& rBs,
     CheckThatVectorsHaveSameSizeAndAreNotEmpty(rBs, rStressVectors, rIntegrationCoefficients);
     CheckThatBMatricesHaveSameSizes(rBs);
     CheckThatStressVectorsHaveSameSize(rStressVectors);
+    CheckThatTransposedMatrixVectorProductCanBeCalculated(rBs.front(), rStressVectors.front());
 }
 
 } // namespace

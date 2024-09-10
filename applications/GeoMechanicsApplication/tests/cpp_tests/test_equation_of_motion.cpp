@@ -244,14 +244,28 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHav
 KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
-    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
-    const auto stress_vectors           = std::vector<Vector>{ScalarVector{2, 1.0}, ScalarVector{3, 1.0}}; // Error: vectors have different sizes
+    const auto b_matrix   = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vectors = std::vector<Vector>{ScalarVector{2, 1.0}, ScalarVector{3, 1.0}}; // Error: vectors have different sizes
     const auto integration_coefficients = std::vector<double>{0.25, 0.4};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
         "Cannot calculate the internal force vector: stress vectors have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Error: transpose of the B-matrix has more rows than the number of stress components
+    const auto b_matrix                 = Matrix{ScalarMatrix{3, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients), "Cannot calculate the internal force vector: matrix-vector product cannot be calculated due to size mismatch")
 }
 
 #endif
