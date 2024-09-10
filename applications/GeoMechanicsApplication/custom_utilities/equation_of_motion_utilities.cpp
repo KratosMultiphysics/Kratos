@@ -83,4 +83,11 @@ Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<
     return result;
 }
 
+Vector GeoEquationOfMotionUtilities::CalculateInternalForceVector(const std::vector<Matrix>& rBs,
+                                                                  const std::vector<Vector>& rStressVectors,
+                                                                  const std::vector<double>& rIntegrationCoefficients)
+{
+    return {};
+}
+
 } /* namespace Kratos.*/
