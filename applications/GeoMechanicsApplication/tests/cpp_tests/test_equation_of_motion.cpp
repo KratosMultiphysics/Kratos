@@ -13,7 +13,9 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -181,6 +183,22 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
     const auto expected_stiffness_matrix = ScalarMatrix(n, n, 24.0);
 
     KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateInternalForceVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    const auto expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
+
+    constexpr auto relative_tolerance = 1.0e-6;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                                           b_matrices, stress_vectors, integration_coefficients),
+                                       expected_internal_force_vector, relative_tolerance)
 }
 
 } // namespace Kratos::Testing
