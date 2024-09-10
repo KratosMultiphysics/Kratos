@@ -162,7 +162,6 @@ public:
     void Predict() override
     {
         KRATOS_TRY
-        const DataCommunicator& r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         // if the operations needed were already performed this does nothing
         if (BaseType::mInitializeWasPerformed == false) Initialize();
@@ -173,28 +172,29 @@ public:
 
         double delta_time = model_part.GetProcessInfo()[DELTA_TIME];
 
-        TSystemVectorType& rFirstDerivativeVector  = TSystemVectorType(equation_size, 0.0);
-        TSystemVectorType& rSecondDerivativeVector = TSystemVectorType(equation_size, 0.0);
+        TSystemVectorType first_derivative_vector  = TSystemVectorType(equation_size, 0.0);
+        TSystemVectorType second_derivative_vector = TSystemVectorType(equation_size, 0.0);
 
-        TSystemVectorType& rUpdatedFirstDerivativeVector  = TSystemVectorType(equation_size, 0.0);
-        TSystemVectorType& rUpdatedSecondDerivativeVector = TSystemVectorType(equation_size, 0.0);
+        TSystemVectorType updated_first_derivative_vector  = TSystemVectorType(equation_size, 0.0);
+        TSystemVectorType updated_second_derivative_vector = TSystemVectorType(equation_size, 0.0);
 
-        this->GetFirstAndSecondDerivativeVector(rFirstDerivativeVector, rSecondDerivativeVector, model_part, 0);
+        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
+                                                model_part, 0);
 
-        // rUpdatedFirstDerivativeVector = rFirstDerivativeVector * (mGamma / mBeta) + rSecondDerivativeVector * (delta_time * (mGamma / (2 * mBeta) - 1));
-        TSparseSpace::ScaleAndAdd(mGamma / mBeta, rFirstDerivativeVector,
-                                  delta_time * (mGamma / (2 * mBeta) - 1), rSecondDerivativeVector,
-                                  rUpdatedFirstDerivativeVector);
+        // updated_first_derivative_vector = first_derivative_vector * (mGamma / mBeta) + second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
+        TSparseSpace::ScaleAndAdd(mGamma / mBeta, first_derivative_vector,
+                                  delta_time * (mGamma / (2 * mBeta) - 1), second_derivative_vector,
+                                  updated_first_derivative_vector);
 
-        // rUpdatedSecondDerivativeVector = rFirstDerivativeVector * (1.0 / (mBeta * delta_time)) + rSecondDerivativeVector * (1.0 / (2 * mBeta));
-        TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), rFirstDerivativeVector, 1.0 / (2 * mBeta),
-                                  rSecondDerivativeVector, rUpdatedSecondDerivativeVector);
+        // updated_second_derivative_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) + second_derivative_vector * (1.0 / (2 * mBeta));
+        TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), first_derivative_vector, 1.0 / (2 * mBeta),
+                                  second_derivative_vector, updated_second_derivative_vector);
 
-        this->SetFirstAndSecondDerivativeVector(rUpdatedFirstDerivativeVector,
-                                                rUpdatedSecondDerivativeVector, model_part);
+        this->SetFirstAndSecondDerivativeVector(updated_first_derivative_vector,
+                                                updated_second_derivative_vector, model_part);
 
         // Move the mesh if needed
-        if (this->MoveMeshFlag() == true) BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -255,9 +255,9 @@ public:
         KRATOS_TRY;
 
         // Pointers needed in the solution
-        typename TSchemeType::Pointer           p_scheme             = BaseType::GetScheme();
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        ModelPart&                              r_model_part         = BaseType::GetModelPart();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
@@ -266,28 +266,29 @@ public:
             // Setting up the list of the DOFs to be solved
             BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
                 << "Setup Dofs Time: " << setup_dofs_time << std::endl;
 
             // Shaping correctly the system
             BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
                 << "Setup System Time: " << setup_system_time << std::endl;
 
             // Setting up the Vectors involved to the correct size
             BuiltinTimer system_matrix_resize_time;
-            p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0)
+            p_builder_and_solver->ResizeAndInitializeVectors(
+                p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
                 << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
         }
 
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0)
+        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
             << "System Construction Time: " << system_construction_time << std::endl;
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        TSystemMatrixType& rA  = *BaseType::mpA;
+        TSystemVectorType& rDx = *BaseType::mpDx;
+        TSystemVectorType& rb  = *BaseType::mpb;
 
         // Initial operations ... things that are constant over the Solution Step
         p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
@@ -326,7 +327,7 @@ public:
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
-        typename TSchemeType::Pointer           p_scheme             = BaseType::GetScheme();
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
 
         TSystemMatrixType& rA  = *BaseType::mpA;
@@ -348,8 +349,8 @@ public:
         });
 
         p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
-        BaseType::mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(),
-                                                    rA, rDx, rb);
+        BaseType::mpConvergenceCriteria->FinalizeSolutionStep(
+            r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         // Cleaning memory after the solution
         p_scheme->Clean();
@@ -368,13 +369,13 @@ public:
     bool SolveSolutionStep() override
     {
         // Pointers needed in the solution
-        ModelPart&                              r_model_part         = BaseType::GetModelPart();
-        typename TSchemeType::Pointer           p_scheme             = BaseType::GetScheme();
+        ModelPart&                    r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        auto&                                   r_dof_set = p_builder_and_solver->GetDofSet();
-        std::vector<Vector>                     NonconvergedSolutions;
+        auto&               r_dof_set = p_builder_and_solver->GetDofSet();
+        std::vector<Vector> NonconvergedSolutions;
 
-        if (mStoreNonconvergedSolutionsFlag) {
+        if (BaseType::mStoreNonconvergedSolutionsFlag) {
             Vector initial;
             BaseType::GetCurrentSolution(r_dof_set, initial);
             NonconvergedSolutions.push_back(initial);
@@ -400,7 +401,8 @@ public:
         });
 
         BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        bool is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        bool is_converged =
+            BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         TSparseSpace::SetToZero(rDx);
         TSparseSpace::SetToZero(rb);
@@ -437,7 +439,8 @@ public:
                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
             }
 
-            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+            is_converged =
+                BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
         // Iteration Cycle... performed only for non linear RHS
@@ -494,7 +497,8 @@ public:
                     residual_is_updated = true;
                 }
 
-                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+                is_converged =
+                    BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
         }
 
@@ -507,8 +511,8 @@ public:
             this->MaxIterationsExceeded();
         } else {
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
-                << "Convergence achieved after " << iteration_number << " / " << BaseType::mMaxIterationNumber
-                << " iterations" << std::endl;
+                << "Convergence achieved after " << iteration_number << " / "
+                << BaseType::mMaxIterationNumber << " iterations" << std::endl;
         }
 
         // calculate reactions if required
@@ -642,7 +646,8 @@ protected:
     void MaxIterationsExceeded() override
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-            << "ATTENTION: max iterations ( " << BaseType::mMaxIterationNumber << " ) exceeded!" << std::endl;
+            << "ATTENTION: max iterations ( " << BaseType::mMaxIterationNumber << " ) exceeded!"
+            << std::endl;
     }
 
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
@@ -743,7 +748,7 @@ protected:
         TSparseSpace::UnaliasedAdd(rDx_tot, 1.0, rDx);
 
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        DofsArrayType&                          r_dof_set = p_builder_and_solver->GetDofSet();
+        DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
         block_for_each(r_dof_set, [&rDx](auto& dof) {
             if (dof.IsFree()) {
@@ -755,39 +760,37 @@ protected:
     void UpdateSolutionStepDerivative(TSystemVectorType& rDx_tot, ModelPart& rModelPart)
     {
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        const DofsArrayType&                    r_dof_set = p_builder_and_solver->GetDofSet();
+        const DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        TSystemVectorType& r_first_derivative_vector  = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSystemVectorType& r_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSystemVectorType first_derivative_vector  = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSystemVectorType second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
 
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // get values from previous time step as the derivatives are already updated in the Predict step
-        this->GetFirstAndSecondDerivativeVector(r_first_derivative_vector,
-                                                r_second_derivative_vector, rModelPart, 1);
+        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
+                                                rModelPart, 1);
 
-        // const TSystemVectorType& r_delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - r_first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
-        TSystemVectorType& r_delta_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector, (mGamma / (mBeta * delta_time)), rDx_tot);
-        TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector, -(mGamma / mBeta), r_first_derivative_vector);
-        TSparseSpace::UnaliasedAdd(r_delta_first_derivative_vector,
-                                   delta_time * (1 - mGamma / (2 * mBeta)), r_second_derivative_vector);
+        // const TSystemVectorType delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
+        TSystemVectorType delta_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, (mGamma / (mBeta * delta_time)), rDx_tot);
+        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, -(mGamma / mBeta), first_derivative_vector);
+        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
+                                   delta_time * (1 - mGamma / (2 * mBeta)), second_derivative_vector);
 
-        // const TSystemVectorType& r_delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - r_first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
-        TSystemVectorType& r_delta_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector,
-                                   1 / (mBeta * delta_time * delta_time), rDx_tot);
-        TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector, -1 / (mBeta * delta_time),
-                                   r_first_derivative_vector);
-        TSparseSpace::UnaliasedAdd(r_delta_second_derivative_vector, -1 / (2 * mBeta), r_second_derivative_vector);
+        // const TSystemVectorType delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
+        TSystemVectorType delta_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, 1 / (mBeta * delta_time * delta_time), rDx_tot);
+        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (mBeta * delta_time), first_derivative_vector);
+        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * mBeta), second_derivative_vector);
 
-        // r_first_derivative_vector += r_delta_first_derivative_vector;
-        TSparseSpace::UnaliasedAdd(r_first_derivative_vector, 1.0, r_delta_first_derivative_vector);
+        // first_derivative_vector += delta_first_derivative_vector;
+        TSparseSpace::UnaliasedAdd(first_derivative_vector, 1.0, delta_first_derivative_vector);
 
-        // r_second_derivative_vector += r_delta_second_derivative_vector;
-        TSparseSpace::UnaliasedAdd(r_second_derivative_vector, 1.0, r_delta_second_derivative_vector);
+        // second_derivative_vector += delta_second_derivative_vector;
+        TSparseSpace::UnaliasedAdd(second_derivative_vector, 1.0, delta_second_derivative_vector);
 
-        this->SetFirstAndSecondDerivativeVector(r_first_derivative_vector, r_second_derivative_vector, rModelPart);
+        this->SetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
     }
 
     /// <summary>
@@ -799,8 +802,8 @@ protected:
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;
 
-        ModelPart&                              r_model_part         = BaseType::GetModelPart();
-        typename TSchemeType::Pointer           p_scheme             = BaseType::GetScheme();
+        ModelPart&                    r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
 
         this->InitializeSolutionStep();

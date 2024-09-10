@@ -55,7 +55,7 @@ public:
 	GeoCustomElement& operator=(GeoCustomElement const& rOther);
 
 
-	Pointer GeoCustomElement::Create(
+	Pointer Create(
 		IndexType NewId,
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties

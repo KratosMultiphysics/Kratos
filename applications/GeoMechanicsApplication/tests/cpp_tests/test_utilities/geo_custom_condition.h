@@ -51,7 +51,7 @@ public:
 	GeoCustomCondition& operator=(GeoCustomCondition const& rOther);
 
 
-	Pointer GeoCustomCondition::Create(
+	Pointer Create(
 		IndexType NewId,
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties
