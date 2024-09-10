@@ -87,7 +87,12 @@ Vector GeoEquationOfMotionUtilities::CalculateInternalForceVector(const std::vec
                                                                   const std::vector<Vector>& rStressVectors,
                                                                   const std::vector<double>& rIntegrationCoefficients)
 {
-    return {};
+    auto result = Vector{ZeroVector{rBs.front().size2()}};
+    for (auto i = std::size_t{0}; i < rBs.size(); ++i) {
+        result += prod(trans(rBs[i]), rStressVectors[i]) * rIntegrationCoefficients[i];
+    }
+
+    return result;
 }
 
 } /* namespace Kratos.*/
