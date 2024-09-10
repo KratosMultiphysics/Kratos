@@ -201,4 +201,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateInternalForceVector, KratosGeoMechanicsFastSu
                                        expected_internal_force_vector, relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesAnErrorIfInputVectorsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix       = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices     = std::vector<Matrix>{b_matrix}; // Error: missing one matrix
+    const auto stress_vector  = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: input vectors have different sizes")
+}
+
 } // namespace Kratos::Testing
