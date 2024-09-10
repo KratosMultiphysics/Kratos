@@ -185,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
     KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateInternalForceVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesSigma, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
     const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateInternalForceVector, KratosGeoMechanicsFastSu
                                        expected_internal_force_vector, relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesAnErrorIfInputVectorsHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto b_matrix       = Matrix{ScalarMatrix{2, 8, 1.0}};
