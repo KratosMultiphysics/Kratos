@@ -10,8 +10,13 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "custom_geometries/line_interface_geometry.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "geometries/line_2d_2.h"
+#include "includes/node.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
