@@ -192,9 +192,8 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
     const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
     const auto integration_coefficients = std::vector<double>{0.25, 0.4};
 
-    const auto expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
-
-    constexpr auto relative_tolerance = 1.0e-6;
+    const auto     expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
+    constexpr auto relative_tolerance             = 1.0e-6;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                                            b_matrices, stress_vectors, integration_coefficients),
                                        expected_internal_force_vector, relative_tolerance)
