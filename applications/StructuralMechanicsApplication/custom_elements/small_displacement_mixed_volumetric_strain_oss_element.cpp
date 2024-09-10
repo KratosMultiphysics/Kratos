@@ -83,6 +83,23 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainOssElement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedVolumetricStrainOssElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    BaseType::Initialize(rCurrentProcessInfo);
+
+    // Deactivate the dynamic subscales as these are not implemented in the OSS elements yet
+    mIsDynamic = 0;
+    mDisplacementSubscale1.resize(0);
+    mDisplacementSubscale2.resize(0);
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -149,6 +166,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
+        // Note that this calculates the OSS stabilization operator to be applied to the RHS
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -156,7 +174,6 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateRightHandSide(
     }
 
     // Substract the OSS projections to the current residual
-    // Note that the OSS stabilization projection operator already includes the minus sign
     VectorType proj_vect(matrix_size);
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_us_proj = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
@@ -246,6 +263,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateLocalSystem(
             gauss_point_auxiliary_variables);
 
         // Assemble the current Gauss point OSS projection operator
+        // Note that this calculates the OSS stabilization operator to be applied to the RHS
         CalculateOssStabilizationOperatorGaussPointContribution(
             oss_proj_op,
             kinematic_variables,
@@ -467,7 +485,7 @@ void SmallDisplacementMixedVolumetricStrainOssElement::Calculate(
             const auto& r_body_force = gauss_point_auxiliary_variables.BodyForce;
             const auto& r_grad_eps = gauss_point_auxiliary_variables.VolumetricStrainGradient;
             for (IndexType d = 0; d < dim; ++d) {
-                aux_proj[d] = -r_body_force[d] - gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d];
+                aux_proj[d] = r_body_force[d] + gauss_point_auxiliary_variables.BulkModulus * r_grad_eps[d];
             }
 
             // Nodal assembly of the projection contributions
@@ -570,10 +588,10 @@ void SmallDisplacementMixedVolumetricStrainOssElement::CalculateOssStabilization
 
         for (IndexType j = 0; j < n_nodes; ++j) {
             const double N_j = rThisKinematicVariables.N[j];
-            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
+            rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j;
             for (IndexType d = 0; d < dim; ++d) {
                 rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= aux_w_kappa_tau_1 * G_i[d] * N_j;
-                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= aux_w_kappa_tau_2 * psi_i[d] * N_j;
+                rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) += aux_w_kappa_tau_2 * psi_i[d] * N_j;
             }
         }
     }
