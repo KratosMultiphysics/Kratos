@@ -61,7 +61,7 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     // v = 5; 
     
     if (rVariables.pc < 0.0) {
-            rSl = 1.0;
+        rSl = 1.0;
     } else {
         rSl = std::exp(-rVariables.pc/101325);
     }
@@ -107,7 +107,8 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
     // rkrl = std::max(rkrl,rVariables.krmin);
 
 
-    // NOTE. This implementation is just done to validate the Khoei example
+
+     // NOTE. This implementation is just done to validate the Khoei example
     // B = 101325
     // v = 5;
     double& rSl = rValues.GetSl();
@@ -140,6 +141,8 @@ void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables
     //     rkrg = std::max(rkrg,rVariables.krmin);
     // }
 
+
+ 
     // NOTE. This implementation is just done to validate the Khoei example
     // B = 101325
     // v = 5;
