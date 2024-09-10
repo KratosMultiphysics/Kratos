@@ -19,7 +19,6 @@
 #include "spaces/ublas_space.h"
 #include "geo_mechanics_fast_suite.h"
 
-#include "../LinearSolversApplication/custom_solvers/eigen_sparse_lu_solver.h"
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 
