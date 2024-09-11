@@ -12,10 +12,12 @@
 
 #pragma once
 
-#include <vector>
-
 #include "includes/kratos_export_api.h"
 #include "includes/ublas_interface.h"
+
+#include <algorithm>
+#include <vector>
+#include <cstdlib>
 
 namespace Kratos
 {
@@ -24,6 +26,15 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoMechanicsMathUtilities
 {
 public:
     [[nodiscard]] static std::vector<double> CalculateDeterminants(const std::vector<Matrix>& rMatrices);
+
+    template <typename VectorType>
+    [[nodiscard]] static VectorType Normalized(const VectorType& rVector)
+    {
+        const auto length = norm_2(rVector);
+        KRATOS_ERROR_IF_NOT(length > 0.0) << "A zero vector cannot be normalized\n";
+
+        return rVector / length;
+    }
 
 }; // class GeoMechanicsMathUtilities
 
