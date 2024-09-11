@@ -318,10 +318,6 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     auto           properties       = std::make_shared<Properties>();
-    constexpr auto normal_stiffness = 20.0;
-    constexpr auto shear_stiffness  = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
     properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
     auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
@@ -339,6 +335,11 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
 
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
+    for (const auto& p_law : constitutive_laws) {
+        KRATOS_EXPECT_NE(p_law.get(), nullptr);
+        // Constitutive laws must have been cloned
+        KRATOS_EXPECT_NE(p_law.get(), properties->GetValue(CONSTITUTIVE_LAW).get());
+    }
 }
 
 } // namespace Kratos::Testing
