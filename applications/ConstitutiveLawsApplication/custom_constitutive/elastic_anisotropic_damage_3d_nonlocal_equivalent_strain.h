@@ -400,7 +400,10 @@ protected:
                                 const BoundedVectorType& Principal_Strains
                                 );
 
-
+    void TensorProduct(BoundedMatrixVoigtType& dHdNL,
+                        const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+                        const BoundedVectorType& Vector
+                        );
     /**
      * @brief
      * @param H_NLu

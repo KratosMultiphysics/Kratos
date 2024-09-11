@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+ * @class ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details This material law is defined by the parameters:
@@ -54,7 +54,7 @@ namespace Kratos
  * @note
  * @author Athira
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
     : public ElasticIsotropic3D
 {
 public:
@@ -98,7 +98,7 @@ public:
     typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
     // Counted pointer
-    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage3DTwoNLEquivalentStrains);
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage3DEquivalentStrainTCMTMC);
 
     ///@}
     ///@name Lyfe Cycle
@@ -107,17 +107,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    ElasticAnisotropicDamage3DTwoNLEquivalentStrains();
+    ElasticAnisotropicDamage3DEquivalentStrainTCMTMC();
 
     /**
      * @brief Copy constructor.
      */
-    ElasticAnisotropicDamage3DTwoNLEquivalentStrains(const ElasticAnisotropicDamage3DTwoNLEquivalentStrains& rOther);
+    ElasticAnisotropicDamage3DEquivalentStrainTCMTMC(const ElasticAnisotropicDamage3DEquivalentStrainTCMTMC& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ElasticAnisotropicDamage3DTwoNLEquivalentStrains() override;
+    ~ElasticAnisotropicDamage3DEquivalentStrainTCMTMC() override;
 
     /**
      * @brief Clone function
@@ -488,5 +488,5 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+}; // class ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
 } // namespace Kratos

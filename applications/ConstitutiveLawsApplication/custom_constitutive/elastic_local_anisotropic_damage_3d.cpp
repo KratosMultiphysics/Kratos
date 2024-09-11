@@ -250,9 +250,13 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate prinicpal strains
         GetPrincipalDeviatoricStrains(deviatoric_strains, r_strain_vector, principal_strains);
         for(SizeType i = 0; i < Dimension; ++i) {
-            k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
-            beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
-            beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
+            // k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
+            // beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
+            // beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
+            //changed to see if the notched specimen test is working
+            k0[i] = k0t;
+            beta1[i] =beta1t;
+            beta2[i] =beta2t;
             damage_driving_variable[i] =  (principal_strains[i] > eps) ? principal_strains[i] : fabs(deviatoric_strains[i]);
             max_history_e[i] = std::max(mStrainVariables[i], damage_driving_variable[i]);
             kappa[i]       = std::max(max_history_e[i], k0[i]);
