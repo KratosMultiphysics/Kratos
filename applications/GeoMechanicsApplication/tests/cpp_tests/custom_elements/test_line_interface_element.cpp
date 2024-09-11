@@ -17,8 +17,9 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <cstddef>
 #include <boost/numeric/ublas/assignment.hpp>
+#include <cstddef>
+
 namespace
 {
 
@@ -238,9 +239,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
 
     PointerVector<Node> result;
     result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2.0), 0.0));
+    result.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2.0), 0.0));
+    result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
@@ -256,17 +257,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
 
     // Assert
 
+    auto expected_left_hand_side = Matrix{8, 8};
     // clang-format off
-    auto expected_left_hand_side  = Matrix{8, 8};
-    expected_left_hand_side <<= 7.5,-2.5, 0.0, 0.0,-7.5, 2.5, 0.0, 0.0,
-                               -2.5, 7.5, 0.0, 0.0, 2.5,-7.5, 0.0, 0.0,
-                                0.0, 0.0, 7.5,-2.5, 0.0, 0.0,-7.5, 2.5,
-                                0.0, 0.0,-2.5, 7.5, 0.0, 0.0, 2.5,-7.5,
-                               -7.5, 2.5, 0.0, 0.0, 7.5,-2.5, 0.0, 0.0,
-                                2.5,-7.5, 0.0, 0.0,-2.5, 7.5, 0.0, 0.0,
-                                0.0, 0.0,-7.5, 2.5, 0.0, 0.0, 7.5,-2.5,
-                                0.0, 0.0, 2.5,-7.5, 0.0, 0.0,-2.5, 7.5;
-
+    expected_left_hand_side <<=
+         6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,
+        -2.16506351,  8.75,        0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,
+         0.0,         0.0,         6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,
+         0.0,         0.0,        -2.16506351,  8.75,        0.0,         0.0,         2.16506351, -8.75,
+        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,  0.0,         0.0,
+         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75,        0.0,         0.0,
+         0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
+         0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
