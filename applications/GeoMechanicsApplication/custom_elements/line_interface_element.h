@@ -13,8 +13,8 @@
 #pragma once
 
 #include "includes/element.h"
-#include "stress_state_policy.h"
 #include "integration_scheme.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -34,7 +34,11 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>&    rOutput,
+                                      const ProcessInfo&) override;
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -42,8 +46,9 @@ public:
 private:
     Element::DofsVectorType GetDofs() const;
 
-    std::unique_ptr<IntegrationScheme> mIntegrationScheme;
-    std::unique_ptr<StressStatePolicy> mStressStatePolicy;
+    std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
+    std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
 };
 
 } // namespace Kratos

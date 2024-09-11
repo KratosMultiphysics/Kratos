@@ -90,6 +90,16 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 }
 
+void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                                        std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                                                        const ProcessInfo&)
+{
+    KRATOS_ERROR_IF_NOT(rVariable == CONSTITUTIVE_LAW)
+        << "Cannot calculate on integration points: got unexpected variable " << rVariable.Name() << "\n";
+
+    rOutput = mConstitutiveLaws;
+}
+
 Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
                                               const NodesArrayType&   rNodes,
                                               PropertiesType::Pointer pProperties) const
@@ -107,6 +117,15 @@ Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
 void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     rElementalDofList = GetDofs();
+}
+
+void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    Element::Initialize(rCurrentProcessInfo);
+
+    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
+        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+    }
 }
 
 Element::DofsVectorType LineInterfaceElement::GetDofs() const

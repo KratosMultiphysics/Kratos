@@ -304,4 +304,41 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumbe
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    auto           properties       = std::make_shared<Properties>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    // Act
+    auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
+    element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+
+    KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
+}
+
 } // namespace Kratos::Testing
