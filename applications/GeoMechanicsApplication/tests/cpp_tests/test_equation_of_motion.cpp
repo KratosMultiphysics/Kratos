@@ -257,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVector
 KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Error: transpose of the B-matrix has more rows than the number of stress components
+    // Error: transpose of the B-matrix has more columns (3) than the number of stress components (2)
     const auto b_matrix                 = Matrix{ScalarMatrix{3, 8, 1.0}};
     const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
     const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
