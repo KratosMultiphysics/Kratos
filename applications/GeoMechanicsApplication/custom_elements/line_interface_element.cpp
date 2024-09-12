@@ -45,23 +45,10 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
 void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rCurrentProcessInfo)
 {
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-
-    auto relative_displacements = CalculateRelativeDisplacements(local_b_matrices);
-
-    auto tractions = std::vector<Vector>{};
-    for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetStrainVector(relative_displacements[i]);
-        auto traction = Vector{};
-        law_parameters.SetStressVector(traction);
-        law_parameters.SetMaterialProperties(GetProperties());
-        mConstitutiveLaws[i]->CalculateMaterialResponseCauchy(law_parameters);
-        tractions.push_back(traction);
-    }
-
+    const auto local_b_matrices       = CalculateLocalBMatricesAtIntegrationPoints();
+    auto       relative_displacements = CalculateRelativeDisplacements(local_b_matrices);
+    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
-
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
         local_b_matrices, tractions, integration_coefficients);
 }
@@ -185,6 +172,24 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacements(const s
     for (const auto& r_b : rLocalBMatrices) {
         result.emplace_back(prod(r_b, nodal_displacements));
     }
+
+    return result;
+}
+
+std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(std::vector<Vector>& rRelativeDisplacements)
+{
+    auto calculate_traction = [&properties = GetProperties()](auto& rRelativeDisplacement, auto& p_law) {
+        auto law_parameters = ConstitutiveLaw::Parameters{};
+        law_parameters.SetStrainVector(rRelativeDisplacement);
+        auto result = Vector{};
+        law_parameters.SetStressVector(result);
+        law_parameters.SetMaterialProperties(properties);
+        p_law->CalculateMaterialResponseCauchy(law_parameters);
+        return result;
+    };
+    auto result = std::vector<Vector>{};
+    std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
+                   mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
 
     return result;
 }
