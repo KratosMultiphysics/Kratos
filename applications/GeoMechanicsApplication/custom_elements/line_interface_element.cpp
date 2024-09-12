@@ -11,6 +11,7 @@
 //
 #include "line_interface_element.h"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
@@ -102,16 +103,9 @@ Element::DofsVectorType LineInterfaceElement::GetDofs() const
 
 std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
-    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
-        auto result = Vector{};
-        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
-        return result;
-    };
     const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
-    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
-    std::transform(r_integration_points.begin(), r_integration_points.end(),
-                   std::back_inserter(shape_function_values_at_integration_points),
-                   evaluate_shape_function_values);
+    auto        shape_function_values_at_integration_points =
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
     auto       result          = std::vector<Matrix>{};
     const auto dummy_gradients = Matrix{};
