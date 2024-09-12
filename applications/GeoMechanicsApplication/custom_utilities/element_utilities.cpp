@@ -15,8 +15,8 @@
 namespace Kratos
 {
 
-std::vector<Vector> GeoElementUtilities::CalculateShapeFunctionValues(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                                      const Geometry<Node>& rGeometry)
+std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
+    const Geo::IntegrationPointVectorType& rIntegrationPoints, const Geometry<Node>& rGeometry)
 {
     auto evaluate_shape_function_values = [&rGeometry](const auto& rIntegrationPoint) {
         auto result = Vector{};

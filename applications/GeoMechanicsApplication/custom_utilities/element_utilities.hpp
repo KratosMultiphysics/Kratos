@@ -606,8 +606,8 @@ public:
         return nodal_hydraulic_heads;
     }
 
-    static std::vector<Vector> CalculateShapeFunctionValues(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                            const Geometry<Node>& rGeometry);
+    static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                         const Geometry<Node>& rGeometry);
 
 private:
     template <typename VectorType1, typename VectorType2>

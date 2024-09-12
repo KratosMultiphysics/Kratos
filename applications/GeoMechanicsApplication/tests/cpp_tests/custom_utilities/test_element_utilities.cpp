@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
 
     const Geo::IntegrationPointVectorType integration_points{{-1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}};
     const auto shape_function_values =
-        GeoElementUtilities::CalculateShapeFunctionValues(integration_points, geometry);
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(integration_points, geometry);
 
     Vector shape_function_values_1(2);
     shape_function_values_1 <<= 1.0, 0.0;
