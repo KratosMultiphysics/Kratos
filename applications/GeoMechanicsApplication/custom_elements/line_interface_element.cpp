@@ -45,8 +45,8 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
 void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rCurrentProcessInfo)
 {
-    const auto local_b_matrices       = CalculateLocalBMatricesAtIntegrationPoints();
-    auto       relative_displacements = CalculateRelativeDisplacements(local_b_matrices);
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
@@ -160,7 +160,8 @@ std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegra
     return constitutive_matrices;
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacements(const std::vector<Matrix>& rLocalBMatrices) const
+std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
+    const std::vector<Matrix>& rLocalBMatrices) const
 {
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
         GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
