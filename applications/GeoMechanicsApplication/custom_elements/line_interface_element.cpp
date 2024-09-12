@@ -48,18 +48,7 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     const auto constitutive_matrices =
         std::vector<Matrix>{mIntegrationScheme->GetNumberOfIntegrationPoints(), constitutive_matrix};
 
-    auto determinants_of_jacobian = std::vector<double>{};
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
-    }
-
-    auto integration_coefficients = std::vector<double>{};
-    auto index                    = std::size_t{0};
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
-            integration_point, determinants_of_jacobian[index], GetGeometry()));
-        ++index;
-    }
+    const auto integration_coefficients = CalculateIntegrationCoefficients();
 
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         local_b_matrices, constitutive_matrices, integration_coefficients);
@@ -92,18 +81,7 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
         tractions.push_back(traction);
     }
 
-    auto determinants_of_jacobian = std::vector<double>{};
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
-    }
-
-    auto integration_coefficients = std::vector<double>{};
-    auto index                    = std::size_t{0};
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
-            integration_point, determinants_of_jacobian[index], GetGeometry()));
-        ++index;
-    }
+    const auto integration_coefficients = CalculateIntegrationCoefficients();
 
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
         local_b_matrices, tractions, integration_coefficients);
@@ -181,6 +159,24 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
     }
 
     return result;
+}
+
+std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
+{
+    auto determinants_of_jacobian = std::vector<double>{};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
+    }
+
+    auto integration_coefficients = std::vector<double>{};
+    auto index                    = size_t{0};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
+            integration_point, determinants_of_jacobian[index], GetGeometry()));
+        ++index;
+    }
+
+    return integration_coefficients;
 }
 
 } // namespace Kratos

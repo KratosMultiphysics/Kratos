@@ -49,6 +49,7 @@ private:
     Element::DofsVectorType GetDofs() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
+    std::vector<double> CalculateIntegrationCoefficients() const;
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
