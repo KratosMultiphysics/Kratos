@@ -50,6 +50,7 @@ private:
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;
+    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints();
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mStressStatePolicy;

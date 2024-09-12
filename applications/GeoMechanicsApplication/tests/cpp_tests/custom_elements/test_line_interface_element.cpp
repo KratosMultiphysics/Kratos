@@ -197,9 +197,12 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
         node.AddDof(DISPLACEMENT_Y);
     }
 
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
     // Act
     Matrix left_hand_side;
-    element->CalculateLeftHandSide(left_hand_side, {});
+    element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side  = Matrix{IdentityMatrix{8}};
@@ -251,9 +254,12 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
         node.AddDof(DISPLACEMENT_Y);
     }
 
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
     // Act
     Matrix left_hand_side;
-    element->CalculateLeftHandSide(left_hand_side, {});
+    element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
 

@@ -37,21 +37,9 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
 
 void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-
-    const auto& properties         = GetProperties();
-    auto        p_constitutive_law = properties.GetValue(CONSTITUTIVE_LAW);
-    auto        law_parameters     = ConstitutiveLaw::Parameters{};
-    law_parameters.SetMaterialProperties(GetProperties());
-    auto constitutive_matrix = Matrix{};
-    p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
-    const auto constitutive_matrices =
-        std::vector<Matrix>{mIntegrationScheme->GetNumberOfIntegrationPoints(), constitutive_matrix};
-
-    const auto integration_coefficients = CalculateIntegrationCoefficients();
-
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        local_b_matrices, constitutive_matrices, integration_coefficients);
+        CalculateLocalBMatricesAtIntegrationPoints(),
+        CalculateConstitutiveMatricesAtIntegrationPoints(), CalculateIntegrationCoefficients());
 }
 
 void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -177,6 +165,21 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
     }
 
     return integration_coefficients;
+}
+
+std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
+{
+    auto get_constitutive_matrix = [&properties = GetProperties()](const auto& p_law) {
+      auto result         = Matrix{};
+      auto law_parameters = ConstitutiveLaw::Parameters{};
+      law_parameters.SetMaterialProperties(properties);
+      p_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
+      return result;
+    };
+    auto constitutive_matrices = std::vector<Matrix>{};
+    std::transform(mConstitutiveLaws.begin(), mConstitutiveLaws.end(),
+                   std::back_inserter(constitutive_matrices), get_constitutive_matrix);
+    return constitutive_matrices;
 }
 
 } // namespace Kratos
