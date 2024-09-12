@@ -272,7 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumberOfUDofs,
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -285,9 +285,14 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumbe
     nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
-    auto properties = std::make_shared<Properties>();
-    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    auto           properties       = std::make_shared<Properties>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
     for (auto& node : element->GetGeometry()) {
@@ -295,12 +300,19 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_SizeOfRightHandSideEqualsTheNumbe
         node.AddDof(DISPLACEMENT_Y);
     }
 
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+
     // Act
     Vector actual_right_hand_side;
-    element->CalculateRightHandSide(actual_right_hand_side, {});
+    element->CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_right_hand_side = Vector{ZeroVector{8}};
+    auto expected_right_hand_side = Vector{8};
+    expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -316,8 +328,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
-    auto           properties       = std::make_shared<Properties>();
+    auto geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    auto properties = std::make_shared<Properties>();
     properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
     auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 

@@ -78,6 +78,7 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
         integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
             integration_point, determinants_of_jacobian[index], GetGeometry()));
+        ++index;
     }
 
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
@@ -87,7 +88,66 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
 void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rCurrentProcessInfo)
 {
-    rRightHandSideVector = ZeroVector{GetDofs().size()};
+    // Calculate the traction vector from the B-matrices, nodal displacements, and the constitutive law
+    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
+        auto result = Vector{};
+        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
+        return result;
+    };
+    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
+    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
+    std::transform(r_integration_points.begin(), r_integration_points.end(),
+                   std::back_inserter(shape_function_values_at_integration_points),
+                   evaluate_shape_function_values);
+
+    auto       b_matrices      = std::vector<Matrix>{};
+    const auto dummy_gradients = Matrix{};
+    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
+        const Matrix b_matrix = prod(
+            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
+            mStressStatePolicy->CalculateBMatrix(
+                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
+
+        b_matrices.emplace_back(b_matrix);
+    }
+
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
+    auto nodal_displacements = Vector{dofs.size()};
+    std::transform(dofs.begin(), dofs.end(), nodal_displacements.begin(),
+                   [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
+
+    auto relative_displacements = std::vector<Vector>{};
+    for (const auto& r_b : b_matrices) {
+        relative_displacements.emplace_back(prod(r_b, nodal_displacements));
+    }
+
+    auto tractions = std::vector<Vector>{};
+    for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
+        auto law_parameters = ConstitutiveLaw::Parameters{};
+        law_parameters.SetStrainVector(relative_displacements[i]);
+        auto traction = Vector{};
+        law_parameters.SetStressVector(traction);
+        law_parameters.SetMaterialProperties(GetProperties());
+        mConstitutiveLaws[i]->CalculateMaterialResponseCauchy(law_parameters);
+        tractions.push_back(traction);
+    }
+
+    auto determinants_of_jacobian = std::vector<double>{};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
+    }
+
+    auto integration_coefficients = std::vector<double>{};
+    auto index                    = std::size_t{0};
+    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
+            integration_point, determinants_of_jacobian[index], GetGeometry()));
+        ++index;
+    }
+
+    rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+        b_matrices, tractions, integration_coefficients);
 }
 
 void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
@@ -123,8 +183,10 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::Initialize(rCurrentProcessInfo);
 
+    const auto unused_shape_function_values = Vector{};
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), unused_shape_function_values);
     }
 }
 
