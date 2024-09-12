@@ -121,7 +121,7 @@ void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const P
 
 void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    Element::Initialize(rCurrentProcessInfo);
+    BaseType::Initialize(rCurrentProcessInfo);
 
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());

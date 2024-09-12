@@ -26,6 +26,7 @@ public:
 
     using Element::GeometryType;
     using Element::PropertiesType;
+    using BaseType = Element;
 
     LineInterfaceElement();
 
@@ -37,6 +38,7 @@ public:
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>&    rOutput,
                                       const ProcessInfo&) override;
+    using BaseType::CalculateOnIntegrationPoints;
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
