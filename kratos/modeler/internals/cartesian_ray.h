@@ -82,8 +82,8 @@ public:
     ///@name Operations
     ///@{
 
-    void AddIntersection(TGeometryType const& rGeometry, double Tolerance){
-
+    void AddIntersection(TGeometryType const& rGeometry, double Tolerance)
+    {
         array_1d<double,3> intersection_point = ZeroVector(3);
         const int is_intersected = ComputeTriangleRayIntersection(
           rGeometry,
@@ -98,7 +98,7 @@ public:
     }
 
     void CollapseIntersectionPoints(double Tolerance){
-
+        const double zero_tolerance = 1e-12;
         if (mIntersections.size() < 2) {
             return;
         }
@@ -115,7 +115,7 @@ public:
                 }
             }
             if((i_patch_begin == i_patch_end) || // The previous patch was only one intersection and we add it.
-               (CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end+1, Tolerance,  2.00*Tolerance))) { // more than one intersection to be checked with extra rays
+               (CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end+1, zero_tolerance, 2.00*Tolerance))) { // more than one intersection to be checked with extra rays
                 if(i_unique_end != i_patch_begin) {
                     *i_unique_end = std::move(*i_patch_begin);
                 }
@@ -262,7 +262,12 @@ private:
     ///@{
 
 
-    bool CheckPassingThroughByExtraRays(typename std::vector<std::pair<double, const TGeometryType*>>::iterator Begin, typename std::vector<std::pair<double, const TGeometryType*>>::iterator End, double Tolerance, double Delta){
+    bool CheckPassingThroughByExtraRays(
+        typename std::vector<std::pair<double, const TGeometryType*>>::iterator Begin,
+        typename std::vector<std::pair<double, const TGeometryType*>>::iterator End,
+        double ZeroTolerance,
+        double Delta)
+    {
         const std::array<double, 8> delta_u{Delta, Delta, 0.00, -Delta, -Delta, -Delta, 0.00, Delta};
         const std::array<double, 8> delta_v{0.00, Delta, Delta, Delta, 0.00, -Delta, -Delta, -Delta};
         const std::array<std::size_t, 4> axes{1,2,0,1};
@@ -280,7 +285,7 @@ private:
             extra_ray.mPoint2[i_v] += delta_v[i_ray];
 
            for(auto i_intersection = Begin ; i_intersection != End; i_intersection++){
-                extra_ray.AddIntersection(*(i_intersection->second), Tolerance);
+                extra_ray.AddIntersection(*(i_intersection->second), ZeroTolerance);
             }
             if(extra_ray.mIntersections.size() == 0){
                 no_hit_cases++;
@@ -317,15 +322,11 @@ private:
 
             const array_1d<double,3> edge1 = rTriangleGeometry[1] - rTriangleGeometry[0];
             const array_1d<double,3> edge2 = rTriangleGeometry[2] - rTriangleGeometry[0];
-            const array_1d<double,3> line_vector = (rLinePoint2 - rLinePoint1)/norm_2(rLinePoint2 - rLinePoint1);
-            array_1d<double,3> h, h_norm;
-            const array_1d<double,3> edge1_normalized = edge1/norm_2(edge1);
-            const array_1d<double,3> edge2_normalized = edge2/norm_2(edge2);
-            MathUtils<double>::CrossProduct(h_norm, line_vector, edge2_normalized);
+            const array_1d<double,3> line_vector = rLinePoint2 - rLinePoint1;
+            array_1d<double,3> h;
             MathUtils<double>::CrossProduct(h, line_vector, edge2);
-            const double a_norm = inner_prod(edge1_normalized,h_norm);
-            const double a = inner_prod(edge1,h);
-            if (a_norm > -epsilon && a_norm < epsilon) {
+            double a = inner_prod(edge1,h);
+            if (AreTriangleAndRayParallel(edge1, edge2, line_vector)) {
                 return 0;    // This ray is parallel to this triangle.
             }
             const double f = 1.0/a;
@@ -351,6 +352,34 @@ private:
                 return 0;
             }
         }
+
+    static bool AreTriangleAndRayParallel(
+        const array_1d<double,3>& rEdge1,
+        const array_1d<double,3>& rEdge2,
+        const array_1d<double,3>& rLineVector)
+    {
+        const double zero_tol = 1e-12;
+        const double norm_line_vector = norm_2(rLineVector);
+        array_1d<double,3> line_vector_normalized = rLineVector;
+        if (norm_line_vector > zero_tol) {
+            line_vector_normalized /= norm_line_vector;
+        }
+        array_1d<double,3> edge1_normalized = rEdge1;
+        const double norm_edge1 = norm_2(rEdge1);
+        if (norm_edge1 > zero_tol) {
+            edge1_normalized /= norm_edge1; 
+        }
+        array_1d<double,3> edge2_normalized = rEdge2;
+        const double norm_edge2 = norm_2(rEdge2);
+        if (norm_edge2 > zero_tol) {
+            edge2_normalized /= norm_edge2; 
+        }
+
+        array_1d<double,3> h_norm;
+        MathUtils<double>::CrossProduct(h_norm, line_vector_normalized, edge2_normalized);
+        const double a_norm = inner_prod(edge1_normalized,h_norm);
+        return a_norm > -zero_tol && a_norm < zero_tol;
+    }
 
 
 

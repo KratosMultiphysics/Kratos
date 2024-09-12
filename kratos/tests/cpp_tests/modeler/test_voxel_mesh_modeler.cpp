@@ -240,10 +240,9 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		ray_2.CollapseIntersectionPoints(1e-6);
 
 		KRATOS_EXPECT_EQ(ray_1.GetIntersections().size(), 1);
-		KRATOS_EXPECT_EQ(ray_2.GetIntersections().size(), 1);
+		KRATOS_EXPECT_EQ(ray_2.GetIntersections().size(), 0);
 
 		KRATOS_EXPECT_NEAR(ray_1.GetIntersections()[0].first, .4, 1e-6);
-		KRATOS_EXPECT_NEAR(ray_2.GetIntersections()[0].first, .4, 1e-6);
 	}
 
 
