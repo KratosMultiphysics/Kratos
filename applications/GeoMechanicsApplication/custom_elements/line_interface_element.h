@@ -13,6 +13,7 @@
 #pragma once
 
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
 
@@ -51,6 +52,7 @@ private:
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;
     std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints();
+    std::vector<Vector> CalculateRelativeDisplacements(const std::vector<Matrix>& rLocalBMatrices) const;
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
