@@ -322,6 +322,56 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    nodes.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
+    auto           properties       = std::make_shared<Properties>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+
+    // Act
+    Vector actual_right_hand_side;
+    element->CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+
+    // Assert
+    auto expected_right_hand_side = Vector{8};
+    // clang-format off
+    expected_right_hand_side <<= -1.6339746,  4.83012702, -1.6339746,  4.83012702,
+                                  1.6339746, -4.83012702,  1.6339746, -4.83012702;
+    // clang-format on
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
