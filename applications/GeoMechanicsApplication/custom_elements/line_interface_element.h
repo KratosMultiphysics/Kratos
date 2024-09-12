@@ -48,6 +48,8 @@ public:
 private:
     Element::DofsVectorType GetDofs() const;
 
+    std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
+
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;

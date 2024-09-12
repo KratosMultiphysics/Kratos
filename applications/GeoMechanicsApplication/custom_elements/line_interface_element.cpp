@@ -37,27 +37,7 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
 
 void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
-        auto result = Vector{};
-        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
-        return result;
-    };
-    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
-    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
-    std::transform(r_integration_points.begin(), r_integration_points.end(),
-                   std::back_inserter(shape_function_values_at_integration_points),
-                   evaluate_shape_function_values);
-
-    auto       b_matrices      = std::vector<Matrix>{};
-    const auto dummy_gradients = Matrix{};
-    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        const Matrix b_matrix = prod(
-            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
-            mStressStatePolicy->CalculateBMatrix(
-                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
-
-        b_matrices.emplace_back(b_matrix);
-    }
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
 
     const auto& properties         = GetProperties();
     auto        p_constitutive_law = properties.GetValue(CONSTITUTIVE_LAW);
@@ -82,34 +62,13 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     }
 
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        b_matrices, constitutive_matrices, integration_coefficients);
+        local_b_matrices, constitutive_matrices, integration_coefficients);
 }
 
 void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rCurrentProcessInfo)
 {
-    // Calculate the traction vector from the B-matrices, nodal displacements, and the constitutive law
-    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
-        auto result = Vector{};
-        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
-        return result;
-    };
-    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
-    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
-    std::transform(r_integration_points.begin(), r_integration_points.end(),
-                   std::back_inserter(shape_function_values_at_integration_points),
-                   evaluate_shape_function_values);
-
-    auto       b_matrices      = std::vector<Matrix>{};
-    const auto dummy_gradients = Matrix{};
-    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        const Matrix b_matrix = prod(
-            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
-            mStressStatePolicy->CalculateBMatrix(
-                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
-
-        b_matrices.emplace_back(b_matrix);
-    }
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
 
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
         GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
@@ -118,7 +77,7 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
                    [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
 
     auto relative_displacements = std::vector<Vector>{};
-    for (const auto& r_b : b_matrices) {
+    for (const auto& r_b : local_b_matrices) {
         relative_displacements.emplace_back(prod(r_b, nodal_displacements));
     }
 
@@ -147,7 +106,7 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
     }
 
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-        b_matrices, tractions, integration_coefficients);
+        local_b_matrices, tractions, integration_coefficients);
 }
 
 void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
@@ -195,6 +154,33 @@ Element::DofsVectorType LineInterfaceElement::GetDofs() const
     // At this point we only look at the U dofs, so we leave the water pressure nodes empty.
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), Geometry<Node>(),
                                                       GetGeometry().WorkingSpaceDimension());
+}
+
+std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
+{
+    auto evaluate_shape_function_values = [&geometry = GetGeometry()](const auto& rIntegrationPoint) {
+        auto result = Vector{};
+        geometry.ShapeFunctionsValues(result, rIntegrationPoint);
+        return result;
+    };
+    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
+    auto        shape_function_values_at_integration_points = std::vector<Vector>{};
+    std::transform(r_integration_points.begin(), r_integration_points.end(),
+                   std::back_inserter(shape_function_values_at_integration_points),
+                   evaluate_shape_function_values);
+
+    auto       result          = std::vector<Matrix>{};
+    const auto dummy_gradients = Matrix{};
+    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
+        const Matrix b_matrix = prod(
+            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
+            mStressStatePolicy->CalculateBMatrix(
+                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
+
+        result.emplace_back(b_matrix);
+    }
+
+    return result;
 }
 
 } // namespace Kratos
