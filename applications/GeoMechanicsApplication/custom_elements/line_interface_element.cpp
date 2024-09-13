@@ -115,16 +115,18 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
     auto        shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
-    auto       result          = std::vector<Matrix>{};
-    const auto dummy_gradients = Matrix{};
-    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        const Matrix b_matrix = prod(
-            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(GetGeometry(), r_integration_points[i]),
-            mStressStatePolicy->CalculateBMatrix(
-                dummy_gradients, shape_function_values_at_integration_points[i], GetGeometry()));
-
-        result.emplace_back(b_matrix);
-    }
+    auto result = std::vector<Matrix>{};
+    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
+                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
+                                        const auto& rIntegrationPoint) {
+        const auto dummy_gradients = Matrix{};
+        return Matrix{prod(
+            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint),
+            p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry))};
+    };
+    std::transform(shape_function_values_at_integration_points.begin(),
+                   shape_function_values_at_integration_points.end(), r_integration_points.begin(),
+                   std::back_inserter(result), calculate_local_b_matrix);
 
     return result;
 }
