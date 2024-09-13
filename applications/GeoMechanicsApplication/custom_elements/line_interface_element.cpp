@@ -136,15 +136,17 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
         determinants_of_jacobian.push_back(GetGeometry().DeterminantOfJacobian(integration_point));
     }
 
-    auto integration_coefficients = std::vector<double>{};
-    auto index                    = size_t{0};
-    for (const auto& integration_point : mIntegrationScheme->GetIntegrationPoints()) {
-        integration_coefficients.push_back(mStressStatePolicy->CalculateIntegrationCoefficient(
-            integration_point, determinants_of_jacobian[index], GetGeometry()));
-        ++index;
-    }
+    auto       result                            = std::vector<double>{};
+    const auto integration_points                = mIntegrationScheme->GetIntegrationPoints();
+    auto       calculate_integration_coefficient = [&r_geometry = GetGeometry(),
+                                              p_policy    = mStressStatePolicy.get()](
+                                                 const auto& rIntegrationPoint, auto DetJ) {
+        return p_policy->CalculateIntegrationCoefficient(rIntegrationPoint, DetJ, r_geometry);
+    };
+    std::transform(integration_points.begin(), integration_points.end(), determinants_of_jacobian.begin(),
+                   std::back_inserter(result), calculate_integration_coefficient);
 
-    return integration_coefficients;
+    return result;
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
