@@ -410,4 +410,69 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto           properties                        = std::make_shared<Properties>();
+    constexpr auto normal_stiffness                  = 20.0;
+    constexpr auto shear_stiffness                   = 10.0;
+    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+
+    Model model;
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+
+    model_part.AddElement(element);
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix left_hand_side;
+    element->CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
+
+    // Assert
+    auto expected_left_hand_side  = Matrix{IdentityMatrix{8}};
+    expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
+    expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
+    expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
+    expected_left_hand_side(3, 3) = normal_stiffness * 0.5;
+    expected_left_hand_side(4, 4) = shear_stiffness * 0.5;
+    expected_left_hand_side(5, 5) = normal_stiffness * 0.5;
+    expected_left_hand_side(6, 6) = shear_stiffness * 0.5;
+    expected_left_hand_side(7, 7) = normal_stiffness * 0.5;
+    expected_left_hand_side(0, 4) = -shear_stiffness * 0.5;
+    expected_left_hand_side(1, 5) = -normal_stiffness * 0.5;
+    expected_left_hand_side(2, 6) = -shear_stiffness * 0.5;
+    expected_left_hand_side(3, 7) = -normal_stiffness * 0.5;
+    expected_left_hand_side(4, 0) = -shear_stiffness * 0.5;
+    expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
+    expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
+    expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    auto expected_right_hand_side = Vector{8};
+    expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
 } // namespace Kratos::Testing

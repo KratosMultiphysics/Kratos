@@ -54,6 +54,14 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
         local_b_matrices, tractions, integration_coefficients);
 }
 
+void LineInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                VectorType&        rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+}
+
 void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
                                                         const ProcessInfo&)
