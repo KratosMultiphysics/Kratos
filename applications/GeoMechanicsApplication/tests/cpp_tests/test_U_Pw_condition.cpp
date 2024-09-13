@@ -30,17 +30,12 @@ namespace Kratos::Testing {
             std::vector< ModelPart::IndexType> element_nodes{ 1};
             auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
             
-            // create UPwCondition
             auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
             
-            // calculate left hand side matrix
             Matrix left_hand_side_matrix = ZeroMatrix(6, 6);
             cond.CalculateLeftHandSide(left_hand_side_matrix, ProcessInfo{});
             
-            // set expected_results
             Matrix expected_matrix = ZeroMatrix(0, 0);
-            
-            // compare results
             KRATOS_CHECK_MATRIX_NEAR(left_hand_side_matrix, expected_matrix, 1.0e-6);
         }
 
