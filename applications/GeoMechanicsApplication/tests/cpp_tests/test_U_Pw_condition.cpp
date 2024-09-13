@@ -19,12 +19,7 @@ using namespace Kratos;
 namespace Kratos::Testing {
 
 
-        /// <summary>
-        /// Tests the calculation of the left hand side matrix of the default UPwCondition, which should be an empty matrix.
-        /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition_ReturnsEmptyMatrix, KratosGeoMechanicsFastSuite)
         {
 
             Model current_model;
