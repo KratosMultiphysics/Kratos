@@ -92,6 +92,29 @@ LineInterfaceElement::Pointer CreateUnitLengthLineInterfaceElementRotatedBy30Deg
     return element;
 }
 
+Matrix CreateExpectedStiffnessMatrixContainingNormalAndShearContributions(double normal_stiffness, double shear_stiffness)
+{
+    auto expected_left_hand_side  = Matrix{ZeroMatrix{8, 8}};
+    expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
+    expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
+    expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
+    expected_left_hand_side(3, 3) = normal_stiffness * 0.5;
+    expected_left_hand_side(4, 4) = shear_stiffness * 0.5;
+    expected_left_hand_side(5, 5) = normal_stiffness * 0.5;
+    expected_left_hand_side(6, 6) = shear_stiffness * 0.5;
+    expected_left_hand_side(7, 7) = normal_stiffness * 0.5;
+    expected_left_hand_side(0, 4) = -shear_stiffness * 0.5;
+    expected_left_hand_side(1, 5) = -normal_stiffness * 0.5;
+    expected_left_hand_side(2, 6) = -shear_stiffness * 0.5;
+    expected_left_hand_side(3, 7) = -normal_stiffness * 0.5;
+    expected_left_hand_side(4, 0) = -shear_stiffness * 0.5;
+    expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
+    expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
+    expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
+
+    return expected_left_hand_side;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -215,23 +238,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{ZeroMatrix{8, 8}};
-    expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
-    expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
-    expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
-    expected_left_hand_side(3, 3) = normal_stiffness * 0.5;
-    expected_left_hand_side(4, 4) = shear_stiffness * 0.5;
-    expected_left_hand_side(5, 5) = normal_stiffness * 0.5;
-    expected_left_hand_side(6, 6) = shear_stiffness * 0.5;
-    expected_left_hand_side(7, 7) = normal_stiffness * 0.5;
-    expected_left_hand_side(0, 4) = -shear_stiffness * 0.5;
-    expected_left_hand_side(1, 5) = -normal_stiffness * 0.5;
-    expected_left_hand_side(2, 6) = -shear_stiffness * 0.5;
-    expected_left_hand_side(3, 7) = -normal_stiffness * 0.5;
-    expected_left_hand_side(4, 0) = -shear_stiffness * 0.5;
-    expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
-    expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
-    expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
+    auto expected_left_hand_side = CreateExpectedStiffnessMatrixContainingNormalAndShearContributions(
+        normal_stiffness, shear_stiffness);
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
@@ -377,23 +385,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     element->CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{ZeroMatrix{8, 8}};
-    expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
-    expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
-    expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
-    expected_left_hand_side(3, 3) = normal_stiffness * 0.5;
-    expected_left_hand_side(4, 4) = shear_stiffness * 0.5;
-    expected_left_hand_side(5, 5) = normal_stiffness * 0.5;
-    expected_left_hand_side(6, 6) = shear_stiffness * 0.5;
-    expected_left_hand_side(7, 7) = normal_stiffness * 0.5;
-    expected_left_hand_side(0, 4) = -shear_stiffness * 0.5;
-    expected_left_hand_side(1, 5) = -normal_stiffness * 0.5;
-    expected_left_hand_side(2, 6) = -shear_stiffness * 0.5;
-    expected_left_hand_side(3, 7) = -normal_stiffness * 0.5;
-    expected_left_hand_side(4, 0) = -shear_stiffness * 0.5;
-    expected_left_hand_side(5, 1) = -normal_stiffness * 0.5;
-    expected_left_hand_side(6, 2) = -shear_stiffness * 0.5;
-    expected_left_hand_side(7, 3) = -normal_stiffness * 0.5;
+    auto expected_left_hand_side = CreateExpectedStiffnessMatrixContainingNormalAndShearContributions(
+        normal_stiffness, shear_stiffness);
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{8};
