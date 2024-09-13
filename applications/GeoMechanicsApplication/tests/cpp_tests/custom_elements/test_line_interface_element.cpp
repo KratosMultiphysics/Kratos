@@ -394,4 +394,37 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+
+    // Act
+    std::vector<Vector> strains_on_integration_points;
+    element->CalculateOnIntegrationPoints(STRAIN, strains_on_integration_points, dummy_process_info);
+
+    // Assert
+    Vector expected_relative_displacement{2};
+    expected_relative_displacement <<= 0.5, 0.2;
+    KRATOS_EXPECT_EQ(strains_on_integration_points.size(), 2);
+    for (const auto& strain : strains_on_integration_points) {
+        KRATOS_EXPECT_VECTOR_NEAR(strain, expected_relative_displacement, 1e-6)
+    }
+}
+
 } // namespace Kratos::Testing

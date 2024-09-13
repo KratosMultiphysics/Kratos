@@ -61,6 +61,18 @@ void LineInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSide
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
+void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                        std::vector<Vector>& rOutput,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == STRAIN) {
+        const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+        rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+    }
+
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+}
+
 void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
                                                         const ProcessInfo&)
