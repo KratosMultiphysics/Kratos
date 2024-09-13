@@ -427,4 +427,37 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_ReturnsTraction,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+
+    const auto dummy_process_info = ProcessInfo{};
+    element->Initialize(dummy_process_info);
+
+    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
+    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+
+    // Act
+    std::vector<Vector> stresses_on_integration_points;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points, dummy_process_info);
+
+    // Assert
+    Vector expected_cauchy_stress{2};
+    expected_cauchy_stress <<= 10.0, 2.0;
+    KRATOS_EXPECT_EQ(stresses_on_integration_points.size(), 2);
+    for (const auto& stress : stresses_on_integration_points) {
+        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_cauchy_stress, 1e-6)
+    }
+}
+
 } // namespace Kratos::Testing
