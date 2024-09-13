@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{IdentityMatrix{8}};
+    auto expected_left_hand_side  = Matrix{ZeroMatrix{8, 8}};
     expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
     expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
     expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
@@ -446,7 +446,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     element->CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{IdentityMatrix{8}};
+    auto expected_left_hand_side  = Matrix{ZeroMatrix{8, 8}};
     expected_left_hand_side(0, 0) = shear_stiffness * 0.5;
     expected_left_hand_side(1, 1) = normal_stiffness * 0.5;
     expected_left_hand_side(2, 2) = shear_stiffness * 0.5;
