@@ -28,6 +28,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
+        print("ANDREA - IO PASSO DA QUA?")
         return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):

@@ -88,6 +88,7 @@ class FluidSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
+        print("ANDREA - QUESTO E' IL PREPARE DEL FLUID-DYNAMIC (IL SUPER())")
         if not self.is_restarted():
             ## Set fluid properties from materials json file
             materials_imported = self._SetPhysicalProperties()
@@ -293,6 +294,7 @@ class FluidSolver(PythonSolver):
         return self._builder_and_solver
 
     def _GetSolutionStrategy(self):
+        print("ANDREA - STO CONTROLLANDO SE ESISTE SOLUTION STRATEGY")
         if not hasattr(self, '_solution_strategy'):
             self._solution_strategy = self._CreateSolutionStrategy()
         return self._solution_strategy
@@ -382,8 +384,10 @@ class FluidSolver(PythonSolver):
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
+            print("ANDREA - ANALISI LINEARE")
             solution_strategy = self._CreateLinearStrategy()
         elif analysis_type == "non_linear":
+            print("ANDREA - ANALISI NON-LINEARE")
             solution_strategy = self._CreateNewtonRaphsonStrategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
