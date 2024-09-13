@@ -14,6 +14,8 @@
 
 #include "geo_aliases.h"
 
+#include <cstddef>
+
 namespace Kratos
 {
 
