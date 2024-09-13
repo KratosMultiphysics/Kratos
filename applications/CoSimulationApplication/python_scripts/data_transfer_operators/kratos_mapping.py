@@ -18,6 +18,9 @@ import KratosMultiphysics.vtk_output_process as vtk_output_process
 # Import the time module
 from time import time
 
+# Import os module
+import os
+
 # Import the copy module
 import copy
 
@@ -262,12 +265,12 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         """
         if self.debug_vtk:
             # Define the name appendix for the VTK output
-            name_appendix = ""
+            name_prefix = ""
 
             # Increase the counter for debugging
             if self.auxiliary_debug_counter:
                 self.counter += 1
-                name_appendix = "_{}".format(self.counter)
+                name_prefix = "MAPPING_{}".format(self.counter)
 
             # Prepare the settings for VTK output processing
             model_origin, model_destination, origin_settings, destination_settings, variable_origin_name, variable_destination_name, identifier_tuple, inverse_identifier_tuple = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
@@ -298,7 +301,17 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             # Set the output paths
             pre_origin_settings = copy.deepcopy(origin_settings)
-            pre_origin_settings["Parameters"]["output_path"].SetString(origin_output_path + "_pre_map" + name_appendix)
+            path_splitted = os.path.split(origin_output_path)
+            directory_name = path_splitted[0]
+            for i in range(1, len(path_splitted)-1):
+                directory_name = os.path.join(directory_name, path_splitted[i])
+            base_name = path_splitted[-1]
+            if self.auxiliary_debug_counter:
+                directory_name = os.path.join(directory_name, name_prefix)
+            # Ensure the directory exists
+            os.makedirs(directory_name, exist_ok=True)
+            file_path = os.path.join(directory_name, "pre_map_" + base_name)
+            pre_origin_settings["Parameters"]["output_path"].SetString(file_path)
 
             # Create a VTK output process object with the provided settings and the current model
             pre_process_origin = vtk_output_process.Factory(pre_origin_settings, model_origin)
@@ -308,7 +321,15 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             # Set the output paths
             pre_destination_settings = copy.deepcopy(destination_settings)
-            pre_destination_settings["Parameters"]["output_path"].SetString(destination_output_path + "_pre_map" + name_appendix)
+            path_splitted = os.path.split(origin_output_path)
+            directory_name = path_splitted[0]
+            for i in range(1, len(path_splitted)-1):
+                directory_name = os.path.join(directory_name, path_splitted[i])
+            base_name = path_splitted[-1]
+            if self.auxiliary_debug_counter:
+                directory_name = os.path.join(directory_name, name_prefix)
+            file_path = os.path.join(directory_name, "pre_map_" + base_name)
+            pre_destination_settings["Parameters"]["output_path"].SetString(file_path)
 
             # Create a VTK output process object with the provided settings and the current model
             pre_process_destination = vtk_output_process.Factory(pre_destination_settings, model_destination)
@@ -321,7 +342,15 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             # Set the output paths
             post_origin_settings = copy.deepcopy(origin_settings)
-            post_origin_settings["Parameters"]["output_path"].SetString(origin_output_path + "_post_map")
+            path_splitted = os.path.split(origin_output_path)
+            directory_name = path_splitted[0]
+            for i in range(1, len(path_splitted)-1):
+                directory_name = os.path.join(directory_name, path_splitted[i])
+            base_name = path_splitted[-1]
+            if self.auxiliary_debug_counter:
+                directory_name = os.path.join(directory_name, name_prefix)
+            file_path = os.path.join(directory_name, "post_map_" + base_name)
+            post_origin_settings["Parameters"]["output_path"].SetString(file_path)
 
             # Create a VTK output process object with the provided settings and the current model
             post_process_origin = vtk_output_process.Factory(post_origin_settings, model_origin)
@@ -331,7 +360,15 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             # Set the output paths
             post_destination_settings = copy.deepcopy(destination_settings)
-            post_destination_settings["Parameters"]["output_path"].SetString(destination_output_path + "_post_map")
+            path_splitted = os.path.split(origin_output_path)
+            directory_name = path_splitted[0]
+            for i in range(1, len(path_splitted)-1):
+                directory_name = os.path.join(directory_name, path_splitted[i])
+            base_name = path_splitted[-1]
+            if self.auxiliary_debug_counter:
+                directory_name = os.path.join(directory_name, name_prefix)
+            file_path = os.path.join(directory_name, "post_map_" + base_name)
+            post_destination_settings["Parameters"]["output_path"].SetString(file_path)
 
             # Create a VTK output process object with the provided settings and the current model
             post_process_destination = vtk_output_process.Factory(post_destination_settings, model_destination)
