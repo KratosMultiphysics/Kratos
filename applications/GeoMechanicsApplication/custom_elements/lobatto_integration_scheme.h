@@ -12,11 +12,8 @@
 
 #pragma once
 
-#include "geo_aliases.h"
 #include "includes/kratos_export_api.h"
 #include "integration_scheme.h"
-
-#include <cstddef>
 
 namespace Kratos
 {
@@ -27,7 +24,7 @@ public:
     explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
     ~LobattoIntegrationScheme() override = default;
 
-    [[nodiscard]] std::size_t                            GetNumberOfIntegrationPoints() const override;
+    [[nodiscard]] std::size_t GetNumberOfIntegrationPoints() const override;
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const override;
 
 private:
