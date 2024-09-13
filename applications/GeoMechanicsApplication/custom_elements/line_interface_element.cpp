@@ -159,8 +159,8 @@ std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegra
         return result;
     };
     auto result = std::vector<Matrix>{};
-    std::transform(mConstitutiveLaws.begin(), mConstitutiveLaws.end(),
-                   std::back_inserter(result), get_constitutive_matrix);
+    std::transform(mConstitutiveLaws.begin(), mConstitutiveLaws.end(), std::back_inserter(result),
+                   get_constitutive_matrix);
 
     return result;
 }
@@ -170,14 +170,16 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
 {
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
         GetGeometry(), Geometry<Node>(), GetGeometry().WorkingSpaceDimension());
-    auto nodal_displacements = Vector{dofs.size()};
-    std::transform(dofs.begin(), dofs.end(), nodal_displacements.begin(),
+    auto nodal_displacement_vector = Vector{dofs.size()};
+    std::transform(dofs.begin(), dofs.end(), nodal_displacement_vector.begin(),
                    [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
 
     auto result = std::vector<Vector>{};
-    for (const auto& r_b : rLocalBMatrices) {
-        result.emplace_back(prod(r_b, nodal_displacements));
-    }
+    auto calculate_relative_displacement_vector = [&nodal_displacement_vector](const auto& rLocalB) {
+        return Vector{prod(rLocalB, nodal_displacement_vector)};
+    };
+    std::transform(rLocalBMatrices.begin(), rLocalBMatrices.end(), std::back_inserter(result),
+                   calculate_relative_displacement_vector);
 
     return result;
 }
