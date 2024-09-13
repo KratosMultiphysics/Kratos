@@ -49,5 +49,9 @@ public:
                                            const std::vector<Matrix>& rConstitutiveMatrices,
                                            const std::vector<double>& rIntegrationCoefficients);
 
+    static Vector CalculateInternalForceVector(const std::vector<Matrix>& rBs,
+                                               const std::vector<Vector>& rStressVectors,
+                                               const std::vector<double>& rIntegrationCoefficients);
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
