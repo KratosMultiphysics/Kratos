@@ -59,7 +59,6 @@ LineInterfaceElement::Pointer CreateHorizontalUnitLengthLineInterfaceElementWith
     result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, rProperties);
-    model_part.AddElement(element);
 
     for (auto& node : element->GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
@@ -82,7 +81,6 @@ LineInterfaceElement::Pointer CreateUnitLengthLineInterfaceElementRotatedBy30Deg
     result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
     auto element  = make_intrusive<LineInterfaceElement>(1, geometry, rProperties);
-    model_part.AddElement(element);
 
     for (auto& node : element->GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
