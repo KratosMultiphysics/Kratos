@@ -12,94 +12,59 @@
 #pragma once
 
 #include "includes/condition.h"
-//#include "condition.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-class GeoCustomCondition : public Condition {
+class GeoCustomCondition : public Condition
+{
 public:
+    GeoCustomCondition() : Condition() {};
+    /// Constructor using Geometry
+    GeoCustomCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Condition(NewId, pGeometry) {};
 
+    GeoCustomCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Condition(NewId, std::make_shared<GeometryType>(ThisNodes))
+    {
+    }
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-	GeoCustomCondition()
-		: Condition()
-	{
-	};
-	/// Constructor using Geometry
-	GeoCustomCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Condition(NewId, pGeometry)
-	{
-	};
+    Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<GeoCustomCondition>(NewId, GetGeometry().Create(ThisNodes));
+    }
 
-	GeoCustomCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-		: Condition(NewId, GeometryType::Pointer(new GeometryType(ThisNodes)))
-	{
-	}
+    Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<GeoCustomCondition>(NewId, pGeom);
+    }
 
-	///Copy constructor
-	GeoCustomCondition(GeoCustomCondition const& rOther);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-	// Destructor
-	~GeoCustomCondition() override
-	{};
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-	///@}
-	///@name Operators
-	///@{
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-	/// Assignment operator.
-	GeoCustomCondition& operator=(GeoCustomCondition const& rOther);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-	Pointer Create(
-		IndexType NewId,
-		NodesArrayType const& ThisNodes,
-		PropertiesType::Pointer pProperties
-	) const override
-	{
-		return Kratos::make_intrusive<GeoCustomCondition>(NewId, GetGeometry().Create(ThisNodes));
-	}
+    void GetDofList(Condition::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-
-	Pointer Create(
-		IndexType NewId,
-		GeometryType::Pointer pGeom,
-		PropertiesType::Pointer pProperties
-	) const override
-	{
-		return Kratos::make_intrusive<GeoCustomCondition>(NewId, pGeom);
-	}
-
-
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateRightHandSide(VectorType& rRightHandSideVector,
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void EquationIdVector(EquationIdVectorType& rResult, 
-		const ProcessInfo& rCurrentProcessInfo) const override;
-
-	void GetDofList(Condition::DofsVectorType& rDofList,
-		const ProcessInfo& rCurrentProcessInfo) const override;
 private:
+    MatrixType mMassMatrix;
+    MatrixType mDampingMatrix;
+    MatrixType mStiffnessMatrix;
+    VectorType mRhs;
 
-	MatrixType mMassMatrix;
-	MatrixType mDampingMatrix;
-	MatrixType mStiffnessMatrix;
-	VectorType mRhs; 
-
-	bool mStiffnessMatrixSet = false;
-	bool mMassMatrixSet = false;
-	bool mDampingMatrixSet = false;
-	bool mRhsSet = false;
-
+    bool mStiffnessMatrixSet = false;
+    bool mMassMatrixSet      = false;
+    bool mDampingMatrixSet   = false;
+    bool mRhsSet             = false;
 };
 
 } // namespace Kratos::Testing

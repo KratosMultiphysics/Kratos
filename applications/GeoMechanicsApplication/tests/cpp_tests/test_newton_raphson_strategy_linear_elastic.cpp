@@ -106,14 +106,15 @@ public:
     /// fullfills equilibrium in the very first timestep</param>
     /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used</param>
     /// <returns></returns>
-    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>& CreateValidStrategy(
+    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
         ModelPart& rModelPart, double RelativeTollerance, double AbsoluteTollerance, bool CalculateInitialSecondDerivative, bool UseDirectSolver)
     {
         double beta  = 0.25;
         double gamma = 0.5;
         // create strategy
-        auto pScheme = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>::Pointer(
-            new NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>(beta, gamma, 0.75));
+        auto pScheme =
+            std::make_shared<NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma, 0.75);
+
         auto factory = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
 
         std::string solver_type_parameters;
@@ -122,14 +123,14 @@ public:
         } else {
             solver_type_parameters = R"({ "solver_type": "cg" })";
         }
-        auto pLinearSolver = factory.Create(Parameters(solver_type_parameters));
-        auto pBuilderAndSolver =
-            ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer(
-                new ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
-                    pLinearSolver, 0.25, 0.5, CalculateInitialSecondDerivative));
-        auto pConvergenceCriteria = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>::Pointer(
-            new DisplacementCriteria<SparseSpaceType, LocalSpaceType>(RelativeTollerance, AbsoluteTollerance));
 
+        auto pLinearSolver = factory.Create(Parameters(solver_type_parameters));
+
+        auto pBuilderAndSolver =
+            std::make_shared<ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
+                pLinearSolver, 0.25, 0.5, CalculateInitialSecondDerivative);
+        auto pConvergenceCriteria = std::make_shared<DisplacementCriteria<SparseSpaceType, LocalSpaceType>>(
+            RelativeTollerance, AbsoluteTollerance);
         auto dummy_parameters = Parameters();
 
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
@@ -196,9 +197,8 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeCo
     model_part.GetCondition(0).CalculateRightHandSide(rhs, r_current_process_info);
 
     // create strategy
-    auto& r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTollerance, AbsoluteConvergenceTollerance,
-                                                CalculateInitialAcceleration, UseDirectSolver);
-
+    auto r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTollerance, AbsoluteConvergenceTollerance,
+                                               CalculateInitialAcceleration, UseDirectSolver);
     // initialize solver
     r_solver.Initialize();
 

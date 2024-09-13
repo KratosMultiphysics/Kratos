@@ -23,14 +23,12 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
-// #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // default builder and solver
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
-// #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
@@ -69,48 +67,33 @@ namespace Kratos
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
  * @author Riccardo Rossi
  */
-template <class TSparseSpace,
-          class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-          >
+template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
     : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
-
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace>;
     using BaseType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
-
-    typedef GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
-
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-
-    typedef typename BaseType::TDataType TDataType;
-
-    typedef TSparseSpace SparseSpaceType;
-
-    typedef typename BaseType::TSchemeType TSchemeType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    using ClassType =
+        GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
+    using TDataType                = typename BaseType::TDataType;
+    using SparseSpaceType          = TSparseSpace;
+    using TSchemeType              = typename BaseType::TSchemeType;
+    using DofsArrayType            = typename BaseType::DofsArrayType;
+    using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType        = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType    = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType    = typename BaseType::LocalSystemMatrixType;
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -181,12 +164,12 @@ public:
         this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
                                                 model_part, 0);
 
-        // updated_first_derivative_vector = first_derivative_vector * (mGamma / mBeta) + second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
+        // performs: updated_first_derivative_vector = first_derivative_vector * (mGamma / mBeta) + second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
         TSparseSpace::ScaleAndAdd(mGamma / mBeta, first_derivative_vector,
                                   delta_time * (mGamma / (2 * mBeta) - 1), second_derivative_vector,
                                   updated_first_derivative_vector);
 
-        // updated_second_derivative_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) + second_derivative_vector * (1.0 / (2 * mBeta));
+        // performs: updated_second_derivative_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) + second_derivative_vector * (1.0 / (2 * mBeta));
         TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), first_derivative_vector, 1.0 / (2 * mBeta),
                                   second_derivative_vector, updated_second_derivative_vector);
 
@@ -211,7 +194,6 @@ public:
             typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
             typename TConvergenceCriteriaType::Pointer p_convergence_criteria = BaseType::mpConvergenceCriteria;
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-
             // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
             if (p_scheme->SchemeIsInitialized() == false)
                 p_scheme->Initialize(BaseType::GetModelPart());
@@ -219,11 +201,9 @@ public:
             // Initialize The Elements - OPERATIONS TO BE DONE ONCE
             if (p_scheme->ElementsAreInitialized() == false)
                 p_scheme->InitializeElements(BaseType::GetModelPart());
-
             // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
-
             // initialisation of the convergence criteria
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
@@ -373,19 +353,19 @@ public:
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
         auto&               r_dof_set = p_builder_and_solver->GetDofSet();
-        std::vector<Vector> NonconvergedSolutions;
+        std::vector<Vector> non_converged_solutions;
 
         if (BaseType::mStoreNonconvergedSolutionsFlag) {
             Vector initial;
             BaseType::GetCurrentSolution(r_dof_set, initial);
-            NonconvergedSolutions.push_back(initial);
+            non_converged_solutions.push_back(initial);
         }
 
         TSystemMatrixType& rA  = *BaseType::mpA;
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;
 
-        TSystemVectorType rDx_tot = TSystemVectorType(r_dof_set.size(), 0.0);
+        TSystemVectorType dx_tot = TSystemVectorType(r_dof_set.size(), 0.0);
 
         // initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number                      = 1;
@@ -413,7 +393,7 @@ public:
 
         // Updating the results stored in the database
 
-        this->UpdateSolutionStepValue(rDx, rDx_tot);
+        this->UpdateSolutionStepValue(rDx, dx_tot);
 
         // only finalize condition non linear iteration
         block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
@@ -422,13 +402,12 @@ public:
             }
         });
 
-        // p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         if (BaseType::mStoreNonconvergedSolutionsFlag) {
             Vector first;
             BaseType::GetCurrentSolution(r_dof_set, first);
-            NonconvergedSolutions.push_back(first);
+            non_converged_solutions.push_back(first);
         }
 
         if (is_converged) {
@@ -443,63 +422,12 @@ public:
         }
 
         // Iteration Cycle... performed only for non linear RHS
-        while (is_converged == false && iteration_number++ < BaseType::mMaxIterationNumber) {
-            // setting the number of iteration
-            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-
-            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
-            BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-
-            // call the linear system solver to find the correction mDx for the
-            // it is not called if there is no system to solve
-            if (SparseSpaceType::Size(rDx) != 0) {
-                TSparseSpace::SetToZero(rDx);
-                TSparseSpace::SetToZero(rb);
-
-                p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-
-            } else {
-                KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
-            }
-
-            // Debugging info
-            BaseType::EchoInfo(iteration_number);
-
-            // Updating the results stored in the database
-            this->UpdateSolutionStepValue(rDx, rDx_tot);
-
-            // only finalize condition non linear iteration
-            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-                if (r_condition.IsActive()) {
-                    r_condition.FinalizeNonLinearIteration(r_current_process_info);
-                }
-            });
-
-            // p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
-            BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-            if (BaseType::mStoreNonconvergedSolutionsFlag == true) {
-                Vector ith;
-                BaseType::GetCurrentSolution(r_dof_set, ith);
-                NonconvergedSolutions.push_back(ith);
-            }
-
-            if (is_converged == true) {
-                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true) {
-                    TSparseSpace::SetToZero(rb);
-
-                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-                }
-
-                is_converged =
-                    BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-            }
+        if (!is_converged) {
+           is_converged = this->PerformIterationCycle(rA, rDx, rb, dx_tot, non_converged_solutions, iteration_number);
         }
-
+        
         if (is_converged) {
-            this->UpdateSolutionStepDerivative(rDx_tot, r_model_part);
+            this->UpdateSolutionStepDerivative(dx_tot, r_model_part);
         }
 
         // plots a warning if the maximum number of iterations is exceeded
@@ -513,14 +441,15 @@ public:
 
         // calculate reactions if required
         if (BaseType::mCalculateReactionsFlag)
-            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx_tot, rb);
+            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, dx_tot, rb);
 
         if (BaseType::mStoreNonconvergedSolutionsFlag) {
-            BaseType::mNonconvergedSolutionsMatrix = Matrix(r_dof_set.size(), NonconvergedSolutions.size());
-            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
-                block_for_each(r_dof_set, [&](const auto& r_dof) {
+            BaseType::mNonconvergedSolutionsMatrix =
+                Matrix(r_dof_set.size(), non_converged_solutions.size());
+            for (std::size_t i = 0; i < non_converged_solutions.size(); ++i) {
+                block_for_each(r_dof_set, [non_converged_solutions,i, this](const auto& r_dof) {
                     BaseType::mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) =
-                        NonconvergedSolutions[i](r_dof.EquationId());
+                        non_converged_solutions[i](r_dof.EquationId());
                 });
             }
         }
@@ -534,7 +463,7 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
-        Parameters default_parameters = Parameters(R"(
+        auto default_parameters = Parameters(R"(
         {
             "name"                                : "newton_raphson_strategy_linear_elastic_dynamic",
             "use_old_stiffness_in_first_iteration": false,
@@ -593,35 +522,7 @@ public:
     ///@}
 
 private:
-    ///@name Protected static Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-protected:
     ///@name Static Member Variables
     ///@{
 
@@ -644,6 +545,82 @@ protected:
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << BaseType::mMaxIterationNumber << " ) exceeded!"
             << std::endl;
+    }
+
+    bool PerformIterationCycle(TSystemMatrixType&   rA,
+                                                        TSystemVectorType&   rDx,
+                                                        TSystemVectorType&   rb,
+                                                        TSystemVectorType&   rDxTot,
+                                                        std::vector<Vector>& rNonconvergedSolutions,
+        unsigned int& rIterationNumber
+    )
+    {
+        ModelPart&                    r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+        auto&       r_dof_set              = p_builder_and_solver->GetDofSet();
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+
+        bool         is_converged     = false;
+
+        rIterationNumber++;
+        while (is_converged == false && rIterationNumber < BaseType::mMaxIterationNumber) {
+            // setting the number of iteration
+            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
+
+            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+            BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+            // call the linear system solver to find the correction mDx for the
+            // it is not called if there is no system to solve
+            if (SparseSpaceType::Size(rDx) != 0) {
+                TSparseSpace::SetToZero(rDx);
+                TSparseSpace::SetToZero(rb);
+
+                p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+
+            } else {
+                KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
+            }
+
+            // Debugging info
+            BaseType::EchoInfo(rIterationNumber);
+
+            // Updating the results stored in the database
+            this->UpdateSolutionStepValue(rDx, rDxTot);
+
+            // only finalize condition non linear iteration
+            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+                if (r_condition.IsActive()) {
+                    r_condition.FinalizeNonLinearIteration(r_current_process_info);
+                }
+            });
+
+            BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+            if (BaseType::mStoreNonconvergedSolutionsFlag == true) {
+                Vector ith;
+                BaseType::GetCurrentSolution(r_dof_set, ith);
+                rNonconvergedSolutions.push_back(ith);
+            }
+
+            if (is_converged == true) {
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+                    TSparseSpace::SetToZero(rb);
+
+                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+                }
+
+                is_converged =
+                    BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+            }
+
+            rIterationNumber++;
+        }
+
+        return is_converged;
     }
 
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
@@ -740,7 +717,7 @@ protected:
 
     void UpdateSolutionStepValue(TSystemVectorType& rDx, TSystemVectorType& rDx_tot)
     {
-        // rDx_tot += rDx;
+        // performs: rDx_tot += rDx;
         TSparseSpace::UnaliasedAdd(rDx_tot, 1.0, rDx);
 
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
@@ -767,23 +744,23 @@ protected:
         this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
                                                 rModelPart, 1);
 
-        // const TSystemVectorType delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
+        // performs: TSystemVectorType delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
         TSystemVectorType delta_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, (mGamma / (mBeta * delta_time)), rDx_tot);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, -(mGamma / mBeta), first_derivative_vector);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
                                    delta_time * (1 - mGamma / (2 * mBeta)), second_derivative_vector);
 
-        // const TSystemVectorType delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
+        // performs: TSystemVectorType delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
         TSystemVectorType delta_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, 1 / (mBeta * delta_time * delta_time), rDx_tot);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (mBeta * delta_time), first_derivative_vector);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * mBeta), second_derivative_vector);
 
-        // first_derivative_vector += delta_first_derivative_vector;
+        // performs: first_derivative_vector += delta_first_derivative_vector;
         TSparseSpace::UnaliasedAdd(first_derivative_vector, 1.0, delta_first_derivative_vector);
 
-        // second_derivative_vector += delta_second_derivative_vector;
+        // performs: second_derivative_vector += delta_second_derivative_vector;
         TSparseSpace::UnaliasedAdd(second_derivative_vector, 1.0, delta_second_derivative_vector);
 
         this->SetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
@@ -824,14 +801,6 @@ protected:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /**
-     * Copy constructor.
-     */
-
-    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(const GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic& Other) {};
-
-    ///@}
 
 }; /* Class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic */
 

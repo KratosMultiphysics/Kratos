@@ -13,99 +13,61 @@
 
 #include "includes/element.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-//class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCustomElement : public Element {
-class GeoCustomElement : public Element {
+class GeoCustomElement : public Element
+{
 public:
+    /**
+     * Constructor using Geometry
+     */
+    GeoCustomElement() : Element() {};
+    /// Constructor using Geometry
+    GeoCustomElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry) {};
 
-	//KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCustomElement);
+    GeoCustomElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Element(NewId, std::make_shared<GeometryType>(ThisNodes))
+    {
+    }
 
-	//using Element::Element;
-	/**
-    * Constructor using Geometry
-    */
-	GeoCustomElement()
-		: Element()
-	{
-	};
- /// Constructor using Geometry
-	GeoCustomElement(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry)
-	{
-	};
+    ///@}
+    ///@name Operators
+    ///@{
 
-	GeoCustomElement(IndexType NewId, const NodesArrayType& ThisNodes)
-		: Element(NewId, GeometryType::Pointer(new GeometryType(ThisNodes)))
-	{
-	}
+    Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<GeoCustomElement>(NewId, GetGeometry().Create(ThisNodes));
+    }
 
-	///Copy constructor
-	GeoCustomElement(GeoCustomElement const& rOther);
+    Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<GeoCustomElement>(NewId, pGeom);
+    }
 
-	// Destructor
-	~GeoCustomElement() override
-	{};
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-	///@}
-	///@name Operators
-	///@{
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-	/// Assignment operator.
-	GeoCustomElement& operator=(GeoCustomElement const& rOther);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-	Pointer Create(
-		IndexType NewId,
-		NodesArrayType const& ThisNodes,
-		PropertiesType::Pointer pProperties
-	) const override
-	{
-		return Kratos::make_intrusive<GeoCustomElement>(NewId, GetGeometry().Create(ThisNodes));
-	}
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-
-	Pointer Create(
-		IndexType NewId,
-		GeometryType::Pointer pGeom,
-		PropertiesType::Pointer pProperties
-	) const override
-	{
-		return Kratos::make_intrusive<GeoCustomElement>(NewId, pGeom);
-	}
-
-
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void EquationIdVector(EquationIdVectorType& rResult, 
-		const ProcessInfo& rCurrentProcessInfo) const override;
-
-	void CalculateRightHandSide(VectorType& rRightHandSideVector,
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void GetDofList(Element::DofsVectorType& rDofList,
-		const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(Element::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
+    MatrixType mMassMatrix;
+    MatrixType mDampingMatrix;
+    MatrixType mStiffnessMatrix;
+    VectorType mRhs;
 
-	MatrixType mMassMatrix;
-	MatrixType mDampingMatrix;
-	MatrixType mStiffnessMatrix;
-	VectorType mRhs; 
-
-
-	bool mStiffnessMatrixSet = false;
-	bool mMassMatrixSet = false;
-	bool mDampingMatrixSet = false;
-	bool mRhsSet = false;
-
+    bool mStiffnessMatrixSet = false;
+    bool mMassMatrixSet      = false;
+    bool mDampingMatrixSet   = false;
+    bool mRhsSet             = false;
 };
 
 } // namespace Kratos::Testing
