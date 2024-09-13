@@ -21,30 +21,30 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/geometry_utilities/nearest_point_utilities.h"
 
-// Debugging
-#include "input_output/vtk_output.h"
+// // Debugging
+// #include "input_output/vtk_output.h"
 
 namespace Kratos::Testing {
 
-namespace
-{
-    // This method is for debugging
-    void WriteVTK(ModelPart& rModelPart)
-    {
-        auto volume_vtk_output_parameters = Parameters(R"({
-            "model_part_name"                    : "})"+rModelPart.Name()+R"({",
-            "file_format"                        : "ascii",
-            "output_precision"                   : 8,
-            "output_path"                        : ")"+rModelPart.Name()+R"(",
-            "nodal_data_value_variables"         : [],
-            "nodal_flags"                        : [],
-            "condition_data_value_variables"     : [],
-            "condition_flags"                    : []
-        })");
-        VtkOutput volume_vtk_output(rModelPart, volume_vtk_output_parameters);
-        volume_vtk_output.PrintOutput();
-    }
-}
+// namespace
+// {
+//     // This method is for debugging
+//     void WriteVTK(ModelPart& rModelPart)
+//     {
+//         auto volume_vtk_output_parameters = Parameters(R"({
+//             "model_part_name"                    : "})"+rModelPart.Name()+R"({",
+//             "file_format"                        : "ascii",
+//             "output_precision"                   : 8,
+//             "output_path"                        : ")"+rModelPart.Name()+R"(",
+//             "nodal_data_value_variables"         : [],
+//             "nodal_flags"                        : [],
+//             "condition_data_value_variables"     : [],
+//             "condition_flags"                    : []
+//         })");
+//         VtkOutput volume_vtk_output(rModelPart, volume_vtk_output_parameters);
+//         volume_vtk_output.PrintOutput();
+//     }
+// }
 
 /**
  * @brief Finds the nearest point to the given point on a line segment. 
@@ -57,7 +57,7 @@ namespace
  * @return The nearest point to rPoint
  */
 template<class TPointType, class TGeometryType>
-static Point LocalLineNearestPoint(
+static Point LegacyLineNearestPoint(
     const TPointType& rPoint, 
     const TGeometryType& rLine
     )
@@ -104,37 +104,37 @@ static Point LocalLineNearestPoint(
  * @return The nearest point to rPoint
  */
 template<class TPointType, class TGeometryType>
-static Point LocalTriangleNearestPoint(
+static Point LegacyTriangleNearestPoint(
     const TPointType& rPoint,
     const TGeometryType& rTriangle
     )
 {
     constexpr double Tolerance = 1e-12;
     Point result;
-    array_1d<double,3> local_coordinates = ZeroVector(3);
+    array_1d<double,3> old_coordinates = ZeroVector(3);
     const Point center = rTriangle.Center();
-    const array_1d<double, 3> normal = rTriangle.UnitNormal(local_coordinates);
+    const array_1d<double, 3> normal = rTriangle.UnitNormal(old_coordinates);
     double distance = 0.0;
     const Point point_projected = GeometricalProjectionUtilities::FastProject( center, rPoint, normal, distance);
-    rTriangle.PointLocalCoordinates(local_coordinates, point_projected);
+    rTriangle.PointLocalCoordinates(old_coordinates, point_projected);
     using line_point_type= typename TGeometryType::PointType;
 
-    if(local_coordinates[0] < -Tolerance) { // case 2,5,6
-        if(local_coordinates[1] < -Tolerance) { // case 5
+    if(old_coordinates[0] < -Tolerance) { // case 2,5,6
+        if(old_coordinates[1] < -Tolerance) { // case 5
             result = rTriangle[0];
-        } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 6
+        } else if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 6
             result = rTriangle[2];
         } else {
-            result = LocalLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
+            result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
         }
-    } else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
-        if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 7
+    } else if(old_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
+        if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 7
             result = rTriangle[1];
         } else { // case 4
-            result = LocalLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
+            result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
         }
-    } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
-        result = LocalLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
+    } else if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 3
+        result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
     } else {  // inside
         result = point_projected;
     }
@@ -304,7 +304,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleOutOfPlaneNearestPoint, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint1, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
@@ -317,27 +317,24 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint, KratosCoreFastSuite)
 
     auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
 
+    // Compute
     Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
     const double distance = norm_2(nearest_point - *p_node_0);
-    Point local_nearest_point = LocalTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
-    const double local_distance = norm_2(local_nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
-    // Debugging
-    KRATOS_WATCH(distance);
-    KRATOS_WATCH(local_distance);
+    // Check
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
-    // Debugging
-    WriteVTK(r_model_part);
-
-    // More debugging
-    ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
-    r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
-    WriteVTK(r_model_part_solution);
-    ModelPart& r_model_part_local_solution = current_model.CreateModelPart("LocalSolution");
-    r_model_part_local_solution.CreateNewNode(1, local_nearest_point[0], local_nearest_point[1], local_nearest_point[2]);
-    WriteVTK(r_model_part_local_solution);
-
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, local_nearest_point, 1e-6);
+    // // Debugging
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
 }
 
 } // namespace Kratos::Testing
