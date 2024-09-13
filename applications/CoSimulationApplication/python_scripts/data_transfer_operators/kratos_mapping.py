@@ -51,6 +51,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         self.debug_vtk = self.settings["debug_vtk"].GetBool()
         self.auxiliary_debug_counter = self.settings["auxiliary_debug_counter"].GetBool()
         self.__mappers = {}
+        self.sub_counter = 0
+        self.number_of_mappers = 0
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         # Prepare the solver data
@@ -92,9 +94,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             mapper_creation_start_time = time()
             self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
+            self.number_of_mappers += 1
 
             if self.echo_level > 2:
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
+
             self.__PostProcessVTKPre(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
             self.__PostProcessVTKPost(identifier_tuple, from_solver_data, to_solver_data, transfer_options)
@@ -269,7 +273,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             # Increase the counter for debugging
             if self.auxiliary_debug_counter:
-                self.counter += 1
+                self.sub_counter += 1
+                if self.sub_counter >= 2 * self.number_of_mappers: # 2 because of pre and post mapping
+                    self.sub_counter = 0
+                    self.counter += 1
                 name_prefix = "MAPPING_{}".format(self.counter)
 
             # Prepare the settings for VTK output processing
