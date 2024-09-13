@@ -31,23 +31,22 @@ LineInterfaceElement::LineInterfaceElement(IndexType                            
 {
 }
 
-void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&)
 {
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         CalculateLocalBMatricesAtIntegrationPoints(),
         CalculateConstitutiveMatricesAtIntegrationPoints(), CalculateIntegrationCoefficients());
 }
 
-void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
-                                                  const ProcessInfo&   rCurrentProcessInfo)
+void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo&)
 {
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+    const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
@@ -86,7 +85,7 @@ Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
     return {make_intrusive<LineInterfaceElement>(NewId, pGeometry, pProperties)};
 }
 
-void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
 }
@@ -104,15 +103,15 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 Element::DofsVectorType LineInterfaceElement::GetDofs() const
 {
-    // At this point we only look at the U dofs, so we leave the water pressure nodes empty.
-    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), Geometry<Node>(),
+    const auto no_Pw_geometry = Geometry<Node>{};
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), no_Pw_geometry,
                                                       GetGeometry().WorkingSpaceDimension());
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
-    auto        shape_function_values_at_integration_points =
+    const auto  shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
     auto result = std::vector<Matrix>{};
@@ -186,11 +185,13 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
     return result;
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(std::vector<Vector>& rRelativeDisplacements)
+std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements)
 {
-    auto calculate_traction = [&properties = GetProperties()](auto& rRelativeDisplacement, auto& p_law) {
+    // We have to make a copy of the relative displacement vector, since setting it at the
+    // constitutive law parameters requires a reference to a _mutable_ object!
+    auto calculate_traction = [&properties = GetProperties()](auto RelativeDisplacement, auto& p_law) {
         auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetStrainVector(rRelativeDisplacement);
+        law_parameters.SetStrainVector(RelativeDisplacement);
         auto result = Vector{};
         law_parameters.SetStressVector(result);
         law_parameters.SetMaterialProperties(properties);

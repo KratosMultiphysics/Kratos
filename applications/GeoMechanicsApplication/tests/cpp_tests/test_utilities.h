@@ -20,7 +20,7 @@ namespace Kratos::Testing
 namespace Defaults
 {
 
-constexpr auto absolute_tolerance = 1.0e-6;
+constexpr auto absolute_tolerance = 1.0e-12;
 constexpr auto relative_tolerance = 1.0e-6;
 
 }
