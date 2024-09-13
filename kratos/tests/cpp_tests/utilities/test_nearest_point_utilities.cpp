@@ -403,4 +403,181 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint3, KratosCoreFastSuite)
     // WriteVTK(r_model_part_old_solution);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint4, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    auto p_node_0 = r_model_part.CreateNewNode(0, 0.0102265, 0.0166267, -0.00935511);
+
+    auto p_node_1 = r_model_part.CreateNewNode(1, 0.0155049, 0.02, -0.00814909);
+    auto p_node_2 = r_model_part.CreateNewNode(2, 0.0156193, 0.01857, -0.0129188);
+    auto p_node_3 = r_model_part.CreateNewNode(3, 0.0155632, 0.0189773, -0.015374);
+
+    auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
+
+    // Compute
+    Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double distance = norm_2(nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
+
+    // Check
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
+
+    // // Debugging
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint5, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Create the node with the new coordinates
+    auto p_node_0 = r_model_part.CreateNewNode(0, 0.00996574, 0.0165854, -0.00900074);
+
+    // Create the remaining nodes for the condition
+    auto p_node_1 = r_model_part.CreateNewNode(1, 0.0155049, 0.02, -0.00814909);
+    auto p_node_2 = r_model_part.CreateNewNode(2, 0.0156193, 0.01857, -0.0129188);
+    auto p_node_3 = r_model_part.CreateNewNode(3, 0.0155632, 0.0189773, -0.015374);
+
+    // Create the condition using the nodes
+    auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
+
+    // Compute the nearest points
+    Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double distance = norm_2(nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
+
+    // Check that the distance using the new method is less than or equal to the distance using the old method
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
+
+    // Debugging code (optional)
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint6, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Create the node with the new coordinates
+    auto p_node_0 = r_model_part.CreateNewNode(0, -0.04333, 0.0396893, -0.0953456);
+
+    // Create the remaining nodes for the condition
+    auto p_node_1 = r_model_part.CreateNewNode(1, -0.047, 0.0414553, -0.091356);
+    auto p_node_2 = r_model_part.CreateNewNode(2, -0.047, 0.0373785, -0.0898683);
+    auto p_node_3 = r_model_part.CreateNewNode(3, -0.047, 0.0436627, -0.0868952);
+
+    // Create the condition using the nodes
+    auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
+
+    // Compute the nearest points
+    Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double distance = norm_2(nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
+
+    // Check that the distance using the new method is less than or equal to the distance using the old method
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
+
+    // Debugging code (optional)
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint7, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Create the node with the new coordinates
+    auto p_node_0 = r_model_part.CreateNewNode(0, -0.0433533, 0.040495, -0.0952548);
+
+    // Create the remaining nodes for the condition
+    auto p_node_1 = r_model_part.CreateNewNode(1, -0.047, 0.0346033, -0.098);
+    auto p_node_2 = r_model_part.CreateNewNode(2, -0.044436, 0.0342762, -0.0949914);
+    auto p_node_3 = r_model_part.CreateNewNode(3, -0.047, 0.0335376, -0.0926424);
+
+    // Create the condition using the nodes
+    auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
+
+    // Compute the nearest points
+    Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double distance = norm_2(nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
+
+    // Check that the distance using the new method is less than or equal to the distance using the old method
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
+
+    // Debugging code (optional)
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint8, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+    // Create the node with the new coordinates
+    auto p_node_0 = r_model_part.CreateNewNode(0, -0.043365, 0.0408978, -0.0952094);
+
+    // Create the remaining nodes for the condition
+    auto p_node_1 = r_model_part.CreateNewNode(1, -0.047, 0.0346033, -0.098);
+    auto p_node_2 = r_model_part.CreateNewNode(2, -0.044436, 0.0342762, -0.0949914);
+    auto p_node_3 = r_model_part.CreateNewNode(3, -0.047, 0.0335376, -0.0926424);
+
+    // Create the condition using the nodes
+    auto p_cond = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, nullptr);
+
+    // Compute the nearest points
+    Point nearest_point = NearestPointUtilities::TriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double distance = norm_2(nearest_point - *p_node_0);
+    Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
+    const double old_distance = norm_2(old_nearest_point - *p_node_0);
+
+    // Check that the distance using the new method is less than or equal to the distance using the old method
+    KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
+    // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
+
+    // Debugging code (optional)
+    // WriteVTK(r_model_part);
+    // ModelPart& r_model_part_solution = current_model.CreateModelPart("Solution");
+    // r_model_part_solution.CreateNewNode(1, nearest_point[0], nearest_point[1], nearest_point[2]);
+    // WriteVTK(r_model_part_solution);
+    // ModelPart& r_model_part_old_solution = current_model.CreateModelPart("LegacySolution");
+    // r_model_part_old_solution.CreateNewNode(1, old_nearest_point[0], old_nearest_point[1], old_nearest_point[2]);
+    // WriteVTK(r_model_part_old_solution);
+}
+
 } // namespace Kratos::Testing
