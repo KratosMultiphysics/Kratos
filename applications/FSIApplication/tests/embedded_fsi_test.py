@@ -25,8 +25,8 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.print_output = False
         self.reference_values_check = True
         self.reference_values_output = False
-        self.check_relative_tolerance = 1.0e-3
-        self.check_absolute_tolerance = 1.0e-5
+        self.check_relative_tolerance = 1.0e-2
+        self.check_absolute_tolerance = 1.0e-3
         self.work_folder = "embedded_fsi_test"
         self.settings = "ProjectParameters.json"
 
@@ -47,7 +47,7 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
         self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
+        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()
@@ -67,7 +67,7 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
         self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "IBQN_MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
+        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()

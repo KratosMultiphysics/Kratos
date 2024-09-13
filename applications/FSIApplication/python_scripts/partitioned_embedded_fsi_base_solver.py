@@ -506,24 +506,3 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             return KratosStructural.SURFACE_LOAD
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
-
-        # if self._GetConvergenceAccelerator().IsBlockNewton():
-        #     if self._GetDomainSize() == 2:
-        #         return KratosStructural.LINE_LOAD
-        #     elif self._GetDomainSize() == 3:
-        #         return KratosStructural.SURFACE_LOAD
-        #     else:
-        #         raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
-        # else:
-        #     if self.level_set_type == "continuous":
-        #         return KratosMultiphysics.POSITIVE_FACE_PRESSURE
-        #     elif self.level_set_type == "discontinuous":
-        #         if self._GetDomainSize() == 2:
-        #             return KratosStructural.LINE_LOAD
-        #         elif self._GetDomainSize() == 3:
-        #             return KratosStructural.SURFACE_LOAD
-        #         else:
-        #             raise Exception(
-        #                 "Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
-        #     else:
-        #         raise Exception("Wrong level set type '{}'".format(self.level_set_type))
