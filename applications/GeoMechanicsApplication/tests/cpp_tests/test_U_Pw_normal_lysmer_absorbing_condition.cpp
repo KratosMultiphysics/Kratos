@@ -31,11 +31,6 @@ public:
     {
     }
 
-    //Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override
-    //{
-    //    return Kratos::make_intrusive<MockElement>(NewId, pGeometry, pProperties);
-    //}
-
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
@@ -98,10 +93,10 @@ ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCondition(
     auto neighbour_node_1 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     auto neighbour_node_2 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
 
-    // register mock element
-    Element::GeometryType::Pointer p_geometry = Kratos::make_shared<Kratos::Quadrilateral2D4<Element::NodeType>>(node_1, node_2, neighbour_node_1, neighbour_node_2);
-    const auto mock_element = Kratos::make_intrusive<MockElement>(
-        1, p_geometry, Element::PropertiesType::Pointer(0), p_neighbour_prop);
+    Element::GeometryType::Pointer p_geometry =
+        Kratos::make_shared<Kratos::Quadrilateral2D4<Element::NodeType>>(
+            node_1, node_2, neighbour_node_1, neighbour_node_2);
+    const auto mock_element = Kratos::make_intrusive<MockElement>(1, p_geometry, p_neighbour_prop);
     rModelPart.AddElement(mock_element);
 
     // add neighbour element to condition
@@ -126,7 +121,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition
     auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
     r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
-    // set up condition
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition2D2NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
 
@@ -185,8 +179,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition,
 
     // Perform test, calculate left hand side
     constexpr size_t condition_size         = 6;
-    Matrix rLeftHandSideMatrix    = ZeroMatrix(condition_size, condition_size);
-    Vector right_hand_side_vector = ZeroVector(condition_size);
+    Matrix           rLeftHandSideMatrix    = ZeroMatrix(condition_size, condition_size);
+    Vector           right_hand_side_vector = ZeroVector(condition_size);
 
     p_cond->CalculateLocalSystem(rLeftHandSideMatrix, right_hand_side_vector, r_process_info);
 
