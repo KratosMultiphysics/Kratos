@@ -46,6 +46,52 @@ std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double normal_
     return result;
 }
 
+LineInterfaceElement::Pointer CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(
+    Model& rModel, Properties::Pointer rProperties)
+{
+    auto& model_part = rModel.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, rProperties);
+    model_part.AddElement(element);
+
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    return element;
+}
+
+LineInterfaceElement::Pointer CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
+    Model& rModel, Properties::Pointer rProperties)
+{
+    auto& model_part = rModel.CreateModelPart("Main");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    PointerVector<Node> result;
+    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
+    result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
+    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, rProperties);
+    model_part.AddElement(element);
+
+    for (auto& node : element->GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+    }
+
+    return element;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -104,22 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     auto properties = std::make_shared<Properties>();
 
     Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> result;
-    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
-    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
-
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
     element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 0.0};
     element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{3.0, 4.0, 0.0};
@@ -132,8 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 8);
-    const std::vector<double> expected_dof_values = {1.0, 2.0, 3.0, 4.0,  5.0,  6.0,
-                                                     7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
+    const std::vector<double> expected_dof_values = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
     for (std::size_t i = 0; i < degrees_of_freedom.size(); i++) {
         KRATOS_EXPECT_DOUBLE_EQ(degrees_of_freedom[i]->GetSolutionStepValue(), expected_dof_values[i]);
     }
@@ -145,25 +175,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     auto properties = std::make_shared<Properties>();
 
     Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
-    PointerVector<Node> result;
-    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
-    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
-
-    model_part.AddElement(element);
     int i = 0;
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-
+    for (const auto& node : element->GetGeometry()) {
         ++i;
         node.pGetDof(DISPLACEMENT_X)->SetEquationId(i);
+
         ++i;
         node.pGetDof(DISPLACEMENT_Y)->SetEquationId(i);
     }
@@ -187,22 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> result;
-    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
-    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
-
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
@@ -241,22 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> result;
-    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
-    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
-
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
@@ -266,7 +254,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
-
     auto expected_left_hand_side = Matrix{8, 8};
     // clang-format off
     expected_left_hand_side <<=
@@ -286,26 +273,12 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
     auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
-    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    Model model;
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
@@ -327,26 +300,12 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
     auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
-    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    Model model;
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
@@ -373,25 +332,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
 KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry   = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
     auto properties = std::make_shared<Properties>();
     properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
-    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    Model model;
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
@@ -400,6 +345,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
     element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
 
+    // Assert
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
     for (const auto& p_law : constitutive_laws) {
         KRATOS_EXPECT_NE(p_law.get(), nullptr);
@@ -417,22 +363,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-    PointerVector<Node> result;
-    result.push_back(model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    result.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(result);
-    auto element  = make_intrusive<LineInterfaceElement>(1, geometry, properties);
-
-    model_part.AddElement(element);
-    for (auto& node : element->GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-    }
+    auto element = CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element->Initialize(dummy_process_info);
