@@ -151,17 +151,18 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
 {
-    auto get_constitutive_matrix = [&properties = GetProperties()](const auto& p_law) {
+    auto get_constitutive_matrix = [&r_properties = GetProperties()](const auto& p_constitutive_law) {
         auto result         = Matrix{};
         auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetMaterialProperties(properties);
-        p_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
+        law_parameters.SetMaterialProperties(r_properties);
+        p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
         return result;
     };
-    auto constitutive_matrices = std::vector<Matrix>{};
+    auto result = std::vector<Matrix>{};
     std::transform(mConstitutiveLaws.begin(), mConstitutiveLaws.end(),
-                   std::back_inserter(constitutive_matrices), get_constitutive_matrix);
-    return constitutive_matrices;
+                   std::back_inserter(result), get_constitutive_matrix);
+
+    return result;
 }
 
 std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
