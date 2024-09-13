@@ -36,6 +36,16 @@ PointerVector<Node> CreateNodes()
     return result;
 }
 
+std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double normal_stiffness, double shear_stiffness)
+{
+    auto result                                  = std::make_shared<Properties>();
+    result->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
+    result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
+    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -172,12 +182,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto           properties                        = std::make_shared<Properties>();
-    constexpr auto normal_stiffness                  = 20.0;
-    constexpr auto shear_stiffness                   = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
@@ -229,12 +236,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto           properties                        = std::make_shared<Properties>();
-    constexpr auto normal_stiffness                  = 20.0;
-    constexpr auto shear_stiffness                   = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
@@ -292,13 +296,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
-    auto           properties       = std::make_shared<Properties>();
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
-    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
     for (auto& node : element->GetGeometry()) {
@@ -336,13 +337,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     nodes.push_back(model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     auto           geometry         = std::make_shared<LineInterfaceGeometry<Line2D2<Node>>>(nodes);
-    auto           properties       = std::make_shared<Properties>();
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
-    auto element = make_intrusive<LineInterfaceElement>(1, geometry, properties);
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    auto element    = make_intrusive<LineInterfaceElement>(1, geometry, properties);
 
     model_part.AddElement(element);
     for (auto& node : element->GetGeometry()) {
@@ -414,12 +412,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto           properties                        = std::make_shared<Properties>();
-    constexpr auto normal_stiffness                  = 20.0;
-    constexpr auto shear_stiffness                   = 10.0;
-    properties->GetValue(INTERFACE_NORMAL_STIFFNESS) = normal_stiffness;
-    properties->GetValue(INTERFACE_SHEAR_STIFFNESS)  = shear_stiffness;
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
