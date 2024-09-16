@@ -135,7 +135,8 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     expected_constitutive_matrix <<= 20.0, 0.0,
                                      0.0, 10.0;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix,
+                                       Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError,
@@ -145,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariable
     const auto& r_some_unsupported_matrix_variable = ENGINEERING_STRAIN_TENSOR;
     auto        dummy_parameters                   = ConstitutiveLaw::Parameters{};
     auto        value                              = Matrix{};
-    
+
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.CalculateValue(dummy_parameters, r_some_unsupported_matrix_variable, value),
         "Can't calculate value of ENGINEERING_STRAIN_TENSOR: unsupported variable")
