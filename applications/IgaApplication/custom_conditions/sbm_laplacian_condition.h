@@ -8,10 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED )
-#define  KRATOS_SBM_LAPLACIAN_CONDITION_H_INCLUDED
-
-
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"

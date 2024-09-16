@@ -94,7 +94,7 @@ void LaplacianIGAElement::CalculateLocalSystem(
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     const unsigned int number_of_points = r_geometry.size();
-    const unsigned int dim = DN_De[0].size2();
+    const unsigned int dim = r_DN_De[0].size2();
     
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_points)
@@ -113,15 +113,15 @@ void LaplacianIGAElement::CalculateLocalSystem(
     const double heat_flux = this->GetValue(r_volume_source_var);
     const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
-    for(IndexType i_point = 0; i_point < integration_points.size(); ++i_point)
+    for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
     {
-        noalias(DN_DX) = DN_De[i_point] ; //prod(DN_De[i_point],InvJ0);
+        noalias(DN_DX) = r_DN_De[i_point] ; //prod(r_DN_De[i_point],InvJ0);
 
         auto N = row(N_gausspoint,i_point);
-        const double int_to_reference_weight = integration_points[i_point].Weight(); // * std::abs(DetJ0);
+        const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
-        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity * prod(DN_DX, trans(DN_DX));
-        noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux * N;
+        noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
+        noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;
     }
 
 
