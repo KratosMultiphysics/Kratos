@@ -366,13 +366,17 @@ public:
         mRomBases = ThisBases;
     }
 
-    void SetUpMultipleBasesManager(MultipleBasesManager MultipleBasesManager){
-        mMultipleBasesManager = MultipleBasesManager;
+    void SetUpMultipleBasesManager(MultipleBasesManager* MultipleBasesManagerPtr){
+        mMultipleBasesManagerPtr = MultipleBasesManagerPtr;
     }
 
     int GetCurrentCluster(){
-        return mMultipleBasesManager.GetCurrentCluster();
+        return mMultipleBasesManagerPtr->GetCurrentCluster();
     }
+
+    // int HardSetCurrentCluster(int this_index){
+    //     mMultipleBasesManagerPtr.HardSetCurrentCluster(this_index);
+    // }
 
 
     Vector ProjectToReducedBasis()
@@ -387,7 +391,7 @@ public:
             #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
-                temp_q +=  (dof->GetSolutionStepValue() - dof->GetSolutionStepValue(1)) *row(  *mRomBases.GetBasis(mMultipleBasesManager.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
+                temp_q +=  (dof->GetSolutionStepValue() - dof->GetSolutionStepValue(1)) *row(  *mRomBases.GetBasis(mMultipleBasesManagerPtr->GetCurrentCluster())->GetNodalBasis(dof->Id()),\
                                                                                         mMapPhi[dof->GetVariable().Key()]   ) ;  // Delta_q = Phi^T * Delta_u
             }
             #pragma omp critical
@@ -425,7 +429,7 @@ public:
             #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
-                Dx[dof->EquationId()] = inner_prod(  row(  *mRomBases.GetBasis(mMultipleBasesManager.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
+                Dx[dof->EquationId()] = inner_prod(  row(  *mRomBases.GetBasis(mMultipleBasesManagerPtr->GetCurrentCluster())->GetNodalBasis(dof->Id()),\
                                                      mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
@@ -443,7 +447,7 @@ public:
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                noalias(row(PhiElemental, k)) = row(*mRomBases.GetBasis(mMultipleBasesManager.GetCurrentCluster())->GetNodalBasis(dofs[k]->Id()), mMapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(*mRomBases.GetBasis(mMultipleBasesManagerPtr->GetCurrentCluster())->GetNodalBasis(dofs[k]->Id()), mMapPhi[variable_key]);
         }
     }
 
@@ -488,7 +492,7 @@ public:
         TSystemVectorType &b) override
     {
         KRATOS_TRY
-        mRomDofs = mRomDofsVector.at(mMultipleBasesManager.GetCurrentCluster());
+        mRomDofs = mRomDofsVector.at(mMultipleBasesManagerPtr->GetCurrentCluster());
         if (mFlagInitializedSmallDimensionalVector == false){
             mFlagInitializedSmallDimensionalVector = true;
             mSmallDimensionalVector = ZeroVector(mRomDofs);
@@ -747,7 +751,7 @@ protected:
     bool mHromSimulation = false;
     int mTimeStep = 0;
     RomBases mRomBases;
-    MultipleBasesManager mMultipleBasesManager;
+    MultipleBasesManager* mMultipleBasesManagerPtr;
     Vector Deltaq;
     int just_a_counter = 0;
     Vector CurrentFullDimensionalVector;

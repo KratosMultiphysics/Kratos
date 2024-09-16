@@ -56,6 +56,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() ) //
         .def("SetUpBases",&ROMBuilderAndSolverType::SetUpBases) //
         .def("SetUpMultipleBasesManager",&ROMBuilderAndSolverType::SetUpMultipleBasesManager) //
+        .def("GetCurrentCluster",&ROMBuilderAndSolverType::GetCurrentCluster) //
         ;
 
 }

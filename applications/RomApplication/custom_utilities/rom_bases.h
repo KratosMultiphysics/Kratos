@@ -82,11 +82,11 @@ namespace Kratos
         public:
             KRATOS_CLASS_POINTER_DEFINITION(MultipleBasesManager);
 
-            MultipleBasesManager(){
+            MultipleBasesManager(): current_basis_index(0){
                 std::cout<<"no args constructor called"<<std::endl<<std::endl;
             }
 
-            MultipleBasesManager(const int &this_many_clusters){
+            MultipleBasesManager(const int &this_many_clusters): current_basis_index(0) {
                 std::cout<<"args constructor called"<<std::endl<<std::endl;
                 number_of_bases = this_many_clusters;
 
@@ -100,10 +100,12 @@ namespace Kratos
                 return current_basis_index;
             }
 
+            int current_basis_index;
+
         protected:
 
 
-            int current_basis_index{0};
+            // int current_basis_index{0};
             int number_of_bases;
 
     };
