@@ -8,8 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SUPPORT_LAPLACIAN_CONDITION_H_INCLUDED )
-#define  KRATOS_SUPPORT_LAPLACIAN_CONDITION_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -251,4 +250,3 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPPORT_PENALTY_CONDITION_H_INCLUDED  defined

@@ -9,8 +9,7 @@
 //  Main authors:    Nicolò Antonelli
 //
 
-#if !defined(KRATOS_LAPLACIAN_IGA_ELEMENT_H_INCLUDED )
-#define  KRATOS_LAPLACIAN_IGA_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -54,7 +53,7 @@ public:
     /// Counted pointer of LaplacianIGAElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianIGAElement);
 
-    typedef Element BaseType;
+    using BaseType = Element;
 
     ///@}
     ///@name Life Cycle
@@ -91,8 +90,6 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
-
-
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -133,44 +130,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    // Protected default constructor necessary for serialization
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -204,7 +163,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    // std::vector<std::size_t> GetSurrogateFacesIds();
 
     ///@}
     ///@name Private  Access
@@ -215,7 +173,7 @@ private:
     ///@name Private Inquiry
     ///@{
 
-
+    ///@}
 }; // Class LaplacianIGAElement
 
 ///@}
@@ -230,5 +188,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED  defined

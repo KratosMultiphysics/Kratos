@@ -87,7 +87,8 @@ namespace Kratos
             // Assembly
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n) * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
+
             // Assembly Dirichlet BCs -(GRAD_w* n,u) 
             noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight(); // * std::abs(DetJ0) ;
 

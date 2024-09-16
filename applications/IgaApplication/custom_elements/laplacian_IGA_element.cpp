@@ -73,14 +73,14 @@ LaplacianIGAElement::~LaplacianIGAElement()
 
 
 // From classical Laplacian
-void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo)
+void LaplacianIGAElement::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
     const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
@@ -89,8 +89,8 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     // reading integration points and local gradients
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     const unsigned int number_of_points = r_geometry.size();
@@ -118,7 +118,7 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         noalias(DN_DX) = DN_De[i_point] ; //prod(DN_De[i_point],InvJ0);
 
         auto N = row(N_gausspoint,i_point);
-        const double IntToReferenceWeight = integration_points[i_point].Weight(); // * std::abs(DetJ0);
+        const double int_to_reference_weight = integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity * prod(DN_DX, trans(DN_DX));
         noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux * N;
@@ -152,21 +152,16 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-
-
-
-
 void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(rResult.size() != number_of_nodes)
+    if(rResult.size() != number_of_nodes) {
         rResult.resize(number_of_nodes);
+    }
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         rResult[i] = GetGeometry()[i].GetDof(r_unknown_var).EquationId();
@@ -177,15 +172,13 @@ void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const 
 //************************************************************************************
 void LaplacianIGAElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
-
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(ElementalDofList.size() != number_of_nodes)
+    if(ElementalDofList.size() != number_of_nodes) {
         ElementalDofList.resize(number_of_nodes);
+    }
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         ElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
@@ -203,9 +196,9 @@ int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedDiffusionVariable()) << "No Diffusion Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedVolumeSourceVariable()) << "No Volume Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
-    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_volume_source_var = r_settings.GetVolumeSourceVariable();
 
     const auto& r_geom = GetGeometry();
 

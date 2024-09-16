@@ -35,8 +35,9 @@ namespace Kratos
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMLaplacianCondition);
 
         /// Size types
-        typedef std::size_t SizeType;
-        typedef std::size_t IndexType;
+        using SizeType = std::size_t;
+        using IndexType = std::size_t;
+
 
         // sbm variables
         array_1d<double, 3> normal_parameter_space;
@@ -300,4 +301,3 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPPORT_PENALTY_CONDITION_H_INCLUDED  defined
