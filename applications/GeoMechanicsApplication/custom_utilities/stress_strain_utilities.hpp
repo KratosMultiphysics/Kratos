@@ -15,51 +15,14 @@
 
 /* Project includes */
 #include "custom_utilities/math_utilities.hpp"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
-
-    /** Operators.
-     */
-
     static double CalculateStressNorm(const Vector& StressVector)
     {
         KRATOS_TRY
@@ -74,7 +37,7 @@ public:
         }
         return std::sqrt(StressNorm);
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
     static double CalculateVonMisesStress(const Vector& StressVector)
@@ -87,7 +50,7 @@ public:
         noalias(StressTensor) = ZeroMatrix(3,3);
         for (std::size_t i=0; i < LocalStressTensor.size1(); ++i) {
             for (std::size_t j=0; j < LocalStressTensor.size2(); ++j) {
-            StressTensor(i,j) = LocalStressTensor(i,j);
+                StressTensor(i,j) = LocalStressTensor(i,j);
             }
         }
 
@@ -100,7 +63,7 @@ public:
 
         return std::sqrt(std::max(SigmaEquivalent, 0.));
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
     static double CalculateTrace(const Vector& StressVector)
@@ -116,131 +79,59 @@ public:
 
         return trace;
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
     static double CalculateMeanStress(const Vector& StressVector)
     {
         KRATOS_TRY
-
         return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
-
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
     static double CalculateVonMisesStrain(const Vector& StrainVector)
     {
         KRATOS_TRY
-
         return (2.0/3.0) * CalculateVonMisesStress(StrainVector);
-
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    static Vector CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize)
+    {
+        KRATOS_TRY
 
+        // right Cauchy Green deformation tensor C
+        Matrix C = prod(trans(DeformationGradient), DeformationGradient);
+        // Eigenvalues of C matrix, so principal right Cauchy Green deformation tensor C
+        Matrix EigenValuesMatrix, EigenVectorsMatrix;
+        MathUtils<double>::GaussSeidelEigenSystem(C, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
+        // Compute natural strain == Logarithmic strain == Hencky strain from principal strains
+        for (std::size_t i = 0; i < DeformationGradient.size1(); ++i){
+            EigenValuesMatrix(i,i) = 0.5 * std::log(EigenValuesMatrix(i,i));
+        }
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+        // Rotate from principal strains back to the used coordinate system
+        Matrix ETensor;
+        MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
+        // From tensor to vector
+        if (DeformationGradient.size1()==2 && VoigtSize == 4) {
+            // Plane strain
+            Vector StrainVector2D;
+            StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
+            Vector StrainVector(4);
+            StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
+            StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
+            StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+            StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
+            return StrainVector;
+        } else {
+            return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
+        }
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+        KRATOS_CATCH("")
+    }
 
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
-protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* Class StressStrainUtilities */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+};
 
 }

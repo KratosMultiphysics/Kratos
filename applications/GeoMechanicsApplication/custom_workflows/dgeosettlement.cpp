@@ -15,6 +15,7 @@
 
 #include "utilities/variable_utils.h"
 
+#include "custom_processes/apply_scalar_constraints_table_process.h"
 #include "custom_processes/apply_vector_constraints_table_process.hpp"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
@@ -47,7 +48,15 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
     InitializeProcessFactory();
 }
 
-void KratosGeoSettlement::InitializeProcessFactory() {
+void KratosGeoSettlement::InitializeProcessFactory()
+{
+    mProcessFactory->AddCreator("ApplyScalarConstraintsTableProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyScalarConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                                rParameters);
+                                });
+
     mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess",
                                 [this](const Parameters& rParameters)
                                 {

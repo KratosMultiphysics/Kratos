@@ -95,6 +95,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.assembling_strategy = self.rom_parameters["assembling_strategy"].GetString() if self.rom_parameters.Has("assembling_strategy") else "global"
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
+            ###ERASE
+            self.project_parameters["solver_settings"].AddBool("run_hrom", self.run_hrom)
+
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
                 self.model,
@@ -221,9 +224,20 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
                 elif self.element_selection_type=="discrete_empirical_interpolation":
                     InterpolationWeights = KratosMultiphysics.Matrix(np.load('InterpolationWeights.npy'))
-                    InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
+                    # InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
+                    DEIM_InterpolationIndices = np.load('DEIM_InterpolationIndices.npy')
                     builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
-                    builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    # builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    builder_and_solver.SetInterpolationMatrices(InterpolationWeights, DEIM_InterpolationIndices)
+                    # Set the HROM weights in elements and conditions
+                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
+                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+                    for i in range(np.size(element_indexes)):
+                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
+                    for i in range(np.size(condition_indexes)):
+                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:

@@ -1,3 +1,25 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ruben Zorrilla
+//
+
+// System includes
+
+
+// External includes
+
+
+// Project includes
+
+
+// Application includes
 #include "weakly_compressible_navier_stokes.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
@@ -220,6 +242,7 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
 {
     const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    const double sigma = rData.Resistance;
 
     const double h = rData.ElementSize;
     const array_1d<double,3>& c = rData.SoundVelocity;
@@ -241,14 +264,11 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
 
-    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
-    auto& lhs = rData.lhs;
-
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
     //substitute_lhs_2D3N
-
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -258,6 +278,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 {
     const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    const double sigma = rData.Resistance;
 
     const double h = rData.ElementSize;
     const array_1d<double,4>& c = rData.SoundVelocity;
@@ -279,14 +300,11 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
 
-    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
-    auto& lhs = rData.lhs;
-
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
     //substitute_lhs_3D4N
-
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -296,6 +314,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
 {
     const array_1d<double,3>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    const double sigma = rData.Resistance;
 
     const double h = rData.ElementSize;
     const array_1d<double,3>& c = rData.SoundVelocity;
@@ -325,13 +344,11 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
 
-    //TODO: Optimize this to directly add to the rRightHandSideVector
-    auto& rhs = rData.rhs;
-
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
     //substitute_rhs_2D3N
-
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
@@ -341,6 +358,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 {
     const array_1d<double,4>& rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    const double sigma = rData.Resistance;
 
     const double h = rData.ElementSize;
     const array_1d<double,4>& c = rData.SoundVelocity;
@@ -370,13 +388,11 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
 
-    //TODO: Optimize this to directly add to the rRightHandSideVector
-    auto& rhs = rData.rhs;
-
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
     //substitute_rhs_3D4N
-
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

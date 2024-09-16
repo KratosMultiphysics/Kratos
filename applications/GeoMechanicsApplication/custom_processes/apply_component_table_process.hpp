@@ -20,6 +20,8 @@
 
 #include "geo_mechanics_application_variables.h"
 
+#include <boost/algorithm/string.hpp>
+
 namespace Kratos
 {
 
@@ -79,13 +81,26 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const auto& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
-            rNode.FastGetSolutionStepValue(var) = mInitialValue;
-        });
+        auto variable_name_1 = mpTable->NameOfX();
+        boost::to_upper(variable_name_1);
+        if (variable_name_1 == "TIME") {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
+                rNode.FastGetSolutionStepValue(var) = mInitialValue;
+            });
+        }
+        else if (variable_name_1 == "X") {
+            block_for_each(mrModelPart.Nodes(), [&var, this](auto& node){
+                node.FastGetSolutionStepValue(var) = mpTable->GetValue(node.X());
+            });
+        }
+        else {
+            KRATOS_ERROR << "Failed to initialize ApplyComponentTableProcess: got unknown table variable '"
+                         << variable_name_1 << "'";
+        }
 
         KRATOS_CATCH("")
     }
@@ -95,16 +110,21 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        const double value = mpTable->GetValue(Time);
+        const auto& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        block_for_each(mrModelPart.Nodes(), [&var, &value](Node& rNode) {
-            rNode.FastGetSolutionStepValue(var) = value;
-        });
+        auto variable_name_1 = mpTable->NameOfX();
+        boost::to_upper(variable_name_1);
+        if (variable_name_1 == "TIME") {
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+            const double value = mpTable->GetValue(Time);
+            block_for_each(mrModelPart.Nodes(), [&var, &value](Node& rNode) {
+                rNode.FastGetSolutionStepValue(var) = value;
+            });
+        }
 
         KRATOS_CATCH("")
     }
+
     /// Turn back information as a string.
     std::string Info() const override
     {

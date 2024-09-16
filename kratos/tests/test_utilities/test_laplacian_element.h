@@ -31,7 +31,7 @@ namespace Kratos::Testing
 * @details It is designed to create a simple LHS and RHS in order to test strategies, processes. etc.... This way the common interface of the elements/conditions can be used to minimize the difference between the actual implementation and the test
 * @author Vicente Mataix Ferrandiz
 */
-class TestLaplacianElement
+class KRATOS_API(KRATOS_CORE) TestLaplacianElement
     : public Element
 {
 public:

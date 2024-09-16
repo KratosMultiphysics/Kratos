@@ -64,12 +64,12 @@ namespace Kratos {
         KRATOS_EXPECT_FALSE(r_model_part.Has(TEMPERATURE));
         KRATOS_EXPECT_DOUBLE_EQ(r_model_part.GetValue(DENSITY),1.0);
     }
-    
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartFlag, KratosCoreFastSuite)
     {
         Model model;
         ModelPart& r_model_part = model.CreateModelPart("Main");
-        
+
         r_model_part.Set(ACTIVE);
         KRATOS_EXPECT_TRUE(r_model_part.Is(ACTIVE));
         KRATOS_EXPECT_FALSE(r_model_part.Is(BOUNDARY));
@@ -183,17 +183,29 @@ namespace Kratos {
 
         // Generate submodelpart (I)
         auto& r_sub_model_1 = r_model_part.CreateSubModelPart("Sub1");
+        auto& r_sub_sub_model_1 = r_sub_model_1.CreateSubModelPart("SubSub1");
         KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 0);
 
         // Copy one
         r_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 8);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 0);
+
+        // Copy one
+        r_sub_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_1.NumberOfGeometries() == 8);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_1.NumberOfGeometries() == 8);
 
         // Generate submodelpart (II)
         auto& r_sub_model_2 = r_model_part.CreateSubModelPart("Sub2");
+        auto& r_sub_sub_model_2 = r_sub_model_2.CreateSubModelPart("SubSub2");
         KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 0);
 
         // Copy one
         const std::vector<std::size_t> indexes = {1,2,3,4};
@@ -201,6 +213,14 @@ namespace Kratos {
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 0);
+
+        // Copy one
+        r_sub_sub_model_2.AddGeometries(indexes);
+
+        // Check results
+        KRATOS_EXPECT_TRUE(r_sub_model_2.NumberOfGeometries() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_sub_model_2.NumberOfGeometries() == 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)

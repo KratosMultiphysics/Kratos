@@ -29,6 +29,7 @@
 #include "custom_conditions/U_Pw_force_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_condition.hpp"
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_discharge_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
@@ -172,6 +173,8 @@ const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N;
 const UPwNormalFaceLoadCondition<2,2> mUPwNormalFaceLoadCondition2D2N;
 const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N;
 const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N;
+const UPwDischargeCondition<2,1> mUPwDischargeCondition2D1N;
+const UPwDischargeCondition<3,1> mUPwDischargeCondition3D1N;
 const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
 const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
 const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;

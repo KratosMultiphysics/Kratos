@@ -82,6 +82,8 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
     mUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwNormalFaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwNormalFaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwDischargeCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<Node >( Condition::GeometryType::PointsArrayType(1)))),
+    mUPwDischargeCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<Node >( Condition::GeometryType::PointsArrayType(1)))),
     mUPwNormalFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node >( Condition::GeometryType::PointsArrayType(4)))),
@@ -149,6 +151,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFaceLoadCondition3D3N", mUPwNormalFaceLoadCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwDischargeCondition2D1N", mUPwDischargeCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "UPwDischargeCondition3D1N", mUPwDischargeCondition3D1N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
@@ -227,6 +231,7 @@ void KratosPoromechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE( DT_WATER_PRESSURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_FLUID_FLUX )
+    KRATOS_REGISTER_VARIABLE( DISCHARGE )
 
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )

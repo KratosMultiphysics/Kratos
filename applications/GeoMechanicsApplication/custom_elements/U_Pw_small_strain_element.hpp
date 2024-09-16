@@ -311,7 +311,6 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
-    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
     virtual void CalculateStrain( ElementVariables &rVariables, unsigned int GPoint );
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
                                                unsigned int GPoint );
