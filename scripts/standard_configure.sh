@@ -34,6 +34,12 @@ export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+add_app ${KRATOS_APP_DIR}/CoSimulationApplication
+add_app ${KRATOS_APP_DIR}/MappingApplication
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication
+add_app ${KRATOS_APP_DIR}/IgaApplication
+add_app ${KRATOS_APP_DIR}/FSIApplication
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication
 
 # Clean
 clear
