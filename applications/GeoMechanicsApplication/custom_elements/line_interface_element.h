@@ -29,7 +29,7 @@ public:
     using Element::PropertiesType;
     using BaseType = Element;
 
-    LineInterfaceElement();
+    LineInterfaceElement() = default;
 
     LineInterfaceElement(IndexType                      NewId,
                          const GeometryType::Pointer&   rGeometry,
