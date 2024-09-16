@@ -57,8 +57,7 @@ class StandardizedSciPyConstraint(ResponseRoutine):
         self.upper_bound = parameters["upper_boundary"].GetDouble()
         self.lower_bound = parameters["lower_boundary"].GetDouble()
 
-    def CalculateStandardizedValue(self, x:np.array, save_value: bool = True) -> float:
-
+    def CalculateStandardizedValue(self, x:np.array, save_data: bool = True) -> float:
         control_field = self.GetMasterControl().GetEmptyField()
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
         KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
@@ -70,11 +69,11 @@ class StandardizedSciPyConstraint(ResponseRoutine):
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
 
-            if save_value:
+            if save_data:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
 
-            DictLogger("Constraint info",self.GetInfo())
+                DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
 
