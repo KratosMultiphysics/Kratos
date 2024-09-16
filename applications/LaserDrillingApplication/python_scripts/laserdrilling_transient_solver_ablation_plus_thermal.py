@@ -70,6 +70,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def ImposeTemperatureIncreaseDueToLaser(self):
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
+        print("\nPulse number", self.pulse_number, '\n')
         for node in self.main_model_part.Nodes:
             radius = node.Y
             F = interp1d(Y, X, bounds_error=False, fill_value=0.0)

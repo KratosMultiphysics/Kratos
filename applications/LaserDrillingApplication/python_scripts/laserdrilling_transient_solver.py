@@ -32,7 +32,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         self.jump_between_pulses_counter += self.delta_time
-        if self.jump_between_pulses_counter >= self.time_jump_between_pulses:
+        error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
+        numerical_error = 1e-16
+        if self.jump_between_pulses_counter >= self.time_jump_between_pulses or error_in_delta_time < numerical_error:
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             self.RemoveElementsByAblation()
