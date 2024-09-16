@@ -62,6 +62,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Definition of supported geometries
+    static constexpr std::array<const char*, 2> SupportedGeometries = {"Triangle3D3", "Quadrilateral3D4"};
+
     /// Geometries map type definition
     using GeometriesMapType = ModelPart::GeometriesMapType;
 
@@ -90,7 +93,7 @@ public:
         Parameters ThisParameters = Parameters()
         );
 
-    /** 
+    /**
      * @brief Constructs an ObjIO object using an input/output stream.
      * @details This constructor will create an ObjIO object using a provided input/output stream.
      * @param pInputStream A shared pointer to the input/output stream to use.
@@ -175,38 +178,48 @@ private:
      * @brief Reads vertices, vertex normals, and faces from the OBJ file.
      * @details This function reads the OBJ file line by line, creating nodes and elements in the model part.
      * @param rThisModelPart Reference to the model part to read into.
+     * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
      */
-    void ReadVerticesAndFaces(ModelPart& rThisModelPart);
+    void ReadVerticesAndFaces(
+        ModelPart& rThisModelPart,
+        const bool NormalAsHistoricalVariable = false
+        );
 
     /**
      * @brief Parses a vertex line from the OBJ file.
      * @details Creates a node in the model part for the vertex.
      * @param rThisModelPart Reference to the model part.
-     * @param Line The line containing the vertex data.
+     * @param rLine The line containing the vertex data.
      */
-    void ParseVertexLine(ModelPart& rThisModelPart, const std::string& Line);
+    void ParseVertexLine(
+        ModelPart& rThisModelPart,
+        const std::string& rLine
+        );
 
     /**
      * @brief Parses a vertex normal line from the OBJ file.
      * @details Stores the vertex normal in the normals list.
-     * @param Line The line containing the vertex normal data.
+     * @param rLine The line containing the vertex normal data.
      */
-    void ParseNormalLine(const std::string& Line);
+    void ParseNormalLine(const std::string& rLine);
 
     /**
      * @brief Parses a face line from the OBJ file.
      * @details Creates an element or condition in the model part for the face.
      * @param rThisModelPart Reference to the model part.
-     * @param Line The line containing the face data.
+     * @param rLine The line containing the face data.
      */
-    void ParseFaceLine(ModelPart& rThisModelPart, const std::string& Line);
+    void ParseFaceLine(
+        ModelPart& rThisModelPart,
+        const std::string& rLine
+        );
 
     /**
      * @brief Splits a string into tokens based on whitespace.
-     * @param Line The string to split.
+     * @param rLine The string to split.
      * @return A vector of tokens.
      */
-    std::vector<std::string> Tokenize(const std::string& Line);
+    std::vector<std::string> Tokenize(const std::string& rLine);
 
     ///@}
 
