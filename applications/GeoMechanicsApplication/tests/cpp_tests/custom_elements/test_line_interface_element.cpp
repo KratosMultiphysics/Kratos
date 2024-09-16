@@ -193,12 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
-
-    element.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 0.0};
-    element.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{3.0, 4.0, 0.0};
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{5.0, 6.0, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 0.0};
+    const auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -207,9 +202,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 8);
-    const std::vector<double> expected_dof_values = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
-    for (std::size_t i = 0; i < degrees_of_freedom.size(); i++) {
-        KRATOS_EXPECT_DOUBLE_EQ(degrees_of_freedom[i]->GetSolutionStepValue(), expected_dof_values[i]);
+    for (std::size_t i = 0; i < degrees_of_freedom.size(); i += 2) {
+        KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), DISPLACEMENT_X);
+        KRATOS_EXPECT_EQ(degrees_of_freedom[i + 1]->GetVariable(), DISPLACEMENT_Y);
     }
 }
 
@@ -496,8 +491,9 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
 
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
     element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
 
     // Act
     Vector actual_right_hand_side;
@@ -536,8 +532,8 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{ZeroVector{12}};
-    expected_right_hand_side <<= 0.33333333, 1.6666667, 0, 0, -1.3333333, -6.6666667, -0.33333333,
-        -1.6666667, 0, 0, 1.3333333, 6.6666667;
+    expected_right_hand_side <<= 0.33333333, 1.66666667, 0.33333333, 1.66666667, 1.33333333,
+        6.66666667, -0.33333333, -1.66666667, -0.33333333, -1.66666667, -1.33333333, -6.66666667;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
