@@ -47,7 +47,7 @@ std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double normal_
 }
 
 LineInterfaceElement::Pointer CreateHorizontalUnitLengthLineInterfaceElementWithDisplacementDoF(
-    Model& rModel, Properties::Pointer rProperties)
+    Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& model_part = rModel.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -69,7 +69,7 @@ LineInterfaceElement::Pointer CreateHorizontalUnitLengthLineInterfaceElementWith
 }
 
 LineInterfaceElement::Pointer CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
-    Model& rModel, Properties::Pointer rProperties)
+    Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& model_part = rModel.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -93,7 +93,7 @@ LineInterfaceElement::Pointer CreateHorizontalUnitLength3Plus3NodedLineInterface
 }
 
 LineInterfaceElement::Pointer CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
-    Model& rModel, Properties::Pointer rProperties)
+    Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& model_part = rModel.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

@@ -91,10 +91,10 @@ namespace Kratos
 
 LineInterfaceElement::LineInterfaceElement() = default;
 
-LineInterfaceElement::LineInterfaceElement(IndexType                                      NewId,
-                                           Geometry<GeometricalObject::NodeType>::Pointer pGeometry,
-                                           Properties::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties),
+LineInterfaceElement::LineInterfaceElement(IndexType NewId,
+                                           const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
+                                           const Properties::Pointer& rProperties)
+    : Element(NewId, rGeometry, rProperties),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
       mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {

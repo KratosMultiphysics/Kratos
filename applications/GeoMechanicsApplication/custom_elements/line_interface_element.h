@@ -31,7 +31,9 @@ public:
 
     LineInterfaceElement();
 
-    LineInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    LineInterfaceElement(IndexType                      NewId,
+                         const GeometryType::Pointer&   rGeometry,
+                         const PropertiesType::Pointer& rProperties);
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
