@@ -57,19 +57,19 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
     return r_result;
 }
 
-intrusive_ptr<LineInterfaceElement> CreateLineInterfaceElementWithUDofs(const Properties::Pointer& rProperties,
-                                                                        const Geometry<Node>::Pointer& rGeometry)
+LineInterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+                                                         const Geometry<Node>::Pointer& rGeometry)
 {
-    auto p_result = make_intrusive<LineInterfaceElement>(1, rGeometry, rProperties);
-    for (auto& node : p_result->GetGeometry()) {
+    auto result = LineInterfaceElement{1, rGeometry, rProperties};
+    for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
     }
 
-    return p_result;
+    return result;
 }
 
-LineInterfaceElement::Pointer CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(
+LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -83,7 +83,7 @@ LineInterfaceElement::Pointer CreateHorizontalUnitLength2Plus2NodedLineInterface
     return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
-LineInterfaceElement::Pointer CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
+LineInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -99,7 +99,7 @@ LineInterfaceElement::Pointer CreateHorizontalUnitLength3Plus3NodedLineInterface
     return CreateLineInterfaceElementWithUDofs(rProperties, geometry);
 }
 
-LineInterfaceElement::Pointer CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
+LineInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -196,15 +196,15 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
-    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{3.0, 4.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{5.0, 6.0, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 0.0};
+    element.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 0.0};
+    element.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{3.0, 4.0, 0.0};
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{5.0, 6.0, 0.0};
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 0.0};
 
     // Act
     const auto dummy_process_info = ProcessInfo{};
     Element::DofsVectorType degrees_of_freedom;
-    element->GetDofList(degrees_of_freedom, dummy_process_info);
+    element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 8);
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
     int i = 0;
-    for (const auto& node : element->GetGeometry()) {
+    for (const auto& node : element.GetGeometry()) {
         ++i;
         node.pGetDof(DISPLACEMENT_X)->SetEquationId(i);
 
@@ -234,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     // Act
     const auto dummy_process_info = ProcessInfo{};
     Element::EquationIdVectorType equation_id_vector;
-    element->EquationIdVector(equation_id_vector, dummy_process_info);
+    element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
     const std::vector<int> expected_ids = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -253,11 +253,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Act
     Matrix left_hand_side;
-    element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side = CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(
@@ -277,11 +277,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Act
     Matrix left_hand_side;
-    element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(left_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side = Matrix{8, 8};
@@ -311,14 +311,14 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
 
     // Act
     Vector actual_right_hand_side;
-    element->CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
 
     // Assert
     auto expected_right_hand_side = Vector{8};
@@ -338,17 +338,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
 
     // Act
     Vector actual_right_hand_side;
-    element->CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
 
     // Assert
     auto expected_right_hand_side = Vector{8};
@@ -369,11 +369,11 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
-    element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
 
     // Assert
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
@@ -396,15 +396,15 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
 
     // Act
     Vector actual_right_hand_side;
     Matrix left_hand_side;
-    element->CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side = CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(
@@ -428,17 +428,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
 
     // Act
     std::vector<Vector> strains_on_integration_points;
-    element->CalculateOnIntegrationPoints(STRAIN, strains_on_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(STRAIN, strains_on_integration_points, dummy_process_info);
 
     // Assert
     Vector expected_relative_displacement{2};
@@ -461,17 +461,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
     // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
 
     // Act
     std::vector<Vector> stresses_on_integration_points;
-    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points, dummy_process_info);
 
     // Assert
     Vector expected_traction{2};
@@ -494,15 +494,15 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, properties);
 
     const auto dummy_process_info = ProcessInfo{};
-    element->Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
 
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
 
     // Act
     Vector actual_right_hand_side;
     Matrix left_hand_side;
-    element->CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side    = Matrix{ZeroMatrix{12, 12}};
