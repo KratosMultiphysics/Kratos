@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition
     const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Perfrom test, calculate left hand side
-    unsigned int conditionSize       = 6;
+    constexpr size_t conditionSize       = 6;
     Matrix       rLeftHandSideMatrix = ZeroMatrix(conditionSize, conditionSize);
 
     p_cond->CalculateLeftHandSide(rLeftHandSideMatrix, r_process_info);
@@ -143,11 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition
     expected_matrix(3, 3) = expected_matrix(1, 1);
 
     // compare results
-    for (unsigned int i = 0; i < conditionSize; ++i) {
-        for (unsigned int j = 0; j < conditionSize; ++j) {
-            KRATOS_EXPECT_NEAR(rLeftHandSideMatrix(i, j), expected_matrix(i, j), 1.0e-6);
-        }
-    }
+    KRATOS_EXPECT_MATRIX_NEAR(rLeftHandSideMatrix, expected_matrix, 1.0e-6);
 }
 
 /// <summary>
