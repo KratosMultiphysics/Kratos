@@ -74,7 +74,7 @@ class StandardizedSciPyConstraint(ResponseRoutine):
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
 
-            DictLogger("Objective info",self.GetInfo())
+            DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
 

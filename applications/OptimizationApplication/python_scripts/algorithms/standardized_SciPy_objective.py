@@ -77,13 +77,14 @@ class StandardizedSciPyObjective(ResponseRoutine):
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
 
-            if not self.__unbuffered_data.HasValue("initial_value"):
-                self.__unbuffered_data["initial_value"] = response_value
+            if save_data:
+                if not self.__unbuffered_data.HasValue("initial_value"):
+                    self.__unbuffered_data["initial_value"] = response_value
 
-            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-            self.__buffered_data["value"] = response_value
+                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                self.__buffered_data["value"] = response_value
 
-            DictLogger("Constraint info",self.GetInfo())
+                DictLogger("Objective info",self.GetInfo())
 
         if save_data:
             for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
