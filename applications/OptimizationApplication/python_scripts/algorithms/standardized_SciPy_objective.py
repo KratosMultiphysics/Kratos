@@ -67,7 +67,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, x:np.array, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, x:np.array, save_data: bool = True) -> float:
+
         control_field = self.GetMasterControl().GetEmptyField()
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
         KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
@@ -79,11 +80,16 @@ class StandardizedSciPyObjective(ResponseRoutine):
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
 
-            if save_value:
-                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-                self.__buffered_data["value"] = response_value
+            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+            self.__buffered_data["value"] = response_value
 
-            DictLogger("Objective info",self.GetInfo())
+            DictLogger("Constraint info",self.GetInfo())
+
+        if save_data:
+            for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
+                if process.IsOutputStep():
+                    process.PrintOutput()
+            self.__optimization_problem.AdvanceStep()
 
         return standardized_response_value
 
@@ -94,6 +100,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
         return self.GetValue(step_index) * self.__scaling
 
     def CalculateStandardizedGradient(self, x:np.array, save_field: bool = True) -> np.array:
+
+        self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()

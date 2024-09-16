@@ -14,6 +14,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 import scipy.optimize
+from scipy.optimize import NonlinearConstraint
 
 
 
@@ -59,9 +60,12 @@ class SciPyAlgorithms(Algorithm):
         self.__objective = StandardizedSciPyObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self._optimization_problem.AddComponent(self.__objective)
         self.__constraints = []
+        self.__numpy_constraints = []
         for constraint_settings in parameters["constraints"]:
             constraint = StandardizedSciPyConstraint(constraint_settings, self.master_control, self._optimization_problem)
             self._optimization_problem.AddComponent(constraint)
+            non_linear_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
+            self.__numpy_constraints.append(non_linear_constraint)
             self.__constraints.append(constraint)
 
         # scipy settings
@@ -95,9 +99,13 @@ class SciPyAlgorithms(Algorithm):
 
     @time_decorator()
     def Solve(self):
-        res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions())
-        CallOnAll(self._optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
-
+        if not self.__constraints:
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions())
+        elif self.__constraints:
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__numpy_constraints, options=self.__GetOptions())
+        print("res::success: ", res.success)
+        print("res::status: ", res.status)
+        print("res::message: ", res.message)
 
     def __GetOptions(self):
         Kratos.Parameters
