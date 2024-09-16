@@ -173,10 +173,12 @@ private:
      * @brief Reads vertices, vertex normals, and faces from the OBJ file.
      * @details This function reads the OBJ file line by line, creating nodes and elements in the model part.
      * @param rThisModelPart Reference to the model part to read into.
+     * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
      * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
      */
     void ReadVerticesAndFaces(
         ModelPart& rThisModelPart,
+        const std::string& rEntityType = "element",
         const bool NormalAsHistoricalVariable = false
         );
 
@@ -209,10 +211,12 @@ private:
      * @details Creates an element or condition in the model part for the face.
      * @param rThisModelPart Reference to the model part.
      * @param rLine The line containing the face data.
+     * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
      */
     void ParseFaceLine(
         ModelPart& rThisModelPart,
-        const std::string& rLine
+        const std::string& rLine,
+        const std::string& rEntityType = "element"
         );
 
     /**

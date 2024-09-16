@@ -85,7 +85,7 @@ Parameters ObjIO::GetDefaultParameters()
 {
     return Parameters(R"({
         "open_mode"            : "read",
-        "new_entity_type"      : "element",
+        "entity_type"          : "element",
         "normal_as_historical" : false
     })" );
 }
@@ -118,7 +118,8 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
 
     // Read vertices, normals, and faces
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
-    ReadVerticesAndFaces(rThisModelPart, normal_as_historical);
+    const std::string entity_type = mParameters["entity_type"].GetString();
+    ReadVerticesAndFaces(rThisModelPart, entity_type, normal_as_historical);
 }
 
 /***********************************************************************************/
@@ -128,7 +129,58 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     // To know if we are retrieving normals as historical variables
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
-    KRATOS_ERROR << "WriteModelPart is not implemented for ObjIO." << std::endl;
+
+    // Write vertices
+    *mpInputStream << "# Vertices" << std::endl;
+    for (const auto& r_node : rThisModelPart.Nodes()) {
+        *mpInputStream << "v " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << std::endl;
+    }
+
+    // Write faces
+    // NOTE: We will assume that the nodes are ordered and start at 1
+    *mpInputStream << "# Faces" << std::endl;
+    const std::string entity_type = mParameters["entity_type"].GetString();
+    if (entity_type == "geometry") {
+        for (const auto& r_geometry : rThisModelPart.Geometries()) {
+            *mpInputStream << "f";
+            for (const auto& r_node : r_geometry) {
+                *mpInputStream << " " << r_node.Id();
+            }
+            *mpInputStream << "\n";
+        }
+    } else if (entity_type == "element") {
+        for (const auto& r_element : rThisModelPart.Elements()) {
+            *mpInputStream << "f";
+            for (const auto& r_node : r_element.GetGeometry()) {
+                *mpInputStream << " " << r_node.Id();
+            }
+            *mpInputStream << "\n";
+        }
+    } else if (entity_type == "condition") {
+        for (const auto& r_condition : rThisModelPart.Conditions()) {
+            *mpInputStream << "f";
+            for (const auto& r_node : r_condition.GetGeometry()) {
+                *mpInputStream << " " << r_node.Id();
+            }
+            *mpInputStream << "\n";
+        }
+    } else  {
+        KRATOS_ERROR << "Invalid entity type " << entity_type << std::endl;
+    }
+
+    // Write normals
+    *mpInputStream << "# Normals" << std::endl;
+    if (normal_as_historical) {
+        for (const auto& r_node : rThisModelPart.Nodes()) {
+            const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+            *mpInputStream << "vn " << r_normal[0] << " " << r_normal[1] << " " << r_normal[2] << std::endl;
+        }
+    } else {
+        for (const auto& r_node : rThisModelPart.Nodes()) {
+            const array_1d<double, 3>& r_normal = r_node.GetValue(NORMAL);
+            *mpInputStream << "vn " << r_normal[0] << " " << r_normal[1] << " " << r_normal[2] << std::endl;
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -136,6 +188,7 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
 
 void ObjIO::ReadVerticesAndFaces(
     ModelPart& rThisModelPart,
+    const std::string& rEntityType,
     const bool NormalAsHistoricalVariable
     )
 {
@@ -155,7 +208,7 @@ void ObjIO::ReadVerticesAndFaces(
         } else if (line.substr(0, 3) == "vn ") {
             ParseNormalLine(rThisModelPart, line, NormalAsHistoricalVariable);
         } else if (line.substr(0, 2) == "f ") {
-            ParseFaceLine(rThisModelPart, line);
+            ParseFaceLine(rThisModelPart, line, rEntityType);
         }
         // Other types can be handled if needed
     }
@@ -218,7 +271,8 @@ void ObjIO::ParseNormalLine(
 
 void ObjIO::ParseFaceLine(
     ModelPart& rThisModelPart,
-    const std::string& rLine
+    const std::string& rLine,
+    const std::string& rEntityType
     )
 {
     // The line is expected to be: f v1 v2 v3 ...
@@ -241,16 +295,15 @@ void ObjIO::ParseFaceLine(
     }
 
     // Create element or condition or geometry
-    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
-    if (new_entity_type == "geometry") {
+    if (rEntityType == "geometry") {
         KRATOS_ERROR_IF(number_of_tokens > 5) << "Only support for triangles and quads in geometry creation. Number of nodes: " << number_of_tokens - 1 << std::endl;
         rThisModelPart.CreateNewGeometry(SupportedGeometries[number_of_tokens - 4], nodes_ids);
-    } else if (new_entity_type == "element") {
+    } else if (rEntityType == "element") {
         rThisModelPart.CreateNewElement("Element3D" + std::to_string(number_of_tokens - 1) + "N", mNextElementId++, nodes_ids, rThisModelPart.pGetProperties(0));
-    } else if (new_entity_type == "condition") {
+    } else if (rEntityType == "condition") {
         rThisModelPart.CreateNewCondition("SurfaceCondition3D" + std::to_string(number_of_tokens - 1) + "N", mNextConditionId++, nodes_ids, rThisModelPart.pGetProperties(0));
     } else  {
-        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
+        KRATOS_ERROR << "Invalid new entity type " << rEntityType << std::endl;
     }
 }
 
