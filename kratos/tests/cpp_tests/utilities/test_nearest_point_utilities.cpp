@@ -47,37 +47,6 @@ namespace Kratos::Testing {
 // }
 
 /**
- * @brief Finds the nearest point to the given point on a line segment. 
- * @details It first projects the point into the line. If the projected point is inside the segment boundary 
- * it returns the projected point. If not it returns the nearest end point of the line.
- * @tparam Type of the Point 
- * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
- * @param rPoint The query point which we want to get nearest point to it on the line
- * @param rLine The line in which we want to find the nearest point to rPoint
- * @return The nearest point to rPoint
- */
-template<class TPointType, class TGeometryType>
-static Point LegacyLineNearestPoint(
-    const TPointType& rPoint, 
-    const TGeometryType& rLine
-    )
-{
-    KRATOS_DEBUG_ERROR_IF_NOT(rLine.size() == 2) << "This function only accepts Line2D2 as input" << std::endl;
-    Point result;
-    const Point line_projected_point = GeometricalProjectionUtilities::FastProjectOnLine(rLine, rPoint, result);
-    array_1d<double,3> projected_local;
-    if(rLine.IsInside(result.Coordinates(), projected_local))
-        return result;
-
-    const double distance1 = norm_2(rLine[0] - result);
-    const double distance2 = norm_2(rLine[1] - result);
-
-    result = (distance1 < distance2) ? rLine[0] : rLine[1];
-    return result;
-}
-
-
-/**
  * @brief Finds the nearest point to the given point on a triangle. 
  * @details It first projects the point into the triangle surface. If the projected point is inside the triangle 
  * it returns the projected point. If not it returns the nearest point on the edges of the triangle.
@@ -87,17 +56,17 @@ static Point LegacyLineNearestPoint(
  *              \  6  /
  *               \   /
  *                \ /
- *                 /\ 
- *                /  \ 
+ *                 /\
+ *                /  \
  *          2    /    \     3
- *              /   1  \ 
- *             /        \ 
- *    _______ /__________\_____________ 
- *           /            \ 
+ *              /   1  \
+ *             /        \
+ *    _______ /__________\_____________
+ *           /            \
  *     5    /       4      \    7
- *         /                \ 
- *        /                  \ 
- * @tparam Type of the Point 
+ *         /                \
+ *        /                  \
+ * @tparam Type of the Point
  * @tparam TGeometryType The type of the triangle. Assumes to have [] access and IsInside method
  * @param rPoint The query point which we want to get nearest point to it on the line
  * @param rTriangle The triangle in which we want to find the nearest point to rPoint
@@ -125,16 +94,16 @@ static Point LegacyTriangleNearestPoint(
         } else if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 6
             result = rTriangle[2];
         } else {
-            result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
+            result = NearestPointUtilities::LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
         }
     } else if(old_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
         if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 7
             result = rTriangle[1];
         } else { // case 4
-            result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
+            result = NearestPointUtilities::LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
         }
     } else if ((old_coordinates[0] + old_coordinates[1]) > (1.0+Tolerance)) { // case 3
-        result = LegacyLineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
+        result = NearestPointUtilities::LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
     } else {  // inside
         result = point_projected;
     }
@@ -324,6 +293,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint1, KratosCoreFastSuite)
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
     // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -357,6 +328,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint2, KratosCoreFastSuite)
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
     // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -390,6 +363,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint3, KratosCoreFastSuite)
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
     // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -423,6 +398,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint4, KratosCoreFastSuite)
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
     // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -458,7 +435,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint5, KratosCoreFastSuite)
     Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
-    // Check that the distance using the new method is less than or equal to the distance using the old method
+    // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -494,7 +473,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint6, KratosCoreFastSuite)
     Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
-    // Check that the distance using the new method is less than or equal to the distance using the old method
+    // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -530,7 +511,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint7, KratosCoreFastSuite)
     Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
-    // Check that the distance using the new method is less than or equal to the distance using the old method
+    // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
@@ -566,7 +549,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleCornerCasesNearestPoint8, KratosCoreFastSuite)
     Point old_nearest_point = LegacyTriangleNearestPoint(*p_node_0, p_cond->GetGeometry());
     const double old_distance = norm_2(old_nearest_point - *p_node_0);
 
-    // Check that the distance using the new method is less than or equal to the distance using the old method
+    // Check
+    Point aux_coordinates;
+    KRATOS_CHECK(p_cond->GetGeometry().IsInside(nearest_point, aux_coordinates.Coordinates(), 1.0e-8));
     KRATOS_CHECK_LESS_EQUAL(distance, old_distance);
     // KRATOS_EXPECT_VECTOR_NEAR(nearest_point, old_nearest_point, 1e-6);
 
