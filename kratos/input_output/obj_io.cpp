@@ -104,6 +104,7 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
     mNextNodeId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Nodes(),
         [](NodeType& rNode) { return rNode.Id();}) + 1;
+    mFirstNodeId = mNextNodeId;
 
     mNextElementId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Elements(),
@@ -115,21 +116,9 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
 
     // TODO: Read header to be able to deduce number of vertices and faces
 
-    // Clear the node index map and normals list
-    mNodeIndexMap.clear();
-    mNormalsList.clear();
-
-    // We don't know how many vertices and normals there are, but we can reserve some space
-    mNodeIndexMap.reserve(1000);
-    mNormalsList.reserve(1000);
-
     // Read vertices, normals, and faces
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
     ReadVerticesAndFaces(rThisModelPart, normal_as_historical);
-
-    // Clear again the node index map and normals list to save memory
-    mNodeIndexMap.clear();
-    mNormalsList.clear();
 }
 
 /***********************************************************************************/
@@ -137,6 +126,8 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
 
 void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
+    // To know if we are retrieving normals as historical variables
+    const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
     KRATOS_ERROR << "WriteModelPart is not implemented for ObjIO." << std::endl;
 }
 
@@ -162,7 +153,7 @@ void ObjIO::ReadVerticesAndFaces(
         if (line.substr(0, 2) == "v ") {
             ParseVertexLine(rThisModelPart, line);
         } else if (line.substr(0, 3) == "vn ") {
-            ParseNormalLine(line);
+            ParseNormalLine(rThisModelPart, line, NormalAsHistoricalVariable);
         } else if (line.substr(0, 2) == "f ") {
             ParseFaceLine(rThisModelPart, line);
         }
@@ -174,12 +165,12 @@ void ObjIO::ReadVerticesAndFaces(
 /***********************************************************************************/
 
 void ObjIO::ParseVertexLine(
-    ModelPart& rThisModelPart, 
+    ModelPart& rThisModelPart,
     const std::string& rLine
     )
 {
     // The line is expected to be: v x y z [w]
-    std::vector<std::string> tokens = Tokenize(rLine);
+    const std::vector<std::string> tokens = Tokenize(rLine);
 
     KRATOS_ERROR_IF(tokens.size() < 4) << "Invalid vertex line: " << rLine << std::endl;
 
@@ -188,29 +179,38 @@ void ObjIO::ParseVertexLine(
     const double z = std::stod(tokens[3]);
 
     // Create new node
-    NodeType::Pointer p_node = rThisModelPart.CreateNewNode(mNextNodeId++, x, y, z);
-
-    // Store the node ID in the index map
-    mNodeIndexMap.push_back(p_node->Id());
+    rThisModelPart.CreateNewNode(mNextNodeId++, x, y, z);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ObjIO::ParseNormalLine(const std::string& rLine)
+void ObjIO::ParseNormalLine(
+    ModelPart& rThisModelPart,
+    const std::string& rLine,
+    const bool NormalAsHistoricalVariable
+    )
 {
     // The line is expected to be: vn x y z
-    std::vector<std::string> tokens = Tokenize(rLine);
+    const std::vector<std::string> tokens = Tokenize(rLine);
 
     KRATOS_ERROR_IF(tokens.size() < 4) << "Invalid vertex normal line: " << rLine << std::endl;
 
+    // Parse the normal
     array_1d<double, 3> normal;
     normal[0] = std::stod(tokens[1]);
     normal[1] = std::stod(tokens[2]);
     normal[2] = std::stod(tokens[3]);
 
-    // Store the normal in the normals list
-    mNormalsList.push_back(normal);
+    // Set the normal
+    const IndexType node_id = mNormalCounter + mFirstNodeId + 1;
+    auto p_node = rThisModelPart.pGetNode(node_id); // TODO: Think about using iterators instead
+    if (NormalAsHistoricalVariable) {
+       noalias(p_node->FastGetSolutionStepValue(NORMAL)) = normal;
+    } else {
+        p_node->SetValue(NORMAL, normal);
+    }
+    mNormalCounter++;
 }
 
 /***********************************************************************************/
@@ -222,69 +222,33 @@ void ObjIO::ParseFaceLine(
     )
 {
     // The line is expected to be: f v1 v2 v3 ...
-    std::vector<std::string> tokens = Tokenize(rLine);
+    const std::vector<std::string> tokens = Tokenize(rLine);
 
+    // Create a list of nodes for the face
     const std::size_t number_of_tokens = tokens.size();
     KRATOS_ERROR_IF(number_of_tokens < 4) << "Invalid face line: " << rLine << std::endl;
 
-    NodesArrayType temp_geom_nodes;
+    // Create a list of nodes for the face
+    std::vector<IndexType> nodes_ids;
+    nodes_ids.reserve(number_of_tokens - 1);
 
     // For each vertex index in the face
     for (std::size_t i = 1; i < number_of_tokens; ++i) {
         std::string vertex_token = tokens[i];
-        // OBJ indices can be of the form v, v/vt, v//vn, v/vt/vn
-        // We need to extract the vertex index and the normal index
-        std::string::size_type first_slash = vertex_token.find('/');
-        std::string::size_type second_slash = vertex_token.find('/', first_slash + 1);
-
-        std::string vertex_index_str;
-        std::string normal_index_str;
-
-        if (first_slash == std::string::npos) {
-            // Format: v
-            vertex_index_str = vertex_token;
-        } else if (second_slash == first_slash + 1) {
-            // Format: v//vn
-            vertex_index_str = vertex_token.substr(0, first_slash);
-            normal_index_str = vertex_token.substr(second_slash + 1);
-        } else {
-            // Format: v/vt or v/vt/vn
-            vertex_index_str = vertex_token.substr(0, first_slash);
-            if (second_slash != std::string::npos) {
-                // v/vt/vn
-                normal_index_str = vertex_token.substr(second_slash + 1);
-            }
-        }
-
-        // OBJ indices start at 1, adjust to zero-based index
-        const int vertex_index = std::stoi(vertex_index_str) - 1;
-        KRATOS_ERROR_IF(vertex_index < 0 || static_cast<std::size_t>(vertex_index) >= mNodeIndexMap.size()) << "Invalid vertex index in face line: " << rLine << std::endl;
-
-        IndexType node_id = mNodeIndexMap[vertex_index];
-        NodeType::Pointer p_node = rThisModelPart.pGetNode(node_id);
-
-        // Assign normal if available
-        if (!normal_index_str.empty()) {
-            int normal_index = std::stoi(normal_index_str) - 1;
-            KRATOS_ERROR_IF(normal_index < 0 || static_cast<std::size_t>(normal_index) >= mNormalsList.size()) << "Invalid normal index in face line: " << rLine << std::endl;
-
-            p_node->SetValue(NORMAL, mNormalsList[normal_index]);
-
-            // TODO: Add option to add as historical variable
-        }
-
-        temp_geom_nodes.push_back(p_node);
+        // Obj index starts at 1, so we need to subtract 1
+        const int vertex_index = std::stoi(vertex_token) + mFirstNodeId - 1;
+        nodes_ids.push_back(vertex_index);
     }
 
     // Create element or condition or geometry
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
     if (new_entity_type == "geometry") {
         KRATOS_ERROR_IF(number_of_tokens > 5) << "Only support for triangles and quads in geometry creation. Number of nodes: " << number_of_tokens - 1 << std::endl;
-        rThisModelPart.CreateNewGeometry(SupportedGeometries[number_of_tokens - 4], temp_geom_nodes);
+        rThisModelPart.CreateNewGeometry(SupportedGeometries[number_of_tokens - 4], nodes_ids);
     } else if (new_entity_type == "element") {
-        rThisModelPart.CreateNewElement("Element3D" + std::to_string(number_of_tokens - 1) + "N", mNextElementId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
+        rThisModelPart.CreateNewElement("Element3D" + std::to_string(number_of_tokens - 1) + "N", mNextElementId++, nodes_ids, rThisModelPart.pGetProperties(0));
     } else if (new_entity_type == "condition") {
-        rThisModelPart.CreateNewCondition("SurfaceCondition3D" + std::to_string(number_of_tokens - 1) + "N", mNextConditionId++, temp_geom_nodes, rThisModelPart.pGetProperties(0));
+        rThisModelPart.CreateNewCondition("SurfaceCondition3D" + std::to_string(number_of_tokens - 1) + "N", mNextConditionId++, nodes_ids, rThisModelPart.pGetProperties(0));
     } else  {
         KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
     }

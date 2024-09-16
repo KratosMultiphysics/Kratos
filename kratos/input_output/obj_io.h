@@ -47,12 +47,11 @@ namespace Kratos
     vn 0.707 0.000 0.707
     vn 0.000 1.000 0.000
     vn -0.707 0.000 0.707
-    f 1//1 2//2 3//3
-    f 1//1 3//3 2//2
+    f 1 2 3
  * The vertices are defined by the "v" keyword followed by the x, y, and z coordinates.
  * The vertex normals are defined by the "vn" keyword followed by the x, y, and z coordinates.
  * The faces are defined by the "f" keyword followed by the vertex index, vertex normal index, and texture index.
- * The vertex normal index is optional and can be omitted. (e.g., "f 1 2 3")
+ * The vertex normal index is optional and can be omitted. (e.g., "f 1 2 3"). We will assume that the vertex normal index is omitted.
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) ObjIO
@@ -152,9 +151,11 @@ protected:
 
     Parameters mParameters;         /// The configuration parameters
 
+    IndexType mFirstNodeId = 0;     /// The first node ID
     IndexType mNextNodeId = 0;      /// The next node ID
     IndexType mNextElementId = 0;   /// The next element ID
     IndexType mNextConditionId = 0; /// The next condition ID
+    IndexType mNormalCounter = 0;   /// The normal counter
 
     ///@}
 private:
@@ -163,12 +164,6 @@ private:
 
     Kratos::shared_ptr<std::iostream> mpInputStream; /// The input stream
     Flags mOptions; /// The flags of the IO
-
-    /// Map from OBJ indices to Kratos node IDs
-    std::vector<IndexType> mNodeIndexMap;
-
-    /// List of vertex normals
-    std::vector<array_1d<double, 3>> mNormalsList;
 
     ///@}
     ///@name Private Operations
@@ -199,9 +194,15 @@ private:
     /**
      * @brief Parses a vertex normal line from the OBJ file.
      * @details Stores the vertex normal in the normals list.
+     * @param rThisModelPart Reference to the model part.
      * @param rLine The line containing the vertex normal data.
+     * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
      */
-    void ParseNormalLine(const std::string& rLine);
+    void ParseNormalLine(
+        ModelPart& rThisModelPart,
+        const std::string& rLine,
+        const bool NormalAsHistoricalVariable = false
+        );
 
     /**
      * @brief Parses a face line from the OBJ file.
