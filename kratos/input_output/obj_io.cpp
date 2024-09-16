@@ -114,8 +114,6 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
         rThisModelPart.GetRootModelPart().Conditions(),
         [](Condition& rCondition) { return rCondition.Id();}) + 1;
 
-    // TODO: Read header to be able to deduce number of vertices and faces
-
     // Read vertices, normals, and faces
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
     const std::string entity_type = mParameters["entity_type"].GetString();
@@ -199,8 +197,27 @@ void ObjIO::ReadVerticesAndFaces(
         line.erase(line.find_last_not_of(" \t\r\n") + 1);
 
         // Ignore empty lines and comments
-        if (line.empty() || line[0] == '#')
+        // But we check if: #    Number of vertices: XXXXX
+        //                  #    Number of faces: YYYYYY
+        //  are defined in the header
+        if (line.empty()) {
             continue;
+        } else if (line[0] == '#') {
+            if (line.find("Number of vertices") != std::string::npos) {
+                const std::size_t num_vertices = std::stoul(line.substr(line.find(":") + 1));
+                rThisModelPart.Nodes().reserve(rThisModelPart.NumberOfNodes() + num_vertices);
+            } else if (line.find("Number of faces") != std::string::npos) {
+                const std::size_t num_faces = std::stoul(line.substr(line.find(":") + 1));
+                if (rEntityType == "geometry") {
+                    rThisModelPart.Geometries().reserve(rThisModelPart.NumberOfGeometries() + num_faces);
+                } else if (rEntityType == "element") {
+                    rThisModelPart.Elements().reserve(rThisModelPart.NumberOfElements() + num_faces);
+                } else if (rEntityType == "condition") {
+                    rThisModelPart.Conditions().reserve(rThisModelPart.NumberOfConditions() + num_faces);
+                }
+            }
+            continue;
+        }
 
         // Check line type
         if (line.substr(0, 2) == "v ") {
