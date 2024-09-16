@@ -763,7 +763,7 @@ protected:
     /**
      * Projects the reduced system of equations
      */
-    virtual void ProjectROM(
+    virtual void NewProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
         TSystemVectorType &rb)
@@ -828,7 +828,7 @@ protected:
     /**
      * Projects the reduced system of equations
      */
-    virtual void OldProjectROM(
+    virtual void ProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
         TSystemVectorType &rb)
