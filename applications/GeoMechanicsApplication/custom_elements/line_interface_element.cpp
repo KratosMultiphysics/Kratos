@@ -137,14 +137,14 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
     if (rVariable == STRAIN) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    }
-    if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
         rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements);
+    } else {
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
-
-    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
