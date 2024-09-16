@@ -20,7 +20,6 @@
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cstddef>
 
-
 namespace
 {
 
@@ -69,8 +68,8 @@ LineInterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Point
     return result;
 }
 
-LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(
-    Model& rModel, const Properties::Pointer& rProperties)
+LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -79,7 +78,7 @@ LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWi
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
@@ -95,8 +94,8 @@ LineInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWi
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0));
-    auto geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
-    return CreateLineInterfaceElementWithUDofs(rProperties, geometry);
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
+    return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 LineInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
@@ -109,7 +108,7 @@ LineInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithD
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
@@ -145,56 +144,56 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementIsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    LineInterfaceElement element;
-    auto                 casted_element = dynamic_cast<Element*>(&element);
-    KRATOS_CHECK_NOT_EQUAL(casted_element, nullptr);
+    const LineInterfaceElement element;
+    auto                       p_casted_element = dynamic_cast<const Element*>(&element);
+    KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const LineInterfaceElement element;
-    const auto geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
-    auto       properties = std::make_shared<Properties>();
+    const auto p_geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
+    const auto p_properties = std::make_shared<Properties>();
 
     // Act
-    auto created_element = element.Create(1, geometry, properties);
+    const auto p_created_element = element.Create(1, p_geometry, p_properties);
 
     // Assert
-    EXPECT_NE(created_element, nullptr);
-    EXPECT_EQ(created_element->Id(), 1);
-    EXPECT_NE(created_element->pGetGeometry(), nullptr);
-    EXPECT_NE(created_element->pGetProperties(), nullptr);
+    EXPECT_NE(p_created_element, nullptr);
+    EXPECT_EQ(p_created_element->Id(), 1);
+    EXPECT_NE(p_created_element->pGetGeometry(), nullptr);
+    EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto nodes      = CreateNodes();
-    auto properties = std::make_shared<Properties>();
+    const auto nodes        = CreateNodes();
+    const auto p_properties = std::make_shared<Properties>();
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const LineInterfaceElement element(0, geometry, properties);
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    const LineInterfaceElement element(0, p_geometry, p_properties);
 
     // Act
-    auto created_element = element.Create(1, nodes, properties);
+    const auto p_created_element = element.Create(1, nodes, p_properties);
 
     // Assert
-    EXPECT_NE(created_element, nullptr);
-    EXPECT_EQ(created_element->Id(), 1);
-    EXPECT_NE(created_element->pGetGeometry(), nullptr);
-    EXPECT_NE(created_element->pGetProperties(), nullptr);
+    EXPECT_NE(p_created_element, nullptr);
+    EXPECT_EQ(p_created_element->Id(), 1);
+    EXPECT_NE(p_created_element->pGetGeometry(), nullptr);
+    EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = std::make_shared<Properties>();
+    const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     element.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{1.0, 2.0, 0.0};
     element.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{3.0, 4.0, 0.0};
@@ -202,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{7.0, 8.0, 0.0};
 
     // Act
-    const auto dummy_process_info = ProcessInfo{};
+    const auto              dummy_process_info = ProcessInfo{};
     Element::DofsVectorType degrees_of_freedom;
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
@@ -217,13 +216,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = std::make_shared<Properties>();
+    const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     int i = 0;
-    for (const auto& node : element.GetGeometry()) {
+    for (auto& node : element.GetGeometry()) {
         ++i;
         node.pGetDof(DISPLACEMENT_X)->SetEquationId(i);
 
@@ -232,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     }
 
     // Act
-    const auto dummy_process_info = ProcessInfo{};
+    const auto                    dummy_process_info = ProcessInfo{};
     Element::EquationIdVectorType equation_id_vector;
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
@@ -247,22 +246,22 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
 
     // Act
-    Matrix left_hand_side;
-    element.CalculateLeftHandSide(left_hand_side, dummy_process_info);
+    Matrix actual_left_hand_side;
+    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side = CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(
-        normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    const auto expected_left_hand_side =
+        CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -271,17 +270,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
 
     // Act
-    Matrix left_hand_side;
-    element.CalculateLeftHandSide(left_hand_side, dummy_process_info);
+    Matrix actual_left_hand_side;
+    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side = Matrix{8, 8};
@@ -296,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
          0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
          0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -305,10 +304,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -332,10 +331,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -362,11 +361,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
 KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = std::make_shared<Properties>();
-    properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -380,7 +379,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     for (const auto& p_law : constitutive_laws) {
         KRATOS_EXPECT_NE(p_law.get(), nullptr);
         // Constitutive laws must have been cloned
-        KRATOS_EXPECT_NE(p_law.get(), properties->GetValue(CONSTITUTIVE_LAW).get());
+        KRATOS_EXPECT_NE(p_law.get(), p_properties->GetValue(CONSTITUTIVE_LAW).get());
     }
 }
 
@@ -390,10 +389,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -403,13 +402,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
 
     // Act
     Vector actual_right_hand_side;
-    Matrix left_hand_side;
-    element.CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
+    Matrix actual_left_hand_side;
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side = CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(
-        normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    const auto expected_left_hand_side =
+        CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{8};
     expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
@@ -422,10 +421,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -437,15 +436,16 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
 
     // Act
-    std::vector<Vector> strains_on_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, strains_on_integration_points, dummy_process_info);
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, dummy_process_info);
 
     // Assert
     Vector expected_relative_displacement{2};
     expected_relative_displacement <<= 0.5, 0.2;
-    KRATOS_EXPECT_EQ(strains_on_integration_points.size(), 2);
-    for (const auto& strain : strains_on_integration_points) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain, expected_relative_displacement, Defaults::relative_tolerance)
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 2);
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -455,10 +455,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, properties);
+    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -470,15 +470,15 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
         array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
 
     // Act
-    std::vector<Vector> stresses_on_integration_points;
-    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points, dummy_process_info);
+    std::vector<Vector> tractions_at_integration_points;
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, dummy_process_info);
 
     // Assert
     Vector expected_traction{2};
     expected_traction <<= 10.0, 2.0;
-    KRATOS_EXPECT_EQ(stresses_on_integration_points.size(), 2);
-    for (const auto& stress : stresses_on_integration_points) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress, expected_traction, Defaults::relative_tolerance)
+    KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 2);
+    for (const auto& r_traction : tractions_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
     }
 }
 
@@ -488,10 +488,10 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    auto properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, properties);
+    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
@@ -501,8 +501,8 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
 
     // Act
     Vector actual_right_hand_side;
-    Matrix left_hand_side;
-    element.CalculateLocalSystem(left_hand_side, actual_right_hand_side, dummy_process_info);
+    Matrix actual_left_hand_side;
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
     auto expected_left_hand_side    = Matrix{ZeroMatrix{12, 12}};
@@ -533,7 +533,7 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     expected_left_hand_side(10, 4) = -shear_stiffness * (2.0 / 3.0);
     expected_left_hand_side(11, 5) = -normal_stiffness * (2.0 / 3.0);
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{ZeroVector{12}};
     expected_right_hand_side <<= 0.33333333, 1.6666667, 0, 0, -1.3333333, -6.6666667, -0.33333333,
