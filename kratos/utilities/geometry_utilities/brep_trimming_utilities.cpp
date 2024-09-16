@@ -80,7 +80,7 @@ namespace Kratos
                     solution = Clipper2Lib::RectClip(rectangle, all_loops);
 
                     const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
-                    double clip_area = std::abs(Clipper2Lib::Area(solution[0]));
+                    double clip_area = 0.0;
                     if (solution.size() > 0)
                     {
                         clip_area = std::abs(Clipper2Lib::Area(solution[0]));
