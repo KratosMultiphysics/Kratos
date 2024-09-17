@@ -1,15 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nicolò Antonelli
+//                   Andrea Gorgi
 
 #pragma once
-
 
 // System includes
 #include "includes/define.h"
@@ -149,21 +149,8 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo) override
-        {
-            const SizeType mat_size = GetGeometry().size() * 1;
-
-            if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
-            noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-            if (rLeftHandSideMatrix.size1() != mat_size)
-                rLeftHandSideMatrix.resize(mat_size, mat_size);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-                rCurrentProcessInfo, true, true);
-        }
+            const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom

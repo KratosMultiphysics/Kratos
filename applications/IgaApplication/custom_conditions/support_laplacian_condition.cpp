@@ -20,6 +20,30 @@
 
 namespace Kratos
 {
+    void SupportLaplacianCondition::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const SizeType mat_size = GetGeometry().size() * 1;
+
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+            rCurrentProcessInfo, true, true);
+
+        KRATOS_CATCH("")
+    }
+    
+    
     void SupportLaplacianCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,

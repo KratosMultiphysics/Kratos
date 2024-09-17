@@ -143,11 +143,11 @@ namespace Kratos
         normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
         
         // Collins, Lozinsky & Scovazzi innovation
-        double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
-                                            // = -1 -> Free-penalty approach
+        double nitsche_penalty = 1.0;  // = 1.0 -> Penalty approach
+                                       // = -1.0 -> Free-penalty approach
         if (penalty == -1.0) {
             penalty_integration = 0.0;
-            Guglielmo_innovation = -1.0;
+            nitsche_penalty = -1.0;
         }
 
         Matrix H = ZeroMatrix(1, number_of_nodes);
@@ -212,7 +212,7 @@ namespace Kratos
 
         // Assembly
         // -(GRAD_w * n, u + GRAD_u * d + ...)
-        noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+        noalias(rLeftHandSideMatrix) -= nitsche_penalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
         noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
         // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
@@ -225,7 +225,7 @@ namespace Kratos
 
             noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
             // Dirichlet BCs
-            noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+            noalias(rRightHandSideVector) -= nitsche_penalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
 
             Vector temp(number_of_nodes);
             // RHS = ExtForces - K*temp;

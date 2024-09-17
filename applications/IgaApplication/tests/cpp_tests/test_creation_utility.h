@@ -51,7 +51,9 @@ namespace TestCreationUtility
         }
     }
 
-    inline typename NurbsSurfaceType::Pointer GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree)
+    inline typename NurbsSurfaceType::Pointer GenerateNurbsSurface(
+        ModelPart& rModelPart, 
+        SizeType PolynomialDegree)
     {
         SizeType p = PolynomialDegree;
         SizeType q = 1;
@@ -115,7 +117,9 @@ namespace TestCreationUtility
     }
 
     inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
-        ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
+        ModelPart& rModelPart, 
+        SizeType PolynomialDegree, 
+        IntegrationPoint<3> IntegrationPoint)
     {
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
@@ -133,7 +137,9 @@ namespace TestCreationUtility
 
 
     inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometryOnCurve(
-        ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
+        ModelPart& rModelPart,
+        SizeType PolynomialDegree,
+        IntegrationPoint<3> IntegrationPoint)
     {
         typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
         IntegrationPointsArrayType integration_points(1);
