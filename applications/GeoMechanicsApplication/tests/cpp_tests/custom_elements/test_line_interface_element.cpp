@@ -217,7 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
 
     int i = 0;
-    for (auto& node : element.GetGeometry()) {
+    for (const auto& node : element.GetGeometry()) {
         ++i;
         node.pGetDof(DISPLACEMENT_X)->SetEquationId(i);
 

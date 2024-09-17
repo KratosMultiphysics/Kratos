@@ -141,8 +141,8 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        std::vector<Vector> relative_displacements;
-        CalculateOnIntegrationPoints(STRAIN, relative_displacements, rCurrentProcessInfo);
+        const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+        const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
         rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements);
     } else {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
