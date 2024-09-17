@@ -155,6 +155,20 @@ namespace Kratos
         }
 
         /**
+         * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable.
+         * @param rRHSVector input variable containing the RHS vector to be assembled
+         * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+         * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+         * @param rCurrentProcessInfo The current process info instance
+         */
+        void AddExplicitContribution(const VectorType& rRHS,
+            const Variable<VectorType>& rRHSVariable,
+            const Variable<array_1d<double,3> >& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+
+        /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
         * @param rResult The vector containing the equation id
         * @param rCurrentProcessInfo The current process info instance
