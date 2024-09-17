@@ -281,7 +281,7 @@ void ObjIO::ParseNormalLine(
     normal[2] = std::stod(tokens[3]);
 
     // Set the normal
-    const IndexType node_id = mNormalCounter + mFirstNodeId + 1;
+    const IndexType node_id = mNormalCounter + mFirstNodeId;
     auto p_node = rThisModelPart.pGetNode(node_id); // TODO: Think about using iterators instead
     if (NormalAsHistoricalVariable) {
        noalias(p_node->FastGetSolutionStepValue(NORMAL)) = normal;
