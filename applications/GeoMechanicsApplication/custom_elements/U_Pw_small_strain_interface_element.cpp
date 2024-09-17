@@ -16,6 +16,7 @@
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include <custom_utilities/stress_strain_utilities.h>
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -49,7 +50,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
     // Verify generic variables
-    int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     // Verify specific properties
@@ -124,7 +125,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
 {
     KRATOS_TRY
 
-    UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
     // Compute initial gap of the joint
     this->CalculateInitialGap(this->GetGeometry());
@@ -150,68 +151,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
-    // Resizing mass matrix
-    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
-    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-    const PropertiesType&                           r_prop = this->GetProperties();
-    const GeometryType&                             r_geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        r_geom.IntegrationPoints(mThisIntegrationMethod);
-    const unsigned int NumGPoints = IntegrationPoints.size();
-
-    // Defining shape functions and the determinant of the jacobian at all integration points
-    const Matrix& NContainer = r_geom.ShapeFunctionsValues(mThisIntegrationMethod);
-    Vector        detJContainer(NumGPoints);
-    r_geom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
-
-    // Element variables
-    InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables, r_geom, r_prop, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(r_prop);
-
-    // Defining necessary variables
-    BoundedMatrix<double, TDim, TNumNodes * TDim> aux_density_matrix = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TDim> density_matrix = ZeroMatrix(TDim, TDim);
-
-    array_1d<double, TDim> LocalRelDispVector;
-    array_1d<double, TDim> RelDispVector;
-    const double&          MinimumJointWidth = r_prop[MINIMUM_JOINT_WIDTH];
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
-
-        noalias(RelDispVector) = prod(Variables.Nu, Variables.DisplacementVector);
-
-        noalias(LocalRelDispVector) = prod(Variables.RotationMatrix, RelDispVector);
-
-        this->CalculateJointWidth(Variables.JointWidth, LocalRelDispVector[TDim - 1], MinimumJointWidth, GPoint);
-
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        const auto density =
-            GeoTransportEquationUtilities::CalculateSoilDensity(Variables.DegreeOfSaturation, r_prop);
-
-        GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-
-        noalias(aux_density_matrix) = prod(density_matrix, Variables.Nu);
-
-        // Adding contribution to Mass matrix
-        GeoElementUtilities::AssembleUUBlockMatrix(
-            rMassMatrix, prod(trans(Variables.Nu), aux_density_matrix) * Variables.JointWidth *
-                             Variables.IntegrationCoefficient);
-    }
-
-    KRATOS_CATCH("")
+    // Resizing mass matrix, no mass in these interface elements.
+    rMassMatrix = ZeroMatrix(this->GetNumberOfDOF(), this->GetNumberOfDOF());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1239,6 +1180,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
     Geom.Jacobian(JContainer, mThisIntegrationMethod);
     Vector detJContainer(NumGPoints);
     Geom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
@@ -1278,9 +1221,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1873,11 +1814,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> undrained_terms =
+        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
 
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, undrained_terms);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, transposed_coupling_matrix);
     }
 
     KRATOS_CATCH("")

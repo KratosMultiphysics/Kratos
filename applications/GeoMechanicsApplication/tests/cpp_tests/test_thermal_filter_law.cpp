@@ -12,13 +12,13 @@
 
 #include "custom_constitutive/thermal_filter_law.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/ublas_interface.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");

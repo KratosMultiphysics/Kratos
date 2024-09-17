@@ -306,6 +306,17 @@ class DEMEnergyCalculator():
 
             self.energy_graph_counter += 1
 
+    def CalculateNormalizedKinematicEnergy(self):
+
+        particle_number_times_max_normal_ball_to_ball_force_times_radius = self.SpheresEnergyUtil.CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(self.SpheresModelPart)
+        
+        if particle_number_times_max_normal_ball_to_ball_force_times_radius == 0.0:
+            normalized_kinematic_energy = 0.0
+        else:
+            normalized_kinematic_energy = self.kinematic_energy / particle_number_times_max_normal_ball_to_ball_force_times_radius
+        
+        return normalized_kinematic_energy
+    
     def CalculateEnergy(self):
 
         self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart)
@@ -816,17 +827,23 @@ class Procedures():
 
     def UpdateBoundingBox(self, spheres_model_part, creator_destructor):
 
-        time = spheres_model_part.ProcessInfo.GetValue(TIME)
+        delta_time = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
         
         b_box_low = Array3()
         b_box_high = Array3()
-        b_box_low[0] = self.b_box_minX + time * move_velocity
-        b_box_low[1] = self.b_box_minY + time * move_velocity
-        b_box_low[2] = self.b_box_minZ + time * move_velocity
-        b_box_high[0] = self.b_box_maxX - time * move_velocity
-        b_box_high[1] = self.b_box_maxY - time * move_velocity
-        b_box_high[2] = self.b_box_maxZ - time * move_velocity
+        self.b_box_minX += delta_time * move_velocity
+        self.b_box_minY += delta_time * move_velocity
+        self.b_box_minZ += delta_time * move_velocity
+        self.b_box_maxX -= delta_time * move_velocity
+        self.b_box_maxY -= delta_time * move_velocity
+        self.b_box_maxZ -= delta_time * move_velocity
+        b_box_low[0] = self.b_box_minX
+        b_box_low[1] = self.b_box_minY
+        b_box_low[2] = self.b_box_minZ
+        b_box_high[0] = self.b_box_maxX
+        b_box_high[1] = self.b_box_maxY
+        b_box_high[2] = self.b_box_maxZ
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.UpdateSurroundingBoundingBox(spheres_model_part)

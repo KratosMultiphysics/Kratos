@@ -1,0 +1,20 @@
+{
+    "properties" : [{
+        "model_part_name" : "FluidModelPart",
+        "properties_id"   : 0,
+        "Material"        : null
+    },{
+        "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "Newtonian2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 1.0e3,
+                "DYNAMIC_VISCOSITY" : 1.0e-1
+            },
+            "Tables"           : null
+        }
+    }]
+}

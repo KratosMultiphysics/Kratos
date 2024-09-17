@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Reissner-Mindlin shell using Green-Lagrangian strains and formulated using stress resultants
 */
-class Shell5pElement final
+class KRATOS_API(IGA_APPLICATION) Shell5pElement final
     : public Element
 {
 protected:

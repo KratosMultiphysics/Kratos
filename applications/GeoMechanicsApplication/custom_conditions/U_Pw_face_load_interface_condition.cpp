@@ -318,6 +318,12 @@ double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(cons
     KRATOS_CATCH("")
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwFaceLoadInterfaceCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwFaceLoadInterfaceCondition<2, 2>;

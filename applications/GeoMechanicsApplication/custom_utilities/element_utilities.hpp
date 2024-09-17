@@ -121,23 +121,6 @@ public:
         }
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void GetNodalVariableMatrix(Matrix&                      rNodalVariableMatrix,
-                                              const Element::GeometryType& rGeom,
-                                              const Variable<array_1d<double, 3>>& Variable,
-                                              IndexType SolutionStepIndex = 0)
-    {
-        rNodalVariableMatrix.resize(TNumNodes, TDim, false);
-
-        for (IndexType node = 0; node < TNumNodes; ++node) {
-            const array_1d<double, 3>& NodalVariableAux =
-                rGeom[node].FastGetSolutionStepValue(Variable, SolutionStepIndex);
-
-            for (IndexType iDim = 0; iDim < TDim; ++iDim)
-                rNodalVariableMatrix(node, iDim) = NodalVariableAux[iDim];
-        }
-    }
-
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
     {
@@ -206,26 +189,6 @@ public:
         InvertMatrix2(rInvertedMatrix, InputMatrix, InputMatrixDet);
 
         KRATOS_CATCH("")
-    }
-
-    template <unsigned int TDim>
-    static inline void AssembleDensityMatrix(BoundedMatrix<double, TDim + 1, TDim + 1>& DensityMatrix, double Density)
-    {
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
-    }
-
-    template <typename MatrixType>
-    static inline void AssembleDensityMatrix(MatrixType& DensityMatrix, double Density)
-    {
-        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
-            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
     }
 
     template <typename MatrixType1, typename MatrixType2>

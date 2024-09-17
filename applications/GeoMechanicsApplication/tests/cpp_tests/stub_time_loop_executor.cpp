@@ -11,7 +11,7 @@
 //
 #include "stub_time_loop_executor.h"
 #include "processes/process.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos {
 

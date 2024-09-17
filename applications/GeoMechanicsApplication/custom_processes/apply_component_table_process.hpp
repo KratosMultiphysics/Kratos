@@ -17,6 +17,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/table.h"
 #include "processes/process.h"
+#include "includes/model_part.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -93,8 +94,10 @@ public:
                 rNode.FastGetSolutionStepValue(var) = mInitialValue;
             });
         } else if (variable_name_1 == "X") {
-            block_for_each(mrModelPart.Nodes(), [&var, this](auto& node) {
-                node.FastGetSolutionStepValue(var) = mpTable->GetValue(node.X());
+            block_for_each(mrModelPart.Nodes(), [&var, this](auto& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
+                rNode.FastGetSolutionStepValue(var) = mpTable->GetValue(rNode.X());
             });
         } else {
             KRATOS_ERROR

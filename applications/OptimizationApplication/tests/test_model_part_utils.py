@@ -305,5 +305,4 @@ class TestModelPartUtilities(kratos_unittest.TestCase):
         self.assertEqual(model_part, ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t7", self.sub_model_part_names_list, False).GetModelPart())
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

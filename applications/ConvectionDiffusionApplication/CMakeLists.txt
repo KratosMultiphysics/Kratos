@@ -49,11 +49,12 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
+    kratos_add_gtests(TARGET KratosConvectionDiffusionCore SOURCES "${KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## ConvectionDiffusionApplication core library (C++ parts)
-add_library( KratosConvectionDiffusionCore SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES} ${KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES} )
+add_library( KratosConvectionDiffusionCore SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosConvectionDiffusionCore PUBLIC KratosCore)
 set_target_properties( KratosConvectionDiffusionCore PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
 

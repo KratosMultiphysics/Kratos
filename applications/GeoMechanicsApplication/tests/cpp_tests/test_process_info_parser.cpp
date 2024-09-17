@@ -11,7 +11,7 @@
 //
 
 #include "custom_utilities/json_process_info_parser.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
 
@@ -22,7 +22,7 @@ const std::string parameterString = R"(
     "key" : "value"
 })";
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListTypes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListTypes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Given
     const std::string process_list = R"(
@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Given
     const std::string process_list_with_duplicate_names = R"(
@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Given
     const std::string process_without_parameters = R"(
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(parser.GetProcessList(process_without_parameters), "Getting a value that does not exist. entry string : Parameters")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     JsonProcessInfoParser parser;
     KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty())

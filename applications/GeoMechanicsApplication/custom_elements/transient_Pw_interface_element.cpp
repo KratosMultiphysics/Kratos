@@ -16,6 +16,7 @@
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -111,7 +112,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -119,7 +120,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessInfo&
 {
     KRATOS_TRY
 
-    UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
     // Compute initial gap of the joint
     this->CalculateInitialGap(this->GetGeometry());
@@ -741,7 +742,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
 }
