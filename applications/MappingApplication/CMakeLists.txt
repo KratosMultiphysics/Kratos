@@ -1,4 +1,7 @@
+kratos_add_dependency(LinearSolversApplication)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 message("**** configuring KratosMappingApplication ****")
 
@@ -26,6 +29,8 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE} ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES})
+get_target_property(LinAlgIncludes KratosLinearSolversCore INCLUDE_DIRECTORIES)
+target_include_directories(KratosMappingCore PUBLIC "${LinAlgIncludes}")
 target_link_libraries(KratosMappingCore PUBLIC KratosCore )
 set_target_properties(KratosMappingCore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
