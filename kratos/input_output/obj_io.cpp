@@ -144,7 +144,31 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
     // Write faces
     // NOTE: We will assume that the nodes are ordered and start at 1
     *mpInputStream << "# Faces" << std::endl;
-    const std::string entity_type = mParameters["entity_type"].GetString();
+    std::string entity_type = mParameters["entity_type"].GetString();
+    const std::size_t number_of_geometries = rThisModelPart.NumberOfGeometries();
+    const std::size_t number_of_elements = rThisModelPart.NumberOfElements();
+    const std::size_t number_of_conditions = rThisModelPart.NumberOfConditions();
+    // Check if the entity type is valid
+    if (entity_type == "geometry" && number_of_geometries == 0) {
+        if (number_of_elements > 0) {
+            entity_type = "element";
+        } else if (number_of_conditions > 0) {
+            entity_type = "condition";
+        }
+    } else if (entity_type == "element" && number_of_elements == 0) {
+        if (number_of_geometries > 0) {
+            entity_type = "geometry";
+        } else if (number_of_conditions > 0) {
+            entity_type = "condition";
+        }
+    } else if (entity_type == "condition" && number_of_conditions == 0) {
+        if (number_of_geometries > 0) {
+            entity_type = "geometry";
+        } else if (number_of_elements > 0) {
+            entity_type = "element";
+        }
+    }
+    // Finally, write faces
     if (entity_type == "geometry") {
         for (const auto& r_geometry : rThisModelPart.Geometries()) {
             *mpInputStream << "f";
