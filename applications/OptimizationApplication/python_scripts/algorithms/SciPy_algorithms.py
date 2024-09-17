@@ -111,9 +111,9 @@ class SciPyAlgorithms(Algorithm):
     @time_decorator()
     def Solve(self):
         if not self.__scipy_constraints:
-            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions(), callback=self.Output)
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions(), callback=self.Output, bounds=self.bounds)
         elif self.__scipy_constraints:
-            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions(), callback=self.Output)
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions(), callback=self.Output, bounds=self.bounds)
         print("res::success: ", res.success)
         print("res::status: ", res.status)
         print("res::message: ", res.message)
