@@ -13,7 +13,7 @@
 #pragma once
 
 #include "processes/process.h"
-#include <includes/constitutive_law.h>
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {

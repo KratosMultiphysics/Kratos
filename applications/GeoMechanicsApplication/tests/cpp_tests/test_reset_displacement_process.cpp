@@ -12,6 +12,7 @@
 
 #include "custom_processes/reset_displacement_process.h"
 #include "geo_mechanics_fast_suite.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -28,7 +29,7 @@ class StubElement : public Element
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElement);
 
-    StubElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    StubElement(IndexType NewId, const GeometryType::Pointer& pGeometry) : Element(NewId, pGeometry)
     {
         mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
     }

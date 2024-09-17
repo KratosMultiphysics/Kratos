@@ -9,8 +9,8 @@
 //
 //  Main authors:    Richard Faasse
 //
+
 #include "reset_displacement_process.h"
-#include "includes/constitutive_law.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
