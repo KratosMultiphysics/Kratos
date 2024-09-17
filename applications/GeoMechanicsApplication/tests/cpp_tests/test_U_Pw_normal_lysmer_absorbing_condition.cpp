@@ -39,23 +39,13 @@ public:
 
         if (rVariable == SHEAR_STIFFNESS) {
             double shear_stiffness = 5.0;
-            rOutput[0]             = shear_stiffness;
-            rOutput[1]             = shear_stiffness;
-            rOutput[2]             = shear_stiffness;
-            rOutput[3]             = shear_stiffness;
+            rOutput                = std::vector<double>(4, shear_stiffness);
         } else if (rVariable == CONFINED_STIFFNESS) {
             double confined_stiffness = 4.0;
-            rOutput[0]                = confined_stiffness;
-            rOutput[1]                = confined_stiffness;
-            rOutput[2]                = confined_stiffness;
-            rOutput[3]                = confined_stiffness;
-
+            rOutput                   = std::vector<double>(4, confined_stiffness);
         } else if (rVariable == DEGREE_OF_SATURATION) {
             double degree_of_saturation = 0.5;
-            rOutput[0]                  = degree_of_saturation;
-            rOutput[1]                  = degree_of_saturation;
-            rOutput[2]                  = degree_of_saturation;
-            rOutput[3]                  = degree_of_saturation;
+            rOutput                     = std::vector<double>(4, degree_of_saturation);
         } else {
             Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
         }
@@ -124,9 +114,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition2D2NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
 
-    // Perfrom test, calculate left hand side
+    // Perform test, calculate left hand side
     constexpr size_t conditionSize       = 6;
-    Matrix       rLeftHandSideMatrix = ZeroMatrix(conditionSize, conditionSize);
+    Matrix           rLeftHandSideMatrix = ZeroMatrix(conditionSize, conditionSize);
 
     p_cond->CalculateLeftHandSide(rLeftHandSideMatrix, r_process_info);
 
