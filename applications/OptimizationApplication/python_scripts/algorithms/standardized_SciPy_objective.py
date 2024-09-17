@@ -49,6 +49,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
         self.__buffered_data = component_data_view.GetBufferedData()
         self.__unbuffered_data = component_data_view.GetUnBufferedData()
 
+        self.computed = False
+
         scaling = parameters["scaling"].GetDouble()
         if scaling < 0.0:
             raise RuntimeError(f"Scaling should be always positive [ given scale = {scaling}]")
@@ -84,15 +86,9 @@ class StandardizedSciPyObjective(ResponseRoutine):
 
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
+                self.computed = True
 
                 DictLogger("Objective info",self.GetInfo())
-
-        if save_data:
-            for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
-                if process.IsOutputStep():
-                    process.PrintOutput()
-            # To have some output during optimization we advance in optimization iterations to trigger output routines. It doesn't sync with opt. iterations from SciPy!
-            self.__optimization_problem.AdvanceStep()
 
         return standardized_response_value
 
@@ -126,7 +122,7 @@ class StandardizedSciPyObjective(ResponseRoutine):
                     # does not create additional memory.
                     self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
                     
-        return gradient_collective_expression.Evaluate() * self.__scaling
+        return gradient_collective_expression.Evaluate().reshape(-1) * self.__scaling
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 0:

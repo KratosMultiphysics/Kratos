@@ -1,4 +1,5 @@
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_objective import StandardizedSciPyObjective
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_constraint import StandardizedSciPyConstraint
@@ -8,7 +9,9 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 import scipy.optimize
+import numpy as np
 from scipy.optimize import NonlinearConstraint
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
 
 try:
     import scipy
@@ -35,15 +38,21 @@ class SciPyAlgorithms(Algorithm):
             "echo_level"        : 0,
             "SciPy_settings"          : {
                 "method"      : "",
+                "lower_bound" : -1e16,
+                "upper_bound" : 1e16,
                 "options"     : {}
                 }
-            }
-        }""")
+            }""")
 
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         self.model = model
         self.parameters = parameters
+        self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self._optimization_problem = optimization_problem
+
+        # scipy settings
+        self.SciPy_settings = self.parameters["SciPy_settings"]
+        self.SciPy_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["SciPy_settings"])
 
         # controls
         self.master_control = MasterControl()
@@ -56,6 +65,7 @@ class SciPyAlgorithms(Algorithm):
         # objective & constraints
         self.__objective = StandardizedSciPyObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self._optimization_problem.AddComponent(self.__objective)
+        self.bounds = scipy.optimize.Bounds(lb=self.SciPy_settings["lower_bound"].GetDouble(), ub=self.SciPy_settings["upper_bound"].GetDouble())
         self.__kratos_constraints = []
         self.__scipy_constraints = []
         for constraint_settings in parameters["constraints"]:
@@ -67,8 +77,9 @@ class SciPyAlgorithms(Algorithm):
             scipy_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
             self.__scipy_constraints.append(scipy_constraint)
 
-        # scipy settings
-        self.SciPy_settings = parameters["SciPy_settings"]
+        
+
+
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -85,9 +96,10 @@ class SciPyAlgorithms(Algorithm):
         CallOnAll(self.__kratos_constraints, StandardizedSciPyConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        self.algorithm_data.SetDataBuffer(self.GetMinimumBufferSize())
 
         # create nlopt optimizer
-        self.x0 = self.__control_field.Evaluate()
+        self.x0 = self.__control_field.Evaluate().reshape(-1)
 
     @time_decorator()
     def Finalize(self):
@@ -99,12 +111,33 @@ class SciPyAlgorithms(Algorithm):
     @time_decorator()
     def Solve(self):
         if not self.__scipy_constraints:
-            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions())
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions(), callback=self.Output)
         elif self.__scipy_constraints:
-            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions())
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions(), callback=self.Output)
         print("res::success: ", res.success)
         print("res::status: ", res.status)
         print("res::message: ", res.message)
+
+    @time_decorator()
+    def Output(self, *args) -> KratosOA.CollectiveExpression:
+        if self.__objective.computed:
+
+            print(f"Output iteration {self._optimization_problem.GetStep()}")
+
+            shape = [c.GetItemShape() for c in self.__control_field.GetContainerExpressions()]
+            KratosOA.CollectiveExpressionIO.Read(self.__control_field, args[0], shape)
+
+            self.algorithm_data.GetBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
+            OutputGradientFields(self.__objective, self._optimization_problem, True)
+            for constraint in self.__kratos_constraints:
+                OutputGradientFields(constraint, self._optimization_problem, True)
+            for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+                if process.IsOutputStep():
+                    process.PrintOutput()
+            
+            # Advance in Optimization Iteration
+            self._optimization_problem.AdvanceStep()
+            self.__objective.computed = False
 
     def __GetOptions(self):
         Kratos.Parameters

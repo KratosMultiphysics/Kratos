@@ -100,7 +100,7 @@ class StandardizedSciPyConstraint(ResponseRoutine):
                     # does not create additional memory.
                     self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
                     
-        return gradient_collective_expression.Evaluate()
+        return gradient_collective_expression.Evaluate().reshape(-1)
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
