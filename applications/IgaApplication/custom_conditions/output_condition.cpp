@@ -72,4 +72,16 @@ namespace Kratos
         }
     }
 
+    void OutputCondition::AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY;
+
+        KRATOS_CATCH( "" )
+    }
+
 } // Namespace Kratos
