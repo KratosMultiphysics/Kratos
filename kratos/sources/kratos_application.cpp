@@ -164,6 +164,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
     KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
     KRATOS_REGISTER_CONDITION("BrepCurveOnSurface", mBrepCurveOnSurface);
+    KRATOS_REGISTER_CONDITION("BrepCurve", mBrepCurve);
 
     //master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
