@@ -1,7 +1,8 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -16,9 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
 
@@ -69,6 +68,8 @@ public:
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
+    LaplacianIGAElement() : Element() { }
+
     /// Destructor.
     virtual ~LaplacianIGAElement();
 
@@ -91,21 +92,28 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector, 
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix, 
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector, 
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult, 
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
+    void GetDofList(
+        DofsVectorType& ElementalDofList, 
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    LaplacianIGAElement() : Element()
-    {
-    }
 
     ///@}
     ///@name Access

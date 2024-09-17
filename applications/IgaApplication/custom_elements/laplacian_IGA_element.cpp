@@ -1,8 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
+// System includes
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //  Main authors:    Nicolò Antonelli
@@ -14,17 +16,9 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
-#include "utilities/geometry_utilities.h"
-
-// Application includes
 #include "custom_elements/laplacian_IGA_element.h"
 
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -80,6 +74,33 @@ void LaplacianIGAElement::CalculateLocalSystem(
 {
     KRATOS_TRY
 
+    const auto& r_geometry = GetGeometry();
+    const unsigned int number_of_points = r_geometry.size();
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
+    Vector temp(number_of_points);
+    // RHS = ExtForces - K*temp;
+    for (IndexType i = 0; i < number_of_points; i++) {
+        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
+    
+    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+
+    // RHS -= K*temp
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+
+    KRATOS_CATCH("")
+}
+
+
+// From classical Laplacian
+void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+{   
+    KRATOS_TRY
+
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
@@ -100,6 +121,49 @@ void LaplacianIGAElement::CalculateLocalSystem(
     if(rLeftHandSideMatrix.size1() != number_of_points)
         rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points); //resetting LHS
+
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_points,dim);
+    Vector temp(number_of_points);
+
+    const double heat_flux = this->GetValue(r_volume_source_var);
+    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
+
+    for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
+    {
+        noalias(DN_DX) = r_DN_De[i_point] ; //prod(r_DN_De[i_point],InvJ0);
+
+        auto N = row(N_gausspoint,i_point);
+        const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
+
+        noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
+    }
+
+    KRATOS_CATCH("")
+
+}
+
+
+// From classical Laplacian
+void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
+    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
+
+    // reading integration points and local gradients
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int dim = r_DN_De[0].size2();
     
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != number_of_points)
@@ -120,36 +184,10 @@ void LaplacianIGAElement::CalculateLocalSystem(
         auto N = row(N_gausspoint,i_point);
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
-        noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
         noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;
     }
 
-
-    // RHS = ExtForces - K*temp;
-    for (IndexType i = 0; i < number_of_points; i++) {
-        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-    }
-
-    // RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
     KRATOS_CATCH("")
-}
-
-
-// From classical Laplacian
-void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
-{   
-    VectorType temp(0);
-    CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
-}
-
-
-// From classical Laplacian
-void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    MatrixType temp(0,0);
-    CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
