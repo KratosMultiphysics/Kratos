@@ -11,17 +11,10 @@ from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 import numpy as np
 
 class StandardizedSciPyConstraint(ResponseRoutine):
-    """Standardized constraint response function
+    """Standardized SciPy constraint response function
 
-    This class creates instances to standardize any response function for the specified type of the contraint.
-    Supported contraint types:
-        "=",
-        "<",
-        "<=,
-        ">",
-        ">="
+    This class creates instances to create constraint routine that SciPy is required to handle constraints.
 
-    The reference value for the constraint either can be the "initial_value" or a specified value.
 
     """
 
@@ -85,7 +78,7 @@ class StandardizedSciPyConstraint(ResponseRoutine):
 
     def CalculateStandardizedGradient(self, x:np.array, save_field: bool = True) -> np.array:
 
-        self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same
+        self.CalculateStandardizedValue(x, False)  # Compute new primal if x has changed. Does nothing if x the same.
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()

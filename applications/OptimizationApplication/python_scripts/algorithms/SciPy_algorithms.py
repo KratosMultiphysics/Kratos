@@ -1,8 +1,3 @@
-try:
-    import scipy
-except ImportError:
-    raise Exception("SciPy python library is not available")
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_objective import StandardizedSciPyObjective
@@ -10,12 +5,15 @@ from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_co
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 import scipy.optimize
 from scipy.optimize import NonlinearConstraint
 
+try:
+    import scipy
+except ImportError:
+    raise Exception("SciPy python library is not available")
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -23,7 +21,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class SciPyAlgorithms(Algorithm):
     """
-        A SciPy wrapper to use algorithms from Library
+        A SciPy wrapper to use algorithms from Library. Provide Method and it settings in the options dict.
     """
 
     @classmethod
@@ -38,8 +36,7 @@ class SciPyAlgorithms(Algorithm):
             "SciPy_settings"          : {
                 "method"      : "",
                 "options"     : {}
-                },
-                "algorithm_specific_settings"   : {}
+                }
             }
         }""")
 
@@ -59,14 +56,16 @@ class SciPyAlgorithms(Algorithm):
         # objective & constraints
         self.__objective = StandardizedSciPyObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self._optimization_problem.AddComponent(self.__objective)
-        self.__constraints = []
-        self.__numpy_constraints = []
+        self.__kratos_constraints = []
+        self.__scipy_constraints = []
         for constraint_settings in parameters["constraints"]:
             constraint = StandardizedSciPyConstraint(constraint_settings, self.master_control, self._optimization_problem)
+            self.__kratos_constraints.append(constraint)
             self._optimization_problem.AddComponent(constraint)
-            non_linear_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
-            self.__numpy_constraints.append(non_linear_constraint)
-            self.__constraints.append(constraint)
+
+            # create SciPy specific constraints
+            scipy_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
+            self.__scipy_constraints.append(scipy_constraint)
 
         # scipy settings
         self.SciPy_settings = parameters["SciPy_settings"]
@@ -83,7 +82,7 @@ class SciPyAlgorithms(Algorithm):
         self.master_control.Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
-        CallOnAll(self.__constraints, StandardizedSciPyConstraint.Initialize)
+        CallOnAll(self.__kratos_constraints, StandardizedSciPyConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
@@ -93,16 +92,16 @@ class SciPyAlgorithms(Algorithm):
     @time_decorator()
     def Finalize(self):
         self.__objective.Finalize()
-        for constraint in self.__constraints:
+        for constraint in self.__kratos_constraints:
             constraint.Finalize()
         self.master_control.Finalize()
 
     @time_decorator()
     def Solve(self):
-        if not self.__constraints:
+        if not self.__scipy_constraints:
             res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions())
-        elif self.__constraints:
-            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__numpy_constraints, options=self.__GetOptions())
+        elif self.__scipy_constraints:
+            res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions())
         print("res::success: ", res.success)
         print("res::status: ", res.status)
         print("res::message: ", res.message)

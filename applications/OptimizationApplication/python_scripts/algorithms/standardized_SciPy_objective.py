@@ -12,7 +12,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_routine impor
 import numpy as np
 
 class StandardizedSciPyObjective(ResponseRoutine):
-    """Standardized objective response function
+    """Standardized SciPy objective response routine.
 
     This class transformed a user-given optimization problem into the standard format.
     Supported objective types:
@@ -91,6 +91,7 @@ class StandardizedSciPyObjective(ResponseRoutine):
             for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
                 if process.IsOutputStep():
                     process.PrintOutput()
+            # To have some output during optimization we advance in optimization iterations to trigger output routines. It doesn't sync with opt. iterations from SciPy!
             self.__optimization_problem.AdvanceStep()
 
         return standardized_response_value
