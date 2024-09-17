@@ -10,6 +10,19 @@ from pathlib import Path
 # To detect the os
 import platform
 
+def debug_vtk(model_part):
+    from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+    parameters = KratosMultiphysics.Parameters("""{
+        "model_part_name"            : "",
+        "nodal_data_value_variables" : ["NORMAL"]
+    }
+    """)
+    parameters["model_part_name"].SetString(model_part.Name)
+    output = VtkOutputProcess(model_part.GetModel(), parameters )
+    output.ExecuteInitialize()
+    output.ExecuteBeforeSolutionLoop()
+    output.ExecuteInitializeSolutionStep()
+
 # Define a function to get the file path given a file name
 def GetFilePath(fileName):
     """
@@ -75,10 +88,6 @@ class TestObjIO(KratosUnittest.TestCase):
         """
         Set up the test class before running tests.
         """
-        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        cls.current_model = KratosMultiphysics.Model()
-        cls.model_part = cls.current_model.CreateModelPart("Main")
-        cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         file = Path.cwd() / "aux.obj"
         cls.obj_file = file.as_posix()
 
@@ -93,9 +102,17 @@ class TestObjIO(KratosUnittest.TestCase):
         """
         Test the ReadModelPart function from ObjIO
         """
+        # Create a model part and set the domain size
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main")
+        self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
         # Read a model part from an OBJ file
         obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube.obj")
         ReadModelPartFromOBJ(self.model_part, obj_name)
+
+        # # Debug
+        # debug_vtk(self.model_part)
 
         # Assert that the model part has the correct number of nodes and elements
         self.assertEqual(self.model_part.NumberOfNodes(), 8)
@@ -107,6 +124,49 @@ class TestObjIO(KratosUnittest.TestCase):
             self.assertAlmostEqual(normal[0], node.X)
             self.assertAlmostEqual(normal[1], node.Y)
             self.assertAlmostEqual(normal[2], node.Z)
+
+    def test_WriteObjIO(self):
+        """
+        Test the WriteModelPart function form ObjIO
+        """
+        # Create a model part and set the domain size
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main")
+        self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        # Create a sphere model part
+        mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
+        ReadModelPart(mdpa_name, self.model_part)
+
+        # Compute area of the given mesh
+        area_1 = 0.0
+        for cond in self.model_part.Conditions:
+            geom = cond.GetGeometry()
+            area_1 += geom.Area()
+
+        # Write current mesh into OBJ
+        self.obj_file = WriteModelPartToOBJ(self.model_part, self.obj_file)
+
+        # Read it back
+        obj_model_part = self.current_model.CreateModelPart("OBJ")
+        ReadModelPartFromOBJ(obj_model_part, self.obj_file)
+
+        # # Debug
+        # debug_vtk(self.model_part)
+
+        # Compute resulting area
+        number_of_conditions = self.model_part.NumberOfConditions()
+        area_2 = 0.0
+        for elem in obj_model_part.Elements:
+            geom = elem.GetGeometry()
+            area_2 += geom.Area()
+
+        # Assert number of nodes and elements
+        self.assertEqual(obj_model_part.NumberOfNodes(), 384)
+        self.assertEqual(number_of_conditions, obj_model_part.NumberOfElements())
+
+        # Assert that the areas match approximately
+        self.assertAlmostEqual(area_1, area_2)
 
 if __name__ == '__main__':
     # Set the logger severity level and run the KratosUnittest
