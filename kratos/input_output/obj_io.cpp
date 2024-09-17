@@ -128,11 +128,18 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
     // To know if we are retrieving normals as historical variables
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
 
+    // Write the header
+    //  #    Number of vertices: XXXXX
+    //  #    Number of faces: YYYYYY
+    *mpInputStream << "# Number of vertices: " << rThisModelPart.NumberOfNodes() << "\n";
+    *mpInputStream << "# Number of faces: " << rThisModelPart.NumberOfElements() << "\n\n";
+
     // Write vertices
     *mpInputStream << "# Vertices" << std::endl;
     for (const auto& r_node : rThisModelPart.Nodes()) {
         *mpInputStream << "v " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << std::endl;
     }
+    *mpInputStream << "\n";
 
     // Write faces
     // NOTE: We will assume that the nodes are ordered and start at 1
@@ -165,6 +172,7 @@ void ObjIO::WriteModelPart(const ModelPart& rThisModelPart)
     } else  {
         KRATOS_ERROR << "Invalid entity type " << entity_type << std::endl;
     }
+    *mpInputStream << "\n";
 
     // Write normals
     *mpInputStream << "# Normals" << std::endl;
