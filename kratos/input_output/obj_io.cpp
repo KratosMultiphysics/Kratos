@@ -337,18 +337,27 @@ void ObjIO::ParseFaceLine(
 
 std::vector<std::string> ObjIO::Tokenize(const std::string& rLine)
 {
+    // Tokenize the line by spaces
     std::vector<std::string> tokens;
     std::string::size_type start = 0;
     std::string::size_type end = 0;
 
-    while ((end = rLine.find_first_of(" \t\r\n", start)) != std::string::npos) {
+    // Find the position of the comment character '#'
+    std::string line_no_comments = rLine;
+    std::string::size_type comment_pos = rLine.find('#');
+    if (comment_pos != std::string::npos) {
+        line_no_comments = rLine.substr(0, comment_pos); // Remove the comment part
+    }
+
+    // Tokenize the line by spaces
+    while ((end = line_no_comments.find_first_of(" \t\r\n", start)) != std::string::npos) {
         if (end > start) {
-            tokens.emplace_back(rLine.substr(start, end - start));
+            tokens.emplace_back(line_no_comments.substr(start, end - start));
         }
         start = end + 1;
     }
-    if (start < rLine.length()){
-        tokens.emplace_back(rLine.substr(start));
+    if (start < line_no_comments.length()){
+        tokens.emplace_back(line_no_comments.substr(start));
     }
     return tokens;
 }
