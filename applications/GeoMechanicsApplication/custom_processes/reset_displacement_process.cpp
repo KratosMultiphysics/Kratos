@@ -41,6 +41,7 @@ void ResetDisplacementProcess::ExecuteInitialize()
         for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
             auto p_initial_state = make_intrusive<InitialState>();
             p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
+            p_initial_state->SetInitialStrainVector(Vector{ZeroVector{stresses_on_integration_points[i].size()}});
             constitutive_laws[i]->SetInitialState(p_initial_state);
         }
     });
