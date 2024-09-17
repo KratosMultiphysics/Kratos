@@ -86,7 +86,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             omega_0 = self.omega_0
             q_energy_per_volume = (1.0 / delta_pen) * F_p * np.exp(- 2.0 * (radius / omega_0)**2) * np.exp(- z / delta_pen)
-            node.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, q_energy_per_volume)
+            node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
             delta_temp = self.T_e - old_temp
@@ -94,8 +94,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume)
 
         for elem in self.main_model_part.Elements:
-            q_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
-            elem.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, q_energy_per_volume[0])
+            q_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
+            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
             enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
 
@@ -150,7 +150,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def RemoveElementsUsingEnergyPerVolumeThreshold(self):
         if self.ablation_energy_fraction:
             for elem in self.main_model_part.Elements:
-                q_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENERGY_PER_VOLUME)
+                q_energy_per_volume = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
                 enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
                 if self.use_enthalpy_and_ionization:
                     energy_per_volume_threshold = self.energy_per_volume_threshold
