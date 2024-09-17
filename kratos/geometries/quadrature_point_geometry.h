@@ -67,6 +67,8 @@ public:
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
+    typedef typename GeometryType::Pointer GeometryPointer;
+    
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
