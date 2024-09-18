@@ -115,7 +115,7 @@ class FsiAnalysis(AnalysisStage):
                 "fluid_auxiliar_process_list"]
 
     def _GetOrderOfOutputProcessesInitialization(self):
-        return ["gid_output"]
+        return ["gid_output","vtk_output"]
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
