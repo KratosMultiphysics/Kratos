@@ -226,15 +226,12 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
 
-    Parameters ReadParamatersFile(
-    const std::string& rDataFileName) const;
-
     // sbm variables
-    array_1d<double, 3> normal_parameter_space;
-    Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
-    Vector d;
+    array_1d<double, 3> mNormalParameterSpace;
+    Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
+    Vector mDistanceVector;
     std::vector<Matrix> mShapeFunctionDerivatives;
-    IndexType basis_functions_order;
+    IndexType mBasisFunctionsOrder;
 
     ///@}
 

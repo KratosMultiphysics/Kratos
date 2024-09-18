@@ -145,13 +145,13 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
 
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (dim == 3) {
-        basis_functions_order = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
     } else {
-        basis_functions_order = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
     // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-    penalty = basis_functions_order * basis_functions_order * penalty / h;
+    penalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
 
     // Find the closest node in condition
     int closestNodeId;
@@ -170,8 +170,8 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
     Vector projection(3);
     projection = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId].Coordinates() ;
 
-    d.resize(3);
-    noalias(d) = projection - r_geometry.Center().Coordinates();
+    mDistanceVector.resize(3);
+    noalias(mDistanceVector) = projection - r_geometry.Center().Coordinates();
 
     const Matrix& N = r_geometry.ShapeFunctionsValues();
 
@@ -183,14 +183,14 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
 
     // Compute the normals
     array_1d<double, 3> normal_physical_space;
-    array_1d<double, 3> normal_parameter_space;
+    // array_1d<double, 3> mNormalParameterSpace;
 
-    normal_parameter_space = - r_geometry.Normal(0, GetIntegrationMethod());
-    normal_parameter_space = normal_parameter_space / MathUtils<double>::Norm(normal_parameter_space);
-    normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
+    mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
+    normal_physical_space = mNormalParameterSpace; // prod(trans(J0[0]),mNormalParameterSpace);
     
-    // Collins, Lozinsky & Scovazzi innovation
-    double nitsche_penalty = 1.0;  // = 1.0 -> Penalty approach
+    // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
+    double nitsche_penalty = 1.0;   // = 1.0 -> Penalty approach
                                     // = -1.0 -> Free-penalty approach
     if (penalty == -1.0) {
         penalty_integration = 0.0;
@@ -204,7 +204,7 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
     Vector H_sum_vec = ZeroVector(number_of_nodes);
 
     // Compute all the derivatives of the basis functions involved
-    for (IndexType n = 1; n <= basis_functions_order; n++) {
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
         mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
     }
 
@@ -220,19 +220,19 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
         double H_taylor_term = 0.0; 
 
         if (dim == 2) {
-            for (IndexType n = 1; n <= basis_functions_order; n++) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
                 Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
                 for (IndexType k = 0; k <= n; k++) {
                     IndexType n_k = n - k;
                     double derivative = r_shape_function_derivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                    H_taylor_term += computeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                 }
             }
         } else {
             // 3D
-            for (IndexType n = 1; n <= basis_functions_order; n++) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
                 Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
                 
                 int countDerivativeId = 0;
@@ -245,24 +245,24 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
                         IndexType k_z = n - k_x - k_y;
                         double derivative = r_shape_function_derivatives(i,countDerivativeId); 
 
-                        H_taylor_term += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y, d[2], k_z);
+                        H_taylor_term += computeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
                         countDerivativeId++;
                     }
                 }
             }
         }
         
-        H_sum(0,i) = H_taylor_term + H(0,i);
+        mHsum(0,i) = H_taylor_term + H(0,i);
         H_sum_vec(i) = H_taylor_term + H(0,i);
     }
 
     // Assembly
     // -(GRAD_w * n, u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) -= nitsche_penalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    noalias(rLeftHandSideMatrix) -= nitsche_penalty * prod(trans(DN_dot_n), mHsum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
     // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
     noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
     // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
+    noalias(rLeftHandSideMatrix) += prod(trans(mHsum), mHsum) * penalty_integration ;
 
     const double u_D_scalar = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId].GetValue(r_unknown_var);
 
@@ -319,9 +319,9 @@ void SBMLaplacianCondition::CalculateAllNeumann(
 
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (dim == 3) {
-        basis_functions_order = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
     } else {
-        basis_functions_order = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
     // Integration
@@ -348,17 +348,17 @@ void SBMLaplacianCondition::CalculateAllNeumann(
         Vector projection(3);
         projection = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId].Coordinates() ;
 
-        Vector d(3);
-        noalias(d) = projection - r_geometry.Center().Coordinates();
+        Vector mDistanceVector(3);
+        noalias(mDistanceVector) = projection - r_geometry.Center().Coordinates();
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
 
         noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[point_number],InvJ0);
 
         // Compute the normal
-        array_1d<double, 3> normal_parameter_space;
-        normal_parameter_space = - r_geometry.Normal(0, GetIntegrationMethod());
-        normal_parameter_space = normal_parameter_space / MathUtils<double>::Norm(normal_parameter_space);
+        array_1d<double, 3> mNormalParameterSpace;
+        mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+        mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
 
         // Neumann BC, the true normal is needed
         array_1d<double, 3> true_n;
@@ -396,7 +396,7 @@ void SBMLaplacianCondition::CalculateAllNeumann(
 
         // Compute all the derivatives of the basis functions involved
         std::vector<Matrix> nShapeFunctionDerivatives;
-        for (IndexType n = 1; n <= basis_functions_order; n++) {
+        for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
             nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
         }
 
@@ -412,7 +412,7 @@ void SBMLaplacianCondition::CalculateAllNeumann(
             H(0, i) = N(point_number, i);
             // grad N cdot n_tilde
             for (unsigned int idim = 0; idim < dim; idim++) {
-                DN_dot_n_tilde(0, i)  += DN_DX(i, idim) * normal_parameter_space[idim];
+                DN_dot_n_tilde(0, i)  += DN_DX(i, idim) * mNormalParameterSpace[idim];
             } 
             // Reset for each control point
             double H_taylor_term_X = 0.0; 
@@ -420,25 +420,25 @@ void SBMLaplacianCondition::CalculateAllNeumann(
             double H_taylor_term_Z = 0.0; 
 
             if (dim == 2) {
-                for (IndexType n = 2; n <= basis_functions_order; n++) {
+                for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                     // Retrieve the appropriate derivative for the term
                     Matrix& r_shape_function_derivatives = nShapeFunctionDerivatives[n-1];
                     for (IndexType k = 0; k <= n-1; k++) {
                         IndexType n_k = n - 1 - k;
                         double derivative = r_shape_function_derivatives(i,k); 
                         // Compute the Taylor term for this derivative
-                        H_taylor_term_X += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                        H_taylor_term_X += computeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                     }
                     for (IndexType k = 0; k <= n-1; k++) {
                         IndexType n_k = n - 1 - k;
                         double derivative = r_shape_function_derivatives(i,k+1); 
                         // Compute the Taylor term for this derivative
-                        H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                        H_taylor_term_Y += computeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
                     }
                 }
             } else {
                 // 3D
-                for (IndexType n = 2; n <= basis_functions_order; n++) {
+                for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                     Matrix& r_shape_function_derivatives = nShapeFunctionDerivatives[n-1];
                 
                     int countDerivativeId = 0;
@@ -452,13 +452,13 @@ void SBMLaplacianCondition::CalculateAllNeumann(
                             double derivative = r_shape_function_derivatives(i,countDerivativeId); 
                             
                             if (k_x >= 1) {
-                                H_taylor_term_X += computeTaylorTerm3D(derivative, d[0], k_x-1, d[1], k_y, d[2], k_z);
+                                H_taylor_term_X += computeTaylorTerm3D(derivative, mDistanceVector[0], k_x-1, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
                             }
                             if (k_y >= 1) {
-                                H_taylor_term_Y += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y-1, d[2], k_z);
+                                H_taylor_term_Y += computeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y-1, mDistanceVector[2], k_z);
                             }
                             if (k_z >= 1) {
-                                H_taylor_term_Z += computeTaylorTerm3D(derivative, d[0], k_x, d[1], k_y, d[2], k_z-1);
+                                H_taylor_term_Z += computeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z-1);
                             }     
                             countDerivativeId++;
                         }
@@ -472,7 +472,7 @@ void SBMLaplacianCondition::CalculateAllNeumann(
         }    
 
         // dot product n cdot n_tilde
-        double n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1] + true_n[2] * normal_parameter_space[2];
+        double n_ntilde = true_n[0] * mNormalParameterSpace[0] + true_n[1] * mNormalParameterSpace[1] + true_n[2] * mNormalParameterSpace[2];
 
         // dot product grad cdot n
         Matrix HgradNdot_n = ZeroMatrix(1, number_of_nodes);
@@ -577,19 +577,5 @@ void SBMLaplacianCondition::GetDofList(  // Essential
         rElementalDofList.push_back(r_node.pGetDof(r_unknown_var));
     }
 }
-
-
-/// Reads in a json formatted file and returns its KratosParameters instance.
-Parameters SBMLaplacianCondition::ReadParamatersFile(
-    const std::string& rDataFileName) const
-{
-    std::ifstream infile(rDataFileName);
-
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-
-    return Parameters(buffer.str());
-};
-
 
 } // Namespace Kratos

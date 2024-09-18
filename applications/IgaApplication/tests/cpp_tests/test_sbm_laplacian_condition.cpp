@@ -58,163 +58,163 @@ namespace
 
         return Kratos::make_intrusive<SBMLaplacianCondition>(1, p_quadrature_point, p_elem_prop);
     }
+}
 
 
-    // Tests the stiffness matrix of the SBMLaplacianCondition
-    KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuite)
-    {
-        Model model;
-        auto &r_model_part = model.CreateModelPart("ModelPart");
+// Tests the stiffness matrix of the SBMLaplacianCondition
+KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuite)
+{
+    Model model;
+    auto &r_model_part = model.CreateModelPart("ModelPart");
 
-        // Set buffer size
-        r_model_part.SetBufferSize(2);
+    // Set buffer size
+    r_model_part.SetBufferSize(2);
 
-        // Set convection diffusion settings
-        auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-        p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-        p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-        // Variables addition
-        r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+    // Set convection diffusion settings
+    auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
+    p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
+    p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
+    p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
+    // Variables addition
+    r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
-        const auto& r_process_info = r_model_part.GetProcessInfo();
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        double penalty = -1;
+    double penalty = -1;
 
-        IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-        std::string boundary_condition_type = "dirichlet";
+    IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
+    std::string boundary_condition_type = "dirichlet";
 
-        auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
 
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(TEMPERATURE);
-        }
-        p_support_condition->Initialize(r_process_info);
-        Matrix left_hand_side_matrix;
-        Vector right_hand_side_vector;
-        p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
-
-        //Check RHS and LHS results
-        const double tolerance = 1.0e-4;
-
-        const std::array<double, 8> expected_LHS{-0.403943,-0.225679,0.0772782,0.044566,-0.0407768,-0.0411528,-0.0105702,-9.40019e-05};
-        const std::array<double, 8> expected_RHS{-59.4368,-34.6289,9.94865,6.20196,-4.33659,-3.63508,-0.38264,0.175377};
-
-        for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
-        }
-        for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
-        }
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(TEMPERATURE);
     }
+    p_support_condition->Initialize(r_process_info);
+    Matrix left_hand_side_matrix;
+    Vector right_hand_side_vector;
+    p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
-    // Tests the stiffness matrix of the SBMLaplacianCondition
-    KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penalty, KratosIgaFastSuite)
-    {
-        Model model;
-        auto &r_model_part = model.CreateModelPart("ModelPart");
+    //Check RHS and LHS results
+    const double tolerance = 1.0e-4;
 
-        // Set buffer size
-        r_model_part.SetBufferSize(2);
+    const std::array<double, 8> expected_LHS{-0.403943,-0.225679,0.0772782,0.044566,-0.0407768,-0.0411528,-0.0105702,-9.40019e-05};
+    const std::array<double, 8> expected_RHS{-59.4368,-34.6289,9.94865,6.20196,-4.33659,-3.63508,-0.38264,0.175377};
 
-        // Set convection diffusion settings
-        auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-        p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-        p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-        // Variables addition
-        r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
-
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-
-        double penalty = 10.0;
-
-        IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-        std::string boundary_condition_type = "dirichlet";
-
-        auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
-
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(TEMPERATURE);
-        }
-        p_support_condition->Initialize(r_process_info);
-        Matrix left_hand_side_matrix;
-        Vector right_hand_side_vector;
-        p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
-
-        //Check RHS and LHS results
-        const double tolerance = 1.0e-3;
-
-        const std::array<double, 8> expected_LHS{3.77237,2.03571,-0.793567,-0.434165,0.464875,0.506637,0.15798,0.0104404};
-        const std::array<double, 8> expected_RHS{566.308,304.199,-120.532,-65.5272,71.4262,78.4413,24.8716,1.75377};
-
-        for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
-        }
-        for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
-        }
+    for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
+      KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
     }
+    for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
+      KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+    }
+}
+
+// Tests the stiffness matrix of the SBMLaplacianCondition
+KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penalty, KratosIgaFastSuite)
+{
+    Model model;
+    auto &r_model_part = model.CreateModelPart("ModelPart");
+
+    // Set buffer size
+    r_model_part.SetBufferSize(2);
+
+    // Set convection diffusion settings
+    auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
+    p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
+    p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
+    p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
+    // Variables addition
+    r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+
+    double penalty = 10.0;
+
+    IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
+    std::string boundary_condition_type = "dirichlet";
+
+    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(TEMPERATURE);
+    }
+    p_support_condition->Initialize(r_process_info);
+    Matrix left_hand_side_matrix;
+    Vector right_hand_side_vector;
+    p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
+
+    //Check RHS and LHS results
+    const double tolerance = 1.0e-3;
+
+    const std::array<double, 8> expected_LHS{3.77237,2.03571,-0.793567,-0.434165,0.464875,0.506637,0.15798,0.0104404};
+    const std::array<double, 8> expected_RHS{566.308,304.199,-120.532,-65.5272,71.4262,78.4413,24.8716,1.75377};
+
+    for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
+      KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
+    }
+    for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
+      KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+    }
+}
 
 
-    // Tests the stiffness matrix of the SBMLaplacianCondition -> NEUMANN TYPE
-    KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_Neumann, KratosIgaFastSuite)
-    {
-        Model model;
-        auto &r_model_part = model.CreateModelPart("ModelPart");
+// Tests the stiffness matrix of the SBMLaplacianCondition -> NEUMANN TYPE
+KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_Neumann, KratosIgaFastSuite)
+{
+    Model model;
+    auto &r_model_part = model.CreateModelPart("ModelPart");
 
-        // Set buffer size
-        r_model_part.SetBufferSize(2);
+    // Set buffer size
+    r_model_part.SetBufferSize(2);
 
-        // Set convection diffusion settings
-        auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-        p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-        p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-        // Variables addition
-        r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+    // Set convection diffusion settings
+    auto p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
+    p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
+    p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
+    p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
+    // Variables addition
+    r_model_part.AddNodalSolutionStepVariable(CONDUCTIVITY);
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
+    r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
-        const auto& r_process_info = r_model_part.GetProcessInfo();
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        double penalty = -1;
+    double penalty = -1;
 
-        IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-        std::string boundary_condition_type = "neumann";
+    IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
+    std::string boundary_condition_type = "neumann";
 
-        auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
 
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(TEMPERATURE);
-        }
-        p_support_condition->Initialize(r_process_info);
-        Matrix left_hand_side_matrix;
-        Vector right_hand_side_vector;
-        p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(TEMPERATURE);
+    }
+    p_support_condition->Initialize(r_process_info);
+    Matrix left_hand_side_matrix;
+    Vector right_hand_side_vector;
+    p_support_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
-        //Check RHS and LHS results
-        const double tolerance = 1.0e-4;
+    //Check RHS and LHS results
+    const double tolerance = 1.0e-4;
 
-        const std::array<double, 8> expected_LHS{-0.0189816,-0.00803494,0.00620128,0.00273667,0.00463952,0.00803494,0.0045553,0.000848855};
-        const std::array<double, 8> expected_RHS{0.0125166,0.0187749,0.00938743,0.00156457,0.000658767,0.000988151,0.000494075,8.23459e-05};
+    const std::array<double, 8> expected_LHS{-0.0189816,-0.00803494,0.00620128,0.00273667,0.00463952,0.00803494,0.0045553,0.000848855};
+    const std::array<double, 8> expected_RHS{0.0125166,0.0187749,0.00938743,0.00156457,0.000658767,0.000988151,0.000494075,8.23459e-05};
 
-        for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
-        }
-        for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
-        }
+    for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
+      KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
+    }
+    for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
+      KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
     }
 }
 }
