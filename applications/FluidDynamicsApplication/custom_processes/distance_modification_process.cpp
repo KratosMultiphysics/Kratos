@@ -145,6 +145,9 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop()
 
 void DistanceModificationProcess::ExecuteInitializeSolutionStep()
 {
+    printf("ANDREA - IN DIST-MOD-PROC--EXECUTEINITIALIZESOLUTIONSTEP\n");
+
+
     if(!mIsModified){
         // Modify the nodal distance values to avoid bad intersections
         if (mContinuousDistance) {

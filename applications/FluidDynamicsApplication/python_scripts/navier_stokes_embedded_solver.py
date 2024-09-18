@@ -566,9 +566,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         distance_modification_settings = self.settings["distance_modification_settings"]
         distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
         if len(self.settings["volume_model_part_name"].GetString().split(".")) == 1:
+            print("ANDREA - DIST-MOD-PROC OK")
             aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
             IssueDeprecationWarning("NavierStokesEmbeddedMonolithicSolver", "Partial model part name found in 'volume_model_part_name'. Please provide full model part names.")
         else:
+            print("ANDREA - DIST-MOD-PROC NO")
             aux_full_volume_part_name = self.settings["volume_model_part_name"].GetString()
         distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
         return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
@@ -631,7 +633,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 self.fm_ale_step += 1
 
     def __SetVirtualMeshValues(self):
+        print("ANDREA - PRIMA DI SETVIRTUALMESH")
         if self.__IsFmAleStep():
+            print("ANDREA - NELL'IF DI GET_FM_ALE")
             # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
             self.__GetFmAleUtility().SetVirtualMeshValuesFromOriginMesh()
 

@@ -374,6 +374,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 template <class TBaseElement>
 void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const
 {
+    printf("ANDREA - CUT ELEMENT\n");
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
 
@@ -432,6 +433,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(Embe
 template <class TBaseElement>
 void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const
 {
+    printf("ANDREA - INCISE ELEMENT\n");
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
     // Auxiliary edge distance vector of extrapolated intersecting geometry for the element subdivision utility

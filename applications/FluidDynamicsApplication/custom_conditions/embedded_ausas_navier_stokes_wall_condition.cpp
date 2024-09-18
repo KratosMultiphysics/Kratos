@@ -122,6 +122,8 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLH
     const unsigned int LocalSize = TDim+1;
     noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
+
+    printf("ANDREA - AUSAS WALL CONDITIONS\n");
     // LHS boundary term coming from the integration by parts of the mass conservation equation
     for (unsigned int i=0; i<TNumNodes; ++i)
     {

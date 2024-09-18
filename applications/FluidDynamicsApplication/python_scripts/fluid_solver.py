@@ -129,6 +129,7 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        print("ANDREA - INITIALIZE SOLUTION STEP (SUPER)")
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
