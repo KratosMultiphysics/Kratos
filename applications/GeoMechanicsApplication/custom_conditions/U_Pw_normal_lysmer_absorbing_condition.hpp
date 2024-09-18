@@ -85,12 +85,11 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-    * @brief Calculates LHS stiffness part of absorbing boundary
-    * @param rLeftHandSideMatrix Global left hand side matrix
-    * @param rCurrentProcessInfo Current process information
-    */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+     * @brief Calculates LHS stiffness part of absorbing boundary
+     * @param rLeftHandSideMatrix Global left hand side matrix
+     * @param rCurrentProcessInfo Current process information
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculates LHS Damping part of absorbing boundary
@@ -110,14 +109,6 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override;
-
-	/**
-	* @brief Calculates LHS stiffness part of absorbing boundary
-	* @param rLeftHandSideMatrix Global left hand side matrix
-	* @param rCurrentProcessInfo Current process information
-    */
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
