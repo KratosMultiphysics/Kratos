@@ -107,7 +107,11 @@ public:
     /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used</param>
     /// <returns></returns>
     GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
-        ModelPart& rModelPart, double RelativeTollerance, double AbsoluteTollerance, bool CalculateInitialSecondDerivative, bool UseDirectSolver)
+        ModelPart& rModelPart,
+        double     RelativeTollerance,
+        double     AbsoluteTollerance,
+        bool       CalculateInitialSecondDerivative,
+        bool       UseDirectSolver) const
     {
         double beta  = 0.25;
         double gamma = 0.5;

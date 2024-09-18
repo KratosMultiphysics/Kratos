@@ -174,11 +174,9 @@ public:
             mCopyExternalForceVector = true;
         }
 
-        std::cout << "add dynamics lhs" << std::endl;
         // only add dynamics to lhs after calculating intial force vector
         this->AddDynamicsToLhs(rA, rModelPart);
 
-        std::cout << "init sol linear solver" << std::endl;
         // this approach is not working for all solvers, this approach is meant for solvers which can be prefactorized.
         // For future reference, use BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart) instead of the following lines if a non compatible solver is required.
         BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, dummy_rDx, rb);
