@@ -16,6 +16,8 @@
 #include "geometries/geometry.h"
 #include "includes/node.h"
 
+#include <algorithm>
+
 namespace Kratos
 {
 
@@ -239,6 +241,13 @@ private:
     {
         const auto points                  = this->Points();
         const auto number_of_midline_nodes = std::size_t{points.size() / 2};
+
+        auto is_null = [](const auto& rNodePtr) { return rNodePtr.get() == nullptr; };
+        if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
+            // At least one point is not defined, so the points of the mid-line can't be computed.
+            // As a result, all the mid-line points will be undefined.
+            return PointerVector<Node>{number_of_midline_nodes};
+        }
 
         auto result = PointerVector<Node>{};
         for (std::size_t i = 0; i < number_of_midline_nodes; ++i) {

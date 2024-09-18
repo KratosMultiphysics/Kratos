@@ -61,6 +61,18 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSu
     KRATOS_EXPECT_NE(base_geometry, nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // The following constructor input data resembles what is done at element registration time
+    const auto six_null_pointers_to_nodes = Geometry<Node>::PointsArrayType{6};
+
+    const auto geometry = LineInterfaceGeometry<Line2D3<Node>>{six_null_pointers_to_nodes};
+
+    KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
+    KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto          geometry = LineInterfaceGeometry<Line2D2<Node>>();
