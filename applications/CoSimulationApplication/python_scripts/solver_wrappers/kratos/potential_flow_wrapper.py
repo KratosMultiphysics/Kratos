@@ -41,7 +41,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
-        self.wake_process.ExecuteInitialize()
+        # self.wake_process.ExecuteInitialize()
 
         ## the next two lines are needed in order to add Wake DoFs to the new Wake Elements Nodes
         ## and delete the ones that are no longer in the Wake Region.
