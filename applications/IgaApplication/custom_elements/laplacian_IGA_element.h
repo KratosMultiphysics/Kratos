@@ -92,15 +92,35 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
+    /**
+     * @brief This function provides a more general interface to the element.
+     * @details It is designed so that rLHSvariables and rRHSvariables are
+     *          passed to the element thus telling what is the desired output
+     * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+     * @param rRightHandSideVector container for the desired RHS output
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector, 
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition left hand side matrix
+    * @param rLeftHandSideMatrix the condition left hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix, 
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition right hand side matrix
+    * @param rLeftHandSideMatrix the condition right hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector, 
         const ProcessInfo& rCurrentProcessInfo) override;

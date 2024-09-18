@@ -72,7 +72,6 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    const auto& r_unknown_var = p_settings->GetUnknownVariable();
     
     const double penalty = GetProperties()[PENALTY_FACTOR];
 

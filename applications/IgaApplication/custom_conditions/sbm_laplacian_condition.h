@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
+#pragma once
+
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"
@@ -149,19 +151,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
-    void CalculateAllDirichlet(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
-
-    void CalculateAllNeumann(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
-
-
     ///@}
     ///@name Check
     ///@{
@@ -171,13 +160,37 @@ public:
 
     BoundaryConditionType GetBoundaryConditionType(const std::string& rType);
 
+    /**
+     * @brief Compute the factorial of a positive integer n
+     * 
+     * @param n 
+     * @return unsigned long long 
+     */
     unsigned long long factorial(IndexType n); 
 
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
     double computeTaylorTerm(
         double derivative, 
         double dx, IndexType k, 
         double dy, IndexType n_k);
 
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
     double computeTaylorTerm3D(
         double derivative, 
         double dx, IndexType k_x, 
@@ -225,6 +238,32 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
+    
+    /**
+     * @brief Calculate All for Dirichlet boundary conditions
+     * 
+     * @param rLeftHandSideMatrix 
+     * @param rRightHandSideVector 
+     * @param rCurrentProcessInfo 
+     */
+    void CalculateAllDirichlet(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+    /**
+     * @brief Calculate All for Neumann boundary conditions
+     * 
+     * @param rLeftHandSideMatrix 
+     * @param rRightHandSideVector 
+     * @param rCurrentProcessInfo 
+     */
+    void CalculateAllNeumann(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+    );
 
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;

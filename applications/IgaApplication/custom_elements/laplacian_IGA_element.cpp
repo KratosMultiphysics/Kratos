@@ -106,9 +106,7 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
     const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
-    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
 
     // reading integration points and local gradients
     const auto& r_geometry = GetGeometry();
@@ -128,7 +126,6 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     Matrix DN_DX(number_of_points,dim);
     Vector temp(number_of_points);
 
-    const double heat_flux = this->GetValue(r_volume_source_var);
     const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
     for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
@@ -154,8 +151,6 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
 
     // reading integration points and local gradients
@@ -177,7 +172,6 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
     Vector temp(number_of_points);
 
     const double heat_flux = this->GetValue(r_volume_source_var);
-    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
     for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
     {
