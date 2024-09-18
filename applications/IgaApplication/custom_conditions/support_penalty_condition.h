@@ -113,8 +113,11 @@ namespace Kratos
 
             MatrixType left_hand_side_matrix;
 
-            CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-                rCurrentProcessInfo, false, true);
+            if((rCurrentProcessInfo[RESIDUAL_NORM] == 0 || rCurrentProcessInfo[RESIDUAL_NORM] > 1e-9) && (rCurrentProcessInfo[CONVERGENCE_RATIO] == 0 || rCurrentProcessInfo[CONVERGENCE_RATIO] > 0.0001))
+            {
+                CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+                    rCurrentProcessInfo, false, true);
+            }
         }
 
         /**
@@ -165,6 +168,19 @@ namespace Kratos
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo, true, true);
         }
+
+        /**
+         * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable.
+         * @param rRHSVector input variable containing the RHS vector to be assembled
+         * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+         * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+         * @param rCurrentProcessInfo The current process info instance
+         */
+        void AddExplicitContribution(const VectorType& rRHS,
+            const Variable<VectorType>& rRHSVariable,
+            const Variable<array_1d<double,3> >& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -233,6 +249,23 @@ namespace Kratos
         ///@}
 
     private:
+        // Compute rotational shape functions
+        void CalculateRotationalShapeFunctions(
+            IndexType IntegrationPointIndex,
+            Vector& phi_r,
+            Matrix& phi_rs,
+            array_1d<double, 2>& diff_phi);
+
+        // Compute rotation
+        void CalculateRotation(
+            IndexType IntegrationPointIndex,
+            const Matrix &rShapeFunctionGradientValues,
+            Vector &phi_r,
+            Matrix &phi_rs,
+            array_1d<double, 2> &phi,
+            array_1d<double, 3> &trim_tangent,
+            const Vector &local_tangent);
+            
         ///@name Serialization
         ///@{
 
