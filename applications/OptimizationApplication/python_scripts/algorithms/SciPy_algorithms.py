@@ -8,9 +8,9 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
-import scipy.optimize
+
 import numpy as np
-from scipy.optimize import NonlinearConstraint
+
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
 
 try:
@@ -18,6 +18,8 @@ try:
 except ImportError:
     raise Exception("SciPy python library is not available")
 
+import scipy.optimize
+from scipy.optimize import NonlinearConstraint
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return SciPyAlgorithms(model, parameters, optimization_problem)
@@ -33,16 +35,16 @@ class SciPyAlgorithms(Algorithm):
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
             "objective"         : {},
-            "constraints"         : [],
+            "constraints"       : [],
             "controls"          : [],
             "echo_level"        : 0,
-            "SciPy_settings"          : {
+            "SciPy_settings"    : {
                 "method"      : "",
                 "lower_bound" : -1e16,
                 "upper_bound" : 1e16,
                 "options"     : {}
-                }
-            }""")
+            }
+        }""")
 
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         self.model = model
@@ -114,16 +116,16 @@ class SciPyAlgorithms(Algorithm):
             res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, options=self.__GetOptions(), callback=self.Output, bounds=self.bounds)
         elif self.__scipy_constraints:
             res = scipy.optimize.minimize(self.__objective.CalculateStandardizedValue, self.x0, method=self.SciPy_settings["method"].GetString(), jac=self.__objective.CalculateStandardizedGradient, constraints=self.__scipy_constraints, options=self.__GetOptions(), callback=self.Output, bounds=self.bounds)
-        print("res::success: ", res.success)
-        print("res::status: ", res.status)
-        print("res::message: ", res.message)
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"res::success: {res.success}")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"res::status: {res.status}")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"res::message: {res.message}")
 
     @time_decorator()
     def Output(self, *args) -> KratosOA.CollectiveExpression:
         # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
         if self.__objective.computed:
 
-            print(f"Output iteration {self._optimization_problem.GetStep()}")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self._optimization_problem.GetStep()}")
 
             shape = [c.GetItemShape() for c in self.__control_field.GetContainerExpressions()]
             KratosOA.CollectiveExpressionIO.Read(self.__control_field, args[0], shape)
@@ -141,7 +143,6 @@ class SciPyAlgorithms(Algorithm):
             self.__objective.computed = False
 
     def __GetOptions(self):
-        Kratos.Parameters
         options = self.SciPy_settings["options"]
         dict_options = dict()
         for key in options.keys():
@@ -153,4 +154,6 @@ class SciPyAlgorithms(Algorithm):
                 dict_options[key] = options[key].GetInt()
             elif options[key].IsString():
                 dict_options[key] = options[key].GetString()
+            else:
+                raise RuntimeError(f"Unsupported data type with key = \"{key}\" [ value = {options[key]} ].")
         return dict_options
