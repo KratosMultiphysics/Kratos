@@ -120,6 +120,7 @@ class SciPyAlgorithms(Algorithm):
 
     @time_decorator()
     def Output(self, *args) -> KratosOA.CollectiveExpression:
+        # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
         if self.__objective.computed:
 
             print(f"Output iteration {self._optimization_problem.GetStep()}")
