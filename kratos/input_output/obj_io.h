@@ -174,11 +174,13 @@ private:
      * @param rThisModelPart Reference to the model part to read into.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
      * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ReadVerticesAndFaces(
         ModelPart& rThisModelPart,
         const std::string& rEntityType = "element",
-        const bool NormalAsHistoricalVariable = false
+        const bool NormalAsHistoricalVariable = false,
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
@@ -211,11 +213,13 @@ private:
      * @param rThisModelPart Reference to the model part.
      * @param rLine The line containing the face data.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ParseFaceLine(
         ModelPart& rThisModelPart,
         const std::string& rLine,
-        const std::string& rEntityType = "element"
+        const std::string& rEntityType = "element",
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
