@@ -102,9 +102,10 @@ class ImportOBJModeler(KratosMultiphysics.Modeler):
             "input_filename"  : "",
             "model_part_name" : "",
             "obj_io_settings"  : {
-                "open_mode"            : "read",
-                "entity_type"          : "element",
-                "normal_as_historical" : false
+                "open_mode"                      : "read",
+                "entity_type"                    : "element",
+                "decompose_quads_into_triangles" : false,
+                "normal_as_historical"           : false
             }
         }''')
         return default_settings
