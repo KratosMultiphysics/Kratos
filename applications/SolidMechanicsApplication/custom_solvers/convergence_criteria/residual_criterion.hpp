@@ -136,6 +136,10 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
                     const SystemVectorType& rb
                     ) override
   {
+    if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <= 1) {
+      this->Set(LocalFlagType::INITIALIZED, false);
+    }
+
     if (TSparseSpace::Size(rb) != 0) //if we are solving for something
     {
 
