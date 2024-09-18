@@ -26,7 +26,7 @@ class PYROLAlgorithms():
             "constraints"         : [],
             "controls"          : [],
             "echo_level"        : 0,
-            "settings"          : {}
+            "settings_file"      : ""
         }""")
     
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
