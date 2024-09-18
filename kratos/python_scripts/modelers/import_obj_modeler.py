@@ -38,7 +38,7 @@ class ImportOBJModeler(KratosMultiphysics.Modeler):
         super().__init__(model, settings)
 
         # Cannot validate as settings may differ among input types
-        settings.AddMissingParameters(self.__GetDefaultSettings())
+        settings.RecursivelyAddMissingParameters(self.__GetDefaultSettings())
 
         # Declare required member variables
         self.model_part = None
