@@ -170,7 +170,16 @@ public:
         const ProcessInfo& rProcessInfo
         ) override;
 
-
+    /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
     /**
      * @brief This method computes the stress and constitutive tensor
      * @param rValues The norm of the deviation stress
@@ -259,7 +268,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     Vector mEquivalentStrains;
-    Vector mDamageVector;
+    Vector mDamageVector = ZeroVector(3);
     ///@}
 
     ///@name Protected Operators
@@ -331,6 +340,10 @@ protected:
                                          const Vector& StrainVector,
                                          const BoundedVectorType& PrincipalStrains
                                          );
+    void TransformPrincipalDamageToGlobal(BoundedMatrixType& DamageTensor,
+                                                    const BoundedVectorType& PrinicipalDamageVector,
+                                                    const Vector& StrainVector
+                                                    );
     /**
      * @brief this method scales the nonlocal equivalent strains to principal direction componenets based on principal strains
      * @param Principal_Nonlocal_Equivalent_Strain
@@ -469,7 +482,7 @@ private:
 
     ///@name Member Variables
     ///@{
-
+    const Variable<double>* mpEquivalencePrincipleType;
     ///@}
 
     ///@name Private Operators

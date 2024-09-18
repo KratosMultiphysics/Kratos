@@ -9,12 +9,13 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Author:    athira vadakkekkara
-// Note: M - new  one, Principle of strain equivalence, damage driving variables in compression is changed from absolute values of
-// principal strain to absolute values of deviatoric strains
+// damage in tension due to principal strain componenets and damage in compression due to principal deviatoric strain componenets
+// (all absolute values) - not working- in uniaxial comp, damage starts very early in tension along the loading direction, with k0t = ft/E
+
 
 
 // Project includes
-#include "elastic_local_anisotropic_damage_3d.h"
+#include "elastic_local_anisotropic_damage_3d_tension_compression.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
@@ -28,7 +29,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage::ElasticAnisotropicDamage()
+ElasticLocalAnisotropicDamage3DTensionCompression::ElasticLocalAnisotropicDamage3DTensionCompression()
     : ElasticIsotropic3D()
 {
 }
@@ -36,7 +37,7 @@ ElasticAnisotropicDamage::ElasticAnisotropicDamage()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage::ElasticAnisotropicDamage(const ElasticAnisotropicDamage &rOther)
+ElasticLocalAnisotropicDamage3DTensionCompression::ElasticLocalAnisotropicDamage3DTensionCompression(const ElasticLocalAnisotropicDamage3DTensionCompression &rOther)
     : ElasticIsotropic3D(rOther)
 {
 }
@@ -44,22 +45,22 @@ ElasticAnisotropicDamage::ElasticAnisotropicDamage(const ElasticAnisotropicDamag
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer ElasticAnisotropicDamage::Clone() const
+ConstitutiveLaw::Pointer ElasticLocalAnisotropicDamage3DTensionCompression::Clone() const
 {
-    return Kratos::make_shared<ElasticAnisotropicDamage>(ElasticAnisotropicDamage(*this));
+    return Kratos::make_shared<ElasticLocalAnisotropicDamage3DTensionCompression>(ElasticLocalAnisotropicDamage3DTensionCompression(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage::~ElasticAnisotropicDamage()
+ElasticLocalAnisotropicDamage3DTensionCompression::~ElasticLocalAnisotropicDamage3DTensionCompression()
 {
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-int ElasticAnisotropicDamage::Check(
+int ElasticLocalAnisotropicDamage3DTensionCompression::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -80,25 +81,11 @@ int ElasticAnisotropicDamage::Check(
 //************************************************************************************
 //************************************************************************************
 
-bool ElasticAnisotropicDamage::Has(const Variable<double>& rThisVariable)
+bool ElasticLocalAnisotropicDamage3DTensionCompression::Has(const Variable<Vector>& rThisVariable)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        // explicitly returning "false", so the element calls CalculateValue(...)
-        return false;
-    } else if(rThisVariable == DAMAGE_VARIABLE){
-        return false;
-    }
-
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool ElasticAnisotropicDamage::Has(const Variable<Vector>& rThisVariable)
-{
-    if(rThisVariable == INTERNAL_VARIABLES){
-        // explicitly returning "false", so the element calls CalculateValue(...)s
+    if(rThisVariable == STRAIN_HISTORY_VARIABLES_TENSION){
+        return true;
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES_COMPRESSION){
         return true;
     } else if(rThisVariable == STRAIN){
         // explicitly returning "false", so the element calls CalculateValue(...)
@@ -112,7 +99,7 @@ bool ElasticAnisotropicDamage::Has(const Variable<Vector>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-Vector& ElasticAnisotropicDamage::GetValue(
+Vector& ElasticLocalAnisotropicDamage3DTensionCompression::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValues
     )
@@ -120,8 +107,10 @@ Vector& ElasticAnisotropicDamage::GetValue(
     KRATOS_TRY
     if(rThisVariable == DAMAGE_VECTOR){
         rValues = mDamageVector;
-    }else if(rThisVariable == INTERNAL_VARIABLES){
-        rValues = mStrainVariables;
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES_TENSION){
+        rValues = mStrainVariables_tension;
+    }else if (rThisVariable == STRAIN_HISTORY_VARIABLES_COMPRESSION){
+        rValues = mStrainVariables_compression;
     }
     return rValues;
     KRATOS_CATCH("")
@@ -130,7 +119,7 @@ Vector& ElasticAnisotropicDamage::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::SetValue(
+void ElasticLocalAnisotropicDamage3DTensionCompression::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValues,
     const ProcessInfo& rProcessInfo
@@ -146,7 +135,7 @@ void ElasticAnisotropicDamage::SetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::InitializeMaterial(
+void ElasticLocalAnisotropicDamage3DTensionCompression::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -158,29 +147,31 @@ void ElasticAnisotropicDamage::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::FinalizeMaterialResponseCauchy(
+void ElasticLocalAnisotropicDamage3DTensionCompression::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
     Vector damage_vector;
-    Vector strain_variables;
-    this->CalculateStressResponse(rParametersValues, damage_vector, strain_variables);
+    Vector strain_variables_tension;
+    Vector strain_variables_compression;
+    this->CalculateStressResponse(rParametersValues, damage_vector, strain_variables_tension, strain_variables_compression);
     mDamageVector = damage_vector;
-    mStrainVariables = strain_variables;
-
+    mStrainVariables_tension = strain_variables_tension;
+    mStrainVariables_compression = strain_variables_compression;
     KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::CalculateMaterialResponsePK2(
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
     Vector damage_vector;
-    Vector strain_variables;
-    CalculateStressResponse(rParametersValues, damage_vector, strain_variables);
+    Vector strain_variables_tension;
+    Vector strain_variables_compression;
+    CalculateStressResponse(rParametersValues, damage_vector, strain_variables_tension, strain_variables_compression);
 
     KRATOS_CATCH("")
 }
@@ -188,10 +179,11 @@ void ElasticAnisotropicDamage::CalculateMaterialResponsePK2(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::CalculateStressResponse(
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rDamageVector,
-    Vector& rStrainVariables)
+    Vector& rStrainVariablesTension,
+    Vector& rStrainVariablesCompression)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
@@ -199,13 +191,13 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
     //KRATOS_WATCH(r_strain_vector)
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
-    rStrainVariables = mStrainVariables;
+    rStrainVariablesTension = mStrainVariables_tension;
+    rStrainVariablesCompression = mStrainVariables_compression;
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
-        //KRATOS_WATCH(r_strain_vector)
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
@@ -216,72 +208,78 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
-        Vector damage_vector= ZeroVector(3);
-        BoundedVectorType Spr = ZeroVector(3);
-        BoundedVectorType k0 = ZeroVector(3);
-        BoundedVectorType beta1 = ZeroVector(3);
-        BoundedVectorType beta2 = ZeroVector(3);
-        BoundedVectorType kappa = ZeroVector(3);
-        BoundedVectorType F     = ZeroVector(3);
-        BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6);
-        BoundedMatrix3x6Type dEprdE = ZeroMatrix(3,6);
-        BoundedMatrixType dkdEpr = ZeroMatrix(3,3);
-        array_1d<BoundedMatrix<double, 6, 6>, 3> dHdk;
-        for (SizeType i = 0; i < Dimension; ++i){
-            dHdk[i] = ZeroMatrix(6,6);
-        }
-        Vector max_history_e = ZeroVector(3);
-
-        const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
-        const double k0c =(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10/3)* ft/E;
+        Vector principal_damage_vector_tension= ZeroVector(3);
+        Vector principal_damage_vector_compression= ZeroVector(3);
+        BoundedVectorType kappa_tension = ZeroVector(3);
+        BoundedVectorType kappa_compression = ZeroVector(3);
+        BoundedVectorType F_tension     = ZeroVector(3);
+        BoundedVectorType F_compression     = ZeroVector(3);
         BoundedVectorType principal_strains = ZeroVector(3);
         BoundedVectorType deviatoric_strains = ZeroVector(3);
-        BoundedVectorType damage_driving_variable = ZeroVector(3);
-        GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate prinicpal strains
-        GetPrincipalDeviatoricStrains(deviatoric_strains, r_strain_vector, principal_strains);
+        Vector max_history_strain_variables_tension = ZeroVector(3);
+        Vector max_history_strain_variables_compression  = ZeroVector(3);
+        const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
+        const double k0c =(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10/3)* ft/E;
+        BoundedMatrixVoigtType EffectiveStiffnessMatrix = ZeroMatrix(6, 6);
+
+        GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate principal strains
+        GetPrincipalDeviatoricStrains(deviatoric_strains, r_strain_vector, principal_strains);//calculate principal deviatoric strains
+        // //spectral decomposition
+        // array_1d<double, VoigtSize> strain_tension, strain_compression;
+        // AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(r_strain_vector, strain_tension, strain_compression);
+        // BoundedVectorType principal_strain_tension = ZeroVector(3);
+        // BoundedVectorType principal_strain_compression = ZeroVector(3);
+        // GetEigenValues(principal_strain_tension, STRAIN, strain_tension);
+        // GetEigenValues(principal_strain_compression, STRAIN, strain_compression);
+        //compute damage in tension
         for(SizeType i = 0; i < Dimension; ++i) {
-            k0[i] = (principal_strains[i] > 0) ? k0t : k0c;
-            beta1[i] = (principal_strains[i] > 0) ? beta1t : beta1c;
-            beta2[i] = (principal_strains[i] > 0) ? beta2t : beta2c;
-            damage_driving_variable[i] =  (principal_strains[i] > 0) ? principal_strains[i] : fabs(deviatoric_strains[i]);
-            max_history_e[i] = std::max(mStrainVariables[i], damage_driving_variable[i]);
-            kappa[i] = std::max(max_history_e[i], k0[i]);
-            F[i] = damage_driving_variable[i]-kappa[i];
-        }
-        //Compute damage in principal directions
-        for (SizeType i = 0; i < Dimension; ++i) {
-            if (F[i]<0) {
-                damage_vector[i]=0.0;
+            max_history_strain_variables_tension[i] = std::max(mStrainVariables_tension[i], fabs(principal_strains[i]));
+            kappa_tension[i] = std::max(max_history_strain_variables_tension[i],k0t);
+            F_tension[i] = fabs(principal_strains[i]) - kappa_tension[i];
+            if(F_tension[i]< 0){
+                principal_damage_vector_tension[i] = 0.0;
             }else{
-                const double var1      = pow((k0[i]/kappa[i]),beta1[i]);
-                const double var2      = exp(-beta2[i]*((kappa[i]-k0[i])/(k0[i])));
-                damage_vector[i] = 1.0 - var1 * var2;
+                principal_damage_vector_tension[i] = 1 - (pow((k0t/kappa_tension[i]),beta1t)) * (exp(-beta2t*((kappa_tension[i]-k0t)/(k0t))));
             }
         }
-        //KRATOS_WATCH(damage_vector)
-        if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
-            CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
-            noalias(r_stress_vector) = prod(EffStiffnessMatrix,r_strain_vector);
+        //compute damage in compression
+        for(SizeType i = 0; i < Dimension; ++i) {
+            max_history_strain_variables_compression[i] = std::max(mStrainVariables_compression[i], fabs(deviatoric_strains[i]));
+            kappa_compression[i] = std::max(max_history_strain_variables_compression[i],k0c);
+            F_compression[i] = fabs(deviatoric_strains[i]) - kappa_compression[i];
+            if(F_compression[i]< 0){
+                principal_damage_vector_compression[i] = 0.0;
+            }else{
+                principal_damage_vector_compression[i] = 1 - (pow((k0c/kappa_compression[i]),beta1c)) * (exp(-beta2c*((kappa_compression[i]-k0c)/(k0c))));
+            }
+        }
+        if(principal_damage_vector_tension[0] > 0.0 || principal_damage_vector_tension[1] > 0.0 || principal_damage_vector_tension[2] > 0.0 || principal_damage_vector_compression[0] > 0.0 || principal_damage_vector_compression[1] > 0.0 || principal_damage_vector_compression[2] > 0.0){
+            CalculateEffectiveStiffnessMatrix(rParametersValues, EffectiveStiffnessMatrix, principal_damage_vector_tension, principal_damage_vector_compression);
+            noalias(r_stress_vector) = prod(EffectiveStiffnessMatrix,r_strain_vector);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rParametersValues);
-
-                // CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
-                // const BoundedMatrix3x6Type dkdE = prod(dkdEpr, dEprdE);
-                // array_1d<BoundedMatrix<double, 6, 6>, 6> dHdE;
-                // for (SizeType i = 0; i < VoigtSize; ++i){
-                // dHdE[i] = ZeroMatrix(6,6);
-                // }
-                // GetdHdE(dHdE, dHdk, dkdE);
-                // BoundedMatrixVoigtType dSdE = ZeroMatrix(6,6);
-                // MultiplyTensors(dSdE, dHdE, r_strain_vector);
-                // noalias(r_constitutive_matrix) = EffStiffnessMatrix + dSdE;
-                // KRATOS_WATCH(dSdE)
-                // KRATOS_WATCH(r_constitutive_matrix)
             }
+
+            // BoundedMatrix3x6Type dEprdE = ZeroMatrix(3,6);
+            // BoundedMatrixType dkdEpr = ZeroMatrix(3,3);
+            // array_1d<BoundedMatrix<double, 6, 6>, 3> dHdk;
+            // for (SizeType i = 0; i < Dimension; ++i){
+            //     dHdk[i] = ZeroMatrix(6,6);
+            // }
+            // CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
+            // const BoundedMatrix3x6Type dkdE = prod(dkdEpr, dEprdE);
+            // array_1d<BoundedMatrix<double, 6, 6>, 6> dHdE;
+            // for (SizeType i = 0; i < VoigtSize; ++i){
+            // dHdE[i] = ZeroMatrix(6,6);
+            // }
+            // GetdHdE(dHdE, dHdk, dkdE);
+            // BoundedMatrixVoigtType dSdE = ZeroMatrix(6,6);
+            // MultiplyTensors(dSdE, dHdE, r_strain_vector);
+            // noalias(r_constitutive_matrix) = EffStiffnessMatrix + dSdE;
         }
-        rDamageVector = damage_vector;
-        rStrainVariables = max_history_e;
-        //KRATOS_WATCH(r_stress_vector)
+        rDamageVector = principal_damage_vector_tension + principal_damage_vector_compression;
+        rStrainVariablesTension = max_history_strain_variables_tension;
+        rStrainVariablesCompression = max_history_strain_variables_compression;
         //KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         //KRATOS_WATCH("-------------------------------------------");
         }
@@ -292,7 +290,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::TensorProduct6(
+void ElasticLocalAnisotropicDamage3DTensionCompression::TensorProduct6(
     Matrix& rOutput,
     const Vector& rVector1,
     const Vector& rVector2)
@@ -315,7 +313,7 @@ void ElasticAnisotropicDamage::TensorProduct6(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::GetEigenValues(
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetEigenValues(
     BoundedVectorType& Pri_Values,
     const Variable<Vector>& rThisVariable,
     const Vector& VectorForm)
@@ -335,7 +333,7 @@ void ElasticAnisotropicDamage::GetEigenValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticAnisotropicDamage::GetPrincipalDeviatoricStrains(
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetPrincipalDeviatoricStrains(
     BoundedVectorType& PrincipalDeviatoricStrains,
     const Vector& StrainVector,
     const BoundedVectorType& PrincipalStrains
@@ -353,7 +351,41 @@ void ElasticAnisotropicDamage::GetPrincipalDeviatoricStrains(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticAnisotropicDamage::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateEffectiveStiffnessMatrix(ConstitutiveLaw::Parameters& rParametersValues,
+    BoundedMatrixVoigtType& EffectiveStiffnessMatrix,
+    const Vector& PrincipalDamagevectorTension,
+    const Vector& PrincipalDamagevectorCompression)
+{
+    Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
+    CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
+    BoundedMatrixVoigtType Inverse_M_tension = ZeroMatrix(6,6);
+    BoundedMatrixVoigtType Inverse_M_compression = ZeroMatrix(6,6);
+    BoundedMatrixVoigtType Inverse_M = ZeroMatrix(6,6);
+    Inverse_M_tension(0,0) = 1 -PrincipalDamagevectorTension[0];
+    Inverse_M_tension(1,1) = 1 -PrincipalDamagevectorTension[1];
+    Inverse_M_tension(2,2) = 1 -PrincipalDamagevectorTension[2];
+    Inverse_M_tension(3,3) = sqrt ((1-PrincipalDamagevectorTension[0])*(1-PrincipalDamagevectorTension[1]));
+    Inverse_M_tension(4,4) = sqrt ((1-PrincipalDamagevectorTension[1])*(1-PrincipalDamagevectorTension[2]));
+    Inverse_M_tension(5,5) = sqrt ((1-PrincipalDamagevectorTension[0])*(1-PrincipalDamagevectorTension[2]));
+    Inverse_M_compression(0,0) = 1 -PrincipalDamagevectorCompression[0];
+    Inverse_M_compression(1,1) = 1 -PrincipalDamagevectorCompression[1];
+    Inverse_M_compression(2,2) = 1 -PrincipalDamagevectorCompression[2];
+    Inverse_M_compression(3,3) = sqrt ((1-PrincipalDamagevectorCompression[0])*(1-PrincipalDamagevectorCompression[1]));
+    Inverse_M_compression(4,4) = sqrt ((1-PrincipalDamagevectorCompression[1])*(1-PrincipalDamagevectorCompression[2]));
+    Inverse_M_compression(5,5) = sqrt ((1-PrincipalDamagevectorCompression[0])*(1-PrincipalDamagevectorCompression[2]));
+    Inverse_M = prod( Inverse_M_tension, Inverse_M_compression);
+    if(*mpEquivalencePrincipleType==EQUIVALENT_STRAIN){
+        EffectiveStiffnessMatrix = prod(Inverse_M, r_constitutive_matrix);
+    }else if(*mpEquivalencePrincipleType==STRAIN_ENERGY){
+        const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inverse_M));
+        EffectiveStiffnessMatrix = prod(Inverse_M,a);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -375,7 +407,7 @@ void ElasticAnisotropicDamage::CalculateTangentTensor(ConstitutiveLaw::Parameter
 //************************************************************************************
 //************************************************************************************
 
-Vector& ElasticAnisotropicDamage::CalculateValue(
+Vector& ElasticLocalAnisotropicDamage3DTensionCompression::CalculateValue(
     ConstitutiveLaw::Parameters& rParametersValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValues
@@ -384,14 +416,22 @@ Vector& ElasticAnisotropicDamage::CalculateValue(
     KRATOS_TRY
     if (rThisVariable == DAMAGE_VECTOR) {
         Vector damage_vector;
-        Vector strain_variables;
-        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables);
+        Vector strain_variables_tension;
+        Vector strain_variables_compression;
+        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables_tension, strain_variables_compression);
         rValues = damage_vector;
-    }else if(rThisVariable == INTERNAL_VARIABLES){
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES_TENSION){
         Vector damage_vector;
-        Vector strain_variables;
-        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables);
-        rValues = strain_variables;
+        Vector strain_variables_tension;
+        Vector strain_variables_compression;
+        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables_tension, strain_variables_compression);
+        rValues = strain_variables_tension;
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES_COMPRESSION){
+        Vector damage_vector;
+        Vector strain_variables_tension;
+        Vector strain_variables_compression;
+        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables_tension, strain_variables_compression);
+        rValues = strain_variables_compression;
     }else{
         ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValues);
     }
@@ -402,7 +442,7 @@ Vector& ElasticAnisotropicDamage::CalculateValue(
 //************************************************************************************
 //***********************************************************************************
 
-void ElasticAnisotropicDamage::GetDamageEffectTensor(
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetDamageEffectTensor(
     BoundedMatrixVoigtType& DamageEffectTensor,
     const BoundedVectorType& DamageVector
 
@@ -424,7 +464,7 @@ void ElasticAnisotropicDamage::GetDamageEffectTensor(
 //************************************************************************************
 //***********************************************************************************
 
-void ElasticAnisotropicDamage::CalculateParameters(
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateParameters(
     BoundedMatrixVoigtType& EffStiffnessMatrix,
     BoundedMatrix3x6Type& dEprdE,
     BoundedMatrixType& dkdEpr,
@@ -445,12 +485,8 @@ void ElasticAnisotropicDamage::CalculateParameters(
     Inv_M(3,3) = sqrt ((1-DamageVector[0])*(1-DamageVector[1]));
     Inv_M(4,4) = sqrt ((1-DamageVector[1])*(1-DamageVector[2]));
     Inv_M(5,5) = sqrt ((1-DamageVector[0])*(1-DamageVector[2]));
-    if(*mpEquivalencePrincipleType==EQUIVALENT_STRAIN){
-        EffStiffnessMatrix = prod(Inv_M, r_constitutive_matrix);
-    }else if(*mpEquivalencePrincipleType==STRAIN_ENERGY){
-        const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
-        EffStiffnessMatrix = prod(Inv_M,a);
-    }
+
+
     GetEigenValues(principal_strains, STRAIN, r_strain_vector);
     CalculateDerivativesofEigenvalues(dEprdE, principal_strains, r_strain_vector, STRAIN);
     for(SizeType i = 0; i < Dimension; ++i){
@@ -468,7 +504,7 @@ void ElasticAnisotropicDamage::CalculateParameters(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::CalculatePartialDerivatives(
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculatePartialDerivatives(
     array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
     const Properties& rMaterialProperties,
     const Vector& DamageVector,
@@ -533,7 +569,7 @@ void ElasticAnisotropicDamage::CalculatePartialDerivatives(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::VectorToTensor(
+void ElasticLocalAnisotropicDamage3DTensionCompression::VectorToTensor(
     BoundedMatrixType& TensorForm,
     const Vector& VectorForm,
     const Variable<Vector>& rThisVariable
@@ -558,7 +594,7 @@ void ElasticAnisotropicDamage::VectorToTensor(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
+void ElasticLocalAnisotropicDamage3DTensionCompression::CalculateDerivativesofEigenvalues(
      BoundedMatrix3x6Type &DerivativesofEigenvalues,
      BoundedVectorType &EigenvaluesVector,
      const BoundedVectorVoigtType &Voigtform,
@@ -649,7 +685,7 @@ void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::MultiplyTensors(BoundedMatrixVoigtType& dSdE,
+void ElasticLocalAnisotropicDamage3DTensionCompression::MultiplyTensors(BoundedMatrixVoigtType& dSdE,
     const array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
     const Vector& StrainVector
     )
@@ -668,7 +704,7 @@ void ElasticAnisotropicDamage::MultiplyTensors(BoundedMatrixVoigtType& dSdE,
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
     const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
     const BoundedMatrixType& dDdkappa
     )
@@ -689,7 +725,7 @@ void ElasticAnisotropicDamage::GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>&
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
     const array_1d<BoundedMatrix<double, 6, 6>, 3>&dHdk,
     const BoundedMatrix3x6Type& dkdE
     )
@@ -710,7 +746,7 @@ void ElasticAnisotropicDamage::GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>&
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::GetLawFeatures(Features& rFeatures)
+void ElasticLocalAnisotropicDamage3DTensionCompression::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -725,7 +761,7 @@ void ElasticAnisotropicDamage::GetLawFeatures(Features& rFeatures)
 
 
 
-void ElasticAnisotropicDamage::save(Serializer& rSerializer) const
+void ElasticLocalAnisotropicDamage3DTensionCompression::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mDamageVector", mDamageVector);
@@ -734,7 +770,7 @@ void ElasticAnisotropicDamage::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage::load(Serializer& rSerializer)
+void ElasticLocalAnisotropicDamage3DTensionCompression::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mDamageVector", mDamageVector);

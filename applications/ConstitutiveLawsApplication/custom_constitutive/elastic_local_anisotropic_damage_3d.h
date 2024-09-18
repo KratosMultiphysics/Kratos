@@ -400,7 +400,7 @@ private:
 
     ///@name Member Variables
     ///@{
-
+    const Variable<double>* mpEquivalencePrincipleType;
     ///@}
 
     ///@name Private Operators

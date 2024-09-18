@@ -256,7 +256,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DNonLocalEquivalentStrain", mElasticAnisotropicDamage3DNonLocalEquivalentStrain);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DTwoNLEquivalentStrains", mElasticAnisotropicDamage3DTwoNLEquivalentStrains);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC", mElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage3DEquivalentStrainTCMTMC", mElasticAnisotropicDamage3DEquivalentStrainTCMTMC);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticLocalAnisotropicDamage3DTensionCompression", mElasticLocalAnisotropicDamage3DTensionCompression);
 
     // HCF (High Cycle Fatigue)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawVonMisesVonMises", mSmallStrainHighCycleFatigue3DLawVonMisesVonMises);
@@ -489,6 +489,8 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(DAMAGE_VECTOR)
+    KRATOS_REGISTER_VARIABLE(STRAIN_HISTORY_VARIABLES_TENSION)
+    KRATOS_REGISTER_VARIABLE(STRAIN_HISTORY_VARIABLES_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(EQUIVALENT_STRAINS_TC)
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSOR)
 

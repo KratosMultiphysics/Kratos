@@ -132,6 +132,18 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
 //************************************************************************************
 //************************************************************************************
 
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
+{
+    mpEquivalencePrincipleType = &KratosComponents<Variable<double>>::Get(rMaterialProperties[EQUIVALENCE_PRINCIPLE_TYPE]);
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
@@ -227,13 +239,9 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
         const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (1 + nu) * (2.15*ft)/(E);
 
         for(SizeType i = 0; i < Dimension; ++i) {
-            // k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
-            // beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
-            // beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
-            //changed to see if the notched specimen test is working
-            k0[i] = k0t;
-            beta1[i] =beta1t;
-            beta2[i] =beta2t;
+            k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
+            beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
+            beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
             kappa[i] = std::max(principal_nonlocal_equivalent_strains[i],k0[i]);
             F[i]     = principal_nonlocal_equivalent_strains[i]-kappa[i];
         }
@@ -253,13 +261,19 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
                 damage_vector[i] = 0.999;
             }
         }
+        BoundedMatrixType damage_tensor = ZeroMatrix(3,3);
+        TransformPrincipalDamageToGlobal(damage_tensor, damage_vector, r_strain_vector);
         if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, damage_vector);
             GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
             MathUtils<double>::InvertMatrix(transformed_damage_effect_tensor, Inv_M, det_M);
-            const BoundedMatrixVoigtType temp = prod(r_elastic_tensor,trans(Inv_M));
-            noalias(r_elastic_tensor) = prod(Inv_M, temp);
-            noalias(r_stress_vector)  = prod(r_elastic_tensor, r_strain_vector);
+            if(*mpEquivalencePrincipleType==EQUIVALENT_STRAIN){
+                EffStiffnessMatrix = prod(Inv_M, r_elastic_tensor);
+            }else if(*mpEquivalencePrincipleType==STRAIN_ENERGY){
+                const BoundedMatrixVoigtType a = prod(r_elastic_tensor,trans(Inv_M));
+                EffStiffnessMatrix = prod(Inv_M,a);
+            }
+            noalias(r_stress_vector)  = prod(EffStiffnessMatrix, r_strain_vector);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 Calculate_tangent_Huu(r_elastic_tensor, rParametersValues);
                 Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, kappa, beta1, beta2, k0, damage_vector, principal_strains);
@@ -267,7 +281,11 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
             }
         }
         AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, H_NL1u, H_NL2u, H_uNL1, H_uNL2, H_NLNL);
-        rDamageVector = damage_vector;
+        BoundedVectorType damage_diagonal_components = ZeroVector(3);
+        for (SizeType j = 0; j < Dimension; ++j) {
+            damage_diagonal_components[j] = damage_tensor(j,j);
+        }
+        rDamageVector = damage_diagonal_components;
         rEquivalentStrains = local_equivalent_strains;
         }
     //KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME])
@@ -362,6 +380,40 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetPrincipalDeviatoricStr
 }
 //************************************************************************************
 //************************************************************************************
+
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::TransformPrincipalDamageToGlobal(
+    BoundedMatrixType& DamageTensor,
+    const BoundedVectorType& PrinicipalDamageVector,
+    const Vector& StrainVector
+    )
+{
+    KRATOS_TRY
+    BoundedVectorType l = ZeroVector(3);
+    BoundedVectorType m = ZeroVector(3);
+    BoundedVectorType n = ZeroVector(3);
+    BoundedMatrixType MatrixForm = ZeroMatrix(3,3);
+    BoundedMatrixType EigenVectors;
+    BoundedMatrixType EigenValues = ZeroMatrix(3,3);
+    VectorToTensor(MatrixForm, StrainVector, STRAIN);
+    MathUtils<double>::GaussSeidelEigenSystem(MatrixForm, EigenVectors, EigenValues);
+        for(SizeType i = 0; i < Dimension; ++i){
+            l[i] = EigenVectors(i,0);
+            m[i] = EigenVectors(i,1);
+            n[i] = EigenVectors(i,2);
+        }
+    for(SizeType i = 0; i < Dimension; ++i){
+        DamageTensor(i,i) = PrinicipalDamageVector[0] * l[i] * l[i] + PrinicipalDamageVector[1] * m[i] * m[i] + PrinicipalDamageVector[2] * n[i] * n[i];
+    }
+    DamageTensor(0,1) = PrinicipalDamageVector[0] * l[0] * l[1] + PrinicipalDamageVector[1] * m[0] * m[1] + PrinicipalDamageVector[2] * n[0] * n[1];
+    DamageTensor(1,0) = PrinicipalDamageVector[0] * l[0] * l[1] + PrinicipalDamageVector[1] * m[0] * m[1] + PrinicipalDamageVector[2] * n[0] * n[1];
+    DamageTensor(0,2) = PrinicipalDamageVector[0] * l[0] * l[2] + PrinicipalDamageVector[1] * m[0] * m[2] + PrinicipalDamageVector[2] * n[0] * n[2];
+    DamageTensor(2,0) = PrinicipalDamageVector[0] * l[0] * l[2] + PrinicipalDamageVector[1] * m[0] * m[2] + PrinicipalDamageVector[2] * n[0] * n[2];
+    DamageTensor(1,2) = PrinicipalDamageVector[0] * l[1] * l[2] + PrinicipalDamageVector[1] * m[1] * m[2] + PrinicipalDamageVector[2] * n[1] * n[2];
+    DamageTensor(2,1) = PrinicipalDamageVector[0] * l[1] * l[2] + PrinicipalDamageVector[1] * m[1] * m[2] + PrinicipalDamageVector[2] * n[1] * n[2];
+    KRATOS_CATCH("")
+}
+//************************************************************************************
+//***********************************************************************************
 
 void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetDamageEffectTensor(
     BoundedMatrixVoigtType& DamageEffectTensor,

@@ -42,19 +42,21 @@ namespace Kratos
 ///@{
 
 /**
- * @class ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
+ * @class ElasticLocalAnisotropicDamage3DTensionCompression
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief Defines a damage with hardening constitutive law in 3D
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
- * - Damage threshold value
- * - Model parameters - Beta1 and Beta2 in Tension and Compression
+ * - HARDEDNING_CURVE: Type of hardening model: 0 exponential, 1 multilinear
+ * - STRESS_LIMITS: list of stress values in which the corresponding hardening
+ *   parameter is valid
+ * - HARDENING_PARAMETERS: List of hardening modules (max three branches considered)
  * @warning Valid for small strains
  * @note
- * @author Athira
+ * @author Marcelo Raschi
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticLocalAnisotropicDamage3DTensionCompression
     : public ElasticIsotropic3D
 {
 public:
@@ -70,15 +72,6 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
 
-    /// Definition of the zero tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
-    // Definition of the perturbation coefficients
-    static constexpr double PerturbationCoefficient1 = 1.0e-5;
-    static constexpr double PerturbationCoefficient2 = 1.0e-10;
-
-    // Definition of the perturbation threshold
-    static constexpr double PerturbationThreshold = 1.0e-8;
     // The definition of the bounded vector type
     typedef BoundedVector<double, Dimension > BoundedVectorType;
 
@@ -98,7 +91,7 @@ public:
     typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
     // Counted pointer
-    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage3DEquivalentStrainTCMTMC);
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticLocalAnisotropicDamage3DTensionCompression);
 
     ///@}
     ///@name Lyfe Cycle
@@ -107,17 +100,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    ElasticAnisotropicDamage3DEquivalentStrainTCMTMC();
+    ElasticLocalAnisotropicDamage3DTensionCompression();
 
     /**
      * @brief Copy constructor.
      */
-    ElasticAnisotropicDamage3DEquivalentStrainTCMTMC(const ElasticAnisotropicDamage3DEquivalentStrainTCMTMC& rOther);
+    ElasticLocalAnisotropicDamage3DTensionCompression(const ElasticLocalAnisotropicDamage3DTensionCompression& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ElasticAnisotropicDamage3DEquivalentStrainTCMTMC() override;
+    ~ElasticLocalAnisotropicDamage3DTensionCompression() override;
 
     /**
      * @brief Clone function
@@ -139,6 +132,7 @@ public:
      */
     void GetLawFeatures(Features& rFeatures) override;
 
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
@@ -157,7 +151,6 @@ public:
         Vector& rValues
         ) override;
 
-
     /**
      * @brief Sets the value of a specified variable (Vector)
      * @param rThisVariable The variable to be returned
@@ -170,6 +163,16 @@ public:
         const ProcessInfo& rProcessInfo
         ) override;
 
+    /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
 
     /**
      * @brief This method computes the stress and constitutive tensor
@@ -178,7 +181,14 @@ public:
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
                                  Vector& rDamageVector,
-                                 Vector& rEquivalentStrains);
+                                 Vector& rStrainVariablesTension,
+                                 Vector& rStrainVariablesCompression);
+
+    void TensorProduct6(Matrix& rOutput,
+                        const Vector& rVector1,
+                        const Vector& rVector2);
+
+
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
@@ -212,6 +222,17 @@ public:
      */
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
+    // /**
+    //  * @brief calculates the value of a specified variable (double)
+    //  * @param rValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // double& CalculateValue(Parameters& rValues,
+    //                        const Variable<double>& rThisVariable,
+    //                        double& rValue) override;
+
     /**
      * @brief calculates the value of a specified variable (Vector)
      * @param rValues the needed parameters for the CL calculation
@@ -222,6 +243,18 @@ public:
      Vector& CalculateValue(Parameters& rValues,
                             const Variable<Vector>& rThisVariable,
                             Vector& rValue) override;
+
+    void CalculateEffectiveStiffnessMatrix(ConstitutiveLaw::Parameters& rParametersValues,
+                                           BoundedMatrixVoigtType& EffectiveStiffnessMatrix,
+                                           const Vector& PrincipalDamagevectorTension,
+                                           const Vector& PrincipalDamagevectorCompression);
+    /**
+     * @brief calculates the damage effect tensor M
+     * @return damage effect tensor M
+     */
+    void GetDamageEffectTensor(BoundedMatrixVoigtType& DamageEffectTensor,
+                               const BoundedVectorType& DamageVector
+                               );
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -253,13 +286,14 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    const double eps = 1e-8;
+        const double eps = 1e-8;
     ///@}
 
     ///@name Protected member Variables
     ///@{
-    Vector mEquivalentStrains;
-    Vector mDamageVector;
+    Vector mDamageVector ;
+    Vector mStrainVariables_tension = ZeroVector(3);
+    Vector mStrainVariables_compression = ZeroVector(3);
     ///@}
 
     ///@name Protected Operators
@@ -268,61 +302,18 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
     /**
+
      * @brief This method computes principal values of stresses/strains
      * @param VectorForm Stresses/Strains in vector form
      * @param Pri_Values principal values in vector form
-     * @param MaxValue maximum of the principal values
      * @param MinValue minimum of the principal values
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
                         const Variable<Vector>& rThisVariable,
                         const Vector& VectorForm);
 
-
-    /**
-     * @brief This method computes stress weight factor
-     */
-    void GetStressWeightFactor(double &w,
-                               const BoundedVectorType &s_pr
-                               ) const ;
-
-
-    /**
-     * @brief This method converts stress or strain vectors to tensors
-     */
-    void VectorToTensor(BoundedMatrixType& TensorForm,
-                        const Vector& VectorForm,
-                        const Variable<Vector>& rThisVariable
-                        );
-
-
-    /**
-     * @brief calculates the damage effect tensor M
-     * @return damage effect tensor M
-     */
-    void GetDamageEffectTensor(BoundedMatrixVoigtType& DamageEffectTensor,
-                               const BoundedVectorType& DamageVector
-                               );
-
-    /**
-     * @brief Get the Transformed Damageeffect Tensor object
-     * @param TransformedDamageEffectTensor
-     * @param DamageEffectTensor
-     */
-    void GetTransformedDamageEffectTensor(BoundedMatrixVoigtType& TransformedDamageEffectTensor,
-                                const BoundedMatrixVoigtType& DamageEffectTensor,
-                                const Vector& StrainVector
-                                );
-    /**
-     * @brief
-     *
-     */
-    void CalculateLocalEquivalentStrains(Vector& LocalEquivalentStrains,
-                                            ConstitutiveLaw::Parameters& rParametersValues,
-                                            const BoundedVectorType& PrincipalStrains
-                                            );
+    ///@}
     /**
      * @brief
      *
@@ -332,102 +323,34 @@ protected:
                                          const BoundedVectorType& PrincipalStrains
                                          );
     /**
-     * @brief this method scales the nonlocal equivalent strains to principal direction componenets based on principal strains
-     * @param Principal_Nonlocal_Equivalent_Strain
-     * @param Principal_Strains
-     * @param Nonlocal_Equivalent_Strain
-     * @param Local_Equivalent_Strain
+     * @brief This method calculates the linearized tangent operator
      */
-    void ScaleNonlocalEquivalentStrain(BoundedVectorType& Principal_Nonlocal_Strains,
-                                        ConstitutiveLaw::Parameters& rParametersValues,
-                                        const BoundedVectorType& Principal_Strains,
-                                        const Vector& Nonlocal_Equivalent_Strains,
-                                        Vector& Local_Equivalent_Strains
-                                       );
+    void CalculateParameters(BoundedMatrixVoigtType& EffStiffnessMatrix,
+                             BoundedMatrix3x6Type& dEprdE,
+                             BoundedMatrixType& dkdEpr,
+                             ConstitutiveLaw::Parameters& rParametersValues,
+                             const Vector& DamageVector
+                             );
+    /**
+     * @brief This method calculates the linearized tangent operator
+     */
 
+    void CalculatePartialDerivatives(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                                    const Properties& rMaterialProperties,
+                                    const Vector& DamageVector,
+                                    const BoundedVectorType& Kappa0,
+                                    const BoundedVectorType& Beta1,
+                                    const BoundedVectorType& Beta2,
+                                    const BoundedVectorType& Kappa
+                                    );
 
     /**
-     * @brief This method evaluates the Macaulay brackets
+     * @brief This method converts stress or strain vectors to tensors
      */
-    double MacaulayBrackets(const double Number)
-    {
-        return (Number > 0.0) ? Number : 0.0;
-    }
-
-    void Calculate_tangent_Huu(
-    Matrix& r_elasticity_matrix,
-    ConstitutiveLaw::Parameters& rParametersValues);
-
-    void CalculatePerturbation(
-    const Vector& rStrainVector,
-    const IndexType Component,
-    double& rPerturbation);
-
-    void GetMinAbsValue(
-    const Vector& rArrayValues,
-    double& rMinValue);
-    void GetMaxAbsValue(
-    const Vector& rArrayValues,
-    double& rMaxValue);
-
-    void PerturbStrainVector(
-    Vector& rPerturbedStrainVector,
-    const Vector& rStrainVectorGP,
-    const double Perturbation,
-    const IndexType Component
-    );
-
-    void IntegratePerturbedStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    ConstitutiveLaw* pConstitutiveLaw,
-    const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2);
-
-    void CalculateComponentsToTangentTensorSecondOrder(
-    Matrix& rTangentTensor,
-    const Vector& rVectorStrainPlus,
-    const Vector& rVectorStrainMinus,
-    const Vector& rStressPlus,
-    const Vector& rStressMinus,
-    const IndexType Component
-    );
-    /**
-     * @brief
-     * @param H_uNL
-     * @param rParametersValues
-     * @param Damage_Vector
-     * @param Kappa
-     * @param local_equivalent_strain
-     */
-    void Calculate_tangent_HuNL(BoundedVectorVoigtType& H_uNL1,
-                                BoundedVectorVoigtType& H_uNL2,
-                                ConstitutiveLaw::Parameters& rParametersValues,
-                                const BoundedVectorType& Kappa,
-                                const BoundedVectorType& beta1,
-                                const BoundedVectorType& beta2,
-                                const BoundedVectorType& k0,
-                                const Vector& Damage_Vector,
-                                const BoundedVectorType& Principal_Strains
-                                );
-    void TensorProduct(
-    BoundedMatrixVoigtType& dHdNL1,
-    BoundedMatrixVoigtType& dHdNL2,
-    const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
-    const BoundedVectorType& Vector1,
-    const BoundedVectorType& Vector2
-    );
-
-    /**
-     * @brief
-     * @param H_NLu
-     * @param rParametersValues
-     * @param Principal_Strains
-     */
-    void Calculate_tangent_HNLu(BoundedVectorVoigtType& H_NL1u,
-                                BoundedVectorVoigtType& H_NL2u,
-                                ConstitutiveLaw::Parameters& rParametersValues,
-                                const BoundedVectorType& Principal_Strains
-                                );
-
+    void VectorToTensor(BoundedMatrixType& TensorForm,
+                        const Vector& VectorForm,
+                        const Variable<Vector>& rThisVariable
+                        );
     /**
      * @brief the derivatives of eigen values with respect to the matrix elements
      * @param DerivativesofEigenvalues
@@ -435,31 +358,39 @@ protected:
      * @param Voigtform
      */
     void CalculateDerivativesofEigenvalues(BoundedMatrix3x6Type &DerivativesofEigenvalues,
-                                           const BoundedVectorType &EigenvaluesVector,
+                                           BoundedVectorType &EigenvaluesVector,
                                            const BoundedVectorVoigtType &Voigtform,
                                            const Variable<Vector>& rThisVariable);
 
 
+    void MultiplyTensors(BoundedMatrixVoigtType& dSdE,
+                        const array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                        const Vector& StrainVector);
+    void GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const BoundedMatrix3x6Type& dkdE);
+    void GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+                const BoundedMatrixType& dDdkappa);
+        /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
 
     /**
-     * @brief This method assembles constitutive matrix
-     * @param ConstitutiveMatrix
-     * @param H_uu
-     * @param H_NLu
-     * @param H_uNL
-     * @param H_NLNL
+     * @brief This method computes the secant tensor
+     * @param rValues The constitutive law parameters and flags
      */
-    void AssembleConstitutiveMatrix(Matrix& ConstitutiveMatrix,
-                                    const Matrix& H_uu,
-                                    const Vector& H_NL1u,
-                                    const Vector& H_NL2u,
-                                    const Vector& H_uNL1,
-                                    const Vector& H_uNL2,
-                                    const double& H_NLNL
-                                    );
+    void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
+/**
+     * @brief This method evaluates the Macaulay brackets
+     */
+    double MacaulayBrackets(const double Number)
+    {
+        return (Number > 0.0) ? Number : 0.0;
+    }
 
-
-    ///@}
 private:
 
     ///@name Static Member Variables
@@ -469,7 +400,7 @@ private:
 
     ///@name Member Variables
     ///@{
-
+     const Variable<double>* mpEquivalencePrincipleType;
     ///@}
 
     ///@name Private Operators
@@ -488,5 +419,5 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class ElasticAnisotropicDamage3DEquivalentStrainTCMTMC
+}; // class ElasticLocalAnisotropicDamage3DTensionCompression
 } // namespace Kratos
