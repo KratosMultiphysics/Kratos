@@ -115,7 +115,7 @@ namespace Kratos
                     {
                         for (IndexType j = 0; j < mat_size; ++j)
                         {
-                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_integration;
+                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_integration /*/ 100000*/;
                         }
                     }
                 }
@@ -123,7 +123,7 @@ namespace Kratos
                 if (CalculateResidualVectorFlag) {
                     for (IndexType i = 0; i < mat_size; ++i)
                     {
-                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_integration;
+                        rRightHandSideVector[i] -= (diff_phi(0) * phi_r(i)) * penalty_integration /*100000*/;
                     }
                 }
             }
@@ -251,7 +251,7 @@ namespace Kratos
         }
         else
         {
-            diff_phi = phi_slave - phi_master;
+            diff_phi = -(phi_slave - phi_master);
         }
         
         for (IndexType i = 0; i < phi_r_master.size(); i++)
