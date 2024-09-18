@@ -70,6 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     const auto geometry = LineInterfaceGeometry<Line2D3<Node>>{six_null_pointers_to_nodes};
 
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
+    KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
 }
 
@@ -88,6 +89,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
     KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
+    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndId,
@@ -107,6 +110,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_NE(dynamic_cast<const LineInterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
     KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
