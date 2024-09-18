@@ -13,6 +13,7 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -192,11 +193,10 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
     const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
     const auto integration_coefficients = std::vector<double>{0.25, 0.4};
 
-    const auto     expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
-    constexpr auto relative_tolerance             = 1.0e-6;
+    const auto expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                                            b_matrices, stress_vectors, integration_coefficients),
-                                       expected_internal_force_vector, relative_tolerance)
+                                       expected_internal_force_vector, Defaults::relative_tolerance)
 }
 
 // The following tests only raise errors when using debug builds

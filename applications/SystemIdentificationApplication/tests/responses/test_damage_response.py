@@ -31,7 +31,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
                 "value"        : 0,
                 "location"     : [0.3333333333333, 0.3333333333333, 0.0],
                 "direction"    : [1.0, 0.0, 0.0],
-                "weight"       : 1.0,
+                "weight"       : 2.0,
                 "variable_data": {}
             }"""),
             Kratos.Parameters("""{
@@ -41,7 +41,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
                 "value"        : 0,
                 "location"     : [0.6666666666667, 0.6666666666667, 0.0],
                 "direction"    : [1.0, 0.0, 0.0],
-                "weight"       : 1.0,
+                "weight"       : 3.0,
                 "variable_data": {}
             }"""),
             Kratos.Parameters("""{
@@ -51,7 +51,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
                 "value"        : 0,
                 "location"     : [0.3333333333333, 0.3333333333333, 0.0],
                 "direction"    : [1.0, 1.0, 0.0],
-                "weight"       : 1.0,
+                "weight"       : 4.0,
                 "variable_data": {}
             }"""),
             Kratos.Parameters("""{
@@ -84,7 +84,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     def test_CalculateValue(self):
         value = 0.0
         for sensor in self.sensors:
-            value += (0.5 * (sensor.CalculateValue(self.model_part) - sensor.GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
+            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
         self.assertAlmostEqual(self.ref_value, value ** (1 / 3), 5)
 
     def test_CalculateGradient(self):
