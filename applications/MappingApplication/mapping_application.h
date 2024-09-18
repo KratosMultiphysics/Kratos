@@ -25,6 +25,10 @@
 #include "custom_searching/interface_object.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "custom_modelers/iga_mapping_geometries_modeler.h"
+#include "custom_modelers/iga_fem_mapping_geometries_modeler.h"
+#include "custom_modelers/iga_fem_surface_mapping_geometries_modeler.h"
+#include "custom_modelers/iga_iga_surface_mapping_geometries_modeler.h"
+#include "custom_modelers/fem_fem_surface_mapping_geometries_modeler.h"
 
 namespace Kratos
 {
@@ -190,6 +194,13 @@ private:
 
     const IgaMappingGeometriesModeler  mIgaMappingGeometriesModeler;
 
+    const IgaFEMMappingGeometriesModeler  mIgaFEMMappingGeometriesModeler;    
+
+    const IgaFEMSurfaceMappingGeometriesModeler  mIgaFEMSurfaceMappingGeometriesModeler;  
+
+    const IgaIgaSurfaceMappingGeometriesModeler  mIgaIgaSurfaceMappingGeometriesModeler;  
+
+    const FEMFEMSurfaceMappingGeometriesModeler  mFEMFEMSurfaceMappingGeometriesModeler;  
     ///@}
     ///@name Private Operators
     ///@{

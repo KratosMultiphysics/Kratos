@@ -92,6 +92,14 @@ void KratosMappingApplication::Register()
 
     KRATOS_REGISTER_MODELER("IgaMappingGeometriesModeler", mIgaMappingGeometriesModeler);
 
+    KRATOS_REGISTER_MODELER("IgaFEMMappingGeometriesModeler", mIgaFEMMappingGeometriesModeler);
+
+    KRATOS_REGISTER_MODELER("IgaFEMSurfaceMappingGeometriesModeler", mIgaFEMSurfaceMappingGeometriesModeler);
+
+    KRATOS_REGISTER_MODELER("IgaIgaSurfaceMappingGeometriesModeler", mIgaIgaSurfaceMappingGeometriesModeler);
+
+    KRATOS_REGISTER_MODELER("FEMFEMSurfaceMappingGeometriesModeler", mFEMFEMSurfaceMappingGeometriesModeler);
+
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
     KRATOS_REGISTER_VARIABLE( CURRENT_COORDINATES )
