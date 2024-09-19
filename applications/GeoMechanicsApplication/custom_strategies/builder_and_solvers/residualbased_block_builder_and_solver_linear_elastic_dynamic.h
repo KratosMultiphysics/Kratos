@@ -177,18 +177,16 @@ public:
         // only add dynamics to lhs after calculating intial force vector
         this->AddDynamicsToLhs(rA, rModelPart);
 
-        // this approach is not working for all solvers, this approach is meant for solvers which can be prefactorized.
-        // For future reference, use BaseType::SystemSolveWithPhysics(rA, rDx, rb, rModelPart) instead of the following lines if a non compatible solver is required.
+        // Initialize the linear solver, such that the solver can factorize the matrices already. In case the matrices can be pre-factorized, this step is not
+        // performed during calculation.
         BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, dummy_rDx, rb);
     }
 
     /**
-     * @brief Function to perform the build of the RHS. The vector could be sized as the total
-     * number of dofs or as the number of unrestrained ones
+     * @brief Function to perform the build of the LHS, mass matrix and damping matrix
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
-     * @param rb The RHS vector
      */
     void BuildLHS(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemMatrixType& rA) override
     {
@@ -204,7 +202,6 @@ public:
 
         // getting the array of the conditions
         const ElementsArrayType& r_elements = rModelPart.Elements();
-
         this->CalculateGlobalMatrices(r_elements, rA, rModelPart);
 
         const ConditionsArrayType& r_conditions = rModelPart.Conditions();
@@ -221,8 +218,7 @@ public:
     }
 
     /**
-     * @brief Corresponds to the previews, but the System's matrix is considered already built and
-     * only the RHS is built again
+     * @brief Builds the RHS and solves the system with an already defined LHS
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -300,7 +296,6 @@ public:
 
     /**
      * @brief Function to perform the build of the RHS.
-     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
@@ -318,6 +313,25 @@ public:
         Timer::Stop("BuildRHS");
 
         KRATOS_CATCH("")
+    }
+
+    void CalculateReactions(typename TSchemeType::Pointer pScheme,
+                            ModelPart&                    rModelPart,
+                            TSystemMatrixType&            A,
+                            TSystemVectorType&            Dx,
+                            TSystemVectorType&            b) override
+    {
+        TSparseSpace::SetToZero(b);
+
+        // refresh RHS to have the correct reactions
+        this->BuildRHSNoDirichlet(pScheme, rModelPart, b);
+
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof) {
+            const std::size_t i = rDof.EquationId();
+
+            rDof.GetSolutionStepReactionValue() = -b[i];
+        });
     }
 
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override

@@ -62,10 +62,10 @@ namespace Kratos
 
 /**
  * @class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
- * @ingroup KratosCore
- * @brief This is the base Newton Raphson strategy
+ * @ingroup KratosGeomechanicsApplication
+ * @brief This is Newton Raphson strategy especially for Dynamic linear elastic systems. Within this strategy, the Newmark scheme is incorporated
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
- * @author Riccardo Rossi
+ * @author Aron Noordam
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic
@@ -105,9 +105,12 @@ public:
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver
+     * @param rParameters The parameters for the strategy
+     * @param Beta The Newmark Beta parameter
+     * @param Gamma The Newmark Gamma parameter
      * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
      * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
     explicit GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
@@ -123,15 +126,7 @@ public:
         bool                                       CalculateReactions = false,
         bool                                       MoveMeshFlag       = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart,
-              pScheme,
-              /*pNewLinearSolver,*/
-              pNewConvergenceCriteria,
-              pNewBuilderAndSolver,
-              MaxIterations,
-              CalculateReactions,
-              false,
-              MoveMeshFlag),
+              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, false, MoveMeshFlag),
           mBeta(Beta),
           mGamma(Gamma)
     {
@@ -139,8 +134,7 @@ public:
     }
 
     /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used
-    in which the values of the solution step of interest are assumed equal to the old values
+     * @brief Operation to predict the solution
      */
     void Predict() override
     {
@@ -177,7 +171,7 @@ public:
                                                 updated_second_derivative_vector, model_part);
 
         // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -211,6 +205,8 @@ public:
             BaseType::mInitializeWasPerformed = true;
         }
 
+        // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
+        // this means that these operations are done twice in the GeomechanicsSolver in python
         auto find_neighbour_elements_of_conditions_process =
             FindNeighbourElementsOfConditionsProcess(BaseType::GetModelPart());
         find_neighbour_elements_of_conditions_process.Execute();
@@ -392,7 +388,6 @@ public:
         BaseType::EchoInfo(iteration_number);
 
         // Updating the results stored in the database
-
         this->UpdateSolutionStepValue(rDx, dx_tot);
 
         // only finalize condition non linear iteration
@@ -423,9 +418,9 @@ public:
 
         // Iteration Cycle... performed only for non linear RHS
         if (!is_converged) {
-           is_converged = this->PerformIterationCycle(rA, rDx, rb, dx_tot, non_converged_solutions, iteration_number);
+            is_converged = this->PerformIterationCycle(rA, rDx, rb, dx_tot, non_converged_solutions, iteration_number);
         }
-        
+
         if (is_converged) {
             this->UpdateSolutionStepDerivative(dx_tot, r_model_part);
         }
@@ -434,7 +429,7 @@ public:
         if (iteration_number >= BaseType::mMaxIterationNumber) {
             this->MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
                 << BaseType::mMaxIterationNumber << " iterations" << std::endl;
         }
@@ -447,7 +442,7 @@ public:
             BaseType::mNonconvergedSolutionsMatrix =
                 Matrix(r_dof_set.size(), non_converged_solutions.size());
             for (std::size_t i = 0; i < non_converged_solutions.size(); ++i) {
-                block_for_each(r_dof_set, [non_converged_solutions,i, this](const auto& r_dof) {
+                block_for_each(r_dof_set, [non_converged_solutions, i, this](const auto& r_dof) {
                     BaseType::mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) =
                         non_converged_solutions[i](r_dof.EquationId());
                 });
@@ -548,12 +543,11 @@ private:
     }
 
     bool PerformIterationCycle(TSystemMatrixType&   rA,
-                                                        TSystemVectorType&   rDx,
-                                                        TSystemVectorType&   rb,
-                                                        TSystemVectorType&   rDxTot,
-                                                        std::vector<Vector>& rNonconvergedSolutions,
-        unsigned int& rIterationNumber
-    )
+                               TSystemVectorType&   rDx,
+                               TSystemVectorType&   rb,
+                               TSystemVectorType&   rDxTot,
+                               std::vector<Vector>& rNonconvergedSolutions,
+                               unsigned int&        rIterationNumber)
     {
         ModelPart&                    r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
@@ -561,7 +555,7 @@ private:
         auto&       r_dof_set              = p_builder_and_solver->GetDofSet();
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
-        bool         is_converged     = false;
+        bool is_converged = false;
 
         rIterationNumber++;
         while (is_converged == false && rIterationNumber < BaseType::mMaxIterationNumber) {
