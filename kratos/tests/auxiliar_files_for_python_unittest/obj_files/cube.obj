@@ -12,10 +12,10 @@ v -0.5 0.5 -0.5  # 8
 
 # Faces
 f 1 2 3 4    # front
-f 5 6 7 8    # back
-f 1 5 8 4    # left
+f 8 7 6 5    # back
+f 4 8 5 1    # left
 f 2 6 7 3    # right
-f 1 2 6 5    # bottom
+f 5 6 2 1    # bottom
 f 4 3 7 8    # top
 
 # Normal

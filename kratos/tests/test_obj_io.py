@@ -24,10 +24,18 @@ def debug_vtk(model_part):
     It sets up the necessary parameters, including the model part name and the nodal data value variables.
     The VTK output process is then executed through its initialization, pre-solution loop, and solution step phases.
     """
+    # Compute normals
+    for cond in model_part.Conditions:
+        geom = cond.GetGeometry()
+        normal = geom.UnitNormal()
+        cond.SetValue(KratosMultiphysics.NORMAL, normal)
+
+    # Generate VTK output
     from KratosMultiphysics.vtk_output_process import VtkOutputProcess
     parameters = KratosMultiphysics.Parameters("""{
-        "model_part_name"            : "",
-        "nodal_data_value_variables" : ["NORMAL"]
+        "model_part_name"                : "",
+        "nodal_data_value_variables"     : ["NORMAL"],
+        "condition_data_value_variables" : ["NORMAL"]
     }
     """)
     parameters["model_part_name"].SetString(model_part.Name)
@@ -35,6 +43,9 @@ def debug_vtk(model_part):
     output.ExecuteInitialize()
     output.ExecuteBeforeSolutionLoop()
     output.ExecuteInitializeSolutionStep()
+    output.PrintOutput()
+    output.ExecuteFinalizeSolutionStep()
+    output.ExecuteFinalize()
 
 def calculate_analytical_normal(node):
     """
@@ -122,7 +133,7 @@ def ReadModelPartFromOBJ(model_part, obj_file, decompose_quad=False):
     """
     read_settings = KratosMultiphysics.Parameters("""{
         "open_mode"                      : "read",
-        "entity_type"                    : "element",
+        "entity_type"                    : "condition",
         "decompose_quads_into_triangles" : false
     }""")
     read_settings["decompose_quads_into_triangles"].SetBool(decompose_quad)
@@ -166,7 +177,7 @@ class TestObjIO(KratosUnittest.TestCase):
 
         # Assert that the model part has the correct number of nodes and elements
         self.assertEqual(self.model_part.NumberOfNodes(), 8)
-        self.assertEqual(self.model_part.NumberOfElements(), 6)
+        self.assertEqual(self.model_part.NumberOfConditions(), 6)
 
         # Assert that the normals are the same as the nodes coordinates
         for node in self.model_part.Nodes:
@@ -193,7 +204,7 @@ class TestObjIO(KratosUnittest.TestCase):
 
         # Assert that the model part has the correct number of nodes and elements
         self.assertEqual(self.model_part.NumberOfNodes(), 8)
-        self.assertEqual(self.model_part.NumberOfElements(), 12)
+        self.assertEqual(self.model_part.NumberOfConditions(), 12)
 
         # Assert that the normals are the same as the nodes coordinates
         for node in self.model_part.Nodes:
@@ -238,13 +249,13 @@ class TestObjIO(KratosUnittest.TestCase):
         # Compute resulting area
         number_of_conditions = self.model_part.NumberOfConditions()
         area_2 = 0.0
-        for elem in obj_model_part.Elements:
+        for elem in obj_model_part.Conditions:
             geom = elem.GetGeometry()
             area_2 += geom.Area()
 
         # Assert number of nodes and elements
         self.assertEqual(obj_model_part.NumberOfNodes(), self.model_part.NumberOfNodes())
-        self.assertEqual(number_of_conditions, obj_model_part.NumberOfElements())
+        self.assertEqual(number_of_conditions, obj_model_part.NumberOfConditions())
 
         # Assert that the areas match approximately
         self.assertAlmostEqual(area_1, area_2)
