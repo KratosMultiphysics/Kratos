@@ -18,6 +18,7 @@
 
 // Project includes
 #include "subdivision_surfaces/catmull_clark.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "subdivision_utilities.h"
@@ -54,9 +55,7 @@ ContainerExpression<TContainerType> SDSUtils::ProjectBackward(
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-ContainerExpression<TContainerType> SDSUtils::CalculateMappingRelation(
-    const ContainerExpression<TContainerType>& rInputExpression,
+std::vector<double> SDSUtils::CalculateMappingRelation(
     ModelPart& rControlPolygon,
     const ModelPart& rControlledMesh,
     const std::string SubdivScheme,
@@ -64,15 +63,38 @@ ContainerExpression<TContainerType> SDSUtils::CalculateMappingRelation(
 {
     KRATOS_TRY
 
-    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
+    // const IndexType number_of_entities = rControlledMesh.NumberOfNodes();
+    // SizeType num_control_pts = rControlPolygon.NumberOfNodes();
+    // std::vector<IndexType> r_shape(num_control_pts);
+    // r_shape = {0,1,2,3,4,5,6,7};
+    // auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities, r_shape);
+    // output_container.SetExpression(p_flat_data_expression);
+    // auto& r_output_expression = *p_flat_data_expression;
+
+    const SizeType num_control_pts = rControlPolygon.NumberOfNodes();
+    const SizeType num_fe_nodes = rControlledMesh.NumberOfNodes();
     std::vector<double> output_data;
     if(SubdivScheme == "catmull_clark") {
         CatmullClarkSDS subdiv_surface = CatmullClarkSDS(rControlPolygon, rControlledMesh);
         subdiv_surface.CreateMappingMatrix(output_data, rControlPolygon, rControlledMesh, FixFreeEdges);
     }
-    // CreateMappingMatrix(output_data, rControlPolygon, rControlledMesh, FixFreeEdges);
 
-    return output_container;
+    // KRATOS_INFO("Finished CreateMappingMatrix, now starting data allocation for output_container") << std::endl;
+    // KRATOS_INFO("r_output_expression.size()") << r_output_expression.size() << std::endl;
+    // r_output_expression.Info();
+
+    // SizeType num_fe_nodes = rControlledMesh.NumberOfNodes();
+    // for(IndexType fe_idx = 0; fe_idx < num_fe_nodes; ++fe_idx) {
+    //     for(IndexType cp_idx = 0; cp_idx < num_control_pts; ++cp_idx) {
+    //         KRATOS_INFO("r_output_expression.GetItemShape()") << r_output_expression.GetItemShape() << std::endl;
+    //         KRATOS_INFO("fe_idx ") << fe_idx << " , cp_idx : " << cp_idx << " , fe_idx * num_control_pts + cp_idx : " << fe_idx * num_control_pts + cp_idx << std::endl;
+    //         KRATOS_INFO("output_data[fe_idx * num_control_pts + cp_idx] ") << output_data[fe_idx * num_control_pts + cp_idx] << std::endl;
+    //         r_output_expression.SetData(fe_idx, cp_idx, output_data[fe_idx * num_control_pts + cp_idx]);
+    //         KRATOS_INFO("r_output_expression.GetItemComponentCount()") << r_output_expression.GetItemComponentCount() << std::endl;
+    //     }
+    // }
+
+    return output_data;
 
     KRATOS_CATCH("");
 }
@@ -84,10 +106,10 @@ ContainerExpression<TContainerType> SDSUtils::CalculateMappingRelation(
     template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SDSUtils::ProjectForward(             \
         const ContainerExpression<CONTAINER_TYPE>&);                                                                    \
     template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SDSUtils::ProjectBackward(            \
-        const ContainerExpression<CONTAINER_TYPE>&);                                                                    \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SDSUtils::CalculateMappingRelation(   \
-        const ContainerExpression<CONTAINER_TYPE>&, ModelPart&,                                                                   \
-        const ModelPart&, const std::string, const bool);
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                    
+    // template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SDSUtils::CalculateMappingRelation(   
+    //     const ContainerExpression<CONTAINER_TYPE>&, ModelPart&,                                                                   
+    //     const ModelPart&, const std::string, const bool);
 
 KRATOS_INSTANTIATE_CATMULL_CLARK_SDS_UTIL_METHODS(ModelPart::NodesContainerType)
 KRATOS_INSTANTIATE_CATMULL_CLARK_SDS_UTIL_METHODS(ModelPart::ConditionsContainerType)

@@ -59,7 +59,8 @@ void AddSubdivisionSurfaceProjectionUtils(pybind11::module& m)
 
     m.def("ProjectForward", &SDSUtils::ProjectForward<TContainerType>, py::arg(container_type.c_str()));
     m.def("ProjectBackward", &SDSUtils::ProjectBackward<TContainerType>, py::arg(container_type.c_str()));
-    m.def("CalculateMappingRelation", &SDSUtils::CalculateMappingRelation<TContainerType>, py::arg(container_type.c_str()), py::arg("control_polygon"), py::arg("controlled_mesh"), py::arg("subdivision_scheme"), py::arg("fix_free_boundaries"));
+    m.def("CalculateMappingRelation", &SDSUtils::CalculateMappingRelation, py::arg("control_polygon"), py::arg("controlled_mesh"), py::arg("subdivision_scheme"), py::arg("fix_free_boundaries"));
+    // m.def("CalculateMappingRelation", (py::arg("control_polygon"), py::arg("controlled_mesh"), py::arg("subdivision_scheme"), py::arg("fix_free_boundaries")), {return &SDSUtils::CalculateMappingRelation()});
 }
 } // namespace detail
 

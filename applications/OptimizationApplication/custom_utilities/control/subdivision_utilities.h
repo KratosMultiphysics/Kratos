@@ -53,9 +53,7 @@ public:
     static ContainerExpression<TContainerType> ProjectBackward(
         const ContainerExpression<TContainerType>& rInputExpression);
 
-    template<class TContainerType>
-    static ContainerExpression<TContainerType> CalculateMappingRelation(
-        const ContainerExpression<TContainerType>& rInputExpression,
+    static std::vector<double> CalculateMappingRelation(
         ModelPart& rControlPolygon,
         const ModelPart& rControlledMesh,
         const std::string SubdivScheme,

@@ -390,6 +390,9 @@ bool IsProjectionInsideCondition(NodeType& rPoint, const array_1d<double, 3>& rU
     else {
         line_end_point = rPoint.Coordinates() + rUnitNormal * length;
     }
+    // KRATOS_INFO("IsProjectionInsideCondition :: rUnitNormal") << rUnitNormal << std::endl;
+    // KRATOS_INFO("IsProjectionInsideCondition :: r_geom.UnitNormal(0)") << r_geom.UnitNormal(0) << std::endl;
+
     
     array_1d<double, 3> intersection_point;
 
@@ -400,7 +403,7 @@ bool IsProjectionInsideCondition(NodeType& rPoint, const array_1d<double, 3>& rU
         line_end_point,
         intersection_point
     );
-    if (!has_intersection) KRATOS_ERROR << "IsProjectionInsideCondition :: Could not find condition in which the fe-node lies in." << std::endl;
+    if (!has_intersection) KRATOS_ERROR << "IsProjectionInsideCondition :: No plane-line intersection found. Could not find condition in which the fe-node lies in." << std::endl;
     
     Point intersection_point_coords, local_coords;
     intersection_point_coords.Coordinates() = intersection_point;
@@ -430,7 +433,7 @@ IndexType NodeLiesInFace(NodeType& rFeNode, ModelPart::MeshType& rSearchMesh)
     // KRATOS_INFO("CATMULL_CLARK :: NodeLiesInFace") << std::endl;
     Point node_coords;
     node_coords.Coordinates() = rFeNode.Coordinates();
-    // KRATOS_INFO("CATMULL_CLARK :: rFeNode.Coordinates()") << rFeNode.Coordinates() << std::endl;
+    // KRATOS_INFO("NodeLiesInFace :: rFeNode.Coordinates()") << rFeNode.Coordinates() << std::endl;
     double smallest_distance = 1e8;
     IndexType nearest_control_node_id = 0;
     auto nearest_coords = rSearchMesh.GetCondition(1).GetData();
@@ -445,7 +448,7 @@ IndexType NodeLiesInFace(NodeType& rFeNode, ModelPart::MeshType& rSearchMesh)
         }
     }
 
-    // KRATOS_INFO("CATMULL_CLARK :: NodeLiesInFace :: extending search bcs FENode is not exactly on limit...") << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: NodeLiesInFace :: extending search bcs FENode is not exactly on limit...") << std::endl;
     // Before failing we try to find out in which face the point should lie in.
     // Herefore we do the following:
     // 1. Search nearest neighbour (nn) in control grid with kd tree search
@@ -1102,7 +1105,7 @@ void CatmullClarkSDS::CreateMappingMatrix(
 
     }
     KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rOutputData ") << rOutputData << std::endl;
-
+    KRATOS_INFO("Finished creating mapping matrix...") << std::endl;
 };
 
 } // namespace kratos
