@@ -286,38 +286,12 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_phi_pop_layers")
         file_path = test_helper.get_file_path(test_name)
-
+        plx_file_path = test_helper.get_file_path(os.path.join(test_name, "plx_results.res"))
         # run simulation
         simulation = test_helper.run_kratos(file_path)
 
-        # retrieve Cauchy stress tensor
-        cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
-
         # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
-        phi = math.radians(10.0)
-        k0_nc = 1 - math.sin(phi)
-        porosity = 1.0/3.0
-        density_water = 1019.368
-        g = 9.81
-        distance_to_integration_point = 0.087
-        pop = 1.2
-
-        sig_yy_layer_1 = ((1-porosity)*2548.419975535168 + porosity*density_water)*g*2
-        sig_yy_layer_2 = ((1-porosity)*2854.2303730886842 + porosity*density_water)*g*2
-        sig_yy_layer_3 = ((1-porosity)*2395.5147767584094 + porosity*density_water)*g*(2-distance_to_integration_point)
-        sig_eff_yy_bottom = ((sig_yy_layer_3 + sig_yy_layer_2 + sig_yy_layer_1) - density_water*g*(6-distance_to_integration_point))
-
-        k0 = k0_nc
-        self.assertAlmostEqual(k0, 0.8263518223330697) # Hand calculation
-        sig_integrationpoint1_element170 = cauchy_stresses[170-1][1]
-        sig_yy = sig_integrationpoint1_element170[1,1]
-        self.assert_relative_close(sig_yy, -sig_eff_yy_bottom, rel_tol=0.001) # Hand calculation
-        self.assert_relative_close(sig_yy, -61.2138042096087e3, rel_tol=0.001) # Plaxis
-        sig_xx = sig_integrationpoint1_element170[0,0]
-        self.assert_relative_close( sig_xx, -k0*(sig_yy+pop), rel_tol=0.001) # Hand calculation
-        self.assert_relative_close( sig_xx, -51.2757608473495e3, rel_tol=0.001) # Plaxis
-        sig_xy = sig_integrationpoint1_element170[0,1]
-        self.assertEqual( sig_xy, 0.0 )
+        test_helper.compare_stress_results_with_plaxis_table_file(self, simulation, plx_file_path, 3, 0.001, 0.1)
 
     def test_k0_procedure_k0_nc_pop_layers(self):
         """
@@ -327,7 +301,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_pop_layers")
         file_path = test_helper.get_file_path(test_name)
-
+        plx_file_path = test_helper.get_file_path(os.path.join(test_name, "plx_results.res"))
         # run simulation
         simulation = test_helper.run_kratos(file_path)
 
@@ -335,30 +309,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
 
         # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
-        phi = math.radians(10.0)
-        k0_nc = 1 - math.sin(phi)
-        porosity = 1.0/3.0
-        density_water = 1019.368
-        g = 9.81
-        distance_to_integration_point = 0.087
-        pop = 1200
-
-        sig_yy_layer_1 = ((1-porosity)*2548.419975535168 + porosity*density_water)*g*2
-        sig_yy_layer_2 = ((1-porosity)*2854.2303730886842 + porosity*density_water)*g*2
-        sig_yy_layer_3 = ((1-porosity)*2395.5147767584094 + porosity*density_water)*g*(2-distance_to_integration_point)
-        sig_eff_yy_bottom = ((sig_yy_layer_3 + sig_yy_layer_2 + sig_yy_layer_1) - density_water*g*(6-distance_to_integration_point))
-
-        k0 = k0_nc
-        self.assertAlmostEqual(k0, 0.8263518223330697) # Hand calculation
-        sig_integrationpoint1_element170 = cauchy_stresses[170-1][1]
-        sig_yy = sig_integrationpoint1_element170[1,1]
-        self.assert_relative_close(sig_yy, -sig_eff_yy_bottom, 0.001) # Hand calculation
-        self.assert_relative_close(sig_yy, -61.2138042096087e3, 0.001) # Plaxis
-        sig_xx = sig_integrationpoint1_element170[0,0]
-        self.assert_relative_close( sig_xx, -k0*(sig_yy+pop), 0.001 ) # Hand calculation
-        self.assert_relative_close( sig_xx, -51.2757608473495e3, 0.001 ) # Plaxis
-        sig_xy = sig_integrationpoint1_element170[0,1]
-        self.assertEqual( sig_xy, 0.0 )
+        test_helper.compare_stress_results_with_plaxis_table_file(self, simulation, plx_file_path, 3, 0.001, 0.1)
 
     def test_k0_procedure_k0_umat(self):
         """
