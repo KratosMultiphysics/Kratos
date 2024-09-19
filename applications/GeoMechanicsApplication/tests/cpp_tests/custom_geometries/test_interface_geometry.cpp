@@ -363,6 +363,18 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AnyLineInterfaceGeometryHasTwoEdges, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto two_plus_two_noded_geometry     = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
+    const auto three_plus_three_noded_geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+
+    const auto edges1 = two_plus_two_noded_geometry.GenerateEdges();
+    const auto edges2 = three_plus_three_noded_geometry.GenerateEdges();
+
+    KRATOS_EXPECT_EQ(edges1.size(), 2);
+    KRATOS_EXPECT_EQ(edges2.size(), 2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();

@@ -208,6 +208,8 @@ public:
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
     }
 
+    GeometriesArrayType GenerateEdges() const override { return GeometriesArrayType{2}; }
+
     void CreateIntegrationPoints(IntegrationPointsArrayType& rIntegrationPoints,
                                  IntegrationInfo&            rIntegrationInfo) const override
     {
