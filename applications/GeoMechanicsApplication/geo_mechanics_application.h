@@ -52,6 +52,7 @@
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
+#include "custom_geometries/line_interface_geometry.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -136,6 +137,15 @@
 
 namespace Kratos
 {
+
+// Adding a dummy class here to get the unit test up and running. When the minimal line interface
+// element is available from `master`, we can remove it and include the corresponding header file.
+class LineInterfaceElement : public Element
+{
+public:
+    LineInterfaceElement() = default;
+    LineInterfaceElement(Element::IndexType, const Element::GeometryType::Pointer&) {}
+};
 
 ///@name Kratos Globals
 ///@{
@@ -555,6 +565,13 @@ private:
     const UPwSmallStrainLinkInterfaceElement<3, 8> mUPwSmallStrainLinkInterfaceElement3D8N{
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
+
+    const LineInterfaceElement mUPw2DLineInterfaceElement2Plus2N{
+        0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
+               Element::GeometryType::PointsArrayType(4))};
+    const LineInterfaceElement mUPw2DLineInterfaceElement3Plus3N{
+        0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
+               Element::GeometryType::PointsArrayType(6))};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{

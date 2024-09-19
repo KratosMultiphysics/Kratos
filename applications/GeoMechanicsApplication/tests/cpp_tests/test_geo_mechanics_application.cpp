@@ -55,4 +55,21 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KratosGeoMechanicsApplication geo_app;
+    const auto element_type_names = std::vector<std::string>{"UPw2DLineInterfaceElement2Plus2N",
+                                                             "UPw2DLineInterfaceElement3Plus3N"};
+
+    for (const auto& r_name : element_type_names) {
+        KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
+    }
+
+    geo_app.Register();
+
+    for (const auto& r_name : element_type_names) {
+        KRATOS_EXPECT_TRUE(KratosComponents<Element>::Has(r_name))
+    }
 }
+
+} // namespace Kratos::Testing
