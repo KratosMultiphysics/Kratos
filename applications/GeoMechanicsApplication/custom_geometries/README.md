@@ -16,3 +16,5 @@ Similarly, the 3+3 line interface geometry has the following node numbering for 
 ![3Plus3NodedGeometry](3Plus3NodedLineGeometry.svg)
 
 One thing to note, is that this line interface geometry does not implement functions from the Geometry base class which are related to the integration scheme. That is because most of the time, interface geometries are used with a Lobatto integration scheme, which is not supported by the Geometry base class.
+
+Any line interface geometry has two edges. The first edge coincides with the first (i.e. bottom) side of the geometry. The first edge's nodes are identical to the nodes at the first edge. For the 3+3 line interface geometry this means the list of node IDs equals [1, 2, 3]. The second edge references the nodes of the second (i.e. top) side of the line interface geometry. However, this edge traverses the second side in opposite direction. This implies that the end nodes will be swapped and any high-order nodes are reversed. For instance, for the 3+3 line interface geometry the second edge's nodes are ordered as follows: [5, 4, 6];
