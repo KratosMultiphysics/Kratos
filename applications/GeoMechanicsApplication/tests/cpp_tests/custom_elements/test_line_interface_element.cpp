@@ -537,4 +537,24 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
+
+    const auto dummy_process_info = ProcessInfo{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element.Check(dummy_process_info),
+        "Number of integration points (3) and constitutive laws (0) do not match.\n")
+
+    element.Initialize(dummy_process_info);
+
+    KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+}
+
 } // namespace Kratos::Testing

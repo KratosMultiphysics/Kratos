@@ -27,13 +27,16 @@ public:
 
     using Element::GeometryType;
     using Element::PropertiesType;
-    using BaseType = Element;
 
     LineInterfaceElement() = default;
 
     LineInterfaceElement(IndexType                      NewId,
                          const GeometryType::Pointer&   rGeometry,
                          const PropertiesType::Pointer& rProperties);
+
+    LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
@@ -48,12 +51,10 @@ public:
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>&    rOutput,
                                       const ProcessInfo&) override;
-    using BaseType::CalculateOnIntegrationPoints;
+    using Element::CalculateOnIntegrationPoints;
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
     Element::DofsVectorType GetDofs() const;
