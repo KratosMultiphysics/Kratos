@@ -60,20 +60,19 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedBlockBuilderAndSolverWithMassAndDamping
+ * @class ResidualBasedBlockBuilderAndSolverLinearElasticDynamic
  * @ingroup GeoMechanicsApplication
- * @brief Current class provides an implementation for builder and solving operations, while the
- * global mass and damping matrices are stored.
- * @details When the LHS is build, the global mass and damping matrices are build separately. When
+ * @brief Current class provides an implementation for builder and solving operations, especially
+ * for linear elastic dynamic systems
+ * @details When the LHS is build, the global mass and damping matrices are built separately. When
  * building the RHS, the mass and damping matrices are multiplied with respectively the second and
  * first derivative vector to calculate the mass and damping contribution. The RHS is constituted by
  * the unbalanced loads (residual) Degrees of freedom are reordered putting the restrained degrees
  * of freedom at the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information. Calculation of the reactions involves a cost very similar to the calculation of
- * the total residual. This class is intended to be used when the mass and damping matrices are
- * constant throughout the iterations, using this class, when rebuilding the LHS every iteration is
- * not efficient.
+ * the total residual. This class is intended to be used when the stiffness, mass and damping matrices are
+ * constant throughout the iterations. If the matrices are not constant, this class cannot be used.
  * @tparam TSparseSpace The sparse system considered
  * @tparam TDenseSpace The dense system considered
  * @tparam TLinearSolver The linear solver considered
