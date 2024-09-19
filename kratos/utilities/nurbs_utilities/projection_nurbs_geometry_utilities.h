@@ -153,8 +153,15 @@ public:
 
             // Compute the distance
             const double distance = norm_2(distance_vector);
-            if (distance < Accuracy)
+
+            KRATOS_WATCH(distance)
+            KRATOS_WATCH(rProjectedPointLocalCoordinates)
+            KRATOS_WATCH(s[0])
+            
+            if (distance < Accuracy){
+                KRATOS_WATCH("Distance convergence")
                 return true;
+            }
 
             // Compute the residuals along both parametric directions
             residual_u = -inner_prod(s[1], distance_vector);
@@ -167,8 +174,10 @@ public:
             eta_cos = std::abs(residual_v) / norm_2(s[2]) / norm_2(distance_vector);
 
             // Check the orthogonality condition
-            if (xi_cos < Accuracy && eta_cos < Accuracy)
+            if (xi_cos < Accuracy && eta_cos < Accuracy && distance < 1e-5){
+                KRATOS_WATCH("Orhogonality convergence")
                 return true;
+            }
 
             // Compute the Jacobian of the nonlinear system
             j_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
@@ -225,12 +234,18 @@ public:
             }
 
             // Check if the step size is too small
-            if (norm_2(d_u * s[1] + d_v * s[2]) < Accuracy)
+            if (norm_2(d_u * s[1] + d_v * s[2]) < Accuracy && distance < 1e-3){
+                KRATOS_WATCH("Convergence achieved: Step too small")
                 return true;
-
+            }
+                
             // Update the parametric coordinates
             rProjectedPointLocalCoordinates[0] += d_u;
             rProjectedPointLocalCoordinates[1] += d_v;
+
+            KRATOS_WATCH(d_u)
+            KRATOS_WATCH(d_v)
+
 
             // Check if the parametric coordinates get out of their interval of definition
             // and if so clamp them back to their boundaries
