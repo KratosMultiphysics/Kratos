@@ -46,6 +46,17 @@ auto CreateThreePlusThreeNoded2DLineInterfaceGeometry()
     return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
+void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
+                             const std::vector<std::size_t>& rExpectedNodeIds)
+{
+    KRATOS_EXPECT_NE(rGeometryPtr, nullptr);
+    
+    auto node_ids = std::vector<std::size_t>{};
+    std::transform(rGeometryPtr->begin(), rGeometryPtr->end(), std::back_inserter(node_ids),
+                   [](const auto& rNode) { return rNode.Id(); });
+    KRATOS_EXPECT_VECTOR_EQ(node_ids, rExpectedNodeIds)
+}
+
 } // namespace
 
 using namespace Kratos;
@@ -363,16 +374,20 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AnyLineInterfaceGeometryHasTwoEdges, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AnyLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto two_plus_two_noded_geometry     = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
     const auto three_plus_three_noded_geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
 
-    const auto edges1 = two_plus_two_noded_geometry.GenerateEdges();
-    const auto edges2 = three_plus_three_noded_geometry.GenerateEdges();
+    const auto edges_of_2_plus_2_geometry = two_plus_two_noded_geometry.GenerateEdges();
+    const auto edges_of_3_plus_3_geometry = three_plus_three_noded_geometry.GenerateEdges();
 
-    KRATOS_EXPECT_EQ(edges1.size(), 2);
-    KRATOS_EXPECT_EQ(edges2.size(), 2);
+    KRATOS_EXPECT_EQ(edges_of_2_plus_2_geometry.size(), 2);
+    AssertNodeIdsOfGeometry(edges_of_2_plus_2_geometry(0), {1, 2});
+    AssertNodeIdsOfGeometry(edges_of_2_plus_2_geometry(1), {4, 3});
+    KRATOS_EXPECT_EQ(edges_of_3_plus_3_geometry.size(), 2);
+    AssertNodeIdsOfGeometry(edges_of_3_plus_3_geometry(0), {1, 2, 3});
+    AssertNodeIdsOfGeometry(edges_of_3_plus_3_geometry(1), {5, 4, 6});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)
