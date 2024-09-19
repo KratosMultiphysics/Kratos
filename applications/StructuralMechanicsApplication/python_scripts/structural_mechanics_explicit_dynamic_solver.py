@@ -22,6 +22,8 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         super().__init__(model, custom_settings)
         # Lumped mass-matrix is necessary for explicit analysis
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.COMPUTE_REACTION] = False
+        # self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_REACTION] = False
         self.delta_time_refresh_counter = self.settings["delta_time_refresh"].GetInt()
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Construction finished")
 

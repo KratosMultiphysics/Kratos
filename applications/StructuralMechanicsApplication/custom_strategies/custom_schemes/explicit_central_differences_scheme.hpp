@@ -414,7 +414,6 @@ public:
         const SizeType DomainSize = 3
         )
     {
-
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
         const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -443,8 +442,10 @@ public:
 
         for (IndexType j = 0; j < DomainSize; j++) {
             if (fix_displacements[j]) {
-                r_current_acceleration[j] = 0.0;
-                r_middle_velocity[j] = 0.0;
+               r_current_acceleration[j] = 0.0;
+               r_middle_velocity[j] = 0.0;
+                //r_current_displacement[j] =  r_current_displacement[j];
+                continue;
             }
 
             r_current_velocity[j] =  r_previous_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
@@ -817,10 +818,19 @@ private:
     {
         rCurrentEntity.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
 
-        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-    }
+        // KRATOS_WATCH(rCurrentProcessInfo)
 
+        if( rCurrentProcessInfo[COMPUTE_REACTION] == false )
+        {
+            rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+            rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        }
+        else if( rCurrentProcessInfo[COMPUTE_REACTION] == true )
+        {
+            rCurrentEntity.AddExplicitContribution(-RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+            rCurrentEntity.AddExplicitContribution(-RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        } 
+    }
     ///@}
     ///@name Private  Access
     ///@{
