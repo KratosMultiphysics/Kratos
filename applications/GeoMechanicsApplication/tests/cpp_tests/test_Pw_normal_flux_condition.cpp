@@ -56,7 +56,9 @@ namespace Kratos::Testing
             std::vector<ModelPart::IndexType> cond_nodes{1, 2};
             Condition::Pointer                cond = Kratos::make_intrusive<PwNormalFluxCondition<2, 2>>(
                 1, make_shared<Line2D2<Node>>(node_1, node_2), cond_prop);
-            r_model_part.AddCondition(cond);            // Initialize the element to initialize the constitutive law
+            r_model_part.AddCondition(cond);
+
+            // Initialize the condition to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
             cond->Initialize(r_process_info);
 

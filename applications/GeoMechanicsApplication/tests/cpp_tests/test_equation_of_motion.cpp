@@ -67,10 +67,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-class StubConstitutiveLaw : public ConstitutiveLaw
-{
-};
-
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;

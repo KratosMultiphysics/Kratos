@@ -131,68 +131,53 @@ ModelPart& CreateDummyModelPartWithNodes(Model& rModel,
     return r_result;
 }
 
-intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart& rModelPart,
+intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rModelPart,
                                                      shared_ptr<Properties> pProperties,
-                                                     std::size_t DimensionSize)
+                                                     std::size_t            DimensionSize)
 {
-    constexpr auto condition_id = std::size_t{1};
-    auto node_ids = std::vector<ModelPart::IndexType>{};
-    for (const auto& node : rModelPart.Nodes()) {
-        node_ids.emplace_back(node.Id());
-    }
+    auto           r_nodes      = rModelPart.Nodes();
+    auto           node_ids     = std::vector<ModelPart::IndexType>{};
+    std::transform(r_nodes.begin(), r_nodes.end(), std::back_inserter(node_ids),
+                   [](const auto& node) { return node.Id(); });
 
-    const auto condition_name = std::string{"GeoTMicroClimateFluxCondition"} +
-                                std::to_string(DimensionSize) + "D" + std::to_string(node_ids.size()) + "N";
-
-    PointerVector<Node> node_pointers;
-    for (auto node_id : node_ids) {
-        node_pointers.emplace_back(rModelPart.pGetNode(node_id));
-    }
+    PointerVector<Node> node_pointers(node_ids.size());
+    std::transform(node_ids.begin(), node_ids.end(), node_pointers.ptr_begin(),
+                   [&rModelPart](auto node_id) { return rModelPart.pGetNode(node_id); });
 
     Condition::Pointer condition = nullptr;
     if (DimensionSize == 2 && node_ids.size() == 2) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 2>>(
             1, Kratos::make_shared<Line2D2<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 2 && node_ids.size() == 3) {
+    } else if (DimensionSize == 2 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 3>>(
             1, Kratos::make_shared<Line2D3<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 2 && node_ids.size() == 4) {
+    } else if (DimensionSize == 2 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 4>>(
             1, Kratos::make_shared<Line2D4<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 2 && node_ids.size() == 5) {
+    } else if (DimensionSize == 2 && node_ids.size() == 5) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 5>>(
             1, Kratos::make_shared<Line2D5<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 3 && node_ids.size() == 3) {
+    } else if (DimensionSize == 3 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 3>>(
             1, Kratos::make_shared<Triangle3D3<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 3 && node_ids.size() == 6) {
+    } else if (DimensionSize == 3 && node_ids.size() == 6) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 6>>(
             1, Kratos::make_shared<Triangle3D6<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 3 && node_ids.size() == 4) {
+    } else if (DimensionSize == 3 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 4>>(
             1, Kratos::make_shared<Quadrilateral3D4<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 3 && node_ids.size() == 8) {
+    } else if (DimensionSize == 3 && node_ids.size() == 8) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 8>>(
             1, Kratos::make_shared<Quadrilateral3D8<Node>>(node_pointers), pProperties);
-    }
-    if (DimensionSize == 3 && node_ids.size() == 9) {
+    } else if (DimensionSize == 3 && node_ids.size() == 9) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 9>>(
             1, Kratos::make_shared<Quadrilateral3D9<Node>>(node_pointers), pProperties);
     }
 
-    if (condition) {
-        rModelPart.AddCondition(condition);
-        return condition;
-    }
+    KRATOS_ERROR_IF_NOT(condition) << "Condition could not be created" << std::endl;
 
-    return rModelPart.CreateNewCondition(condition_name, condition_id, node_ids, pProperties);
+    rModelPart.AddCondition(condition);
+    return condition;
 }
 
 std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition,
