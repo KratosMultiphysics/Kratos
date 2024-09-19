@@ -113,29 +113,58 @@ public:
 private:
     std::vector<Model*> mpModels;
 
-    void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    void CopySubModelPartOrigin(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {
-        rDestinationMP.SetNodes(rReferenceMP.pNodes());
+       for (auto& r_cond : rReferenceMP.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry();
+            auto& r_N = r_geom.ShapeFunctionsValues();
+
+            for (IndexType i = 0; i<r_N.size2();++i)
+            {
+                if(r_N(0,i) > 1e-9)
+                {
+                    rDestinationMP.AddNode(r_geom.pGetPoint(i));
+                }
+            }
+        }
         rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
         ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
+    }
 
-        // Remove the control points which have all zero shape functions in the corresponding condition (quadrature point condition)
+    void CopySubModelPartDestination(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    {
         for (auto& r_cond : rReferenceMP.Conditions()) {
             auto& r_geom = r_cond.GetGeometry();
             auto& r_N = r_geom.ShapeFunctionsValues();
 
             for (IndexType i = 0; i<r_N.size2();++i)
             {
-                if(r_N(0,i) < 1e-8)
+                if(r_N(0,i) > 1e-9)
                 {
-                    rDestinationMP.RemoveNode(r_geom.pGetPoint(i));
+                    rDestinationMP.AddNode(r_geom.pGetPoint(i));
                 }
             }
         }
+        rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
+        ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
+        rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
+    void CopySubModelPartDestinationStrongSupport(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    {
+        rDestinationMP.SetNodes(rReferenceMP.pNodes());
+        rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
+        for(auto geometry_it = rReferenceMP.GeometriesBegin(); geometry_it != rReferenceMP.GeometriesEnd(); geometry_it++){
+            IndexType geometry_id = geometry_it->Id();
+            rDestinationMP.AddGeometry(rReferenceMP.pGetGeometry(geometry_id));
+        }
+    }
+
+
     void CreateInterfaceLineBrepCurveOnSurface(ModelPart& rInterfaceModelPart);
+
+    void CreateInterfaceLineBrepCurveOnSurfaceStrongSupport(ModelPart& rInterfaceModelPart);
 
     void CheckParameters();
 

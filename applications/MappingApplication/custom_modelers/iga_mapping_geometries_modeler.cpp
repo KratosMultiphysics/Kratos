@@ -48,30 +48,48 @@ namespace Kratos
             KRATOS_ERROR << "Not implemented yet" << std::endl;
         }
 
+        bool has_destination_domain_strong_support = 0;
+
+        IndexType number_of_conditions_destination = mpModels.back()->GetModelPart(destination_interface_sub_model_part_name).NumberOfConditions();
+
+        if (number_of_conditions_destination == 0){
+            has_destination_domain_strong_support = 1;
+        }
+
         // create coupling conditions on interface depending on the dimension
         const IndexType dim = 2;
-        if (dim == 2)
+        if (dim == 2 && has_destination_domain_strong_support == 0)
         {
             CreateInterfaceLineBrepCurveOnSurface(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
             CreateInterfaceLineBrepCurveOnSurface(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
         }
         else
         {
-            KRATOS_ERROR << "Not implemented yet" << std::endl;
+            CreateInterfaceLineBrepCurveOnSurface(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
+            CreateInterfaceLineBrepCurveOnSurfaceStrongSupport(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
         }
 
         // Transfer everything into the coupling modelpart
         ModelPart& coupling_interface_origin = (coupling_model_part.HasSubModelPart("interface_origin"))
             ? coupling_model_part.GetSubModelPart("interface_origin")
             : coupling_model_part.CreateSubModelPart("interface_origin");
-        CopySubModelPart(coupling_interface_origin,
-            mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
 
         ModelPart& coupling_interface_destination = (coupling_model_part.HasSubModelPart("interface_destination"))
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
-        CopySubModelPart(coupling_interface_destination,
-            mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
+
+        if (has_destination_domain_strong_support == 0){
+            CopySubModelPartOrigin(coupling_interface_origin,
+                mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
+            CopySubModelPartDestination(coupling_interface_destination,
+                mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
+        } else{
+            CopySubModelPartOrigin(coupling_interface_origin,
+                mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
+            CopySubModelPartDestinationStrongSupport(coupling_interface_destination,
+                mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
+        }
+
 
         KRATOS_ERROR_IF(coupling_interface_origin.NumberOfConditions() == 0)
             << "Coupling geometries are currently determined by conditions in the coupling sub model parts,"
@@ -124,42 +142,96 @@ namespace Kratos
         ModelPart& coupling_conditions = rInterfaceModelPart.GetSubModelPart("coupling_conditions");
         const ModelPart& root_mp = rInterfaceModelPart.GetRootModelPart();
 
-        GeometryPointerType interface_quadrature_point = rInterfaceModelPart.ConditionsBegin()->pGetGeometry(); // You recover a quedrature point in a curve on surface
-        auto* interface_brep_curve_on_surface = &interface_quadrature_point->GetGeometryParent(0); //Get the b_rep_curve_on_surface
+        int number_of_conditions = rInterfaceModelPart.NumberOfConditions();
 
-        // Get the Nurbs curve on surface 
-        GeometryPointerType interface_nurbs_curve_on_surface=(interface_quadrature_point->GetGeometryParent(0)).pGetGeometryPart(std::numeric_limits<IndexType>::max() - 2); 
+        auto sub_model_parts_names = rInterfaceModelPart.GetSubModelPartNames();
+
+        int number_of_extra_conditions = 0;
         
-        // Downcast it from the base class (geometry) to the derived class (NurbsCurveOnSurfaceGeometry)
-        auto interface_nurbs_curve_on_surface_cast = dynamic_pointer_cast<NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>>(interface_nurbs_curve_on_surface); 
+        // We calculate the number of extra conditions to be able to know the number of quadrature points in the interface 
+        for (IndexType i = 0; i < sub_model_parts_names.size(); i++){
+            auto sub_model_part_name = sub_model_parts_names[i];
+            number_of_extra_conditions += rInterfaceModelPart.GetSubModelPart(sub_model_part_name).NumberOfConditions();
+        }
 
-        // Get a pointer to the underlying surface (get a pointer to the base class)
-        GeometryPointerType interface_nurbs_surface = (interface_quadrature_point->GetGeometryParent(0)).pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX); 
+        int number_of_quadrature_points = number_of_conditions - number_of_extra_conditions;
 
-        // Downcast the pointer to the derived class (NurbsSurfaceGeometry)
-        auto interface_nurbs_surface_cast = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(interface_nurbs_surface); 
-        KRATOS_WATCH(interface_nurbs_surface_cast->KnotsU());
+        int old_nurbs_curve_on_surface_id = 0 ;
+        int quadrature_point_count = 1;
 
-        // Get the Nurbs curve in the parameter space 
-        auto p_nurbs_curve=interface_nurbs_curve_on_surface_cast->pGetCurve();
+        std::vector<GeometryType::Pointer> pBrep_curve_on_surface_vector ;
 
-        // intersection between curve and surface parameter space in terms of the curve 1D parameter space.
-        std::vector<double> curve_and_parameter_space_intersections;
-        interface_brep_curve_on_surface->SpansLocalSpace(curve_and_parameter_space_intersections);
+        for(auto cond_it = rInterfaceModelPart.ConditionsBegin(); cond_it != rInterfaceModelPart.ConditionsEnd(); ++cond_it){
+            int quadrature_point_id = cond_it->Id();
+            GeometryPointerType interface_quadrature_point = rInterfaceModelPart.pGetCondition(quadrature_point_id)->pGetGeometry();
         
+            auto* interface_brep_curve_on_surface = &interface_quadrature_point->GetGeometryParent(0); //Get the b_rep_curve_on_surface
+
+            // Get the Nurbs curve on surface 
+            GeometryPointerType interface_nurbs_curve_on_surface=(interface_quadrature_point->GetGeometryParent(0)).pGetGeometryPart(std::numeric_limits<IndexType>::max() - 2); 
+
+            int new_nurbs_curve_on_surface_id = interface_nurbs_curve_on_surface->Id();
+
+            if (new_nurbs_curve_on_surface_id != old_nurbs_curve_on_surface_id){
+                // Downcast it from the base class (geometry) to the derived class (NurbsCurveOnSurfaceGeometry)
+                auto interface_nurbs_curve_on_surface_cast = dynamic_pointer_cast<NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>>(interface_nurbs_curve_on_surface); 
+
+                // Get a pointer to the underlying surface (get a pointer to the base class)
+                GeometryPointerType interface_nurbs_surface = (interface_quadrature_point->GetGeometryParent(0)).pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX); 
+
+                // Downcast the pointer to the derived class (NurbsSurfaceGeometry)
+                auto interface_nurbs_surface_cast = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(interface_nurbs_surface); 
+
+                // Get the Nurbs curve in the parameter space 
+                auto p_nurbs_curve = interface_nurbs_curve_on_surface_cast->pGetCurve();
+
+                // intersection between curve and surface parameter space in terms of the curve 1D parameter space.
+                std::vector<double> curve_and_parameter_space_intersections;
+                interface_brep_curve_on_surface->SpansLocalSpace(curve_and_parameter_space_intersections);
+
+                for(size_t nurbs_curve_intersection = 0; nurbs_curve_intersection < curve_and_parameter_space_intersections.size() - 1; nurbs_curve_intersection++){
+                        NurbsInterval active_range(curve_and_parameter_space_intersections[nurbs_curve_intersection],curve_and_parameter_space_intersections[nurbs_curve_intersection+1]);
+
+                        GeometryType::Pointer pBrep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(interface_nurbs_surface_cast,p_nurbs_curve,active_range);
+
+                        pBrep_curve_on_surface_vector.push_back(pBrep_curve_on_surface);
+                }
+
+                old_nurbs_curve_on_surface_id = new_nurbs_curve_on_surface_id;
+            }
+
+            if (quadrature_point_count == number_of_quadrature_points){
+                break;
+            }
+
+            quadrature_point_count += 1;
+
+        }  
+
         // Determine next condition number
         IndexType condition_id = (root_mp.NumberOfConditions() == 0)
             ? 1 : (root_mp.ConditionsEnd() - 1)->Id() + 1;
 
-        for(size_t nurbs_curve_intersection=0;nurbs_curve_intersection<curve_and_parameter_space_intersections.size()-1;nurbs_curve_intersection++){
-            NurbsInterval active_range(curve_and_parameter_space_intersections[nurbs_curve_intersection],curve_and_parameter_space_intersections[nurbs_curve_intersection+1]);
-
-            GeometryType::Pointer pBrep_curve_on_surface =Kratos::make_shared< BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>> >(interface_nurbs_surface_cast,p_nurbs_curve,active_range);
-
-            coupling_conditions.CreateNewCondition("BrepCurveOnSurface", condition_id, pBrep_curve_on_surface, root_mp.ElementsBegin()->pGetProperties());
+        for (IndexType i = 0; i < pBrep_curve_on_surface_vector.size(); i++){
+            coupling_conditions.CreateNewCondition("BrepCurveOnSurface", condition_id, pBrep_curve_on_surface_vector[i], root_mp.ElementsBegin()->pGetProperties());
             condition_id += 1;
         }
-
         
+    }
+
+    void IgaMappingGeometriesModeler::CreateInterfaceLineBrepCurveOnSurfaceStrongSupport(ModelPart& rInterfaceModelPart)
+    {
+        rInterfaceModelPart.CreateSubModelPart("coupling_conditions");
+        ModelPart& coupling_conditions = rInterfaceModelPart.GetSubModelPart("coupling_conditions");
+
+        const ModelPart& root_mp = rInterfaceModelPart.GetRootModelPart();
+
+        for (auto geometry_it = root_mp.GeometriesBegin(); geometry_it != root_mp.GeometriesEnd(); geometry_it++){
+            if (geometry_it->Id() == 3){
+                IndexType geometry_id = geometry_it->Id();
+                rInterfaceModelPart.AddGeometry(root_mp.pGetGeometry(geometry_id));
+            }
+        }
+
     }
 }
