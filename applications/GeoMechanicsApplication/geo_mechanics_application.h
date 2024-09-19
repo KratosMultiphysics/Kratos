@@ -89,6 +89,7 @@
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
+#include "custom_elements/line_interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
@@ -137,15 +138,6 @@
 
 namespace Kratos
 {
-
-// Adding a dummy class here to get the unit test up and running. When the minimal line interface
-// element is available from `master`, we can remove it and include the corresponding header file.
-class LineInterfaceElement : public Element
-{
-public:
-    LineInterfaceElement() = default;
-    LineInterfaceElement(Element::IndexType, const Element::GeometryType::Pointer&) {}
-};
 
 ///@name Kratos Globals
 ///@{
