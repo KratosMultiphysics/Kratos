@@ -143,17 +143,17 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -1.0503073352419314, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.9007159229868797, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8267434236568114, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -1.0964242473327956, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
             self._runTest(settings_adjoint_farfield_file_name)
             self._runTest(settings_penalty_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.27882962377313825, 0.0, 1e-6)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.34574095647293107, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.38305428616956905, 0.0, 1e-6)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.373749145115962, 0.0, 1e-6)
             self._runTest(settings_comp_penalty_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.2790356699193499, 0.0, 1e-6)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.3459089921041752, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.3832238355625421, 0.0, 1e-6)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3739407323566888, 0.0, 1e-6)
 
             for file_name in os.listdir(os.getcwd()):

@@ -39,27 +39,27 @@
   },
   "NODE_8": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      1.2333664430378084
     ]
   },
   "NODE_9": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.00019651759360070364
     ]
   },
   "NODE_10": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -0.9683783674473557
     ]
   },
   "NODE_11": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -1.9223889743363942
     ]
   },
   "NODE_12": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      1.8832071917102389
     ]
   },
   "NODE_13": {
@@ -69,27 +69,27 @@
   },
   "NODE_14": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -4.53064917101635
     ]
   },
   "NODE_15": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.07760449114617778
     ]
   },
   "NODE_16": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      3.575057456453604
     ]
   },
   "NODE_17": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -0.19303219650446402
     ]
   },
   "NODE_18": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      1.373691048984018
     ]
   },
   "NODE_19": {
@@ -104,7 +104,7 @@
   },
   "NODE_21": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.43913742281351886
     ]
   },
   "NODE_22": {
@@ -119,7 +119,7 @@
   },
   "NODE_24": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -1.6732107482473995
     ]
   },
   "NODE_25": {
@@ -134,17 +134,17 @@
   },
   "NODE_27": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.12430405335481992
     ]
   },
   "NODE_28": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      2.6679703936289334
     ]
   },
   "NODE_29": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -0.031728059403698834
     ]
   },
   "NODE_30": {
@@ -159,7 +159,7 @@
   },
   "NODE_32": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.02652126511195064
     ]
   },
   "NODE_33": {
@@ -169,22 +169,22 @@
   },
   "NODE_34": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      1.5629220328452538
     ]
   },
   "NODE_35": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -0.019454525926663024
     ]
   },
   "NODE_36": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      0.039718799011620495
     ]
   },
   "NODE_37": {
     "NORMAL_SENSITIVITY": [
-      0.0
+      -1.6240518787384535
     ]
   }
 }
