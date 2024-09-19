@@ -13,6 +13,10 @@
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_fast_suite.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos::Testing
 {
 
@@ -53,6 +57,18 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
     for (const auto& name : variable_names) {
         KRATOS_EXPECT_TRUE(KratosComponents<VariableData>::Has(name))
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KratosGeoMechanicsApplication geo_app;
+    const auto constitutive_law_name = "GeoIncrementalLinearElasticInterfaceLaw"s;
+
+    KRATOS_EXPECT_FALSE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
+
+    geo_app.Register();
+
+    KRATOS_EXPECT_TRUE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)

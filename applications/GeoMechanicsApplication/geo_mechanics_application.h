@@ -120,6 +120,7 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
+#include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
@@ -962,6 +963,8 @@ private:
 
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
+
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
 
     ///@}
 
