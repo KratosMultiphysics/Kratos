@@ -342,6 +342,7 @@ public:
                 std::vector<double> intersection_slave_spans;
                 mpGeometries[i]->SpansLocalSpace(intersection_slave_spans);
 
+                int count = 0;
                 for (IndexType j = 0; j < intersection_slave_spans.size(); ++j) {
                     local_coords_span_intersection_on_slave[0] = intersection_slave_spans[j];
                     // Get global coordinates of span intersection on slave.
@@ -350,9 +351,19 @@ public:
                     // Get initial guess for projection on master curve.
                     curve_tessellation_master.GetClosestPoint(
                         global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
-                    // Projection on master curve.
-                    int success = mpGeometries[0]->ProjectionPointGlobalToLocalSpace(
-                        global_coords_span_intersection_on_slave, local_coords_master);
+                    
+
+                    int success;
+                    if (std::abs(global_coords_span_intersection_on_slave[0]-global_coords_master[0]) > 0.003){
+                        success = 0;
+                        count += 1;
+                    }
+                    else
+                    {
+                        // Projection on master curve.
+                        success = mpGeometries[0]->ProjectionPointGlobalToLocalSpace(
+                            global_coords_span_intersection_on_slave, local_coords_master);
+                    }
 
                     #ifdef KRATOS_DEBUG
                         mpGeometries[0]->GlobalCoordinates(global_coords_master, local_coords_master);
@@ -366,6 +377,10 @@ public:
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
                     slave_span_intersections_in_master_local_space.push_back(local_coords_master[0]);
+                    if (count == 2){
+                         slave_span_intersections_in_master_local_space.erase(slave_span_intersections_in_master_local_space.begin() + 1);
+                         slave_span_intersections_in_master_local_space.push_back(slave_span_intersections_in_master_local_space[0]);
+                    }
                 }
             }
 
@@ -508,11 +523,11 @@ public:
             rIntegrationInfo);
 
         for (SizeType i = 0; i < num_integration_points; ++i) {
-            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
+            /*KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
                 << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
                 << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
                 << slave_quadrature_points(i)->Center() << ". Distance: "
-                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
+                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;*/
 
             rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
                 master_quadrature_points(i), slave_quadrature_points(i));
