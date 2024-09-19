@@ -29,7 +29,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class SensorView
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorView
 {
 public:
     ///@name Type Definitions
