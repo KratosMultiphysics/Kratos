@@ -57,8 +57,8 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
         on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
         bottom of the geometry such that half the stress in the soil column is cancelled out. In this test the global
-        mass and damping matrix are precalculated in the builder and solver, such that they are not recalculated every
-        step.
+        stiffness, mass and damping matrix are precalculated in the builder and solver, such that they are not
+        recalculated every step.
 
         Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
         time step size is increased for faster calculation
@@ -100,7 +100,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         bottom of the geometry such that half the stress in the soil column is cancelled out. In this a solver is used
         which is designed for linear elastic systems, thus matrices, are not recalculated every step and the linear
         solver is factorized only once. Furthermore, the initial acceleration is calculated such that the first step is
-        in equilibrium.
+        in equilibrium. The simulation is run in multiple stages.
 
         Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
         time step size is increased for faster calculation
