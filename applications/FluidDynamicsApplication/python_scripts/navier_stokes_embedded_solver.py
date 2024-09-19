@@ -28,7 +28,6 @@ class EmbeddedFormulation(object):
         self.element_has_nodal_properties = False
         self.historical_nodal_properties_variables_list = []
         self.non_historical_nodal_properties_variables_list = []
-        print("ANDREA - QUESTO E' IL SOLVER")
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
@@ -52,7 +51,6 @@ class EmbeddedFormulation(object):
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
 
     def SetProcessInfo(self, model_part):
-        print("ANDREA - E' QUI SETPROCESSINFO DELLA FORMULAZIONE")
         for variable,value in self.process_info_data.items():
             model_part.ProcessInfo[variable] = value
 
@@ -383,7 +381,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
 
     def PrepareModelPart(self):
-        print("ANDREA - SONO NEL PREPARE DEL SOLVER")
         # Call the base solver PrepareModelPart()
         super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
 
@@ -397,7 +394,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def Initialize(self):
         # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
         if hasattr(self, 'embedded_formulation'):
-            print("ANDREA - SONO NELL'IF DI EMBEDDED")
             self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
@@ -439,10 +435,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def InitializeSolutionStep(self):
         # Compute the BDF coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        print("ANDREA - INITIALIZE SOLUTION STEP")
         # If required, compute the nodal neighbours
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
-            print("ANDREA - QUI CALCOLIAMO I VICINI - AUSAS!!")
             (self.find_nodal_neighbours_process).Execute()
 
         # Set the virtual mesh values from the background mesh
@@ -566,11 +560,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         distance_modification_settings = self.settings["distance_modification_settings"]
         distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
         if len(self.settings["volume_model_part_name"].GetString().split(".")) == 1:
-            print("ANDREA - DIST-MOD-PROC OK")
             aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
             IssueDeprecationWarning("NavierStokesEmbeddedMonolithicSolver", "Partial model part name found in 'volume_model_part_name'. Please provide full model part names.")
         else:
-            print("ANDREA - DIST-MOD-PROC NO")
             aux_full_volume_part_name = self.settings["volume_model_part_name"].GetString()
         distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
         return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
@@ -633,9 +625,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 self.fm_ale_step += 1
 
     def __SetVirtualMeshValues(self):
-        print("ANDREA - PRIMA DI SETVIRTUALMESH")
         if self.__IsFmAleStep():
-            print("ANDREA - NELL'IF DI GET_FM_ALE")
             # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
             self.__GetFmAleUtility().SetVirtualMeshValuesFromOriginMesh()
 
