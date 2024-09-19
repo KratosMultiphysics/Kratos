@@ -107,6 +107,16 @@
                 "relative_tolerance"   : 1e-12,
                 "time_frequency"   : -2
                 }
+        // },{
+        //     "python_module" : "json_output_process",
+        //     "kratos_module" : "KratosMultiphysics",
+        //     "process_name" : "JsonOutputProcess",
+        //     "Parameters" : {
+        //         "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+        //         "output_variables" : ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"],
+        //         "output_file_name" : "embedded_compressible_circle_penalty_velocity_potential_test_results.json",
+        //         "time_frequency" : -2
+        //     }
         }]
     }
 }
