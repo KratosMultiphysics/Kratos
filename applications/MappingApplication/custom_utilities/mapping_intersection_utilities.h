@@ -16,6 +16,7 @@
 // System includes
 
 // External includes
+#include "clipper/include/clipper2/clipper.h"
 
 // Project includes
 #include "includes/model_part.h"
@@ -24,6 +25,8 @@
 
 #include "integration/integration_point_utilities.h"
 #include "utilities/quadrature_points_utility.h"
+#include "utilities/geometry_utilities/brep_trimming_utilities.h"
+#include "iga_mapping_intersection_utilities.h"
 
 namespace Kratos
 {
@@ -31,6 +34,8 @@ namespace MappingIntersectionUtilities
 {
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
+
+    typedef signed long long cInt;
 
     typedef Node NodeType;
     typedef typename NodeType::Pointer NodePointerType;
@@ -47,9 +52,17 @@ namespace MappingIntersectionUtilities
         ModelPart& rModelPartResult,
         double Tolerance = 1e-6);
 
+    void KRATOS_API(MAPPING_APPLICATION) CreateFEMFEMSurfaceCouplingGeometries(
+        ModelPart& rModelPartDomainA,
+        ModelPart& rModelPartDomainB,
+        ModelPart& rModelPartResult);
+
     void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
         ModelPart& rModelPartCoupling,
         double Tolerance);
+
+     void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling2DGeometries3D(
+        ModelPart& rModelPartCoupling);
 
     bool KRATOS_API(MAPPING_APPLICATION) FindOverlapExtents1DGeometries2D(
         const GeometryType& rMasterLine,

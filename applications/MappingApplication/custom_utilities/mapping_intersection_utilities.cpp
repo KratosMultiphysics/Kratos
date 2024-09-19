@@ -49,6 +49,39 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
     }
 }
 
+void MappingIntersectionUtilities::CreateFEMFEMSurfaceCouplingGeometries(
+    ModelPart& rModelPartDomainA,
+    ModelPart& rModelPartDomainB,
+    ModelPart& rModelPartResult)
+{
+    /*for (auto element_a_itr = rModelPartDomainA.ElementsBegin();
+             element_a_itr != rModelPartDomainA.ElementsEnd();
+             ++element_a_itr)
+    {
+        for (auto element_b_itr = rModelPartDomainB.ElementsBegin();
+            element_b_itr != rModelPartDomainB.ElementsEnd();
+            ++element_b_itr)
+        {
+            rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
+                element_a_itr->pGetGeometry(), element_b_itr->pGetGeometry()));
+        }
+    }*/
+
+   for (auto condition_a_itr = rModelPartDomainA.ConditionsBegin();
+            condition_a_itr != rModelPartDomainA.ConditionsEnd();
+             ++condition_a_itr)
+    {
+        for (auto condition_b_itr = rModelPartDomainB.ConditionsBegin();
+           condition_b_itr != rModelPartDomainB.ConditionsEnd();
+            ++condition_b_itr)
+        {
+            rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
+               condition_a_itr->pGetGeometry(),condition_b_itr->pGetGeometry()));
+        }
+    }
+
+}
+
 void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartCoupling,
     double Tolerance)
@@ -114,6 +147,159 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
                 id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
         }
+    }
+}
+
+void MappingIntersectionUtilities::CreateQuadraturePointsCoupling2DGeometries3D(
+    ModelPart& rModelPartCoupling)
+{
+    const ModelPart& rParentModelPart = rModelPartCoupling.GetParentModelPart();
+
+
+    for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
+        geometry_itr != rModelPartCoupling.GeometriesEnd();
+        ++geometry_itr)
+    {
+        auto& r_geom_master = geometry_itr->GetGeometryPart(0);
+        auto& r_geom_slave = geometry_itr->GetGeometryPart(1);
+        
+        IndexType number_of_nodes_master = r_geom_master.PointsNumber();
+        IndexType number_of_nodes_slave = r_geom_master.PointsNumber();
+
+        // Construct the clipper library objects
+        Clipper2Lib::Paths64 master_element(1), slave_element(1), solution;
+        const double factor = 1e-10;
+
+        Clipper2Lib::Point64 int_point;
+        int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+        int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
+
+        // Build the master element for clipper
+        for (IndexType u = 0; u < number_of_nodes_master; ++u)
+        {
+            CoordinatesArrayType master_element_node = *(r_geom_master.pGetPoint(u));
+            auto new_int_point = BrepTrimmingUtilities::ToIntPoint(master_element_node[0], master_element_node[1], factor);
+            if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y))
+            {
+                master_element[0].push_back(new_int_point);
+                int_point.x = new_int_point.x;
+                int_point.y = new_int_point.y;
+            }
+        }
+
+        // Build the slave element for clipper
+        for (IndexType u = 0; u < number_of_nodes_slave; ++u)
+        {
+            CoordinatesArrayType slave_element_node = *(r_geom_slave.pGetPoint(u));
+            auto new_int_point = BrepTrimmingUtilities::ToIntPoint(slave_element_node[0], slave_element_node[1], factor);
+            if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y))
+            {
+                slave_element[0].push_back(new_int_point);
+                int_point.x = new_int_point.x;
+                int_point.y = new_int_point.y;
+            }
+        }
+
+        // Intersect the triangle with the polygon resulting from the tessellation of the outer loop
+        solution = Clipper2Lib::Intersect(master_element, slave_element, Clipper2Lib::FillRule::NonZero);
+
+        if (solution.size() != 0)
+        {
+            std::vector<Matrix> triangles;
+            BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
+
+
+            for (IndexType k = 0; k < triangles.size(); k++){
+                // Find the position of the new triangles in the parameter space of the master element
+                std::vector<CoordinatesArrayType> triangle_coordinates_master_parameter_space, triangle_master_physical_space;
+                CoordinatesArrayType triangle_node_master_parameter_space = ZeroVector(3);
+                CoordinatesArrayType triangle_node_master_physical_space = ZeroVector(3);
+
+
+                 // Extract the triangles from the Triangulation_OPT method
+                for (IndexType vertex_index = 0; vertex_index < 3; vertex_index++)
+                {
+                    triangle_node_master_physical_space[0] = triangles[k](vertex_index, 0);
+                    triangle_node_master_physical_space[1] = triangles[k](vertex_index, 1);
+                    triangle_node_master_physical_space[2] = 0.0;
+
+                    triangle_master_physical_space.push_back(triangle_node_master_physical_space);
+                }
+
+                // Sort the triangle counter-clockwise
+                std::vector<CoordinatesArrayType> sorted_triangle_master_physical_space;
+                IgaMappingIntersectionUtilities::sortVerticesCounterClockwise(triangle_master_physical_space, sorted_triangle_master_physical_space);
+
+
+                for (IndexType vertex_index = 0; vertex_index < 3; vertex_index++)
+                {
+                    r_geom_master.PointLocalCoordinates(triangle_node_master_parameter_space, sorted_triangle_master_physical_space[vertex_index]);
+                    triangle_coordinates_master_parameter_space.push_back(triangle_node_master_parameter_space);
+                }
+
+                // Create integration points container for the master
+                IntegrationPointsArrayType integration_points_master(3);
+                typename IntegrationPointsArrayType::iterator integration_point_master_iterator = integration_points_master.begin();
+                GeometriesArrayType quadrature_point_geometries_master(3);
+
+                // Create integration points container for the slave
+                IntegrationPointsArrayType integration_points_slave(3);
+                GeometriesArrayType quadrature_point_geometries_slave(3);
+
+
+                // Coordinates of the triangle vertex in the master parameter space
+                double xi_0 = triangle_coordinates_master_parameter_space[0][0];
+                double xi_1 = triangle_coordinates_master_parameter_space[1][0];
+                double xi_2 = triangle_coordinates_master_parameter_space[2][0];
+                double eta_0 = triangle_coordinates_master_parameter_space[0][1];
+                double eta_1 = triangle_coordinates_master_parameter_space[1][1];
+                double eta_2 = triangle_coordinates_master_parameter_space[2][1];
+
+                // Creating the integration points
+                IntegrationPointUtilities::IntegrationPointsTriangle2D(integration_point_master_iterator, 1, xi_0, xi_1, xi_2, eta_0, eta_1, eta_2);
+
+                // Create master quadrature points
+                CreateQuadraturePointsUtility<NodeType>::Create(
+                        r_geom_master, quadrature_point_geometries_master, integration_points_master, 1);
+
+                // Get the position of the master quadrature points in its physical space
+                CoordinatesArrayType master_quadrature_point_xyz = ZeroVector(3);
+                CoordinatesArrayType slave_quadrature_point_local_space = ZeroVector(3);
+                integration_points_slave = integration_points_master;
+
+                for (IndexType k = 0; k < quadrature_point_geometries_master.size(); k++)
+                {
+                    // Get the position of the master i_th quadrature point in its physical space
+                    master_quadrature_point_xyz = quadrature_point_geometries_master[k].Center();
+
+                    // Obtain the local coordinate of the i_th master quadrature point in the slave local space
+                    r_geom_slave.PointLocalCoordinates(slave_quadrature_point_local_space, master_quadrature_point_xyz);
+
+                    // Modify the slave integration points container
+                    integration_points_slave[k].X() = slave_quadrature_point_local_space[0];
+                    integration_points_slave[k].Y() = slave_quadrature_point_local_space[1];
+                }
+
+                // Create slave quadrature points
+                CreateQuadraturePointsUtility<NodeType>::Create(
+                        r_geom_slave, quadrature_point_geometries_slave, integration_points_slave, 1);
+
+                // add the quadrature point geometry conditions to the result model part
+                    const IndexType id = (rParentModelPart.NumberOfConditions() == 0)
+                                             ? 1
+                                             : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
+        
+                for (IndexType i = 0; i < quadrature_point_geometries_master.size(); ++i)
+                {
+                    rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+                        id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+                }
+            }
+        } else
+        {
+            continue;
+        }
+
     }
 }
 
