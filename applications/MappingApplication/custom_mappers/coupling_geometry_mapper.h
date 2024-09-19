@@ -15,8 +15,6 @@
 
 // System includes
 
-// External includes
-
 // Project includes
 #include "mappers/mapper.h"
 #include "custom_utilities/interface_vector_container.h"
@@ -26,6 +24,10 @@
 #include "custom_utilities/iga_mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
+
+/*#include "utilities/dense_svd_decomposition.h"
+#include "custom_decompositions/eigen_dense_bdc_svd_decomposition.h"
+#include "spaces/ublas_space.h"*/
 
 #include "linear_solvers/linear_solver.h"
 
@@ -217,6 +219,56 @@ public:
             GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
     }
+
+    /*void CalculateMoorePenroseInverse(
+        const Matrix& rInputMatrix,
+        Matrix& rMoorePenroseInverse)
+    {
+        IndexType aux_size_1 = TDenseSpace::Size1(rInputMatrix);
+        IndexType aux_size_2 = TDenseSpace::Size2(rInputMatrix);
+        KRATOS_ERROR_IF_NOT(aux_size_1 == aux_size_2) << "Input matrix is not squared." << std::endl;
+
+        Vector s_svd; // Singular values vector
+        Matrix u_svd; // Left orthogonal matrix
+        Matrix v_svd; // Right orthogonal matrix
+        Parameters svd_settings(R"({
+            "compute_thin_u" : true,
+            "compute_thin_v" : true
+        })");
+        EigenDenseBDCSVD<UblasSpace<double, Matrix, Vector>> mpDenseSVD;
+        mpDenseSVD.Compute(const_cast<Matrix&>(rInputMatrix), s_svd, u_svd, v_svd, svd_settings);
+
+        //KRATOS_WATCH(s_svd)
+        // KRATOS_WATCH(u_svd)
+        // KRATOS_WATCH(v_svd)
+        const std::size_t n_sing_val = 4;
+        //TODO: This allocation can be avoided
+        Matrix s_inv = ZeroMatrix(n_sing_val, n_sing_val);
+        for (std::size_t i = 0; i < n_sing_val; ++i) {
+            s_inv(i,i) = 1.0 / s_svd(i);
+        }
+
+
+        // KRATOS_WATCH(s_inv)
+
+        // Calculate and save the input matrix pseudo-inverse
+        rMoorePenroseInverse = ZeroMatrix(aux_size_2, aux_size_1);
+
+        // Note that we take advantage of the fact that the input matrix is always square
+        for (std::size_t i = 0; i < aux_size_2; ++i) {
+            for (std::size_t j = 0; j < aux_size_1; ++j) {
+                double& r_value = rMoorePenroseInverse(i,j);
+                for (std::size_t k = 0; k < n_sing_val; ++k) {
+                    const double v_ik = v_svd(i,k);
+                    for (std::size_t m = 0; m < n_sing_val; ++m) {
+                        const double ut_mj = u_svd(j,m);
+                        const double s_inv_km = s_inv(k,m);
+                        r_value += v_ik * s_inv_km * ut_mj;
+                    }
+                }
+            }
+        }
+    }*/
 
     ///@}
     ///@name Access

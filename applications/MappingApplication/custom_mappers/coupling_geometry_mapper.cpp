@@ -69,8 +69,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                     * det_jacobian[integration_point_itr] * weight;
-                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
-                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                /*KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;*/
             }
         }
     }
@@ -90,7 +90,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                         * sf_values_master(integration_point_itr, j)
                         * det_jacobian[integration_point_itr] * weight;
 
-                    /*KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
+                /* KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
                         << "ORIGIN SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;*/
                 }
             }
@@ -169,11 +169,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     const std::size_t num_nodes_interface_slave = mpCouplingInterfaceSlave->NumberOfNodes();
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceMaster->NumberOfNodes();
     mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
-     for (auto& node : mpCouplingInterfaceSlave->Nodes()) {
-                node.Fix(DISPLACEMENT_X);
-                node.Fix(DISPLACEMENT_Y);
-                node.Fix(DISPLACEMENT_Z);
-    }
+    for (auto& node : mpCouplingInterfaceSlave->Nodes()) {
+                 node.Fix(DISPLACEMENT_X);
+                 node.Fix(DISPLACEMENT_Y);
+                 node.Fix(DISPLACEMENT_Z);
+     }
 
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
     MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
@@ -184,7 +184,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsSlave,
         0); // The echo-level is no longer neeed here, refactor in separate PR
-        KRATOS_WATCH(*mpMappingMatrixSlave)
+        std::cout.precision(16);
+        //KRATOS_WATCH(*mpMappingMatrixSlave)
 
     MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixProjector,
@@ -194,7 +195,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsProjector,
         0); // The echo-level is no longer neeed here, refactor in separate PR
-        KRATOS_WATCH(*mpMappingMatrixProjector)
+        //KRATOS_WATCH(*mpMappingMatrixProjector)  
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool()) {
