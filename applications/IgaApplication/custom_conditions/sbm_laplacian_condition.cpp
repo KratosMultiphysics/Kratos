@@ -183,7 +183,6 @@ void SBMLaplacianCondition::CalculateAllDirichlet(
 
     // Compute the normals
     array_1d<double, 3> normal_physical_space;
-    // array_1d<double, 3> mNormalParameterSpace;
 
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -356,7 +355,6 @@ void SBMLaplacianCondition::CalculateAllNeumann(
         noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[point_number],InvJ0);
 
         // Compute the normal
-        array_1d<double, 3> mNormalParameterSpace;
         mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
         mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
 
