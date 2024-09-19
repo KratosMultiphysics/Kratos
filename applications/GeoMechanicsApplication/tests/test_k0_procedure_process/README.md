@@ -13,3 +13,4 @@ This folder contains the test cases:
 -   [K<sub>0</sub> procedure for simple dike](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_simple_dike/README.md)
 -   [K<sub>0</sub> procedure for horizontal layers](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_with_horizontal_layers/README.md)
 -   [K<sub>0</sub> procedure for tilted layers](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_with_tilted_layers/README.md)
+-   [K<sub>0</sub> procedure normal consolidation with POP using layers](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_pop_layers/README.md)

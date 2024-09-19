@@ -3,6 +3,7 @@ import os
 import KratosMultiphysics                as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
+import math
 
 class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
     """
@@ -26,6 +27,14 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         """
         for integration_point in integration_points:
             self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_horizontal_stress, expected_vertical_stress, rel_tol)
+
+
+    def assert_relative_close(self, a, b, rel_tol):
+        # Calculate the percentage difference
+        difference = abs(a - b)
+        average = (a + b) / 2
+        # Check if the difference is less than the tolerance percentage of the average
+        return self.assertTrue((difference / average) < rel_tol if average != 0 else difference < rel_tol)
 
     def test_k0_procedure_k0_nc(self):
         """
@@ -267,6 +276,88 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_xx = sig_integrationpoint1_element1[0,0]
         self.assertAlmostEqual( sig_xx, k0*(sig_yy+pop) )
         sig_xy = sig_integrationpoint1_element1[0,1]
+        self.assertEqual( sig_xy, 0.0 )
+
+    def test_k0_procedure_phi_pop_layers(self):
+        """
+        Test to check if CAUCHY_STRESS_XX is correctly derived from CAUCHY_STRESS_YY using PHI and
+        POP over multiple layers
+        """
+
+        test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_phi_pop_layers")
+        file_path = test_helper.get_file_path(test_name)
+
+        # run simulation
+        simulation = test_helper.run_kratos(file_path)
+
+        # retrieve Cauchy stress tensor
+        cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
+
+        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
+        phi = math.radians(10.0)
+        k0_nc = 1 - math.sin(phi)
+        porosity = 1.0/3.0
+        density_water = 1019.368
+        g = 9.81
+        distance_to_integration_point = 0.087
+        pop = 1.2
+
+        sig_yy_layer_1 = ((1-porosity)*2548.419975535168 + porosity*density_water)*g*2
+        sig_yy_layer_2 = ((1-porosity)*2854.2303730886842 + porosity*density_water)*g*2
+        sig_yy_layer_3 = ((1-porosity)*2395.5147767584094 + porosity*density_water)*g*(2-distance_to_integration_point)
+        sig_eff_yy_bottom = ((sig_yy_layer_3 + sig_yy_layer_2 + sig_yy_layer_1) - density_water*g*(6-distance_to_integration_point))
+
+        k0 = k0_nc
+        self.assertAlmostEqual(k0, 0.8263518223330697) # Hand calculation
+        sig_integrationpoint1_element170 = cauchy_stresses[170-1][1]
+        sig_yy = sig_integrationpoint1_element170[1,1]
+        self.assert_relative_close(sig_yy, -sig_eff_yy_bottom, rel_tol=0.001) # Hand calculation
+        self.assert_relative_close(sig_yy, -61.2138042096087e3, rel_tol=0.001) # Plaxis
+        sig_xx = sig_integrationpoint1_element170[0,0]
+        self.assert_relative_close( sig_xx, -k0*(sig_yy+pop), rel_tol=0.001) # Hand calculation
+        self.assert_relative_close( sig_xx, -51.2757608473495e3, rel_tol=0.001) # Plaxis
+        sig_xy = sig_integrationpoint1_element170[0,1]
+        self.assertEqual( sig_xy, 0.0 )
+
+    def test_k0_procedure_k0_nc_pop_layers(self):
+        """
+        Test to check if CAUCHY_STRESS_XX is correctly derived from CAUCHY_STRESS_YY using PHI and
+        POP over multiple layers
+        """
+
+        test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_pop_layers")
+        file_path = test_helper.get_file_path(test_name)
+
+        # run simulation
+        simulation = test_helper.run_kratos(file_path)
+
+        # retrieve Cauchy stress tensor
+        cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
+
+        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
+        phi = math.radians(10.0)
+        k0_nc = 1 - math.sin(phi)
+        porosity = 1.0/3.0
+        density_water = 1019.368
+        g = 9.81
+        distance_to_integration_point = 0.087
+        pop = 1200
+
+        sig_yy_layer_1 = ((1-porosity)*2548.419975535168 + porosity*density_water)*g*2
+        sig_yy_layer_2 = ((1-porosity)*2854.2303730886842 + porosity*density_water)*g*2
+        sig_yy_layer_3 = ((1-porosity)*2395.5147767584094 + porosity*density_water)*g*(2-distance_to_integration_point)
+        sig_eff_yy_bottom = ((sig_yy_layer_3 + sig_yy_layer_2 + sig_yy_layer_1) - density_water*g*(6-distance_to_integration_point))
+
+        k0 = k0_nc
+        self.assertAlmostEqual(k0, 0.8263518223330697) # Hand calculation
+        sig_integrationpoint1_element170 = cauchy_stresses[170-1][1]
+        sig_yy = sig_integrationpoint1_element170[1,1]
+        self.assert_relative_close(sig_yy, -sig_eff_yy_bottom, 0.001) # Hand calculation
+        self.assert_relative_close(sig_yy, -61.2138042096087e3, 0.001) # Plaxis
+        sig_xx = sig_integrationpoint1_element170[0,0]
+        self.assert_relative_close( sig_xx, -k0*(sig_yy+pop), 0.001 ) # Hand calculation
+        self.assert_relative_close( sig_xx, -51.2757608473495e3, 0.001 ) # Plaxis
+        sig_xy = sig_integrationpoint1_element170[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
     def test_k0_procedure_k0_umat(self):

@@ -100,6 +100,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
             KRATOS_ERROR << "friction angle Phi out of range in ApplyK0ProcedureProcess: " << phi << std::endl;
         }
         std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(MathUtils<>::DegreesToRadians(phi)));
+        KRATOS_INFO("K0") << "K0 vector created from UMAT parameters: " << k0_vector << " " << phi << std::endl;
     } else if (rProp.Has(K0_VALUE_XX) && rProp.Has(K0_VALUE_YY) && rProp.Has(K0_VALUE_ZZ)) {
         k0_vector[0] = rProp[K0_VALUE_XX];
         k0_vector[1] = rProp[K0_VALUE_YY];
