@@ -556,9 +556,9 @@ private:
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
         bool is_converged = false;
-
         rIterationNumber++;
-        while (is_converged == false && rIterationNumber < BaseType::mMaxIterationNumber) {
+        for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++)
+        {
             // setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
 
@@ -594,14 +594,14 @@ private:
 
             BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-            if (BaseType::mStoreNonconvergedSolutionsFlag == true) {
+            if (BaseType::mStoreNonconvergedSolutionsFlag) {
                 Vector ith;
                 BaseType::GetCurrentSolution(r_dof_set, ith);
                 rNonconvergedSolutions.push_back(ith);
             }
 
-            if (is_converged == true) {
-                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+            if (is_converged) {
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(rb);
 
                     p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
@@ -610,11 +610,13 @@ private:
                 is_converged =
                     BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
-
-            rIterationNumber++;
+            if (is_converged)
+            {   
+                return true;
+            }
         }
 
-        return is_converged;
+        return false;
     }
 
     void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
