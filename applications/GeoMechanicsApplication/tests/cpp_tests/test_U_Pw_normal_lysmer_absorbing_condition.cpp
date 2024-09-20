@@ -26,8 +26,8 @@ class MockElement : public UPwSmallStrainElement<2, 4>
 public:
     MockElement() : UPwSmallStrainElement<2, 4>() {}
 
-    MockElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement(NewId, pGeometry, pProperties, std::make_unique<PlaneStrainStressState>())
+    MockElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties)
+        : UPwSmallStrainElement(NewId, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>())
     {
     }
 
@@ -47,7 +47,7 @@ public:
             double degree_of_saturation = 0.5;
             rOutput                     = std::vector<double>(4, degree_of_saturation);
         } else {
-            Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+            UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
         }
     };
 };
