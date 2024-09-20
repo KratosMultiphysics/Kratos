@@ -204,13 +204,15 @@ int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     int error = Element::Check(rCurrentProcessInfo);
     if (error != 0) return error;
 
-    KRATOS_ERROR_IF(mIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
-        << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
-        << ") and constitutive laws (" <<  mConstitutiveLaws.size() << ") do not match.\n";
+    if (this->IsActive()) {
+        KRATOS_ERROR_IF(mIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
+            << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
+            << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-    for (const auto& r_constitutive_law : mConstitutiveLaws) {
-        error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
-        if (error != 0) return error;
+        for (const auto& r_constitutive_law : mConstitutiveLaws) {
+            error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+            if (error != 0) return error;
+        }
     }
 
     return 0;

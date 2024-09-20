@@ -539,7 +539,6 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
     const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
@@ -554,6 +553,25 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
 
     element.Initialize(dummy_process_info);
 
+    KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
+
+    // In the integrated workflow, the elements are not initialized, when they are not active.
+    // However, the Check method is always called on all elements, even if they are not active.
+    // Therefore, the Check method should not throw an exception in this case, even though the
+    // constitutive laws are not initialized.
+    element.Set(ACTIVE, false);
+
+    const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
