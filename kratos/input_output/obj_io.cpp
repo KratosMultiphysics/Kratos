@@ -16,6 +16,7 @@
 
 // Project includes
 #include "input_output/obj_io.h"
+#include "utilities/entities_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
@@ -84,10 +85,12 @@ ObjIO::ObjIO(
 Parameters ObjIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "open_mode"                      : "read",
-        "entity_type"                    : "element",
-        "decompose_quads_into_triangles" : false,
-        "normal_as_historical"           : false
+        "open_mode"                       : "read",
+        "entity_type"                     : "element",
+        "decompose_quads_into_triangles"  : false,
+        "normal_as_historical"            : false,
+        "clean_up_problematic_geometries" : true,
+        "area_tolerance"                  : 1.0e-6
     })" );
 }
 
@@ -110,16 +113,25 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
     mNextElementId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Elements(),
         [](Element& rElement) { return rElement.Id();}) + 1;
+    mFirstElementId = mNextElementId;
 
     mNextConditionId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Conditions(),
         [](Condition& rCondition) { return rCondition.Id();}) + 1;
+    mFirstConditionId = mNextConditionId;
 
     // Read vertices, normals, and faces
     const bool normal_as_historical = mParameters["normal_as_historical"].GetBool();
     const std::string entity_type = mParameters["entity_type"].GetString();
     const bool decompose_quads_into_triangles = mParameters["decompose_quads_into_triangles"].GetBool();
     ReadVerticesAndFaces(rThisModelPart, entity_type, normal_as_historical, decompose_quads_into_triangles);
+
+    // Clean up problematic geometries
+    const bool clean_up_problematic_geometries = mParameters["clean_up_problematic_geometries"].GetBool();
+    if (clean_up_problematic_geometries) {
+        const double area_tolerance = mParameters["area_tolerance"].GetDouble();
+        CleanUpProblematicGeometriesInMesh(rThisModelPart, entity_type, mFirstNodeId, mFirstElementId, mFirstConditionId, area_tolerance);
+    }
 }
 
 /***********************************************************************************/
@@ -263,6 +275,29 @@ void ObjIO::ReadVerticesAndFaces(
             ParseFaceLine(rThisModelPart, line, rEntityType, DecomposeQuadrilateral);
         }
         // Other types can be handled if needed
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ObjIO::CleanUpProblematicGeometriesInMesh(
+    ModelPart& rThisModelPart,
+    const std::string& rEntityType,
+    const IndexType FirstNodeId,
+    const IndexType FirstElementId,
+    const IndexType FirstConditionId,
+    const double AreaTolerance
+    )
+{
+    if (rEntityType == "element") {
+        CleanUpProblematicGeometries<Element>(rThisModelPart, FirstNodeId, FirstElementId, AreaTolerance);
+    } else if (rEntityType == "condition") {
+        CleanUpProblematicGeometries<Condition>(rThisModelPart, FirstNodeId, FirstConditionId, AreaTolerance);
+    } else if (rEntityType == "geometry") { // TODO: Implement geometry cleanup
+        KRATOS_ERROR << "Geometry cleanup not yet supported. Sorry" << std::endl;
+    } else {
+        KRATOS_ERROR << "Unknown entity type: " << rEntityType << std::endl;
     }
 }
 
@@ -414,6 +449,171 @@ std::vector<std::string> ObjIO::Tokenize(const std::string& rLine)
         tokens.emplace_back(line_no_comments.substr(start));
     }
     return tokens;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <typename TEntityType>
+void ObjIO::CleanUpProblematicGeometries(
+    ModelPart& rThisModelPart,
+    const IndexType FirstNodeId,
+    const IndexType FirstEntityId,
+    const double AreaTolerance
+    )
+{
+    // Get the entities container
+    auto& r_entities = EntitiesUtilities::GetEntities<TEntityType>(rThisModelPart);
+
+    // Compute the largest length of all geometries and the sum of lengths
+    const double sum_length = block_for_each<SumReduction<double>>(r_entities, [](auto& rEntity) {
+        return rEntity.GetGeometry().Length();
+    });
+    const double average_length = sum_length / static_cast<double>(r_entities.size());
+    const double ref_area = average_length * average_length * AreaTolerance;
+
+    // Lambda function to check if two nodes are at the same position using relative tolerance
+    auto ComputeDistance = [](const Node& rNode1, const Node& rNode2) -> double {
+        const array_1d<double, 3>& r_coords1 = rNode1.Coordinates();
+        const array_1d<double, 3>& r_coords2 = rNode2.Coordinates();
+        return norm_2(r_coords1 - r_coords2);
+    };
+
+    // Initialize variables
+    std::vector<typename TEntityType::Pointer> entities_to_remove;
+    std::unordered_map<IndexType, std::unordered_set<IndexType>> replace_nodes;
+
+    // Identify degenerated entities
+    double distance_1, distance_2, distance_3;
+    for (auto it_entity = r_entities.begin(); it_entity != r_entities.end(); ++it_entity) {
+        auto& r_geometry = it_entity->GetGeometry();
+
+        // Check if the entity is a triangle
+        if (r_geometry.PointsNumber() != 3) {
+            continue;
+        }
+
+        // Check that the area is below a certain tolerance
+        const double area = r_geometry.Area();
+        if (area < ref_area) {
+            // Get the nodes
+            auto& r_node1 = r_geometry[0];
+            auto& r_node2 = r_geometry[1];
+            auto& r_node3 = r_geometry[2];
+
+            // Compute the squared distances
+            distance_1 = ComputeDistance(r_node1, r_node2);
+            distance_2 = ComputeDistance(r_node1, r_node3);
+            distance_3 = ComputeDistance(r_node2, r_node3);
+
+            // Compare which is the smallest of the three distances
+            const IndexType node_id_1 = r_node1.Id();
+            const IndexType node_id_2 = r_node2.Id();
+            const IndexType node_id_3 = r_node3.Id();
+            const double all_nodes_equal_tolerance = 1.0e-4;
+            if (distance_1/average_length < all_nodes_equal_tolerance && distance_2/average_length < all_nodes_equal_tolerance && distance_3/average_length < all_nodes_equal_tolerance) { // All nodes are the same
+                replace_nodes[node_id_1].insert(node_id_2);
+                replace_nodes[node_id_1].insert(node_id_3);
+                replace_nodes[node_id_2].insert(node_id_1);
+                replace_nodes[node_id_2].insert(node_id_3);
+                replace_nodes[node_id_3].insert(node_id_1);
+                replace_nodes[node_id_3].insert(node_id_2);
+            } else if (distance_1 < distance_2 && distance_1 < distance_3) {
+                // node1 and node2 are the same
+                replace_nodes[node_id_1].insert(node_id_2);
+                replace_nodes[node_id_2].insert(node_id_1);
+            } else if (distance_2 < distance_1 && distance_2 < distance_3) {
+                // node1 and node3 are the same
+                replace_nodes[node_id_1].insert(node_id_3);
+                replace_nodes[node_id_3].insert(node_id_1);
+            } else { // distance_3 is the smallest by elimination
+                // node2 and node3 are the same
+                replace_nodes[node_id_2].insert(node_id_3);
+                replace_nodes[node_id_3].insert(node_id_2);
+            }
+            it_entity->Set(TO_ERASE);
+        }
+    }
+
+    // Merge nodes to replace
+    std::unordered_map<IndexType, IndexType> nodes_to_erase;
+    for (auto& r_node_pair : replace_nodes) {
+        const IndexType id = r_node_pair.first;
+        auto& r_nodes_to_replace = r_node_pair.second;
+        for (const IndexType node_id : r_nodes_to_replace) {
+            const auto& r_sub_nodes_to_replace = replace_nodes[node_id];
+            for (const IndexType sub_node_id : r_sub_nodes_to_replace) {
+                if (sub_node_id != id) {
+                    r_nodes_to_replace.insert(sub_node_id);
+                }
+            }
+        }
+        for (const IndexType node_id : r_nodes_to_replace) {
+            replace_nodes.erase(node_id);
+            nodes_to_erase.insert({node_id, id});
+            auto p_node = rThisModelPart.pGetNode(node_id);
+            p_node->Set(TO_ERASE);
+        }
+    }
+
+    // Clear replace nodes, not required anymore
+    replace_nodes.clear();
+
+    // Replace nodes in entities
+    for (auto it_entity = r_entities.begin(); it_entity != r_entities.end(); ++it_entity) {
+        if (it_entity->IsNot(TO_ERASE)) {
+            auto& r_geometry = it_entity->GetGeometry();
+            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                const IndexType node_id = r_geometry[i].Id();
+                auto it_find_node = nodes_to_erase.find(node_id);
+                if (it_find_node != nodes_to_erase.end()) {
+                    const IndexType replace_node_id = it_find_node->second;
+                    r_geometry(i) = rThisModelPart.pGetNode(replace_node_id);
+                }
+            }
+        }
+    }
+
+    // Remove entities and nodes marked to erase
+    RemoveEntitiesAndNodes<TEntityType>(rThisModelPart);
+
+    // Renumber nodes
+    auto& r_nodes_array = rThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
+        (it_node_begin + i)->SetId(i + FirstNodeId);
+    });
+
+    // Renumber entities
+    const auto it_ent_begin = r_entities.begin();
+    IndexPartition<std::size_t>(r_entities.size()).for_each([&](std::size_t i) {
+        (it_ent_begin + i)->SetId(i + FirstEntityId);
+    });
+}
+
+// Explicit instantiation of template functions for Element and Condition
+template void ObjIO::CleanUpProblematicGeometries<Element>(ModelPart& rThisModelPart, const IndexType FirstNodeId, const IndexType FirstEntityId, const double AreaTolerance);
+template void ObjIO::CleanUpProblematicGeometries<Condition>(ModelPart& rThisModelPart, const IndexType FirstNodeId, const IndexType FirstEntityId, const double AreaTolerance);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Helper function definitions
+
+// RemoveEntitiesAndNodes specialization for Element
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Element>(ModelPart& rThisModelPart)
+{
+    rThisModelPart.RemoveElements(TO_ERASE);
+    rThisModelPart.RemoveNodes(TO_ERASE);
+}
+
+// RemoveEntitiesAndNodes specialization for Condition
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Condition>(ModelPart& rThisModelPart)
+{
+    rThisModelPart.RemoveConditions(TO_ERASE);
+    rThisModelPart.RemoveNodes(TO_ERASE);
 }
 
 /***********************************************************************************/
