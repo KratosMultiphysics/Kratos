@@ -169,7 +169,7 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
         OutputGradientFields(self.__objective, self._optimization_problem, True)
         for constraint in self.__constraints_list:
-            OutputGradientFields(constraint, self._optimization_problem, True)
+            OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
