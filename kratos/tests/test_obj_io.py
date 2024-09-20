@@ -213,6 +213,26 @@ class TestObjIO(KratosUnittest.TestCase):
             self.assertAlmostEqual(normal[1], node.Y)
             self.assertAlmostEqual(normal[2], node.Z)
 
+    def test_ReadObjIOTrianglesDegenerated(self):
+        """
+        Test the ReadModelPart function from ObjIO
+        """
+        # Create a model part and set the domain size
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main")
+        self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        # Read a model part from an OBJ file
+        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube_degenerated.obj")
+        ReadModelPartFromOBJ(self.model_part, obj_name, True)
+
+        # # Debug
+        # debug_vtk(self.model_part)
+
+        # Assert that the model part has the correct number of nodes and elements
+        self.assertEqual(self.model_part.NumberOfNodes(), 8)
+        self.assertEqual(self.model_part.NumberOfConditions(), 12)
+
     def test_WriteObjIO(self):
         """
         Test the WriteModelPart function form ObjIO
