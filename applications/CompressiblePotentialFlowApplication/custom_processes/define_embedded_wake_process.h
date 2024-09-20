@@ -79,12 +79,16 @@ private:
 
     ModelPart& mrModelPart;
     ModelPart& mrWakeModelPart;
+    array_1d<double, 3> mWakeNormal;
+    array_1d<double, 3> mWakeOrigin;
 
     void ComputeDistanceToWake();
 
     void MarkWakeElements();
 
     void ComputeTrailingEdgeNode();
+
+    void SetWakeDistancesSignAccordingToNormal(Element& rElement, BoundedVector<double, 3>& rElementalDistances);
 
     ModelPart::NodeType::Pointer pGetTrailingEdgeNode();
 

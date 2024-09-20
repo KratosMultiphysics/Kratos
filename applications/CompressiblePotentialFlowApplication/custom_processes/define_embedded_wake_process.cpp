@@ -64,12 +64,13 @@ void DefineEmbeddedWakeProcess::ExecuteInitialize() {
         << std::endl;
     // The wake direction is the free stream direction
     const auto wake_direction = free_stream_velocity / norm;
-    array_1d<double, 3> wake_normal;
 
-    wake_normal[0] = -wake_direction[1];
-    wake_normal[1] = wake_direction[0];
-    wake_normal[2] = 0.0;
-    mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+    mWakeNormal[0] = -wake_direction[1];
+    mWakeNormal[1] = wake_direction[0];
+    mWakeNormal[2] = 0.0;
+    mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = mWakeNormal;
+
+    mWakeOrigin = mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_ORIGIN];
 
     KRATOS_CATCH("");
 }
@@ -84,6 +85,21 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
     KRATOS_CATCH("");
 }
 
+void DefineEmbeddedWakeProcess::SetWakeDistancesSignAccordingToNormal(Element& rElement, BoundedVector<double, 3>& rElementalDistances) {
+    const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(rElementalDistances);
+    auto& r_geometry = rElement.GetGeometry();
+    if (is_wake_element) {
+        for(unsigned int i_node = 0; i_node< r_geometry.size(); ++i_node){
+            array_1d<double, 3> pos_vector;
+            pos_vector[0] = r_geometry[i_node].X() - mWakeOrigin[0];
+            pos_vector[1] = r_geometry[i_node].Y() - mWakeOrigin[1];
+            pos_vector[2] = 0.0;
+            double projection = inner_prod(pos_vector, mWakeNormal);
+            rElementalDistances[i_node] = std::copysign(rElementalDistances[i_node], projection);
+        }
+    }
+}
+
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
     KRATOS_TRY;
@@ -92,6 +108,9 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
     {
         auto& r_geometry = rElem.GetGeometry();
         BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
+
+        SetWakeDistancesSignAccordingToNormal(rElem, nodal_distances_to_wake);
+
         rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
