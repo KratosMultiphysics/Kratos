@@ -81,7 +81,7 @@
                 "inlet_potential": 1.0,
                 "initialize_flow_field": false
             }
-        }],
+            }],
         "list_other_processes" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
             "python_module" : "single_mesh_temporal_input_process",
@@ -106,16 +106,6 @@
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "time_frequency"   : -2
             }
-        // },{
-        //     "python_module" : "json_output_process",
-        //     "kratos_module" : "KratosMultiphysics",
-        //     "process_name" : "JsonOutputProcess",
-        //     "Parameters" : {
-        //         "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
-        //         "output_variables" : ["NORMAL_SENSITIVITY"],
-        //         "output_file_name" : "normal_sensitivity_test_results.json",
-        //         "time_frequency" : -2
-        //     }
         }]
     }
 }

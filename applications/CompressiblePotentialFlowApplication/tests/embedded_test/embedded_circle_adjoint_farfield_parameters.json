@@ -106,16 +106,6 @@
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "time_frequency"   : -2
             }
-        // },{
-        //     "python_module" : "json_output_process",
-        //     "kratos_module" : "KratosMultiphysics",
-        //     "process_name" : "JsonOutputProcess",
-        //     "Parameters" : {
-        //         "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
-        //         "output_variables" : ["NORMAL_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL","ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
-        //         "output_file_name" : "normal_sensitivity_far_field_test_results.json",
-        //         "time_frequency" : -2
-        //     }
         }]
     }
 }
