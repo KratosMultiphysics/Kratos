@@ -378,6 +378,29 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+
+    Model model;
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
+
+    const auto dummy_process_info = ProcessInfo{};
+
+    // Multiple initializations emulate a multi-stage simulation
+    element.Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
+    element.Initialize(dummy_process_info);
+
+    // Assert
+    auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
+    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

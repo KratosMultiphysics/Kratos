@@ -193,6 +193,7 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
+    mConstitutiveLaws.clear();
     for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
         mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
