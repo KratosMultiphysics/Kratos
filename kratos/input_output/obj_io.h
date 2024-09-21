@@ -293,8 +293,14 @@ private:
 
 }; // Class ObjIO
 
-///@}
+// Helper function definitions specialization
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Element>(ModelPart& rThisModelPart);
 
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Condition>(ModelPart& rThisModelPart);
+
+///@}
 ///@name Input and output
 ///@{
 
