@@ -88,7 +88,9 @@ private:
 
     void ComputeTrailingEdgeNode();
 
-    void SetWakeDistancesSignAccordingToNormal(Element& rElement, BoundedVector<double, 3>& rElementalDistances);
+    void SetWakeDistancesSignAccordingToNormal(
+        Element& rElement,
+        BoundedVector<double, 3>& rElementalDistances);
 
     ModelPart::NodeType::Pointer pGetTrailingEdgeNode();
 

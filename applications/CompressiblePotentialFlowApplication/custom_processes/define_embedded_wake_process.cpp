@@ -85,9 +85,11 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
     KRATOS_CATCH("");
 }
 
-void DefineEmbeddedWakeProcess::SetWakeDistancesSignAccordingToNormal(Element& rElement, BoundedVector<double, 3>& rElementalDistances) {
+void DefineEmbeddedWakeProcess::SetWakeDistancesSignAccordingToNormal(
+    Element& rElement,
+    BoundedVector<double, 3>& rElementalDistances) {
     const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(rElementalDistances);
-    auto& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     if (is_wake_element) {
         for(unsigned int i_node = 0; i_node< r_geometry.size(); ++i_node){
             array_1d<double, 3> pos_vector;
