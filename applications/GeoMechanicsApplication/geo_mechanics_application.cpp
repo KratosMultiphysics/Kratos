@@ -155,8 +155,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("UPw2DLineInterfaceElement2Plus2N", mUPw2DLineInterfaceElement2Plus2N)
-    KRATOS_REGISTER_ELEMENT("UPw2DLineInterfaceElement3Plus3N", mUPw2DLineInterfaceElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlainStrainElement2Plus2N", mUPwLineInterfacePlaneStrainElement2Plus2N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlainStrainElement3Plus3N", mUPwLineInterfacePlaneStrainElement3Plus3N)
 
     // Updated-Lagranian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
