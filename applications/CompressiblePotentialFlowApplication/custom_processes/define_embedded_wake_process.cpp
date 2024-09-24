@@ -154,7 +154,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
 ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
 
     for (auto& r_node : mrModelPart.Nodes()) {
-        bool is_positive = r_node.GetValue(WAKE_DISTANCE) <= 0.0;
+        bool is_positive = r_node.GetValue(WAKE_DISTANCE) > 0.0;
         bool is_wake = r_node.GetValue(WAKE);
         bool is_kutta = r_node.GetValue(KUTTA);
         if (is_positive && is_wake && is_kutta) {
