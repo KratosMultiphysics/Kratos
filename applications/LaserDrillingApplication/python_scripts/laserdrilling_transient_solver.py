@@ -89,29 +89,29 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.material_settings = materials["properties"][0]["Material"]
 
         with open("ProjectParameters.json", 'r') as project_parameters_file:
-            project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+            self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
 
-        if not project_parameters["problem_data"].Has("energy"):
+        if not self.project_parameters["problem_data"].Has("energy"):
             self.Q = 25e-6
         else:
-            self.Q = project_parameters["problem_data"]["energy"].GetDouble()
+            self.Q = self.project_parameters["problem_data"]["energy"].GetDouble()
 
-        if not project_parameters["problem_data"].Has("mask_aperture_diameter"):
+        if not self.project_parameters["problem_data"].Has("mask_aperture_diameter"):
             mask_aperture_diameter = 0.025
         else:
-            mask_aperture_diameter = project_parameters["problem_data"]["mask_aperture_diameter"].GetDouble()
-        if not project_parameters["problem_data"].Has("vaporisation_temperature"):
+            mask_aperture_diameter = self.project_parameters["problem_data"]["mask_aperture_diameter"].GetDouble()
+        if not self.project_parameters["problem_data"].Has("vaporisation_temperature"):
             self.T_e = 1000.0
         else:
-            self.T_e = project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
-        if not project_parameters["problem_data"].Has("time_jump_between_pulses"):
+            self.T_e = self.project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
+        if not self.project_parameters["problem_data"].Has("time_jump_between_pulses"):
             self.time_jump_between_pulses = 1e6
         else:
-            self.time_jump_between_pulses = project_parameters["problem_data"]["time_jump_between_pulses"].GetDouble()
-        if not project_parameters["problem_data"].Has("compute_vaporisation"):
+            self.time_jump_between_pulses = self.project_parameters["problem_data"]["time_jump_between_pulses"].GetDouble()
+        if not self.project_parameters["problem_data"].Has("compute_vaporisation"):
             self.compute_vaporisation = False
         else:
-            self.compute_vaporisation = project_parameters["problem_data"]["compute_vaporisation"].GetBool()
+            self.compute_vaporisation = self.project_parameters["problem_data"]["compute_vaporisation"].GetBool()
 
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
             self.ionization_alpha = 0.95
@@ -139,22 +139,20 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.H_ev = self.material_settings['Variables']['ENTHALPY'].GetDouble()
 
-        if not project_parameters["problem_data"].Has("mesh_size"):
-            mesh_size = "coarse"
+        if not self.project_parameters["problem_data"].Has("mesh_size"):
+            self.mesh_size = "coarse"
         else:
-            mesh_size = project_parameters["problem_data"]["mesh_size"].GetString()
+            self.mesh_size = self.project_parameters["problem_data"]["mesh_size"].GetString()
 
-        if not project_parameters["problem_data"].Has("mesh_type"):
-            mesh_type = "unstructured"
+        if not self.project_parameters["problem_data"].Has("mesh_type"):
+            self.mesh_type = "unstructured"
         else:
-            mesh_type = project_parameters["problem_data"]["mesh_type"].GetString()
+            self.mesh_type = self.project_parameters["problem_data"]["mesh_type"].GetString()
 
-        if not project_parameters["problem_data"].Has("print_hole_geometry_file"):
-            self.print_hole_geometry_file = False
+        if not self.project_parameters["problem_data"].Has("print_hole_geometry_files"):
+            self.print_hole_geometry_files = False
         else:
-            self.print_hole_geometry_file = project_parameters["problem_data"]["print_hole_geometry_file"].GetBool()
-
-        self.decomposed_nodes_coords_filename = "hole_coords_l_s=" + str(self.l_s) + "_F_th=" + str(self.F_th) + "_H_ev=" + str(self.H_ev) + "_l_th=" + str(self.l_th) + "_alpha_ion=" + str(i_alpha) + "_" + mesh_type + "_" + mesh_size + ".txt"
+            self.print_hole_geometry_files = self.project_parameters["problem_data"]["print_hole_geometry_files"].GetBool()
 
         # if self.compute_vaporisation:
         #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
@@ -730,7 +728,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         if os.path.exists(self.decomposed_nodes_coords_filename):
             os.remove(self.decomposed_nodes_coords_filename)
 
-        if self.print_hole_geometry_file:
+        if self.print_hole_geometry_files:
             self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, "a")
             for coord in list_of_decomposed_nodes_coords:
                 self.decomposed_nodes_coords_file.write(str(coord[0]) + " " + str(coord[1]) + "\n")

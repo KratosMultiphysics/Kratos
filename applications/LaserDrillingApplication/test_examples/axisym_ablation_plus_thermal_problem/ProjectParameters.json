@@ -3,18 +3,20 @@
     "problem_data"      : {
         "problem_name"  : "axisym_ablation_plus_thermal_problem",
         "parallel_type" : "OpenMP",
-        "time_step"     : 5e-7,
+        "time_step"     : 5e-6,
         "start_time"    : 0.0,
-        "end_time"      : 1e-6,
+        "end_time"      : 20e-6,
         "echo_level"    : 0,
         "energy"        : 25e-6,
         "mask_aperture_diameter" : 0.025,
         "vaporisation_temperature" : 1000.0,
         "time_jump_between_pulses": 5e-6,
-        "print_hole_geometry_file": false,
+        "print_hole_geometry_files": true,
         "compute_vaporisation" : false,
         "mesh_size" : "coarse",
-        "mesh_type" : "structured"
+        "mesh_type" : "unstructured",
+        "adjust_T_field_after_ablation" : false,
+        "reference_T_after_laser" : 298.15
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",
@@ -44,7 +46,7 @@
         },
         "ambient_temperature" : 298.15,
         "time_stepping"                      : {
-            "time_step" : 5e-7
+            "time_step" : 5e-6
         },
         "linear_solver_settings":             {
             "solver_type":   "LinearSolversApplication.sparse_lu"
