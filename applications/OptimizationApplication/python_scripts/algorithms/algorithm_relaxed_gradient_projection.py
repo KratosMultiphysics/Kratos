@@ -214,7 +214,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
         OutputGradientFields(self.__objective, self._optimization_problem, True)
         for constraint in self.__constraints_list:
-            OutputGradientFields(constraint, self._optimization_problem, True)
+            OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -237,7 +237,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         return all_feasible
 
     def GetActiveConstraintsList(self, ):
-        return [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]        
+        return [constraint for constraint in self.__constraints_list if constraint.IsActive()]        
         
     def GetConstraintsList(self):
         return self.__constraints_list
@@ -265,9 +265,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
-                    msg = "active" if constraint.IsActiveConstrant() else "non-active"
+                    msg = "active" if constraint.IsActive() else "non-active"
                     print(f"RGP Constaint {constraint.GetResponseName()} is {msg}")
-                    if constraint.IsActiveConstrant():
+                    if constraint.IsActive():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
 
                 w_r, w_c = self.ComputeBufferCoefficients()

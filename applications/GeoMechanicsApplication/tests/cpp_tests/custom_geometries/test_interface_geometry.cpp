@@ -46,6 +46,17 @@ auto CreateThreePlusThreeNoded2DLineInterfaceGeometry()
     return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
+void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
+                             const std::vector<std::size_t>& rExpectedNodeIds)
+{
+    KRATOS_EXPECT_NE(rGeometryPtr, nullptr);
+
+    auto node_ids = std::vector<std::size_t>{};
+    std::transform(rGeometryPtr->begin(), rGeometryPtr->end(), std::back_inserter(node_ids),
+                   [](const auto& rNode) { return rNode.Id(); });
+    KRATOS_EXPECT_VECTOR_EQ(node_ids, rExpectedNodeIds)
+}
+
 } // namespace
 
 using namespace Kratos;
@@ -361,6 +372,30 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
     Matrix expected_result{3, 1};
     expected_result <<= -1.0, 1.0, 0.0;
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
+
+    const auto edges = geometry.GenerateEdges();
+
+    KRATOS_EXPECT_EQ(edges.size(), 2);
+    AssertNodeIdsOfGeometry(edges(0), {1, 2});
+    AssertNodeIdsOfGeometry(edges(1), {4, 3});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+
+    const auto edges = geometry.GenerateEdges();
+
+    KRATOS_EXPECT_EQ(edges.size(), 2);
+    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
+    AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)

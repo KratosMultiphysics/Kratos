@@ -35,7 +35,7 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedFsiTest]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedFsiTest])) #TODO: To be activated once #12681 is merged
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSICouplingInterfaceTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSIProblemEmulatorTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorSpringTest]))
