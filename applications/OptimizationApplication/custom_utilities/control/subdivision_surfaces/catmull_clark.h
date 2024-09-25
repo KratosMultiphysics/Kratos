@@ -13,7 +13,7 @@
 #ifndef CATMULL_CLARK_H
 #define CATMULL_CLARK_H
 
-#pragma once
+// #pragma once
 
 // System includes
 #include <vector>
@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "expression/container_expression.h"
+// #include "opensubdiv_utilities.h"
 
 // Application includes
 
@@ -30,6 +31,7 @@ namespace Kratos
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;
+using NodeType = Node::NodeType;
 
 ///@name Kratos Classes
 ///@{
@@ -42,6 +44,7 @@ private:
     const ModelPart& mrControlledMesh;
     std::map<IndexType, std::vector<IndexType>> mFirstRingNodes;
     std::map<IndexType, std::vector<IndexType>> mFirstRingFaces;
+    // OpenSubdiv::Far::TopologyRefiner * mRefiner;
 
     // functions
     // void CreateFirstRingNeighbourhoodsOfNodes(
@@ -70,6 +73,21 @@ public:
         const ModelPart& rControlledMesh,
         const bool FixFreeEdges
     );
+
+    void RefineForQuadMesh(
+        ModelPart& rSubdividedControlPointsModelPart
+    );
+
+    // std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
+    //     NodeType& rFeNode, 
+    //     IndexType KratosFaceId, 
+    //     ModelPart::MeshType& rControlGrid,
+    //     ModelPart::MeshType& rInputMesh, 
+    //     ModelPart& rInputModelPart, 
+    //     std::map<IndexType, Vector>& RefiningWeights,
+    //     std::map<IndexType, Point>& rLimitIntersectionPointsMap,
+    //     OpenSubdiv::Far::TopologyRefiner* refiner
+    // );
 
 };
 

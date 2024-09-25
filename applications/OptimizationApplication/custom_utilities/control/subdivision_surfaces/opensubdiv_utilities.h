@@ -10,6 +10,9 @@
 //  Main author:     Bastian Devresse,
 //
 
+#ifndef OPENSUBDIV_UTILITIES_H
+#define OPENSUBDIV_UTILITIES_H
+
 // Project includes
 #include "includes/model_part.h"
 #include "includes/mesh.h"
@@ -86,7 +89,7 @@ struct VertexValue {
 
 OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     ModelPart::MeshType& rGrid,
-    const bool FixFreeEdges)
+    const bool FixFreeEdges = false)
 {
     KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner") << std::endl;
     int num_vertices = rGrid.NumberOfNodes();
@@ -149,19 +152,21 @@ void RefineGeometry(
 
     // clear output modelpart 
     rOutput.Clear();
-    // unrefine to enable subsequent refining 
-    refiner->Unrefine();
 
     if (!refiner) {
         /// generate opensubdiv refiner if not passed to function
-        OpenSubdiv::Far::TopologyRefiner * refiner = GenerateOpenSubdivRefiner(rGrid, FixFreeEdges);
+        refiner = GenerateOpenSubdivRefiner(rGrid, FixFreeEdges);
+    }
+    else {
+        // unrefine to enable subsequent refining 
+        refiner->Unrefine();
     }
 
     OpenSubdiv::Far::TopologyRefiner::UniformOptions uniform_ref_options = OpenSubdiv::Far::TopologyRefiner::UniformOptions(n_uniformRef);
     // generate all topological data in last refinement, since it is not done by default to save storage space
     uniform_ref_options.fullTopologyInLastLevel = true;
     uniform_ref_options.SetRefinementLevel(n_uniformRef);
-    // refine uniformly by 
+    // refine uniformly by n_uniformRef
     refiner->RefineUniform(uniform_ref_options);
 
     // Create a buffer to hold the position of the refined verts and
@@ -382,3 +387,5 @@ void GetRegularPatches(
     KRATOS_INFO("OPENSUBDIV_UTILS :: GetRegularPatches :: end of function ") << std::endl;
 
 };
+
+#endif // OPENSUBDIV_UTILITIES_H define
