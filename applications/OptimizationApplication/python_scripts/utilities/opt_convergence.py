@@ -16,6 +16,8 @@ def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_proble
         return AverageAbsoluteImprovement(parameters, optimization_problem)
     elif type == "target_value":
         return TargetValueCriterion(parameters, optimization_problem)
+    elif type == "magnitude_reduction":
+        return MagnitudeReductionCriterion(parameters, optimization_problem)
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
@@ -177,6 +179,51 @@ class TargetValueCriterion:
 
     def GetInfo(self) -> dict:
         info = {'type': 'value',
+                'current_value': self.value,
+                'target_value': self.__target_value,
+                "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
+                'status': str("converged" if self.conv else "not converged")}
+        return info
+    
+class MagnitudeReductionCriterion:
+    @classmethod
+    def GetDefaultParameters(cls):
+        return Kratos.Parameters("""{
+            "type"                            : "magnitude_reduction",
+            "max_iter"                        : 0,
+            "target_magnitude_reduction"      : 1e-3,
+            "machine_precision"               : 1e-16
+        }""")
+
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.__max_iter = parameters["max_iter"].GetInt()
+        self.__optimization_problem = optimization_problem
+        self.__target_magnitude_reduction = parameters["target_magnitude_reduction"].GetDouble()
+        self.__machine_precision = parameters["machine_precision"].GetDouble()
+
+    @time_decorator()
+    def IsConverged(self) -> bool:
+        iter = self.__optimization_problem.GetStep()
+        self.conv = iter >= self.__max_iter
+
+        algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
+        if not algorithm_buffered_data.HasValue("std_obj_value"):
+            raise RuntimeError(f"Algorithm data does not contain computed \"std_obj_value\".\nData:\n{algorithm_buffered_data}" )
+        self.value = algorithm_buffered_data["std_obj_value"]
+
+        if iter == 0:
+            #self.__initial_value = self.value
+            self.__target_value = max(self.value * self.__target_magnitude_reduction, self.__machine_precision)
+        if not self.conv:
+            self.conv = self.value <= self.__target_value
+
+        DictLogger("Convergence info",self.GetInfo())
+
+        return self.conv
+
+    def GetInfo(self) -> dict:
+        info = {'type': 'magnitude_reduction',
                 'current_value': self.value,
                 'target_value': self.__target_value,
                 "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
