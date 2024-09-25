@@ -20,7 +20,7 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration = "alpha_method"
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"
@@ -82,7 +82,8 @@ for dim in dim_vector:
 
     ## Stress vector definition
     stress = DefineVector('stress',strain_size)
-
+    # Tensor constitutivo en notación de Voigt
+    C_dissi = DefineSymmetricMatrix('C_dissi', strain_size, strain_size)
     ## Other simbols definition
     dt  = sympy.Symbol('dt', positive = True)
     rho = sympy.Symbol('rho', positive = True)
@@ -318,8 +319,14 @@ for dim in dim_vector:
     grad_v_norm = grad_v.norm()
     artificial_mu = 0.5*h*art_dyn_visc_coeff*(vel_residual_norm/grad_v_norm)
 
+
+    # Calculate Dissipative term in each Gauss point
+    dissipative_term = (grad_sym_v_voigt.transpose()*C*grad_sym_v_voigt)[0,0]
+    # dissipative_term= 1.0
+
     grad_v_norm_out = OutputScalar(grad_v_norm, "grad_v_norm", mode)
     artificial_mu_out = OutputScalar(artificial_mu, "artificial_mu", mode)
+    dissipative_term_out = OutputScalar(dissipative_term,"dissipative_term", mode)
 
     #####################################################################
     #####################################################################
@@ -335,6 +342,8 @@ for dim in dim_vector:
 
         outstring = outstring.replace("//substitute_artificial_mu_2D_3N", artificial_mu_out)
         outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_2D_3N", grad_v_norm_out)
+        outstring = outstring.replace("//substitute_dissipative_term_2D_3N", dissipative_term_out)
+
 
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
@@ -347,6 +356,7 @@ for dim in dim_vector:
 
         outstring = outstring.replace("//substitute_artificial_mu_3D_4N", artificial_mu_out)
         outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_3D_4N", grad_v_norm_out)
+        outstring = outstring.replace("//substitute_dissipative_term_3D_4N", dissipative_term_out)
 
 #We write in the file
 out = open(output_filename,'w')

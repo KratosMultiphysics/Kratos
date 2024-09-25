@@ -112,7 +112,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
     ShapeFunctionDerivativesArrayType shape_derivatives;
     this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
     const unsigned int number_of_gauss_points = gauss_weights.size();
-    rOutput = 0.0; 
+    rOutput = 0.0;
     if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
     {
 
@@ -121,6 +121,18 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
         {
             this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
             rOutput += CalculateArtificialDynamicViscositySpecialization(data);
+        }
+
+        rOutput /= number_of_gauss_points;
+    }
+    if (rVariable == MACH)
+    {
+
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput += CalculateEnergyDissipationTermSpecialization(data);
         }
 
         rOutput /= number_of_gauss_points;
@@ -170,6 +182,99 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>
 
     return artificial_mu;
 }
+template <>
+double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateEnergyDissipationTermSpecialization(TwoFluidNavierStokesAlphaMethodData<2, 3> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &acceleration_alpha_method = rData.AccelerationAlphaMethod;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
+    const double alpha_f = 1 / (1 + max_spectral_radius);
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
+    const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 3, 2> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+    double dissipative_term = 0.0;
+    double mu = 1.0e-03;
+    constexpr double two_thirds = 2/3;
+    constexpr double four_thirds = 4/3;
+    BoundedMatrix<double, 3, 3> C;
+    C(0, 0) = mu * four_thirds;
+    C(0, 1) = -mu * two_thirds;
+    C(0, 2) = 0.0;
+    C(1, 0) = -mu * two_thirds;
+    C(1, 1) = mu * four_thirds;
+    C(1, 2) = 0.0;
+    C(2, 0) = 0.0;
+    C(2, 1) = 0.0;
+    C(2, 2) = mu;
+    // Calculate symbolic Energy Dissipation term
+    //substitute_dissipative_term_2D_3N
+
+
+    return dissipative_term;
+}
+
+template <>
+double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateEnergyDissipationTermSpecialization(TwoFluidNavierStokesAlphaMethodData<3, 4> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &acceleration_alpha_method = rData.AccelerationAlphaMethod;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
+    const double alpha_f = 1 / (1 + max_spectral_radius);
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
+    const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 3, 2> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+    double dissipative_term = 0.0;
+    double mu = 1.0e-03;
+    BoundedMatrix<double, 3, 3> C;
+    constexpr double two_thirds = 2. / 3.;
+    constexpr double four_thirds = 4. / 3.;
+    C(0, 0) = mu * four_thirds;
+    C(0, 1) = -mu * two_thirds;
+    C(0, 2) = -mu * two_thirds;
+
+    C(1, 0) = -mu * two_thirds;
+    C(1, 1) = mu * four_thirds;
+    C(1, 2) = -mu * two_thirds;
+
+    C(2, 0) = -mu * two_thirds;
+    C(2, 1) = -mu * two_thirds;
+    C(2, 2) = mu * four_thirds;
+
+    C(3, 3) = mu;
+    C(4, 4) = mu;
+    C(5, 5) = mu;
+    // Calculate symbolic Energy Dissipation term
+    //substitute_dissipative_term_3D_4N
+
+
+ return dissipative_term;
+}
 
 template <>
 double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateArtificialDynamicViscositySpecialization(TwoFluidNavierStokesAlphaMethodData<3, 4> &rData) const
@@ -189,7 +294,7 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const BoundedMatrix<double, 4, 3> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    BoundedMatrix<double, 4, 3> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
     const double art_dyn_visc_coeff = 0.8;

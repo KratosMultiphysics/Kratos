@@ -165,7 +165,7 @@ public:
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
-        
+
     void Calculate(
         const Variable<double> &rVariable,
         double &rOutput,
@@ -280,7 +280,7 @@ protected:
      */
 
     double CalculateArtificialDynamicViscositySpecialization(TElementData &rData) const;
-
+    double CalculateEnergyDissipationTermSpecialization(TElementData &rData) const;
     ///@}
     ///@name Protected  Access
     ///@{

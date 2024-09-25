@@ -1310,11 +1310,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double d_gauss = 0.0;
-    for (std::size_t i = 0; i < 3; ++i) {
-        d_gauss += N[i] * rData.Distance[i];
-    }
-    // const double volume_error_ratio = d_gauss <0.0 ? rData.VolumeErrorRate : 0.0;
     const double volume_error_ratio = rData.VolumeErrorRate;
 
     auto &rhs = rData.rhs;
@@ -1426,13 +1421,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double d_gauss = 0.0;
-    for (std::size_t i = 0; i < 4; ++i)
-    {
-        d_gauss += N[i] * rData.Distance[i];
-    }
-    // const double volume_error_ratio = d_gauss <0.0 ? rData.VolumeErrorRate : 0.0;
     const double volume_error_ratio = rData.VolumeErrorRate;
+
     auto &rhs = rData.rhs;
 
     const double crhs0 = N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
@@ -1581,14 +1571,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-
-    double d_gauss = 0.0;
-    for (std::size_t i = 0; i < 3; ++i)
-    {
-        d_gauss += N[i] * rData.Distance[i];
-    }
-    // const double volume_error_ratio = d_gauss <0.0 ? rData.VolumeErrorRate : 0.0;
     const double volume_error_ratio = rData.VolumeErrorRate;
+
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -1767,14 +1751,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double d_gauss = 0.0;
-    for (std::size_t i = 0; i<4; ++i)
-    {
-        d_gauss += N[i] * rData.Distance[i];
-    }
-    // const double volume_error_ratio = d_gauss < 0.0 ? rData.VolumeErrorRate : 0.0;
+    const double volume_error_ratio = rData.VolumeErrorRate;
 
-    const double volume_error_ratio =  rData.VolumeErrorRate;
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;

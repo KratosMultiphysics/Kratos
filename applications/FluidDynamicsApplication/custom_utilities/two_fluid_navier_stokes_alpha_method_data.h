@@ -161,7 +161,17 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // In here we calculate the volume error temporary ratio (note that the input value is a relative measure of the volume loss)
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
-    if (IsCut()) {
+    // Get the previous time increment. Note that we check its value in case the previous ProcessInfo is empty (e.g. first step)
+    double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
+    if (previous_dt < 1.0e-12) {
+        previous_dt = rProcessInfo[DELTA_TIME];
+    }
+    // Get the absolute volume error from the ProcessInfo and calculate the time rate
+    this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
+    // // VolumeErrorRate *= (-2/previous_dt);
+    // VolumeErrorRate *= (-1/ previous_dt);
+
+    if (!IsAir()) {
         // Get the previous time increment. Note that we check its value in case the previous ProcessInfo is empty (e.g. first step)
         double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
         if (previous_dt < 1.0e-12) {
@@ -169,7 +179,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         }
         // Get the absolute volume error from the ProcessInfo and calculate the time rate
         this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
-        VolumeErrorRate /= -previous_dt;
+        VolumeErrorRate *= (-2/previous_dt);
     } else {
         VolumeErrorRate = 0.0;
     }
