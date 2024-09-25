@@ -202,22 +202,14 @@ public:
      * @note This is a deprecated method please use SetOutputFile instead. Will be removed eventually
      */
     KRATOS_DEPRECATED_MESSAGE("Please use SetOutputFile instead. Will be removed eventually")
-    static int SetOuputFile(std::string const& rOutputFileName)
-    {
-        KRATOS_WARNING("Timer") << "Please use SetOutputFile instead. Will be removed eventually" << std::endl;
-        return SetOutputFile(rOutputFileName);
-    }
+    static int SetOuputFile(std::string const& rOutputFileName);
 
     /**
      * @brief This method closes the output file
      * @note This is a deprecated method please use CloseOutputFile instead. Will be removed eventually
      */
     KRATOS_DEPRECATED_MESSAGE("Please use CloseOutputFile instead. Will be removed eventually")
-    static int CloseOuputFile()
-    {
-        KRATOS_WARNING("Timer") << "Please use CloseOutputFile instead. Will be removed eventually" << std::endl;
-        return CloseOutputFile();
-    }
+    static int CloseOuputFile();
 
     /**
      * @brief This method gets the variable which stores if the information is printed on screen

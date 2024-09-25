@@ -162,6 +162,18 @@ int Timer::CloseOutputFile()
     return msOutputFile.is_open();
 }
 
+int Timer::SetOuputFile(std::string const& rOutputFileName)
+{
+    KRATOS_WARNING("Timer") << "Please use SetOutputFile instead. Will be removed eventually" << std::endl;
+    return SetOutputFile(rOutputFileName);
+}
+
+int Timer::CloseOuputFile()
+{
+    KRATOS_WARNING("Timer") << "Please use CloseOutputFile instead. Will be removed eventually" << std::endl;
+    return CloseOutputFile();
+}
+
 bool Timer::GetPrintOnScreen()
 {
     return msPrintOnScreen;
