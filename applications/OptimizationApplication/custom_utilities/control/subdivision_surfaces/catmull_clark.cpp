@@ -30,7 +30,6 @@
 #include "spatial_containers/kd_tree.h"
 #include "spaces/ublas_space.h"
 #include "opensubdiv_utilities.h"
-// #include "fcpw_utilities.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/intersection_utilities.h"
 #include "input_output/vtk_output.h"
@@ -41,12 +40,7 @@
 #include "../applications/ShapeOptimizationApplication/custom_utilities/geometry_utilities.h"   // TODO include/transfer geometry_utilities from SOA to OptApp
 
 // External includes
-/// OpenSubdiv
-// #include <opensubdiv/far/topologyDescriptor.h>
-// #include <opensubdiv/far/primvarRefiner.h>
-// #define FCPW_USE_ENOKI
-// #define FCPW_SIMD_WIDTH 4 // change based on the SIMD width supported by your machine
-// #include <fcpw/fcpw.h>
+#include <fcpw/fcpw.h>
 
 // Include base h
 #include "catmull_clark.h"
@@ -437,6 +431,86 @@ bool IsProjectionInsideCondition(NodeType& rPoint, const array_1d<double, 3>& rU
     return is_inside;
 }
 
+std::vector<fcpw::Vector3i> TriangulateMesh(ModelPart::MeshType& rInputMesh, std::map<IndexType, IndexType>& MapTriaIndicesToConditions)
+{
+    // KRATOS_INFO("CATMULL_CLARK :: FindNearestConditionOnMesh :: TriangulateMesh") << std::endl;
+
+    std::vector<fcpw::Vector3i> triangle_indices;
+    SizeType tria_index = 0;
+    for (auto cond_it = rInputMesh.ConditionsBegin(); cond_it != rInputMesh.ConditionsEnd(); ++cond_it) {
+        ConditionType& cond = *cond_it;
+        GeometryType& geom = cond.GetGeometry();
+        if (geom.size() == 3) {
+            fcpw::Vector3i indices;
+            indices << geom[0].GetId() - 1, geom[1].GetId() - 1, geom[2].GetId() - 1;
+            triangle_indices.push_back(indices);
+            MapTriaIndicesToConditions[tria_index] = cond.GetId();
+            tria_index += 1;
+        }
+        else if (geom.size() == 4) {
+
+            fcpw::Vector3i indices_1, indices_2;
+
+            indices_1 << geom[0].GetId() - 1, geom[1].GetId() - 1, geom[2].GetId() - 1;
+            indices_2 << geom[0].GetId() - 1, geom[2].GetId() - 1, geom[3].GetId() - 1;
+
+            triangle_indices.push_back(indices_1);
+            triangle_indices.push_back(indices_2);
+
+            MapTriaIndicesToConditions[tria_index] = cond.GetId();
+            MapTriaIndicesToConditions[tria_index + 1] = cond.GetId();
+
+            tria_index += 2;
+        }
+        else if (geom.size() > 4) {
+            KRATOS_ERROR << "Polygons with more than 4 vertices are not supported yet!" << std::endl;
+        }
+    }
+    return triangle_indices;
+}
+
+IndexType FindNearestConditionOnMesh(NodeType& rFeNode, ModelPart::MeshType& rSearchMesh)
+{
+    KRATOS_INFO("CATMULL_CLARK :: FindNearestConditionOnMesh") << std::endl;
+
+    // initialize a 3d scene
+    fcpw::Scene<3> scene;
+
+    std::vector<fcpw::Vector3> mesh_nodes;
+    for (auto node_it = rSearchMesh.NodesBegin(); node_it != rSearchMesh.NodesEnd(); ++node_it) {
+        NodeType& node = *node_it;
+        fcpw::Vector3 new_node;
+        new_node << node.Coordinates()[0], node.Coordinates()[1], node.Coordinates()[2];
+        mesh_nodes.push_back(new_node);
+    }
+
+    std::map<IndexType, IndexType> map_tria_index_to_condition_id;
+    const std::vector<fcpw::Vector3i>& triangle_indices = TriangulateMesh(rSearchMesh, map_tria_index_to_condition_id);
+
+    // load positions and indices of a single triangle mesh
+    scene.setObjectCount(1);
+    scene.setObjectVertices(mesh_nodes, 0);
+    scene.setObjectTriangles(triangle_indices, 0);
+
+    // build acceleration structure
+    fcpw::AggregateType aggregateType = fcpw::AggregateType::Bvh_SurfaceArea;
+    bool buildVectorizedBvh = true;
+    scene.build(aggregateType, buildVectorizedBvh);
+
+    // perform a closest point query
+    fcpw::Interaction<3> interaction;
+    fcpw::Vector3 queryPoint;
+    queryPoint << rFeNode.Coordinates()[0], rFeNode.Coordinates()[1], rFeNode.Coordinates()[2];
+    bool found = scene.findClosestPoint(queryPoint, interaction);
+
+    // access distance and closest point via interaction.d and interaction.p (resp.)
+    if (found) {
+        int fcpw_tria_index = interaction.primitiveIndex;
+        return map_tria_index_to_condition_id[fcpw_tria_index];
+    }
+    else KRATOS_ERROR << "FindNearestConditionOnMesh :: Could not determine nearest point on tria surface!" << std::endl;
+}
+
 IndexType NodeLiesInFace(NodeType& rFeNode, ModelPart::MeshType& rSearchMesh, Point& rIntersectionPoint)
 {
     KRATOS_INFO("CATMULL_CLARK :: NodeLiesInFace") << std::endl;
@@ -681,6 +755,7 @@ std::vector<double> GetUnitWeightDistributionForNode(IndexType osd_v_idx, OpenSu
 
 void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)
 {
+    // output for debug only
     Parameters parameters = Parameters(R"(
     {    
         "model_part_name"                             : "refined_patch",
@@ -705,31 +780,6 @@ void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)
         "gauss_point_variables_in_elements"           : [],
         "entity_type"                                 : "condition",
         "output_path"                                 : "VTK_Output"
-    })" );
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                                 : "binary",
-        "output_precision"                            : 7,
-        "output_control_type"                         : "step",
-        "output_interval"                             : 1.0,
-        "output_sub_model_parts"                      : false,
-        "output_path"                                 : "VTK_Output",
-        "custom_name_prefix"                          : "",
-        "custom_name_postfix"                         : "",
-        "save_output_files_in_folder"                 : true,
-        "entity_type"                                 : "automatic",
-        "write_deformed_configuration"                : false,
-        "write_ids"                                   : false,
-        "nodal_solution_step_data_variables"          : [],
-        "nodal_data_value_variables"                  : [],
-        "nodal_flags"                                 : [],
-        "element_data_value_variables"                : [],
-        "element_flags"                               : [],
-        "condition_data_value_variables"              : [],
-        "condition_flags"                             : [],
-        "gauss_point_variables_extrapolated_to_nodes" : [],
-        "gauss_point_variables_in_elements"           : []
     })" );
     VtkOutput(rOuptutMP, parameters).PrintOutput(filename);
 }
@@ -812,9 +862,10 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
         // currently not necessary
         // NodeTypePointer p_nearest_control_node = search_tree.SearchNearestPoint(rFeNode, distance);
         // identify the face that the node lies in
-        Point intersection_point;
-        KratosFaceId = NodeLiesInFace(rFeNode, r_refined_limit_mp.GetMesh(), intersection_point);
-        rLimitIntersectionPointsMap[rFeNode.GetId()] = intersection_point;
+        // Point intersection_point;
+        // KratosFaceId = NodeLiesInFace(rFeNode, r_refined_limit_mp.GetMesh(), intersection_point);
+        KratosFaceId = FindNearestConditionOnMesh(rFeNode, r_refined_limit_mp.GetMesh());
+        // rLimitIntersectionPointsMap[rFeNode.GetId()] = intersection_point;
         // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: New KratosFaceId in refined mesh ") << KratosFaceId << std::endl;
 
         // create 2-ring vertex neighbourhoods around the face the fe-node lies in
@@ -1110,9 +1161,10 @@ void CatmullClarkSDS::CreateMappingMatrix(
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: distance ") << distance << std::endl;
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: check inside loop 2 ") << std::endl;
                     // check which face the fe_node lies in for regular patch creation
-                    Point intersection_point;
-                    IndexType kratos_face_id = NodeLiesInFace(fe_node, r_points_on_limit.GetMesh(), intersection_point);
-                    limit_intersection_points_map[fe_node.GetId()] = intersection_point;
+                    // Point intersection_point;
+                    // IndexType kratos_face_id = NodeLiesInFace(fe_node, r_points_on_limit.GetMesh(), intersection_point);
+                    IndexType kratos_face_id = FindNearestConditionOnMesh(fe_node, r_points_on_limit.GetMesh());
+                    // limit_intersection_points_map[fe_node.GetId()] = intersection_point;
 
         //          1.1.3 find neighbours of P1 - P2, P3, ... and create regular patch neighbourhood
                     patch_ids = mFirstRingFaces[kratos_face_id];

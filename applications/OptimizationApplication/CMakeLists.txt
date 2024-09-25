@@ -28,7 +28,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
 
 ## Optimization python interface sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 # Optimization testing sources
@@ -45,6 +45,13 @@ set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPT
 pybind11_add_module(KratosOptimizationApplication MODULE THIN_LTO ${KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosOptimizationApplication PRIVATE KratosOptimizationCore)
 set_target_properties(KratosOptimizationApplication PROPERTIES PREFIX "")
+
+# Compiling the fcpw library
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw)
+target_link_libraries(KratosOptimizationCore fcpw)
+target_include_directories(KratosOptimizationCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw/include)
+target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_EIGEN_INCLUDES})
+target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_ENOKI_INCLUDES})
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
