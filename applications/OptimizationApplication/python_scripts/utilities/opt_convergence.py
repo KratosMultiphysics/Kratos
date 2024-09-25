@@ -213,7 +213,6 @@ class MagnitudeReductionCriterion:
         self.value = algorithm_buffered_data["std_obj_value"]
 
         if iter == 0:
-            #self.__initial_value = self.value
             self.__target_value = max(self.value * self.__target_scaling_factor, self.__machine_precision)
         if not self.conv:
             self.conv = self.value <= self.__target_value
