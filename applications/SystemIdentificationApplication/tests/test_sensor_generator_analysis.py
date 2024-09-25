@@ -60,9 +60,9 @@ class TestSensorGeneratorAnalysis(UnitTest.TestCase):
             "sensor_groups"   : [
                 {
                     "generation_method"        : "bounding_surface",
-                    "bounding_surface_corner_1": [15.0, 30.0, 0.0],
+                    "bounding_surface_corner_1": [0.0, 60.0, 0.0],
                     "bounding_surface_corner_2": [20.0, 25.0, 0.0],
-                    "number_of_sensors"        : [3, 3, 1],
+                    "number_of_sensors"        : [10, 10, 1],
                     "sensor_settings"  : {
                         "name"    : "<ENTITY_ID>_dummy",
                         "PRESSURE": 1.0,
