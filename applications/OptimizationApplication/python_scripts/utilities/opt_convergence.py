@@ -191,7 +191,7 @@ class MagnitudeReductionCriterion:
         return Kratos.Parameters("""{
             "type"                            : "magnitude_reduction",
             "max_iter"                        : 0,
-            "target_magnitude_reduction"      : 1e-3,
+            "target_scaling_factor"      : 1e-3,
             "machine_precision"               : 1e-16
         }""")
 
@@ -199,7 +199,7 @@ class MagnitudeReductionCriterion:
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
-        self.__target_magnitude_reduction = parameters["target_magnitude_reduction"].GetDouble()
+        self.__target_scaling_factor = parameters["target_scaling_factor"].GetDouble()
         self.__machine_precision = parameters["machine_precision"].GetDouble()
 
     @time_decorator()
@@ -214,7 +214,7 @@ class MagnitudeReductionCriterion:
 
         if iter == 0:
             #self.__initial_value = self.value
-            self.__target_value = max(self.value * self.__target_magnitude_reduction, self.__machine_precision)
+            self.__target_value = max(self.value * self.target_scaling_factor, self.__machine_precision)
         if not self.conv:
             self.conv = self.value <= self.__target_value
 
