@@ -214,7 +214,7 @@ class MagnitudeReductionCriterion:
 
         if iter == 0:
             #self.__initial_value = self.value
-            self.__target_value = max(self.value * self.target_scaling_factor, self.__machine_precision)
+            self.__target_value = max(self.value * self.__target_scaling_factor, self.__machine_precision)
         if not self.conv:
             self.conv = self.value <= self.__target_value
 
