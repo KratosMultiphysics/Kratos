@@ -191,7 +191,7 @@ class MagnitudeReductionCriterion:
         return Kratos.Parameters("""{
             "type"                            : "magnitude_reduction",
             "max_iter"                        : 0,
-            "target_scaling_factor"      : 1e-3,
+            "target_scaling_factor"           : 1e-3,
             "machine_precision"               : 1e-16
         }""")
 

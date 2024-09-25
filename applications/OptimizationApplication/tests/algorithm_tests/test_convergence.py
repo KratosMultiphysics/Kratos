@@ -164,7 +164,7 @@ class TestConvergence(kratos_unittest.TestCase):
         param = Kratos.Parameters("""{
             "type"                            : "magnitude_reduction",
             "max_iter"                        : 10,
-            "target_scaling_factor"      : 1e-2
+            "target_scaling_factor"           : 1e-2
         }""")
         algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
         convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
