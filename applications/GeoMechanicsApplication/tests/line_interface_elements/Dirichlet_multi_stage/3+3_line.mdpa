@@ -1,3 +1,15 @@
+Begin Table 1 TIME DISPLACEMENT_X
+  0.0  0.0
+  1.0  -4.4466666666666666e-5
+  2.0  -8.8933333333333332e-5
+End Table
+
+Begin Table 2 TIME DISPLACEMENT_Y
+  0.0  0.0
+  1.0  -1.11e-5
+  2.0  -2.22e-5
+End Table
+
 Begin Properties 1
 End Properties
 
@@ -42,6 +54,10 @@ Begin SubModelPart DisplacedNodes
      12
      13
   End SubModelPartNodes
+  Begin SubModelPartTables
+    1
+    2
+  End SubModelPartTables  
 End SubModelPart
 
 Begin SubModelPart AllNodes

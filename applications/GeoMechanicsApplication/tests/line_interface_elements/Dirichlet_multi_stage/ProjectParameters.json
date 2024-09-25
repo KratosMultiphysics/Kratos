@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "Dirichlet_multi_stage",
         "start_time":           0.0,
-        "end_time":             1.0,
+        "end_time":             2.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -126,8 +126,8 @@
                 "variable_name":   "DISPLACEMENT",
                 "active":          [true,true,false],
                 "is_fixed":        [true,true,false],
-                "value":           [-4.4466666666666666e-5,-1.11e-5,0.0],
-                "table":           [0,0,0]
+                "value":           [0.0,0.0,0.0],
+                "table":           [1,2,0]
             }
         },{
             "python_module": "apply_scalar_constraint_table_process",

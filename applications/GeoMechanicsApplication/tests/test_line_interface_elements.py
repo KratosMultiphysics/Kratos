@@ -93,8 +93,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(vector[1], 0.0)
 
         # The last three nodes have prescribed non-zero displacements
-        expected_displacement_x = -4.4466666666666666e-5
-        expected_displacement_y = -1.11e-5
+        expected_displacement_x = -8.8933333333333332e-5
+        expected_displacement_y = -2.22e-5
         for vector in displacement_vectors[3:]:
             self.assertAlmostEqual(vector[0], expected_displacement_x)
             self.assertAlmostEqual(vector[1], expected_displacement_y)
