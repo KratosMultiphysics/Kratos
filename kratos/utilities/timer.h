@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -13,8 +13,7 @@
 //
 //
 
-#if !defined(KRATOS_TIMER_H_INCLUDED )
-#define  KRATOS_TIMER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -190,12 +189,33 @@ public:
      * @brief This method sets the output file *.time that will store the timing
      * @param rOutputFileName The name of the output file
      */
-    static int SetOuputFile(std::string const& rOutputFileName);
+    static int SetOutputFile(std::string const& rOutputFileName);
 
     /**
      * @brief This method closes the output file
      */
-    static int CloseOuputFile();
+    static int CloseOutputFile();
+
+    /**
+     * @brief This method sets the output file *.time that will store the timing
+     * @param rOutputFileName The name of the output file
+     * @note This is a deprecated method please use SetOutputFile instead. Will be removed eventually
+     */
+    KRATOS_DEPRECATED_MESSAGE("Please use SetOutputFile instead. Will be removed eventually")
+    static int SetOuputFile(std::string const& rOutputFileName)
+    {
+        return SetOutputFile(rOutputFileName);
+    }
+
+    /**
+     * @brief This method closes the output file
+     * @note This is a deprecated method please use CloseOutputFile instead. Will be removed eventually
+     */
+    KRATOS_DEPRECATED_MESSAGE("Please use CloseOutputFile instead. Will be removed eventually")
+    static int CloseOuputFile()
+    {
+        return CloseOutputFile();
+    }
 
     /**
      * @brief This method gets the variable which stores if the information is printed on screen
@@ -423,7 +443,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TIMER_H_INCLUDED  defined
 
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Vicente Mataix Ferrandiz
@@ -140,7 +140,7 @@ void Timer::Stop(std::string const& rIntervalName)
     }
 }
 
-int Timer::SetOuputFile(std::string const& rOutputFileName)
+int Timer::SetOutputFile(std::string const& rOutputFileName)
 {
     if(msOutputFile.is_open())
         msOutputFile.close();
@@ -154,7 +154,7 @@ int Timer::SetOuputFile(std::string const& rOutputFileName)
     return msOutputFile.is_open();
 }
 
-int Timer::CloseOuputFile()
+int Timer::CloseOutputFile()
 {
     if(msOutputFile.is_open())
         msOutputFile.close();
