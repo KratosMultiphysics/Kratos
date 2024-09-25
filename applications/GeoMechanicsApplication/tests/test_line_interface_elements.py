@@ -11,8 +11,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
     and prescribing a displacement (Dirichlet) on one side of the interface.
     """
     def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
+        self.model = Kratos.Model()
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
@@ -83,9 +82,15 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
     def test_multi_stage_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
         file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Dirichlet_multi_stage'))
-        simulation = test_helper.run_kratos(file_path)
 
-        displacement_vectors = test_helper.get_displacement(simulation)
+        initial_cwd = os.getcwd()
+        os.chdir(file_path)
+
+        stage1 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters.json'))
+
+        stage1.Run()
+
+        displacement_vectors = test_helper.get_displacement(stage1)
 
         # The first three nodes have been fixed
         for vector in displacement_vectors[:3]:
@@ -101,15 +106,17 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         expected_normal_relative_displacement = expected_displacement_y
         expected_tangential_relative_displacement = expected_displacement_x
-        for vector in test_helper.get_strain_vectors(simulation)[0]:  # check the first element
+        for vector in test_helper.get_strain_vectors(stage1)[0]:  # check the first element
             self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
             self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
 
         normal_stiffness = 3.0e7
         shear_stiffness = 1.5e7
-        for vector in test_helper.get_cauchy_stress_vector(simulation)[0]:  # check the first element
+        for vector in test_helper.get_cauchy_stress_vector(stage1)[0]:  # check the first element
             self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
             self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+
+        os.chdir(initial_cwd)
 
 
 if __name__ == '__main__':
