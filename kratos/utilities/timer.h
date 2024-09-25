@@ -204,6 +204,7 @@ public:
     KRATOS_DEPRECATED_MESSAGE("Please use SetOutputFile instead. Will be removed eventually")
     static int SetOuputFile(std::string const& rOutputFileName)
     {
+        KRATOS_WARNING("Timer") << "Please use SetOutputFile instead. Will be removed eventually" << std::endl;
         return SetOutputFile(rOutputFileName);
     }
 
@@ -214,6 +215,7 @@ public:
     KRATOS_DEPRECATED_MESSAGE("Please use CloseOutputFile instead. Will be removed eventually")
     static int CloseOuputFile()
     {
+        KRATOS_WARNING("Timer") << "Please use CloseOutputFile instead. Will be removed eventually" << std::endl;
         return CloseOutputFile();
     }
 
