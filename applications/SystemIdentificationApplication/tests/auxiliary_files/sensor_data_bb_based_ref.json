@@ -1,0 +1,139 @@
+{
+    "list_of_sensors": [
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                16.25,
+                28.75,
+                0.0
+            ],
+            "name": "1_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                16.25,
+                27.5,
+                0.0
+            ],
+            "name": "2_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                16.25,
+                26.25,
+                0.0
+            ],
+            "name": "3_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                17.5,
+                28.75,
+                0.0
+            ],
+            "name": "4_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                17.5,
+                27.5,
+                0.0
+            ],
+            "name": "5_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                17.5,
+                26.25,
+                0.0
+            ],
+            "name": "6_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                18.75,
+                28.75,
+                0.0
+            ],
+            "name": "7_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                18.75,
+                27.5,
+                0.0
+            ],
+            "name": "8_dummy"
+        },
+        {
+            "PRESSURE": 1.0,
+            "STEP": 2,
+            "VELOCITY": [
+                1,
+                1,
+                1
+            ],
+            "location": [
+                18.75,
+                26.25,
+                0.0
+            ],
+            "name": "9_dummy"
+        }
+    ]
+}
