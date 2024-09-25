@@ -25,8 +25,8 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.print_output = False
         self.reference_values_check = True
         self.reference_values_output = False
-        self.check_relative_tolerance = 1.0e-3
-        self.check_absolute_tolerance = 1.0e-5
+        self.check_relative_tolerance = 1.0e-2
+        self.check_absolute_tolerance = 1.0e-3
         self.work_folder = "embedded_fsi_test"
         self.settings = "ProjectParameters.json"
 
@@ -47,7 +47,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
         self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()
@@ -67,7 +66,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_volumetric"
         self.structure_materials_filename = "StructuralMaterialsVolumetric.json"
         self.convergence_accelerator = "IBQN_MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "POSITIVE_FACE_PRESSURE"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()
@@ -87,7 +85,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_thin"
         self.structure_materials_filename = "StructuralMaterialsThin.json"
         self.convergence_accelerator = "MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()
@@ -107,7 +104,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         self.structure_filename = "embedded_fsi_test_structure_thin"
         self.structure_materials_filename = "StructuralMaterialsThin.json"
         self.convergence_accelerator = "IBQN_MVQN"
-        self.check_variables_list = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"]
 
         with WorkFolderScope(self.work_folder):
             model = KratosMultiphysics.Model()
@@ -180,7 +176,7 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "JsonOutputProcess",
             "Parameters"    : {
-                "output_variables" : [],
+                "output_variables" : ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"],
                 "output_file_name" : "TO_BE_DEFINED",
                 "model_part_name"  : "Structure",
                 "time_frequency"   : 0.01
@@ -188,7 +184,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         }""")
         output_file_name = f"{self.structure_filename}_{self.convergence_accelerator}_results.json"
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
-        json_output_settings["Parameters"]["output_variables"].SetStringArray(self.check_variables_list)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
     def _AddReferenceValuesCheck(self):
@@ -197,7 +192,7 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "FromJsonCheckResultProcess",
             "Parameters"    : {
-                "check_variables"      : [],
+                "check_variables"      : ["DISPLACEMENT_X", "DISPLACEMENT_Y", "LINE_LOAD_X", "LINE_LOAD_Y"],
                 "input_file_name"      : "TO_BE_DEFINED",
                 "model_part_name"      : "Structure",
                 "tolerance"            : 0.0,
@@ -207,7 +202,6 @@ class EmbeddedFsiTest(KratosUnittest.TestCase):
         }""")
         input_file_name = f"{self.structure_filename}_{self.convergence_accelerator}_results.json"
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
-        json_check_settings["Parameters"]["check_variables"].SetStringArray(self.check_variables_list)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_absolute_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)

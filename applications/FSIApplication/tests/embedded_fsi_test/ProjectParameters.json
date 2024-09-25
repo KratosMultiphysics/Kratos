@@ -104,8 +104,8 @@
             }
         },
         "coupling_settings":{
-            "nl_tol": 1e-4,
-            "nl_max_it": 20,
+            "nl_tol": 1e-6,
+            "nl_max_it": 5,
             "coupling_strategy_settings": {
                 "solver_type": "MVQN"
             },
