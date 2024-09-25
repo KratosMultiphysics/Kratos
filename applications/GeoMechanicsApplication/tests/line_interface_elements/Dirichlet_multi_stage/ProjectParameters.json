@@ -106,42 +106,42 @@
     },
     "processes": {
         "constraints_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.FixedNodes",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.DisplacedNodes",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [-4.4466666666666666e-5,-1.11e-5,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.AllNodes",
-            "variable_name":   "WATER_PRESSURE",
-            "active":          true,
-            "is_fixed":        true,
-            "value":           0.0,
-            "table":           0
-        }
-    }],
-    "loads_process_list": []
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.FixedNodes",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.DisplacedNodes",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,false],
+                "value":           [-4.4466666666666666e-5,-1.11e-5,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyScalarConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.AllNodes",
+                "variable_name":   "WATER_PRESSURE",
+                "active":          true,
+                "is_fixed":        true,
+                "value":           0.0,
+                "table":           0
+            }
+        }],
+        "loads_process_list": []
     }
 }
