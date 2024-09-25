@@ -93,12 +93,12 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
 
-        self.pres_settings = pres_settings
-        self.ext_pres_settings = ext_pres_settings
+        #self.pres_settings = pres_settings
+        #self.ext_pres_settings = ext_pres_settings
 
         # Construct the base process AssignValueProcess
-        self.aux_pressure_process = AssignScalarVariableProcess(Model, self.pres_settings)
-        self.aux_external_pressure_process = AssignScalarVariableProcess(Model, self.ext_pres_settings)
+        #self.aux_pressure_process = AssignScalarVariableProcess(Model, self.pres_settings)
+        #self.aux_external_pressure_process = AssignScalarVariableProcess(Model, self.ext_pres_settings)
 
 
 
