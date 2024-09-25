@@ -6,7 +6,8 @@ import test_helper
 class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
     """
     This class contains one test case for a 3+3 line interface element which is loaded
-    in compression as well as in shear.
+    in compression as well as in shear. This is done both by applying a load (Neumann)
+    and prescribing a displacement (Dirichlet) on one side of the interface.
     """
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
@@ -16,10 +17,22 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
         
-    def assert_outputs_for_3_plus_3_line_interface_element(self, condition_type):
-        file_path = test_helper.get_file_path(os.path.join('line_interface_test_3+3', f'{condition_type}_single_stage'))
-        simulation = test_helper.run_kratos(file_path)
+    def test_3_plus_3_line_interface_element_with_neumann_conditions(self):
+        simulation = self.run_test('Neumann')
+        self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
+    def test_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
+        simulation = self.run_test('Dirichlet')
+        self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
+
+
+    @staticmethod
+    def run_test(condition_type):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_test_3+3', f'{condition_type}_single_stage'))
+        return test_helper.run_kratos(file_path)
+
+
+    def assert_outputs_for_3_plus_3_line_interface_element(self, simulation):
         displacements = test_helper.get_displacement(simulation)
 
         # Check the horizontal element
@@ -66,13 +79,6 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(relative_displacement_vertical_element[index][0], -expected_horizontal_displacement)
             self.assertAlmostEqual(relative_displacement_vertical_element[index][1], expected_vertical_displacement)
 
-
-    def test_3_plus_3_line_interface_element_with_neumann_conditions(self):
-        self.assert_outputs_for_3_plus_3_line_interface_element('Neumann')
-
-
-    def test_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
-        self.assert_outputs_for_3_plus_3_line_interface_element('Dirichlet')
 
 
 if __name__ == '__main__':
