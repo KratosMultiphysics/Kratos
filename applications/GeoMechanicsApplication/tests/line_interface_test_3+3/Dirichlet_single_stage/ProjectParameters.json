@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "line_interface_6N"
+            "input_filename":   "line_interface_3_plus_3N"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "line_interface_6N",
+                "output_name": "line_interface_3_plus_3N",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {

@@ -34,7 +34,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
 
-        tractions = test_helper.get_cauchy_stress_vector(simulation)
+        tractions = test_helper.get_cauchy_stress_vectors(simulation)
         tractions_horizontal_element = tractions[0]
         for index in range(3):
             self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_load)
