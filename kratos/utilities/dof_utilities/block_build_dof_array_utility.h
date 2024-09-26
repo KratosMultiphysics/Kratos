@@ -76,7 +76,7 @@ public:
 
         // Check that the provided DOF set is empty
         if (rDofArray.size() != 0) {
-            KRATOS_WARNING("BlockBuildDofArrayUtility") << "Provided DOF set is not empty. About to clear it." << std::endl;
+            KRATOS_WARNING_IF("BlockBuildDofArrayUtility", (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Provided DOF set is not empty. About to clear it." << std::endl;
             rDofArray.clear();
         }
 
