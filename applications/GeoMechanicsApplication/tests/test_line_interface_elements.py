@@ -28,7 +28,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
     @staticmethod
     def run_simulation(condition_type):
-        file_path = test_helper.get_file_path(os.path.join('line_interface_test_3+3', f'{condition_type}_single_stage'))
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', f'{condition_type}_single_stage'))
         return test_helper.run_kratos(file_path)
 
 
