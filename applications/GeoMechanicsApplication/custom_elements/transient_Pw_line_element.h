@@ -132,9 +132,27 @@ public:
         }
     }
 
-private:
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        for (auto retention_law : mRetentionLawVector) {
+            retention_law->InitializeSolutionStep(RetentionParameters);
+        }
+    }
+
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        for (auto retention_law : mRetentionLawVector) {
+            retention_law->FinalizeSolutionStep(RetentionParameters);
+        }
+    }
 
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+private:
+
+
 
     void CheckDomainSize() const
     {
@@ -232,7 +250,7 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+    virtual BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients,
         const ProcessInfo&                               rCurrentProcessInfo) const
@@ -306,24 +324,6 @@ private:
         result *= degree_of_saturation;
         result -= derivative_of_saturation * r_properties[POROSITY];
         return result;
-    }
-
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-        for (auto retention_law : mRetentionLawVector) {
-            retention_law->InitializeSolutionStep(RetentionParameters);
-        }
-    }
-    
-    
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-        for (auto retention_law : mRetentionLawVector) {
-            retention_law->FinalizeSolutionStep(RetentionParameters);
-        }
     }
 
 

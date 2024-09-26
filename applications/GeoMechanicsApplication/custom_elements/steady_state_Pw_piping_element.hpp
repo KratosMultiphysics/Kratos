@@ -74,7 +74,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+        const Vector&                                    rIntegrationCoefficients,
+        const ProcessInfo&                               rCurrentProcessInfo) const override;
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -85,6 +91,9 @@ public:
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
 
     void CalculateLength(const GeometryType& Geom);
+
+    /// helper functions
+    void SetValueAtElement(Variable<double>& rVariable, double& rValue);
 
 protected:
     using BaseType::CalculateOnIntegrationPoints;
@@ -99,6 +108,7 @@ protected:
     double CalculateParticleDiameter(const PropertiesType& Prop);
 
     double pipe_initialised = false;
+
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

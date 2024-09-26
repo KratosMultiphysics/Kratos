@@ -74,7 +74,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         sig_xy = sig_integrationpoint1_element6[0,1]
         self.assertEqual( sig_xy, 0.0 )
 
-        # compare bottom layer cauchy_stress_xx = k0_nc * cauchy_stress_yy, cauchy_stress_xy = 0.
+        # compare bottom layer cauchy_stress_xx = k0_nc * cauchy_stress_yy, caucnnhy_stress_xy = 0.
         k0_nc = 0.8
         sig_integrationpoint1_element1 = cauchy_stresses[0][0]
         sig_yy = sig_integrationpoint1_element1[1,1]
