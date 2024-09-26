@@ -318,14 +318,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Add more specific settings for point-based sbm utility
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
 
-            #TODO remove all
+            #TODO remove?
             #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
-            settings.AddEmptyValue("enclosed_area").SetString("none")               #TODO "find_enclosed_areas" instead --> flood fill
-            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)
-            settings.AddEmptyValue("use_tessellated_boundary").SetBool(True)
+            #settings.AddEmptyValue("cross_boundary_neighbors").SetBool(False)
 
             # Store names and interface utilities for all skin model parts
-            skin_model_part_names = ["Cylinder"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
+            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
             sbm_interface_utilities = []
 
             # Create an interface utility for all skin model parts
@@ -333,9 +331,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 # Adapt settings
                 settings["skin_model_part_name"].SetString(skin_model_part_name)
                 if skin_model_part_name == "Cylinder" and settings["use_tessellated_boundary"].GetBool() == True:
-                    settings["enclosed_area"].SetString("negative")
+                    settings.AddEmptyValue("enclosed_area").SetString("negative")  #TODO "find_enclosed_areas" instead --> flood fill
                 else:
-                    settings["enclosed_area"].SetString("none")
+                    settings.AddEmptyValue("enclosed_area").SetString("none")
 
                 # Create interface utility
                 sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)

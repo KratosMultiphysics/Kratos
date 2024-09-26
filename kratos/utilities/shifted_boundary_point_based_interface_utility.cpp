@@ -170,32 +170,34 @@ namespace Kratos
 
         // Check for nodes that would be surrounded by BOUNDARY elements only, as these nodes are probably intersected by the skin
         //TODO NEXT instead check for nodes that would be surrounded by BOUNDARY elements mostly to detect small cuts
+        //TODO NEXT do not move outer boundary elements
         //TODO make parallel and check only nodes of SELECTED elements?
-        const double relocation_distance = 1e-5;  //1e-10 OR 1e-3*length
+        const double relocation_multiplier = 1e-2;  //1e-10 OR 1e-2*length
+        double length = 1e-8;
         std::size_t n_relocated_nodes = 0;
-        std::size_t n_majority_selected = 0;
         for (auto& rNode : mpModelPart->Nodes()) {
             // Check whether any of the elements surrounding the node is not SELECTED (marked by process as intersected)
             auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
-            std::size_t n_selected = 0;
             std::size_t n_neighbors = 0;
-            for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
-                auto p_neigh = r_neigh_elems(i_n).get();
-                // Continue with next node if the current node is part of an element that is not intersected
-                n_neighbors++;
-                if (p_neigh->Is(SELECTED)) {
-                    n_selected++;
-                }
+            std::size_t n_selected = 0;
+            for (std::size_t i_neigh = 0; i_neigh < r_neigh_elems.size(); ++i_neigh) {
+                auto p_neigh = r_neigh_elems(i_neigh).get();
+                if (p_neigh != nullptr) {
+                    n_neighbors++;
+                    if (p_neigh->Is(SELECTED)) {
+                        n_selected++;
+                    }
+                } //TODO else outer boundary??
             }
-            const bool majority_is_selected = n_selected > n_neighbors/2;
+            const bool majority_is_selected = n_selected > n_neighbors/2 +1;
 
             // If there are only intersected elements around the current node, we will check whether the node is intersected and get the intersecting object's normal
             bool relocate_node = false;
             array_1d<double,3> unit_normal;
-            //double obj_length = 1e-6;
             if (majority_is_selected) {
-                for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
-                    auto p_neigh = r_neigh_elems(i_n).get();
+                // Mark node for relocation if it is intersected by tessellated boundary and get the intersecting object's normal
+                /*for (std::size_t i_neigh = 0; i_neigh < r_neigh_elems.size(); ++i_neigh) {
+                    auto p_neigh = r_neigh_elems(i_neigh).get();
                     // Get intersected objects of boundary neighbor
                     for (std::size_t i = 0; i < n_elements; ++i) {
                         if (r_elements[i]->Id() == p_neigh->Id()) {
@@ -218,8 +220,27 @@ namespace Kratos
                     if (relocate_node) {
                         break;
                     }
+                }*/
+                // Mark node for relocation and get first intersecting object's normal of first intersected neighboring element
+                for (std::size_t i_neigh = 0; i_neigh < r_neigh_elems.size(); ++i_neigh) {
+                    auto p_neigh = r_neigh_elems(i_neigh).get();
+                    // Get intersected objects of boundary neighbor
+                    if (p_neigh->Is(SELECTED)) {
+                        for (std::size_t i = 0; i < n_elements; ++i) {
+                            if (r_elements[i]->Id() == p_neigh->Id()) {
+                                // Check whether node is intersected and get the intersected object's normal
+                                auto& r_int_obj = r_intersected_objects[i][0];
+                                array_1d<double, 3> local_coords;
+                                unit_normal = r_int_obj.GetGeometry().Normal(local_coords);
+                                unit_normal /= norm_2(unit_normal);
+                                length = p_neigh->GetGeometry().Length();
+                                relocate_node = true;
+                                break;
+                            }
+                        }
+                        break;
+                    }
                 }
-                n_majority_selected++;
             }
 
             // Relocate node (initial position) into the direction of the intersected object's normal
@@ -228,9 +249,10 @@ namespace Kratos
             // TODO NEXT remove crossing of boundary? -> useful if skin points are not exactly on tessellated geometry?
             // NOTE that initial position is mesh output for visualization (ParaView)
             if (relocate_node) {
-                rNode.X0() += relocation_distance * unit_normal[0];
-                rNode.Y0() += relocation_distance * unit_normal[1];
-                rNode.Z0() += relocation_distance * unit_normal[2];
+                const double relocation_distance = relocation_multiplier * length;
+                //rNode.X0() += relocation_distance * unit_normal[0];
+                //rNode.Y0() += relocation_distance * unit_normal[1];
+                //rNode.Z0() += relocation_distance * unit_normal[2];
                 rNode.X()  += relocation_distance * unit_normal[0];
                 rNode.Y()  += relocation_distance * unit_normal[1];
                 rNode.Z()  += relocation_distance * unit_normal[2];
@@ -240,14 +262,7 @@ namespace Kratos
             // TODO:
             // 5a. Check detJ of surrounding elements - if negative, then revert?
             // 6a. Live with small change of location of previously embedded overlapping geometries and mesh velocity
-
-            // ALTERNATIVE:
-            // 4b. Cluster elements surrounding node into two clusters separated by elements in which skin points are located
-            // 5b. If there are more or less than two clusters, then the skin normal will decide whether elements are on the positive or negative side
-            //     If there are two clusters a majority vote using the skin normal will decide about which cluster is on the positive and which on the negative side
-            // 6b. All elements on the positive side are no BOUNDARY anymore, except if skin points are located inside them
         }
-        KRATOS_WATCH(n_majority_selected);
 
         // Recalculate intersections if nodes where moved
         // NOTE that entirely new process is necessary for taking update node positions into consideration (TODO why??)
@@ -343,13 +358,15 @@ namespace Kratos
             // Check whether any of the elements surrounding the node is active
             auto& r_neigh_elems = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             bool active_neighbor_found = false;
-            for (std::size_t i_n = 0; i_n < r_neigh_elems.size(); ++i_n) {
-                auto p_neigh = r_neigh_elems(i_n).get();
-                // Continue with next node if the current node is part of an active element
-                if (p_neigh->Is(ACTIVE)) {
-                    active_neighbor_found = true;
-                    break;
-                }
+            for (std::size_t i_neigh = 0; i_neigh < r_neigh_elems.size(); ++i_neigh) {
+                auto p_neigh = r_neigh_elems(i_neigh).get();
+                if (p_neigh != nullptr) {
+                    // Continue with next node if the current node is part of an active element
+                    if (p_neigh->Is(ACTIVE)) {
+                        active_neighbor_found = true;
+                        break;
+                    }
+                    }
             }
             // If there is no active element around the current node, we will deactivate it
             if (!active_neighbor_found) {
@@ -906,21 +923,23 @@ namespace Kratos
             // This way the boundary cannot be crossed (not 'ACTIVE' might be used instead here?)
             for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
                 auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                if (p_elem_neigh != nullptr && !p_elem_neigh->Is(BOUNDARY)) {
-                    const auto& r_geom = p_elem_neigh->GetGeometry();
-                    for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
-                        // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
-                        // NOTE this is done for a more robust separation of both sides of the boundary
-                        NodeType::Pointer p_neigh = r_geom(i_neigh_node);
-                        // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
-                        array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
-                        avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
-                        const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
-                        if (dot_product > 0.1) {
-                            auto set_return = SupportNodesSet.insert(p_neigh);
-                            // If the node was inserted into the set as a new element, then add it to the current layer
-                            if (set_return.second) {
-                                CurrentLayerNodes.push_back(p_neigh);
+                if (p_elem_neigh != nullptr) {
+                    if (!p_elem_neigh->Is(BOUNDARY)) {
+                        const auto& r_geom = p_elem_neigh->GetGeometry();
+                        for (std::size_t i_neigh_node = 0; i_neigh_node < r_geom.PointsNumber(); ++i_neigh_node) {
+                            // Add node of neighboring element only if it is in the inwards normal direction of the element's averaged skin points
+                            // NOTE this is done for a more robust separation of both sides of the boundary
+                            NodeType::Pointer p_neigh = r_geom(i_neigh_node);
+                            // Calculate dot product of average skin normal of the element and the normalized vector between averaged skin point and the element's node
+                            array_1d<double, 3> avg_skin_pt_to_node = p_neigh->Coordinates() - rAvgSkinPosition;
+                            avg_skin_pt_to_node /= norm_2(avg_skin_pt_to_node);
+                            const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
+                            if (dot_product > 0.1) {
+                                auto set_return = SupportNodesSet.insert(p_neigh);
+                                // If the node was inserted into the set as a new element, then add it to the current layer
+                                if (set_return.second) {
+                                    CurrentLayerNodes.push_back(p_neigh);
+                                }
                             }
                         }
                     }
@@ -957,7 +976,7 @@ namespace Kratos
                         avg_skin_pt_to_node /= d;
                         const double dot_product = inner_prod(avg_skin_pt_to_node, rAvgSkinNormal);
                         const double h = GetElementSizeFunction(r_geom)(r_geom);
-                        if ( (!p_elem_neigh->Is(BOUNDARY) && dot_product > 0.1) || (dot_product > 0.01 && d > 0.01*h) ) {
+                        if ( (!p_elem_neigh->Is(BOUNDARY) && dot_product > 0.1) || (dot_product > 0.5 && d > 0.5*h) ) {
                             auto set_return = SupportNodesSet.insert(p_neigh);
                             // Only add nodes as basis for the next layer if they have not been added to the set already (because then they would be considered again and again)
                             if (set_return.second) {
