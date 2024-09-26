@@ -13,8 +13,6 @@ This section will descrive the different layers of Kratos testing, and its chara
 - [Organization](#organization)
 - [Cpp Tests](#cpp-tests)
 - [MPI Cpp Tests](#mpi-cpp)
-<!-- - [Python Tests]()
-- [MPI Python Tests]() -->
 
 If you are interested in examples, how to run tests, and how are run in our CI, please refeer to:
 
