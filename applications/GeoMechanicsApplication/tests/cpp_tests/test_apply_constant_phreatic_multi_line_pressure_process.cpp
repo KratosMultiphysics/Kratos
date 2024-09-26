@@ -129,8 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultiLinePressureProcessDoesNotTh
                 "y_coordinates": [0.0, 1.0],
                 "z_coordinates": [0.0, 0.0],
                 "gravity_direction": 1,
-                "out_of_plane_direction": 2,
-                "table": [0, 0]
+                "out_of_plane_direction": 2
             }  )"};
 
     KRATOS_EXPECT_TRUE(CanCreateInstanceOfApplyConstantPhreaticMultiLinePressureProcessWithoutFailure(
