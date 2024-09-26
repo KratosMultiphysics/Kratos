@@ -123,10 +123,20 @@ public:
 
     void ResetFlags();
 
+    /** TODO
+     * @brief Set BOUNDARY flags for elements that are intersected by the tessellated skin geometry
+     * element BOUNDARY : elements in which a part of the surface is located (split/ intersected elements)
+     */
+    void SetTessellatedBoundaryFlags();
+
     void LocateSkinPoints();
 
-    void SetBoundaryAndInterfaceFlags();
+    // TODO Set the corresponding flags at the interface elements
+    // element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
+    void SetInterfaceFlags();
 
+    // TODO node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
+    // element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
     void DeactivateElementsAndNodes();
 
     void AddSkinIntegrationPointConditions();
@@ -189,16 +199,15 @@ protected:
 
     const Condition* mpConditionPrototype;
 
+    //TODO replace with
+    //bool mFindEnclosedVolumes = true;
     bool mPositiveSideIsActive = true;
     bool mNegativeSideIsActive = true;
-
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
 
     bool mCrossBoundaryNeighbors = true;
-
-    bool mInterpolateBoundary;
-    bool mUseTessellatedBoundary;
+    bool mUseTessellatedBoundary = true;
 
     /// @brief Protected empty constructor for derived classes
     ShiftedBoundaryPointBasedInterfaceUtility() {}
@@ -228,20 +237,6 @@ protected:
      */
     template <std::size_t TDim>
     void MapSkinPointsToElements(SkinPointsToElementsMapType& rSkinPointsMap);
-
-    /**
-     * @brief Set the corresponding flags at the interface
-     * This methods sets the corresponding flags at the interface nodes and elements. These are
-     * node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
-     * node INTERFACE : nodes that belong to the cloud of points (multiple layers surrounding the BOUNDARY elements)
-     * element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
-     * element BOUNDARY : elements in which a part of the surface is located (split elements)
-     * element INTERFACE : elements owning the surrogate boundary nodes adjacent to an deactivated BOUNDARY element
-     */
-    void SetInterfaceFlags(const SkinPointsToElementsMapType& rSkinPointsMap);
-
-    /**TODO*/
-    void DeclareIntermediateElementsBoundary();
 
     /**TODO*/
     void SetSidesVectorsAndSkinNormalsForSplitElements(
@@ -321,7 +316,7 @@ protected:
         Matrix& rIntPtShapeFunctionDerivatives);
 
     /* TODO */
-    void AddIntegrationPointCondition(
+    bool AddIntegrationPointCondition(
         const ElementType& rElement,
         const Vector& rSidesVector,
         const double ElementSize,

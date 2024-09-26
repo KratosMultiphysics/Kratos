@@ -230,6 +230,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
         #TODO OR
         # Avoid zeros with positive epsilon
+        # TODO remove DISTANCEs
         if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
             tol = 1.0e-10
             for node in self.GetComputingModelPart().Nodes:
@@ -316,21 +317,22 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
             # Add more specific settings for point-based sbm utility
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
+
+            #TODO remove all
             #settings.AddEmptyValue("active_side_of_skin").SetString("positive")
-            settings.AddEmptyValue("enclosed_area").SetString("none")                   #TODO NEXT search_enclosed_areas instead --> flood fill
-            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)           #TODO NEXT why do local instabilities appear???
-            settings.AddEmptyValue("use_tessellated_boundary").SetBool(False)           #TODO NEXT make tessellated boundary work with multiple skin geometries!
-            #settings.AddEmptyValue("interpolate_boundary").SetBool(False)
+            settings.AddEmptyValue("enclosed_area").SetString("none")               #TODO "find_enclosed_areas" instead --> flood fill
+            settings.AddEmptyValue("cross_boundary_neighbors").SetBool(True)
+            settings.AddEmptyValue("use_tessellated_boundary").SetBool(True)
 
             # Store names and interface utilities for all skin model parts
-            skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
+            skin_model_part_names = ["Cylinder"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
             sbm_interface_utilities = []
 
             # Create an interface utility for all skin model parts
             for skin_model_part_name in skin_model_part_names:
                 # Adapt settings
                 settings["skin_model_part_name"].SetString(skin_model_part_name)
-                if skin_model_part_name == "Cylinder" and settings["use_tessellated_boundary"] == True:
+                if skin_model_part_name == "Cylinder" and settings["use_tessellated_boundary"].GetBool() == True:
                     settings["enclosed_area"].SetString("negative")
                 else:
                     settings["enclosed_area"].SetString("none")
@@ -345,11 +347,17 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
             # Locate skin model part points in the volume model part elements and set flags for all skin model parts
             for sbm_interface_utility in sbm_interface_utilities:
+                sbm_interface_utility.SetTessellatedBoundaryFlags()
+                # To be done after setting tessellated boundary because nodes might be relocated
                 sbm_interface_utility.LocateSkinPoints()
-                sbm_interface_utility.SetBoundaryAndInterfaceFlags()
+                # To be done after locating the skin points because elements in which skin points are located
+                # might not be intersected by tessellated skin and might be marked as boundary here
+                sbm_interface_utility.SetInterfaceFlags()
 
             # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
             sbm_interface_utilities[0].DeactivateElementsAndNodes()
+
+            # TODO flood fill to determine enclosed areas bound by inactive elements and set p=0 for one node on the inside
 
             # Add Kratos conditions for points at the boundary based on extension operators
             # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
