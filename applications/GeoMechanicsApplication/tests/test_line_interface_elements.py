@@ -18,16 +18,16 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         pass
         
     def test_3_plus_3_line_interface_element_with_neumann_conditions(self):
-        simulation = self.run_test('Neumann')
+        simulation = self.run_simulation('Neumann')
         self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
     def test_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
-        simulation = self.run_test('Dirichlet')
+        simulation = self.run_simulation('Dirichlet')
         self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
 
     @staticmethod
-    def run_test(condition_type):
+    def run_simulation(condition_type):
         file_path = test_helper.get_file_path(os.path.join('line_interface_test_3+3', f'{condition_type}_single_stage'))
         return test_helper.run_kratos(file_path)
 
@@ -36,12 +36,12 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         displacements = test_helper.get_displacement(simulation)
 
         # Check the horizontal element
-        shear_load = 667.0
+        shear_traction = 667.0
         shear_stiffness = 1.5e7
-        expected_horizontal_displacement = -shear_load / shear_stiffness
-        normal_load = 333.0
+        expected_horizontal_displacement = -shear_traction / shear_stiffness
+        normal_traction = 333.0
         normal_stiffness = 3.0e7
-        expected_vertical_displacement = -normal_load / normal_stiffness
+        expected_vertical_displacement = -normal_traction / normal_stiffness
         top_node_indices = [3, 4, 5] # These correspond to nodes 11, 12, 13
         for index in top_node_indices:
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
@@ -50,8 +50,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         tractions = test_helper.get_cauchy_stress_vectors(simulation)
         tractions_horizontal_element = tractions[0]
         for index in range(3):
-            self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_load)
-            self.assertAlmostEqual(tractions_horizontal_element[index][1], -shear_load)
+            self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_traction)
+            self.assertAlmostEqual(tractions_horizontal_element[index][1], -shear_traction)
 
         relative_displacements = test_helper.get_strain_vectors(simulation)
         relative_displacements_horizontal_element = relative_displacements[0]
@@ -63,16 +63,16 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         # Check the vertical element
         left_node_indices = [6, 7, 8] # These correspond to nodes 21, 22, 23
-        expected_horizontal_displacement = normal_load / normal_stiffness
-        expected_vertical_displacement = -shear_load / shear_stiffness
+        expected_horizontal_displacement = normal_traction / normal_stiffness
+        expected_vertical_displacement = -shear_traction / shear_stiffness
         for index in left_node_indices:
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
 
         tractions_vertical_element = tractions[1]
         for index in range(3):
-            self.assertAlmostEqual(tractions_vertical_element[index][0], -normal_load)
-            self.assertAlmostEqual(tractions_vertical_element[index][1], -shear_load)
+            self.assertAlmostEqual(tractions_vertical_element[index][0], -normal_traction)
+            self.assertAlmostEqual(tractions_vertical_element[index][1], -shear_traction)
 
         relative_displacement_vertical_element = relative_displacements[1]
         for index in range(3):
