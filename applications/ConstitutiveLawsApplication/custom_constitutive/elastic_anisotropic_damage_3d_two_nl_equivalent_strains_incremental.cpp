@@ -9,11 +9,10 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Author:    Athira Vadakkekkara
-//  To-Do:  i) Change HuNL to numerical  ii) nonlocal_prinicipal_strains =>squared terms iii)no scaling, but using equivalent strain
 //
 
 // Project includes
-#include "elastic_anisotropic_damage_3d_two_nl_equivalent_strains.h"
+#include "elastic_anisotropic_damage_3d_two_nl_equivalent_strains_incremental.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
@@ -26,7 +25,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoNLEquivalentStrains()
+ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental()
     : ElasticIsotropic3D()
 {
 }
@@ -34,7 +33,7 @@ ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoN
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoNLEquivalentStrains(const ElasticAnisotropicDamage3DTwoNLEquivalentStrains &rOther)
+ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental(const ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental &rOther)
     : ElasticIsotropic3D(rOther)
 {
 }
@@ -42,22 +41,22 @@ ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ElasticAnisotropicDamage3DTwoN
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Clone() const
+ConstitutiveLaw::Pointer ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Clone() const
 {
-    return Kratos::make_shared<ElasticAnisotropicDamage3DTwoNLEquivalentStrains>(ElasticAnisotropicDamage3DTwoNLEquivalentStrains(*this));
+    return Kratos::make_shared<ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental>(ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-ElasticAnisotropicDamage3DTwoNLEquivalentStrains::~ElasticAnisotropicDamage3DTwoNLEquivalentStrains()
+ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::~ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental()
 {
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-int ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Check(
+int ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -77,7 +76,7 @@ int ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Check(
 //************************************************************************************
 //************************************************************************************
 
-bool ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Has(const Variable<Vector>& rThisVariable)
+bool ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Has(const Variable<Vector>& rThisVariable)
 {
 
     if(rThisVariable == STRAIN){
@@ -96,7 +95,7 @@ bool ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Has(const Variable<Vector
 //************************************************************************************
 //************************************************************************************
 
-Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetValue(
+Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValues
     )
@@ -114,7 +113,7 @@ Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValues,
     const ProcessInfo& rProcessInfo
@@ -132,7 +131,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::InitializeMaterial(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -144,7 +143,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::FinalizeMaterialResponseCauchy(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
@@ -159,7 +158,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::FinalizeMaterialResponseC
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateMaterialResponsePK2(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     KRATOS_TRY
@@ -173,7 +172,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateMaterialResponse
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rDamageVector,
     Vector& rEquivalentStrains)
@@ -276,7 +275,6 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
             noalias(r_stress_vector)  = prod(EffStiffnessMatrix, r_strain_vector);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 Calculate_tangent_Huu(r_elastic_tensor, rParametersValues);
-                //Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, kappa, beta1, beta2, k0, damage_vector, principal_strains);
                 Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, beta1, beta2, k0, damage_vector, principal_strains);
                 Calculate_tangent_HNLu(H_NL1u, H_NL2u, rParametersValues, principal_strains);
             }
@@ -298,7 +296,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetEigenValues(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetEigenValues(
     BoundedVectorType& Pri_Values,
     const Variable<Vector>& rThisVariable,
     const Vector& VectorForm)
@@ -319,7 +317,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetEigenValues(
 //************************************************************************************
 //************************************************************************************
 
-Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateValue(
+Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateValue(
     ConstitutiveLaw::Parameters& rParametersValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -347,7 +345,7 @@ Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateLocalEquivalentStrains(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateLocalEquivalentStrains(
     Vector& LocalEquivalentStrains,
     ConstitutiveLaw::Parameters& rParametersValues,
     const BoundedVectorType& PrincipalStrains
@@ -365,7 +363,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateLocalEquivalentS
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetPrincipalDeviatoricStrains(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetPrincipalDeviatoricStrains(
     BoundedVectorType& PrincipalDeviatoricStrains,
     const Vector& StrainVector,
     const BoundedVectorType& PrincipalStrains
@@ -382,7 +380,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetPrincipalDeviatoricStr
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::TransformPrincipalDamageToGlobal(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::TransformPrincipalDamageToGlobal(
     BoundedMatrixType& DamageTensor,
     const BoundedVectorType& PrinicipalDamageVector,
     const Vector& StrainVector
@@ -416,7 +414,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::TransformPrincipalDamageT
 //************************************************************************************
 //***********************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetDamageEffectTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetDamageEffectTensor(
     BoundedMatrixVoigtType& DamageEffectTensor,
     const BoundedVectorType& DamageVector
 )
@@ -428,9 +426,6 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetDamageEffectTensor(
     DamageEffectTensor(0,0) = pow((1-D1),(-1));
     DamageEffectTensor(1,1) = pow((1-D2),(-1));
     DamageEffectTensor(2,2) = pow((1-D3),(-1));
-    // DamageEffectTensor(3,3) = pow((1-((D2+D3)*0.5)),(-1));
-    // DamageEffectTensor(4,4) = pow((1-((D3+D1)*0.5)),(-1));
-    // DamageEffectTensor(5,5) = pow((1-((D1+D2)*0.5)),(-1));
     DamageEffectTensor(3,3) = pow((sqrt ((1-D1)*(1-D2))),(-1));
     DamageEffectTensor(4,4) = pow((sqrt ((1-D2)*(1-D3))),(-1));
     DamageEffectTensor(5,5) = pow((sqrt ((1-D1)*(1-D3))),(-1));
@@ -440,7 +435,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetDamageEffectTensor(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetTransformedDamageEffectTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetTransformedDamageEffectTensor(
     BoundedMatrixVoigtType& TransformedDamageEffectTensor,
     const BoundedMatrixVoigtType& DamageEffectTensor,
     const Vector& StrainVector
@@ -545,7 +540,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetTransformedDamageEffec
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::VectorToTensor(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::VectorToTensor(
     BoundedMatrixType& TensorForm,
     const Vector& VectorForm,
     const Variable<Vector>& rThisVariable
@@ -570,7 +565,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::VectorToTensor(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ScaleNonlocalEquivalentStrain(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::ScaleNonlocalEquivalentStrain(
     BoundedVectorType& Principal_Nonlocal_Strains,
     ConstitutiveLaw::Parameters& rParametersValues,
     const BoundedVectorType& Principal_Strains,
@@ -604,7 +599,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::ScaleNonlocalEquivalentSt
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_Huu(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Calculate_tangent_Huu(
     Matrix& r_elasticity_matrix,
     ConstitutiveLaw::Parameters& rParametersValues)
 {
@@ -675,7 +670,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_Huu(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculatePerturbation(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculatePerturbation(
     const Vector& rStrainVector,
     const IndexType Component,
     double& rPerturbation)
@@ -697,7 +692,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculatePerturbation(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetMinAbsValue(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetMinAbsValue(
     const Vector& rArrayValues,
     double& rMinValue)
 {
@@ -718,7 +713,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetMinAbsValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetMaxAbsValue(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetMaxAbsValue(
     const Vector& rArrayValues,
     double& rMaxValue)
 {
@@ -739,7 +734,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetMaxAbsValue(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::PerturbStrainVector(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::PerturbStrainVector(
     Vector& rPerturbedStrainVector,
     const Vector& rStrainVectorGP,
     const double Perturbation,
@@ -753,7 +748,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::PerturbStrainVector(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::IntegratePerturbedStrain(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::IntegratePerturbedStrain(
     ConstitutiveLaw::Parameters& rValues,
     ConstitutiveLaw* pConstitutiveLaw,
     const ConstitutiveLaw::StressMeasure& rStressMeasure)
@@ -776,7 +771,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::IntegratePerturbedStrain(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateComponentsToTangentTensorSecondOrder(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateComponentsToTangentTensorSecondOrder(
     Matrix& rTangentTensor,
     const Vector& rVectorStrainPlus,
     const Vector& rVectorStrainMinus,
@@ -794,82 +789,8 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateComponentsToTang
 
 //************************************************************************************
 //************************************************************************************
-// void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HuNL(
-//     BoundedVectorVoigtType& H_uNL1,
-//     BoundedVectorVoigtType& H_uNL2,
-//     ConstitutiveLaw::Parameters& rParametersValues,
-//     const BoundedVectorType& Kappa,
-//     const BoundedVectorType& beta1,
-//     const BoundedVectorType& beta2,
-//     const BoundedVectorType& k0,
-//     const Vector& Damage_Vector,
-//     const BoundedVectorType& Principal_Strains
-// )
-// {
-//     KRATOS_TRY
-//     const Vector& r_strain_vector = rParametersValues.GetStrainVector();
-//     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
-//     const double E   = r_material_properties[YOUNG_MODULUS];
-//     const double nu  = r_material_properties[POISSON_RATIO];
-//     const double E_factor = E/((1 + nu ) * (1- 2 * nu));
-//     BoundedMatrixType dDdkappa = ZeroMatrix(3,3);
-//     BoundedVectorType dkappadNLEpseq_tension = ZeroVector(3);
-//     BoundedVectorType dkappadNLEpseq_compression = ZeroVector(3);
-//     BoundedVectorType dDdNLEpseq_tension = ZeroVector(3);
-//     BoundedVectorType dDdNLEpseq_compression = ZeroVector(3);
-//     array_1d<BoundedMatrix<double, 6, 6>, 3> dHdD;
-//     for (SizeType i = 0; i < Dimension; ++i){
-//         dHdD[i] = ZeroMatrix(6,6);
-//     }
-//     BoundedMatrixVoigtType dHdEpseq_tension = ZeroMatrix(6,6);
-//     BoundedMatrixVoigtType dHdEpseq_compression = ZeroMatrix(6,6);
-//     Vector local_equivalent_strains = ZeroVector(2);
-//     CalculateLocalEquivalentStrains(local_equivalent_strains, rParametersValues, Principal_Strains);
-//     double Local_Equivalent_Strain_tension = local_equivalent_strains[0];
-//     double Local_Equivalent_Strain_compression = local_equivalent_strains[1];
-//     BoundedVectorType PrincipalDeviatoricStrains = ZeroVector(3);
-//     GetPrincipalDeviatoricStrains(PrincipalDeviatoricStrains, r_strain_vector, Principal_Strains);
-//     for(SizeType i =0; i < Dimension; ++i){
-//         dDdkappa(i,i)    = (1- Damage_Vector[i]) * (beta1[i]/Kappa[i] + beta2[i]/k0[i]);
-//         dkappadNLEpseq_tension[i] = MacaulayBrackets(Principal_Strains[i]) /(Local_Equivalent_Strain_tension+eps);
-//         dkappadNLEpseq_compression[i] = fabs(PrincipalDeviatoricStrains[i]) /(Local_Equivalent_Strain_compression+eps);
-//         dDdNLEpseq_tension[i] = dDdkappa(i,i)  * dkappadNLEpseq_tension[i];
-//         dDdNLEpseq_compression[i] = dDdkappa(i,i)  * dkappadNLEpseq_compression[i];
-//         dHdD[i](i,i) = E_factor * (-2 * (1-Damage_Vector[i]) * (1-nu));
-//     }
-//     for(SizeType i =0; i < Dimension; ++i){
-//         for(SizeType j = 0; j < Dimension; ++j){
-//             for(SizeType k = 0; k < Dimension; ++k){
-//                 if(j != k && (i==j ||i ==k)){
-//                     SizeType m = (i==j) ? k : j;
-//                     dHdD[i](j,k) = -E_factor * nu * (1 - Damage_Vector[m]);
-//                 }
-//             }
-//         }
-//     }
-//     // dHdD[0](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[0]+Damage_Vector[2]))-1) ;
-//     // dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[0]+Damage_Vector[1]))-1) ;
-//     // dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[1]+Damage_Vector[2]))-1) ;
-//     // dHdD[1](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[1]+Damage_Vector[0]))-1) ;
-//     // dHdD[2](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[2]+Damage_Vector[1]))-1) ;
-//     // dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[2]+Damage_Vector[0]))-1) ;
-//     dHdD[0](3,3) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[1]-1) ;
-//     dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[2]-1) ;
-//     dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[0]-1) ;
-//     dHdD[1](4,4) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[2]-1) ;
-//     dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[1]-1) ;
-//     dHdD[2](5,5) = E_factor * 0.5 * (1-2*nu) * (Damage_Vector[0]-1) ;
-//     TensorProduct(dHdEpseq_tension, dHdEpseq_compression, dHdD, dDdNLEpseq_tension, dDdNLEpseq_compression);
-//     H_uNL1 = prod(dHdEpseq_tension, r_strain_vector);
-//     H_uNL2 = prod(dHdEpseq_compression, r_strain_vector);
 
-//     KRATOS_CATCH("")
-// }
-
-//************************************************************************************
-//************************************************************************************
-
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HuNL(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Calculate_tangent_HuNL(
     BoundedVectorVoigtType& H_uNL1,
     BoundedVectorVoigtType& H_uNL2,
     ConstitutiveLaw::Parameters& rParametersValues,
@@ -953,7 +874,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HuNL(
 
 //************************************************************************************
 //************************************************************************************
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::IntegratePerturbedNonlocalEquivalentStrains(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::IntegratePerturbedNonlocalEquivalentStrains(
     Vector& r_perturbed_integrated_stress,
     const Vector& r_perturbed_nonlocal_equivalent_strains,
     ConstitutiveLaw::Parameters& rParametersValues,
@@ -1017,7 +938,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::IntegratePerturbedNonloca
 
 //************************************************************************************
 //************************************************************************************
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::PerturbNonlocalEquivalentStrains(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::PerturbNonlocalEquivalentStrains(
     double& rPerturbedNonlocalEquivalentStrainComponent,
     const double& rUnperturbedNonlocalEquivalentStrainComponent,
     const double Perturbation
@@ -1030,7 +951,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::PerturbNonlocalEquivalent
 
 //************************************************************************************
 //************************************************************************************
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::TensorProduct(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::TensorProduct(
     BoundedMatrixVoigtType& dHdNL1,
     BoundedMatrixVoigtType& dHdNL2,
     const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
@@ -1052,7 +973,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::TensorProduct(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HNLu(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Calculate_tangent_HNLu(
     BoundedVectorVoigtType& H_NL1u,
     BoundedVectorVoigtType& H_NL2u,
     ConstitutiveLaw::Parameters& rParametersValues,
@@ -1087,7 +1008,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Calculate_tangent_HNLu(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateDerivativesofEigenvalues(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateDerivativesofEigenvalues(
      BoundedMatrix3x6Type &DerivativesofEigenvalues,
      const BoundedVectorType &EigenvaluesVector,
      const BoundedVectorVoigtType &Voigtform,
@@ -1098,25 +1019,6 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateDerivativesofEig
     BoundedMatrixType Matrixform;
     VectorToTensor(Matrixform, Voigtform, rThisVariable);
     BoundedMatrixType DerivtivesMatrix;
-    // for(SizeType i = 0; i < Dimension; ++i){
-    //     for(SizeType j = 0; j < Dimension; ++j){
-    //         if(i != j && Matrixform(i,j)< eps){
-    //             Matrixform(i,j) = eps;
-    //         }
-    //     }
-    // }
-    // for(SizeType i = 0; i < Dimension; ++i){
-    //     BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
-    //     BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
-    //     const double trace = cofactor_matrix(0,0) + cofactor_matrix(1,1) + cofactor_matrix(2,2);
-    //     DerivtivesMatrix= (1/trace) * cofactor_matrix;
-    //     DerivativesofEigenvalues(i,0) = DerivtivesMatrix(0,0);
-    //     DerivativesofEigenvalues(i,1) = DerivtivesMatrix(1,1);
-    //     DerivativesofEigenvalues(i,2) = DerivtivesMatrix(2,2);
-    //     DerivativesofEigenvalues(i,3) = DerivtivesMatrix(0,1);
-    //     DerivativesofEigenvalues(i,4) = DerivtivesMatrix(1,2);
-    //     DerivativesofEigenvalues(i,5) = DerivtivesMatrix(0,2);
-    // }
     BoundedMatrixType EigenVectors;
     BoundedMatrixType EigenValues = ZeroMatrix(3,3);
     MathUtils<double>::GaussSeidelEigenSystem(Matrixform, EigenVectors, EigenValues);
@@ -1138,7 +1040,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateDerivativesofEig
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::AssembleConstitutiveMatrix(
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::AssembleConstitutiveMatrix(
     Matrix& ConstitutiveMatrix,
     const Matrix& H_uu,
     const Vector& H_NL1u,
@@ -1177,7 +1079,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::AssembleConstitutiveMatri
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetLawFeatures(Features& rFeatures)
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -1192,7 +1094,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetLawFeatures(Features& 
 
 
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::save(Serializer& rSerializer) const
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mEquivalentStrains", mEquivalentStrains);
@@ -1202,7 +1104,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::save(Serializer& rSeriali
 //************************************************************************************
 //************************************************************************************
 
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::load(Serializer& rSerializer)
+void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mEquivalentStrains", mEquivalentStrains);

@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+ * @class ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details This material law is defined by the parameters:
@@ -54,7 +54,7 @@ namespace Kratos
  * @note
  * @author Athira
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental
     : public ElasticIsotropic3D
 {
 public:
@@ -98,7 +98,7 @@ public:
     typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
     // Counted pointer
-    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage3DTwoNLEquivalentStrains);
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental);
 
     ///@}
     ///@name Lyfe Cycle
@@ -107,17 +107,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    ElasticAnisotropicDamage3DTwoNLEquivalentStrains();
+    ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental();
 
     /**
      * @brief Copy constructor.
      */
-    ElasticAnisotropicDamage3DTwoNLEquivalentStrains(const ElasticAnisotropicDamage3DTwoNLEquivalentStrains& rOther);
+    ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental(const ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ElasticAnisotropicDamage3DTwoNLEquivalentStrains() override;
+    ~ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental() override;
 
     /**
      * @brief Clone function
@@ -513,5 +513,5 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class ElasticAnisotropicDamage3DTwoNLEquivalentStrains
+}; // class ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental
 } // namespace Kratos

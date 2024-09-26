@@ -266,16 +266,16 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
         }
         local_equivalent_strain = sqrt(pow(MacaulayBrackets(principal_strains[0]),2) + pow(MacaulayBrackets(principal_strains[1]),2) + pow(MacaulayBrackets(principal_strains[2]),2));
         ScaleNonlocalEquivalentStrain(principal_nonlocal_equivalent_strain, principal_strains, nonlocal_equivalent_strain, local_equivalent_strain);
-        //const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
-        //const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10./3.) * ft/E;
+        const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
+        const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10./3.) * ft/E;
 
         for(SizeType i = 0; i < Dimension; ++i) {
-            k0[i]= ft/E;
-            beta1[i] = beta1t;
-            beta2[i] = beta2t;
-            //k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
-            //beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
-            //beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
+            // k0[i]= ft/E;
+            // beta1[i] = beta1t;
+            // beta2[i] = beta2t;
+            k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
+            beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
+            beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
             kappa[i] = std::max(principal_nonlocal_equivalent_strain[i],k0[i]);
             F[i]     = principal_nonlocal_equivalent_strain[i]-kappa[i];
         }
