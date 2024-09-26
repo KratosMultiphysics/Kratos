@@ -24,10 +24,18 @@ def debug_vtk(model_part):
     It sets up the necessary parameters, including the model part name and the nodal data value variables.
     The VTK output process is then executed through its initialization, pre-solution loop, and solution step phases.
     """
+    # Compute normals
+    for cond in model_part.Conditions:
+        geom = cond.GetGeometry()
+        normal = geom.UnitNormal()
+        cond.SetValue(KratosMultiphysics.NORMAL, normal)
+
+    # Generate VTK output
     from KratosMultiphysics.vtk_output_process import VtkOutputProcess
     parameters = KratosMultiphysics.Parameters("""{
-        "model_part_name"            : "",
-        "nodal_data_value_variables" : ["NORMAL"]
+        "model_part_name"                : "",
+        "nodal_data_value_variables"     : ["NORMAL"],
+        "condition_data_value_variables" : ["NORMAL"]
     }
     """)
     parameters["model_part_name"].SetString(model_part.Name)
@@ -35,6 +43,9 @@ def debug_vtk(model_part):
     output.ExecuteInitialize()
     output.ExecuteBeforeSolutionLoop()
     output.ExecuteInitializeSolutionStep()
+    output.PrintOutput()
+    output.ExecuteFinalizeSolutionStep()
+    output.ExecuteFinalize()
 
 def calculate_analytical_normal(node):
     """
@@ -111,7 +122,7 @@ def WriteModelPartToOBJ(model_part, obj_file):
     return obj_file
 
 # Define a function to read a Kratos model part from an OBJ file
-def ReadModelPartFromOBJ(model_part, obj_file):
+def ReadModelPartFromOBJ(model_part, obj_file, decompose_quad=False):
     """
     Read a Kratos model part from an OBJ file.
 
@@ -120,7 +131,12 @@ def ReadModelPartFromOBJ(model_part, obj_file):
         data_comm (KratosMultiphysics.DataCommunicator): The data communicator.
         obj_file (str): The name of the OBJ file to read from.
     """
-    read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "entity_type" : "element"}""")
+    read_settings = KratosMultiphysics.Parameters("""{
+        "open_mode"                      : "read",
+        "entity_type"                    : "condition",
+        "decompose_quads_into_triangles" : false
+    }""")
+    read_settings["decompose_quads_into_triangles"].SetBool(decompose_quad)
     obj_io = KratosMultiphysics.ObjIO(obj_file, read_settings)
     obj_io.ReadModelPart(model_part)
 
@@ -161,7 +177,7 @@ class TestObjIO(KratosUnittest.TestCase):
 
         # Assert that the model part has the correct number of nodes and elements
         self.assertEqual(self.model_part.NumberOfNodes(), 8)
-        self.assertEqual(self.model_part.NumberOfElements(), 6)
+        self.assertEqual(self.model_part.NumberOfConditions(), 6)
 
         # Assert that the normals are the same as the nodes coordinates
         for node in self.model_part.Nodes:
@@ -169,6 +185,53 @@ class TestObjIO(KratosUnittest.TestCase):
             self.assertAlmostEqual(normal[0], node.X)
             self.assertAlmostEqual(normal[1], node.Y)
             self.assertAlmostEqual(normal[2], node.Z)
+
+    def test_ReadObjIOTriangles(self):
+        """
+        Test the ReadModelPart function from ObjIO
+        """
+        # Create a model part and set the domain size
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main")
+        self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        # Read a model part from an OBJ file
+        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube.obj")
+        ReadModelPartFromOBJ(self.model_part, obj_name, True)
+
+        # # Debug
+        # debug_vtk(self.model_part)
+
+        # Assert that the model part has the correct number of nodes and elements
+        self.assertEqual(self.model_part.NumberOfNodes(), 8)
+        self.assertEqual(self.model_part.NumberOfConditions(), 12)
+
+        # Assert that the normals are the same as the nodes coordinates
+        for node in self.model_part.Nodes:
+            normal = node.GetValue(KratosMultiphysics.NORMAL)
+            self.assertAlmostEqual(normal[0], node.X)
+            self.assertAlmostEqual(normal[1], node.Y)
+            self.assertAlmostEqual(normal[2], node.Z)
+
+    def test_ReadObjIOTrianglesDegenerated(self):
+        """
+        Test the ReadModelPart function from ObjIO
+        """
+        # Create a model part and set the domain size
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main")
+        self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        # Read a model part from an OBJ file
+        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube_degenerated.obj")
+        ReadModelPartFromOBJ(self.model_part, obj_name, True)
+
+        # # Debug
+        # debug_vtk(self.model_part)
+
+        # Assert that the model part has the correct number of nodes and elements
+        self.assertEqual(self.model_part.NumberOfNodes(), 8)
+        self.assertEqual(self.model_part.NumberOfConditions(), 12)
 
     def test_WriteObjIO(self):
         """
@@ -206,13 +269,13 @@ class TestObjIO(KratosUnittest.TestCase):
         # Compute resulting area
         number_of_conditions = self.model_part.NumberOfConditions()
         area_2 = 0.0
-        for elem in obj_model_part.Elements:
+        for elem in obj_model_part.Conditions:
             geom = elem.GetGeometry()
             area_2 += geom.Area()
 
         # Assert number of nodes and elements
         self.assertEqual(obj_model_part.NumberOfNodes(), self.model_part.NumberOfNodes())
-        self.assertEqual(number_of_conditions, obj_model_part.NumberOfElements())
+        self.assertEqual(number_of_conditions, obj_model_part.NumberOfConditions())
 
         # Assert that the areas match approximately
         self.assertAlmostEqual(area_1, area_2)
