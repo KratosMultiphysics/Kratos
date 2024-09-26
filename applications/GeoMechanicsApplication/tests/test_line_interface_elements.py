@@ -147,5 +147,43 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         os.chdir(initial_cwd)
 
 
+    def test_3_plus_3_line_interface_element_with_neumann_conditions(self):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage'))
+
+        initial_cwd = os.getcwd()
+        os.chdir(file_path)
+
+        stage1 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters_stage1.json'))
+
+        stage1.Run()
+
+        displacement_vectors = test_helper.get_displacement(stage1)
+
+        # The first three nodes have been fixed
+        for vector in displacement_vectors[:3]:
+            self.assertAlmostEqual(vector[0], 0.0)
+            self.assertAlmostEqual(vector[1], 0.0)
+
+        # The last three nodes have prescribed non-zero displacements
+        expected_displacement_x = -8.8933333333333332e-5
+        expected_displacement_y = -2.22e-5
+        for vector in displacement_vectors[3:]:
+            self.assertAlmostEqual(vector[0], expected_displacement_x)
+            self.assertAlmostEqual(vector[1], expected_displacement_y)
+
+        expected_normal_relative_displacement = expected_displacement_y
+        expected_tangential_relative_displacement = expected_displacement_x
+        for vector in test_helper.get_strain_vectors(stage1)[0]:  # check the first element
+            self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
+
+        normal_stiffness = 3.0e7
+        shear_stiffness = 1.5e7
+        for vector in test_helper.get_cauchy_stress_vector(stage1)[0]:  # check the first element
+            self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+
+        os.chdir(initial_cwd)
+
 if __name__ == '__main__':
     KratosUnittest.main()
