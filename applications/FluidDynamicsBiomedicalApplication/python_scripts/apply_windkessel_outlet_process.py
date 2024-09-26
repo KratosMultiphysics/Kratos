@@ -79,7 +79,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         self.C  = settings["compliance"].GetDouble()
         p0_mmHg = settings["initial_pressure"].GetDouble()
 
-        self.conv = 13.545*9.81
+        self.conv = 13.545*9.81 # Pressure must be provided in mmHg
         p0 = p0_mmHg*self.conv
 
         self.previous_q1 = 0.0
@@ -108,27 +108,41 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         delta_t = self.outlet_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         t = self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        current_q1 = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(self.outlet_model_part)
-        print('Current flow rate', current_q1)
+        self.current_q1 = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(self.outlet_model_part)
+        print('Current flow rate', self.current_q1)
 
-        modified_p1 = (1/self.C*(current_q1*( 1 + self.R1/self.R2) + self.R1*self.C*(current_q1 - self.previous_q1)/delta_t - self.current_p1/self.R2))*delta_t + self.current_p1
-        print('Outlet new pressure:', modified_p1/self.conv)
+        self.modified_p1 = (1/self.C*(self.current_q1*( 1 + self.R1/self.R2) + self.R1*self.C*(self.current_q1 - self.previous_q1)/delta_t - self.current_p1/self.R2))*delta_t + self.current_p1
+        print('Outlet new pressure:', self.modified_p1/self.conv)
 
-        self.pres_settings["value"].SetDouble(modified_p1)
-        self.ext_pres_settings["value"].SetDouble(modified_p1)
+        for node in self.outlet_model_part.Nodes:
+            # Setting new solution on the nodes
+            node.Fix(KratosMultiphysics.PRESSURE)
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,self.modified_p1)
+            node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE,self.modified_p1)
+
+        #self.pres_settings["value"].SetDouble(self.modified_p1)
+        #self.ext_pres_settings["value"].SetDouble(self.modified_p1)
 
         # Call the base process ExecuteInitializeSolutionStep()
-        self.aux_pressure_process.ExecuteInitializeSolutionStep()
-        self.aux_external_pressure_process.ExecuteInitializeSolutionStep()
-
-        self.previous_q1 = current_q1
-        self.current_p1 = modified_p1
+        #self.aux_pressure_process.ExecuteInitializeSolutionStep()
+        #self.aux_external_pressure_process.ExecuteInitializeSolutionStep()
 
 
     def ExecuteFinalizeSolutionStep(self):
+
+        self.previous_q1 = self.current_q1
+        self.current_p1 = self.modified_p1
+
+        #self.pres_settings["value"].SetDouble(self.modified_p1)
+        #self.ext_pres_settings["value"].SetDouble(self.modified_p1)
+
         # Call the base process ExecuteFinalizeSolutionStep()
-        self.aux_pressure_process.ExecuteFinalizeSolutionStep()
-        self.aux_external_pressure_process.ExecuteFinalizeSolutionStep()
+        #self.aux_pressure_process.ExecuteFinalizeSolutionStep()
+        #self.aux_external_pressure_process.ExecuteFinalizeSolutionStep()
+
+        #Set new pressure BCs to nodes (set the new pressure for each outlet)
+
+
 
 
     # Private methods section
