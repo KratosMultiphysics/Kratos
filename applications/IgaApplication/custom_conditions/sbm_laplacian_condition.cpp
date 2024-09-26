@@ -466,7 +466,9 @@ void SBMLaplacianCondition::CalculateAllNeumann(
             
             HgradX(0,i) = H_taylor_term_X + DN_DX(i, 0);
             HgradY(0,i) = H_taylor_term_Y + DN_DX(i, 1);
-            HgradZ(0,i) = H_taylor_term_Z + DN_DX(i, 2);
+            if (dim == 3) {
+                HgradZ(0,i) = H_taylor_term_Z + DN_DX(i, 2);
+            }
         }    
 
         // dot product n cdot n_tilde
