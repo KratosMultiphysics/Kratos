@@ -51,7 +51,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         self.decomposed_nodes_coords_filename = "hole_coords_q_ast=" + str(self.q_ast) + "_delta_pen=" + str(self.delta_pen) + "_" + self.mesh_type + "_" + self.mesh_size + ".txt"
 
-        self.r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
+        import math
+        self.r_ast_max = self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
 
         if not self.project_parameters["problem_data"].Has("adjust_T_field_after_ablation"):
             self.adjust_T_field_after_ablation = False
@@ -99,7 +100,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             delta_pen = self.delta_pen
             F_p = self.F_p
             omega_0 = self.omega_0
-            q_energy_per_volume = (1.0 / delta_pen) * F_p * np.exp(- 2.0 * (radius / omega_0)**2) * np.exp(- z / delta_pen)
+            import math
+            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen)
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -117,7 +119,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
-        q_energy_per_volume = (1.0 / delta_pen) * F_p * np.exp(- 2.0 * (radius / omega_0)**2) * np.exp(- z / delta_pen)
+        import math
+        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)            
         return delta_temp
 
@@ -129,7 +132,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             q_ast = self.q_ast
             omega_0 = self.omega_0
-            z_ast = delta_pen * (np.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0)**2)
+            import math
+            z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0)**2)
             return z_ast
 
     def RemoveElementsByAblation(self):
@@ -156,7 +160,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         F_p = self.F_p
         q_ast = self.q_ast
         omega_0 = self.omega_0
-        vol_n_pulses = self.pulse_number * 0.25 * delta_pen * np.pi * omega_0**2 * (np.log(F_p / (delta_pen * q_ast)))**2
+        import math
+        vol_n_pulses = self.pulse_number * 0.25 * delta_pen * math.pi * omega_0**2 * (math.log(F_p / (delta_pen * q_ast)))**2
         print("Expected volume loss due to laser:", vol_n_pulses, "\n\n")
 
     def ResidualHeatStage(self):
@@ -194,5 +199,5 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             self.hole_theoretical_profile_file = open('hole_theoretical_profile.txt', "w")
             for node_Y in self.list_of_decomposed_nodes_coords_Y:
                 Z_coord = self.pulse_number * self.EvaporationDepth(node_Y)
-                self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(Z_coord) + "\n")
+                self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-Z_coord) + "\n")
             self.hole_theoretical_profile_file.close()
