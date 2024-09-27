@@ -115,10 +115,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.focus_z_offset = self.project_parameters["problem_data"]["focus_Z_offset"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("spot_diameter"):
-            self.spot_diameter = 0.025
-        else:
-            self.spot_diameter = self.ComputeSpotDiameter()
+        self.spot_diameter = self.ComputeSpotDiameter()
 
         if not self.project_parameters["problem_data"].Has("vaporisation_temperature"):
             self.T_e = 1000.0
