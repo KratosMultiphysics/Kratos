@@ -187,7 +187,8 @@ public:
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
                                  Vector& rDamageVector,
-                                 Vector& rEquivalentStrains);
+                                 Vector& rEquivalentStrains,
+                                 Vector& rStrainHistoryParameters);
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
@@ -269,6 +270,7 @@ protected:
     ///@{
     Vector mEquivalentStrains;
     Vector mDamageVector = ZeroVector(3);
+    Vector mStrainHistoryParameters = ZeroVector(3);
     ///@}
 
     ///@name Protected Operators

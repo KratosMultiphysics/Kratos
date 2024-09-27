@@ -170,6 +170,11 @@ public:
         const ProcessInfo& rProcessInfo
         ) override;
 
+    void SetValue(
+        const Variable<Matrix>& rThisVariable,
+        const Matrix& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        )override;
     /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
@@ -186,8 +191,11 @@ public:
      * @param rStrainVariable
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
+                                 Matrix& rDamageTensor,
                                  Vector& rDamageVector,
-                                 Vector& rEquivalentStrains);
+                                 Vector& rEquivalentStrains,
+                                 Vector& rStrainHistoryParameters,
+                                 Vector& rKappa);
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
@@ -269,6 +277,9 @@ protected:
     ///@{
     Vector mEquivalentStrains;
     Vector mDamageVector = ZeroVector(3);
+    Vector mStrainHistoryParameters=ZeroVector(3);;
+    Vector mKappa = ZeroVector(3);
+    Matrix mDamageMatrix = ZeroMatrix(3,3);
     ///@}
 
     ///@name Protected Operators
@@ -340,10 +351,7 @@ protected:
                                          const Vector& StrainVector,
                                          const BoundedVectorType& PrincipalStrains
                                          );
-    void TransformPrincipalDamageToGlobal(BoundedMatrixType& DamageTensor,
-                                                    const BoundedVectorType& PrinicipalDamageVector,
-                                                    const Vector& StrainVector
-                                                    );
+
     /**
      * @brief this method scales the nonlocal equivalent strains to principal direction componenets based on principal strains
      * @param Principal_Nonlocal_Equivalent_Strain
@@ -366,7 +374,13 @@ protected:
     {
         return (Number > 0.0) ? Number : 0.0;
     }
-
+    void TransformPrincipalDamageToGlobal(BoundedMatrixType& DamageTensor,
+                                                    const BoundedVectorType& PrinicipalDamageVector,
+                                                    const Vector& StrainVector
+                                                    );
+    void GetTotalPrincipalDamageVector(Vector& PrincipaldamageVector,
+                                        const BoundedMatrixType& TotalDamageTensor
+                                        );
     void Calculate_tangent_Huu(
     Matrix& r_elasticity_matrix,
     ConstitutiveLaw::Parameters& rParametersValues);

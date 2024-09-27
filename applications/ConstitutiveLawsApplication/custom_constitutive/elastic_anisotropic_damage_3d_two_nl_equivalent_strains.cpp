@@ -88,6 +88,8 @@ bool ElasticAnisotropicDamage3DTwoNLEquivalentStrains::Has(const Variable<Vector
         return true;
     } else if(rThisVariable == EQUIVALENT_STRAINS_TC){
         return true;
+    }else if (rThisVariable == STRAIN_HISTORY_VARIABLES){
+        return true;
     }
 
     return false;
@@ -106,6 +108,8 @@ Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::GetValue(
         rValues = mDamageVector;
     }else if(rThisVariable == EQUIVALENT_STRAINS_TC) {
         rValues = mEquivalentStrains;
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES){
+        rValues = mStrainHistoryParameters;
     }
     return rValues;
     KRATOS_CATCH("")
@@ -125,6 +129,8 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::SetValue(
         mDamageVector = rValues;
     }else if(rThisVariable == EQUIVALENT_STRAINS_TC) {
         mEquivalentStrains = rValues;
+    }else if(rThisVariable == STRAIN_HISTORY_VARIABLES){
+        mStrainHistoryParameters = rValues;
     }
     KRATOS_CATCH("")
 }
@@ -150,9 +156,11 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::FinalizeMaterialResponseC
     KRATOS_TRY
     Vector equivalent_strains;
     Vector damage_vector;
-    this->CalculateStressResponse(rParametersValues, damage_vector, equivalent_strains);
+    Vector strain_history_parameters;
+    this->CalculateStressResponse(rParametersValues, damage_vector, equivalent_strains, strain_history_parameters);
     mEquivalentStrains = equivalent_strains;
     mDamageVector = damage_vector;
+    mStrainHistoryParameters = strain_history_parameters;
     KRATOS_CATCH("")
 }
 
@@ -165,7 +173,8 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateMaterialResponse
     KRATOS_TRY
     Vector equivalent_strains;
     Vector damage_vector;
-    CalculateStressResponse(rParametersValues, damage_vector, equivalent_strains);
+    Vector strain_history_parameters;
+    CalculateStressResponse(rParametersValues, damage_vector, equivalent_strains, strain_history_parameters);
 
     KRATOS_CATCH("")
 }
@@ -176,7 +185,8 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateMaterialResponse
 void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rDamageVector,
-    Vector& rEquivalentStrains)
+    Vector& rEquivalentStrains,
+    Vector& rStrainHistoryParameters)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
@@ -215,6 +225,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
         Vector damage_vector = ZeroVector(3);
         Vector local_equivalent_strains = ZeroVector(2);
         Vector nonlocal_equivalent_strains = ZeroVector(2);
+        rStrainHistoryParameters = mStrainHistoryParameters;
         const auto& N = rParametersValues.GetShapeFunctionsValues();
         const double beta1t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
         const double beta2t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_TENSION];
@@ -237,19 +248,21 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
         ScaleNonlocalEquivalentStrain(principal_nonlocal_equivalent_strains, rParametersValues, principal_strains, nonlocal_equivalent_strains, local_equivalent_strains);
         const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
         const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (1 + nu) * (2.22*ft)/(E);
-
         for(SizeType i = 0; i < Dimension; ++i) {
             k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
             beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
             beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
-            kappa[i] = std::max(principal_nonlocal_equivalent_strains[i],k0[i]);
+            rStrainHistoryParameters[i] = std::max(mStrainHistoryParameters[i], principal_nonlocal_equivalent_strains[i]);
+            kappa[i] = std::max(rStrainHistoryParameters[i] ,k0[i]);
             F[i]     = principal_nonlocal_equivalent_strains[i]-kappa[i];
+            // kappa[i] = std::max(principal_nonlocal_equivalent_strains[i],k0[i]);
+            // F[i]     = principal_nonlocal_equivalent_strains[i]-kappa[i];
         }
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
-            if (kappa[i]>= 0 && kappa[i]<=k0[i]){
-                damage_vector[i]=0.0;
-            }else if (kappa[i]> k0[i]){
+            if (F[i]<0){
+                damage_vector[i]=mDamageVector[i];
+            }else if (F[i] == 0){
                 const double var1      = pow((k0[i]/kappa[i]),beta1[i]);
                 const double var2      = exp(-beta2[i]*((kappa[i]-k0[i])/(k0[i])));
                 damage_vector[i] = 1.0 - var1 * var2;
@@ -330,12 +343,14 @@ Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateValue(
     if (rThisVariable == DAMAGE_VECTOR) {
         Vector damage_vector;
         Vector equivalent_strains;
-        this->CalculateStressResponse( rParametersValues, damage_vector, equivalent_strains);
+        Vector strain_history_parameters;
+        this->CalculateStressResponse( rParametersValues, damage_vector, equivalent_strains, strain_history_parameters);
         rValue = damage_vector;
     }else if (rThisVariable == EQUIVALENT_STRAINS_TC) {
         Vector equivalent_strains;
         Vector damage_vector;
-        this->CalculateStressResponse( rParametersValues, damage_vector, equivalent_strains);
+        Vector strain_history_parameters;
+        this->CalculateStressResponse( rParametersValues, damage_vector, equivalent_strains, strain_history_parameters);
         rValue = equivalent_strains;
     }else{
         ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
@@ -1197,6 +1212,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::save(Serializer& rSeriali
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mEquivalentStrains", mEquivalentStrains);
     rSerializer.save("mDamageVector", mDamageVector);
+    rSerializer.save("mStrainHistoryParameters", mStrainHistoryParameters);
 }
 
 //************************************************************************************
@@ -1207,6 +1223,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::load(Serializer& rSeriali
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mEquivalentStrains", mEquivalentStrains);
     rSerializer.load("mDamageVector", mDamageVector);
+    rSerializer.load("mStrainHistoryParameters", mStrainHistoryParameters);
 }
 
 
