@@ -12,6 +12,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
     """
     def setUp(self):
         self.model = Kratos.Model()
+        self.normal_stiffness = 3.0e7
+        self.shear_stiffness = 1.5e7
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
@@ -110,11 +112,9 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
             self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
 
-        normal_stiffness = 3.0e7
-        shear_stiffness = 1.5e7
         for vector in test_helper.get_cauchy_stress_vector(stage1)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
 
         stage2 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters_stage2.json'))
 
@@ -141,13 +141,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
 
         for vector in test_helper.get_cauchy_stress_vector(stage2)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
 
         os.chdir(initial_cwd)
 
 
-    def test_3_plus_3_line_interface_element_with_neumann_conditions(self):
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions(self):
         file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage'))
 
         initial_cwd = os.getcwd()
@@ -177,11 +177,9 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
             self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
 
-        normal_stiffness = 3.0e7
-        shear_stiffness = 1.5e7
         for vector in test_helper.get_cauchy_stress_vector(stage1)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
 
         stage2 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters_stage2.json'))
 
@@ -208,8 +206,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
 
         for vector in test_helper.get_cauchy_stress_vector(stage2)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], shear_stiffness * expected_tangential_relative_displacement)
+            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
+            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
 
         os.chdir(initial_cwd)
 
