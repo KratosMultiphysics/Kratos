@@ -11,6 +11,7 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -80,6 +81,13 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end())) {
         KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered." << rParameters << std::endl;
     }
+
+    KRATOS_ERROR_IF(GravityDirectionCoordinates().size() < 2)
+        << "At least two coordinates in gravity direction must be given, but got "
+        << GravityDirectionCoordinates().size() << std::endl;
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() < 2)
+        << "At least two coordinates in horizontal direction must be given, but got "
+        << HorizontalDirectionCoordinates().size() << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
@@ -241,7 +249,7 @@ int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node& rNode) 
         }
     }
 
-    return number_of_coordinates - 1;
+    return number_of_coordinates - 2;
 }
 
 double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node& rNode,

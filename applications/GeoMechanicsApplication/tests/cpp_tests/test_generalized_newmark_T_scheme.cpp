@@ -32,7 +32,7 @@ ModelPart& CreateValidTemperatureModelPart(Model& rModel)
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckNewmarkTScheme_WithAllNecessaryParts_Returns0, Kr
     KRATOS_EXPECT_EQ(scheme.Check(model_part), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
     
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckNewmarkTScheme_Throws, KratosG
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(scheme.Check(model_part), "missing TEMPERATURE dof on node ")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtTemperatureSolutionStepVariable_CheckNewma
                                       "DT_TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmarkTScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingTemperatureSolutionStepVariable_CheckNewmark
                                       "TEMPERATURE variable is not allocated for node 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 
@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkTSchemeUpdate_SetsDtTemperature, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE, 0), 7.0 / 3.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkTScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr double theta = 0.75;
 

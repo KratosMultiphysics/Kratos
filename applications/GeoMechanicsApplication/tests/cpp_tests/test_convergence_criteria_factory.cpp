@@ -22,7 +22,7 @@ using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceTyp
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::string valid_parameters = R"(
     {
@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplaceme
     KRATOS_EXPECT_NE(displacement_criterion, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::string valid_parameters = R"(
     {
@@ -52,14 +52,14 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, 
     KRATOS_EXPECT_NE(residual_criterion, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             ConvergenceCriteriaFactoryType::Create(Parameters{"{}"}),
             "No convergence_criterion is defined, aborting.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             ConvergenceCriteriaFactoryType::Create(Parameters{R"({"convergence_criterion" : "something_unknown" })"}),

@@ -51,6 +51,8 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
+    std::string Info() const override;
+
 protected:
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,

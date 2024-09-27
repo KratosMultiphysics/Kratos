@@ -5,8 +5,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-# Temporaly failing
-@KratosUnittest.skipIf(True, "Temporaly Failing")
+
 class TestGradientProjectionAnalysis(KratosUnittest.TestCase):
     def test_gradient_projection_analysis(self):
         with KratosUnittest.WorkFolderScope(".", __file__):
