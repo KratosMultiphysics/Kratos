@@ -27,6 +27,8 @@
 
 #include "custom_conditions/support_contact_2D_condition.h"
 
+#include "utilities/entities_utilities.h"
+
 namespace Kratos
 {
 
@@ -81,7 +83,11 @@ public:
 
     void Execute() override;
 
-    void ExecuteInitialize() override {
+    // void ExecuteInitialize() override {
+    //     Execute();
+    // };
+
+    void ExecuteInitializeSolutionStep() override {
         Execute();
     };
 

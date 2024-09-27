@@ -186,7 +186,7 @@ namespace Kratos
         // Generate the list of geometries, which are needed, here.
         GeometriesArrayType geometry_list;
         GetCadGeometryList(geometry_list, rCadModelPart, rParameters);
-
+        
         if (!rParameters.Has("geometry_type")) {
             CreateQuadraturePointGeometries(
                 geometry_list, sub_model_part, rParameters["parameters"], std::string{});

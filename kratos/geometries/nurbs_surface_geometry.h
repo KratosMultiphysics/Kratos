@@ -316,15 +316,16 @@ public:
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     void CheckIsRationalOnlyOnce()
     {
+        mIsRational = false;
         if (mWeights.size() == 0)
             mIsRational = false;
         else {
             for (IndexType i = 0; i < mWeights.size(); ++i) {
                 if (std::abs(mWeights[i] - 1.0) > 1e-10) {
                     mIsRational = true;
+                    break;
                 }
             }
-            mIsRational = false;
         }
     }
 
@@ -631,6 +632,17 @@ public:
                 shape_function_container.ComputeBSplineShapeFunctionValues(
                     mKnotsU, mKnotsV, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
             }
+
+            std::ofstream outputFile("txt_files/Parameter_Gauss_Point_coordinates.txt", std::ios::app);
+            if (!outputFile.is_open())
+            {
+                std::cerr << "Failed to open the file for writing." << std::endl;
+                return;
+            }
+
+            outputFile << std::setprecision(14); // Set precision to 10^-14
+            outputFile << rIntegrationPoints[i][0] << "  " << rIntegrationPoints[i][1] <<"\n";
+            outputFile.close();
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);

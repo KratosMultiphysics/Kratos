@@ -17,13 +17,13 @@
 // External includes
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "custom_utilities/contact_utilities.h"
-#include "utilities/mortar_utilities.h"
-#include "utilities/variable_utils.h"
-#include "utilities/normal_calculation_utils.h"
-#include "custom_processes/aalm_adapt_penalty_value_process.h"
-#include "custom_processes/compute_dynamic_factor_process.h"
+// #include "contact_structural_mechanics_application_variables.h"
+// #include "custom_utilities/contact_utilities.h"
+// #include "utilities/mortar_utilities.h"
+// #include "utilities/variable_utils.h"
+// #include "utilities/normal_calculation_utils.h"
+// #include "custom_processes/aalm_adapt_penalty_value_process.h"
+// #include "custom_processes/compute_dynamic_factor_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 
@@ -83,8 +83,8 @@ public:
     /// The dense vector type
     using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    /// The GidIO type
-    using GidIOBaseType = GidIO<>;
+    // /// The GidIO type
+    // using GidIOBaseType = GidIO<>;
 
     ///@}
     ///@name Life Cycle
@@ -106,7 +106,9 @@ public:
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+
+        mParameters = ThisParameters;
+        // this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -152,52 +154,98 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // The current process info
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    //     KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
+    //         << "Missing \"contact_model_part_name\" section" << std::endl;
 
-        // The contact model part
-        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+    //     ModelPart& contact_model_part = mpModel->HasModelPart(mParameters["contact_model_part_name"].GetString())
+    //                                 ? mpModel->GetModelPart(mParameters["contact_model_part_name"].GetString())
+    //                                 : mpModel->CreateModelPart(mParameters["contact_model_part_name"].GetString());
 
-        // We update the normals if necessary
-        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION;
-        if (normal_variation != NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION) {
-            ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
-        }
+    //     // contact_model_part.RemoveConditionsFromAllLevels();
 
-        // Update tangent (must be updated even for constant normal)
-        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-        if (frictional_problem) {
-            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm && mOptions.IsNot(ActiveSetCriteria::PURE_SLIP)) {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
-            } else {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
-            }
-        }
+    //     // PHYSICS HERE OR IN IGA_MODELER???????????
+    //     // const std::string& rDataFileName = mParameters.Has("physics_file_name")
+    //     //     ? mParameters["physics_file_name"].GetString()
+    //     //     : "physics.iga.json";
 
-        const bool adapt_penalty = r_process_info.Has(ADAPT_PENALTY) ? r_process_info.GetValue(ADAPT_PENALTY) : false;
-        const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
+    //     //-----------------------------------------------------------------------------------------------
+    //     // Obtain SLAVE interface b_reps
+    //     const std::string slave_model_part_name = mParameters["contact_parameters"]["slave_model_part"]["sub_model_part_name"].GetString();
 
-        /* Compute weighthed gap */
-        if (adapt_penalty || dynamic_case) {
-            // Set to zero the weighted gap
-            ResetWeightedGap(rModelPart);
+    //     KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(slave_model_part_name)) << "ERROR: SLAVE MODEL PART " 
+    //                                             << slave_model_part_name << "NOT CREATED" << std::endl; 
 
-            // Compute the contribution
-            ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
-        }
+    //     ModelPart& slave_model_part = mpModel->GetModelPart(slave_model_part_name);
+    //     GeometriesArrayType geometry_list_slave;
+    //     GetCadGeometryList(geometry_list_slave, slave_model_part, mParameters["contact_parameters"]["slave_model_part"]);
 
-        // In dynamic case
-        if ( dynamic_case && mOptions.Is(ActiveSetCriteria::COMPUTE_DYNAMIC_FACTOR)) {
-            ComputeDynamicFactorProcess compute_dynamic_factor_process( r_contact_model_part );
-            compute_dynamic_factor_process.Execute();
-        }
+    //     const IndexType slave_property_id = mParameters["contact_parameters"]["slave_model_part"]["property_id"].GetInt();
+    //     Properties::Pointer p_prop_slave = slave_model_part.pGetProperties(slave_property_id);
 
-        // We recalculate the penalty parameter
-        if ( adapt_penalty ) {
-            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty( r_contact_model_part );
-            aalm_adaptation_of_penalty.Execute();
-        }
+    //     // Obtain MASTER interface b_reps
+    //     const std::string master_model_part_name = mParameters["contact_parameters"]["master_model_part"]["sub_model_part_name"].GetString();
+
+    //     KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(master_model_part_name)) << "ERROR: MASTER MODEL PART " 
+    //                                             << master_model_part_name << "NOT CREATED" << std::endl; 
+
+    //     ModelPart& master_model_part = mpModel->GetModelPart(master_model_part_name);
+    //     GeometriesArrayType geometry_list_master;
+    //     GetCadGeometryList(geometry_list_master, master_model_part, mParameters["contact_parameters"]["master_model_part"]);
+
+    //     const IndexType master_property_id = mParameters["contact_parameters"]["master_model_part"]["property_id"].GetInt();
+    //     Properties::Pointer p_prop_master = master_model_part.pGetProperties(master_property_id);
+
+    //     auto couplingGeometry = Kratos::make_shared<NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>>(geometry_list_slave, geometry_list_master);
+
+    //     //---------------------------------------------------------------
+    //     // ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ
+    //     GeometriesArrayType geometries;
+    //     SizeType shape_function_derivatives_order = 1;
+    //     if (mParameters.Has("shape_function_derivatives_order")) {
+    //         shape_function_derivatives_order = mParameters["shape_function_derivatives_order"].GetInt();
+    //     }
+    //     else {
+    //         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 4)
+    //             << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
+    //     }
+
+    //     std::string quadrature_method = mParameters.Has("quadrature_method")
+    //         ? mParameters["integration_rule"].GetString()
+    //         : "GAUSS";
+    //     IntegrationInfo integration_info = couplingGeometry->GetDefaultIntegrationInfo();
+    //     for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+    //         if (quadrature_method == "GAUSS") {
+    //             integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+    //         }
+    //         else if (quadrature_method == "EXTENDED_GAUSS") {
+    //             integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+    //         }
+    //         else if (quadrature_method == "GRID") {
+    //             integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+    //         }
+    //         else {
+    //             KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+    //                 << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+    //         }
+    //     }
+
+    //     couplingGeometry->CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_info);
+
+    //     SizeType id = 1;
+    //     // if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
+    //     //     id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+    //     if (contact_model_part.GetRootModelPart().Conditions().size() > 0)
+    //         id = contact_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+        
+    //     KRATOS_ERROR_IF_NOT(mParameters.Has("name"))
+    //         << "\"name\" need to be specified." << std::endl;
+    //     std::string name = mParameters["name"].GetString();
+
+
+    //     this->CreateConditions(
+    //                     geometries.ptr_begin(), geometries.ptr_end(),
+    //                     contact_model_part, name, id, p_prop_master, p_prop_slave);
+
 
         return true;
     }
@@ -219,54 +267,54 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // We save the current WEIGHTED_GAP in the buffer
-        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        block_for_each(r_nodes_array, [&](Node& rNode) {
-            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
-        });
+        // // We save the current WEIGHTED_GAP in the buffer
+        // auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        // block_for_each(r_nodes_array, [&](Node& rNode) {
+        //     rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        // });
 
-        // Set to zero the weighted gap
-        ResetWeightedGap(rModelPart);
+        // // Set to zero the weighted gap
+        // ResetWeightedGap(rModelPart);
 
-        // Compute the contribution
-        ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
+        // // Compute the contribution
+        // ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
 
-        // GiD IO for debugging
-        if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
-            const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
+        // // GiD IO for debugging
+        // if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
+        //     const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        //     const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+        //     const double label = static_cast<double>(nl_iter);
 
-            if (nl_iter == 1) {
-                mpIO->InitializeMesh(label);
-                mpIO->WriteMesh(rModelPart.GetMesh());
-                mpIO->FinalizeMesh();
-                mpIO->InitializeResults(label, rModelPart.GetMesh());
-            }
+        //     if (nl_iter == 1) {
+        //         mpIO->InitializeMesh(label);
+        //         mpIO->WriteMesh(rModelPart.GetMesh());
+        //         mpIO->FinalizeMesh();
+        //         mpIO->InitializeResults(label, rModelPart.GetMesh());
+        //     }
 
-            mpIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-            mpIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            mpIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            mpIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-            mpIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-            mpIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
-            mpIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            mpIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
-                mpIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-                mpIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
-            }
-            if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                mpIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
-            else if (r_nodes_array.begin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X))
-                mpIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
-            mpIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
-            if (frictional_problem) {
-                mpIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
-                mpIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
-                mpIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            }
-        }
+        //     mpIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+        //     mpIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+        //     mpIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+        //     if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
+        //         mpIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+        //         mpIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+        //     }
+        //     if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+        //         mpIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
+        //     else if (r_nodes_array.begin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X))
+        //         mpIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
+        //     mpIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+        //     if (frictional_problem) {
+        //         mpIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
+        //         mpIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
+        //         mpIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+        //     }
+        // }
 
         return true;
     }
@@ -277,12 +325,12 @@ public:
      */
     void Initialize(ModelPart& rModelPart) override
     {
-        // Calling base criteria
-        BaseType::Initialize(rModelPart);
+        // // Calling base criteria
+        // BaseType::Initialize(rModelPart);
 
-        // The current process info
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
+        // // The current process info
+        // ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        // r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     /**
@@ -302,25 +350,25 @@ public:
         ) override
     {
         // Update normal of the conditions
-        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
-        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-        if (frictional_problem) {
-            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm && mOptions.IsNot(ActiveSetCriteria::PURE_SLIP)) {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
-            } else {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
-            }
-        }
+        // ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        // NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
+        // const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        // if (frictional_problem) {
+        //     const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+        //     if (has_lm && mOptions.IsNot(ActiveSetCriteria::PURE_SLIP)) {
+        //         MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
+        //     } else {
+        //         MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
+        //     }
+        // }
 
         // IO for debugging
-        if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
-            mpIO->CloseResultFile();
-            std::ostringstream new_name ;
-            new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
-            mpIO->ChangeOutputName(new_name.str());
-        }
+        // if (true || mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
+        //     mpIO->CloseResultFile();
+        //     std::ostringstream new_name ;
+        //     new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
+        //     mpIO->ChangeOutputName(new_name.str());
+        // }
     }
 
     /**
@@ -339,10 +387,10 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // IO for debugging
-        if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
-            mpIO->FinalizeResults();
-        }
+        // // IO for debugging
+        // if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
+        //     mpIO->FinalizeResults();
+        // }
     }
 
     /**
@@ -364,9 +412,9 @@ public:
         // Calling base criteria
         BaseType::FinalizeNonLinearIteration(rModelPart, rDofSet, rA, rDx, rb);
 
-        // The current process info
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
+        // // The current process info
+        // ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        // r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     /**
@@ -377,10 +425,24 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                   : "base_mortar_criteria",
-            "compute_dynamic_factor" : false,
-            "gidio_debug"            : false,
-            "pure_slip"              : false
+            "echo_level": 4,
+            "contact_model_part_name": "IgaModelPart.ContactInterface",
+            //"quadrature_method": "GAUSS",
+            "shape_function_derivatives_order": 3,
+            "name": "SupportContact2DCondition",
+            "contact_parameters" : {
+                "slave_model_part" : {
+                "sub_model_part_name": "IgaModelPart.Body2",
+                "property_id" : 3,
+                "brep_ids": [5]
+                },
+                "master_model_part" : {
+                "sub_model_part_name": "IgaModelPart.Body1",
+                "property_id" : 2,
+                "brep_ids": [3]
+                },
+                "is_SBM" : false
+            }
         })" );
 
         // Getting base class default parameters
@@ -453,16 +515,16 @@ protected:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
-        BaseType::AssignSettings(ThisParameters);
+        // BaseType::AssignSettings(ThisParameters);
 
-        // Set local flags
-        mOptions.Set(ActiveSetCriteria::COMPUTE_DYNAMIC_FACTOR, ThisParameters["compute_dynamic_factor"].GetBool());
-        mOptions.Set(ActiveSetCriteria::IO_DEBUG, ThisParameters["gidio_debug"].GetBool());
-        mOptions.Set(ActiveSetCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
+        // // Set local flags
+        // mOptions.Set(ActiveSetCriteria::COMPUTE_DYNAMIC_FACTOR, ThisParameters["compute_dynamic_factor"].GetBool());
+        // mOptions.Set(ActiveSetCriteria::IO_DEBUG, ThisParameters["gidio_debug"].GetBool());
+        // mOptions.Set(ActiveSetCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
 
-        if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
-            mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-        }
+        // if (mOptions.Is(ActiveSetCriteria::IO_DEBUG)) {
+        //     mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        // }
     }
 
     /**
@@ -471,8 +533,8 @@ protected:
      */
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
-        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+        // auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        // VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
     ///@}
@@ -484,7 +546,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    GidIOBaseType::Pointer mpIO; /// The pointer to the debugging IO
+    Parameters mParameters;
+
+    // GidIOBaseType::Pointer mpIO; /// The pointer to the debugging IO
 
     ///@}
     ///@name Private Operators
@@ -500,22 +564,22 @@ private:
      */
     inline void ComputeNodesMeanNormalModelPartWithPairedNormal(ModelPart& rModelPart)
     {
-        // Compute normal and tangent
-        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
+        // // Compute normal and tangent
+        // ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        // NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
 
-        // Iterate over the computing conditions
-        ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-        auto& r_conditions_array = r_computing_contact_model_part.Conditions();
-        block_for_each(r_conditions_array, [&](Condition& rCond) {
-            // Aux coordinates
-            Point::CoordinatesArrayType aux_coords;
+        // // Iterate over the computing conditions
+        // ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+        // auto& r_conditions_array = r_computing_contact_model_part.Conditions();
+        // block_for_each(r_conditions_array, [&](Condition& rCond) {
+        //     // Aux coordinates
+        //     Point::CoordinatesArrayType aux_coords;
 
-            // We update the paired normal
-            GeometryType& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
-            aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
-            rCond.SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
-        });
+        //     // We update the paired normal
+        //     GeometryType& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
+        //     aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
+        //     rCond.SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
+        // });
     }
 
     ///@}

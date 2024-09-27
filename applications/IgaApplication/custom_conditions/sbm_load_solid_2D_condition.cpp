@@ -402,7 +402,7 @@ namespace Kratos
         Matrix& r_DN_DX) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
             rB.resize(3, mat_size);

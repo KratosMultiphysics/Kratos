@@ -141,13 +141,9 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     Vector volume_force_local(2);
     /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
     Vector old_displacement(mat_size);
     GetValuesVector(old_displacement);
-
-    // double factor = E/(1-nu*nu);
 
     volume_force_local[0] = this->GetValue(BODY_FORCE_X);
     volume_force_local[1] = this->GetValue(BODY_FORCE_Y);
@@ -163,7 +159,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
+    
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
@@ -172,6 +168,8 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
     const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+
+    SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
 
     // MODIFIED
     Matrix B = ZeroMatrix(3,mat_size);
@@ -216,7 +214,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         const SizeType index = 2* i;
 
         for ( IndexType j = 0; j < 2; ++j )
-            rRightHandSideVector[index + j] += IntToReferenceWeight * N[i] * volume_force_local[+j];
+            rRightHandSideVector[index + j] += IntToReferenceWeight * N[i] * volume_force_local[j];
     }
 
 
@@ -333,6 +331,9 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
 
     mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
 
+    // retrieve integration weight
+    double integration_weight = GetValue(INTEGRATION_WEIGHT);
+
     
 /////////////////////////
     const auto& r_geometry = GetGeometry();
@@ -347,7 +348,7 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     // Get the parameter coordinates
     Vector GP_parameter_coord(2); 
-    GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // Only one Integration Points 
+    GP_parameter_coord = r_geometry.Center(); // Only one Integration Points 
 
     double x_coord_gauss_point = 0;
     double y_coord_gauss_point = 0;
@@ -368,12 +369,10 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     }        
     // exit(0);
 
-
-
     std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
     if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        output_file << rOutput_x << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+        output_file << rOutput_x << " " << GP_parameter_coord[0] << " " << GP_parameter_coord[1] << " " << integration_weight << std::endl;
         output_file.close();
     } 
 
@@ -383,14 +382,14 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
         std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
         if (output_file.is_open()) {
             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " << integration_weight<< std::endl;
             output_file.close();
         } 
     } else {
         std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
         if (output_file.is_open()) {
             output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+            output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " << integration_weight << std::endl;
             output_file.close();
         } 
     }
@@ -404,7 +403,7 @@ void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo
         return;
     }
     outputFile << std::setprecision(14); // Set precision to 10^-14
-    outputFile << x_coord_gauss_point << "  " << y_coord_gauss_point <<"\n";
+    outputFile << GP_parameter_coord[0] << "  " << GP_parameter_coord[1] <<"\n";
     outputFile.close();
 }
 
@@ -491,7 +490,7 @@ void Solid2DElement::CalculateB(
         Matrix& r_DN_DX) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
             rB.resize(3, mat_size);

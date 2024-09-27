@@ -101,7 +101,7 @@ namespace Kratos
         double DetJ0;
 
         Vector GP_parameter_coord(2); 
-        GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
+        GP_parameter_coord = r_geometry.Center();
         
         normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
@@ -128,6 +128,10 @@ namespace Kratos
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+
+        DetJ0 = norm_2(add_factor);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
@@ -184,7 +188,7 @@ namespace Kratos
 
         // Guglielmo innovaction
         double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
-                                                // = -1 -> Free-penalty approach
+                                            // = -1 -> Free-penalty approach
         if (penalty == -1.0) {
             penalty_integration = 0.0;
             Guglielmo_innovation = -1.0;
@@ -227,10 +231,10 @@ namespace Kratos
             
             Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
             
-            double x = GP_parameter_coord[0];
-            double y = GP_parameter_coord[1];
+            // double x = GP_parameter_coord[0];
+            // double y = GP_parameter_coord[1];
 
-            // u_D[0] = cos(x)*sinh(y);
+            // u_D[0] = -cos(x)*sinh(y);
             // u_D[1] = sin(x)*cosh(y);
 
             u_D[0] = this->GetValue(DISPLACEMENT_X);
@@ -334,7 +338,7 @@ namespace Kratos
         Matrix& r_DN_DX) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
             rB.resize(3, mat_size);

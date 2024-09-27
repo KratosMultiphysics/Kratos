@@ -9,6 +9,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import json
 import os
 
+# Other imports
+from KratosMultiphysics.StructuralMechanicsApplication import IGA_convergence_criteria_factory 
+
 def CreateSolver(model, custom_settings):
     return IgaContactMechanicsSolver(model, custom_settings)
 
@@ -137,7 +140,9 @@ class IgaContactMechanicsSolver(MechanicalSolver):
             "linear_solver_settings": { },
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
-            "auxiliary_reaction_list" : []
+            "auxiliary_reaction_list" : [],
+            
+            "iga_contact_parameters" : []
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -231,13 +236,28 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                                                     mechanical_scheme,
-                                                                     mechanical_convergence_criterion,
-                                                                     builder_and_solver,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+        # strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        #                                                              mechanical_scheme,
+        #                                                              mechanical_convergence_criterion,
+        #                                                              builder_and_solver,
+        #                                                              self.settings["max_iteration"].GetInt(),
+        #                                                              self.settings["compute_reactions"].GetBool(),
+        #                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                              self.settings["move_mesh_flag"].GetBool())
+        
+        strategy = IgaApplication.IgaResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
+                                                                            mechanical_scheme,
+                                                                            mechanical_convergence_criterion,
+                                                                            builder_and_solver,
+                                                                            self.settings["iga_contact_parameters"],
+                                                                            self.settings["max_iteration"].GetInt(),
+                                                                            self.settings["compute_reactions"].GetBool(),
+                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                            self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
+    
+    
+    def _CreateConvergenceCriterion(self):
+        convergence_criterion = IGA_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+        return convergence_criterion.mechanical_convergence_criterion

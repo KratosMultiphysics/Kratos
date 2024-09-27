@@ -27,8 +27,13 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-# export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"FullDebug"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+
+# export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"FullDebug"}
+# export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3-dbg"}
+
+
+
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -53,4 +58,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=OFF
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j24
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j20

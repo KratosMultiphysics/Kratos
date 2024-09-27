@@ -77,7 +77,7 @@ namespace Kratos
         const auto& r_geometry_slave = GetSlaveGeometry();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        const SizeType mat_size_1 = (number_of_nodes_master) * 2;
+        const SizeType mat_size_1 = (number_of_nodes_master+number_of_nodes_slave) * 2;
         const SizeType mat_size_2 = (number_of_nodes_master+number_of_nodes_slave) * 2;
         //resizing as needed the LHS
         if(rLeftHandSideMatrix.size1() != mat_size_1 || rLeftHandSideMatrix.size2() != mat_size_2 )
@@ -380,19 +380,129 @@ namespace Kratos
 
                         }
                     }
+                }
+
+                //**************************************************************************************** */
+                //**************************************************************************************** */
+                //**************************************************************************************** */
+                // // CALCULATE PENALTY CONTRIBUTION ON SLAVE
+                // // slave
+                // for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                // for (IndexType j = 0; j < number_of_nodes_slave; j++) {
                     
-                    Vector temp = ZeroVector(mat_size_2);
+                //     for (IndexType idim = 0; idim < 2; idim++) {
+                //         // rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_master(0,i)*H_master(0,j)* penalty_integration;
+                //         const int id1 = 2*idim;
+                //         const int iglob = 2*i+idim + shift;
 
-                    GetValuesVector(temp, 2);
+                //         for (IndexType jdim = 0; jdim < 2; jdim++) {
+                //             const int id2 = (id1+2)%3;
+                //             const int jglob = 2*j+jdim + shift;
 
-                    // RHS = ExtForces - K*temp;
-                    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-                } 
+                //             const double sigma_n_u_kdim = (DB_slave(id1, jglob)* normal_physical_space[0] + DB_master(id2, jglob)* normal_physical_space[1]);
+
+                //             const double sigma_n_u_dot_n = sigma_n_u_kdim*normal_physical_space[jdim];
+                //             const double sigma_n_u_dot_tau = sigma_n_u_kdim*tangent_physical_space[jdim]; // eventually for imposed forces on tangent direction
+
+                //             const double sigma_n_w_kdim = (DB_slave(id1, 2*i+jdim)* normal_physical_space[0] + DB_slave(id2, 2*i+jdim)* normal_physical_space[1]);
+
+                //             const double sigma_n_w_dot_n = sigma_n_w_kdim*normal_physical_space[jdim]; 
+                //             const double sigma_n_w_dot_tau = sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
+
+
+                //             rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*normal_physical_space[idim]
+                //                                                 *H_slave(0,j)*normal_physical_space[jdim]*penalty_integration;
+
+                //             // rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*sigma_n_u_dot_n* normal_physical_space[jdim] * IntToReferenceWeight;
+
+                //             // rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_slave(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
+                //         }
+
+                //     }
+                // }
+                // }
+
+                // // MASTER
+                // for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                //     for (IndexType j = 0; j < number_of_nodes_master; j++) {
+                        
+                //         for (IndexType idim = 0; idim < 2; idim++) {
+                //             const int id1 = 2*idim;
+                //             const int iglob = 2*i+idim + shift;
+
+                //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+                //                 const int id2 = (id1+2)%3;
+                //                 const int jglob = 2*j+jdim;
+
+                //                 // double sigma_n_w_dot_n = 0.0;
+                //                 // double sigma_n_w_dot_tau = 0.0;
+                //                 // for (IndexType kdim = 0; kdim < 2; kdim++) {
+                //                 //     const double sigma_n_w_kdim = (DB_slave(id1, 2*i+kdim)* normal_physical_space[0] + DB_slave(id2, 2*i+kdim)* normal_physical_space[1]);
+
+                //                 //     sigma_n_w_dot_n += sigma_n_w_kdim*normal_physical_space[kdim]; 
+                //                 //     sigma_n_w_dot_tau += sigma_n_w_kdim*tangent_physical_space[kdim];//eventually for friction
+                //                 // }
+
+
+                //                 rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*normal_physical_space[idim]
+                //                                                     *H_master(0,j)*normal_physical_space[jdim]*penalty_integration;
+
+                //                 // rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*H_master(0,j)* normal_physical_space[jdim]*sigma_n_w_dot_n* normal_physical_space[idim]* IntToReferenceWeight;
+
+                //             }
+
+                //         }
+                //     }
+                // }
+
+                // if (CalculateResidualVectorFlag) {
+                    
+                //     Vector gn = ZeroVector(2); //->GetValue(DISPLACEMENT);
+
+                //     gn[0] = normal_gap*normal_physical_space[0];
+                //     gn[1] = normal_gap*normal_physical_space[1];
+
+                //     for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+
+                //         for (IndexType idim = 0; idim < 2; idim++) {
+                            
+                //             IndexType iglob = 2*i + idim + shift;
+                //             rRightHandSideVector[iglob] += H_slave(0,i)*gn[idim]* penalty_integration;
+                //             // const int id1 = idim*2;
+
+                //             // for (IndexType jdim = 0; jdim < 2; jdim++) {
+                //             //     const int id2 = (id1+2)%3;
+
+                //             //     double sigma_n_w_dot_n = 0.0;
+                //             //     double sigma_n_w_dot_tau = 0.0;
+
+                //             //     const double sigma_n_w_kdim = -(DB_slave(id1, 2*i+jdim)* normal_physical_space[0] + DB_slave(id2, 2*i+jdim)* normal_physical_space[1]);
+
+                //             //     sigma_n_w_dot_n -= sigma_n_w_kdim*normal_physical_space[jdim]; 
+                //             //     sigma_n_w_dot_tau += sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
+
+
+                //             //     rRightHandSideVector(iglob) += Guglielmo_innovation*gn[jdim]*sigma_n_w_dot_n * normal_physical_space[idim] * IntToReferenceWeight;
+                //             // }
+
+                //         }
+                //     }
+                // }
+                //**************************************************************************************** */
+                //**************************************************************************************** */
+                //**************************************************************************************** */
+                
+                Vector temp = ZeroVector(mat_size_2);
+
+                GetValuesVector(temp, 2);
+
+                // RHS = ExtForces - K*temp;
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
             }
             //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             // INTEGRATION ON SLAVE
             //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            if (integrationDomain == 1) // integration on slave
+            else if (integrationDomain == 1) // integration on slave
             {
                 // ONLY SLAVE (substitute /sigma_1 *n  =sigma_2*n)
                 Matrix DB_master = prod(r_D_master,B_master);
@@ -430,6 +540,47 @@ namespace Kratos
                     }
                 }
 
+
+                // //******************************************************************************* */
+                // //******************************************************************************* */
+                // //******************************************************************************* */
+                // // TEST WITH ONLY PENALTY
+                // //******************************************************************************* */
+                // //******************************************************************************* */
+                // //******************************************************************************* */
+
+                // Matrix DB_master = prod(r_D_master,B_master);
+                // for (IndexType i = 0; i < number_of_nodes_master; i++) {
+                //     for (IndexType j = 0; j < number_of_nodes_master; j++) {
+                        
+                //         for (IndexType idim = 0; idim < 2; idim++) {
+                            
+                //             const int id1 = 2*idim;
+                //             const int iglob = 2*i+idim;
+
+                //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+                //                 const int id2 = (id1+2)%3;
+                //                 const int jglob = 2*j+jdim;
+
+                //                 const double sigma_n_u_kdim = (DB_master(id1, jglob)* normal_physical_space[0] + DB_master(id2, jglob)* normal_physical_space[1]);
+
+                //                 const double sigma_n_u_dot_n = sigma_n_u_kdim*normal_physical_space[jdim];
+                //                 const double sigma_n_u_dot_tau = sigma_n_u_kdim*tangent_physical_space[jdim]; // eventually for imposed forces on tangent direction
+
+                //                 const double sigma_n_w_kdim = (DB_master(id1, 2*i+jdim)* normal_physical_space[0] + DB_master(id2, 2*i+jdim)* normal_physical_space[1]);
+
+                //                 const double sigma_n_w_dot_n = sigma_n_w_kdim*normal_physical_space[jdim]; 
+                //                 const double sigma_n_w_dot_tau = sigma_n_w_kdim*tangent_physical_space[jdim];//eventually for friction
+
+                //                 rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_n_u_dot_n* normal_physical_space[jdim] * IntToReferenceWeight;
+                //             }
+
+                //         }
+                //     }
+                // }
+                //************************************************************************ */
+                //************************************************************************** */
+
                 if (CalculateResidualVectorFlag) {
                     
                     Vector fn = ZeroVector(2); 
@@ -454,7 +605,6 @@ namespace Kratos
                     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
                 } 
             }
-
             // KRATOS_WATCH("!!!!!!!! ACTIVE CONTACT")
         } else { // CONTACT NOT ACTIVE FOR THE PAIR
 
@@ -602,7 +752,7 @@ namespace Kratos
         const SizeType number_of_control_points) const
     {
         
-        const SizeType mat_size = number_of_control_points * 3;
+        const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
             rB.resize(3, mat_size);
@@ -679,53 +829,110 @@ namespace Kratos
 
         double x_coord_gauss_point_slave = 0;
         double y_coord_gauss_point_slave = 0;
-        double rOutput_slave = 0;
+        double rOutput_slave_x = 0;
+        double rOutput_slave_y = 0;
 
         for (IndexType i = 0; i < nb_nodes_slave; ++i)
         {
             // KRATOS_WATCH(r_geometry[i])
-            double output_solution_step_value = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_X);
-            rOutput_slave += r_N_slave(0, i) * output_solution_step_value;
+            double output_solution_step_value_x = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_X);
+            double output_solution_step_value_y = r_geometry_slave[i].GetSolutionStepValue(DISPLACEMENT_Y);
+            rOutput_slave_x += r_N_slave(0, i) * output_solution_step_value_x;
+            rOutput_slave_y += r_N_slave(0, i) * output_solution_step_value_y;
             x_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].X0();
             y_coord_gauss_point_slave += r_N_slave(0, i) * r_geometry_slave[i].Y0();
         }     
 
         if (m_contact_is_active) {
-        std::ofstream gap_file("txt_files/gap_output.txt", std::ios::app);
-        if (gap_file.is_open()) {
-            gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+        // if (true) {
+            if (x_coord_gauss_point <= 2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 0) {
+                std::ofstream gap_file("txt_files/gap_output_master.txt", std::ios::app);
+                if (gap_file.is_open()) {
+                    gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
 
-            const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
-            const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave;
+                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
 
-            gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
-            gap_file.close();
-        }  
+                    // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file.close();
+
+                    // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
+                    // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
+                }  
+
+                std::ofstream gap_file2("txt_files/gap_output_slave.txt", std::ios::app);
+                if (gap_file2.is_open()) {
+                    gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+                    const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
+
+
+                    // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file2.close();
+                }  
+            }
+            else if (x_coord_gauss_point >2.005 || GetGeometry().GetValue(ACTIVATION_LEVEL) == 1){
+                std::ofstream gap_file("txt_files/gap_output_slave.txt", std::ios::app);
+                if (gap_file.is_open()) {
+                    gap_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+                    // gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point + rOutput_y << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+                    gap_file.close();
+
+                    // KRATOS_WATCH(y_coord_gauss_point+rOutput_y)
+                    // KRATOS_WATCH(y_coord_gauss_point_slave + rOutput_slave_y)
+                }  
+
+                std::ofstream gap_file2("txt_files/gap_output_master.txt", std::ios::app);
+                if (gap_file2.is_open()) {
+                    gap_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+                    const double x_final_pos_master = x_coord_gauss_point + rOutput_x;
+                    const double x_final_pos_slave = x_coord_gauss_point_slave + rOutput_slave_x;
+
+                    const double y_final_pos_slave = y_coord_gauss_point_slave + rOutput_slave_y;
+
+
+                    // gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_final_pos_slave << " " << y_final_pos_slave << " " <<integration_points[0].Weight() << std::endl;
+                    
+                    gap_file2 << x_final_pos_master-x_final_pos_slave << " " << x_coord_gauss_point_slave << " " << y_coord_gauss_point_slave << " " <<integration_points[0].Weight() << std::endl;
+                    
+                    gap_file2.close();
+                }  
+            }
+
+            std::ofstream disp_file("txt_files/contact_displacement.txt", std::ios::app);
+
+            disp_file << x_coord_gauss_point << " " << x_coord_gauss_point + rOutput_x << " " << y_coord_gauss_point << " " << y_coord_gauss_point + rOutput_y << std::endl;
+
+            disp_file << x_coord_gauss_point_slave << " " << x_coord_gauss_point_slave + rOutput_slave_x << " " << y_coord_gauss_point_slave << " " << y_coord_gauss_point_slave + rOutput_slave_y << std::endl;
+        
         }
 
-
-        // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-        // if (output_file.is_open()) {
-        //     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        //     output_file << rOutput_x << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-        //     output_file.close();
-        // } 
-
-        // if (x_coord_gauss_point <= 2.0) {
-        // std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
-        //     if (output_file.is_open()) {
-        //         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        //         output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-        //         output_file.close();
-        //     } 
-        // } else {
-        //     std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
-        //     if (output_file.is_open()) {
-        //         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        //         output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
-        //         output_file.close();
-        //     } 
-        // }
+        if (x_coord_gauss_point <= 2.0) {
+        std::ofstream output_file("txt_files/output_results_GPs_master.txt", std::ios::app);
+            if (output_file.is_open()) {
+                output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+                output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+                output_file.close();
+            } 
+        } else {
+            std::ofstream output_file("txt_files/output_results_GPs_slave.txt", std::ios::app);
+            if (output_file.is_open()) {
+                output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+                output_file << rOutput_x << " " << rOutput_y << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
+                output_file.close();
+            } 
+        }
 
 
         std::ofstream outputFile("txt_files/Gauss_Point_coordinates.txt", std::ios::app);
@@ -741,6 +948,7 @@ namespace Kratos
 
     void SupportContact2DCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
 
+        // InitializeMaterial();
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetMasterGeometry(), (*mpPropMaster), rCurrentProcessInfo);
 
@@ -823,6 +1031,8 @@ namespace Kratos
                                                   const Vector& normal, const Matrix& DB_master,
                                                   array_1d<double, 3>& local_tangent, array_1d<double, 2>& old_normal){
         const double toll = 1e-12;
+
+        // const double toll_tangential_distance = 1e-1;
 
         double flag_normal_gap = inner_prod(deformed_pos_slave - deformed_pos_master, normal);
 
@@ -917,12 +1127,18 @@ namespace Kratos
             }
         }
 
+
         // if (integrationDomain == 0) true_normal_stress = -true_normal_stress;
         if (-true_normal_stress -(*mpPropMaster)[YOUNG_MODULUS]*flag_normal_gap > toll) {
+            
+            // if (tangential_gap > toll_tangential_distance) 
+            // {
+            //     m_contact_is_active = false;
+            //     return false;
+            // }
+
             m_contact_is_active = true;
             return true;
-
-            // if (tangential_gap > 0.03) m_contact_is_active = false;
  
         } //else if (GetMasterGeometry().Center()[1] < 1.5001 && GetMasterGeometry().Center()[1] > 0.49999) {
 

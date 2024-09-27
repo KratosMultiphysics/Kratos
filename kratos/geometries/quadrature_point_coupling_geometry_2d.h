@@ -137,13 +137,13 @@ public:
 
     std::string Info() const
     {
-        return "Quadrature point for a curve on surface.";
+        return "Quadrature point for two contact-paired points in curve on surface.";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const
     {
-        rOStream << "Quadrature point for a curve on surface.";
+        rOStream << "Quadrature point for two contact-paired points in curve on surface.";
     }
 
     /// Print object's data.

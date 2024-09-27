@@ -541,7 +541,7 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         std::vector<double> spans;
-        SpansLocalSpace(spans);
+        SpansLocalSpace(spans); 
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, rIntegrationInfo);

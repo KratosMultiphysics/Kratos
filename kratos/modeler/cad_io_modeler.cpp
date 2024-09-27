@@ -76,8 +76,8 @@ namespace Kratos
             //                             : mpModel->CreateModelPart("IgaModelPart");
 
 
-            KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
+            // KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            // << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
 
         
             // Create the Domain/Iga Model Part

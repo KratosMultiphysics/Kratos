@@ -40,12 +40,21 @@ namespace Kratos
 
     void IgaContactProcess::Execute(){
 
-        KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
-            << "Missing \"contact_model_part_name\" section" << std::endl;
+        // KRATOS_ERROR_IF_NOT(mParameters.Has("contact_model_part_name"))
+        //     << "Missing \"contact_model_part_name\" section" << std::endl;
 
-        ModelPart& contact_model_part = mpModel->HasModelPart(mParameters["contact_model_part_name"].GetString())
-                                    ? mpModel->GetModelPart(mParameters["contact_model_part_name"].GetString())
-                                    : mpModel->CreateModelPart(mParameters["contact_model_part_name"].GetString());
+        // ModelPart& contact_model_part = mpModel->HasModelPart(mParameters["contact_model_part_name"].GetString())
+        //                             ? mpModel->GetModelPart(mParameters["contact_model_part_name"].GetString())
+        //                             : mpModel->CreateModelPart(mParameters["contact_model_part_name"].GetString());
+
+
+        std::string contact_model_part_name = "IgaModelPart.ContactInterface";
+
+        // Model& mainModel = r_model_part->GetModel();
+
+        ModelPart& contact_model_part = mpModel->HasModelPart(contact_model_part_name)
+                                      ? mpModel->GetModelPart(contact_model_part_name)
+                                      : mpModel->CreateModelPart(contact_model_part_name);
 
         contact_model_part.RemoveConditionsFromAllLevels();
 
@@ -67,7 +76,7 @@ namespace Kratos
 
         const IndexType slave_property_id = mParameters["contact_parameters"]["slave_model_part"]["property_id"].GetInt();
         Properties::Pointer p_prop_slave = slave_model_part.pGetProperties(slave_property_id);
-
+    
         // Obtain MASTER interface b_reps
         const std::string master_model_part_name = mParameters["contact_parameters"]["master_model_part"]["sub_model_part_name"].GetString();
 
@@ -84,7 +93,7 @@ namespace Kratos
         auto couplingGeometry = Kratos::make_shared<NurbsCouplingGeometry2D<PointType, PointerVector<NodeType>>>(geometry_list_slave, geometry_list_master);
 
         //---------------------------------------------------------------
-        // ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ
+        KRATOS_WATCH("ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ")
         GeometriesArrayType geometries;
         SizeType shape_function_derivatives_order = 1;
         if (mParameters.Has("shape_function_derivatives_order")) {
@@ -165,7 +174,17 @@ namespace Kratos
             rIdCounter++;
         }
 
+        // INITIALIZE THE CONDITIONS
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // for (int i = 0; i < new_condition_list.size(); i++) 
+        // {
+        //     new_condition_list[i].Initialize(r_current_process_info);
+        // }
+        
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
     }
 

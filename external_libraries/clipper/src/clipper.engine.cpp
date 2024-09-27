@@ -2908,7 +2908,6 @@ namespace Clipper2Lib {
 
   void Clipper64::BuildPaths64(Paths64& solutionClosed, Paths64* solutionOpen)
   {
-    std::cout<<"I am inside clipper"<<std::endl;
     solutionClosed.resize(0);
     solutionClosed.reserve(outrec_list_.size());
     if (solutionOpen)
@@ -2916,8 +2915,6 @@ namespace Clipper2Lib {
       solutionOpen->resize(0);
       solutionOpen->reserve(outrec_list_.size());
     }
-
-    std::cout<<"outrec_list_.size(): "<<outrec_list_.size()<<std::endl;
 
     // nb: outrec_list_.size() may change in the following
     // while loop because polygons may be split during
@@ -2930,16 +2927,11 @@ namespace Clipper2Lib {
       Path64 path;
       if (solutionOpen && outrec->is_open)
       {
-        std::cout<<"solutionOpen yes"<<std::endl;
         if (BuildPath64(outrec->pts, ReverseSolution, true, path))
           solutionOpen->emplace_back(std::move(path));
       }
       else
       {
-        // std::cout<<"solutionOpen no"<<std::endl;
-        // std::cout<<"outrec->pts: " << outrec->path <<std::endl;
-        // std::cout<<"outrec->pts: "<< outrec->pts->pt <<std::endl;
- 
         // nb: CleanCollinear can add to outrec_list_
         CleanCollinear(outrec);
         //closed paths should always return a Positive orientation
