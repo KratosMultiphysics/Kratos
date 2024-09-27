@@ -178,7 +178,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         vtk_default_output_parameters = KM.Parameters("""{
             "Parameters" : {
                 "model_part_name"                    : "",
-                "file_format"                        : "ascii",
+                "file_format"                        : "ascii",,
+                "output_sub_model_parts"             : true,
                 "nodal_solution_step_data_variables" : [],
                 "nodal_data_value_variables"         : [],
                 "output_interval"                    : 1,
