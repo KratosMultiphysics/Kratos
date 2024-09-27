@@ -1,5 +1,6 @@
 import os
 
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -47,13 +48,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
 
-        tractions = test_helper.get_cauchy_stress_vectors(simulation)
+        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
         tractions_horizontal_element = tractions[0]
         for index in range(3):
             self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][1], -shear_traction)
 
-        relative_displacements = test_helper.get_strain_vectors(simulation)
+        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
         relative_displacements_horizontal_element = relative_displacements[0]
         for index in range(3):
             # Notice the first index is the normal displacement (which is vertical for this horizontally oriented
