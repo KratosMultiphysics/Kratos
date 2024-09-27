@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "processes/process.h"
 #include "includes/constitutive_law.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -40,7 +40,7 @@ private:
 
     static void CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                           const std::vector<Vector>& rStressesOnIntegrationPoints,
-                                          const Element&             element);
+                                          IndexType                  ElementId);
 };
 
 } // namespace Kratos

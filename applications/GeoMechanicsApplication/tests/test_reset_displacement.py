@@ -38,7 +38,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = F/(E*A)
 
         # get stages
-        test_name = 'geo_truss_with_reset_displacement'
+        test_name = 'truss_with_reset_displacement'
         project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 4
 

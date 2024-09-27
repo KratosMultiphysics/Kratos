@@ -66,7 +66,7 @@ The `ResetDisplacementProcess` can be used to change the reference point of the 
 ### Requirements
 For this process to work, the following requirements have to be met:
 1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
-2. The input type of the model can only be "rest", to ensure that the state of the model is retained from the previous stage.
+2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
 3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
 
 

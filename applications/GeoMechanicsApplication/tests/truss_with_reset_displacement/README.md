@@ -1,6 +1,6 @@
 # Staged analysis on a truss with reset displacement option
 
-This test asserts the 'reset_displacement' option of the GeoLinearTrussElement2D2N element works as expected. It exists of 4 stages, with different settings for 'reset_displacement' and applied load.
+This test asserts the 'reset_displacement' option of the TrussLinearElement3D2N element (structural mechanics application) works as expected. It exists of 4 stages, with different settings for 'reset_displacement' and applied load.
 
 ## Setup
 The test describes a beam with a length of 1m, consisting of 11 equidistant nodes (0.0, 0.1, ... , 0.9, 1.0). The displacement and rotation of node 1 is fixed for all directions. In stage 1-3, a load in the negative x direction is applied to the right node (11), which is removed in stage 4. See the figure below for a schematic representation of the problem. 
