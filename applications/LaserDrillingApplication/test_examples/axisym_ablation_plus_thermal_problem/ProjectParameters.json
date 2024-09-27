@@ -9,13 +9,13 @@
         "echo_level"    : 0,
         "energy"        : 25e-6,
         "vaporisation_temperature" : 1000.0,
-        "time_jump_between_pulses": 10e-6,
+        "time_jump_between_pulses": 5e-6,
         "print_hole_geometry_files": true,
         "compute_vaporisation" : false,
         "mesh_size" : "coarse",
         "mesh_type" : "unstructured",
         "adjust_T_field_after_ablation" : true,
-        "reference_T_after_laser" : 298.15,
+        "reference_T_after_laser" : 0.0,
         "focus_Z_offset" : 0.4,
         "Rayleigh_length": 0.409,
         "beam_waist_diameter": 0.0179
@@ -117,7 +117,7 @@
                         "plane_output"                : [],
                         "nodal_results"               : [],
                         "nodal_nonhistorical_results" : ["DECOMPOSED_NODE"],
-                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME", "ELEMENTAL_VOLUME", "ENERGY_PER_VOLUME"]
+                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME", "ELEMENTAL_VOLUME"]
                     },
                     "point_data_configuration"  : []
                 },

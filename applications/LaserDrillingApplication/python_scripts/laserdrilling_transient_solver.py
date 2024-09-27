@@ -38,6 +38,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             self.RemoveElementsByAblation()
+            self.AdjustTemperatureFieldAfterAblation()
             self.ResidualHeatStage()
 
     @classmethod
@@ -247,6 +248,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.CreateResultsFile(self.results_filename)
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])        
 
+    def AdjustTemperatureFieldAfterAblation(self):
+        if not self.adjust_T_field_after_ablation:
+            return
+        for node in self.main_model_part.Nodes:
+            old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            new_temperature = old_temperature + self.T0 - self.reference_T_after_laser
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temperature)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temperature)
+        for elem in self.main_model_part.Elements:
+            elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
+
     def Initialize(self):
         super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
         self.starting_time = timer.time()
@@ -276,6 +288,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.RemoveElementsByAblation()
 
         computed_energy_after_ablation = self.MonitorEnergy()
+
+        self.AdjustTemperatureFieldAfterAblation()
 
         residual_heat = self.evaporation_energy_fraction * self.Q
 
