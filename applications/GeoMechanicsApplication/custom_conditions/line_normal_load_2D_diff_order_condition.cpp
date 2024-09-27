@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -106,6 +107,11 @@ void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorTyp
         rRightHandSideVector[Index + 1] +=
             rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string LineNormalLoad2DDiffOrderCondition::Info() const
+{
+    return "LineNormalLoad2DDiffOrderCondition";
 }
 
 } // Namespace Kratos.

@@ -65,6 +65,8 @@ public:
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
+    std::string Info() const override;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -103,7 +105,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwNormalFluxCondition.
 
 } // namespace Kratos.

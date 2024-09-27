@@ -81,9 +81,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-      // Adding the membrane element
+      // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mMembraneElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the SPRISM element
       mSolidShellElementSprism3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       // Adding the nodal concentrated element
@@ -123,6 +124,16 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacementMixedVolumetricStrainElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
+      mSmallDisplacementMixedVolumetricStrainOssElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
       mSmallDisplacementMixedStrainDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mSmallDisplacementMixedStrainDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -543,6 +554,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
     KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
+    KRATOS_REGISTER_ELEMENT("MembraneElement2D2N", mMembraneElement2D2N)
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SolidShellElementSprism3D6N", mSolidShellElementSprism3D6N);
@@ -584,6 +596,16 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D4N", mSmallDisplacementMixedVolumetricStrainElement3D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D8N", mSmallDisplacementMixedVolumetricStrainElement3D8N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D3N", mSmallDisplacementMixedVolumetricStrainOssElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement2D4N", mSmallDisplacementMixedVolumetricStrainOssElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D4N", mSmallDisplacementMixedVolumetricStrainOssElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssElement3D8N", mSmallDisplacementMixedVolumetricStrainOssElement3D8N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement2D3N", mSmallDisplacementMixedStrainDisplacementElement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement2D4N", mSmallDisplacementMixedStrainDisplacementElement2D4N)

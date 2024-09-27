@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosG
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStrainReturnsCorrectResults,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
