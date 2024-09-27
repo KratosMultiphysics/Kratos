@@ -82,67 +82,37 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(relative_displacement_vertical_element[index][1], expected_vertical_displacement)
 
 
+    def assertVectorsAlmostEqual(self, actual_vectors, expected_vectors):
+        for actual_vector, expected_vector in zip(actual_vectors, expected_vectors):
+            for actual_value, expected_value in zip(actual_vector, expected_vector):
+                self.assertAlmostEqual(actual_value, expected_value)
+
+
     def test_multi_stage_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
         file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Dirichlet_multi_stage'))
 
         initial_cwd = os.getcwd()
         os.chdir(file_path)
 
-        stage1 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters_stage1.json'))
+        project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        prescribed_displacement_vectors = [[-8.8933333333333332e-5, -2.22e-5], [-2.0e-4, -4.44e-5]]
+        for file_name, prescribed_displacement_vector in zip(project_parameters_file_names, prescribed_displacement_vectors):
+            stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
 
-        stage1.Run()
+            stage.Run()
 
-        displacement_vectors = test_helper.get_displacement(stage1)
+            expected_displacement_vectors = [[0.0, 0.0]] * 3  # the first three nodes have been fixed
+            expected_displacement_vectors += [prescribed_displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
+            self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
 
-        # The first three nodes have been fixed
-        for vector in displacement_vectors[:3]:
-            self.assertAlmostEqual(vector[0], 0.0)
-            self.assertAlmostEqual(vector[1], 0.0)
+            expected_normal_relative_displacement = prescribed_displacement_vector[1]
+            expected_tangential_relative_displacement = prescribed_displacement_vector[0]
+            expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
+            self.assertVectorsAlmostEqual(test_helper.get_strain_vectors(stage)[0], expected_relative_displacement_vectors)
 
-        # The last three nodes have prescribed non-zero displacements
-        expected_displacement_x = -8.8933333333333332e-5
-        expected_displacement_y = -2.22e-5
-        for vector in displacement_vectors[3:]:
-            self.assertAlmostEqual(vector[0], expected_displacement_x)
-            self.assertAlmostEqual(vector[1], expected_displacement_y)
-
-        expected_normal_relative_displacement = expected_displacement_y
-        expected_tangential_relative_displacement = expected_displacement_x
-        for vector in test_helper.get_strain_vectors(stage1)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
-
-        for vector in test_helper.get_cauchy_stress_vector(stage1)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
-
-        stage2 = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, 'ProjectParameters_stage2.json'))
-
-        stage2.Run()
-
-        displacement_vectors = test_helper.get_displacement(stage2)
-
-        # The first three nodes have been fixed
-        for vector in displacement_vectors[:3]:
-            self.assertAlmostEqual(vector[0], 0.0)
-            self.assertAlmostEqual(vector[1], 0.0)
-
-        # The last three nodes have prescribed non-zero displacements
-        expected_displacement_x = -2.0e-4
-        expected_displacement_y = -4.44e-5
-        for vector in displacement_vectors[3:]:
-            self.assertAlmostEqual(vector[0], expected_displacement_x)
-            self.assertAlmostEqual(vector[1], expected_displacement_y)
-
-        expected_normal_relative_displacement = expected_displacement_y
-        expected_tangential_relative_displacement = expected_displacement_x
-        for vector in test_helper.get_strain_vectors(stage2)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], expected_tangential_relative_displacement)
-
-        for vector in test_helper.get_cauchy_stress_vector(stage2)[0]:  # check the first element
-            self.assertAlmostEqual(vector[0], self.normal_stiffness * expected_normal_relative_displacement)
-            self.assertAlmostEqual(vector[1], self.shear_stiffness * expected_tangential_relative_displacement)
+            expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
+                                          self.shear_stiffness * expected_tangential_relative_displacement]] * 3
+            self.assertVectorsAlmostEqual(test_helper.get_cauchy_stress_vector(stage)[0], expected_traction_vectors)
 
         os.chdir(initial_cwd)
 
