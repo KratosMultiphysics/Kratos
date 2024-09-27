@@ -187,13 +187,6 @@ class UPwSolver(GeoSolver):
             elif (solution_type.lower() == "dynamic"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
-                    scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
-                else:
-                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
-                    scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise RuntimeError(f"Undefined solution type '{solution_type}'")
         elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
