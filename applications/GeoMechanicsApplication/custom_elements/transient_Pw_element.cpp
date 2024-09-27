@@ -14,6 +14,7 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

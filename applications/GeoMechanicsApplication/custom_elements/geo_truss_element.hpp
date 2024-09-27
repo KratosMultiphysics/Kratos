@@ -49,8 +49,6 @@ public:
     using SizeType          = Element::SizeType;
     using MatrixType        = Element::MatrixType;
     using VectorType        = Element::VectorType;
-    using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
-    using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
@@ -59,8 +57,6 @@ public:
     GeoTrussElement() = default;
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-    ~GeoTrussElement() override;
 
     /**
      * @brief Creates a new element

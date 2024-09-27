@@ -21,7 +21,7 @@ using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_WhenPredictIsCalled, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), expected_dt_temperature);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, Krato
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT], 1.0 / delta_time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingNodalDof_CheckBackwardEulerPwScheme_Throws, 
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(ForMissingDtWaterPressureSolutionStepVariable_CheckBac
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForMissingWaterPressureSolutionStepVariable_CheckBackwardEulerPwScheme_Throws,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> scheme;
 

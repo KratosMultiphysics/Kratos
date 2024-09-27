@@ -18,6 +18,7 @@
 #include "custom_retention/retention_law.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
