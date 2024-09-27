@@ -1278,6 +1278,11 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             layer_stress[i].resize(6, false);
         }
 
+        std::vector<Vector> integrated_layer_stress(r_p_constitutive_law_vector.size());
+        for (IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+            integrated_layer_stress[i].resize(6, false);
+        }
+
         std::vector<Vector> interfacial_stress(r_p_constitutive_law_vector.size()-1);
         for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
@@ -1287,6 +1292,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         for (IndexType i=0; i < r_p_constitutive_law_vector.size()+1; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
+        // Matrix ponderatd_elastic_matrix = ZeroMatrix(6,6);
 
         for (IndexType i_layer = 0; i_layer < r_p_constitutive_law_vector.size(); ++i_layer) {
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
@@ -1299,10 +1305,15 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
+            double rValue_for_damage = 0.0;
+            double layer_damage = p_law->GetValue(DAMAGE,rValue_for_damage);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(layer_stress[i_layer]) = rValues.GetStressVector();
+            noalias(integrated_layer_stress[i_layer]) = rValues.GetStressVector();
+            noalias(layer_stress[i_layer]) = rValues.GetStressVector() / (1.0 - layer_damage);
+            // rValues.GetConstitutiveMatrix() = prod(Matrix(prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix())),voigt_rotation_matrix);
+            // noalias(ponderatd_elastic_matrix) += r_combination_factors[i_layer] * rValues.GetConstitutiveMatrix();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
@@ -1344,14 +1355,14 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             equivalent_stress_mode_one /= mFatigueDataContainersModeOne[i].GetFatigueReductionFactor();
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
-            if (F_mode_one > tolerance) {
+            if (F_mode_one > 0.001) {
 
                 DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
             }
 
             equivalent_stress_mode_two /= mFatigueDataContainersModeTwo[i].GetFatigueReductionFactor();
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
-            if (F_mode_two > tolerance) {
+            if (F_mode_two > 0.001) {
 
                 DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
             }
@@ -1359,38 +1370,67 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // End damage calculation
         }
 
-        for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
-            double layer_damage_variable_mode_one = 0.0;
-            double layer_damage_variable_mode_two = 0.0;
+        // for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+        //     double layer_damage_variable_mode_one = 0.0;
+        //     double layer_damage_variable_mode_two = 0.0;
 
-            if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
-            } else {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
+        //     if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
+        //         layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
+        //     } else {
+        //         layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
+        //     }
+
+        //     if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
+        //         layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
+        //     } else {
+        //         layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
+        //     }
+
+        //     layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
+        //     layer_stress[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+        //     layer_stress[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+        // }
+
+        double max_delamination_damage_mode_one = 0.0;
+        double max_delamination_damage_mode_two = 0.0;
+        
+        for(IndexType i=0; i < r_p_constitutive_law_vector.size() + 1; ++i) {
+            if (DelaminationDamageModeOne[i] > max_delamination_damage_mode_one) {
+                max_delamination_damage_mode_one = DelaminationDamageModeOne[i];
             }
 
-            if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
-            } else {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
+            if (DelaminationDamageModeTwo[i] > max_delamination_damage_mode_two) {
+                max_delamination_damage_mode_two = DelaminationDamageModeTwo[i];
             }
-
-            layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
-            layer_stress[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
-            layer_stress[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
         }
 
         for(IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
             const double factor = r_combination_factors[i];
-            delamination_damage_affected_stress_vector += factor * layer_stress[i];
+            delamination_damage_affected_stress_vector += factor * integrated_layer_stress[i];
         }
+
+        // delamination_damage_affected_stress_vector[2] *= (1.0 - max_delamination_damage_mode_one);
+        // delamination_damage_affected_stress_vector[4] *= ((1.0 - max_delamination_damage_mode_one) * (1.0 - max_delamination_damage_mode_two));
+        // delamination_damage_affected_stress_vector[5] *= ((1.0 - max_delamination_damage_mode_one) * (1.0 - max_delamination_damage_mode_two));
+        // delamination_damage_affected_stress_vector[0] *= ((1.0 - max_delamination_damage_mode_one) * (1.0 - max_delamination_damage_mode_two));
+        // delamination_damage_affected_stress_vector[1] *= ((1.0 - max_delamination_damage_mode_one) * (1.0 - max_delamination_damage_mode_two));
+        // delamination_damage_affected_stress_vector[3] *= ((1.0 - max_delamination_damage_mode_one) * (1.0 - max_delamination_damage_mode_two));
 
         auxiliar_stress_vector = delamination_damage_affected_stress_vector;
 
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
+            this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2); // the original tangent tensor
+            // noalias(rValues.GetConstitutiveMatrix()) = ponderatd_elastic_matrix;
+
+            // auto& rProcessInfo = rValues.GetProcessInfo();
+            // if (rProcessInfo[STEP] == 1) {
+            //     this->CalculateTangentTensor(rValues, BaseType::StressMeasure_PK2);
+            //     noalias(mInitialStiffness) = rValues.GetConstitutiveMatrix();
+            // } else {
+            //     noalias(rValues.GetConstitutiveMatrix()) = mInitialStiffness;
+            // }
         }
 
         // Previous flags restored
@@ -1501,10 +1541,13 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
+            double rValue_for_damage = 0.0;
+            double layer_damage = p_law->GetValue(DAMAGE,rValue_for_damage);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(layer_stress[i_layer]) = rValues.GetStressVector();
+            // noalias(layer_stress[i_layer]) = rValues.GetStressVector();
+            noalias(layer_stress[i_layer]) = rValues.GetStressVector() / (1.0 - layer_damage);
 
             p_law->FinalizeMaterialResponsePK2(rValues);
 
@@ -1594,7 +1637,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             equivalent_stress_mode_one /= mFatigueDataContainersModeOne[i].GetFatigueReductionFactor();
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
-            if (F_mode_one > tolerance) {
+            if (F_mode_one > 0.001) {
 
                 DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
 
@@ -1604,7 +1647,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             equivalent_stress_mode_two /= mFatigueDataContainersModeTwo[i].GetFatigueReductionFactor();
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
-            if (F_mode_two > tolerance) {
+            if (F_mode_two > 0.001) {
 
                 DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
 

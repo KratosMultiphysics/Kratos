@@ -50,6 +50,7 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
 
         // Set entity normal
         r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+        // KRATOS_WATCH("HEEREEE")
         it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(aux_coords));
     }
 

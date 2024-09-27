@@ -413,6 +413,7 @@ private:
     std::vector <HCFDataContainer> mFatigueDataContainersModeTwo;
     bool mFatigueLoadingStateParameter = false;
     std::vector<Vector> mMaximumDelaminationDamageVector;
+    Matrix mInitialStiffness = ZeroMatrix(VoigtSize,VoigtSize);
     ///@}
     ///@name Private Operators
     ///@{
