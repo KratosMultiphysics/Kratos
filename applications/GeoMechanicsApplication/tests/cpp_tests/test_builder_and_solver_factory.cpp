@@ -10,10 +10,10 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
 #include "custom_utilities/builder_and_solver_factory.hpp"
-#include "spaces/ublas_space.h"
+#include "geo_mechanics_fast_suite.h"
 #include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
@@ -23,7 +23,7 @@ using BuilderAndSolverFactoryType = BuilderAndSolverFactory<SparseSpaceType, Loc
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsTrue, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsTrue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::string validBlockParameters = R"(
     {
@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     KRATOS_EXPECT_NE(block_builder, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsFalse, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsFalse, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::string validBlockParameters = R"(
     {
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     KRATOS_EXPECT_NE(elimination_builder, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_Throws_WhenBlockBuilderIsUndefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_Throws_WhenBlockBuilderIsUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto solver = std::make_shared<LinearSolverType>();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

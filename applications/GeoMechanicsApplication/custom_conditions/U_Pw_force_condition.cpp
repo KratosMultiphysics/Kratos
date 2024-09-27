@@ -39,6 +39,12 @@ void UPwForceCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightH
     }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwForceCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwForceCondition";
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwForceCondition<2, 1>;

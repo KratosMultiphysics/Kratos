@@ -27,6 +27,11 @@
 #include "mkl_service.h"
 #endif
 
+Kratos::KratosApplication* CreateApplication()
+{
+    return new Kratos::KratosLinearSolversApplication();
+}
+
 namespace Kratos
 {
 

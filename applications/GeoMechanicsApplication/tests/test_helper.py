@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import sys,os
 import math
 
@@ -419,6 +420,88 @@ def find_closest_index_greater_than_value(input_list, value):
     return None
 
 
+def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two values are almost equal.
+
+    Args:
+        - expected (Any): Expected value.
+        - actual (Any): Actual value.
+
+    Returns:
+        - True if the values are almost equal, False otherwise.
+
+    """
+    # check if the value is a dictionary and check the dictionary
+    if isinstance(expected, dict):
+        return are_dictionaries_almost_equal(expected, actual)
+    elif isinstance(expected, str):
+        return expected == actual
+    elif isinstance(expected, (list, tuple, set)):
+        return are_iterables_almost_equal(expected, actual)
+    elif expected is None:
+        return actual is None
+    elif isinstance(expected, (float, int, complex)):
+        return math.isclose(expected, actual, abs_tol=abs_tolerance)
+    else:
+        raise TypeError(f"Unsupported type {type(expected)}")
+
+
+def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+                               abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two iterables are almost equal.
+
+    Args:
+        - expected (list, tuple, set): Expected iterable.
+        - actual (list, tuple, set): Actual iterable.
+
+    Returns:
+        - True if the iterables are almost equal, False otherwise.
+
+    """
+    # check if the value is a list, tuple or set and compare the values
+    if len(expected) != len(actual):
+        return False
+
+    for v_i, actual_i in zip(expected, actual):
+        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
+            return False
+
+    return True
+
+
+def are_dictionaries_almost_equal(expected: Dict[Any, Any],
+                                  actual: Dict[Any, Any],
+                                  abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two dictionaries are equal.
+
+    Args:
+        - expected: Expected dictionary.
+        - actual: Actual dictionary.
+
+    Returns:
+        - True if the dictionaries are equal, False otherwise.
+
+    """
+    if len(expected) != len(actual):
+        return False
+
+    for k, v in expected.items():
+
+        # check if key is present in both dictionaries
+        if k not in actual:
+            return False
+
+        # check if values are almost equal
+        if not are_values_almost_equal(v, actual[k], abs_tolerance):
+            return False
+
+    # all checks passed
+    return True
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -516,8 +599,10 @@ class GiDOutputFileReader:
         value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
         if self.result_type == "Scalar":
             value.append(float(words[0]))
-        elif self.result_type == "Matrix":
+        elif self.result_type == "Matrix" or self.result_type == "Vector":
             value.append([float(x) for x in words])
+        else:
+            raise RuntimeError(f'Unsupported result type "{self.result_type}"')
 
     def _process_begin_of_block(self, line):
         assert(self.current_block_name is None)  # nested blocks are not supported

@@ -41,9 +41,6 @@ GeoTNormalFluxCondition<TDim, TNumNodes>::GeoTNormalFluxCondition(IndexType     
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTNormalFluxCondition<TDim, TNumNodes>::~GeoTNormalFluxCondition() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -81,6 +78,12 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
         // Contributions to the right hand side
         rRightHandSideVector += (normal_flux_on_integration_point * N * weighting_integration_coefficient);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string GeoTNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "GeoTNormalFluxCondition";
 }
 
 template class GeoTNormalFluxCondition<2, 2>;

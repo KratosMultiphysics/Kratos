@@ -11,8 +11,8 @@
 //
 
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {
@@ -78,7 +78,7 @@ public:
 };
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedAccelerations_UpdatesVariablesDerivatives,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedAccelerations_U
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedVelocities_UpdatesVariablesDerivatives,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -128,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithFixedVelocities_Upda
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithNoFixedVariables_UpdatesVariablesDerivatives,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithNoFixedVariables_Upd
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesNotUpdateDisplacements,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictFixedDisplacements_DoesN
     KRATOS_EXPECT_VECTOR_NEAR(actual_displacement, expected_displacement, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpdateZDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const bool                    three_d_case = false;
     NewmarkDynamicUPwSchemeTester tester(three_d_case);
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredictWithout3DDofs_DoesNotUpd
     KRATOS_EXPECT_VECTOR_NEAR(actual_displacement, expected_displacement, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivat
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedSecondDerivativeVectorVariable,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedSecond
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedFirstDerivativeVectorVariable,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedFirstD
     KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     NewmarkDynamicUPwSchemeTester tester;
 

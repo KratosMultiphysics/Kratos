@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -106,6 +107,11 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector
         rRightHandSideVector[Index + 2] +=
             rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+{
+    return "SurfaceNormalLoad3DDiffOrderCondition";
 }
 
 } // Namespace Kratos.

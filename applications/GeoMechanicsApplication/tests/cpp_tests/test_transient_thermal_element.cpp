@@ -13,7 +13,7 @@
 #include "containers/model.h"
 #include "custom_elements/transient_thermal_element.h"
 #include "geo_mechanics_application_variables.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;

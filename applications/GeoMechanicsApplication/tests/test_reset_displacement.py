@@ -57,19 +57,19 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         # Assert
         stage_nr = 0
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps*node[0])
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
         stage_nr = 1
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0)
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
         stage_nr = 2
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0)
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
         stage_nr = 3
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps*node[0])
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
 
     def test_reset_displacement_beam(self):

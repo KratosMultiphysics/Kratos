@@ -13,6 +13,7 @@
 //
 
 #include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/triangle_3d_3.h"
@@ -306,5 +307,7 @@ Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
 
     return result;
 }
+
+std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffOrderCondition"; }
 
 } // Namespace Kratos.

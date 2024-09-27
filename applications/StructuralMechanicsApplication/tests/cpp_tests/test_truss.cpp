@@ -11,7 +11,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
 
 #include "custom_elements/truss_element_3D2N.hpp"
@@ -32,12 +32,14 @@ public:
         mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
     {}
 
-    ConstitutiveLaw::Pointer Clone() const override
+    StubBilinearLaw() = default;
+
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
     {
         return std::make_shared<StubBilinearLaw>(*this);
     }
 
-    SizeType GetStrainSize() const override
+    [[nodiscard]] SizeType GetStrainSize() const override
     {
         return 1;
     }
@@ -50,10 +52,26 @@ public:
         return rValue;
     }
 
+    using ConstitutiveLaw::CalculateValue;
+
+    void InitializeMaterial(const Properties&,
+                            const GeometryType&,
+                            const Vector&) override
+    {
+        mIsInitialized = true;
+    }
+
+    [[nodiscard]] bool IsInitialized() const
+    {
+        return mIsInitialized;
+    }
+
 private:
     double mStrain = 0.0;
     array_1d<double, 2> mTangentModuli{2.0, 1.0};
+    bool mIsInitialized = false;
 };
+
 
 ModelPart& CreateTestModelPart(Model& rModel)
 {
@@ -82,9 +100,7 @@ std::shared_ptr<StubBilinearLaw> CreateStubBilinearLaw(double Elongation, double
 }
 
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
     void AddDisplacementDofsElement(ModelPart& rModelPart){
@@ -309,5 +325,63 @@ namespace Testing
         KRATOS_EXPECT_DOUBLE_EQ(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()));
     }
 
-}
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2NInitializesConstitutiveLaw, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
+        constexpr auto length = 2.0;
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
+        AddDisplacementDofsElement(r_model_part);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubBilinearLaw>());
+        const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
+        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+
+        p_element->Initialize(r_model_part.GetProcessInfo());
+        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+        p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, r_model_part.GetProcessInfo());
+        auto p_constitutive_law = dynamic_cast<const StubBilinearLaw*>(constitutive_laws[0].get());
+        KRATOS_EXPECT_TRUE(p_constitutive_law->IsInitialized())
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        constexpr auto youngs_modulus = 2.0e+06;
+        p_elem_prop->SetValue(YOUNG_MODULUS, youngs_modulus);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("TrussConstitutiveLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        constexpr double directional_length = 2.0;
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, directional_length, directional_length, directional_length);
+
+        AddDisplacementDofsElement(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2};
+        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+
+        constexpr auto induced_strain = 0.1;
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) += ScalarVector(3, induced_strain * directional_length);
+
+        std::vector<Vector> stress_vector;
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
+
+        constexpr auto expected_stress = induced_strain * youngs_modulus;
+        KRATOS_EXPECT_DOUBLE_EQ(expected_stress, stress_vector[0][0]);
+
+        constexpr auto pre_stress = 1.0e5;
+        p_element->GetProperties().SetValue(TRUSS_PRESTRESS_PK2, pre_stress);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, r_process_info);
+        KRATOS_EXPECT_DOUBLE_EQ(expected_stress + pre_stress, stress_vector[0][0]);
+    }
 }

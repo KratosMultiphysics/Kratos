@@ -853,6 +853,103 @@ public:
         const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }
+
+    /**
+     * @brief use separating axis theorem to test overlap between triangle and box
+     * @details Need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     * @param rBoxCenter The center of the box
+     * @param rBoxHalfSize The half size of the box
+     * @param rVertex0 The first vertex of the triangle
+     * @param rVertex1 The second vertex of the triangle
+     * @param rVertex2 The third vertex of the triangle
+     */
+    static bool TriangleBoxOverlap(
+        const Point& rBoxCenter,
+        const Point& rBoxHalfSize,
+        const Point& rVertex0,
+        const Point& rVertex1,
+        const Point& rVertex2
+        );
+
+    /**
+     * @brief Check if a plane intersects a box
+     * @see TriBoxOverlap
+     * @details Plane equation: rNormal*x+rDist=0
+     * @return bool intersection flag
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     */
+    static bool PlaneBoxOverlap(
+        const array_1d<double,3>& rNormal,
+        const double Distance,
+        const array_1d<double,3>& rMaxBox
+        );
+
+private:
+
+    /**
+     * @brief AxisTestX
+     * @details This method returns true if there is a separating axis
+     * @param EdgeY, EdgeZ: i-edge coordinates
+     * @param AbsEdgeY, AbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestX(
+        const double EdgeY,
+        const double EdgeZ,
+        const double AbsEdgeY,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestY
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestY(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestZ
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestZ(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeY,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
 };
 
 }  // namespace Kratos.
