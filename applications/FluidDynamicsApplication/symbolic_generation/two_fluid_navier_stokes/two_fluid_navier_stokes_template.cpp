@@ -432,7 +432,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -470,7 +470,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -514,7 +515,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
+    const auto &vconv = v - vn;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -564,7 +565,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
+    const auto &vconv = v - vn;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -617,7 +618,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
+    const auto &vconv = v - vn;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 
@@ -685,7 +686,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
+    const auto &vconv = v - vn;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
 

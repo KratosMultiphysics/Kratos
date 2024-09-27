@@ -28,6 +28,7 @@
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_bdf.h"
 #include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "geometries/geometry_data.h"
 #include "processes/compute_nodal_gradient_process.h"
@@ -81,6 +82,9 @@ private:
         , pUnknownVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetUnknownVariable()))
         , pGradientVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetGradientVariable()))
         , pConvectionVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetConvectionVariable()))
+        , pVolumeSourceVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetVolumeSourceVariable()))
+
+
         {}
 
         void RestoreProcessInfoData(ProcessInfo& rOutputProcessInfo) const
@@ -89,6 +93,7 @@ private:
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetUnknownVariable(*pUnknownVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetGradientVariable(*pGradientVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetConvectionVariable(*pConvectionVariable);
+            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetVolumeSourceVariable(*pVolumeSourceVariable);
         }
 
     private:
@@ -96,6 +101,7 @@ private:
         const Variable<double>* pUnknownVariable;
         const Variable<array_1d<double,3>>* pGradientVariable;
         const Variable<array_1d<double,3>>* pConvectionVariable;
+        const Variable<double> *pVolumeSourceVariable;
     };
 
     ///@}
@@ -226,6 +232,7 @@ public:
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
         // Save current level set value and current and previous step velocity values
         // If the nodal stabilization tau is to be used, it is also computed in here
@@ -336,6 +343,7 @@ public:
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_volume_source_variable_name" : "HEAT_FLUX",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
@@ -394,6 +402,8 @@ protected:
     ModelPart* mpDistanceModelPart = nullptr;
 
     const Variable<double>* mpLevelSetVar = nullptr;
+
+    const Variable<double> *mpVolumeSourceVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
@@ -499,7 +509,10 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            if (mpLevelSetGradientVar) {
+            p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
+
+            if (mpLevelSetGradientVar)
+            {
                 p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
             }
         }
@@ -891,9 +904,14 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        if (ThisParameters["convection_model_part_name"].GetString() == "") {
+        mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
+
+        if (ThisParameters["convection_model_part_name"].GetString() == "")
+        {
             mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
-        } else {
+        }
+        else
+        {
             mAuxModelPartName = ThisParameters["convection_model_part_name"].GetString();
         }
 
@@ -931,7 +949,8 @@ private:
     {
         std::vector<std::string> elements_list = {
             "levelset_convection_supg",
-            "levelset_convection_algebraic_stabilization"
+            "levelset_convection_algebraic_stabilization",
+            "levelset_convection_bdf"
         };
         return elements_list;
     }
@@ -944,9 +963,11 @@ private:
      */
     const virtual std::string GetConvectionElementName(std::string InputName)
     {
-        const std::map<std::string, std::string> elements_name_map {
-            {"levelset_convection_supg","LevelSetConvectionElementSimplex"},
-            {"levelset_convection_algebraic_stabilization", "LevelSetConvectionElementSimplexAlgebraicStabilization"}
+        const std::map<std::string, std::string> elements_name_map{
+            {"levelset_convection_supg", "LevelSetConvectionElementSimplex"},
+            {"levelset_convection_algebraic_stabilization", "LevelSetConvectionElementSimplexAlgebraicStabilization"},
+            {"levelset_convection_bdf", "LevelSetConvectionElementSimplexBDF"},
+
         };
         return elements_name_map.at(InputName);
     }
@@ -976,6 +997,14 @@ private:
                 "time_integration_theta" : 0.5
             })");
         }
+        else if (ElementType == "levelset_convection_bdf"){
+            default_parameters = Parameters(R"({
+                "dynamic_tau" : 0.0,
+                "cross_wind_stabilization_factor" : 0.7,
+                "requires_distance_gradient" : false,
+                "tau_nodal": false
+            })");
+        }
 
         return default_parameters;
     }
@@ -1002,6 +1031,12 @@ private:
                 auto &r_process_info = rModelPart.GetProcessInfo();
                 r_process_info.SetValue(TIME_INTEGRATION_THETA, mLevelSetConvectionSettings["element_settings"]["time_integration_theta"].GetDouble());
             };
+        } else if (mConvectionElementType == "LevelSetConvectionElementSimplexBDF") {
+            fill_process_info_function = [this](ModelPart &rModelPart){
+                auto &r_process_info = rModelPart.GetProcessInfo();
+                r_process_info.SetValue(DYNAMIC_TAU, mLevelSetConvectionSettings["element_settings"]["dynamic_tau"].GetDouble());
+                r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, mLevelSetConvectionSettings["element_settings"]["cross_wind_stabilization_factor"].GetDouble());
+            };
         } else {
             fill_process_info_function = [](ModelPart &rModelPart) {};
         }
@@ -1018,7 +1053,7 @@ private:
         // Check that the level set and convection variables are in the nodal database
         VariableUtils().CheckVariableExists<Variable<double>>(*mpLevelSetVar, mrBaseModelPart.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
-
+        VariableUtils().CheckVariableExists<Variable<double>>(*mpVolumeSourceVar, mrBaseModelPart.Nodes());
         // Check the base model part element family (only simplex elements are supported)
         if constexpr (TDim == 2){
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<

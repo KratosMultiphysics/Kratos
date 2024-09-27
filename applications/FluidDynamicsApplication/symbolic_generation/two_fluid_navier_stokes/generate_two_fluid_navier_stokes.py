@@ -119,7 +119,7 @@ for dim in dim_vector:
         bdf0 = sympy.Symbol('bdf0')
         bdf1 = sympy.Symbol('bdf1')
         bdf2 = sympy.Symbol('bdf2')
-        acceleration = (bdf0*v +bdf1*vn + bdf2*vnn)
+        acceleration = (bdf0*v +bdf0*vn)
         v_gauss = v.transpose()*N
         f_gauss = f.transpose()*N
     elif time_integration=="alpha_method":
