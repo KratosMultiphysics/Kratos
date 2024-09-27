@@ -135,7 +135,7 @@ public:
             // note that we deliberately check the node ids and not the pointer adresses as there might be very rare situations
             // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
             for (IndexType i_node = 0; i_node < i->PointsNumber(); ++i_node) {
-                KRATOS_ERROR_IF((*i)[i_node].Id() != (*pNewGeometry)[i_node].Id()) << "Attempting to add a new geometry with Id :" << pNewGeometry->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+                KRATOS_ERROR_IF((*i)[i_node].Id() != (*pNewGeometry)[i_node].Id()) << "Attempting to add a new geometry with Id: " << pNewGeometry->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
             }
             return i;
         }

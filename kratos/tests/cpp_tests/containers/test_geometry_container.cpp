@@ -171,7 +171,7 @@ void FillGeometryContainer(
         nodes_vector_2.push_back(aux_node_pt_list(3));
         nodes_vector_2.push_back(aux_node_pt_list(0));
         auto p_geom_2 = Kratos::make_shared<Triangle2D3<Node>>(2, nodes_vector_2);
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry_container.AddGeometry(p_geom_2), "Attempting to add a new geometry with Id :2. A same type geometry with same Id but different connectivities already exists.")
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry_container.AddGeometry(p_geom_2), "Attempting to add a new geometry with Id: 2. A same type geometry with same Id but different connectivities already exists.")
     }
 
 } // namespace Kratos::Testing.
