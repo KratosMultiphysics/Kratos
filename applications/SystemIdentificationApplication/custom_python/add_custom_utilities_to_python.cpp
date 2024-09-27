@@ -22,6 +22,7 @@
 // Application includes
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/smooth_clamper.h"
+#include "custom_utilities/sensor_generator_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -58,6 +59,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
     AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
+
+    auto sensor_generator_utils = m.def_submodule("SensorGeneratorUtils");
+    sensor_generator_utils.def("IsPointInGeometry", &SensorGeneratorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
 }
 
 } // namespace Kratos::Python
