@@ -90,11 +90,11 @@ void  AddDofsToPython(pybind11::module& m)
         })
         ;
 
-    py::class_<BlockBuildDofArrayUtility>(m, "BlockBuildDofArrayUtility")
-        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray);})
-        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel);})
-        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel, const bool CheckReactionDofs){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel, CheckReactionDofs);})
-    ;
+    // py::class_<BlockBuildDofArrayUtility>(m, "BlockBuildDofArrayUtility")
+    //     .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray);})
+    //     .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel);})
+    //     .def_static("SetUpDofArray", [](const ModelPart& rModelPart, BlockBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel, const bool CheckReactionDofs){BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel, CheckReactionDofs);})
+    // ;
 
 }
 
