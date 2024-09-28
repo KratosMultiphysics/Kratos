@@ -165,11 +165,11 @@ public:
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         // This is to be done only in debug mode
         if (CheckReactionDofs) {
-            for (auto it_dof : rDofArray) {
-                KRATOS_ERROR_IF_NOT(it_dof->HasReaction())
+            for (auto& r_dof : rDofArray) {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following: " << std::endl
-                    << "- Node : "<< it_dof->Id() << std::endl;
-                    << "- DOF: " << (*it_dof) << std::endl;
+                    << "- Node: "<< r_dof.Id() << std::endl
+                    << "- DOF: " << r_dof << std::endl;
             }
         }
 #endif
