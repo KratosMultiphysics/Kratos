@@ -1,7 +1,7 @@
 ---
 title: Getting Started
 keywords: 
-tags: [Python Script Tutorial Getting Started]
+tags: [Crash Course Tutorial Getting Started]
 sidebar: kratos_for_users
 summary: 
 ---
