@@ -30,13 +30,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresInitializeResp
     KRATOS_EXPECT_TRUE(law.RequiresInitializeMaterialResponse())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresFinalizeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
+}
+
 /*
 
 public:
 [x] ConstitutiveLaw::Pointer Clone() const override;
 [x] bool RequiresInitializeMaterialResponse() override;
 [ ] void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-[ ] bool RequiresFinalizeMaterialResponse() override;
+[x] bool RequiresFinalizeMaterialResponse() override;
 [ ] void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 [ ] void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 [ ] void GetLawFeatures(Features& rFeatures) override;
