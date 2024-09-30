@@ -209,7 +209,6 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.computing_model_part_name = "porous_computational_model_part"
 
-        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
         sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"]]
         self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 

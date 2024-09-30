@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_truss_with_reset_displacement_stage_4",
-        "start_time":           3.0,
-        "end_time":             4.0,
+        "problem_name":         "truss_with_reset_displacement_stage_1",
+        "start_time":           0.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_4"
+            "input_filename":   "truss_with_reset_displacement"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -25,7 +25,7 @@
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  false,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_truss_with_reset_displacement_stage_4",
+                "output_name": "truss_with_reset_displacement_stage_1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -138,7 +138,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [0.0,0.0,0.0],
+            "value":           [-1e10,0.0,0.0],
             "table":           [0,0,0]
         }
     }]

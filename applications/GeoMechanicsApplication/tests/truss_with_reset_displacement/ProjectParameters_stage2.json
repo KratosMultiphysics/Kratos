@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_truss_with_reset_displacement_stage_1",
-        "start_time":           0.0,
-        "end_time":             1.0,
+        "problem_name":         "truss_with_reset_displacement_stage_2",
+        "start_time":           1.0,
+        "end_time":             2.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_1"
+            "input_type":       "rest"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -25,7 +24,7 @@
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  false,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -80,7 +79,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_truss_with_reset_displacement_stage_1",
+                "output_name": "truss_with_reset_displacement_stage_2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -128,6 +127,13 @@
             "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
+        }
+    },{
+        "python_module" : "reset_displacement_process",
+        "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name"  : "ResetDisplacementProcess",
+        "Parameters"    : {
+            "model_part_name": "PorousDomain.Truss-auto-1"
         }
     }],
     "loads_process_list": [{

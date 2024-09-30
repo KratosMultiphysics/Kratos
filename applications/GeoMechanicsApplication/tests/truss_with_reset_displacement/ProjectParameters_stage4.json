@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_truss_with_reset_displacement_stage_2",
-        "start_time":           1.0,
-        "end_time":             2.0,
+        "problem_name":         "truss_with_reset_displacement_stage_4",
+        "start_time":           3.0,
+        "end_time":             4.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_2"
+            "input_type":       "rest"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -25,13 +24,13 @@
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  false,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                true,
+        "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -80,7 +79,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_truss_with_reset_displacement_stage_2",
+                "output_name": "truss_with_reset_displacement_stage_4",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -138,7 +137,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
+            "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
     }]
