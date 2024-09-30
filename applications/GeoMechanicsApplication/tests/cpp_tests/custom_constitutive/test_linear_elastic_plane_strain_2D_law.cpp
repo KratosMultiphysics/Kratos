@@ -24,4 +24,33 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawClone, KratosGeoMechan
     KRATOS_EXPECT_NE(dynamic_cast<const GeoLinearElasticPlaneStrain2DLaw*>(clone.get()), nullptr);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresInitializeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    KRATOS_EXPECT_TRUE(law.RequiresInitializeMaterialResponse())
+}
+
+/*
+
+public:
+[x] ConstitutiveLaw::Pointer Clone() const override;
+[x] bool RequiresInitializeMaterialResponse() override;
+[ ] void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+[ ] bool RequiresFinalizeMaterialResponse() override;
+[ ] void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+[ ] void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+[ ] void GetLawFeatures(Features& rFeatures) override;
+[ ] SizeType WorkingSpaceDimension() override;
+[ ] SizeType GetStrainSize() const override;
+[ ] bool IsIncremental() override;
+[ ] bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+protected:
+[ ] void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+[ ] void CalculatePK2Stress(const Vector&                rStrainVector,
+[ ] Vector&                      rStressVector,
+[ ] ConstitutiveLaw::Parameters& rValues) override;
+
+*/
+
 } // namespace Kratos::Testing
