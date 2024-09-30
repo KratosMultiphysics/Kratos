@@ -1,8 +1,7 @@
 ﻿import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
-
-# from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -142,29 +141,29 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        # gid_output = GiDOutputProcess(model_part,
-        #                            "levelset_test_2D_supg",
-        #                            KratosMultiphysics.Parameters("""
-        #                                {
-        #                                    "result_file_configuration" : {
-        #                                        "gidpost_flags": {
-        #                                            "GiDPostMode": "GiD_PostBinary",
-        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
-        #                                            "WriteConditionsFlag": "WriteConditions",
-        #                                            "MultiFileFlag": "SingleFile"
-        #                                        },
-        #                                        "nodal_results"       : ["DISTANCE","VELOCITY"]
-        #                                    }
-        #                                }
-        #                                """)
-        #                            )
+        gid_output = GiDOutputProcess(model_part,
+                                   "levelset_test_2D_supg",
+                                   KratosMultiphysics.Parameters("""
+                                       {
+                                           "result_file_configuration" : {
+                                               "gidpost_flags": {
+                                                   "GiDPostMode": "GiD_PostBinary",
+                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                   "WriteConditionsFlag": "WriteConditions",
+                                                   "MultiFileFlag": "SingleFile"
+                                               },
+                                               "nodal_results"       : ["DISTANCE","VELOCITY"]
+                                           }
+                                       }
+                                       """)
+                                   )
 
-        # gid_output.ExecuteInitialize()
-        # gid_output.ExecuteBeforeSolutionLoop()
-        # gid_output.ExecuteInitializeSolutionStep()
-        # gid_output.PrintOutput()
-        # gid_output.ExecuteFinalizeSolutionStep()
-        # gid_output.ExecuteFinalize()
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
         self.assertAlmostEqual(max_distance, 1.0634680107706003)
         self.assertAlmostEqual(min_distance, -0.06361967738862996)
@@ -288,6 +287,84 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance,0.7868643986367427)
         self.assertAlmostEqual(min_distance,-0.057482590870069024)
+
+    def test_levelset_convection_BDF(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
+        model_part.SetBufferSize(3)
+        time_order = 2
+        self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, BaseJumpedDistance(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, ConvectionVelocity(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0.0)
+
+        print("aqui")
+        for node in model_part.Nodes:
+            if node.X < 0.001:
+                node.Fix(KratosMultiphysics.DISTANCE)
+
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(
+            KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+
+        model_part.CloneTimeStep(30.0)
+
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : true,
+            "element_type" : "levelset_convection_bdf"
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            model_part,
+            linear_solver,
+            levelset_convection_settings).Execute()
+
+        max_distance = -1.0
+        min_distance = +1.0
+        for node in model_part.Nodes:
+            d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            max_distance = max(max_distance, d)
+            min_distance = min(min_distance, d)
+
+        gid_output = GiDOutputProcess(model_part,
+                                   "levelset_test_2D_bdf",
+                                   KratosMultiphysics.Parameters("""
+                                       {
+                                           "result_file_configuration" : {
+                                               "gidpost_flags": {
+                                                   "GiDPostMode": "GiD_PostBinary",
+                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                   "WriteConditionsFlag": "WriteConditions",
+                                                   "MultiFileFlag": "SingleFile"
+                                               },
+                                               "nodal_results"       : ["DISTANCE","VELOCITY","HEAT_FLUX"]
+                                           }
+                                       }
+                                       """)
+                                   )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
+        print(max_distance)
+        print(min_distance)
+
+        self.assertAlmostEqual(max_distance, 1.0634680107706003)
+        self.assertAlmostEqual(min_distance, -0.06361967738862996)
+
 
 
 
