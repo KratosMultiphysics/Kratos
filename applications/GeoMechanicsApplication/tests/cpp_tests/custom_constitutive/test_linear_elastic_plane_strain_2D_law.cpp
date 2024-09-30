@@ -147,6 +147,31 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_AfterFinalizeMaterialResponse,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+
+    ConstitutiveLaw::Parameters initial_parameters;
+    auto                        initial_strain = Vector{ScalarVector{4, 0.5}};
+    initial_parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ScalarVector{4, 1e6}};
+    initial_parameters.SetStressVector(initial_stress);
+    law.InitializeMaterialResponseCauchy(initial_parameters);
+
+    auto stress = CalculateStress(law, 1.0);
+
+    ConstitutiveLaw::Parameters final_parameters;
+    auto                        final_strain = Vector{ScalarVector{4, 1.3}};
+    final_parameters.SetStrainVector(final_strain);
+    law.FinalizeMaterialResponseCauchy(final_parameters);
+    stress = CalculateStress(law, 1.0);
+
+    Vector expected_stress{4};
+    expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
+}
+
 /*
 
 public:
