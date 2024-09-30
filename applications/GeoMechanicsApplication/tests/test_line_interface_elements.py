@@ -84,8 +84,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
     def assertVectorsAlmostEqual(self, actual_vectors, expected_vectors):
         for actual_vector, expected_vector in zip(actual_vectors, expected_vectors):
-            for actual_value, expected_value in zip(actual_vector, expected_vector):
-                self.assertAlmostEqual(actual_value, expected_value)
+            self.assertVectorAlmostEqual(actual_vector, expected_vector)
 
 
     def test_multi_stage_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
@@ -95,13 +94,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         os.chdir(file_path)
 
         project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
-        prescribed_displacement_vectors = [[-8.8933333333333332e-5, -2.22e-5], [-2.0e-4, -4.44e-5]]
+        prescribed_displacement_vectors = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
         for file_name, displacement_vector in zip(project_parameters_file_names, prescribed_displacement_vectors):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
 
             stage.Run()
 
-            expected_displacement_vectors = [[0.0, 0.0]] * 3  # the first three nodes have been fixed
+            expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
             expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
             self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
 
@@ -126,13 +125,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         os.chdir(file_path)
 
         project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
-        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5], [-2.0e-4, -4.44e-5]]
+        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
         for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
 
             stage.Run()
 
-            expected_displacement_vectors = [[0.0, 0.0]] * 3  # the first three nodes have been fixed
+            expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
             expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have been displaced
             self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
 

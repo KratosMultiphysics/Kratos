@@ -284,7 +284,6 @@ def get_cauchy_stress_tensor(simulation):
 
     return cauchy_stress_tensors
 
-
 def get_total_stress_tensor(simulation):
     """
     Gets total stress tensor from kratos simulation
