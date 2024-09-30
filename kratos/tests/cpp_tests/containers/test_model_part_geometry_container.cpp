@@ -234,4 +234,29 @@ void SetUpTestModelPart(Model& rModel)
         KRATOS_EXPECT_EQ(model.GetModelPart("TestModelPart.SubModelPart2.SubSubModelPart").NumberOfGeometries(), 1);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(TestModelPartGeometryContainerRepeatedGeometries5, KratosCoreGeometryContainerFastSuite)
+    {
+        // Set up test model part
+        Model model;
+        SetUpTestModelPart(model);
+
+        // Check that creating the same geometry twice returns the already existing one
+        auto& r_model_part = model.GetModelPart("TestModelPart");
+        auto p_geom_3_string = r_model_part.CreateNewGeometry("Triangle2D3", "3", {1,3,4});
+        KRATOS_EXPECT_NE(p_geom_3_string, r_model_part.pGetGeometry(3));
+
+        // Check that adding the same geometry with the same string identifier but different connectivities throws an error
+        auto p_node_1 = r_model_part.pGetNode(1);
+        auto p_node_3 = r_model_part.pGetNode(3);
+        auto p_node_4 = r_model_part.pGetNode(4);
+        auto p_aux_geom = Kratos::make_shared<Triangle2D3<Node>>(p_node_1, p_node_4, p_node_3);
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_model_part.CreateNewGeometry("Triangle2D3", "3", p_aux_geom), "Attempting to add a new geometry with Id: 3. A same type geometry with same Id but different connectivities already exists")
+
+        // Check results
+        KRATOS_EXPECT_EQ(model.GetModelPart("TestModelPart").NumberOfGeometries(), 4);
+        KRATOS_EXPECT_EQ(model.GetModelPart("TestModelPart.SubModelPart1").NumberOfGeometries(), 1);
+        KRATOS_EXPECT_EQ(model.GetModelPart("TestModelPart.SubModelPart2").NumberOfGeometries(), 2);
+        KRATOS_EXPECT_EQ(model.GetModelPart("TestModelPart.SubModelPart2.SubSubModelPart").NumberOfGeometries(), 1);
+    }
+
 } // namespace Kratos::Testing.

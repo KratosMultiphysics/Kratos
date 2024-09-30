@@ -1817,7 +1817,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
             << "Attempting to add geometry with Id: " << GeometryId << ". A different geometry with the same Id already exists." << std::endl;
 
-        // Check if the connectivities (nodes) of the existing geometry match the ones of the new
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
         for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
             KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == &(pGeometryNodes[i]))
                 << "Attempting to add a new geometry with Id: " << GeometryId << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
@@ -1863,7 +1863,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
             << "Attempting to add geometry with Id: " << GeometryId << ". A different geometry with the same Id already exists." << std::endl;
 
-        // Check if the connectivities (nodes) of the existing geometry match the ones of the new
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
         for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
             KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == ((*pGeometry)(i)).get())
                 << "Attempting to add a new geometry with Id: " << GeometryId << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
@@ -1914,13 +1914,30 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 {
     KRATOS_TRY
 
-        if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes);
-            this->AddGeometry(p_new_geometry);
-            return p_new_geometry;
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    // Check if the geometry already exists
+    if (this->HasGeometry(rGeometryIdentifierName)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(rGeometryIdentifierName);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << rGeometryIdentifierName << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == &(pGeometryNodes[i]))
+                << "Attempting to add a new geometry with Id: " << rGeometryIdentifierName << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
         }
 
-    KRATOS_ERROR_IF(this->HasGeometry(rGeometryIdentifierName)) << "Trying to construct an geometry with name: " << rGeometryIdentifierName << ". A geometry with the same name exists already." << std::endl;
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
@@ -1942,13 +1959,30 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 {
     KRATOS_TRY
 
-        if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry);
-            this->AddGeometry(p_new_geometry);
-            return p_new_geometry;
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    // Check if the geometry already exists
+    if (this->HasGeometry(rGeometryIdentifierName)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(rGeometryIdentifierName);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << rGeometryIdentifierName << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == ((*pGeometry)(i)).get())
+                << "Attempting to add a new geometry with Id: " << rGeometryIdentifierName << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
         }
 
-    KRATOS_ERROR_IF(this->HasGeometry(rGeometryIdentifierName)) << "Trying to construct an geometry with name: " << rGeometryIdentifierName << ". A geometry with the same name exists already." << std::endl;
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
