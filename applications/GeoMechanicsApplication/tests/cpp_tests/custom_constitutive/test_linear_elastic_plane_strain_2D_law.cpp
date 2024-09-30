@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "boost/numeric/ublas/assignment.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -64,10 +65,42 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrainS
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorkingSpaceDimension,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoLinearElasticPlaneStrain2DLaw law;
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    auto strain = Vector{ScalarVector{4, 1.0}};
+    parameters.SetStrainVector(strain);
+
+    Vector stress;
+    parameters.SetStressVector(stress);
+
+    Matrix constitutive_matrix;
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
+
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    parameters.SetMaterialProperties(properties);
+
+    law.CalculateMaterialResponsePK2(parameters);
+
+    Vector expected_stress{4};
+    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
 /*
