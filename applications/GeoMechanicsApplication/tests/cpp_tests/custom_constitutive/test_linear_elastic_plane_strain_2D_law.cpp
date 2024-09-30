@@ -36,6 +36,28 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresFinalizeRespon
     KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+
+    ConstitutiveLaw::Features law_features;
+    law.GetLawFeatures(law_features);
+
+    KRATOS_EXPECT_TRUE(law_features.mOptions.IsDefined(ConstitutiveLaw::PLANE_STRAIN_LAW))
+    KRATOS_EXPECT_TRUE(law_features.mOptions.IsDefined(ConstitutiveLaw::INFINITESIMAL_STRAINS))
+    KRATOS_EXPECT_TRUE(law_features.mOptions.IsDefined(ConstitutiveLaw::ISOTROPIC))
+
+    const auto strain_measures = law_features.mStrainMeasures;
+    KRATOS_EXPECT_TRUE(std::find(strain_measures.begin(), strain_measures.end(),
+                                 ConstitutiveLaw::StrainMeasure_Infinitesimal) != strain_measures.end());
+    KRATOS_EXPECT_TRUE(std::find(strain_measures.begin(), strain_measures.end(),
+                                 ConstitutiveLaw::StrainMeasure_Deformation_Gradient) !=
+                       strain_measures.end());
+
+    KRATOS_EXPECT_EQ(law_features.mStrainSize, 4);
+    KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 2);
+}
+
 /*
 
 public:
@@ -45,17 +67,12 @@ public:
 [x] bool RequiresFinalizeMaterialResponse() override;
 [ ] void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 [ ] void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-[ ] void GetLawFeatures(Features& rFeatures) override;
+[x] void GetLawFeatures(Features& rFeatures) override;
 [ ] SizeType WorkingSpaceDimension() override;
 [ ] SizeType GetStrainSize() const override;
 [ ] bool IsIncremental() override;
 [ ] bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
-protected:
-[ ] void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
-[ ] void CalculatePK2Stress(const Vector&                rStrainVector,
-[ ] Vector&                      rStressVector,
-[ ] ConstitutiveLaw::Parameters& rValues) override;
 
 */
 
