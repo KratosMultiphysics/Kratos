@@ -8,54 +8,57 @@ import os
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Import KratosUtilities
+from KratosMultiphysics.kratos_utilities import DeleteFilesEndingWith
+
 # TODO: Add fluid counter part
 class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
-    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+
     def setUp(self):
+        self.work_folder = "mmg_lagrangian_test"
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testTwoDDynamicBeamTest(self):
+        self.file_name = "beam2D_test"
+        self.__test_execution()
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testThreeDDynamicBeamTest(self):
+        self.file_name = "beam3D_test"
+        self.__test_execution()
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testTwoDDynamicBeamLineLoadTest(self):
+        self.file_name = "beam2D_line_load_test"
+        self.__test_execution()
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def testThreeDShellTest(self):
+        self.file_name = "test_remesh_shell"
+        self.__test_execution()
+
+    def tearDown(self):
+        DeleteFilesEndingWith(self.work_folder, ".mesh")
+        DeleteFilesEndingWith(self.work_folder, "o.sol")
+
+    def __test_execution(self):
         # Within this location context:
-        with KratosUnittest.WorkFolderScope(".", __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
-                ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-            self.modify_parameters(ProjectParameters)
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # To avoid many prints
-            if ProjectParameters["problem_data"]["echo_level"].GetInt() == 0:
+            if project_parameters["problem_data"]["echo_level"].GetInt() == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
             else:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
-            # Creating the test
+            # Creating and running the test
             model = KratosMultiphysics.Model()
-            self.test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
-            self.test.Initialize()
+            test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, project_parameters)
+            test.Run()
 
-    def modify_parameters(self, project_parameters):
-        """This function can be used in derived classes to modify existing parameters
-        before the execution of the test (e.g. switch to MPI)
-        """
-        pass
-
-    def test_execution(self):
-        # Within this location context:
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self.test.RunSolutionLoop()
-
-    def tearDown(self):
-        # Within this location context:
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self.test.Finalize()
-
-class TwoDDynamicBeamTest(MeshingStructuralMechanicsTestFactory):
-    file_name = "mmg_lagrangian_test/beam2D_test"
-
-class TwoDDynamicBeamLineLoadTest(MeshingStructuralMechanicsTestFactory):
-    file_name = "mmg_lagrangian_test/beam2D_line_load_test"
-
-class ThreeDShellTest(MeshingStructuralMechanicsTestFactory):
-    file_name = "mmg_lagrangian_test/test_remesh_shell"
-
-class ThreeDDynamicBeamTest(MeshingStructuralMechanicsTestFactory):
-    file_name = "mmg_lagrangian_test/beam3D_test"
+if __name__ == '__main__':
+    KratosUnittest.main()
