@@ -112,7 +112,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
             expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                           self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_cauchy_stress_vector(stage)[0], expected_traction_vectors)
+            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
+                                          expected_traction_vectors)
 
         os.chdir(initial_cwd)
 
@@ -141,7 +142,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
             expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                           self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_cauchy_stress_vector(stage)[0], expected_traction_vectors)
+            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
+                                          expected_traction_vectors)
 
         os.chdir(initial_cwd)
 
