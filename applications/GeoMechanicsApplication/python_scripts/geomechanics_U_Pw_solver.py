@@ -193,9 +193,6 @@ class UPwSolver(GeoSolver):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
-            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
-                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
                 raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
         else:
