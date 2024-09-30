@@ -37,6 +37,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresFinalizeRespon
     KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawIsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    KRATOS_EXPECT_TRUE(law.IsIncremental())
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoLinearElasticPlaneStrain2DLaw law;
@@ -98,7 +104,7 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
     return stress;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoLinearElasticPlaneStrain2DLaw law;
@@ -109,6 +115,20 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
+
+    const auto stress = CalculateStress(law);
+
+    Vector expected_stress{4};
+    expected_stress <<= 1.34615e+07,1.34615e+07,1.34615e+07,0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
+}
+
 
 /*
 
