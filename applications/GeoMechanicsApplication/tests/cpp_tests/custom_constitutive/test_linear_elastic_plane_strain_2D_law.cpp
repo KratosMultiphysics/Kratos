@@ -72,11 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorking
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 {
-    GeoLinearElasticPlaneStrain2DLaw law;
-
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -96,7 +93,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     properties.SetValue(POISSON_RATIO, 0.3);
     parameters.SetMaterialProperties(properties);
 
-    law.CalculateMaterialResponsePK2(parameters);
+    rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
+
+    return stress;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+
+    const auto stress = CalculateStress(law);
 
     Vector expected_stress{4};
     expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
