@@ -108,7 +108,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             expected_normal_relative_displacement = displacement_vector[1]
             expected_tangential_relative_displacement = displacement_vector[0]
             expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_strain_vectors(stage)[0], expected_relative_displacement_vectors)
+            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+                                          expected_relative_displacement_vectors)
 
             expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                           self.shear_stiffness * expected_tangential_relative_displacement]] * 3
@@ -138,7 +139,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             expected_normal_relative_displacement = displacement_vector[1]
             expected_tangential_relative_displacement = displacement_vector[0]
             expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_strain_vectors(stage)[0], expected_relative_displacement_vectors)
+            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+                                          expected_relative_displacement_vectors)
 
             expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                           self.shear_stiffness * expected_tangential_relative_displacement]] * 3

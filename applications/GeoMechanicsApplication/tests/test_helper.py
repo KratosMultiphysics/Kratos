@@ -284,18 +284,6 @@ def get_cauchy_stress_tensor(simulation):
 
     return cauchy_stress_tensors
 
-def get_strain_vectors(simulation):
-    """
-    Gets cauchy stress vector from kratos simulation
-    :param simulation:
-    :return: cauchy stress vector
-    """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-    strains = [element.CalculateOnIntegrationPoints(
-        Kratos.STRAIN, model_part.ProcessInfo) for element in elements]
-
-    return strains
 
 def get_total_stress_tensor(simulation):
     """
