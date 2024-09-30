@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorking
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
 }
 
-Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
+Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw, double strain_value)
 {
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -104,12 +104,11 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
     return stress;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoLinearElasticPlaneStrain2DLaw law;
 
-    const auto stress = CalculateStress(law);
+    const auto stress = CalculateStress(law, 1.0);
 
     Vector expected_stress{4};
     expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
@@ -122,13 +121,31 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     GeoLinearElasticPlaneStrain2DLaw law;
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
 
-    const auto stress = CalculateStress(law);
+    const auto stress = CalculateStress(law, 1.0);
 
     Vector expected_stress{4};
-    expected_stress <<= 1.34615e+07,1.34615e+07,1.34615e+07,0;
+    expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WithInitialStressAndStrain,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+
+    ConstitutiveLaw::Parameters parameters;
+    auto                        initial_strain = Vector{ScalarVector{4, 0.5}};
+    parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ScalarVector{4, 1e6}};
+    parameters.SetStressVector(initial_stress);
+    law.InitializeMaterialResponseCauchy(parameters);
+
+    const auto stress = CalculateStress(law, 1.0);
+
+    Vector expected_stress{4};
+    expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
+}
 
 /*
 
