@@ -15,7 +15,7 @@
             "input_type":       "rest"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../common/MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":            1.0
@@ -68,9 +68,9 @@
             "tolerance":       1.0e-6,
             "scaling":         false
         },
-        "problem_domain_sub_model_part_list": ["Interface"],
+        "problem_domain_sub_model_part_list": ["Interfaces"],
         "processes_sub_model_part_list":      ["FixedNodes","AllNodes", "DisplacedNodes"],
-        "body_domain_sub_model_part_list":    ["Interface"]
+        "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {
         "gid_output": [{

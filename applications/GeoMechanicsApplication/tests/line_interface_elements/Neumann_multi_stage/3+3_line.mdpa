@@ -37,7 +37,7 @@ Begin Conditions UPwNormalFaceLoadCondition2D3N
   1  2  13  11  12
 End Conditions
 
-Begin SubModelPart Interface
+Begin SubModelPart Interfaces
   Begin SubModelPartNodes
       1
       2
