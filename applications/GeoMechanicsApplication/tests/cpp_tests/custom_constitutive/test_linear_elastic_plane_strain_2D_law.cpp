@@ -58,6 +58,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeat
     KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    KRATOS_EXPECT_EQ(law.GetStrainSize(), 4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
+}
+
 /*
 
 public:
@@ -68,8 +80,8 @@ public:
 [ ] void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 [ ] void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 [x] void GetLawFeatures(Features& rFeatures) override;
-[ ] SizeType WorkingSpaceDimension() override;
-[ ] SizeType GetStrainSize() const override;
+[x] SizeType WorkingSpaceDimension() override;
+[x] SizeType GetStrainSize() const override;
 [ ] bool IsIncremental() override;
 [ ] bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
