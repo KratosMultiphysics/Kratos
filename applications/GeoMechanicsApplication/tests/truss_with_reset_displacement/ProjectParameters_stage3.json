@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "geo_truss_with_reset_displacement_stage_3",
+        "problem_name":         "truss_with_reset_displacement_stage_3",
         "start_time":           2.0,
         "end_time":             3.0,
         "echo_level":           1,
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "geo_truss_with_reset_displacement_stage_3"
+            "input_type":       "rest"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -25,7 +24,7 @@
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  false,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -80,7 +79,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_truss_with_reset_displacement_stage_3",
+                "output_name": "truss_with_reset_displacement_stage_3",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
