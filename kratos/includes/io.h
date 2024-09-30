@@ -382,26 +382,9 @@ public:
      * @brief This method writes the mesh
      * @param rThisMesh The mesh to be written
      */
-    KRATOS_DEPRECATED_MESSAGE("'WriteMesh' with a non-const Mesh as input is deprecated. Please use the version of this function that accepts a const Mesh instead.")
-    virtual void WriteMesh( MeshType& rThisMesh )
-    {
-        KRATOS_ERROR << "Calling base class method (WriteMesh). Please check the implementation of derived classes" << std::endl;
-    }
-
-    /**
-     * @brief This method writes the mesh
-     * @param rThisMesh The mesh to be written
-     */
     virtual void WriteMesh(const MeshType& rThisMesh )
     {
-        // legacy for backward compatibility
-        MeshType& non_const_mesh = const_cast<MeshType&>(rThisMesh);
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->WriteMesh(non_const_mesh);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // activate this error once the legacy code is removed
-        // KRATOS_ERROR << "Calling base class method (WriteMesh). Please check the implementation of derived classes" << std::endl;
+        KRATOS_ERROR << "Calling base class method (WriteMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     /**
@@ -417,36 +400,9 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
-    KRATOS_DEPRECATED_MESSAGE("'WriteModelPart' with a non-const ModelPart as input is deprecated. Please use the version of this function that accepts a const ModelPart instead.")
-    virtual void WriteModelPart(ModelPart & rThisModelPart)
-    {
-        KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
-    }
-
-    /**
-     * @brief This method writes the model part
-     * @param rThisModelPart The model part to be written
-     */
     virtual void WriteModelPart(const ModelPart& rThisModelPart)
     {
-        // legacy for backward compatibility
-        ModelPart& non_const_model_part = const_cast<ModelPart&>(rThisModelPart);
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->WriteModelPart(non_const_model_part);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // activate this error once the legacy code is removed
-        // KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
-    }
-
-    /**
-     * @brief This method writes the node mesh
-     * @param rThisMesh The mesh to be written
-     */
-    KRATOS_DEPRECATED_MESSAGE("'WriteNodeMesh' with a non-const Mesh as input is deprecated. Please use the version of this function that accepts a const Mesh instead.")
-    virtual void WriteNodeMesh( MeshType& rThisMesh )
-    {
-        KRATOS_ERROR << "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
+        KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -455,14 +411,7 @@ public:
      */
     virtual void WriteNodeMesh(const MeshType& rThisMesh )
     {
-        // legacy for backward compatibility
-        MeshType& non_const_mesh = const_cast<MeshType&>(rThisMesh);
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->WriteNodeMesh(non_const_mesh);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // activate this error once the legacy code is removed
-        // KRATOS_ERROR << "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
+        KRATOS_ERROR << "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     /**
@@ -490,35 +439,7 @@ public:
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions,
                                          const PartitioningInfo& rPartitioningInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        DivideInputToPartitions(NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions); // for backward compatibility
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
-    }
-
-    /**
-     * @brief This method divides a model part into partitions
-     * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
-     */
-    KRATOS_DEPRECATED_MESSAGE("'This version of \"DivideInputToPartitions\" is deprecated, please use the interface that accepts a \"PartitioningInfo\"")
-    virtual void DivideInputToPartitions(SizeType NumberOfPartitions,
-                                         GraphType const& rDomainsColoredGraph,
-                                         PartitionIndicesType const& rNodesPartitions,
-                                         PartitionIndicesType const& rElementsPartitions,
-                                         PartitionIndicesType const& rConditionsPartitions,
-                                         PartitionIndicesContainerType const& rNodesAllPartitions,
-                                         PartitionIndicesContainerType const& rElementsAllPartitions,
-                                         PartitionIndicesContainerType const& rConditionsAllPartitions)
-    {
-        KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
     }
 
     /**
@@ -531,37 +452,7 @@ public:
                                          SizeType NumberOfPartitions,
                                          const PartitioningInfo& rPartitioningInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        DivideInputToPartitions(pStreams, NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions); // for backward compatibility
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
-    }
-
-    /**
-     * @brief This method divides a model part into partitions
-     * @param pStreams The stream pointer
-     * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
-     */
-    KRATOS_DEPRECATED_MESSAGE("'This version of \"DivideInputToPartitions\" is deprecated, please use the interface that accepts a \"PartitioningInfo\"")
-    virtual void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
-                                         SizeType NumberOfPartitions,
-                                         GraphType const& rDomainsColoredGraph,
-                                         PartitionIndicesType const& rNodesPartitions,
-                                         PartitionIndicesType const& rElementsPartitions,
-                                         PartitionIndicesType const& rConditionsPartitions,
-                                         PartitionIndicesContainerType const& rNodesAllPartitions,
-                                         PartitionIndicesContainerType const& rElementsAllPartitions,
-                                         PartitionIndicesContainerType const& rConditionsAllPartitions)
-    {
-        KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
     }
 
     virtual void ReadSubModelPartElementsAndConditionsIds(

@@ -637,6 +637,11 @@ public:
         return mTables;
     }
 
+    TablesContainerType const & Tables() const
+    {
+        return mTables;
+    }
+
     TablesContainerType::ContainerType& TablesArray()
     {
         return mTables.GetContainer();
