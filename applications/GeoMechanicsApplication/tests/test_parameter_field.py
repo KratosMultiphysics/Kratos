@@ -65,9 +65,14 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         # copy user defined python script to installation folder
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
-        shutil.copy(custom_python_file,new_custom_script_path)
+        try:
+            shutil.copy(custom_python_file, new_custom_script_path)
+        except IOError:
+            print(new_custom_script_path)
+            os.chmod(new_custom_script_path, 777)
+            shutil.copy(custom_python_file, new_custom_script_path)
 
-        # run simulation
+    # run simulation
         simulation = test_helper.run_kratos(file_path)
 
         # get element centers
@@ -148,7 +153,12 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         # copy user defined python script to installation folder
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
-        shutil.copy(custom_python_file,new_custom_script_path)
+        try:
+            shutil.copy(custom_python_file, new_custom_script_path)
+        except IOError:
+            print(new_custom_script_path)
+            os.chmod(new_custom_script_path, 777)
+            shutil.copy(custom_python_file, new_custom_script_path)
 
         # run simulation
         simulation = test_helper.run_kratos(file_path)
