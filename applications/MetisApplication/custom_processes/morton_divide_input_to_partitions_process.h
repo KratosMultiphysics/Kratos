@@ -19,6 +19,7 @@
 // Project includes
 #include "processes/graph_coloring_process.h"
 #include "custom_processes/morton_partitioning_process.h"
+#include "custom_utilities/legacy_partitioning_utilities.h"
 
 namespace Kratos
 {
@@ -53,6 +54,8 @@ class MortonDivideInputToPartitionsProcess
 public:
     ///@name Type Definitions
     ///@{
+
+    using PartitioningInfo = IO::PartitioningInfo;
 
     /// Pointer definition of MortonDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MortonDivideInputToPartitionsProcess);
@@ -106,6 +109,9 @@ public:
             return;
         }
 
+        // Now dividing the input file
+        PartitioningInfo part_info;
+
         // Reading connectivities
         IO::ConnectivitiesContainerType elements_connectivities;
         IO::ConnectivitiesContainerType conditions_connectivities;
@@ -144,24 +150,20 @@ public:
 
         ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
         KRATOS_WATCH("ConditionsPartitioning finished")
-        // Dividing nodes
-        DividingNodes(nodes_all_partitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
-        KRATOS_WATCH("DividingNodes finished")
-        // Dividing elements
-        DividingElements(elements_all_partitions, elements_partitions);
-        KRATOS_WATCH("DividingElements finished")
-        // Dividing conditions
-        DividingConditions(conditions_all_partitions, conditions_partitions);
-        KRATOS_WATCH("DividingConditions finished")
+
+        LegacyPartitioningUtilities::DividingNodes(part_info.NodesAllPartitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
+        LegacyPartitioningUtilities::DividingElements(part_info.ElementsAllPartitions, elements_partitions);
+        LegacyPartitioningUtilities::DividingConditions(part_info.ConditionsAllPartitions, conditions_partitions);
 
         IO::PartitionIndicesType io_nodes_partitions(nodes_partitions.begin(), nodes_partitions.end());
         IO::PartitionIndicesType io_elements_partitions(elements_partitions.begin(), elements_partitions.end());
         IO::PartitionIndicesType io_conditions_partitions(conditions_partitions.begin(), conditions_partitions.end());
 
-        // Now dividing the input file
-        mrIO.DivideInputToPartitions(mNumberOfPartitions, domains_colored_graph,
-                                     io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-                                     nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
+        mrIO.DivideInputToPartitions(
+            mNumberOfPartitions,
+            part_info
+        );
+
         KRATOS_WATCH("DivideInputToPartitions finished")
         return;
 
