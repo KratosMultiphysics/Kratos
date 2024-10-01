@@ -81,8 +81,8 @@ DisplacementSensor::DisplacementSensor(
                 const double area = r_node_1.X() * (r_node_2.Y() - current_sensor_location.Y()) + r_node_2.X() * (current_sensor_location.Y() - r_node_1.Y()) + current_sensor_location.X() * (r_node_1.Y() - r_node_2.Y());
                 if (std::abs(area) <= std::numeric_limits<double>::epsilon()) {
                     const double r = norm_2(current_sensor_location - r_node_1) / norm_2(r_node_2 - r_node_1);
-                    mNs[i_node] = r;
-                    mNs[(i_node + 1) % r_geometry.size()] = 1 - r;
+                    mNs[i_node] = 1 - r;
+                    mNs[(i_node + 1) % r_geometry.size()] = r;
                     is_point_on_an_edge = true;
                     break;
                 }
