@@ -55,7 +55,7 @@ bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVari
 
 void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
-    rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
+    rFeatures.mOptions.Set(mpConstitutiveDimension->GetConstitutiveLawType());
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
 

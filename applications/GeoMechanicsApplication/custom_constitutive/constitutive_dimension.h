@@ -13,6 +13,8 @@
 
 #include "includes/ublas_interface.h"
 
+#include <containers/flags.h>
+
 namespace Kratos
 {
 
@@ -23,6 +25,7 @@ public:
     virtual std::unique_ptr<ConstitutiveDimension> Clone() = 0;
     virtual std::size_t GetStrainSize() = 0;
     virtual std::size_t GetDimension() = 0;
+    virtual Flags GetConstitutiveLawType() = 0;
 };
 
 } // namespace Kratos

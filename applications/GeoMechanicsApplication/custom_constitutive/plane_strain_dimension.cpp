@@ -13,6 +13,8 @@
 
 #include "geo_mechanics_application_constants.h"
 
+#include <includes/constitutive_law.h>
+
 namespace Kratos
 {
 
@@ -45,5 +47,7 @@ std::unique_ptr<ConstitutiveDimension> PlaneStrainDimension::Clone()
 std::size_t PlaneStrainDimension::GetStrainSize() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
 
 std::size_t PlaneStrainDimension::GetDimension() { return N_DIM_2D; }
+
+Flags PlaneStrainDimension::GetConstitutiveLawType() { return ConstitutiveLaw::PLANE_STRAIN_LAW;}
 
 } // namespace Kratos
