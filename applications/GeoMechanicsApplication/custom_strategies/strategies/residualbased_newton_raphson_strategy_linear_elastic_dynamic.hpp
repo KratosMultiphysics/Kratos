@@ -120,61 +120,15 @@ public:
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer    pNewBuilderAndSolver,
         Parameters&                                rParameters,
-        double                                     Beta,
-        double                                     Gamma,
         int                                        MaxIterations      = 30,
         bool                                       CalculateReactions = false,
         bool                                       MoveMeshFlag       = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, false, MoveMeshFlag),
-          mBeta(Beta),
-          mGamma(Gamma)
+              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, false, MoveMeshFlag)
     {
         // new constructor
     }
 
-    /**
-     * @brief Operation to predict the solution
-     */
-    void Predict() override
-    {
-        KRATOS_TRY
-        // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        // if the operations needed were already performed this does nothing
-        if (BaseType::mInitializeWasPerformed == false) Initialize();
-
-        const auto equation_size = BaseType::GetBuilderAndSolver()->GetDofSet().size();
-
-        ModelPart& model_part = BaseType::GetModelPart();
-
-        double delta_time = model_part.GetProcessInfo()[DELTA_TIME];
-
-        TSystemVectorType first_derivative_vector  = TSystemVectorType(equation_size, 0.0);
-        TSystemVectorType second_derivative_vector = TSystemVectorType(equation_size, 0.0);
-
-        TSystemVectorType updated_first_derivative_vector  = TSystemVectorType(equation_size, 0.0);
-        TSystemVectorType updated_second_derivative_vector = TSystemVectorType(equation_size, 0.0);
-
-        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
-                                                model_part, 0);
-
-        // performs: updated_first_derivative_vector = first_derivative_vector * (mGamma / mBeta) + second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
-        TSparseSpace::ScaleAndAdd(mGamma / mBeta, first_derivative_vector,
-                                  delta_time * (mGamma / (2 * mBeta) - 1), second_derivative_vector,
-                                  updated_first_derivative_vector);
-
-        // performs: updated_second_derivative_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) + second_derivative_vector * (1.0 / (2 * mBeta));
-        TSparseSpace::ScaleAndAdd(1.0 / (mBeta * delta_time), first_derivative_vector, 1.0 / (2 * mBeta),
-                                  second_derivative_vector, updated_second_derivative_vector);
-
-        this->SetFirstAndSecondDerivativeVector(updated_first_derivative_vector,
-                                                updated_second_derivative_vector, model_part);
-
-        // Move the mesh if needed
-        if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
-
-        KRATOS_CATCH("")
-    }
 
     /**
      * @brief Initialization of member variables and prior operations
@@ -182,28 +136,8 @@ public:
     void Initialize() override
     {
         KRATOS_TRY;
-
-        if (BaseType::mInitializeWasPerformed == false) {
-            // pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
-            typename TConvergenceCriteriaType::Pointer p_convergence_criteria = BaseType::mpConvergenceCriteria;
-            typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-            // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->SchemeIsInitialized() == false)
-                p_scheme->Initialize(BaseType::GetModelPart());
-
-            // Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ElementsAreInitialized() == false)
-                p_scheme->InitializeElements(BaseType::GetModelPart());
-            // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            if (p_scheme->ConditionsAreInitialized() == false)
-                p_scheme->InitializeConditions(BaseType::GetModelPart());
-            // initialisation of the convergence criteria
-            if (p_convergence_criteria->IsInitialized() == false)
-                p_convergence_criteria->Initialize(BaseType::GetModelPart());
-
-            BaseType::mInitializeWasPerformed = true;
-        }
+        
+        BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
         // this means that these operations are done twice in the GeomechanicsSolver in python
@@ -222,122 +156,123 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     */
-    void InitializeSolutionStep() override
-    {
-        KRATOS_TRY;
+    ///**
+    // * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+    // * @details A member variable should be used as a flag to make sure this function is called only once per step.
+    // */
+    //void InitializeSolutionStep() override
+    //{
+    //    KRATOS_TRY;
 
-        // Pointers needed in the solution
-        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        ModelPart& r_model_part = BaseType::GetModelPart();
+    //    // Pointers needed in the solution
+    //    typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+    //    ModelPart& r_model_part = BaseType::GetModelPart();
 
-        // Set up the system, operation performed just once unless it is required
-        // to reform the dof set at each iteration
-        BuiltinTimer system_construction_time;
-        if (!p_builder_and_solver->GetDofSetIsInitializedFlag()) {
-            // Setting up the list of the DOFs to be solved
-            BuiltinTimer setup_dofs_time;
-            p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-                << "Setup Dofs Time: " << setup_dofs_time << std::endl;
+    //    // Set up the system, operation performed just once unless it is required
+    //    // to reform the dof set at each iteration
+    //    BuiltinTimer system_construction_time;
+    //    if (!p_builder_and_solver->GetDofSetIsInitializedFlag()) {
+    //        // Setting up the list of the DOFs to be solved
+    //        BuiltinTimer setup_dofs_time;
+    //        p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
+    //            << "Setup Dofs Time: " << setup_dofs_time << std::endl;
 
-            // Shaping correctly the system
-            BuiltinTimer setup_system_time;
-            p_builder_and_solver->SetUpSystem(r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-                << "Setup System Time: " << setup_system_time << std::endl;
+    //        // Shaping correctly the system
+    //        BuiltinTimer setup_system_time;
+    //        p_builder_and_solver->SetUpSystem(r_model_part);
+    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
+    //            << "Setup System Time: " << setup_system_time << std::endl;
 
-            // Setting up the Vectors involved to the correct size
-            BuiltinTimer system_matrix_resize_time;
-            p_builder_and_solver->ResizeAndInitializeVectors(
-                p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-                << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
-        }
+    //        // Setting up the Vectors involved to the correct size
+    //        BuiltinTimer system_matrix_resize_time;
+    //        p_builder_and_solver->ResizeAndInitializeVectors(
+    //            p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
+    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
+    //            << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
+    //    }
 
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-            << "System Construction Time: " << system_construction_time << std::endl;
+    //    KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
+    //        << "System Construction Time: " << system_construction_time << std::endl;
 
-        TSystemMatrixType& rA  = *BaseType::mpA;
-        TSystemVectorType& rDx = *BaseType::mpDx;
-        TSystemVectorType& rb  = *BaseType::mpb;
+    //    TSystemMatrixType& rA  = *BaseType::mpA;
+    //    TSystemVectorType& rDx = *BaseType::mpDx;
+    //    TSystemVectorType& rb  = *BaseType::mpb;
 
-        // Initial operations ... things that are constant over the Solution Step
-        p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+    //    // Initial operations ... things that are constant over the Solution Step
+    //    p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-        // only initialize solution step of conditions
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
-        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-            if (r_condition.IsActive()) {
-                r_condition.InitializeSolutionStep(r_current_process_info);
-            }
-        });
+    //    // only initialize solution step of conditions
+    //    //const auto& r_current_process_info = r_model_part.GetProcessInfo();
+    //    //block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+    //    //    if (r_condition.IsActive()) {
+    //    //        r_condition.InitializeSolutionStep(r_current_process_info);
+    //    //    }
+    //    //});
+    //    p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-        // Initialisation of the convergence criteria
-        if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-            TSparseSpace::SetToZero(rb);
-            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-        }
+    //    // Initialisation of the convergence criteria
+    //    if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
+    //        TSparseSpace::SetToZero(rb);
+    //        p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+    //    }
 
-        BaseType::mpConvergenceCriteria->InitializeSolutionStep(
-            r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+    //    BaseType::mpConvergenceCriteria->InitializeSolutionStep(
+    //        r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
-        if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-            TSparseSpace::SetToZero(rb);
-        }
+    //    if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
+    //        TSparseSpace::SetToZero(rb);
+    //    }
 
-        KRATOS_CATCH("");
-    }
+    //    KRATOS_CATCH("");
+    //}
 
-    /**
-     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     */
-    void FinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
+    ///**
+    // * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+    // * @details A member variable should be used as a flag to make sure this function is called only once per step.
+    // */
+    //void FinalizeSolutionStep() override
+    //{
+    //    KRATOS_TRY;
 
-        ModelPart& r_model_part = BaseType::GetModelPart();
+    //    ModelPart& r_model_part = BaseType::GetModelPart();
 
-        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+    //    typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
 
-        TSystemMatrixType& rA  = *BaseType::mpA;
-        TSystemVectorType& rDx = *BaseType::mpDx;
-        TSystemVectorType& rb  = *BaseType::mpb;
+    //    TSystemMatrixType& rA  = *BaseType::mpA;
+    //    TSystemVectorType& rDx = *BaseType::mpDx;
+    //    TSystemVectorType& rb  = *BaseType::mpb;
 
-        // Finalisation of the solution step,
-        // operations to be done after achieving convergence, for example the
-        // Final Residual Vector (mb) has to be saved in there
-        // to avoid error accumulation
+    //    // Finalisation of the solution step,
+    //    // operations to be done after achieving convergence, for example the
+    //    // Final Residual Vector (mb) has to be saved in there
+    //    // to avoid error accumulation
 
-        // just finialize conditions and not elements as defined in the scheme
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+    //    // just finialize conditions and not elements as defined in the scheme
+    //    const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
-        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-            if (r_condition.IsActive()) {
-                r_condition.FinalizeSolutionStep(r_current_process_info);
-            }
-        });
+    //    block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+    //        if (r_condition.IsActive()) {
+    //            r_condition.FinalizeSolutionStep(r_current_process_info);
+    //        }
+    //    });
 
-        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
-        BaseType::mpConvergenceCriteria->FinalizeSolutionStep(
-            r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+    //    p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+    //    BaseType::mpConvergenceCriteria->FinalizeSolutionStep(
+    //        r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
-        // Cleaning memory after the solution
-        p_scheme->Clean();
+    //    // Cleaning memory after the solution
+    //    p_scheme->Clean();
 
-        if (BaseType::mReformDofSetAtEachStep == true) // deallocate the systemvectors
-        {
-            this->Clear();
-        }
+    //    if (BaseType::mReformDofSetAtEachStep == true) // deallocate the systemvectors
+    //    {
+    //        this->Clear();
+    //    }
 
-        KRATOS_CATCH("");
-    }
+    //    KRATOS_CATCH("");
+    //}
 
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
@@ -367,7 +302,7 @@ public:
         unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        // only initialize conditions
+        // only initialize conditions, not that this cannot be put in the scheme, as the scheme is required to InitializeNonLinearIteration both elements and conditions
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
         block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
             if (r_condition.IsActive()) {
@@ -390,12 +325,14 @@ public:
         // Updating the results stored in the database
         this->UpdateSolutionStepValue(rDx, dx_tot);
 
-        // only finalize condition non linear iteration
-        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-            if (r_condition.IsActive()) {
-                r_condition.FinalizeNonLinearIteration(r_current_process_info);
-            }
-        });
+        p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+
+        //// only finalize condition non linear iteration
+        //block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+        //    if (r_condition.IsActive()) {
+        //        r_condition.FinalizeNonLinearIteration(r_current_process_info);
+        //    }
+        //});
 
         BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
@@ -422,7 +359,9 @@ public:
         }
 
         if (is_converged) {
-            this->UpdateSolutionStepDerivative(dx_tot, r_model_part);
+            // here only the derivatives are updated
+            p_scheme->Update(r_model_part, r_dof_set, rA, dx_tot, rb);
+            //this->UpdateSolutionStepDerivative(dx_tot, r_model_part);
         }
 
         // plots a warning if the maximum number of iterations is exceeded
@@ -525,9 +464,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mBeta;
-    double mGamma;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -619,98 +555,6 @@ private:
         return false;
     }
 
-    void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
-                                           TSystemVectorType& rSecondDerivativeVector,
-                                           ModelPart&         rModelPart,
-                                           IndexType          i)
-    {
-        block_for_each(rModelPart.Nodes(),
-                       [&rFirstDerivativeVector, &rSecondDerivativeVector, i, this](Node& rNode) {
-            if (rNode.IsActive()) {
-                GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector,
-                                          rSecondDerivativeVector, i);
-                GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector,
-                                          rSecondDerivativeVector, i);
-
-                const std::vector<const Variable<double>*> optional_variables = {
-                    &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
-
-                for (const auto p_variable : optional_variables) {
-                    GetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
-                                                      rSecondDerivativeVector, i);
-                }
-            }
-        });
-    }
-
-    void SetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
-                                           TSystemVectorType& rSecondDerivativeVector,
-                                           ModelPart&         rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
-            if (rNode.IsActive()) {
-                SetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-                SetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-
-                const std::vector<const Variable<double>*> optional_variables = {
-                    &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
-
-                for (const auto p_variable : optional_variables) {
-                    SetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
-                                                      rSecondDerivativeVector);
-                }
-            }
-        });
-    }
-
-    void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
-                                           const Node&             rNode,
-                                           TSystemVectorType&      rFirstDerivativeVector,
-                                           TSystemVectorType&      rSecondDerivativeVector,
-                                           IndexType               i) const
-    {
-        if (rNode.HasDofFor(rVariable)) {
-            GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector, i);
-        }
-    }
-
-    void SetDerivativesForOptionalVariable(const Variable<double>&  rVariable,
-                                           Node&                    rNode,
-                                           const TSystemVectorType& rFirstDerivativeVector,
-                                           const TSystemVectorType& rSecondDerivativeVector)
-    {
-        if (rNode.HasDofFor(rVariable)) {
-            SetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-        }
-    }
-
-    void GetDerivativesForVariable(const Variable<double>& rVariable,
-                                   const Node&             rNode,
-                                   TSystemVectorType&      rFirstDerivativeVector,
-                                   TSystemVectorType&      rSecondDerivativeVector,
-                                   IndexType               i) const
-    {
-        const auto& r_first_derivative  = rVariable.GetTimeDerivative();
-        const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
-
-        const auto equation_id              = rNode.GetDof(rVariable).EquationId();
-        rFirstDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_first_derivative, i);
-        rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_second_derivative, i);
-    }
-
-    void SetDerivativesForVariable(const Variable<double>&  rVariable,
-                                   Node&                    rNode,
-                                   const TSystemVectorType& rFirstDerivativeVector,
-                                   const TSystemVectorType& rSecondDerivativeVector)
-    {
-        const auto& r_first_derivative  = rVariable.GetTimeDerivative();
-        const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
-
-        const auto equation_id                              = rNode.GetDof(rVariable).EquationId();
-        rNode.FastGetSolutionStepValue(r_first_derivative)  = rFirstDerivativeVector[equation_id];
-        rNode.FastGetSolutionStepValue(r_second_derivative) = rSecondDerivativeVector[equation_id];
-    }
-
     void UpdateSolutionStepValue(TSystemVectorType& rDx, TSystemVectorType& rDx_tot)
     {
         // performs: rDx_tot += rDx;
@@ -724,42 +568,6 @@ private:
                 dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx, dof.EquationId());
             }
         });
-    }
-
-    void UpdateSolutionStepDerivative(TSystemVectorType& rDx_tot, ModelPart& rModelPart)
-    {
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        const DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
-
-        TSystemVectorType first_derivative_vector  = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSystemVectorType second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
-
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-        // get values from previous time step as the derivatives are already updated in the Predict step
-        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector,
-                                                rModelPart, 1);
-
-        // performs: TSystemVectorType delta_first_derivative_vector = rDx_tot * (mGamma / (mBeta * delta_time)) - first_derivative_vector * (mGamma/mBeta) + r_second_derivative_vector * (delta_time * (1-mGamma / (2 * mBeta)));
-        TSystemVectorType delta_first_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, (mGamma / (mBeta * delta_time)), rDx_tot);
-        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, -(mGamma / mBeta), first_derivative_vector);
-        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
-                                   delta_time * (1 - mGamma / (2 * mBeta)), second_derivative_vector);
-
-        // performs: TSystemVectorType delta_second_derivative_vector = rDx_tot * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
-        TSystemVectorType delta_second_derivative_vector = TSystemVectorType(r_dof_set.size(), 0.0);
-        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, 1 / (mBeta * delta_time * delta_time), rDx_tot);
-        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (mBeta * delta_time), first_derivative_vector);
-        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * mBeta), second_derivative_vector);
-
-        // performs: first_derivative_vector += delta_first_derivative_vector;
-        TSparseSpace::UnaliasedAdd(first_derivative_vector, 1.0, delta_first_derivative_vector);
-
-        // performs: second_derivative_vector += delta_second_derivative_vector;
-        TSparseSpace::UnaliasedAdd(second_derivative_vector, 1.0, delta_second_derivative_vector);
-
-        this->SetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
     }
 
     /// <summary>

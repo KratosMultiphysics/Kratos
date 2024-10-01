@@ -173,7 +173,7 @@ public:
             mCopyExternalForceVector = true;
         }
 
-        // only add dynamics to lhs after calculating intial force vector
+        // only add dynamics to lhs after calculating initial second derivative
         this->AddDynamicsToLhs(rA, rModelPart);
 
         // Initialize the linear solver, such that the solver can factorize the matrices already. In case the matrices can be pre-factorized, this step is not

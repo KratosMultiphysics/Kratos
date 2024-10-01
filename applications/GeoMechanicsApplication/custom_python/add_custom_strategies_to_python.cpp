@@ -35,6 +35,7 @@
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
@@ -62,6 +63,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using NewmarkQuasistaticDampedUPwSchemeType =
         NewmarkQuasistaticDampedUPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>;
+	using IncrementalNewmarkLinearElasticUPwSchemeType = IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticTSchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
@@ -93,6 +95,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<NewmarkDynamicUPwSchemeType, typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkDynamicUPwScheme", py::module_local())
         .def(py::init<double, double, double>());
+		
+	py::class_<IncrementalNewmarkLinearElasticUPwSchemeType, typename IncrementalNewmarkLinearElasticUPwSchemeType::Pointer, BaseSchemeType>(
+	    m, "IncrementalNewmarkLinearElasticUPwScheme", py::module_local())
+	    .def(py::init<double, double, double>());
 
     py::class_<NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticPwScheme")
@@ -135,7 +141,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
                typename GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                      BuilderAndSolverType::Pointer, Parameters&, double, double, int, bool, bool>());
+                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool>());
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

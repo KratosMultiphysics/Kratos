@@ -510,8 +510,7 @@ class GeoMechanicalSolver(PythonSolver):
 
             # check if the solver_type, solution_type and scheme_type are set to the correct values
             if ((self.settings["solver_type"].GetString().lower() != "u_pw")
-                    or (self.settings["solution_type"].GetString().lower() != "dynamic")
-                    or (self.settings["scheme_type"].GetString().lower() != "newmark")):
+                    or (self.settings["solution_type"].GetString().lower() != "dynamic")):
                 raise ValueError(f"The selected strategy, {strategy_type.lower()}, is only available for the "
                                  f"U-Pw solver, dynamic solution type and newmark scheme")
 
@@ -527,10 +526,14 @@ class GeoMechanicalSolver(PythonSolver):
 
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
+            theta = self.settings["newmark_theta"].GetDouble()
+
             calculate_initial_acceleration = self.settings["initialize_acceleration"].GetBool()
 
             # delta time has to be initialized before solving solution steps
             self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
+
+            new_scheme = GeoMechanicsApplication.IncrementalNewmarkLinearElasticUPwScheme(beta, gamma, theta)
 
             new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(
                                                                                         self.linear_solver,
@@ -540,13 +543,11 @@ class GeoMechanicalSolver(PythonSolver):
 
             solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
                                                                                          self.computing_model_part,
-                                                                                         self.scheme,
+                                                                                         new_scheme,
                                                                                          self.linear_solver,
                                                                                          self.convergence_criterion,
                                                                                          new_builder_and_solver,
                                                                                          self.strategy_params,
-                                                                                         beta,
-                                                                                         gamma,
                                                                                          max_iters,
                                                                                          compute_reactions,
                                                                                          move_mesh_flag)

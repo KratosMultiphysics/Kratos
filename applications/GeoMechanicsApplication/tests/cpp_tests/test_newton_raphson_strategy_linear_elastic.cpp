@@ -12,6 +12,7 @@
 
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_Pw_scheme.hpp"
 #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 #include "tests/cpp_tests/test_utilities/geo_custom_condition.h"
 #include "tests/cpp_tests/test_utilities/geo_custom_element.h"
@@ -117,7 +118,7 @@ public:
         double gamma = 0.5;
         // create strategy
         auto pScheme =
-            std::make_shared<NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma, 0.75);
+            std::make_shared<IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma, 0.75);
 
         auto factory = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
 
@@ -139,7 +140,7 @@ public:
 
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
             rModelPart, pScheme, pLinearSolver, pConvergenceCriteria, pBuilderAndSolver,
-            dummy_parameters, beta, gamma, 30, false, false);
+            dummy_parameters, 30, false, false);
     }
 };
 
