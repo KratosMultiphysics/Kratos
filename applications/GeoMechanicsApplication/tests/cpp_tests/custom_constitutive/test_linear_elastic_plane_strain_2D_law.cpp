@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorking
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
 }
 
-Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw, double strain_value)
+Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 {
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -104,11 +104,24 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw, doubl
     return stress;
 }
 
+Vector CalculateStrain(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
+{
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    Vector strain;
+    parameters.SetStrainVector(strain);
+
+    rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
+
+    return strain;
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoLinearElasticPlaneStrain2DLaw law;
 
-    const auto stress = CalculateStress(law, 1.0);
+    const auto stress = CalculateStress(law);
 
     Vector expected_stress{4};
     expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
@@ -121,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     GeoLinearElasticPlaneStrain2DLaw law;
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
 
-    const auto stress = CalculateStress(law, 1.0);
+    const auto stress = CalculateStress(law);
 
     Vector expected_stress{4};
     expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0;
@@ -140,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     parameters.SetStressVector(initial_stress);
     law.InitializeMaterialResponseCauchy(parameters);
 
-    const auto stress = CalculateStress(law, 1.0);
+    const auto stress = CalculateStress(law);
 
     Vector expected_stress{4};
     expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06;
@@ -159,35 +172,39 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     initial_parameters.SetStressVector(initial_stress);
     law.InitializeMaterialResponseCauchy(initial_parameters);
 
-    auto stress = CalculateStress(law, 1.0);
+    auto stress = CalculateStress(law);
 
     ConstitutiveLaw::Parameters final_parameters;
     auto                        final_strain = Vector{ScalarVector{4, 1.3}};
     final_parameters.SetStrainVector(final_strain);
     law.FinalizeMaterialResponseCauchy(final_parameters);
-    stress = CalculateStress(law, 1.0);
+    stress = CalculateStress(law);
 
     Vector expected_stress{4};
     expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-/*
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoLinearElasticPlaneStrain2DLaw law;
+    ConstitutiveLaw::Parameters      parameters;
+    auto strain = Vector{3}; // The law expects the vector to have the correct length (which somehow is 3)
+    parameters.SetStrainVector(strain);
 
-public:
-[x] ConstitutiveLaw::Pointer Clone() const override;
-[x] bool RequiresInitializeMaterialResponse() override;
-[ ] void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-[x] bool RequiresFinalizeMaterialResponse() override;
-[ ] void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-[ ] void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-[x] void GetLawFeatures(Features& rFeatures) override;
-[x] SizeType WorkingSpaceDimension() override;
-[x] SizeType GetStrainSize() const override;
-[ ] bool IsIncremental() override;
-[ ] bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    // clang-format off
+    auto deformation_gradient = Matrix{3,3};
+    deformation_gradient <<= 1.0, 2.0, 3.0,
+                             4.0, 5.0, 6.0,
+                             7.0, 8.0, 9.0;
+    // clang-format on
+    parameters.SetDeformationGradientF(deformation_gradient);
 
+    law.CalculateMaterialResponsePK2(parameters);
 
-*/
+    Vector expected_strain{3};
+    expected_strain <<= 8.0, 14.0, 22.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_strain, strain, 1e-3);
+}
 
 } // namespace Kratos::Testing
