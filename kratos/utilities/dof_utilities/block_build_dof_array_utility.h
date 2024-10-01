@@ -109,6 +109,8 @@ public:
                 const auto it_elem = r_elements_array.cbegin() + i;
 
                 // Gets list of DOF involved on every element
+                KRATOS_WATCH(it_elem->Id())
+                KRATOS_WATCH(*it_elem)
                 it_elem->GetDofList(dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }

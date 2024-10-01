@@ -714,8 +714,13 @@ public:
     {
         KRATOS_TRY;
 
-        BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
+        KRATOS_WATCH(rModelPart)
+        KRATOS_WATCH(BaseType::mDofSet.size())
 
+        // BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
+        BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, 3, BaseType::GetCalculateReactionsFlag());
+
+        KRATOS_WATCH(BaseType::mDofSet.size())
         KRATOS_CATCH("");
     }
 

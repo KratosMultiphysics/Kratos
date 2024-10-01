@@ -49,6 +49,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
+        this->SetUpPressureGeometryPointer();
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -57,6 +58,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
+        this->SetUpPressureGeometryPointer();
     }
 
     ~SmallStrainUPwDiffOrderElement() override = default;
@@ -109,16 +111,21 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
+        std::stringstream claw_buffer;
+        if (mConstitutiveLawVector.size() != 0) {
+            claw_buffer << mConstitutiveLawVector[0]->Info();
+        } else {
+            claw_buffer << "not defined";
+        }
         buffer << "U-Pw small strain different order Element #" << Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+               << "\nConstitutive law: " << claw_buffer.str();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "U-Pw small strain different order Element #" << Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << Info();
     }
 
 protected:
@@ -261,6 +268,13 @@ private:
     GeometryType::Pointer mpPressureGeometry;
 
     [[nodiscard]] DofsVectorType GetDofs() const override;
+
+    /**
+     * @brief Sets the up the pressure geometry pointer object
+     * This function sets the pointer for the auxiliary geometry for the pressure problem
+     * The pressure geometry pointer is set according to the element geometry number of nodes and dimension
+     */
+    void SetUpPressureGeometryPointer();
 
     // Serialization
 
