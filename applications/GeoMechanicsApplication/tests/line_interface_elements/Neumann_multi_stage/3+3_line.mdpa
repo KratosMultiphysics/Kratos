@@ -1,0 +1,86 @@
+Begin Table 1 TIME TANGENTIAL_LOAD
+  0.0  0.0
+  1.0  667.0
+  2.0  1334.0
+  3.0  1500.0
+  4.0  3000.0
+End Table
+
+Begin Table 2 TIME NORMAL_LOAD
+  0.0  0.0
+  1.0  333.0
+  2.0  666.0
+  3.0  999.0
+  4.0  1332.0
+End Table
+
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+  1  2.0000000000 0.0000000000 0.0000000000
+  2  4.5000000000 0.0000000000 0.0000000000
+  3  7.0000000000 0.0000000000 0.0000000000
+ 11  2.0000000000 0.0000000000 0.0000000000
+ 12  4.5000000000 0.0000000000 0.0000000000
+ 13  7.0000000000 0.0000000000 0.0000000000
+End Nodes
+
+Begin Elements Geo_UPwLineInterfacePlainStrainElement3Plus3N
+  1  1   1   3   2  11  13  12
+End Elements
+
+Begin Conditions UPwNormalFaceLoadCondition2D3N
+  1  2  13  11  12
+End Conditions
+
+Begin SubModelPart Interfaces
+  Begin SubModelPartNodes
+      1
+      2
+      3
+     11
+     12
+     13
+  End SubModelPartNodes
+  Begin SubModelPartElements
+      1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart FixedNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart LoadedSide
+  Begin SubModelPartNodes
+     11
+     12
+     13
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+     1
+  End SubModelPartConditions
+  Begin SubModelPartTables
+    1
+    2
+  End SubModelPartTables  
+End SubModelPart
+
+Begin SubModelPart AllNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+     11
+     12
+     13
+  End SubModelPartNodes
+End SubModelPart
