@@ -138,7 +138,7 @@ void GeoLinearElasticPlaneStrain2DLaw::FinalizeMaterialResponsePK2(ConstitutiveL
 
 void GeoLinearElasticPlaneStrain2DLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearPlaneStrainK0Law)
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
@@ -148,7 +148,7 @@ void GeoLinearElasticPlaneStrain2DLaw::save(Serializer& rSerializer) const
 
 void GeoLinearElasticPlaneStrain2DLaw::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearPlaneStrainK0Law)
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);

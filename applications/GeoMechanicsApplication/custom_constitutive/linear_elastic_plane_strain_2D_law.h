@@ -12,8 +12,8 @@
 
 #pragma once
 
-// Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_law.h"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
@@ -25,11 +25,11 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public LinearPlaneStrainK0Law
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
 {
 public:
     /// The base class LinearPlaneStrainK0Law type definition
-    using BaseType = LinearPlaneStrainK0Law;
+    using BaseType = GeoLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
