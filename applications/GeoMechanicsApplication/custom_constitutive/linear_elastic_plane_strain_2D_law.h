@@ -29,29 +29,17 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
 {
 public:
-    /// The base class LinearPlaneStrainK0Law type definition
     using BaseType = GeoLinearElasticLaw;
-
-    /// The size type definition
     using SizeType = std::size_t;
-
-    /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
-
-    /// Static definition of the VoigtSize
-    // for the time being
     static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
-    /// Counted pointer of LinearPlaneStrainK0Law
     KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
     GeoLinearElasticPlaneStrain2DLaw();
 
     explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension);
     GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
-    /**
-     * @brief The clone operation
-     */
     ConstitutiveLaw::Pointer Clone() const override;
 
     bool RequiresInitializeMaterialResponse() override;
@@ -69,7 +57,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working
+     * @return The dimension where the law is working
      */
     SizeType WorkingSpaceDimension() override;
 
