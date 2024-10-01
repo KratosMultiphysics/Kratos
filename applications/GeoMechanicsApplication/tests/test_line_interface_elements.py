@@ -39,11 +39,9 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         # Check the horizontal element
         shear_traction = 667.0
-        shear_stiffness = 1.5e7
-        expected_horizontal_displacement = -shear_traction / shear_stiffness
+        expected_horizontal_displacement = -shear_traction / self.shear_stiffness
         normal_traction = 333.0
-        normal_stiffness = 3.0e7
-        expected_vertical_displacement = -normal_traction / normal_stiffness
+        expected_vertical_displacement = -normal_traction / self.normal_stiffness
         top_node_indices = [3, 4, 5] # These correspond to nodes 11, 12, 13
         for index in top_node_indices:
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
@@ -65,8 +63,8 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         # Check the vertical element
         left_node_indices = [6, 7, 8] # These correspond to nodes 21, 22, 23
-        expected_horizontal_displacement = normal_traction / normal_stiffness
-        expected_vertical_displacement = -shear_traction / shear_stiffness
+        expected_horizontal_displacement = normal_traction / self.normal_stiffness
+        expected_vertical_displacement = -shear_traction / self.shear_stiffness
         for index in left_node_indices:
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
@@ -87,6 +85,23 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertVectorAlmostEqual(actual_vector, expected_vector)
 
 
+    def assert_results_of_multi_stage_test(self, stage, displacement_vector):
+        expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
+        expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
+        self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
+
+        expected_normal_relative_displacement = displacement_vector[1]
+        expected_tangential_relative_displacement = displacement_vector[0]
+        expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+                                      expected_relative_displacement_vectors)
+
+        expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
+                                      self.shear_stiffness * expected_tangential_relative_displacement]] * 3
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
+                                      expected_traction_vectors)
+
+
     def test_multi_stage_3_plus_3_line_interface_element_with_dirichlet_conditions(self):
         file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Dirichlet_multi_stage'))
 
@@ -97,23 +112,9 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         prescribed_displacement_vectors = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
         for file_name, displacement_vector in zip(project_parameters_file_names, prescribed_displacement_vectors):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
-
             stage.Run()
 
-            expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
-            expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
-            self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
-
-            expected_normal_relative_displacement = displacement_vector[1]
-            expected_tangential_relative_displacement = displacement_vector[0]
-            expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
-                                          expected_relative_displacement_vectors)
-
-            expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
-                                          self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
-                                          expected_traction_vectors)
+            self.assert_results_of_multi_stage_test(stage, displacement_vector)
 
         os.chdir(initial_cwd)
 
@@ -128,23 +129,9 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
         for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
             stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
-
             stage.Run()
 
-            expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
-            expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have been displaced
-            self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
-
-            expected_normal_relative_displacement = displacement_vector[1]
-            expected_tangential_relative_displacement = displacement_vector[0]
-            expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
-                                          expected_relative_displacement_vectors)
-
-            expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
-                                          self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-            self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
-                                          expected_traction_vectors)
+            self.assert_results_of_multi_stage_test(stage, displacement_vector)
 
         os.chdir(initial_cwd)
 
