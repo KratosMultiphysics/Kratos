@@ -185,6 +185,26 @@ bool GeoLinearElasticLaw::GetConsiderDiagonalEntriesOnlyAndNoShear() const
     return mConsiderDiagonalEntriesOnlyAndNoShear;
 }
 
+void GeoLinearElasticLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
+{
+    // 1.-Compute total deformation gradient
+    const Matrix& F = rValues.GetDeformationGradientF();
+
+    // for shells/membranes in case the DeformationGradient is of size 3x3
+    BoundedMatrix<double, 2, 2> F2x2;
+    for (unsigned int i = 0; i < 2; ++i)
+        for (unsigned int j = 0; j < 2; ++j)
+            F2x2(i, j) = F(i, j);
+
+    Matrix E_tensor = prod(trans(F2x2), F2x2);
+
+    for (unsigned int i = 0; i < 2; ++i)
+        E_tensor(i, i) -= 1.0;
+
+    E_tensor *= 0.5;
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+}
+
 void GeoLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
