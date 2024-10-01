@@ -31,6 +31,7 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_p
 }
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther)
+    : GeoLinearElasticLaw(rOther)
 {
     mStressVector          = rOther.mStressVector;
     mStressVectorFinalized = rOther.mStressVectorFinalized;
@@ -38,7 +39,8 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLine
     mStrainVectorFinalized = rOther.mStrainVectorFinalized;
     mIsModelInitialized    = rOther.mIsModelInitialized;
 
-    if (rOther.mpConstitutiveDimension) mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+    if (rOther.mpConstitutiveDimension)
+        mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
 }
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
@@ -90,6 +92,11 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const double c1 = (1.0 - NU) * c0;
     const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
     const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
+
+    KRATOS_INFO("c0 = ") << c0 << std::endl;
+    KRATOS_INFO("c1 = ") << c1 << std::endl;
+    KRATOS_INFO("c2 = ") << c2 << std::endl;
+    KRATOS_INFO("c3 = ") << c3 << std::endl;
 
     C = mpConstitutiveDimension->CreateConstitutiveMatrix(c1, c2, c3);
 
