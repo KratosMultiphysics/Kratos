@@ -14,6 +14,7 @@
 
 #include "custom_constitutive/linear_elastic_law.h"
 #include "geo_mechanics_application_constants.h"
+#include "plane_strain_dimension.h"
 
 namespace Kratos
 {
@@ -43,6 +44,10 @@ public:
 
     /// Counted pointer of LinearPlaneStrainK0Law
     KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
+    GeoLinearElasticPlaneStrain2DLaw();
+
+    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension);
+    GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
     /**
      * @brief The clone operation
@@ -106,11 +111,12 @@ protected:
     ///@}
 
 private:
-    Vector mStressVector          = ZeroVector(VoigtSize);
-    Vector mStressVectorFinalized = ZeroVector(VoigtSize);
-    Vector mDeltaStrainVector     = ZeroVector(VoigtSize);
-    Vector mStrainVectorFinalized = ZeroVector(VoigtSize);
-    bool   mIsModelInitialized    = false;
+    Vector                                 mStressVector          = ZeroVector(VoigtSize);
+    Vector                                 mStressVectorFinalized = ZeroVector(VoigtSize);
+    Vector                                 mDeltaStrainVector     = ZeroVector(VoigtSize);
+    Vector                                 mStrainVectorFinalized = ZeroVector(VoigtSize);
+    bool                                   mIsModelInitialized    = false;
+    std::unique_ptr<ConstitutiveDimension> mpConstitutiveDimension;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

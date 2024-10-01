@@ -12,6 +12,7 @@
 
 #include "boost/numeric/ublas/assignment.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/plane_strain_dimension.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace
@@ -47,7 +48,7 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 
 GeoLinearElasticPlaneStrain2DLaw CreateLinearElasticPlaneStrainLaw()
 {
-    return GeoLinearElasticPlaneStrain2DLaw{};
+    return GeoLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrainDimension>()};
 }
 
 } // namespace

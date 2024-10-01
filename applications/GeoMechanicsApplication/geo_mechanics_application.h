@@ -137,6 +137,8 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 
+#include <custom_constitutive/plane_strain_dimension.h>
+
 namespace Kratos
 {
 
@@ -944,7 +946,8 @@ private:
     const BilinearCohesive3DLaw            mBilinearCohesive3DLaw;
     const BilinearCohesive2DLaw            mBilinearCohesive2DLaw;
     const LinearPlaneStrainK0Law           mLinearPlaneStrainK0Law;
-    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw;
+    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw{
+        std::make_unique<PlaneStrainDimension>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 

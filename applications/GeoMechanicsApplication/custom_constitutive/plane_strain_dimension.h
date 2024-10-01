@@ -21,6 +21,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainDimension : public Consti
 {
 public:
     Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) override;
+    std::unique_ptr<ConstitutiveDimension> Clone() override;
 };
 
 } // namespace Kratos

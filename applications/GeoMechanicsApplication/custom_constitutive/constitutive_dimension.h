@@ -20,6 +20,7 @@ class ConstitutiveDimension
 {
 public:
     virtual Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) = 0;
+    virtual std::unique_ptr<ConstitutiveDimension> Clone() = 0;
 };
 
 } // namespace Kratos

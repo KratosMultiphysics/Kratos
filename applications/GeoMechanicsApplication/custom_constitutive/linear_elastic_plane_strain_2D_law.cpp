@@ -23,9 +23,27 @@
 namespace Kratos
 {
 
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() =default;
+
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension)
+    : GeoLinearElasticLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
+{
+}
+
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther)
+{
+    mStressVector          = rOther.mStressVector;
+    mStressVectorFinalized = rOther.mStressVectorFinalized;
+    mDeltaStrainVector     = rOther.mDeltaStrainVector;
+    mStrainVectorFinalized = rOther.mStrainVectorFinalized;
+    mIsModelInitialized    = rOther.mIsModelInitialized;
+
+    mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+}
+
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
 {
-    return Kratos::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
+    return std::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
 }
 
 bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
@@ -73,9 +91,7 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
     const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
 
-
-    PlaneStrainDimension dimension;
-    C = dimension.CreateConstitutiveMatrix(c1, c2, c3);
+    C = mpConstitutiveDimension->CreateConstitutiveMatrix(c1, c2, c3);
 
     KRATOS_CATCH("")
 }

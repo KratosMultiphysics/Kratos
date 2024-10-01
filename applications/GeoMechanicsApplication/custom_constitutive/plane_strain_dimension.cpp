@@ -37,4 +37,6 @@ Matrix PlaneStrainDimension::CreateConstitutiveMatrix(double c1, double c2, doub
     return result;
 }
 
+std::unique_ptr<ConstitutiveDimension> PlaneStrainDimension::Clone() {return std::make_unique<PlaneStrainDimension>();}
+
 } // namespace Kratos
