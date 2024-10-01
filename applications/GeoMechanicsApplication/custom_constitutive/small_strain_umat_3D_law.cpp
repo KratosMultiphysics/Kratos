@@ -291,12 +291,12 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties& rMaterialProperties)
         return false;
     }
     if (rMaterialProperties[IS_FORTRAN_UDSM]) {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
     } else {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
     }
 
-    if (!pUserMod) {
+    if (!mpUserMod) {
         KRATOS_ERROR << "cannot load function User_Mod in the specified UMAT "
                      << rMaterialProperties[UDSM_NAME] << std::endl;
         return false;
@@ -333,8 +333,8 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties& rMaterialProperties
         KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
-    pUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
-    if (!pUserMod) {
+    mpUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
+    if (!mpUserMod) {
         KRATOS_INFO("Error in loadUMATWindows")
             << "cannot load function umat in the specified UMAT: " << rMaterialProperties[UDSM_NAME]
             << std::endl;
@@ -514,12 +514,12 @@ void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters& rValues)
     // variable to check if an error happened in the model:
     const auto& MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
     auto        nProperties        = static_cast<int>(MaterialParameters.size());
-    pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
-             &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
-             &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr, nullptr,
-             &materialName, &ndi, &nshr, &ntens, &nStateVariables, &(MaterialParameters.data()[0]),
-             &nProperties, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &iElement,
-             &integrationNumber, nullptr, nullptr, &iStep, &iteration);
+    mpUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
+              &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
+              &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr,
+              nullptr, &materialName, &ndi, &nshr, &ntens, &nStateVariables,
+              &(MaterialParameters.data()[0]), &nProperties, nullptr, nullptr, nullptr, nullptr,
+              nullptr, nullptr, &iElement, &integrationNumber, nullptr, nullptr, &iStep, &iteration);
 
     KRATOS_CATCH("")
 }

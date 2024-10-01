@@ -59,11 +59,9 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType, NodesArrayType const&, PropertiesType::Pointer) const override;
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType, GeometryType::Pointer, PropertiesType::Pointer) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
