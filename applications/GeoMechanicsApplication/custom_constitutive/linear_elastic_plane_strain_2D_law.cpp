@@ -18,6 +18,8 @@
 
 #include "geo_mechanics_application_variables.h"
 
+#include "plane_strain_dimension.h"
+
 namespace Kratos
 {
 
@@ -65,26 +67,15 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const auto        E                     = r_material_properties[YOUNG_MODULUS];
     const auto        NU                    = r_material_properties[POISSON_RATIO];
 
-    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU) * c0;
     const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
     const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
 
-    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
-    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
 
-    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
-    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
-
-    C(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
+    PlaneStrainDimension dimension;
+    C = dimension.CreateConstitutiveMatrix(c1, c2, c3);
 
     KRATOS_CATCH("")
 }
