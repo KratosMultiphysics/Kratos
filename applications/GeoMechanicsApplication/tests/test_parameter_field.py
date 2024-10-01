@@ -67,10 +67,23 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
-        except IOError:
-            print(new_custom_script_path)
-            os.chmod(new_custom_script_path, 777)
-            shutil.copy(custom_python_file, new_custom_script_path)
+        except shutil.SameFileError as e:
+             print('Source and destination represents the same file. %s' % e)
+             raise
+        except PermissionError as e:
+             print('Permission denied: %s' % e)
+             print('The file %s' % new_custom_script_path)
+             raise
+        except IOError as e:
+             print('Try to change permission %s' % e)
+             print('The file %s' % new_custom_script_path)
+             os.chmod(new_custom_script_path, 777)
+             shutil.copy(custom_python_file, new_custom_script_path)
+        except:
+             print('Error occurred while copying file.')
+             print('Source %s' % custom_python_file)
+             print('Destination %s' % new_custom_script_path)
+             raise
 
     # run simulation
         simulation = test_helper.run_kratos(file_path)
@@ -155,10 +168,11 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
-        except IOError:
-            print(new_custom_script_path)
-            os.chmod(new_custom_script_path, 777)
-            shutil.copy(custom_python_file, new_custom_script_path)
+        except:
+            print('Error occurred while copying file.')
+            print('Source %s' % custom_python_file)
+            print('Destination %s' % new_custom_script_path)
+            raise
 
         # run simulation
         simulation = test_helper.run_kratos(file_path)
