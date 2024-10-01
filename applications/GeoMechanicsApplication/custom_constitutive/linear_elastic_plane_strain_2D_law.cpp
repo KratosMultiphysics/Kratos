@@ -38,7 +38,7 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLine
     mStrainVectorFinalized = rOther.mStrainVectorFinalized;
     mIsModelInitialized    = rOther.mIsModelInitialized;
 
-    mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+    if (rOther.mpConstitutiveDimension) mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
 }
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
