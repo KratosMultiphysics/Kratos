@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() =default;
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() = default;
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
@@ -55,25 +55,26 @@ bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVari
 
 void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
-    // Set the type of law
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
 
-    // Set strain measure required by the constitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
-    // Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
-
-    // Set the space dimension
+    rFeatures.mStrainSize     = GetStrainSize();
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-SizeType GeoLinearElasticPlaneStrain2DLaw::WorkingSpaceDimension() { return Dimension; }
+SizeType GeoLinearElasticPlaneStrain2DLaw::WorkingSpaceDimension()
+{
+    return mpConstitutiveDimension->GetDimension();
+}
 
-SizeType GeoLinearElasticPlaneStrain2DLaw::GetStrainSize() const { return VoigtSize; }
+SizeType GeoLinearElasticPlaneStrain2DLaw::GetStrainSize() const
+{
+    return mpConstitutiveDimension->GetStrainSize();
+}
 
 bool GeoLinearElasticPlaneStrain2DLaw::IsIncremental() { return true; }
 
@@ -84,7 +85,6 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const auto        E                     = r_material_properties[YOUNG_MODULUS];
     const auto        NU                    = r_material_properties[POISSON_RATIO];
-
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU) * c0;
