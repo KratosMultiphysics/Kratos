@@ -11,6 +11,7 @@
 //
 
 #include "linear_elastic_law.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -196,12 +197,7 @@ void GeoLinearElasticLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters
         for (unsigned int j = 0; j < 2; ++j)
             F2x2(i, j) = F(i, j);
 
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
-
-    for (unsigned int i = 0; i < 2; ++i)
-        E_tensor(i, i) -= 1.0;
-
-    E_tensor *= 0.5;
+    Matrix E_tensor        = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(F2x2);
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
