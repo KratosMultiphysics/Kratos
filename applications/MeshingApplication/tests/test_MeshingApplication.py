@@ -84,13 +84,10 @@ def AssembleTestSuites():
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
                 TTestRemeshMMG2D,
-                TTestRemeshMMG3D,
-                TTwoDDynamicBeamTest,
-                TTwoDDynamicBeamLineLoadTest,
-                TThreeDShellTest,
-                TThreeDDynamicBeamTest,
+                TTestRemeshMMG3D
             ])
         )
+        allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MeshingStructuralMechanicsTestFactory]))
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
 
