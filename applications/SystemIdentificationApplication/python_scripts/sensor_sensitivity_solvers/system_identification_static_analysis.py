@@ -92,7 +92,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
                     sensor.FinalizeSolutionStep()
                     self.FinalizeSolutionStep()
 
-                    sensitivities = self.GetSensitivities()
+                    sensitivities = self.GetSensitivities(self._GetSolver().GetSensitivityModelPart())
                     for var, cexp in sensitivities.items():
                         exp_io.Write(f"{sensor.GetName()}_{var.Name()}", cexp)
 
@@ -117,14 +117,13 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
         Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Computed sensitivities for {process_info[KratosSI.SENSOR_NAME]} using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
 
-    def GetSensitivities(self) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
-        sensitivity_model_part: Kratos.ModelPart = self._GetSolver().GetSensitivityModelPart()
+    def GetSensitivities(self, model_part: Kratos.ModelPart) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
         sensitivity_variables: 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
 
         result: 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]' = {}
         for data_location, variables in sensitivity_variables.items():
             for variable in variables:
-                result[variable] = GetContainerExpression(sensitivity_model_part, data_location, variable)
+                result[variable] = GetContainerExpression(model_part, data_location, variable)
         return result
 
 if __name__ == "__main__":
