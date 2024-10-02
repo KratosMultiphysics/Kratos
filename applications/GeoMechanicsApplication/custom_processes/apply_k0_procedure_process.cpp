@@ -145,21 +145,17 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
     std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
     rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
 
-    // Loop over integration points
-    const Element::GeometryType&                             rGeom = rElement.GetGeometry();
-    const Element::GeometryType::IntegrationPointsArrayType& integration_points =
-        rGeom.IntegrationPoints(rElement.GetIntegrationMethod());
-    for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
+    // Loop over integration point stress vectors
+    for (auto& rStressVector : rStressVectors) {
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVectors[g_point][i_dir] =
-                    k0_vector[i_dir] * (rStressVectors[g_point][k0_main_direction] + POP_value);
-                rStressVectors[g_point][i_dir] -= PoissonURfactor * POP_value;
+                rStressVector[i_dir] = k0_vector[i_dir] * (rStressVector[k0_main_direction] + POP_value);
+                rStressVector[i_dir] -= PoissonURfactor * POP_value;
             }
         }
         // Erase shear stresses
-        std::fill(rStressVectors[g_point].begin() + 3, rStressVectors[g_point].end(), 0.0);
+        std::fill(rStressVector.begin() + 3, rStressVector.end(), 0.0);
     }
     // Set element integration point stress tensors
     rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
