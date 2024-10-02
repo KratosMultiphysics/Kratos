@@ -93,11 +93,6 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
     const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
 
-    KRATOS_INFO("c0 = ") << c0 << std::endl;
-    KRATOS_INFO("c1 = ") << c1 << std::endl;
-    KRATOS_INFO("c2 = ") << c2 << std::endl;
-    KRATOS_INFO("c3 = ") << c3 << std::endl;
-
     C = mpConstitutiveDimension->CreateConstitutiveMatrix(c1, c2, c3);
 
     KRATOS_CATCH("")
