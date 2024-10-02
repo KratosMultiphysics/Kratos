@@ -378,7 +378,7 @@ protected:
                                                     const BoundedVectorType& PrinicipalDamageVector,
                                                     const Vector& StrainVector
                                                     );
-    void GetTotalPrincipalDamageVector(Vector& PrincipaldamageVector,
+    void GetTotalPrincipalDamageVector(BoundedVectorType& PrincipaldamageVector,
                                         const BoundedMatrixType& TotalDamageTensor
                                         );
     void Calculate_tangent_Huu(

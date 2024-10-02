@@ -241,15 +241,15 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStres
         BoundedVectorVoigtType H_NL2u = ZeroVector(6);
         BoundedVectorType Spr = ZeroVector(3);
         BoundedVectorType principal_nonlocal_equivalent_strains = ZeroVector(3);
+        BoundedVectorType principal_damage_increment_vector =  ZeroVector(3);
         BoundedVectorType kappa = ZeroVector(3);
         BoundedVectorType k0 = ZeroVector(3);
         BoundedVectorType beta1 = ZeroVector(3);
         BoundedVectorType beta2 = ZeroVector(3);
         BoundedVectorType F = ZeroVector(3);
         BoundedVectorType principal_strains = ZeroVector(3);
-        BoundedVectorType principal_damage_increment_vector = ZeroVector(3);
         BoundedVectorType principal_damage_n = mDamageVector;
-        Vector damage_vector = mDamageVector;
+        BoundedVectorType damage_vector = mDamageVector;
         Vector local_equivalent_strains = ZeroVector(2);
         Vector nonlocal_equivalent_strains = ZeroVector(2);
         rStrainHistoryParameters = mStrainHistoryParameters;
@@ -290,27 +290,71 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStres
         for(SizeType i = 0; i < Dimension; ++i){
             if(mKappa[i] < k0[i] ){mKappa[i] = k0[i];}
         }
-        //NR iterations for damage
-        for(SizeType n = 0; n < maxiter; ++n){
-            const BoundedVectorType del_kappa = kappa - mKappa;
-            bool all_converged = true;
-            for(SizeType i = 0; i < Dimension; ++i){
-                if(F[i]==0){
-                    const double residual_principal_damage = damage_vector[i] - principal_damage_n[i] - (1-damage_vector[i]) * ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+        const BoundedVectorType del_kappa = kappa - mKappa;
+        //NR v1
+        // for(SizeType n = 0; n < maxiter; ++n){
+        //     const BoundedVectorType del_kappa = kappa - mKappa;
+        //     bool all_converged = true;
+        //     for(SizeType i = 0; i < Dimension; ++i){
+        //         if(F(1)==0){
+        //             KRATOS_WATCH("0")
+        //         }
+        //         if(F[i]==0){
+        //             const double var1 = damage_vector[i] - principal_damage_n[i];
+        //             const double var2 = (1-damage_vector[i]) * ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+        //             const double residual_principal_damage = var1  - var2;
+        //             const double derivative_residual = 1 + ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+        //             principal_damage_increment_vector[i] = -residual_principal_damage/derivative_residual;
+        //             const double norm1 = fabs(residual_principal_damage);
+        //             const double norm2 = fabs(principal_damage_increment_vector[i]);
+        //             if (((norm1 / norm2) >= eps) && (norm1 >= eps)) {
+        //                 all_converged = false;
+        //             }
+        //             TransformPrincipalDamageToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
+        //             //damage increment is getting added in every loop over i, which is stupid. better to have NR loop inside i loop!!!!!!!
+        //             damage_tensor += damage_increment_tensor;
+        //             GetTotalPrincipalDamageVector(damage_vector,damage_tensor);
+        //             KRATOS_WATCH(damage_vector)
+        //             KRATOS_WATCH(damage_tensor)
+        //         }
+        //     }
+        //     if (all_converged) {break;}
+        // }
+        //NR iterations for damage v2
+        // for(SizeType i = 0; i < Dimension; ++i){
+        //     if(F[i]==0){
+        //         for(SizeType n = 0; n < maxiter; ++n){
+        //             const double var1 = damage_vector[i] - principal_damage_n[i];
+        //             const double var2 = (1-damage_vector[i]) * ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+        //             const double residual_principal_damage = var1  - var2;
+        //             const double derivative_residual = 1 + ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+        //             principal_damage_increment_vector[i] = -residual_principal_damage/derivative_residual;
+        //             const double norm1 = fabs(residual_principal_damage);
+        //             const double norm2 = fabs(principal_damage_increment_vector[i]);
+        //             //two methods to update D_i(n+1) after each NR iteration, method1: diect, method2: after transforamtion
+        //             damage_vector[i] += principal_damage_increment_vector[i];
+        //             if( ((norm1/norm2)< eps) ||(norm1< eps ))  break;
+        //         }
+        //     }
+        // }
+        for(SizeType i = 0; i < Dimension; ++i){
+            principal_damage_increment_vector[i] = 0;
+            if(F[i]==0){
+                for(SizeType n = 0; n < maxiter; ++n){
+                    const double var1 = principal_damage_increment_vector[i];
+                    const double var2 = (1-principal_damage_n[i] - principal_damage_increment_vector[i]) * ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+                    const double residual_principal_damage = var1  - var2;
                     const double derivative_residual = 1 + ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
-                    principal_damage_increment_vector[i] = -residual_principal_damage/derivative_residual;
+                    principal_damage_increment_vector[i] -= residual_principal_damage/derivative_residual;
                     const double norm1 = fabs(residual_principal_damage);
                     const double norm2 = fabs(principal_damage_increment_vector[i]);
-                    if (((norm1 / norm2) >= eps) && (norm1 >= eps)) {
-                        all_converged = false;
-                    }
-                    TransformPrincipalDamageToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
-                    damage_tensor += damage_increment_tensor;
-                    GetTotalPrincipalDamageVector(damage_vector,damage_tensor);
+                    if( ((norm1/norm2)< eps) ||(norm1< eps ))  break;
                 }
             }
-            if (all_converged) {break;}
         }
+        TransformPrincipalDamageToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
+        damage_tensor += damage_increment_tensor;
+        GetTotalPrincipalDamageVector(damage_vector,damage_tensor);
         for (SizeType i = 0; i < Dimension; ++i) {
             if(damage_vector[i] < 0.0){
                 damage_vector[i] = 0.0;
@@ -319,7 +363,6 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStres
                 damage_vector[i] = 0.999;
             }
         }
-
         if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, damage_vector);
             GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
@@ -342,7 +385,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStres
         rEquivalentStrains = local_equivalent_strains;
         rKappa = kappa;
         rDamageTensor = damage_tensor;
-        }
+    }
     //KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME])
     //KRATOS_WATCH("----------------------------------------------------------------------------------------")
     KRATOS_CATCH("")
@@ -351,7 +394,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::CalculateStres
 //***********************************************************************************
 
 void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetTotalPrincipalDamageVector(
-    Vector& PrincipaldamageVector,
+    BoundedVectorType& PrincipaldamageVector,
     const BoundedMatrixType& TotalDamageTensor
     )
 {
@@ -961,37 +1004,55 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::IntegratePertu
     BoundedVectorType principal_strains = ZeroVector(3);
     BoundedVectorType kappa = ZeroVector(3);
     BoundedVectorType F = ZeroVector(3);
-    BoundedVectorType damage_vector = ZeroVector(3);
     BoundedVectorType principal_nonlocal_equivalent_strains = ZeroVector(3);
+    BoundedVectorType principal_damage_increment_vector = ZeroVector(3);
+    BoundedVectorType principal_damage_n = mDamageVector;
+    BoundedVectorType strain_history_parameters =ZeroVector(3);
+    BoundedVectorType damage_vector = mDamageVector;
+    BoundedMatrixType damage_tensor = mDamageMatrix;
+    BoundedMatrixType damage_increment_tensor = ZeroMatrix(3,3);
     Vector local_equivalent_strains = ZeroVector(2);
     Matrix r_elastic_tensor;
     r_elastic_tensor.resize(6, 6, false);
     CalculateElasticMatrix(r_elastic_tensor, rParametersValues);
     double det_M;
+    const double maxiter = 10;
     GetEigenValues(principal_strains, STRAIN, r_strain_vector);
     CalculateLocalEquivalentStrains(local_equivalent_strains, rParametersValues, principal_strains);
     ScaleNonlocalEquivalentStrain(principal_nonlocal_equivalent_strains, rParametersValues, principal_strains, r_perturbed_nonlocal_equivalent_strains, local_equivalent_strains);
 
     for(SizeType i = 0; i < Dimension; ++i) {
-        kappa[i] = std::max(principal_nonlocal_equivalent_strains[i],k0[i]);
+        strain_history_parameters[i] = std::max(mStrainHistoryParameters[i], principal_nonlocal_equivalent_strains[i]);
+        kappa[i] = std::max(strain_history_parameters[i] ,k0[i]);
         F[i]     = principal_nonlocal_equivalent_strains[i]-kappa[i];
     }
-    //Compute damage in principal directions
-    for (SizeType i = 0; i < Dimension; ++i) {
-        if (kappa[i]>= 0 && kappa[i]<=k0[i]){
-            damage_vector[i]=0.0;
-        }else if (kappa[i]> k0[i]){
-            const double var1      = pow((k0[i]/kappa[i]),beta1[i]);
-            const double var2      = exp(-beta2[i]*((kappa[i]-k0[i])/(k0[i])));
-            damage_vector[i] = 1.0 - var1 * var2;
-        }
-        if(damage_vector[i] < 0.0){
-            damage_vector[i] = 0.0;
-        }
-        if(damage_vector[i] > 0.999){
-            damage_vector[i] = 0.999;
+    const BoundedVectorType del_kappa = kappa - mKappa;
+    for(SizeType i = 0; i < Dimension; ++i){
+        principal_damage_increment_vector[i] = 0;
+        if(F[i]==0){
+            for(SizeType n = 0; n < maxiter; ++n){
+                const double var1 = principal_damage_increment_vector[i];
+                const double var2 = (1-principal_damage_n[i] - principal_damage_increment_vector[i]) * ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+                const double residual_principal_damage = var1  - var2;
+                const double derivative_residual = 1 + ((beta1[i] / kappa[i]) + (beta2[i] / k0[i])) * del_kappa[i];
+                principal_damage_increment_vector[i] -= residual_principal_damage/derivative_residual;
+                const double norm1 = fabs(residual_principal_damage);
+                const double norm2 = fabs(principal_damage_increment_vector[i]);
+                if( ((norm1/norm2)< eps) ||(norm1< eps ))  break;
+            }
         }
     }
+    TransformPrincipalDamageToGlobal(damage_increment_tensor, principal_damage_increment_vector, r_strain_vector);
+    damage_tensor += damage_increment_tensor;
+    GetTotalPrincipalDamageVector(damage_vector,damage_tensor);
+    for (SizeType i = 0; i < Dimension; ++i) {
+            if(damage_vector[i] < 0.0){
+                damage_vector[i] = 0.0;
+            }
+            if(damage_vector[i] > 0.999){
+                damage_vector[i] = 0.999;
+            }
+        }
     if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
         GetDamageEffectTensor(damage_effect_tensor, damage_vector);
         GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
