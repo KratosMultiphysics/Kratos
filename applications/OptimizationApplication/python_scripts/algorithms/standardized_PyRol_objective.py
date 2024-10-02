@@ -67,6 +67,8 @@ class StandardizedPyRolObjective(Objective):
                 if process.IsOutputStep():
                     process.PrintOutput()
 
+            self.__optimization_problem.AdvanceStep()
+
         return value
 
     def gradient(self, g:myVector, x:myVector, tol:float, save_field: bool = True):
