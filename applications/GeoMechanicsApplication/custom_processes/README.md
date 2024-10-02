@@ -5,6 +5,7 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - $c-\phi$ reduction process
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
+- $K_0$ procedure process
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
