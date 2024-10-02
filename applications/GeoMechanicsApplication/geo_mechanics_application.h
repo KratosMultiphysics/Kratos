@@ -137,7 +137,7 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 
-#include <custom_constitutive/plane_strain_dimension.h>
+#include <custom_constitutive/plane_strain_type.h>
 
 namespace Kratos
 {

@@ -11,21 +11,20 @@
 //
 #pragma once
 
+#include "containers/flags.h"
 #include "includes/ublas_interface.h"
-
-#include <containers/flags.h>
 
 namespace Kratos
 {
 
-class ConstitutiveDimension
+class ConstitutiveType
 {
 public:
     virtual Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) = 0;
-    virtual std::unique_ptr<ConstitutiveDimension> Clone() = 0;
-    virtual std::size_t GetStrainSize() = 0;
-    virtual std::size_t GetDimension() = 0;
-    virtual Flags GetConstitutiveLawType() = 0;
+    virtual std::unique_ptr<ConstitutiveType> Clone()                   = 0;
+    virtual std::size_t                            GetStrainSize()           = 0;
+    virtual std::size_t                            GetDimension()            = 0;
+    virtual Flags                                  GetConstitutiveLawType()  = 0;
 };
 
 } // namespace Kratos

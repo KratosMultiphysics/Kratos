@@ -12,7 +12,7 @@
 
 #include "boost/numeric/ublas/assignment.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
-#include "custom_constitutive/plane_strain_dimension.h"
+#include "custom_constitutive/plane_strain_type.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace

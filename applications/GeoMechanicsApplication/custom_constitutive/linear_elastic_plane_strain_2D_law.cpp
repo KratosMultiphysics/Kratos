@@ -18,14 +18,14 @@
 
 #include "geo_mechanics_application_variables.h"
 
-#include "plane_strain_dimension.h"
+#include "plane_strain_type.h"
 
 namespace Kratos
 {
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() = default;
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension)
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveType> pConstitutiveDimension)
     : GeoLinearElasticLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
 {
 }

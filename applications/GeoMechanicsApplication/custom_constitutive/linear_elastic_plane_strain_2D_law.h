@@ -14,7 +14,7 @@
 
 #include "custom_constitutive/linear_elastic_law.h"
 #include "geo_mechanics_application_constants.h"
-#include "plane_strain_dimension.h"
+#include "plane_strain_type.h"
 
 namespace Kratos
 {
@@ -23,7 +23,6 @@ namespace Kratos
  * @class GeoLinearElasticPlaneStrain2DLaw
  * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
- * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
@@ -37,7 +36,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
     GeoLinearElasticPlaneStrain2DLaw();
 
-    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveDimension> pConstitutiveDimension);
+    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveType> pConstitutiveDimension);
     GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
     ConstitutiveLaw::Pointer Clone() const override;
@@ -104,7 +103,7 @@ private:
     Vector                                 mDeltaStrainVector     = ZeroVector(VoigtSize);
     Vector                                 mStrainVectorFinalized = ZeroVector(VoigtSize);
     bool                                   mIsModelInitialized    = false;
-    std::unique_ptr<ConstitutiveDimension> mpConstitutiveDimension;
+    std::unique_ptr<ConstitutiveType> mpConstitutiveDimension;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
