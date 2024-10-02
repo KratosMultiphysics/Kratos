@@ -198,26 +198,4 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto                        law = CreateLinearElasticPlaneStrainLaw();
-    ConstitutiveLaw::Parameters parameters;
-    auto strain = Vector{3}; // The law expects the vector to have the correct length (which somehow is 3)
-    parameters.SetStrainVector(strain);
-
-    // clang-format off
-    auto deformation_gradient = Matrix{3,3};
-    deformation_gradient <<= 1.0, 2.0, 3.0,
-                             4.0, 5.0, 6.0,
-                             7.0, 8.0, 9.0;
-    // clang-format on
-    parameters.SetDeformationGradientF(deformation_gradient);
-
-    law.CalculateMaterialResponsePK2(parameters);
-
-    Vector expected_strain{3};
-    expected_strain <<= 8.0, 14.0, 22.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_strain, strain, 1e-3);
-}
-
 } // namespace Kratos::Testing

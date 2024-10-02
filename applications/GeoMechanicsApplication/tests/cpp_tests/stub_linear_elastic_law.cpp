@@ -19,11 +19,6 @@ void StubLinearElasticLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix, C
     // Deliberately no implementation (it's a stub, remember?)
 }
 
-void StubLinearElasticLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
-{
-    // Deliberately no implementation (it's a stub, remember?)
-}
-
 void StubLinearElasticLaw::CalculatePK2Stress(const Vector& rStrainVector,
                                               Vector& rStressVector,
                                               ConstitutiveLaw::Parameters& rValues)
