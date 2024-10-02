@@ -22,9 +22,9 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainType : public Constitutiv
 public:
     Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) override;
     std::unique_ptr<ConstitutiveType> Clone() override;
-    std::size_t                            GetStrainSize() override;
-    std::size_t                            GetDimension() override;
-    Flags                                  GetConstitutiveLawType() override;
+    std::size_t                       GetStrainSize() override;
+    std::size_t                       GetDimension() override;
+    Flags                             GetConstitutiveLawType() override;
 };
 
 } // namespace Kratos
