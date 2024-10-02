@@ -174,6 +174,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition
     KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
+    
     // Point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
