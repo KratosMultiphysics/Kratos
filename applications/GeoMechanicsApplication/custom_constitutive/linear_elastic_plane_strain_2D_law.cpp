@@ -14,10 +14,8 @@
 
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
-
+#include "constitutive_type.h"
 #include "geo_mechanics_application_variables.h"
-
-#include "plane_strain_type.h"
 
 namespace Kratos
 {
@@ -30,17 +28,32 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_p
 }
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther)
-    : GeoLinearElasticLaw(rOther)
+    : GeoLinearElasticLaw(rOther),
+      mStressVector(rOther.mStressVector),
+      mStressVectorFinalized(rOther.mStressVectorFinalized),
+      mDeltaStrainVector(rOther.mDeltaStrainVector),
+      mStrainVectorFinalized(rOther.mStrainVectorFinalized),
+      mIsModelInitialized(rOther.mIsModelInitialized)
 {
+    if (rOther.mpConstitutiveDimension)
+        mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+}
+
+GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(GeoLinearElasticPlaneStrain2DLaw const& rOther)
+{
+    GeoLinearElasticLaw::operator=(rOther);
     mStressVector          = rOther.mStressVector;
     mStressVectorFinalized = rOther.mStressVectorFinalized;
     mDeltaStrainVector     = rOther.mDeltaStrainVector;
     mStrainVectorFinalized = rOther.mStrainVectorFinalized;
     mIsModelInitialized    = rOther.mIsModelInitialized;
-
     if (rOther.mpConstitutiveDimension)
         mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+
+    return *this;
 }
+
+GeoLinearElasticPlaneStrain2DLaw::~GeoLinearElasticPlaneStrain2DLaw() = default;
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
 {
@@ -56,7 +69,7 @@ bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVari
 
 void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
-    rFeatures.mOptions.Set(mpConstitutiveDimension->GetConstitutiveLawType());
+    rFeatures.mOptions.Set(mpConstitutiveDimension->GetSpatialType());
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
 

@@ -48,6 +48,6 @@ std::size_t PlaneStrainType::GetStrainSize() { return VOIGT_SIZE_2D_PLANE_STRAIN
 
 std::size_t PlaneStrainType::GetDimension() { return N_DIM_2D; }
 
-Flags PlaneStrainType::GetConstitutiveLawType() { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
+Flags PlaneStrainType::GetSpatialType() { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
 
 } // namespace Kratos

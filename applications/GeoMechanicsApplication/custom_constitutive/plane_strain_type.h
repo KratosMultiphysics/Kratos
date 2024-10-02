@@ -24,7 +24,7 @@ public:
     std::unique_ptr<ConstitutiveType> Clone() override;
     std::size_t                       GetStrainSize() override;
     std::size_t                       GetDimension() override;
-    Flags                             GetConstitutiveLawType() override;
+    Flags                             GetSpatialType() override;
 };
 
 } // namespace Kratos

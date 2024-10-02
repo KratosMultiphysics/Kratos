@@ -20,11 +20,13 @@ namespace Kratos
 class ConstitutiveType
 {
 public:
+    virtual ~ConstitutiveType() = default;
+
     virtual Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) = 0;
-    virtual std::unique_ptr<ConstitutiveType> Clone()                   = 0;
-    virtual std::size_t                            GetStrainSize()           = 0;
-    virtual std::size_t                            GetDimension()            = 0;
-    virtual Flags                                  GetConstitutiveLawType()  = 0;
+    virtual std::unique_ptr<ConstitutiveType> Clone()                        = 0;
+    virtual std::size_t                       GetStrainSize()                = 0;
+    virtual std::size_t                       GetDimension()                 = 0;
+    virtual Flags                             GetSpatialType()               = 0;
 };
 
 } // namespace Kratos
