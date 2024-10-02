@@ -1,13 +1,15 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from pyrol import Objective
+import numpy as np
 
-class StandardizedPyRolObjective(ResponseRoutine):
+class StandardizedPyRolObjective(Objective):
     """Standardized objective response function
 
     This class transformed a user-given optimization problem into the standard format.
@@ -24,104 +26,77 @@ class StandardizedPyRolObjective(ResponseRoutine):
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        response = optimization_problem.GetResponse(parameters["response_name"].GetString())
+        self.__objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
 
-        super().__init__(master_control, response)
+        super().__init__()
 
-        if required_buffer_size < 2:
-            raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetResponseName()} ]")
+    def value(self, x: np.array, tol: float, save_data: bool = True) -> float:
+        control_field = self.GetMasterControl().GetEmptyField()
+        shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
+        KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
+        value = self.__objective.CalculateStandardizedValue(control_field, save_data)
 
-        component_data_view = ComponentDataView(response, optimization_problem)
-        component_data_view.SetDataBuffer(required_buffer_size)
+        if save_data:
+            for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
+                if process.IsOutputStep():
+                    process.PrintOutput()
 
-        self.__optimization_problem = optimization_problem
-        self.__buffered_data = component_data_view.GetBufferedData()
-        self.__unbuffered_data = component_data_view.GetUnBufferedData()
+            self.__optimization_problem.AdvanceStep()
+        return value
 
-        scaling = parameters["scaling"].GetDouble()
-        if scaling < 0.0:
-            raise RuntimeError(f"Scaling should be always positive [ given scale = {scaling}]")
+    def gradient(self, g:np.array, x:np.array, save_field: bool = True):
 
-        self.__objective_type = parameters["type"].GetString()
-        if self.__objective_type == "minimization":
-            self.__scaling = scaling
-        elif self.__objective_type == "maximization":
-            self.__scaling = -scaling
-        else:
-            raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
+        self.value(x, False)  # Compute new primal if x has changed. Does nothing if x the same
 
-    def GetInitialValue(self) -> float:
-        if self.__unbuffered_data.HasValue("initial_value"):
-            return self.__unbuffered_data["initial_value"] * self.__scaling
-        else:
-            raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
+        result = self.__objective.CalculateStandardizedGradient(save_field)
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
-        with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):
-            response_value = self.CalculateValue(control_field)
-            standardized_response_value = response_value * self.__scaling
+        g = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
 
-            if not self.__unbuffered_data.HasValue("initial_value"):
-                self.__unbuffered_data["initial_value"] = response_value
+    #     with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
+    #         gradient_collective_expression = self.CalculateGradient()
+    #         if save_field:
+    #             # save the physical gradients for post processing in unbuffered data container.
+    #             for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+    #                 variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
+    #                 for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+    #                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+    #                     # cloning is a cheap operation, it only moves underlying pointers
+    #                     # does not create additional memory.
+    #                     self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
 
-            if save_value:
-                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-                self.__buffered_data["value"] = response_value
+    #             # save the filtered gradients for post processing in unbuffered data container.
+    #             for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+    #                 variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
+    #                 if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+    #                 # cloning is a cheap operation, it only moves underlying pointers
+    #                 # does not create additional memory.
+    #                 self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
-            DictLogger("Objective info",self.GetInfo())
+    #     g = gradient_collective_expression * self.__scaling
 
-        return standardized_response_value
+    # def hessVec(self, hv, v, x, tol):
+    #     raise RuntimeError("Hessian-vector product is not implemented for the standardized objective response function.")
 
-    def GetValue(self, step_index: int = 0) -> float:
-        return self.__buffered_data.GetValue("value", step_index)
+    # def GetRelativeChange(self) -> float:
+    #     if self.__optimization_problem.GetStep() > 0:
+    #         return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
+    #     else:
+    #         return 0.0
 
-    def GetStandardizedValue(self, step_index: int = 0) -> float:
-        return self.GetValue(step_index) * self.__scaling
+    # def GetAbsoluteChange(self) -> float:
+    #     return self.GetValue() - self.GetInitialValue()
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
+    # def GetInfo(self) -> dict:
+    #     info = {
+    #         "name": self.GetResponseName(),
+    #         "type": self.__objective_type,
+    #         "value": self.GetValue(),
+    #         "std_value": self.GetStandardizedValue(),
+    #         "abs_change": self.GetAbsoluteChange(),
+    #         "rel_change [%]": self.GetRelativeChange() * 100.0
+    #     }
+    #     init_value = self.GetInitialValue()
+    #     if init_value:
+    #         info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
 
-        with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
-            if save_field:
-                # save the physical gradients for post processing in unbuffered data container.
-                for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                        # cloning is a cheap operation, it only moves underlying pointers
-                        # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-                # save the filtered gradients for post processing in unbuffered data container.
-                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-                    if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                    # cloning is a cheap operation, it only moves underlying pointers
-                    # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
-
-        return gradient_collective_expression * self.__scaling
-
-    def GetRelativeChange(self) -> float:
-        if self.__optimization_problem.GetStep() > 0:
-            return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
-        else:
-            return 0.0
-
-    def GetAbsoluteChange(self) -> float:
-        return self.GetValue() - self.GetInitialValue()
-
-    def GetInfo(self) -> dict:
-        info = {
-            "name": self.GetResponseName(),
-            "type": self.__objective_type,
-            "value": self.GetValue(),
-            "std_value": self.GetStandardizedValue(),
-            "abs_change": self.GetAbsoluteChange(),
-            "rel_change [%]": self.GetRelativeChange() * 100.0
-        }
-        init_value = self.GetInitialValue()
-        if init_value:
-            info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
-
-        return info
+    #     return info
