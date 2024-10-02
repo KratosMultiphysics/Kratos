@@ -80,7 +80,7 @@ public:
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
 
-    void WriteModelPart(ModelPart& rModelPart) override;
+    void WriteModelPart(const ModelPart& rModelPart) override;
 
     void ReadModelPart(ModelPart& rModelPart) override;
 
