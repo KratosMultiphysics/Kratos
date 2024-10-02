@@ -1010,6 +1010,11 @@ public:
         return GetMesh(ThisIndex).Properties();
     }
 
+    const PropertiesContainerType& rProperties(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).Properties();
+    }
+
     PropertiesContainerType::Pointer pProperties(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pProperties();
