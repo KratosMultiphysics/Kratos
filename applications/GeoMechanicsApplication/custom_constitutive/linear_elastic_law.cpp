@@ -188,16 +188,10 @@ bool GeoLinearElasticLaw::GetConsiderDiagonalEntriesOnlyAndNoShear() const
 
 void GeoLinearElasticLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
 {
-    // 1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    Matrix F = rValues.GetDeformationGradientF();
+    if (this->WorkingSpaceDimension() == 2) F.resize(2,2, true);
 
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
-    for (unsigned int i = 0; i < 2; ++i)
-        for (unsigned int j = 0; j < 2; ++j)
-            F2x2(i, j) = F(i, j);
-
-    Matrix E_tensor        = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(F2x2);
+    Matrix E_tensor        = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(F);
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
