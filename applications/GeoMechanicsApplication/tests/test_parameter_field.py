@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -77,7 +78,7 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         except IOError as e:
              print('Try to change permission %s' % e)
              print('The file %s' % new_custom_script_path)
-             os.chmod(new_custom_script_path, 777)
+             os.chmod(new_custom_script_path, stat.S_IRWXU)
              shutil.copy(custom_python_file, new_custom_script_path)
         except:
              print('Error occurred while copying file.')
