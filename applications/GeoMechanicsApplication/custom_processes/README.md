@@ -78,7 +78,7 @@ $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \cdot \sigma^{'}_{zz}} & 0 & 0 \\
                                          0 & {K_0 \cdot \sigma^{'}_{zz}} & 0 \\
                                          0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}$$
 
-Alternaternively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
+Alternatively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
 $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} \cdot (\sigma^{'}_{zz} + POP )} - \frac{\nu_{ur}}{1 - \nu_{ur}} \cdot POP & 0 & 0 \\
                                          0 & {K_0^{nc} \cdot (\sigma^{'}_{zz} + POP)} - \frac{\nu_{ur}}{1 - \nu_{ur}} \cdot POP & 0 \\
