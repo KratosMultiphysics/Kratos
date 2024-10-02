@@ -93,12 +93,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeat
     KRATOS_EXPECT_TRUE(law_features.mOptions.IsDefined(ConstitutiveLaw::INFINITESIMAL_STRAINS))
     KRATOS_EXPECT_TRUE(law_features.mOptions.IsDefined(ConstitutiveLaw::ISOTROPIC))
 
-    const auto strain_measures = law_features.mStrainMeasures;
+    const auto& strain_measures = law_features.mStrainMeasures;
     KRATOS_EXPECT_TRUE(std::find(strain_measures.begin(), strain_measures.end(),
-                                 ConstitutiveLaw::StrainMeasure_Infinitesimal) != strain_measures.end());
+                                 ConstitutiveLaw::StrainMeasure_Infinitesimal) != strain_measures.end())
     KRATOS_EXPECT_TRUE(std::find(strain_measures.begin(), strain_measures.end(),
                                  ConstitutiveLaw::StrainMeasure_Deformation_Gradient) !=
-                       strain_measures.end());
+                       strain_measures.end())
 
     KRATOS_EXPECT_EQ(law_features.mStrainSize, 4);
     KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 2);

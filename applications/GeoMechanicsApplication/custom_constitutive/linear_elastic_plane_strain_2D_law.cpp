@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <iostream>
 
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
