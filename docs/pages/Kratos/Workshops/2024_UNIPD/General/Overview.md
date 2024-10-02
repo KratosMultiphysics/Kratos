@@ -2,6 +2,6 @@
 title: Overview
 keywords: 
 tags: [Overview.md]
-sidebar: kratos_workshop_2024_unipd
+sidebar: kratos_workshops
 summary: 
 ---
