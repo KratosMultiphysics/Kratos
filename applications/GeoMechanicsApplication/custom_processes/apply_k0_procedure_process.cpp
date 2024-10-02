@@ -150,8 +150,8 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVector[i_dir] = k0_vector[i_dir] * (rStressVector[k0_main_direction] + POP_value);
-                rStressVector[i_dir] -= PoissonURfactor * POP_value;
+                rStressVector[i_dir] = k0_vector[i_dir] * (rStressVector[k0_main_direction] + POP_value) -
+                                       PoissonURfactor * POP_value;
             }
         }
         // Erase shear stresses
