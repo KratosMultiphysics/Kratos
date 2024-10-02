@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainDimension : public ConstitutiveType
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainType : public ConstitutiveType
 {
 public:
     Matrix CreateConstitutiveMatrix(double c1, double c2, double c3) override;

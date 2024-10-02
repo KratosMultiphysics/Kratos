@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-Matrix PlaneStrainDimension::CreateConstitutiveMatrix(double c1, double c2, double c3)
+Matrix PlaneStrainType::CreateConstitutiveMatrix(double c1, double c2, double c3)
 {
     Matrix result = ZeroMatrix(4, 4);
 
@@ -39,15 +39,15 @@ Matrix PlaneStrainDimension::CreateConstitutiveMatrix(double c1, double c2, doub
     return result;
 }
 
-std::unique_ptr<ConstitutiveType> PlaneStrainDimension::Clone()
+std::unique_ptr<ConstitutiveType> PlaneStrainType::Clone()
 {
-    return std::make_unique<PlaneStrainDimension>();
+    return std::make_unique<PlaneStrainType>();
 }
 
-std::size_t PlaneStrainDimension::GetStrainSize() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
+std::size_t PlaneStrainType::GetStrainSize() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
 
-std::size_t PlaneStrainDimension::GetDimension() { return N_DIM_2D; }
+std::size_t PlaneStrainType::GetDimension() { return N_DIM_2D; }
 
-Flags PlaneStrainDimension::GetConstitutiveLawType() { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
+Flags PlaneStrainType::GetConstitutiveLawType() { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
 
 } // namespace Kratos

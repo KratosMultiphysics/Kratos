@@ -947,7 +947,7 @@ private:
     const BilinearCohesive2DLaw            mBilinearCohesive2DLaw;
     const LinearPlaneStrainK0Law           mLinearPlaneStrainK0Law;
     const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw{
-        std::make_unique<PlaneStrainDimension>()};
+        std::make_unique<PlaneStrainType>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 

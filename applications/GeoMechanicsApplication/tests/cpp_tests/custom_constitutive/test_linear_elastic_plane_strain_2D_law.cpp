@@ -48,7 +48,7 @@ Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 
 GeoLinearElasticPlaneStrain2DLaw CreateLinearElasticPlaneStrainLaw()
 {
-    return GeoLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrainDimension>()};
+    return GeoLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrainType>()};
 }
 
 } // namespace
