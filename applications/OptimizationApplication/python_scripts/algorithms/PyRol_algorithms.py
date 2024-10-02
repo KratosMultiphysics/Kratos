@@ -26,7 +26,23 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class PyRolAlgorithms(Algorithm):
     """
-        A PyRoll wrapper to use algorithms from PyRoll Library. Provide Method and it settings in the xtml file.
+    A PyRoll wrapper to use algorithms from PyRoll Library. Provide Method and its settings in the xtml file.
+    Methods:
+        GetDefaultParameters(cls):
+            Returns the default parameters for the PyRol algorithm.
+        create_default_algorithm_config(cls):
+            Creates the default algorithm configuration as a JSON string.
+        __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        GetMinimumBufferSize(self) -> int:
+            Returns the minimum buffer size required for the algorithm.
+        Check(self):
+            Performs checks to ensure the algorithm is correctly set up.
+        Initialize(self):
+            Initializes the optimization algorithm, setting up the initial state, control field, algorithm data, design variables vector, and bounds.
+        Finalize(self):
+            Finalizes the optimization algorithm, performing any necessary cleanup.
+        Solve(self):
+            Solves the optimization problem using the specified solver and method settings.
     """
     @classmethod
     def GetDefaultParameters(cls):
@@ -49,6 +65,24 @@ class PyRolAlgorithms(Algorithm):
         }"""
     
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        """
+        Initializes the PyRol algorithm with the given model, parameters, and optimization problem.
+
+        Args:
+            model (Kratos.Model): The Kratos model to be used.
+            parameters (Kratos.Parameters): The parameters for the PyRol algorithm.
+            optimization_problem (OptimizationProblem): The optimization problem to be solved.
+
+        Attributes:
+            model (Kratos.Model): The Kratos model to be used.
+            parameters (Kratos.Parameters): The parameters for the PyRol algorithm.
+            _optimization_problem (OptimizationProblem): The optimization problem to be solved.
+            master_control (MasterControl): The master control object managing all controls.
+            __control_field (None): Placeholder for the control field, initially set to None.
+            settings (Kratos.Parameters): The settings for the PyRol algorithm.
+            method_settings (Kratos.Parameters): The method settings loaded from the input file.
+            __objective (StandardizedPyRolObjective): The standardized objective for the PyRol algorithm.
+        """
         self.model = model
         self.parameters = parameters
         self._optimization_problem = optimization_problem
@@ -81,6 +115,25 @@ class PyRolAlgorithms(Algorithm):
 
     @time_decorator()
     def Initialize(self):
+        """
+        Initializes the optimization algorithm.
+        This method sets up the initial state for the optimization algorithm, including
+        initializing the master control, objective, and constraints. It also prepares
+        the control field, algorithm data, design variables vector, and bounds for the
+        optimization problem.
+        Attributes:
+            converged (bool): Indicates whether the algorithm has converged.
+            master_control: The master control object responsible for managing the control field.
+            __objective: The objective function for the optimization problem.
+            __control_field: The control field used in the optimization process.
+            algorithm_data: Data view for storing algorithm-related data.
+            x0: Initial design variables vector.
+            grad: Gradient of the design variables vector.
+            lower_bounds: Lower bounds for the design variables.
+            upper_bounds: Upper bounds for the design variables.
+            bounds: Bounds object containing the lower and upper bounds.
+            problem: The optimization problem setup with the objective, design variables, gradient, and bounds.
+        """
         self.converged = False
         self.master_control.Initialize()
         self.__objective.Initialize()

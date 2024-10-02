@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from pyrol import Objective
 import numpy as np
+from pyrol.vectors import NumPyVector as myVector
 
 class StandardizedPyRolObjective(Objective):
     """Standardized objective response function
@@ -19,6 +20,16 @@ class StandardizedPyRolObjective(Objective):
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
+        """
+        Initializes the StandardizedPyRolObjective class.
+
+        Args:
+            parameters (Kratos.Parameters): The parameters for the objective.
+            master_control (MasterControl): The master control object.
+            optimization_problem (OptimizationProblem): The optimization problem instance.
+            required_buffer_size (int, optional): The required buffer size. Defaults to 2.
+
+        """
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
             "type"         : "",
@@ -28,12 +39,27 @@ class StandardizedPyRolObjective(Objective):
 
         self.__objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
 
+        self.__optimization_problem = optimization_problem
+
         super().__init__()
 
-    def value(self, x: np.array, tol: float, save_data: bool = True) -> float:
+    def value(self, x: myVector, tol: float, save_data: bool = True) -> float:
+        """
+        Calculate the standardized objective value for a given input vector.
+        Args:
+            x (myVector): Input vector, expected to be a NumPyVector.
+            tol (float): Tolerance value (currently unused in the function).
+            save_data (bool, optional): Flag to determine whether to save data. Defaults to True.
+        Returns:
+            float: The calculated standardized objective value.
+        """
+        # Convert x into numpy array (x is a NumPyVector)
+        list_x = [value for value in x]
+        numpy_x = np.array(list_x)  # Direct conversion using np.array() doesn't work, use list 
+        
         control_field = self.GetMasterControl().GetEmptyField()
         shape = [c.GetItemShape() for c in control_field.GetContainerExpressions()]
-        KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
+        KratosOA.CollectiveExpressionIO.Read(control_field, numpy_x, shape)
         value = self.__objective.CalculateStandardizedValue(control_field, save_data)
 
         if save_data:
@@ -41,62 +67,39 @@ class StandardizedPyRolObjective(Objective):
                 if process.IsOutputStep():
                     process.PrintOutput()
 
-            self.__optimization_problem.AdvanceStep()
         return value
 
-    def gradient(self, g:np.array, x:np.array, save_field: bool = True):
+    def gradient(self, g:myVector, x:myVector, tol:float, save_field: bool = True):
+        """
+        Computes the gradient of the objective function.
+
+        Parameters:
+        g (myVector): The vector to store the computed gradient.
+        x (myVector): The current point at which the gradient is evaluated.
+        tol (float): Tolerance for the gradient computation.
+        save_field (bool, optional): Flag to indicate whether to save the field. Defaults to True.
+
+        Raises:
+        RuntimeError: If there is an issue with the gradient computation.
+        """
 
         self.value(x, False)  # Compute new primal if x has changed. Does nothing if x the same
 
         result = self.__objective.CalculateStandardizedGradient(save_field)
 
-        g = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
+        g = myVector(result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor())
 
-    #     with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-    #         gradient_collective_expression = self.CalculateGradient()
-    #         if save_field:
-    #             # save the physical gradients for post processing in unbuffered data container.
-    #             for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-    #                 variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-    #                 for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-    #                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-    #                     # cloning is a cheap operation, it only moves underlying pointers
-    #                     # does not create additional memory.
-    #                     self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+    def hessVec(self, hv, v, x, tol):
+        raise RuntimeError("Hessian-vector product is not implemented for the pyrol objective response function.")
 
-    #             # save the filtered gradients for post processing in unbuffered data container.
-    #             for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-    #                 variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-    #                 if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-    #                 # cloning is a cheap operation, it only moves underlying pointers
-    #                 # does not create additional memory.
-    #                 self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+    def Initialize(self):
+        self.__objective.Initialize()
 
-    #     g = gradient_collective_expression * self.__scaling
+    def Check(self):
+        self.__objective.Check()
 
-    # def hessVec(self, hv, v, x, tol):
-    #     raise RuntimeError("Hessian-vector product is not implemented for the standardized objective response function.")
-
-    # def GetRelativeChange(self) -> float:
-    #     if self.__optimization_problem.GetStep() > 0:
-    #         return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
-    #     else:
-    #         return 0.0
-
-    # def GetAbsoluteChange(self) -> float:
-    #     return self.GetValue() - self.GetInitialValue()
-
-    # def GetInfo(self) -> dict:
-    #     info = {
-    #         "name": self.GetResponseName(),
-    #         "type": self.__objective_type,
-    #         "value": self.GetValue(),
-    #         "std_value": self.GetStandardizedValue(),
-    #         "abs_change": self.GetAbsoluteChange(),
-    #         "rel_change [%]": self.GetRelativeChange() * 100.0
-    #     }
-    #     init_value = self.GetInitialValue()
-    #     if init_value:
-    #         info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
-
-    #     return info
+    def GetMasterControl(self) -> MasterControl:
+        return self.__objective.GetMasterControl()
+                
+    def Finalize(self):
+        self.__objective.Finalize()
