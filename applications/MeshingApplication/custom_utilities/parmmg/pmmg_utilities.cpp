@@ -846,7 +846,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double
 
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     std::unordered_map<IndexType,std::vector<std::string>>& rColors,
     ColorsMapType& rColorMapCondition,
     ColorsMapType& rColorMapElement,
@@ -870,11 +870,11 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     // Build mesh in MMG5 format //
 
     // Iterate over components
-    auto& r_nodes_array = rModelPart.Nodes();
+    const auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    auto& r_conditions_array = rModelPart.Conditions();
+    const auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    auto& r_elements_array = rModelPart.Elements();
+    const auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     // The following nodes will be remeshed
@@ -1090,7 +1090,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PrintParallelInterfaces(
 
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     const ColorsMapType& rColorMapCondition,
     const ColorsMapType& rColorMapElement,
     std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
@@ -1128,7 +1128,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
+void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(const ModelPart& rModelPart)
 {
     BaseType::GenerateSolDataFromModelPart(rModelPart);
 }

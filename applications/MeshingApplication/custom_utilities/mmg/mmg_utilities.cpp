@@ -30,6 +30,8 @@
 #include "utilities/reduction_utilities.h"
 #include "custom_utilities/mmg/mmg_utilities.h"
 
+#include "utilities/safe_assign_unique_model_part_collection_tag_utility.h"
+
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
@@ -3593,7 +3595,7 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
 
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     std::unordered_map<IndexType,std::vector<std::string>>& rColors,
     ColorsMapType& rColorMapCondition,
     ColorsMapType& rColorMapElement,
@@ -3604,10 +3606,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     KRATOS_TRY;
 
     // Before computing colors we do some check and throw a warning to get the user informed
-    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+    const std::vector<std::string> sub_model_part_names = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
     for (const auto& sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+        const ModelPart& r_sub_model_part = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
@@ -3619,11 +3621,11 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     // Build mesh in MMG5 format //
 
     // Iterate over components
-    auto& r_nodes_array = rModelPart.Nodes();
+    const auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    auto& r_conditions_array = rModelPart.Conditions();
+    const auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    auto& r_elements_array = rModelPart.Elements();
+    const auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     // The following nodes will be remeshed
@@ -3808,7 +3810,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
-    r_nodes_array.Unique();
+    // This needs to be somewhere else.
+    // r_nodes_array.Unique();
 
     /* Conditions */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
@@ -3838,7 +3841,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
-    r_conditions_array.Unique();
+    // This needs to be somewhere else.
+    // r_conditions_array.Unique();
 
     /* Elements */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
@@ -3868,20 +3872,23 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
-    r_elements_array.Unique();
+    // This needs to be somewhere else.
+    // r_elements_array.Unique();
 
     // Now we compute the colors
     rColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    SafeAssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
     // The ISOSURFACE has some reserved Ids. We reassign
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // Create auxiliar model part
-        if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
-            rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
-        }
+
+        // Cannot be done here
+        // // Create auxiliar model part
+        // if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
+        //     rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
+        // }
 
         // Do some checks
         bool id_2_exists = false;
@@ -4064,12 +4071,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     // Add missing entities
-    Model& r_model = rModelPart.GetModel();
+    const Model& r_model = rModelPart.GetModel();
     for (auto& r_color : rColors) {
         const IndexType color = r_color.first;
         if (color != 0 && r_color.second.size() == 1) { // Not including main model part, and adding only simple model parts
             for (auto& r_sub_model_part_name : r_color.second) {
-                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.FullName() + "." + r_sub_model_part_name);
+                const ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.FullName() + "." + r_sub_model_part_name);
                 if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
                     if (r_sub_model_part.NumberOfConditions() > 0) {
                         const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
@@ -4094,7 +4101,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     const ColorsMapType& rColorMapCondition,
     const ColorsMapType& rColorMapElement,
     std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
@@ -4155,7 +4162,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
+void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(const ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
