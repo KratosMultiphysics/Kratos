@@ -104,7 +104,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * This is the default constructor, which is used to read the input files
      * @param rModelPart The model part
      */
-    AssignUniqueModelPartCollectionTagUtility(ModelPart& rModelPart);
+    AssignUniqueModelPartCollectionTagUtility();
 
     /// Destructor.
     virtual ~AssignUniqueModelPartCollectionTagUtility();
@@ -128,6 +128,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * @param rCollections Map where the tags and associated submodelparts collections are stored
      */
     void ComputeTags(
+        const ModelPart& rModelPart,
         IndexIndexMapType& rNodeTags,
         IndexIndexMapType& rCondTags,
         IndexIndexMapType& rElemTags,
@@ -162,6 +163,13 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     static StringVectorType GetRecursiveSubModelPartNames(ModelPart& ThisModelPart, std::string Prefix = std::string());
 
     /**
+     * @brief This method returns the list submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
+     * @param ThisModelPart The main model part computed
+     * @return The vector containing the list of submodelparts and subsubmodelparts
+     */
+    static StringVectorType GetRecursiveSubModelPartNames(const ModelPart& ThisModelPart, std::string Prefix = std::string());
+
+    /**
      * @brief This method returns the submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
      * @param ThisModelPart The main model part computed
      * @param SubModelPartName The name of the submodelpart to look for
@@ -170,18 +178,29 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     static ModelPart& GetRecursiveSubModelPart(ModelPart& ThisModelPart, const std::string& SubModelPartName);
 
     /**
+     * @brief This method returns the submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
+     * @param ThisModelPart The main model part computed
+     * @param SubModelPartName The name of the submodelpart to look for
+     * @return The submodelpart relative to the name given
+     */
+    static const ModelPart& GetRecursiveSubModelPart(const ModelPart& ThisModelPart, const std::string& SubModelPartName);
+
+    /**
      * @brief This method can be used to debug complex model parts directly on python
      */
-    void DebugAssignUniqueModelPartCollectionTag();
+    void DebugAssignUniqueModelPartCollectionTag(ModelPart& rThisModelPart);
 
 
     /**
      * @brief This method returns the model part combinations as colors, expressed as integers, and the collection
      * of all model part names strings combinations. Required to run in MPI.
      */
-    void SetParallelModelPartAndSubModelPartCollectionsAndCombinations(IndexStringMapType& rCollections,
-                                            IndexSetIndexMapType& rCombinations,
-                                            IndexType& rTag);
+    void SetParallelModelPartAndSubModelPartCollectionsAndCombinations(
+        const ModelPart& rModelPart,
+        IndexStringMapType& rCollections,
+        IndexSetIndexMapType& rCombinations,
+        IndexType& rTag
+        );
 
     ///@}
     ///@name Access
@@ -268,7 +287,6 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;             /// The model part to compute
 
     ///@}
     ///@name Private Operators
@@ -280,6 +298,8 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     ///@{
 
     static ModelPart& AuxGetSubModelPart(ModelPart& rThisModelPart, std::istringstream& rFullName);
+
+    static const ModelPart& AuxGetSubModelPart(const ModelPart& rThisModelPart, std::istringstream& rFullName);
 
     ///@}
     ///@name Private  Access

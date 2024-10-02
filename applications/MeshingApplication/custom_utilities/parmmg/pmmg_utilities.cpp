@@ -855,10 +855,10 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     )
 {
     // Before computing colors we do some check and throw a warning to get the user informed
-    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+    const std::vector<std::string> sub_model_part_names = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+        const ModelPart& r_sub_model_part = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
@@ -951,7 +951,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     // Now we compute the colors
     rColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    SafeAssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
     /* Nodes */

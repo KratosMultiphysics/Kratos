@@ -24,8 +24,7 @@ namespace Kratos
 {
 
 /// Default constructor
-AssignUniqueModelPartCollectionTagUtility::AssignUniqueModelPartCollectionTagUtility(ModelPart& rModelPart)
-    : mrModelPart(rModelPart) {};
+AssignUniqueModelPartCollectionTagUtility::AssignUniqueModelPartCollectionTagUtility() {};
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -38,6 +37,7 @@ AssignUniqueModelPartCollectionTagUtility::~AssignUniqueModelPartCollectionTagUt
 
 /// Copmutes the collections and assign the tags
 void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
+    const ModelPart& rModelPart,
     IndexIndexMapType& rNodeTags,
     IndexIndexMapType& rCondTags,
     IndexIndexMapType& rElemTags,
@@ -48,7 +48,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     IndexIndexSetMapType aux_node_tags, aux_cond_tags, aux_elem_tags;
 
     // We compute the list of submodelparts and subsubmodelparts
-    const StringVectorType& r_model_part_names = GetRecursiveSubModelPartNames(mrModelPart);
+    const StringVectorType& r_model_part_names = GetRecursiveSubModelPartNames(rModelPart);
 
     // Initialize the collections
     IndexType tag = 0;
@@ -56,22 +56,22 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
         rCollections[i_sub_model_part].push_back(r_model_part_names[i_sub_model_part]);
 
         if (tag > 0) {
-            ModelPart& r_sub_model_part = GetRecursiveSubModelPart(mrModelPart, r_model_part_names[i_sub_model_part]);
+            const ModelPart& r_sub_model_part = GetRecursiveSubModelPart(rModelPart, r_model_part_names[i_sub_model_part]);
 
             /* Nodes */
-            NodesArrayType& r_nodes_array = r_sub_model_part.Nodes();
+            const NodesArrayType& r_nodes_array = r_sub_model_part.Nodes();
             const auto it_node_begin = r_nodes_array.begin();
             for(IndexType i_node = 0; i_node < r_nodes_array.size(); ++i_node)
                 aux_node_tags[(it_node_begin + i_node)->Id()].insert(tag);
 
             /* Conditions */
-            ConditionsArrayType& r_conditions_array = r_sub_model_part.Conditions();
+            const ConditionsArrayType& r_conditions_array = r_sub_model_part.Conditions();
             const auto it_cond_begin = r_conditions_array.begin();
             for(IndexType i_cond = 0; i_cond < r_conditions_array.size(); ++i_cond)
                 aux_cond_tags[(it_cond_begin + i_cond)->Id()].insert(tag);
 
             /* Elements */
-            ElementsArrayType& r_elements_array = r_sub_model_part.Elements();
+            const ElementsArrayType& r_elements_array = r_sub_model_part.Elements();
             const auto it_elem_begin = r_elements_array.begin();
             for(IndexType i_elem = 0; i_elem < r_elements_array.size(); ++i_elem)
                 aux_elem_tags[(it_elem_begin + i_elem)->Id()].insert(tag);
@@ -101,8 +101,8 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
         if (r_value.size() > 1) combinations[r_value] = 0;
     }
 
-    if (mrModelPart.IsDistributed()) {
-        SetParallelModelPartAndSubModelPartCollectionsAndCombinations(rCollections, combinations, tag);
+    if (rModelPart.IsDistributed()) {
+        SetParallelModelPartAndSubModelPartCollectionsAndCombinations(rModelPart, rCollections, combinations, tag);
     } else {
         /* Combinations */
         for(auto& combination : combinations) {
@@ -173,11 +173,12 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
 /***********************************************************************************/
 
 void AssignUniqueModelPartCollectionTagUtility::SetParallelModelPartAndSubModelPartCollectionsAndCombinations(
-                                            IndexStringMapType& rCollections,
-                                            IndexSetIndexMapType& rCombinations,
-                                            IndexType& rTag)
+    const ModelPart& rModelPart,
+    IndexStringMapType& rCollections,
+    IndexSetIndexMapType& rCombinations,
+    IndexType& rTag)
 {
-    auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+    auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
     const IndexType rank = r_data_communicator.Rank();
     const IndexType size = r_data_communicator.Size();
 
@@ -310,12 +311,48 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
     return sub_model_parts_names;
 }
 
+/// Get the full names of all the submodelparts
+std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(
+    const ModelPart& rThisModelPart,
+    std::string Prefix
+    )
+{
+    StringVectorType sub_model_parts_names;
+
+    if (Prefix.empty())
+        sub_model_parts_names.push_back(rThisModelPart.Name());
+    else
+        Prefix += ".";
+
+    StringVectorType names = rThisModelPart.GetSubModelPartNames();
+    for (auto& r_name : names) {
+        const ModelPart& r_sub_model_part = rThisModelPart.GetSubModelPart(r_name);
+        r_name.insert(0, Prefix);
+        sub_model_parts_names.push_back(r_name);
+        const auto sub_names = GetRecursiveSubModelPartNames(r_sub_model_part, r_name);
+        for (const auto& r_sub_name : sub_names)
+            sub_model_parts_names.push_back(r_sub_name);
+    }
+
+    return sub_model_parts_names;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 /// Get a submodelpart given its full r_name
 ModelPart& AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(
     ModelPart& rThisModelPart,
+    const std::string& rFullName
+)
+{
+    std::istringstream full_name(rFullName);
+    return AuxGetSubModelPart(rThisModelPart, full_name);
+}
+
+/// Get a submodelpart given its full r_name
+const ModelPart& AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(
+    const ModelPart& rThisModelPart,
     const std::string& rFullName
 )
 {
@@ -342,16 +379,34 @@ ModelPart& AssignUniqueModelPartCollectionTagUtility::AuxGetSubModelPart(
         return rThisModelPart;
 }
 
+/// Private function for GetRecursiveSubModelPart
+const ModelPart& AssignUniqueModelPartCollectionTagUtility::AuxGetSubModelPart(
+    const ModelPart& rThisModelPart,
+    std::istringstream& rFullName
+)
+{
+    std::string r_name;
+    if (std::getline(rFullName, r_name, '.')) {
+        if (rThisModelPart.Name() == r_name)
+            return AuxGetSubModelPart(rThisModelPart, rFullName);
+        else
+            return AuxGetSubModelPart(rThisModelPart.GetSubModelPart(r_name), rFullName);
+    } else
+        return rThisModelPart;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 /// Debugging purpose
-void AssignUniqueModelPartCollectionTagUtility::DebugAssignUniqueModelPartCollectionTag()
+void AssignUniqueModelPartCollectionTagUtility::DebugAssignUniqueModelPartCollectionTag(
+    ModelPart& rThisModelPart
+)
 {
     IndexIndexMapType node_tags, cond_tags, elem_tags;
     IndexStringMapType collections;
 
-    ComputeTags(node_tags, cond_tags, elem_tags, collections);
+    ComputeTags(rThisModelPart, node_tags, cond_tags, elem_tags, collections);
 
     // The collections are the following
     for (auto& r_collection : collections) {

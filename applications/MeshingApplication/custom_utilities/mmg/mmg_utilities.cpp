@@ -30,8 +30,6 @@
 #include "utilities/reduction_utilities.h"
 #include "custom_utilities/mmg/mmg_utilities.h"
 
-#include "utilities/safe_assign_unique_model_part_collection_tag_utility.h"
-
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
@@ -3606,10 +3604,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     KRATOS_TRY;
 
     // Before computing colors we do some check and throw a warning to get the user informed
-    const std::vector<std::string> sub_model_part_names = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
     for (const auto& sub_model_part_name : sub_model_part_names) {
-        const ModelPart& r_sub_model_part = SafeAssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+        const ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
@@ -3878,8 +3876,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     // Now we compute the colors
     rColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    SafeAssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
-    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
+    AssignUniqueModelPartCollectionTagUtility model_part_collections;
+    model_part_collections.ComputeTags(rModelPart, nodes_colors, cond_colors, elem_colors, rColors);
 
     // The ISOSURFACE has some reserved Ids. We reassign
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
