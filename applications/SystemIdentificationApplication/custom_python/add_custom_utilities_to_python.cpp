@@ -22,6 +22,8 @@
 // Application includes
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/smooth_clamper.h"
+#include "custom_utilities/sensor_generator_utils.h"
+#include "custom_utilities/distance_matrix.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -58,6 +60,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
     AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
+
+    auto sensor_generator_utils = m.def_submodule("SensorGeneratorUtils");
+    sensor_generator_utils.def("IsPointInGeometry", &SensorGeneratorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
+
+    py::class_<DistanceMatrix, DistanceMatrix::Pointer>(m, "DistanceMatrix")
+        .def(py::init<>())
+        .def("Update", &DistanceMatrix::Update, py::arg("values_container_expression"))
+        .def("GetDistance", py::overload_cast<const IndexType, const IndexType>(&DistanceMatrix::GetDistance, py::const_), py::arg("index_i"), py::arg("index_j"))
+        .def("GetEntriesSize", &DistanceMatrix::GetEntriesSize)
+        .def("GetNumberOfItems", &DistanceMatrix::GetNumberOfItems)
+        ;
 }
 
 } // namespace Kratos::Python

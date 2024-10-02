@@ -381,7 +381,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    pF_UMATMod pUserMod;
+    pF_UMATMod mpUserMod = nullptr;
 
     bool mIsModelInitialized = false;
     bool mIsUMATLoaded       = false;
