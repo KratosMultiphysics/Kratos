@@ -29,6 +29,19 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
     The mappers of the Kratos-MappingApplication are used
     """
     def __init__(self, settings, parent_coupled_solver_data_communicator):
+        """
+        Initializes the solver with specified settings and a parent coupled solver data communicator.
+
+        Args:
+            settings (KM.Settings): The settings used for initializing the solver. This should include any relevant debug settings.
+            parent_coupled_solver_data_communicator (CoupledSolverDataCommunicator): The communicator used for data exchange between coupled solvers.
+
+        Attributes:
+            auxiliary_debug_counter (bool): Flag to enable or disable auxiliary debug counter based on settings.
+            counter (int): Debug counter for tracking operations.
+            sub_counter (int): Sub-counter for finer granularity in debugging.
+            number_of_mappers (int): Counter for the number of mappers created.
+        """
         # Set the default value for the auxiliary debug counter
         self.auxiliary_debug_counter = False
         if settings.Has("debug_settings"):
@@ -46,6 +59,22 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         self.number_of_mappers = 0
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
+        """
+        Executes the transfer of data between solvers.
+
+        Args:
+            from_solver_data (CoSimulationData): The data from the source solver to transfer.
+            to_solver_data (CoSimulationData): The data for the target solver to receive the transfer.
+            transfer_options (KM.Flags): Options that specify how the transfer should be executed.
+
+        Returns:
+            None
+
+        This method prepares the solver data for transfer, checks the available mappers, and executes 
+        the transfer process. If the corresponding mappers for the given identifiers are not found, 
+        it creates a new mapper based on the distribution of the model parts and then executes the mapping. 
+        It also generates VTK output for debugging purposes based on the auxiliary debug counter setting.
+        """
         # Prepare the solver data
         solver_data = self._PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
 
