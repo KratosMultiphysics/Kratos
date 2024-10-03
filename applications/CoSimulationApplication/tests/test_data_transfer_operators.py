@@ -193,16 +193,16 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
         # Hint: requires access to private member
-        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator_mappers), 1)
 
         self.__TestTransferMatchingInverse(data_transfer_op)
         # here we check explicitly the InverseMap fct
-        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator_mappers), 1)
 
         transfer_options_empty = KM.Parameters(""" [] """)
         data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
         # here we check explicitly the creation of a second mapper, which is required since the interfaces are not the same this time
-        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 2)
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator_mappers), 2)
 
         data_settings_model_part = KM.Parameters("""{
             "model_part_name" : "mp_single_node",
@@ -243,7 +243,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
         # Hint: requires access to private member
-        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator_mappers), 1)
 
         self.destination_matching_data_scalar.SetData([i+9.47 for i in range(self.destination_matching_data_scalar.Size())]) # reset values
         self.destination_matching_data_scalar_non_hist.SetData([i-89.14 for i in range(self.destination_matching_data_scalar_non_hist.Size())]) # reset values
@@ -263,7 +263,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
         # Hint: requires access to private member
-        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator_mappers), 1)
 
 
     def test_copy_single_to_dist_transfer_operator(self):
