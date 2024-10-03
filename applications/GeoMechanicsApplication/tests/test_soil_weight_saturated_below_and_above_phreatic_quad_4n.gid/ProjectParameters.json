@@ -30,7 +30,7 @@
         "reform_dofs_at_each_step":           true,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "solution_type":                      "K0-Procedure",
+        "solution_type":                      "quasi_static",
         "scheme_type":                        "Backward_Euler",
         "reset_displacements":                true,
         "newmark_beta":                       0.25,

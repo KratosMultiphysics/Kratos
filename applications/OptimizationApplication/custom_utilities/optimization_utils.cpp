@@ -150,6 +150,19 @@ bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
     return true;
 }
 
+std::vector<std::string> OptimizationUtils::GetSolutionStepVariableNamesList(const ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::vector<std::string> result;
+    for (const auto& r_var : rModelPart.GetNodalSolutionStepVariablesList()) {
+        result.push_back(r_var.Name());
+    }
+    return result;
+
+    KRATOS_CATCH("");
+}
+
 std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
     Model& rModel,
     Parameters Settings)
