@@ -1682,6 +1682,11 @@ void UPwSmallStrainInterfaceElement<2, 4>::CalculateShapeFunctionsGradients(TMat
     rGradNpT(3, 0) = DN_De(3, 0) / rAuxVariables.LocalCoordinatesGradients[0];
     rGradNpT(3, 1) = Ncontainer(GPoint, 3) / JointWidth;
 
+    KRATOS_INFO("UPwSmallStrainInterfaceElement") << "Shape Function Gradients: " << rGradNpT << std::endl;
+    KRATOS_INFO("UPwSmallStrainInterfaceElement") << "Jacobian: " << Jacobian << std::endl;
+    KRATOS_INFO("UPwSmallStrainInterfaceElement") << "DN_De: " << DN_De << std::endl;
+    KRATOS_INFO("UPwSmallStrainInterfaceElement") << "rGradNpT: " << rGradNpT << std::endl;
+
     KRATOS_CATCH("")
 }
 

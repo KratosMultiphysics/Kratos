@@ -141,6 +141,8 @@ public:
         // Quadrilateral_interface_2d_4
         rPermeabilityMatrix(0, 0) = JointWidth * JointWidth / 12.0;
         rPermeabilityMatrix(1, 1) = Transversal_Permeability;
+        KRATOS_INFO("JointWidth") << JointWidth << std::endl;
+        KRATOS_INFO("KXX - Permeability Matrix") << rPermeabilityMatrix(0,0) << std::endl;
     }
 
     //----------------------------------------------------------------------------------------

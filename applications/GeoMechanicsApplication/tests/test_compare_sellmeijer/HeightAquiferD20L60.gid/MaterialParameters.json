@@ -69,34 +69,29 @@
             "properties_id": 3,
             "Material": {
                 "constitutive_law": {
-                    "name": "LinearElastic2DInterfaceLaw"
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 100000,
-                    "POISSON_RATIO": 0.45,
-                    "DENSITY_SOLID": 2650,
-                    "DENSITY_WATER": 1000,
-                    "POROSITY": 0.3,
-                    "BULK_MODULUS_SOLID": 0,
-                    "BULK_MODULUS_FLUID": 0,
-                    "TRANSVERSAL_PERMEABILITY": 1e-08,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 1,
+                    "BULK_MODULUS_SOLID": 9e+19,
+                    "BULK_MODULUS_FLUID": 1e+20,
+                    "PERMEABILITY_XX": 0.0,
                     "DYNAMIC_VISCOSITY": 0.001,
-                    "THICKNESS": 1.0,
-                    "MINIMUM_JOINT_WIDTH": 0.001,
+                    "CROSS_AREA": 0.0001,
                     "BIOT_COEFFICIENT": 1.0,
-                    "PIPE_D_70": 0.0003,
-                    "PIPE_ETA": 0.25,
-                    "PIPE_THETA": 37,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 0.06203,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
-                    "VAN_GENUCHTEN_GN": 1.377,
-                    "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
+                    "PIPE_ETA": 0.25,
+                    "PIPE_THETA": 37,
                     "PIPE_START_ELEMENT": 1,
-					"PIPE_MODEL_FACTOR": 1,
-                    "PIPE_MODIFIED_D": false
+                    "PIPE_MODIFIED_D": false,
+                    "PIPE_MODEL_FACTOR": 1.0,
+                    "PIPE_D_70": 0.0003
                 },
                 "Tables": {}
             }

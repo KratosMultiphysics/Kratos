@@ -615,12 +615,14 @@ public:
                 noalias(NodeVolumeAccelerationUnitVector) = node_volume_acceleration / g;
 
                 const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                //KRATOS_INFO("GeoElementUtilities") << "WaterPressure Node: " << node << " Pressure: " << WaterPressure << std::endl;
                 nodal_hydraulic_heads[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) -
                                               PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight;
             } else {
                 nodal_hydraulic_heads[node] = 0.0;
             }
         }
+        //KRATOS_INFO("GeoElementUtilities") << "Nodal hydraulic heads: " << nodal_hydraulic_heads << std::endl;
         return nodal_hydraulic_heads;
     }
 

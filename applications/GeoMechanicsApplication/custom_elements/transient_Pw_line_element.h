@@ -125,6 +125,127 @@ public:
         return 0;
     }
 
+protected:
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (const std::size_t number_integration_points =
+                    GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+                mRetentionLawVector.size() != number_integration_points) {
+            mRetentionLawVector.resize(number_integration_points);
+        }
+        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+            mRetentionLawVector[i]->InitializeMaterial(
+                    GetProperties(), GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
+        }
+    }
+
+    static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
+                                            double DtPressureCoefficient)
+    {
+        rLeftHandSideMatrix = rPermeabilityMatrix + DtPressureCoefficient * rCompressibilityMatrix;
+    }
+
+    void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
+                                     const array_1d<double, TNumNodes>& rFluidBodyVector) const
+    {
+        const auto compressibility_vector =
+                array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
+        const auto permeability_vector =
+                array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
+        rRightHandSideVector = compressibility_vector + permeability_vector + rFluidBodyVector;
+    }
+
+    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
+    {
+        const auto& r_properties         = GetProperties();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+        auto result = Vector{r_integration_points.size()};
+        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
+                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
+                    return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
+                });
+        return result;
+    }
+
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+            const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+            const Vector&                                    rIntegrationCoefficients) const
+    {
+        RetentionLaw::Parameters    RetentionParameters(GetProperties());
+        BoundedMatrix<double, 1, 1> constitutive_matrix;
+        const auto&                 r_properties = GetProperties();
+        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            const double RelativePermeability =
+                    mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+            result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+                    rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
+                    RelativePermeability, rIntegrationCoefficients[integration_point_index]);
+        }
+        return result;
+    }
+
+    array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
+                                                         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+                                                         const Vector& rIntegrationCoefficients) const
+    {
+        const std::size_t number_integration_points =
+                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        GeometryType::JacobiansType J_container;
+        J_container.resize(number_integration_points, false);
+        for (std::size_t i = 0; i < number_integration_points; ++i) {
+            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
+                                  GetGeometry().LocalSpaceDimension(), false);
+        }
+        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
+
+        const auto&                 r_properties = GetProperties();
+        BoundedMatrix<double, 1, 1> constitutive_matrix;
+        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+
+        RetentionLaw::Parameters RetentionParameters(GetProperties());
+
+        array_1d<double, TNumNodes * TDim> volume_acceleration;
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
+                volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+        array_1d<double, TDim> body_acceleration;
+
+        array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+                    body_acceleration, rNContainer, volume_acceleration, integration_point_index);
+
+            array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
+            tangent_vector /= norm_2(tangent_vector);
+
+            array_1d<double, 1> projected_gravity = ZeroVector(1);
+            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
+            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            double     RelativePermeability =
+                    mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            fluid_body_vector +=
+                    r_properties[DENSITY_WATER] * RelativePermeability *
+                    prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
+                    rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
+        }
+        return fluid_body_vector;
+    }
+
 private:
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
 
@@ -192,62 +313,6 @@ private:
         }
     }
 
-    static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
-                                            double DtPressureCoefficient)
-    {
-        rLeftHandSideMatrix = rPermeabilityMatrix + DtPressureCoefficient * rCompressibilityMatrix;
-    }
-
-    void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
-                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
-                                     const array_1d<double, TNumNodes>& rFluidBodyVector) const
-    {
-        const auto compressibility_vector =
-            array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
-        const auto permeability_vector =
-            array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
-        rRightHandSideVector = compressibility_vector + permeability_vector + rFluidBodyVector;
-    }
-
-    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
-    {
-        const auto& r_properties         = GetProperties();
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-        auto result = Vector{r_integration_points.size()};
-        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
-        });
-        return result;
-    }
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-        const Vector&                                    rIntegrationCoefficients) const
-    {
-        RetentionLaw::Parameters    RetentionParameters(GetProperties());
-        BoundedMatrix<double, 1, 1> constitutive_matrix;
-        const auto&                 r_properties = GetProperties();
-        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
-
-        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            const double RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-            result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-                rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
-                RelativePermeability, rIntegrationCoefficients[integration_point_index]);
-        }
-        return result;
-    }
-
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(const Matrix& rNContainer,
                                                                                const Vector& rIntegrationCoefficients) const
     {
@@ -275,21 +340,6 @@ private:
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
-    }
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (const std::size_t number_integration_points =
-                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-            mRetentionLawVector.size() != number_integration_points) {
-            mRetentionLawVector.resize(number_integration_points);
-        }
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
-            mRetentionLawVector[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(),
-                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
-        }
     }
 
     double CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
@@ -329,54 +379,6 @@ private:
         for (auto retention_law : mRetentionLawVector) {
             retention_law->FinalizeSolutionStep(RetentionParameters);
         }
-    }
-
-    array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
-                                                         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-                                                         const Vector& rIntegrationCoefficients) const
-    {
-        const std::size_t number_integration_points =
-            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-        GeometryType::JacobiansType J_container;
-        J_container.resize(number_integration_points, false);
-        for (std::size_t i = 0; i < number_integration_points; ++i) {
-            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
-                                  GetGeometry().LocalSpaceDimension(), false);
-        }
-        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
-
-        const auto&                 r_properties = GetProperties();
-        BoundedMatrix<double, 1, 1> constitutive_matrix;
-        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
-
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-
-        array_1d<double, TNumNodes * TDim> volume_acceleration;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
-            volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
-        array_1d<double, TDim> body_acceleration;
-
-        array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, rNContainer, volume_acceleration, integration_point_index);
-
-            array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
-            tangent_vector /= norm_2(tangent_vector);
-
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
-            double     RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            fluid_body_vector +=
-                r_properties[DENSITY_WATER] * RelativePermeability *
-                prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
-                rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
-        }
-        return fluid_body_vector;
     }
 
     [[nodiscard]] DofsVectorType GetDofs() const

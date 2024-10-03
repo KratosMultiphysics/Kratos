@@ -44,6 +44,16 @@ public:
                                                      double        RelativePermeability,
                                                      double        IntegrationCoefficient)
     {
+
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "CalculatePermeabilityMatrix" << std::endl;
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "rGradNpT: " << rGradNpT << std::endl;
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "DynamicViscosityInverse: " << DynamicViscosityInverse << std::endl;
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "rMaterialPermeabilityMatrix: " << rMaterialPermeabilityMatrix << std::endl;
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "RelativePermeability: " << RelativePermeability << std::endl;
+//        KRATOS_INFO("GeoTransportEquationUtilities") << "IntegrationCoefficient: " << IntegrationCoefficient << std::endl;
+
+
+
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
                prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
                RelativePermeability * IntegrationCoefficient;

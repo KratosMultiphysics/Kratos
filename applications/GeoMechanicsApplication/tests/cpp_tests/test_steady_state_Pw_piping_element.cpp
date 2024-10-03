@@ -48,8 +48,6 @@ namespace Kratos::Testing
             // Create the test piping element nodes
             auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, -0.1, 0.0);
             auto p_node_2 = r_model_part.CreateNewNode(2, 1.0, -0.1, 0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.0, 0.1, 0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
 
             array_1d<double, 3> gravity_array;
             gravity_array[0] = 0;
@@ -59,27 +57,21 @@ namespace Kratos::Testing
             // set water pressure values to nodes
             p_node_1->SetLock();
             p_node_2->SetLock();
-            p_node_3->SetLock();
-            p_node_4->SetLock();
 
             p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
             p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 500;
-            p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 500;
-            p_node_4->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
+
 
             p_node_1->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
             p_node_2->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
-            p_node_3->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
-            p_node_4->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
 
             p_node_1->UnSetLock();
             p_node_2->UnSetLock();
-            p_node_3->UnSetLock();
-            p_node_4->UnSetLock();
+
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
-            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            std::vector<ModelPart::IndexType> element_nodes{1, 2};
+            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D2N", 1, element_nodes, p_elem_prop);
 
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -89,7 +81,7 @@ namespace Kratos::Testing
             auto Geom = p_element->GetGeometry();
 
             // cast to piping element
-            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
+            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 2> *>(p_element.get());
 
             // calculate equilibrium height
             double expected_eq_height = PipeEl->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
@@ -121,8 +113,7 @@ namespace Kratos::Testing
             // Create the test piping element nodes
             auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, -0.1, 0.0);
             auto p_node_2 = r_model_part.CreateNewNode(2, 1.0, -0.1, 0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.0, 0.1, 0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
+
 
             array_1d<double, 3> gravity_array;
             gravity_array[0] = 0;
@@ -132,27 +123,22 @@ namespace Kratos::Testing
             // set water pressure values to nodes
             p_node_1->SetLock();
             p_node_2->SetLock();
-            p_node_3->SetLock();
-            p_node_4->SetLock();
+
 
             p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
             p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 20000;
-            p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 20000;
-            p_node_4->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
+
 
             p_node_1->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
             p_node_2->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
-            p_node_3->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
-            p_node_4->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
 
             p_node_1->UnSetLock();
             p_node_2->UnSetLock();
-            p_node_3->UnSetLock();
-            p_node_4->UnSetLock();
+
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
-            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            std::vector<ModelPart::IndexType> element_nodes{1, 2};
+            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D2N", 1, element_nodes, p_elem_prop);
 
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -162,7 +148,7 @@ namespace Kratos::Testing
             auto Geom = p_element->GetGeometry();
 
             // cast to piping element
-            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
+            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 2> *>(p_element.get());
 
             // calculate water pressure gradient
             double expected_gradient = PipeEl->CalculateHeadGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));

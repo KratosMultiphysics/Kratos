@@ -524,6 +524,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
 
+   KRATOS_INFO("CalculatePermeabilityMatrix - DYNAMIC_VISCOSITY") << Prop[DYNAMIC_VISCOSITY] << std::endl;
+
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
@@ -645,10 +647,15 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
         rVariables.RelativePermeability * prod(temp_matrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
+
     const array_1d<double, TNumNodes> permeability_flow =
         -1.0 * prod(permeability_matrix, rVariables.PressureVector);
 
+
+
     rRightHandSideVector += permeability_flow;
+    KRATOS_INFO("RHS PermeabilityFlow") << permeability_flow << std::endl;
+
 
     KRATOS_CATCH("")
 }

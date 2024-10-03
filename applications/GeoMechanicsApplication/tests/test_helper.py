@@ -347,7 +347,8 @@ def get_pipe_active_in_elements(simulation):
     """
     model_part = simulation._list_of_output_processes[0].model_part
     pipe_elements = [element for element in model_part.Elements if element.Has(KratosGeo.PIPE_ELEMENT_LENGTH)]
-    return [element.GetValue(KratosGeo.PIPE_ACTIVE) for element in pipe_elements]
+    return [element.IsActive() for element in pipe_elements]
+    #return [element.GetValue(KratosGeo.PIPE_ACTIVE) for element in pipe_elements]
 
 def get_pipe_length(simulation):
     """
@@ -357,7 +358,8 @@ def get_pipe_length(simulation):
     """
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
-    return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
+    return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.IsActive()])
+    #return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
 def get_force(simulation):
     """

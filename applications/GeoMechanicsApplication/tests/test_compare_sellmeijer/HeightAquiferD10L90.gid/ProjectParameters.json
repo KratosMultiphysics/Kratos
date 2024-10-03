@@ -3,7 +3,7 @@
         "problem_name": "HeightAquiferD10L90",
         "start_time": 0.0,
         "end_time": 1.0,
-        "echo_level": 1,
+        "echo_level": 0,
         "parallel_type": "OpenMP",
         "number_of_threads": 1
     },
@@ -23,7 +23,7 @@
             "max_delta_time_factor": 1000
         },
         "buffer_size": 2,
-        "echo_level": 1,
+        "echo_level": 0,
         "clear_storage": false,
         "compute_reactions": false,
         "move_mesh_flag": false,
@@ -32,6 +32,7 @@
         "block_builder": true,
         "solution_type": "Steady_State_Groundwater_Flow",
         "scheme_type": "Backward_Euler",
+        "reset_displacements": true,
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
@@ -60,6 +61,7 @@
         "min_alpha": 0.1,
         "max_alpha": 2.0,
         "line_search_tolerance": 0.5,
+        "rotation_dofs": true,
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
             "scaling": true
