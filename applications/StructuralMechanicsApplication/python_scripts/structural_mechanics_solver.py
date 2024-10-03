@@ -127,6 +127,7 @@ class MechanicalSolver(PythonSolver):
             },
             "time_stepping" : { },
             "volumetric_strain_dofs": false,
+            "strain_vector_dofs": false,
             "rotation_dofs": false,
             "pressure_dofs": false,
             "displacement_control": false,
@@ -437,6 +438,7 @@ class MechanicalSolver(PythonSolver):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
+        conv_params.AddValue("strain_vector_dofs",self.settings["strain_vector_dofs"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])

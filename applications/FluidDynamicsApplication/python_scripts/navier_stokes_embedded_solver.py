@@ -202,7 +202,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "max_iteration": 1000
             },
             "embedded_nodal_variable_settings": {
-                "gradient_penalty_coefficient": 1.0e-3,
+                "gradient_penalty_coefficient": 0.0,
                 "linear_solver_settings": {
                     "preconditioner_type": "amg",
                     "solver_type": "amgcl",

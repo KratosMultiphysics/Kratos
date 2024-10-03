@@ -43,6 +43,8 @@ public:
     struct FatigueVariables {
         double MaxStress = 0.0;
         double MinStress = 0.0;
+        bool FirstMaxIndicator = true;
+        bool FirstMinIndicator = true;
         bool MaxIndicator = false;
         bool MinIndicator = false;
         Vector PreviousStresses = ZeroVector(2);
@@ -54,7 +56,7 @@ public:
         double B0 = 0.0;
         double PreviousMaxStress = 0.0;
         double PreviousMinStress = 0.0;
-        double WohlerStress = 1.0;
+        // double WohlerStress = 1.0;
         double Sth = 0.0;
         double CyclesToFailure = 0.0;
         bool NewCycle = false;
@@ -62,7 +64,7 @@ public:
         double PreviousReversionFactor = 0.0;
         double ReversionFactor = 0.0;
         bool AdvanceStrategyApplied;
-        bool DamageActivation;
+        bool NoLinearityActivation;
     };
 
     static constexpr double tolerance = 1.0e-3;
@@ -175,7 +177,7 @@ void save(Serializer& rSerializer) const
     rSerializer.save("NumberOfCyclesLocal",mNumberOfCyclesLocal);
     rSerializer.save("PreviousMaxStress",mPreviousMaxStress);
     rSerializer.save("PreviousMinStress",mPreviousMinStress);
-    rSerializer.save("WohlerStress",mWohlerStress);
+    // rSerializer.save("WohlerStress",mWohlerStress);
     rSerializer.save("ThresholdStress",mThresholdStress);
     rSerializer.save("CyclesToFailure",mCyclesToFailure);
     rSerializer.save("NewCycleIndicator",mNewCycleIndicator);
@@ -195,7 +197,7 @@ void load(Serializer& rSerializer)
     rSerializer.load("NumberOfCyclesLocal",mNumberOfCyclesLocal);
     rSerializer.load("PreviousMaxStress",mPreviousMaxStress);
     rSerializer.load("PreviousMinStress",mPreviousMinStress);
-    rSerializer.load("WohlerStress",mWohlerStress);
+    // rSerializer.load("WohlerStress",mWohlerStress);
     rSerializer.load("ThresholdStress",mThresholdStress);
     rSerializer.load("CyclesToFailure",mCyclesToFailure);
     rSerializer.load("NewCycleIndicator",mNewCycleIndicator);

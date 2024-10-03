@@ -1054,6 +1054,9 @@ private:
             // Compute material response
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
+            // array_1d<double, 6> out_get_strain = Values.GetStrainVector();
+            // KRATOS_WATCH(out_get_strain)
+
             // rotate to local axes strain/F
             if (is_rotated)
                 RotateToLocalAxes(Values, this_kinematic_variables);

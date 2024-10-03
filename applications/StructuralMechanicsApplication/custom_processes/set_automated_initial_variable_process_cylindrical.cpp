@@ -16,14 +16,14 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_processes/set_automated_initial_variable_process.h"
+#include "custom_processes/set_automated_initial_variable_process_cylindrical.h"
 #include "utilities/parallel_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
-SetAutomatedInitialVariableProcess::SetAutomatedInitialVariableProcess(
+SetAutomatedInitialVariableProcessCylindrical::SetAutomatedInitialVariableProcessCylindrical(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -35,7 +35,7 @@ SetAutomatedInitialVariableProcess::SetAutomatedInitialVariableProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SetAutomatedInitialVariableProcess::ExecuteInitialize()
+void SetAutomatedInitialVariableProcessCylindrical::ExecuteInitialize()
 {
     
     KRATOS_TRY
@@ -68,13 +68,19 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 
         double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
-        if (centroid_relative_distance < 0.0){
-            if (std::abs(centroid_relative_distance) <= tolerance) {
-                centroid_relative_distance = 0.0;
-            } else {
-                KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
-            }
+        if (centroid_relative_distance < tolerance){
+            // centroid_relative_distance = 2.05E-06; //CP800
+            // centroid_relative_distance = 3.25E-06; //CP980
+            centroid_relative_distance = mThisParameters["surface_element_centroid"].GetDouble();
         }
+       
+        // if (centroid_relative_distance < 0.0){
+        //     if (std::abs(centroid_relative_distance) <= tolerance) {
+        //         centroid_relative_distance = 0.0;
+        //     } else {
+        //         KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
+        //     }
+        // }
         
         array_1d<double, 6> initial_variable_vector;
         noalias(initial_variable_vector) = ZeroVector(6); 
@@ -98,7 +104,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SetAutomatedInitialVariableProcess::GetDefaultParameters() const
+const Parameters SetAutomatedInitialVariableProcessCylindrical::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
@@ -106,6 +112,7 @@ const Parameters SetAutomatedInitialVariableProcess::GetDefaultParameters() cons
         "hole_generatrix_axis"     : [0.0,0.0,1.0],
         "hole_generatrix_point"    : [0.0,0.0,0.0],
         "hole_radius_offset"       : 0.0,
+        "surface_element_centroid" : 0.0,
         "table_id_vector"          : [10,11,12,13,14,15]
     })");
 

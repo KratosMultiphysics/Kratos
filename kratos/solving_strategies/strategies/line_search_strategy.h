@@ -308,12 +308,12 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                       : "line_search_strategy",
-            "max_line_search_iterations" : 5,
+            "max_line_search_iterations" : 25,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 1.0,
             "min_alpha"                  : 0.1,
             "max_alpha"                  : 2.0,
-            "line_search_tolerance"      : 0.5
+            "line_search_tolerance"      : 0.01
         })");
 
         // Getting base class default parameters

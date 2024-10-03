@@ -135,8 +135,7 @@ public:
             mFatigueReductionParameter(rOther.mFatigueReductionParameter),
             mStressVector(rOther.mStressVector),
             mMaxDetected(rOther.mMaxDetected),
-            mMinDetected(rOther.mMinDetected),
-            mWohlerStress(rOther.mWohlerStress)
+            mMinDetected(rOther.mMinDetected)
     {
     }
 
@@ -202,6 +201,19 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues
+        ) override;
 
     /**
      * returns whether this constitutive Law has specified variable
@@ -409,29 +421,37 @@ private:
     ///@{
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector& toStressVector) {mStressVector = toStressVector;}
+    void SetInitialThreshold(double toInitialThreshold) { mInitialTherhold = toInitialThreshold; }
     ///@}
     ///@name Member Variables
     ///@{
-    double mFatigueReductionFactor = 1.0;
+    double mReferenceDamage = 0.0; // Damage parameter used to compute B0 in the low cycle regime (maximum predictive stress great or equal to the Uts)
+    double mFatigueReductionFactor = 1.0; // Fatigue reduction factor
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
-    double mMaxStress = 0.0;
-    double mMinStress = 0.0;
-    double mPreviousMaxStress = 0.0;
-    double mPreviousMinStress = 0.0;
+    double mPreviousMaxStress = 0.0; // Previous maximun stress detected in the current cycle
+    double mPreviousMinStress = 0.0; // Previous minimum stress detected in the current cycle
+    double mMaxStress = 0.0; // Maximun stress detected in the current cycle
+    double mMinStress = 0.0; // Minimum stress detected in the current cycle
     unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
-    unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
+    unsigned int mNumberOfCyclesLocal = 1; // Local number of cycles in the whole analysis
     double mFatigueReductionParameter = 0.0; // B0
-    Vector mStressVector = ZeroVector(VoigtSize);
-    bool mMaxDetected = false; // Maximum's indicator in the current cycle
-    bool mMinDetected = false; // Minimum's indicator in the current cycle
-    double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
-    double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
-    double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
-    double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
-    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
-    double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
-    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
-    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    Vector mStressVector = ZeroVector(VoigtSize); // Stress tensor
+    bool mFirstMaxDetected = true; // First maximum's indicator in the current cycle
+    bool mFirstMinDetected = true; // First minimum's indicator in the current cycle
+    bool mMaxDetected = false; // Detects the global maximum stress in the current cycle when it is not the one detected by the first maximum indicator 
+    bool mMinDetected = false; // Detects the global minimum stress in the current cycle when it is not the one detected by the first minimum indicator 
+    double mThresholdStress = 0.0; // Endurance limit of the fatigue model
+    double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advancing process
+    double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advancing process
+    double mPreviousCycleDamage = 0.0; // Damage variable computed in the previous cycle
+    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process
+    double mCyclesToFailure = 1.0e15; // Nf. Required for the advancing process
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
+    double mPeriod = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
+    double mInitialTherhold = 0.0; // Initial damage threshold
+    bool mFirstCycleNonlinearity = true; // Indicator of first nonlinearity
+    double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
+
 
     ///@}
     ///@name Private Operators
@@ -452,51 +472,63 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("ReferenceDamage", mReferenceDamage);
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
-        rSerializer.save("MaxStress", mMaxStress);
-        rSerializer.save("MinStress", mMinStress);
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.save("PreviousMinStress", mPreviousMinStress);
+        rSerializer.save("MaxStress", mMaxStress);
+        rSerializer.save("MinStress", mMinStress);
         rSerializer.save("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
         rSerializer.save("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
+        rSerializer.save("FirstMaxDetected", mFirstMaxDetected);
+        rSerializer.save("FirstMinDetected", mFirstMinDetected);
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
-        rSerializer.save("WohlerStress", mWohlerStress);
         rSerializer.save("ThresholdStress", mThresholdStress);
         rSerializer.save("ReversionFactorRelativeError", mReversionFactorRelativeError);
         rSerializer.save("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
         rSerializer.save("NewCycleIndicator", mNewCycleIndicator);
         rSerializer.save("CyclesToFailure", mCyclesToFailure);
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
+        rSerializer.save("InitialTherhold", mInitialTherhold);
+        rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
+        rSerializer.save("RelaxationFactor", mRelaxationFactor);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("ReferenceDamage", mReferenceDamage);
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
-        rSerializer.load("MaxStress", mMaxStress);
-        rSerializer.load("MinStress", mMinStress);
         rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.load("PreviousMinStress", mPreviousMinStress);
+        rSerializer.load("MaxStress", mMaxStress);
+        rSerializer.load("MinStress", mMinStress);
         rSerializer.load("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
         rSerializer.load("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
+        rSerializer.load("FirstMaxDetected", mFirstMaxDetected);
+        rSerializer.load("FirstMinDetected", mFirstMinDetected);
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
-        rSerializer.load("WohlerStress", mWohlerStress);
         rSerializer.load("ThresholdStress", mThresholdStress);
         rSerializer.load("ReversionFactorRelativeError", mReversionFactorRelativeError);
         rSerializer.load("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.load("PreviousCycleDamage", mPreviousCycleDamage);
         rSerializer.load("NewCycleIndicator", mNewCycleIndicator);
         rSerializer.load("CyclesToFailure", mCyclesToFailure);
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
+        rSerializer.load("InitialTherhold", mInitialTherhold);
+        rSerializer.save("FirstCycleNonlinearity", mFirstCycleNonlinearity);
+        rSerializer.load("RelaxationFactor", mRelaxationFactor);
     }
     ///@}
 

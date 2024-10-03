@@ -748,6 +748,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     if ( rOutput.size() != number_of_integration_points )
         rOutput.resize( number_of_integration_points, false );
 
+    for (IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss) {
+        rOutput[i_gauss] = 0.0;
+    }
+
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else {
@@ -1552,6 +1556,9 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 {
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // array_1d<double, 6> core_get_strain = rValues.GetStrainVector();
+    // KRATOS_WATCH(core_get_strain)
 
     // rotate to local axes strain/F
     if (IsElementRotated)
