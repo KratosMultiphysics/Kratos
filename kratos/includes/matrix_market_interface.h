@@ -19,10 +19,7 @@
 // External includes
 
 // To avoid linking problems
-extern "C"
-{
 #include "includes/mmio.h"
-}
 
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 
