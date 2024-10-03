@@ -94,6 +94,8 @@ import test_compute_nodal_gradient_process
 import test_voxel_modeler
 import test_model_part_utils_connectivity_generations
 import test_duplicate_mesh_modeler
+import test_obj_io
+import test_import_obj_modeler
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -175,7 +177,7 @@ def AssembleTestSuites():
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_specifications_utilities.TestSpecificationsUtilities]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_json_input.TestCadJsonInput]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compare_elements_conditions.TestCompareElementsAndConditionsUtility]))
-    # # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_factories.TestFactories]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
@@ -214,6 +216,8 @@ def AssembleTestSuites():
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestBoundaryConditionVoxelizer]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils_connectivity_generations.TestModelPartUtilsConnectivityGenerations]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_duplicate_mesh_modeler.TestDuplicateMeshModeler]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_obj_io.TestObjIO]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
 
     # if sympy_available:
     #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))

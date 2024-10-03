@@ -6,7 +6,8 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya,
+//                   Ihar Antonau
 //
 
 #pragma once
@@ -33,7 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(DIGITAL_TWIN_APPLICATION) MeasurementResidualResponseFunction : public AdjointResponseFunction
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) MeasurementResidualResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -156,6 +157,8 @@ private:
     ///@{
 
     double mPCoefficient;
+
+    double mC1;
 
     std::vector<Sensor::Pointer> mpSensorsList;
 

@@ -13,7 +13,9 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -47,18 +49,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
                                 r_geom.WorkingSpaceDimension() * r_geom.PointsNumber() + 3);
     // clang-format off
        expected_mass_matrix <<=
-    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0,0,0,
-    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0,0,0,
-    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0,0,0,
-    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0,0,0,
-    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0,0,0,
-    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0,0,0,
-    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,0,0,0,
-    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,0,0,0,
-    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,0,0,0,
-    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,0,0,0,
-    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,0,0,0,
-    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,0,0,0,
+    0.0524691,0.0,-0.0262346,0.0,-0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0,0,0,
+    0.0,0.0524691,0.0,-0.0262346,0.0,-0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0,0,0,
+    -0.0262346,0.0,0.0524691,0.0,-0.0262346,0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0,0,0,
+    0.0,-0.0262346,0.0,0.0524691,0.0,-0.0262346,0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0,0,0,
+    -0.0262346,0.0,-0.0262346,0.0,0.0524691,0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0,0,0,
+    0.0,-0.0262346,0.0,-0.0262346,0.0,0.0524691,0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0,0,0,
+    0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.28858,0.0,0.209877,0.0,0.209877,0.0,0,0,0,
+    0.0,0.0262346,0.0,0.0262346,0.0,-0.0524691,0.0,0.28858,0.0,0.209877,0.0,0.209877,0,0,0,
+    -0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0.209877,0.0,0.28858,0.0,0.209877,0.0,0,0,0,
+    0.0,-0.0524691,0.0,0.0262346,0.0,0.0262346,0.0,0.209877,0.0,0.28858,0.0,0.209877,0,0,0,
+    0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0.209877,0.0,0.209877,0.0,0.28858,0.0,0,0,0,
+    0.0,0.0262346,0.0,-0.0524691,0.0,0.0262346,0.0,0.209877,0.0,0.209877,0.0,0.28858,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
@@ -98,18 +100,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
                                 (r_geom.WorkingSpaceDimension() + 1) * r_geom.PointsNumber());
     // clang-format off
     expected_mass_matrix <<=
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,17.0833,17.0833,17.0833,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
-    17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,17.0833,34.1667,34.1667,34.1667,0,0,0,0,
+    34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,17.0833,0,0,0,0,
+    17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0.0,0,0,0,0,
+    0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0.0,0,0,0,0,
+    0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,17.0833,0.0,0.0,34.1667,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -182,5 +184,90 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
 
     KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
 }
+
+KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesSigma, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    const auto expected_internal_force_vector = Vector{ScalarVector{8, 1.3}};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                                           b_matrices, stress_vectors, integration_coefficients),
+                                       expected_internal_force_vector, Defaults::relative_tolerance)
+}
+
+// The following tests only raise errors when using debug builds
+#ifdef KRATOS_DEBUG
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix       = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices     = std::vector<Matrix>{b_matrix}; // Error: missing one matrix
+    const auto stress_vector  = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: input vectors have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVectorsAreEmpty,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrices               = std::vector<Matrix>{};
+    const auto stress_vectors           = std::vector<Vector>{};
+    const auto integration_coefficients = std::vector<double>{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: input vectors are empty")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrices = std::vector<Matrix>{ScalarMatrix{2, 8, 1.0}, ScalarMatrix{1, 8, 1.0}}; // Error: matrices have different numbers of rows
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: B-matrices have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVectorsHaveDifferentSizes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto b_matrix   = Matrix{ScalarMatrix{2, 8, 1.0}};
+    const auto b_matrices = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vectors = std::vector<Vector>{ScalarVector{2, 1.0}, ScalarVector{3, 1.0}}; // Error: vectors have different sizes
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients),
+        "Cannot calculate the internal force vector: stress vectors have different sizes")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Error: transpose of the B-matrix has more columns (3) than the number of stress components (2)
+    const auto b_matrix                 = Matrix{ScalarMatrix{3, 8, 1.0}};
+    const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
+    const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
+    const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
+    const auto integration_coefficients = std::vector<double>{0.25, 0.4};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients), "Cannot calculate the internal force vector: matrix-vector product cannot be calculated due to size mismatch")
+}
+
+#endif
 
 } // namespace Kratos::Testing
