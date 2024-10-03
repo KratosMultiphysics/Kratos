@@ -98,7 +98,8 @@ The process is defined as follows in json (also found in some of the [integratio
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR"
+        "variable_name": "CAUCHY_STRESS_TENSOR",
+        "use_standard_procedure": true
       }
     }
   ]
