@@ -121,7 +121,6 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
                      << std::endl;
     }
 
-    // Read K0 input and create k0 vector
     auto k0_vector = CreateK0Vector(rProp);
 
     // Corrections on k0_vector by OCR or POP
