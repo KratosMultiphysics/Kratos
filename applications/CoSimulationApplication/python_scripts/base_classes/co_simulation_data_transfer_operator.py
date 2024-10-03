@@ -14,7 +14,6 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_communicator = parent_coupled_solver_data_communicator
         self.__checked_combinations = []
-        self.counter = 0
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # 1. Check if specified transfer options are available
@@ -63,8 +62,6 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     @classmethod
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
-            "type"                    : "UNSPECIFIED",
-            "echo_level"              : 0,
-            "debug_vtk"               : false,
-            "auxiliary_debug_counter" : false
+            "type"       : "UNSPECIFIED",
+            "echo_level" : 0
         }""")
