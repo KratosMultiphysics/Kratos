@@ -919,7 +919,7 @@ class DEMAnalysisStage(AnalysisStage):
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
                 
-                return eigenvalues, second_invariant_of_deviatoric_tensor
+                return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
 
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
