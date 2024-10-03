@@ -70,7 +70,7 @@ $K_{0^{nc}}$ is gotten from either "K0_NC" the material input file or by computa
 
 $$K_0^{nc} = 1.0 - \sin \phi$$
 
-When "OCR" and optionally "POISSON_UNLOADING_RELOADING" are supplied, the normal consolidation value $K_{0_{NC}}$ is modified:
+When the overconsolidation ratio ("OCR") and optionally the unloading-reloading Poisson's ratio $\nu_{ur}$ ("POISSON_UNLOADING_RELOADING") are supplied, the normal consolidation value $K_{0_{NC}}$ is modified:
 
 $$K_0 = OCR K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
