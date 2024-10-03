@@ -417,9 +417,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    pF_GetParamCount    pGetParamCount;
-    pF_GetStateVarCount pGetStateVarCount;
-    pF_UserMod          pUserMod;
+    pF_GetParamCount    mpGetParamCount    = nullptr;
+    pF_GetStateVarCount mpGetStateVarCount = nullptr;
+    pF_UserMod          mpUserMod          = nullptr;
 
     bool mIsModelInitialized = false;
     bool mIsUDSMLoaded       = false;

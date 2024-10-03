@@ -336,14 +336,14 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
     std::vector<double> StateVariables;
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-             &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
+              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -387,14 +387,14 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
     std::vector<double> StateVariables;
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-             &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
+              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -413,7 +413,7 @@ SizeType SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Prope
 
     int nUDSM = rMaterialProperties[UDSM_NUMBER];
     int nParameters(0);
-    pGetParamCount(&nUDSM, &nParameters);
+    mpGetParamCount(&nUDSM, &nParameters);
 
     return static_cast<SizeType>(nParameters);
 
@@ -460,10 +460,10 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     }
 
     // resolve function GetParamCount address
-    pGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount");
-    if (!pGetParamCount) {
-        pGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount_");
-        if (!pGetParamCount) {
+    mpGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount");
+    if (!mpGetParamCount) {
+        mpGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount_");
+        if (!mpGetParamCount) {
             KRATOS_INFO("Error in loadUDSMLinux")
                 << "cannot load function GetParamCount in the specified UDSM: "
                 << rMaterialProperties[UDSM_NAME] << std::endl;
@@ -473,12 +473,12 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     }
 
     // resolve function GetStateVarCount address
-    pGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
+    mpGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
 
-    pUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
-    if (!pUserMod) {
-        pUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
-        if (!pUserMod) {
+    mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
+    if (!mpUserMod) {
+        mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
+        if (!mpUserMod) {
             KRATOS_INFO("Error in loadUDSMLinux")
                 << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
                 << std::endl;
@@ -521,11 +521,11 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties& rMaterialProperties
     }
 
     // resolve function GetParamCount address
-    pGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount");
-    if (!pGetParamCount) {
+    mpGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount");
+    if (!mpGetParamCount) {
         // check if the dll is compiled with gfortran
-        pGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount_");
-        if (!pGetParamCount) {
+        mpGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount_");
+        if (!mpGetParamCount) {
             KRATOS_INFO("Error in loadUDSMWindows")
                 << "cannot load function GetParamCount in the specified UDSM: "
                 << rMaterialProperties[UDSM_NAME] << std::endl;
@@ -535,13 +535,13 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties& rMaterialProperties
     }
 
     // resolve function GetStateVarCount address
-    pGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
+    mpGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
 
-    pUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
-    if (!pUserMod) {
+    mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
+    if (!mpUserMod) {
         // check if the dll is compiled with gfortran
-        pUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod_");
-        if (!pUserMod) {
+        mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod_");
+        if (!mpUserMod) {
             KRATOS_INFO("Error in loadUDSMWindows")
                 << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
                 << std::endl;
@@ -716,14 +716,14 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     auto nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
-             (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
+              (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")
