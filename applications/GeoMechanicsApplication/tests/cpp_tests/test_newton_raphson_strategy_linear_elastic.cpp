@@ -118,7 +118,7 @@ public:
         double gamma = 0.5;
         // create strategy
         auto pScheme =
-            std::make_shared<IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma, 0.75);
+            std::make_shared<IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma);
 
         auto factory = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
 

@@ -98,7 +98,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 		
 	py::class_<IncrementalNewmarkLinearElasticUPwSchemeType, typename IncrementalNewmarkLinearElasticUPwSchemeType::Pointer, BaseSchemeType>(
 	    m, "IncrementalNewmarkLinearElasticUPwScheme", py::module_local())
-	    .def(py::init<double, double, double>());
+	    .def(py::init<double, double>());
 
     py::class_<NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticPwScheme")

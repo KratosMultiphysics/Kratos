@@ -24,6 +24,7 @@
 #endif
 
 /* Project includes */
+#include "custom_utilities/sparse_system_utilities.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_flags.h"
@@ -176,8 +177,8 @@ public:
         // only add dynamics to lhs after calculating initial second derivative
         this->AddDynamicsToLhs(rA, rModelPart);
 
-        // Initialize the linear solver, such that the solver can factorize the matrices already. In case the matrices can be pre-factorized, this step is not
-        // performed during calculation.
+        // Initialize the linear solver, such that the solver can factorize the matrices already. In
+        // case the matrices can be pre-factorized, this step is not performed during calculation.
         BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, dummy_rDx, rb);
     }
 
@@ -410,51 +411,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void GetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
-                                           TSystemVectorType& rSecondDerivativeVector,
-                                           ModelPart&         rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& r_node) {
-            if (r_node.IsActive()) {
-                this->GetDerivativesForVariable(DISPLACEMENT_X, r_node, rFirstDerivativeVector,
-                                                rSecondDerivativeVector);
-                this->GetDerivativesForVariable(DISPLACEMENT_Y, r_node, rFirstDerivativeVector,
-                                                rSecondDerivativeVector);
-
-                const std::vector<const Variable<double>*> optional_variables = {
-                    &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
-
-                for (const auto p_variable : optional_variables) {
-                    this->GetDerivativesForOptionalVariable(
-                        *p_variable, r_node, rFirstDerivativeVector, rSecondDerivativeVector);
-                }
-            }
-        });
-    }
-
-    void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
-                                           const Node&             rNode,
-                                           TSystemVectorType&      rFirstDerivativeVector,
-                                           TSystemVectorType&      rSecondDerivativeVector) const
-    {
-        if (rNode.HasDofFor(rVariable)) {
-            this->GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-        }
-    }
-
-    void GetDerivativesForVariable(const Variable<double>& rVariable,
-                                   const Node&             rNode,
-                                   TSystemVectorType&      rFirstDerivativeVector,
-                                   TSystemVectorType&      rSecondDerivativeVector) const
-    {
-        const auto& first_derivative  = rVariable.GetTimeDerivative();
-        const auto& second_derivative = first_derivative.GetTimeDerivative();
-
-        const auto equation_id               = rNode.GetDof(rVariable).EquationId();
-        rFirstDerivativeVector[equation_id]  = rNode.FastGetSolutionStepValue(first_derivative);
-        rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(second_derivative);
-    }
-
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
     {
         // getting the array of the conditions
@@ -571,51 +527,6 @@ protected:
         }
     }
 
-    void SetFirstAndSecondDerivativeVector(TSystemVectorType& rFirstDerivativeVector,
-                                           TSystemVectorType& rSecondDerivativeVector,
-                                           ModelPart&         rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
-            if (rNode.IsActive()) {
-                this->SetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector,
-                                                rSecondDerivativeVector);
-                this->SetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector,
-                                                rSecondDerivativeVector);
-
-                const std::vector<const Variable<double>*> optional_variables = {
-                    &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
-
-                for (const auto p_variable : optional_variables) {
-                    this->SetDerivativesForOptionalVariable(
-                        *p_variable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-                }
-            }
-        });
-    }
-
-    void SetDerivativesForOptionalVariable(const Variable<double>&  rVariable,
-                                           Node&                    rNode,
-                                           const TSystemVectorType& rFirstDerivativeVector,
-                                           const TSystemVectorType& rSecondDerivativeVector)
-    {
-        if (rNode.HasDofFor(rVariable)) {
-            this->SetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
-        }
-    }
-
-    void SetDerivativesForVariable(const Variable<double>&  rVariable,
-                                   Node&                    rNode,
-                                   const TSystemVectorType& rFirstDerivativeVector,
-                                   const TSystemVectorType& rSecondDerivativeVector)
-    {
-        const auto& r_first_derivative  = rVariable.GetTimeDerivative();
-        const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
-
-        const auto equation_id                              = rNode.GetDof(rVariable).EquationId();
-        rNode.FastGetSolutionStepValue(r_first_derivative)  = rFirstDerivativeVector[equation_id];
-        rNode.FastGetSolutionStepValue(r_second_derivative) = rSecondDerivativeVector[equation_id];
-    }
-
     void CalculateInitialSecondDerivative(ModelPart&         rModelPart,
                                           TSystemMatrixType& rStiffnessMatrix,
                                           TSystemVectorType& rExternalForce)
@@ -630,7 +541,8 @@ protected:
             solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
         });
 
-        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
+        Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
+            first_derivative_vector, second_derivative_vector, r_dof_set, rModelPart, 0);
 
         // calculate initial second derivative vector
         TSystemVectorType stiffness_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
@@ -650,7 +562,8 @@ protected:
         // solve for initial second derivative vector
         BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
 
-        this->SetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
+        Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(
+            first_derivative_vector, second_derivative_vector, rModelPart);
     }
 
 private:
@@ -697,9 +610,11 @@ private:
     void AddMassAndDampingToRhs(ModelPart& rModelPart, TSystemVectorType& rb)
     {
         // Get first and second derivative vector
-        TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSystemVectorType second_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        this->GetFirstAndSecondDerivativeVector(first_derivative_vector, second_derivative_vector, rModelPart);
+        TSystemVectorType first_derivative_vector;
+        TSystemVectorType second_derivative_vector;
+
+        Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
+            first_derivative_vector, second_derivative_vector, BaseType::mDofSet, rModelPart, 0);
 
         // calculate and add mass and damping contribution to rhs
         this->CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);

@@ -526,14 +526,13 @@ class GeoMechanicalSolver(PythonSolver):
 
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
-            theta = self.settings["newmark_theta"].GetDouble()
 
             calculate_initial_acceleration = self.settings["initialize_acceleration"].GetBool()
 
             # delta time has to be initialized before solving solution steps
             self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
 
-            new_scheme = GeoMechanicsApplication.IncrementalNewmarkLinearElasticUPwScheme(beta, gamma, theta)
+            new_scheme = GeoMechanicsApplication.IncrementalNewmarkLinearElasticUPwScheme(beta, gamma)
 
             new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(
                                                                                         self.linear_solver,
