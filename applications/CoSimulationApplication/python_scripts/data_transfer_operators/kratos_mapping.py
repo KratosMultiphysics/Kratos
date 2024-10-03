@@ -278,7 +278,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
                 if self.sub_counter >= 2 * self.number_of_mappers: # 2 because of pre and post mapping
                     self.sub_counter = 0
                     self.counter += 1
-                name_prefix = "MAPPING_{}".format(self.counter)
+                name_prefix = f"MAPPING_{self.counter}"
 
             # Prepare the settings for VTK output processing
             model_origin, model_destination, origin_settings, destination_settings, variable_origin_name, variable_destination_name, identifier_tuple, inverse_identifier_tuple = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
