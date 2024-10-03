@@ -97,18 +97,21 @@ public:
 
         TSystemVectorType delta_first_derivative_vector = TSystemVectorType(rDofSet.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
-                                   (GetGamma() / (GetBeta() * GetDeltaTime())), Dx);
-        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector, -(GetGamma() / GetBeta()), first_derivative_vector);
+                                   (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())), Dx);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
-                                   GetDeltaTime() * (1 - GetGamma() / (2 * GetBeta())), second_derivative_vector);
+                                   -(this->GetGamma() / this->GetBeta()), first_derivative_vector);
+        TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
+                                   this->GetDeltaTime() * (1 - this->GetGamma() / (2 * this->GetBeta())),
+                                   second_derivative_vector);
 
         // performs: TSystemVectorType delta_second_derivative_vector = Dx * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
         TSystemVectorType delta_second_derivative_vector = TSystemVectorType(rDofSet.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector,
-                                   1 / (GetBeta() * GetDeltaTime() * GetDeltaTime()), Dx);
+                                   1 / (this->GetBeta() * this->GetDeltaTime() * this->GetDeltaTime()), Dx);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector,
-                                   -1 / (GetBeta() * GetDeltaTime()), first_derivative_vector);
-        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * GetBeta()), second_derivative_vector);
+                                   -1 / (this->GetBeta() * this->GetDeltaTime()), first_derivative_vector);
+        TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * this->GetBeta()),
+                                   second_derivative_vector);
 
         // performs: first_derivative_vector += delta_first_derivative_vector;
         TSparseSpace::UnaliasedAdd(first_derivative_vector, 1.0, delta_first_derivative_vector);
