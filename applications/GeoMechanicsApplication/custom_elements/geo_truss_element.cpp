@@ -184,7 +184,7 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    BoundedMatrix<double, TDim * TNumNodes, TDim* TNumNodes> transformation_matrix =
+    BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes> transformation_matrix =
         ZeroMatrix(TDim * TNumNodes, TDim * TNumNodes);
 
     this->CreateTransformationMatrix(transformation_matrix);
@@ -213,11 +213,11 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     const double normal_force = ((temp_stress[0] + prestress) * l * A) / L0;
 
     // internal force vectors
-    BoundedVector<double, TDim* TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0]                                     = -1.00 * normal_force;
-    f_local[TDim]                                  = 1.00 * normal_force;
-    rInternalForces                                = ZeroVector(TDim * TNumNodes);
-    noalias(rInternalForces)                       = prod(transformation_matrix, f_local);
+    BoundedVector<double, TDim * TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
+    f_local[0]                                      = -1.00 * normal_force;
+    f_local[TDim]                                   = 1.00 * normal_force;
+    rInternalForces                                 = ZeroVector(TDim * TNumNodes);
+    noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
     KRATOS_CATCH("")
 }
 

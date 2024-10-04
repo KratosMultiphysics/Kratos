@@ -128,12 +128,12 @@ public:
     //@name Life Cycle
     //@{
 
-    SmallStrainUMAT3DLaw()           = default;
-    ~SmallStrainUMAT3DLaw() override = default;
-    SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
+                          SmallStrainUMAT3DLaw()          = default;
+    ~                     SmallStrainUMAT3DLaw() override = default;
+                          SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
     SmallStrainUMAT3DLaw& operator=(const SmallStrainUMAT3DLaw& rOther);
-    SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&)            = delete;
-    SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw&&) = delete;
+                          SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&) = delete;
+    SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw&&)            = delete;
 
     /**
      * @brief Clone method

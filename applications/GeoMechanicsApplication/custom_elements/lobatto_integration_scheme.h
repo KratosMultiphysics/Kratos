@@ -22,7 +22,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public In
 {
 public:
     explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
-    ~LobattoIntegrationScheme() override = default;
+    ~        LobattoIntegrationScheme() override = default;
 
     [[nodiscard]] std::size_t GetNumberOfIntegrationPoints() const override;
     [[nodiscard]] const Geo::IntegrationPointVectorType& GetIntegrationPoints() const override;

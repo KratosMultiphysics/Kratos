@@ -74,7 +74,7 @@ public:
     }
 
     ~UPwSmallStrainInterfaceElement() override                                       = default;
-    UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&)            = delete;
+     UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&)           = delete;
     UPwSmallStrainInterfaceElement& operator=(const UPwSmallStrainInterfaceElement&) = delete;
     UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement&&)                 = delete;
     UPwSmallStrainInterfaceElement& operator=(UPwSmallStrainInterfaceElement&&)      = delete;

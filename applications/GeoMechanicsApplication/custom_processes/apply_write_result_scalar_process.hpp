@@ -61,11 +61,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    ~ApplyWriteScalarProcess() override                                = default;
-    ApplyWriteScalarProcess(const ApplyWriteScalarProcess&)            = delete;
-    ApplyWriteScalarProcess& operator=(const ApplyWriteScalarProcess&) = delete;
-    ApplyWriteScalarProcess(ApplyWriteScalarProcess&&)                 = delete;
-    ApplyWriteScalarProcess& operator=(ApplyWriteScalarProcess&&)      = delete;
+    ~                        ApplyWriteScalarProcess() override                      = default;
+                             ApplyWriteScalarProcess(const ApplyWriteScalarProcess&) = delete;
+    ApplyWriteScalarProcess& operator=(const ApplyWriteScalarProcess&)               = delete;
+                             ApplyWriteScalarProcess(ApplyWriteScalarProcess&&)      = delete;
+    ApplyWriteScalarProcess& operator=(ApplyWriteScalarProcess&&)                    = delete;
 
     /// Execute method is used to execute the ApplyWriteScalarProcess algorithms.
     void Execute() override {}

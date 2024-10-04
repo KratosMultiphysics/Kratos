@@ -30,7 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantPhreaticMultiLinePressu
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantPhreaticMultiLinePressureProcess);
 
-    ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part, Parameters rParameters);
+     ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part, Parameters rParameters);
     ~ApplyConstantPhreaticMultiLinePressureProcess() override = default;
     ApplyConstantPhreaticMultiLinePressureProcess& operator=(ApplyConstantPhreaticMultiLinePressureProcess const&) = delete;
     ApplyConstantPhreaticMultiLinePressureProcess(ApplyConstantPhreaticMultiLinePressureProcess const&) = delete;

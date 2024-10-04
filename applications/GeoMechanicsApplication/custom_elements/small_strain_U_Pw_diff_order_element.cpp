@@ -1006,8 +1006,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSatura
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -1022,8 +1021,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1463,8 +1461,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
 
     auto result = std::vector<double>{};
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1479,8 +1476,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(
 
     auto result = std::vector<double>{};
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });

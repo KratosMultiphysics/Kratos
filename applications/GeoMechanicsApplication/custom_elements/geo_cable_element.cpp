@@ -91,7 +91,7 @@ void GeoCableElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRight
     KRATOS_TRY
     rRightHandSideVector = ZeroVector(TDim * TNumNodes);
 
-    BoundedVector<double, TDim* TNumNodes> internal_forces = ZeroVector(TDim * TNumNodes);
+    BoundedVector<double, TDim * TNumNodes> internal_forces = ZeroVector(TDim * TNumNodes);
     UpdateInternalForces(internal_forces, rCurrentProcessInfo);
 
     if (!mIsCompressed) {
@@ -145,11 +145,11 @@ void GeoCableElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     }
 
     // internal force vectors
-    BoundedVector<double, TDim* TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
-    f_local[0]                                     = -1.00 * normal_force;
-    f_local[TDim]                                  = 1.00 * normal_force;
-    rInternalForces                                = ZeroVector(TDim * TNumNodes);
-    noalias(rInternalForces)                       = prod(transformation_matrix, f_local);
+    BoundedVector<double, TDim * TNumNodes> f_local = ZeroVector(TDim * TNumNodes);
+    f_local[0]                                      = -1.00 * normal_force;
+    f_local[TDim]                                   = 1.00 * normal_force;
+    rInternalForces                                 = ZeroVector(TDim * TNumNodes);
+    noalias(rInternalForces)                        = prod(transformation_matrix, f_local);
     KRATOS_CATCH("")
 }
 

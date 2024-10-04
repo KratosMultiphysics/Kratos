@@ -175,9 +175,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KratosGeoMechanicsApplication();
+     KratosGeoMechanicsApplication();
     ~KratosGeoMechanicsApplication() override                                      = default;
-    KratosGeoMechanicsApplication(const KratosGeoMechanicsApplication&)            = delete;
+     KratosGeoMechanicsApplication(const KratosGeoMechanicsApplication&)           = delete;
     KratosGeoMechanicsApplication& operator=(const KratosGeoMechanicsApplication&) = delete;
     KratosGeoMechanicsApplication(KratosGeoMechanicsApplication&&)                 = delete;
     KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication&&)      = delete;

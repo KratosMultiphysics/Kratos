@@ -25,7 +25,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyPhreaticMultiLinePressureTableP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPhreaticMultiLinePressureTableProcess);
 
-    ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part, Parameters rParameters);
+     ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part, Parameters rParameters);
     ~ApplyPhreaticMultiLinePressureTableProcess() override = default;
     ApplyPhreaticMultiLinePressureTableProcess& operator=(ApplyPhreaticMultiLinePressureTableProcess const&) = delete;
     ApplyPhreaticMultiLinePressureTableProcess(ApplyPhreaticMultiLinePressureTableProcess const&) = delete;

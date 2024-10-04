@@ -50,8 +50,8 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
     bool finalMessageFound = false;
     int  messageCount      = 0;
 
-    std::function<void(const char*)> reportTextualProgress =
-        [&firstMessageFound, &finalMessageFound, &messageCount](const char* message) {
+    std::function<void(const char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound,
+                                                              &messageCount](const char* message) {
         messageCount++;
 
         if (strcmp(message, "Calculating head level 3m (1/12)") == 0) {
@@ -88,8 +88,8 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechani
     bool endProgressFound   = false;
     int  progressUpdates    = 0;
 
-    std::function<void(double)> reportProgress =
-        [&startProgressFound, &endProgressFound, &progressUpdates](double progress) {
+    std::function<void(double)> reportProgress = [&startProgressFound, &endProgressFound,
+                                                  &progressUpdates](double progress) {
         progressUpdates++;
 
         if (progress == 0.0) {

@@ -168,8 +168,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix, Geom);
-    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim>                       RelDispVector;
+    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TDim>                        RelDispVector;
 
     // Create constitutive law parameters:
     Vector                      StrainVector(TDim);
@@ -227,10 +227,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix, Geom);
-    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim>                       RelDispVector;
-    const double&                                MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-    double                                       JointWidth;
+    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TDim>                        RelDispVector;
+    const double&                                 MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    double                                        JointWidth;
 
     // Create constitutive law parameters:
     Vector                      StrainVector(TDim);
@@ -810,9 +810,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
         BoundedMatrix<double, TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix, Geom);
-        BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        array_1d<double, TDim>                       LocalRelDispVector;
-        array_1d<double, TDim>                       RelDispVector;
+        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        array_1d<double, TDim>                        LocalRelDispVector;
+        array_1d<double, TDim>                        RelDispVector;
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -847,12 +847,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
         BoundedMatrix<double, TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix, Geom);
-        BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        array_1d<double, TDim>                       LocalRelDispVector;
-        array_1d<double, TDim>                       RelDispVector;
-        const double&                                MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        double                                       JointWidth;
-        BoundedMatrix<double, TNumNodes, TDim>       GradNpT;
+        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        array_1d<double, TDim>                        LocalRelDispVector;
+        array_1d<double, TDim>                        RelDispVector;
+        const double&                                 MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+        double                                        JointWidth;
+        BoundedMatrix<double, TNumNodes, TDim>        GradNpT;
         const double&                     TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         const double                      DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
@@ -1002,11 +1002,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
         BoundedMatrix<double, TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix, Geom);
-        BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        array_1d<double, TDim>                       LocalRelDispVector;
-        array_1d<double, TDim>                       RelDispVector;
-        const double&                                MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        double                                       JointWidth;
+        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        array_1d<double, TDim>                        LocalRelDispVector;
+        array_1d<double, TDim>                        RelDispVector;
+        const double&                                 MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+        double                                        JointWidth;
         const double&                     TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
         BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
@@ -1043,11 +1043,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, Geom, DISPLACEMENT);
         BoundedMatrix<double, TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix, Geom);
-        BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        array_1d<double, TDim>                       LocalRelDispVector;
-        array_1d<double, TDim>                       RelDispVector;
-        const double&                                MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        double                                       JointWidth;
+        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+        array_1d<double, TDim>                        LocalRelDispVector;
+        array_1d<double, TDim>                        RelDispVector;
+        const double&                                 MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+        double                                        JointWidth;
         const double&                     TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double, TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim, TDim);
 
@@ -1789,7 +1789,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
         trans(rVariables.RotationMatrix),
         BoundedMatrix<double, TDim, TDim>(prod(rVariables.ConstitutiveMatrix, rVariables.RotationMatrix)));
     const BoundedMatrix<double, TNumNodes * TDim, TDim> temp_matrix = prod(trans(rVariables.Nu), dim_matrix);
-    const BoundedMatrix<double, TNumNodes * TDim, TNumNodes* TDim> stiffness_matrix =
+    const BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> stiffness_matrix =
         prod(temp_matrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
@@ -1814,7 +1814,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes* TDim> transposed_coupling_matrix =
+        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
 
@@ -1886,7 +1886,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessFo
     const BoundedMatrix<double, TNumNodes * TDim, TDim> u_dim_matrix =
         prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    const array_1d<double, TNumNodes* TDim> stiffness_force =
+    const array_1d<double, TNumNodes * TDim> stiffness_force =
         -1.0 * prod(u_dim_matrix, mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
@@ -1902,7 +1902,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddMixBodyForc
 
     this->CalculateSoilGamma(rVariables);
 
-    const array_1d<double, TNumNodes* TDim> mix_body_force =
+    const array_1d<double, TNumNodes * TDim> mix_body_force =
         prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute body force block vector into elemental vector
@@ -1932,7 +1932,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
     const BoundedMatrix<double, TNumNodes * TDim, TDim> temp_matrix =
         prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    array_1d<double, TNumNodes* TDim> u_vector = prod(temp_matrix, rVariables.VoigtVector);
+    array_1d<double, TNumNodes * TDim> u_vector = prod(temp_matrix, rVariables.VoigtVector);
 
     const BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *

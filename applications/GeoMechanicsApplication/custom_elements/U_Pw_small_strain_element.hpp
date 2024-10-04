@@ -71,11 +71,11 @@ public:
     {
     }
 
-    ~UPwSmallStrainElement() override                              = default;
-    UPwSmallStrainElement(const UPwSmallStrainElement&)            = delete;
-    UPwSmallStrainElement& operator=(const UPwSmallStrainElement&) = delete;
-    UPwSmallStrainElement(UPwSmallStrainElement&&)                 = delete;
-    UPwSmallStrainElement& operator=(UPwSmallStrainElement&&)      = delete;
+    ~                      UPwSmallStrainElement() override                    = default;
+                           UPwSmallStrainElement(const UPwSmallStrainElement&) = delete;
+    UPwSmallStrainElement& operator=(const UPwSmallStrainElement&)             = delete;
+                           UPwSmallStrainElement(UPwSmallStrainElement&&)      = delete;
+    UPwSmallStrainElement& operator=(UPwSmallStrainElement&&)                  = delete;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,

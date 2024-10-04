@@ -30,12 +30,12 @@ public:
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    LineInterfaceElement()                                           = default;
-    ~LineInterfaceElement() override                                 = default;
-    LineInterfaceElement(const LineInterfaceElement&)                = delete;
-    LineInterfaceElement& operator=(const LineInterfaceElement&)     = delete;
-    LineInterfaceElement(LineInterfaceElement&&) noexcept            = default;
-    LineInterfaceElement& operator=(LineInterfaceElement&&) noexcept = default;
+                          LineInterfaceElement()                                = default;
+    ~                     LineInterfaceElement() override                       = default;
+                          LineInterfaceElement(const LineInterfaceElement&)     = delete;
+    LineInterfaceElement& operator=(const LineInterfaceElement&)                = delete;
+                          LineInterfaceElement(LineInterfaceElement&&) noexcept = default;
+    LineInterfaceElement& operator=(LineInterfaceElement&&) noexcept            = default;
 
     LineInterfaceElement(IndexType                      NewId,
                          const GeometryType::Pointer&   rGeometry,

@@ -235,10 +235,10 @@ double GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateCurrentNetRadiat
 {
     std::vector<unsigned int> local_node_indices(TNumNodes);
     std::iota(local_node_indices.begin(), local_node_indices.end(), 0u);
-    const auto result =
-        std::accumulate(local_node_indices.begin(), local_node_indices.end(), 0.0,
-                        [this](double sum, unsigned int i) { return sum + CalculateNetRadiation(i); }) /
-        TNumNodes;
+    const auto result = std::accumulate(local_node_indices.begin(), local_node_indices.end(), 0.0,
+                                        [this](double sum, unsigned int i) {
+        return sum + CalculateNetRadiation(i);
+    }) / TNumNodes;
     return result;
 }
 

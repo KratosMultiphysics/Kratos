@@ -28,8 +28,8 @@ public:
 
     ~ApplyExcavationProcess() override;
 
-    ApplyExcavationProcess(const ApplyExcavationProcess&)            = delete;
-    ApplyExcavationProcess& operator=(const ApplyExcavationProcess&) = delete;
+                            ApplyExcavationProcess(const ApplyExcavationProcess&) = delete;
+    ApplyExcavationProcess& operator=(const ApplyExcavationProcess&)              = delete;
 
     void ExecuteInitialize() override;
 

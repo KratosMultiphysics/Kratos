@@ -72,7 +72,7 @@ public:
 
     ApplyComponentTableProcess(const ApplyComponentTableProcess&)            = delete;
     ApplyComponentTableProcess& operator=(const ApplyComponentTableProcess&) = delete;
-    ~ApplyComponentTableProcess() override                                   = default;
+    ~                           ApplyComponentTableProcess() override        = default;
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups

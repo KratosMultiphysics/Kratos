@@ -50,9 +50,9 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRig
     // Condition variables
     array_1d<double, TNumNodes * TDim> FaceLoadVector;
     ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector, Geom);
-    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim>                       TractionVector;
-    array_1d<double, TNumNodes * TDim>           UVector;
+    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TDim>                        TractionVector;
+    array_1d<double, TNumNodes * TDim>            UVector;
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {

@@ -22,12 +22,12 @@ class StrategyWrapper;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ScopedOutputFileAccess
 {
 public:
-    explicit ScopedOutputFileAccess(StrategyWrapper& rStrategyWrapper);
-    ~ScopedOutputFileAccess();
-    ScopedOutputFileAccess(const ScopedOutputFileAccess&)            = delete;
-    ScopedOutputFileAccess& operator=(const ScopedOutputFileAccess&) = delete;
-    ScopedOutputFileAccess(ScopedOutputFileAccess&&)                 = delete;
-    ScopedOutputFileAccess& operator=(ScopedOutputFileAccess&&)      = delete;
+    explicit                ScopedOutputFileAccess(StrategyWrapper& rStrategyWrapper);
+    ~                       ScopedOutputFileAccess();
+                            ScopedOutputFileAccess(const ScopedOutputFileAccess&) = delete;
+    ScopedOutputFileAccess& operator=(const ScopedOutputFileAccess&)              = delete;
+                            ScopedOutputFileAccess(ScopedOutputFileAccess&&)      = delete;
+    ScopedOutputFileAccess& operator=(ScopedOutputFileAccess&&)                   = delete;
 
 private:
     StrategyWrapper& mrStrategyWrapper;
