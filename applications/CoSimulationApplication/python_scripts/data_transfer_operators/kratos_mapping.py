@@ -9,20 +9,25 @@ from KratosMultiphysics.MappingApplication import python_mapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-# other imports
+# Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
-from collections import namedtuple
+from dataclasses import dataclass
+from typing import Union, Tuple
 
-# Define a named tuple for clarity
-SolverData = namedtuple('SolverData', [
-    'model_part_origin', 'model_part_destination',
-    'model_part_origin_name', 'model_part_destination_name',
-    'variable_origin', 'variable_destination',
-    'mapper_flags',
-    'identifier_origin', 'identifier_destination',
-    'identifier_tuple', 'inverse_identifier_tuple'
-])
+@dataclass
+class SolverData:
+    model_part_origin: KM.ModelPart
+    model_part_destination: KM.ModelPart
+    model_part_origin_name: str
+    model_part_destination_name: str
+    variable_origin: Union[KM.DoubleVariable, KM.Array1DVariable3]
+    variable_destination: Union[KM.DoubleVariable, KM.Array1DVariable3]
+    mapper_flags: KM.Flags
+    identifier_origin: str
+    identifier_destination: str
+    identifier_tuple: Tuple[str, str]
+    inverse_identifier_tuple: Tuple[str, str]
 
 def Create(*args):
     return KratosMappingDataTransferOperator(*args)
@@ -135,13 +140,19 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         model_part_origin      = self._GetModelPartFromInterfaceData(from_solver_data)
         model_part_destination = self._GetModelPartFromInterfaceData(to_solver_data)
 
-        # Return a named tuple containing all the extracted values
+        # Return the solver data as data class
         return SolverData(
-            model_part_origin, model_part_destination,
-            model_part_origin_name, model_part_destination_name,
-            variable_origin, variable_destination,
-            mapper_flags, identifier_origin, identifier_destination,
-            identifier_tuple, inverse_identifier_tuple
+            model_part_origin=model_part_origin,
+            model_part_destination=model_part_destination,
+            model_part_origin_name=model_part_origin_name,
+            model_part_destination_name=model_part_destination_name,
+            variable_origin=variable_origin,
+            variable_destination=variable_destination,
+            mapper_flags=mapper_flags,
+            identifier_origin=identifier_origin,
+            identifier_destination=identifier_destination,
+            identifier_tuple=identifier_tuple,
+            inverse_identifier_tuple=inverse_identifier_tuple
         )
 
     @staticmethod

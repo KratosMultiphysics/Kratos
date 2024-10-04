@@ -21,6 +21,23 @@ from pathlib import Path
 # Import the copy module
 import copy
 
+# Import the dataclass decorator
+from dataclasses import dataclass
+
+# Import the typing module
+from typing import Tuple
+
+@dataclass
+class VTKOutputSettings:
+    model_origin: KM.Model
+    model_destination: KM.Model
+    origin_settings: KM.Parameters
+    destination_settings: KM.Parameters
+    variable_origin_name: str
+    variable_destination_name: str
+    identifier_tuple: Tuple[str, str]
+    inverse_identifier_tuple: Tuple[str, str]
+
 def Create(*args):
     return KratosMappingDataTransferOperatorWithDebug(*args)
 
@@ -158,31 +175,41 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
             transfer_options (KM.Flags): The flags to be used for the mapping.
         """
         # Prepare the solver data
-        model_part_origin, model_part_destination, model_part_origin_name, model_part_destination_name, variable_origin, variable_destination, mapper_flags, identifier_origin, identifier_destination, identifier_tuple, inverse_identifier_tuple = self._PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
+        solver_data = self._PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
 
         # Get the model associated with the origin model part
-        model_origin = model_part_origin.GetModel()
-        model_destination = model_part_destination.GetModel()
+        model_origin = solver_data.model_part_origin.GetModel()
+        model_destination = solver_data.model_part_destination.GetModel()
 
         # Create VTK output settings for the origin model part
         origin_settings = self.__DefaultVTKSettings()
-        origin_settings["Parameters"]["model_part_name"].SetString(model_part_origin_name)
-        origin_settings["Parameters"]["output_path"].SetString("debug_vtk_output_" + variable_origin.Name() + "_" + identifier_origin)
-        if mapper_flags.Is(KM.Mapper.FROM_NON_HISTORICAL):
-            origin_settings["Parameters"]["nodal_data_value_variables"].Append(variable_origin.Name())
+        origin_settings["Parameters"]["model_part_name"].SetString(solver_data.model_part_origin_name)
+        origin_settings["Parameters"]["output_path"].SetString("debug_vtk_output_" + solver_data.variable_origin.Name() + "_" + solver_data.identifier_origin)
+        if solver_data.mapper_flags.Is(KM.Mapper.FROM_NON_HISTORICAL):
+            origin_settings["Parameters"]["nodal_data_value_variables"].Append(solver_data.variable_origin.Name())
         else:
-            origin_settings["Parameters"]["nodal_solution_step_data_variables"].Append(variable_origin.Name())
+            origin_settings["Parameters"]["nodal_solution_step_data_variables"].Append(solver_data.variable_origin.Name())
 
         # Create VTK output settings for the destination model part
         destination_settings = self.__DefaultVTKSettings()
-        destination_settings["Parameters"]["model_part_name"].SetString(model_part_destination_name)
-        destination_settings["Parameters"]["output_path"].SetString("debug_vtk_output_" + variable_destination.Name() + "_" + identifier_destination)
-        if mapper_flags.Is(KM.Mapper.TO_NON_HISTORICAL):
-            destination_settings["Parameters"]["nodal_data_value_variables"].Append(variable_destination.Name())
+        destination_settings["Parameters"]["model_part_name"].SetString(solver_data.model_part_destination_name)
+        destination_settings["Parameters"]["output_path"].SetString("debug_vtk_output_" + solver_data.variable_destination.Name() + "_" + solver_data.identifier_destination)
+        if solver_data.mapper_flags.Is(KM.Mapper.TO_NON_HISTORICAL):
+            destination_settings["Parameters"]["nodal_data_value_variables"].Append(solver_data.variable_destination.Name())
         else:
-            destination_settings["Parameters"]["nodal_solution_step_data_variables"].Append(variable_destination.Name())
+            destination_settings["Parameters"]["nodal_solution_step_data_variables"].Append(solver_data.variable_destination.Name())
 
-        return model_origin, model_destination, origin_settings, destination_settings, variable_origin.Name(), variable_destination.Name(), identifier_tuple, inverse_identifier_tuple
+        # Return a dataclass with all the necessary settings
+        return VTKOutputSettings(
+            model_origin=model_origin,
+            model_destination=model_destination,
+            origin_settings=origin_settings,
+            destination_settings=destination_settings,
+            variable_origin_name=solver_data.variable_origin.Name(),
+            variable_destination_name=solver_data.variable_destination.Name(),
+            identifier_tuple=solver_data.identifier_tuple,
+            inverse_identifier_tuple=solver_data.inverse_identifier_tuple
+        )
 
     def __GenerateProcessVTK(self, from_solver_data, to_solver_data, transfer_options):
         """
@@ -206,8 +233,8 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
             name_prefix = f"MAPPING_{self.counter}"
 
         # Prepare the settings for VTK output processing
-        model_origin, model_destination, origin_settings, destination_settings, variable_origin_name, variable_destination_name, identifier_tuple, inverse_identifier_tuple = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
-        variable_identifier_tuple = (variable_origin_name, variable_destination_name)
+        vtk_settings = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
+        variable_identifier_tuple = (vtk_settings.variable_origin_name, vtk_settings.variable_destination_name)
 
         # Define __debug_vtk_pre if not defined
         if not hasattr(self, "_KratosMappingDataTransferOperatorWithDebug__debug_vtk_pre"):
@@ -219,21 +246,21 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
 
         # Check if the VTK output processes are already defined
         current_identifier = None
-        if identifier_tuple in self.__debug_vtk_pre:
-            current_identifier = identifier_tuple
-        elif inverse_identifier_tuple in self.__debug_vtk_pre:
-            current_identifier = inverse_identifier_tuple
+        if vtk_settings.identifier_tuple in self.__debug_vtk_pre:
+            current_identifier = vtk_settings.identifier_tuple
+        elif vtk_settings.inverse_identifier_tuple in self.__debug_vtk_pre:
+            current_identifier = vtk_settings.inverse_identifier_tuple
         if current_identifier is None:
-            self.__debug_vtk_pre[identifier_tuple] = {}
-            self.__debug_vtk_post[identifier_tuple] = {}
-            current_identifier = identifier_tuple
+            self.__debug_vtk_pre[vtk_settings.identifier_tuple] = {}
+            self.__debug_vtk_post[vtk_settings.identifier_tuple] = {}
+            current_identifier = vtk_settings.identifier_tuple
 
         # Get the output paths
-        origin_output_path = origin_settings["Parameters"]["output_path"].GetString()
-        destination_output_path = destination_settings["Parameters"]["output_path"].GetString()
+        origin_output_path = vtk_settings.origin_settings["Parameters"]["output_path"].GetString()
+        destination_output_path = vtk_settings.destination_settings["Parameters"]["output_path"].GetString()
 
         # Set the output paths
-        pre_origin_settings = copy.deepcopy(origin_settings)
+        pre_origin_settings = copy.deepcopy(vtk_settings.origin_settings)
         path_splitted = Path(origin_output_path).parts
         directory_name = Path(*path_splitted[:-1])  # All but the last part
         base_name = path_splitted[-1]  # Last part
@@ -246,13 +273,13 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         pre_origin_settings["Parameters"]["output_path"].SetString(str(file_path))
 
         # Create a VTK output process object with the provided settings and the current model
-        pre_process_origin = vtk_output_process.Factory(pre_origin_settings, model_origin)
+        pre_process_origin = vtk_output_process.Factory(pre_origin_settings, vtk_settings.model_origin)
         # Initialize and execute the VTK output process
         pre_process_origin.ExecuteInitialize()
         pre_process_origin.ExecuteInitializeSolutionStep()
 
         # Set the output paths
-        pre_destination_settings = copy.deepcopy(destination_settings)
+        pre_destination_settings = copy.deepcopy(vtk_settings.destination_settings)
         path_splitted = Path(destination_output_path).parts
         directory_name = Path(*path_splitted[:-1])  # All but the last part
         base_name = path_splitted[-1]  # Last part
@@ -262,7 +289,7 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         pre_destination_settings["Parameters"]["output_path"].SetString(str(file_path))
 
         # Create a VTK output process object with the provided settings and the current model
-        pre_process_destination = vtk_output_process.Factory(pre_destination_settings, model_destination)
+        pre_process_destination = vtk_output_process.Factory(pre_destination_settings, vtk_settings.model_destination)
         # Initialize and execute the VTK output process
         pre_process_destination.ExecuteInitialize()
         pre_process_destination.ExecuteInitializeSolutionStep()
@@ -271,7 +298,7 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         self.__debug_vtk_pre[current_identifier][variable_identifier_tuple] = (pre_process_origin, pre_process_destination)
 
         # Set the output paths
-        post_origin_settings = copy.deepcopy(origin_settings)
+        post_origin_settings = copy.deepcopy(vtk_settings.origin_settings)
         path_splitted = Path(origin_output_path).parts
         directory_name = Path(*path_splitted[:-1])  # All but the last part
         base_name = path_splitted[-1]  # Last part
@@ -281,13 +308,13 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         post_origin_settings["Parameters"]["output_path"].SetString(str(file_path))
 
         # Create a VTK output process object with the provided settings and the current model
-        post_process_origin = vtk_output_process.Factory(post_origin_settings, model_origin)
+        post_process_origin = vtk_output_process.Factory(post_origin_settings, vtk_settings.model_origin)
         # Initialize and execute the VTK output process
         post_process_origin.ExecuteInitialize()
         post_process_origin.ExecuteInitializeSolutionStep()
 
         # Set the output paths
-        post_destination_settings = copy.deepcopy(destination_settings)
+        post_destination_settings = copy.deepcopy(vtk_settings.destination_settings)
         path_splitted = Path(destination_output_path).parts
         directory_name = Path(*path_splitted[:-1])  # All but the last part
         base_name = path_splitted[-1]  # Last part
@@ -297,7 +324,7 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         post_destination_settings["Parameters"]["output_path"].SetString(str(file_path))
 
         # Create a VTK output process object with the provided settings and the current model
-        post_process_destination = vtk_output_process.Factory(post_destination_settings, model_destination)
+        post_process_destination = vtk_output_process.Factory(post_destination_settings, vtk_settings.model_destination)
         # Initialize and execute the VTK output process
         post_process_destination.ExecuteInitialize()
         post_process_destination.ExecuteInitializeSolutionStep()
