@@ -66,24 +66,22 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         # copy user defined python script to installation folder
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
+        print(f"Source file path: {custom_python_file}")
+        print(f"Destination file path: {new_custom_script_path}")
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
         except shutil.SameFileError as e:
-             print('Source and destination represents the same file. %s' % e)
+             print(f"Source and destination represents the same file. {e}")
              raise
         except PermissionError as e:
-             print('Permission denied: %s' % e)
-             print('The file %s' % new_custom_script_path)
+             print(f"Permission denied: {e}")
              raise
         except IOError as e:
-             print('Try to change permission %s' % e)
-             print('The file %s' % new_custom_script_path)
+             print(f"Try to change the destination file permission {e}")
              os.chmod(new_custom_script_path, stat.S_IRWXU)
              shutil.copy(custom_python_file, new_custom_script_path)
-        except:
-             print('Error occurred while copying file.')
-             print('Source %s' % custom_python_file)
-             print('Destination %s' % new_custom_script_path)
+        except Exception as e:
+             print(f"Error occurred while copying the file {e}.")
              raise
 
     # run simulation
@@ -169,10 +167,10 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
-        except:
-            print('Error occurred while copying file.')
-            print('Source %s' % custom_python_file)
-            print('Destination %s' % new_custom_script_path)
+        except Exception as e:
+            print(f"Source file path: {custom_python_file}")
+            print(f"Destination file path: {new_custom_script_path}")
+            print(f"Error occurred while copying the file {e}.")
             raise
 
         # run simulation
