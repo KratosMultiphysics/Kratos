@@ -129,7 +129,7 @@ Kratos::BoundedMatrix<double, 8, 8> GetExtrapolationMatrixFor3D8NElement()
     return result;
 }
 
-}
+} // namespace
 
 namespace Kratos
 {
@@ -1103,7 +1103,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -1120,7 +1121,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1287,7 +1289,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
+        const BoundedMatrix<double, TNumNodes, TNumNodes* TDim> transposed_coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
         GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, transposed_coupling_matrix);
@@ -1342,7 +1344,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(Vecto
                                                                            unsigned int GPoint)
 {
     KRATOS_TRY
-    const array_1d<double, TNumNodes * TDim> stiffness_force =
+    const array_1d<double, TNumNodes* TDim> stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
@@ -1358,7 +1360,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(VectorT
 
     this->CalculateSoilGamma(rVariables);
 
-    const array_1d<double, TNumNodes * TDim> mix_body_force =
+    const array_1d<double, TNumNodes* TDim> mix_body_force =
         prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.IntegrationCoefficientInitialConfiguration;
 
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, mix_body_force);
@@ -1389,7 +1391,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
                      rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
-    const array_1d<double, TNumNodes * TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
+    const array_1d<double, TNumNodes* TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_terms);
 
     if (!rVariables.IgnoreUndrained) {
@@ -1451,7 +1453,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 
     auto result = std::vector<double>{};
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1467,7 +1470,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
     auto result = std::vector<double>{};
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });

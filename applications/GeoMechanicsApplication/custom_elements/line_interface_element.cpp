@@ -33,8 +33,8 @@ std::vector<double> CalculateIntegrationCoefficients(const Geo::IntegrationPoint
                                                      const std::vector<double>& rDeterminantsOfJacobians,
                                                      const IntegrationCoefficientCalculatorType& rIntegrationCoefficientCalculator)
 {
-    auto calculate_integration_coefficient = [&rGeometry, &rIntegrationCoefficientCalculator](
-                                                 const auto& rIntegrationPoint, auto DetJ) {
+    auto calculate_integration_coefficient =
+        [&rGeometry, &rIntegrationCoefficientCalculator](const auto& rIntegrationPoint, auto DetJ) {
         return rIntegrationCoefficientCalculator(rIntegrationPoint, DetJ, rGeometry);
     };
     auto result = std::vector<double>{};
@@ -233,9 +233,9 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
     auto result = std::vector<Matrix>{};
-    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
-                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
-                                        const auto& rIntegrationPoint) {
+    auto calculate_local_b_matrix =
+        [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
+            const auto& rShapeFunctionValuesAtIntegrationPoint, const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
         const auto dummy_gradients = Matrix{};
@@ -252,8 +252,8 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
 
 std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
 {
-    auto calculate_integration_coefficient = [p_policy = mStressStatePolicy.get()](
-                                                 const auto& rIntegrationPoint, auto DetJ, const auto& rGeometry) {
+    auto calculate_integration_coefficient =
+        [p_policy = mStressStatePolicy.get()](const auto& rIntegrationPoint, auto DetJ, const auto& rGeometry) {
         return p_policy->CalculateIntegrationCoefficient(rIntegrationPoint, DetJ, rGeometry);
     };
 

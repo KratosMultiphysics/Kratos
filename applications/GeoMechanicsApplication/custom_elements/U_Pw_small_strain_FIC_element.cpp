@@ -994,7 +994,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientM
                                     rFICVariables.ElementLength * rVariables.BiotCoefficient /
                                     (8.0 * rFICVariables.ShearModulus);
 
-    const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> dt_stress_gradient_matrix =
+    const BoundedMatrix<double, TNumNodes, TNumNodes* TDim> dt_stress_gradient_matrix =
         -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
         prod(rVariables.GradNpT, rFICVariables.DimUMatrix) * rVariables.IntegrationCoefficient;
 

@@ -100,11 +100,11 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     bool          ComputeJointWidth;
     double        JointWidth;
     this->CheckJointWidth(JointWidth, ComputeJointWidth, RotationMatrix, MinimumJointWidth, Geom);
-    array_1d<double, TDim>                        LocalRelDispVector;
-    array_1d<double, TDim>                        RelDispVector;
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim>                        TractionVector;
-    array_1d<double, TNumNodes * TDim>            UVector;
+    array_1d<double, TDim>                       LocalRelDispVector;
+    array_1d<double, TDim>                       RelDispVector;
+    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TDim>                       TractionVector;
+    array_1d<double, TNumNodes * TDim>           UVector;
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {

@@ -220,8 +220,8 @@ private:
         auto result = Vector{r_integration_points.size()};
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
-        });
+                           return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
+                       });
         return result;
     }
 
@@ -271,7 +271,8 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                       [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

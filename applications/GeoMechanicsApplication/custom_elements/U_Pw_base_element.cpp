@@ -441,7 +441,8 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
 {
     auto result = std::vector<double>{};
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+                   std::back_inserter(result),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
         return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
     });
     return result;

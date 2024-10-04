@@ -139,8 +139,8 @@ public:
         std::vector<double> result;
         std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
                        std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
-            return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
-        });
+                           return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
+                       });
 
         return result;
     }

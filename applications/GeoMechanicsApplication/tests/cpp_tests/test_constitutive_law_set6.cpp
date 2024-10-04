@@ -11,8 +11,8 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.hpp"
-#include "includes/checks.h"
 #include "geo_mechanics_fast_suite.h"
+#include "includes/checks.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;

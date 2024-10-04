@@ -170,7 +170,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
         [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
         return UseHenckyStrain ? CalculateHenckyStrain(rDeformationGradient, VoigtSize)
                                : CalculateCauchyStrain(rB, rDisplacements);
-    });
+        });
 
     return result;
 }

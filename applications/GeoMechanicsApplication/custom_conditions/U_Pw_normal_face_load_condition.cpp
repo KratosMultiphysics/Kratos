@@ -50,9 +50,9 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRigh
     // Condition variables
     NormalFaceLoadVariables Variables;
     this->InitializeConditionVariables(Variables, rGeom);
-    array_1d<double, TDim>                        TractionVector;
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TNumNodes * TDim>            UVector;
+    array_1d<double, TDim>                       TractionVector;
+    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TNumNodes * TDim>           UVector;
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -80,9 +80,10 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(N
     });
 
     if constexpr (TDim == 2) {
-        std::transform(
-            rGeom.begin(), rGeom.end(), rVariables.TangentialStressVector.begin(),
-            [](const auto& node) { return node.FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS); });
+        std::transform(rGeom.begin(), rGeom.end(), rVariables.TangentialStressVector.begin(),
+                       [](const auto& node) {
+            return node.FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+        });
     }
 }
 

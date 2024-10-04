@@ -59,12 +59,12 @@ void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& 
     bool          ComputeJointWidth;
     double        JointWidth;
     this->CheckJointWidth(JointWidth, ComputeJointWidth, RotationMatrix, MinimumJointWidth, Geom);
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim>                        LocalRelDispVector;
-    array_1d<double, TDim>                        RelDispVector;
-    array_1d<double, TNumNodes>                   Np;
-    array_1d<double, TNumNodes>                   PVector;
-    double                                        NormalFlux;
+    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    array_1d<double, TDim>                       LocalRelDispVector;
+    array_1d<double, TDim>                       RelDispVector;
+    array_1d<double, TNumNodes>                  Np;
+    array_1d<double, TNumNodes>                  PVector;
+    double                                       NormalFlux;
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {

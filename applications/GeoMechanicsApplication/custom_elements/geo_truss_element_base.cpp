@@ -653,7 +653,7 @@ void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
 
     // 1st calculate transformation matrix
 
-    BoundedVector<double, DIM_2D * NUM_NODES> reference_coordinates_2D = ZeroVector(DIM_2D * NUM_NODES);
+    BoundedVector<double, DIM_2D* NUM_NODES> reference_coordinates_2D = ZeroVector(DIM_2D * NUM_NODES);
     this->WriteTransformationCoordinates(reference_coordinates_2D);
 
     BoundedVector<double, DIM_3D> direction_vector_x_3D = ZeroVector(DIM_3D);

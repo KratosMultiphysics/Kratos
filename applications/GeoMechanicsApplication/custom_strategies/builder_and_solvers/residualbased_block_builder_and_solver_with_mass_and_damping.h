@@ -188,7 +188,7 @@ public:
         const auto timer = BuiltinTimer();
 
 #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, mass_contribution, \
-                                      damping_contribution, rhs_contribution, equation_ids)
+                                  damping_contribution, rhs_contribution, equation_ids)
         {
 #pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -461,7 +461,8 @@ protected:
                                            TSystemVectorType& rSecondDerivativeVector,
                                            ModelPart&         rModelPart)
     {
-        block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
+        block_for_each(rModelPart.Nodes(),
+                       [&rFirstDerivativeVector, &rSecondDerivativeVector, this](Node& rNode) {
             if (rNode.IsActive()) {
                 GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector);
                 GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector);

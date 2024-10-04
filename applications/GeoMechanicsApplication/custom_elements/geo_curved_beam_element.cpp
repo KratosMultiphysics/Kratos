@@ -334,7 +334,7 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType&
 
     const PropertiesType& rProp = this->GetProperties();
 
-    const array_1d<double, TNumNodes * TDim> body_force =
+    const array_1d<double, TNumNodes* TDim> body_force =
         rProp[DENSITY] * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) *
         rVariables.IntegrationCoefficient;
 
