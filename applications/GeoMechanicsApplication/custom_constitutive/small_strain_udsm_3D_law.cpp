@@ -819,7 +819,7 @@ void SmallStrainUDSM3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameter
 {
     const SizeType space_dimension = this->WorkingSpaceDimension();
 
-    //-Compute total deformation gradient
+    // Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1() != space_dimension || F.size2() != space_dimension)
         << "expected size of F " << space_dimension << "x" << space_dimension << ", got "

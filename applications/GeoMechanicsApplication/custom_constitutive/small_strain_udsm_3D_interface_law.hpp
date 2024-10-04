@@ -76,7 +76,6 @@ public:
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
-    //----------------------------------------------------------------------------------------
     /**
      * @brief Dimension of the law:
      */

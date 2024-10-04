@@ -53,8 +53,6 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
@@ -86,8 +84,6 @@ public:
     }
 
     ~SteadyStatePwPipingElement() = default;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -127,13 +123,7 @@ protected:
 
     double pipe_initialised = false;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwPipingElement& operator=(SteadyStatePwPipingElement const& rOther);
 
