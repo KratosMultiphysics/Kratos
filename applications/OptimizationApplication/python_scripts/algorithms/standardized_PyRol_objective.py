@@ -3,9 +3,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from pyrol import Objective
 import numpy as np
 from pyrol.vectors import NumPyVector as myVector
@@ -67,8 +64,6 @@ class StandardizedPyRolObjective(Objective):
                 if process.IsOutputStep():
                     process.PrintOutput()
 
-            self.__optimization_problem.AdvanceStep()
-
         return value
 
     def gradient(self, g:myVector, x:myVector, tol:float, save_field: bool = True):
@@ -85,11 +80,15 @@ class StandardizedPyRolObjective(Objective):
         RuntimeError: If there is an issue with the gradient computation.
         """
 
-        self.value(x, False)  # Compute new primal if x has changed. Does nothing if x the same
+        self.value(x, tol, False)  # Compute new primal if x has changed. Does nothing if x the same
 
         result = self.__objective.CalculateStandardizedGradient(save_field)
 
-        g = myVector(result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor())
+        gAux = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
+        g[:] = [gAux[i] for i in range(len(gAux))]  # Copy values from gAux to g
+
+        # I haven't found a good place to set next optimization step. As most methods do one gradeint calucation per iteration, I set it here.
+        self.__optimization_problem.AdvanceStep()
 
     def hessVec(self, hv, v, x, tol):
         raise RuntimeError("Hessian-vector product is not implemented for the pyrol objective response function.")

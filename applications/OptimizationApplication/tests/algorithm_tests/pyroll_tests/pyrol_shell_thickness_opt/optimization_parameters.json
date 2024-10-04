@@ -26,7 +26,9 @@
                     "@include_json": "primal_parameters.json"
                 },
                 "analysis_output_settings": {
-                    "nodal_solution_step_data_variables": ["DISPLACEMENT"]
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ]
                 }
             }
         }
@@ -61,49 +63,40 @@
                     "shell"
                 ],
                 "filter_settings": {
-                    "type": "implicit",
-                    "radius": 0.2,
-                    "linear_solver_settings": {
-                            "solver_type": "amgcl",
-                            "smoother_type": "ilu0",
-                            "krylov_type": "gmres",
-                            "coarsening_type": "aggregation",
-                            "max_iteration": 200,
-                            "provide_coordinates": false,
-                            "gmres_krylov_space_dimension": 100,
-                            "verbosity": 0,
-                            "tolerance": 1e-7,
-                            "scaling": false,
-                            "block_size": 1,
-                            "use_block_matrices_if_possible": true,
-                            "coarse_enough": 5000
+                    "filter_type": "explicit_filter",
+                    "filter_function_type": "linear",
+                    "max_nodes_in_filter_radius": 100000,
+                    "filter_radius_settings": {
+                        "filter_radius_type": "constant",
+                        "filter_radius": 0.2
                     }
                 },
+                "penalty_power": 1,
                 "output_all_fields": false,
-                "beta_value": 25.0,
-                "initial_physical_thickness": 0.07,
-                "physical_thicknesses": [0.01,0.1]
+                "physical_thicknesses": [
+                    0.01,
+                    0.1
+                ],
+                "beta_settings": {
+                    "initial_value": 5,
+                    "max_value": 30,
+                    "adaptive": true,
+                    "increase_fac": 1.05,
+                    "update_period": 50
+                }
             }
         }
     ],
     "algorithm_settings": {
-        "type": "NLOPT_algorithms",
-        "NLOPT_settings"          : {
-                "algorithm_name"      : "mma",
-                "controls_lower_bound" : "0",
-                "controls_upper_bound" : "1",
-                "stopping_criteria"   : {
-                    "maximum_function_evalualtion": 2
-                },
-                "algorithm_specific_settings"   : {
-                "inner_maxeval" : 20
-            }
+        "type": "PyRol_algorithms",
+        "pyrol_settings": {
+            "input_filename": "input_lbfgs.xml"
         },
         "controls": [
             "thickness_control"
         ],
         "objective": {
-            "response_name": "mass_shell",
+            "response_name": "strain_energy_shell",
             "type": "minimization",
             "scaling": 1.0
         },
@@ -119,15 +112,37 @@
                     "module": "KratosMultiphysics.OptimizationApplication.processes",
                     "settings": {
                         "output_file_name": "summary.csv",
-                        "write_kratos_version"     : false,
-                        "write_time_stamp"         : false,
-                        "list_of_output_components": ["all"],
+                        "write_kratos_version": false,
+                        "write_time_stamp": false,
+                        "list_of_output_components": [
+                            "all"
+                        ],
                         "format_info": {
-                            "int_length"     : 7,
-                            "float_precision": 9,
-                            "bool_values"    : ["no", "yes"],
-                            "string_length"  : 14
+                            "int_length": 7,
+                            "float_precision": 4,
+                            "bool_values": [
+                                "no",
+                                "yes"
+                            ],
+                            "string_length": 10
                         }
+                    }
+                },
+                {
+                    "type": "optimization_problem_vtu_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "file_name": "<model_part_full_name>_<step>",
+                        "file_format": "binary",
+                        "output_path": "Optimization_Results",
+                        "save_output_files_in_folder": true,
+                        "write_deformed_configuration": false,
+                        "list_of_output_components": [
+                            "all"
+                        ],
+                        "output_precision": 7,
+                        "output_interval": 1,
+                        "echo_level": 0
                     }
                 }
             ]

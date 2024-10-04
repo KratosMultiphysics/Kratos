@@ -5,7 +5,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_PyRol_objective import StandardizedPyRolObjective
-from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_PyRol_constraint import StandardizedPyRolConstraint
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 
@@ -27,22 +27,6 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 class PyRolAlgorithms(Algorithm):
     """
     A PyRoll wrapper to use algorithms from PyRoll Library. Provide Method and its settings in the xtml file.
-    Methods:
-        GetDefaultParameters(cls):
-            Returns the default parameters for the PyRol algorithm.
-        create_default_algorithm_config(cls):
-            Creates the default algorithm configuration as a JSON string.
-        __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        GetMinimumBufferSize(self) -> int:
-            Returns the minimum buffer size required for the algorithm.
-        Check(self):
-            Performs checks to ensure the algorithm is correctly set up.
-        Initialize(self):
-            Initializes the optimization algorithm, setting up the initial state, control field, algorithm data, design variables vector, and bounds.
-        Finalize(self):
-            Finalizes the optimization algorithm, performing any necessary cleanup.
-        Solve(self):
-            Solves the optimization problem using the specified solver and method settings.
     """
     @classmethod
     def GetDefaultParameters(cls):
@@ -103,9 +87,9 @@ class PyRolAlgorithms(Algorithm):
 
         # objective & constraints
         self.__objective = StandardizedPyRolObjective(parameters["objective"], self.master_control, self._optimization_problem)
-        # self.__constraints = []
-        # for constraint_settings in parameters["constraints"]:
-        #     self.__constraints.append(StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem))
+        self.__constraints = []
+        for constraint_settings in parameters["constraints"]:
+            self.__constraints.append(StandardizedPyRolConstraint(constraint_settings, self.master_control, self._optimization_problem))
     
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -156,6 +140,9 @@ class PyRolAlgorithms(Algorithm):
         # setup the problem
         self.problem = Problem(self.__objective, self.x0, self.grad)
         self.problem.addBoundConstraint(self.bounds)
+        for constraint in self.__constraints:
+            l = myVector(np.array([0.0]))
+            self.problem.addConstraint(constraint.GetName(), constraint, l)
 
     @time_decorator()
     def Finalize(self):
