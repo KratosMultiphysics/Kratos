@@ -65,10 +65,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             model_part_origin      = self._GetModelPartFromInterfaceData(from_solver_data)
             model_part_destination = self._GetModelPartFromInterfaceData(to_solver_data)
 
-            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = python_mapper_factory.CreateMPIMapper
-            else:
-                mapper_create_fct = python_mapper_factory.CreateMapper
+            mapper_create_fct = self._DefineMapperFunction(model_part_origin, model_part_destination)
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
@@ -105,6 +102,23 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     @classmethod
     def _GetListAvailableTransferOptions(cls):
         return cls.__mapper_flags_dict.keys()
+
+    def _DefineMapperFunction(self, model_part_origin, model_part_destination):
+        """
+        Define the mapper function to be used
+
+        Args:
+            self: The instance of the class.
+            model_part_origin (ModelPart): The model part to transfer from.
+            model_part_destination (ModelPart): The model part to transfer to.
+
+        Returns:
+            function: The function to be used for the mapping
+        """
+        if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
+            return python_mapper_factory.CreateMPIMapper
+        else:
+            return python_mapper_factory.CreateMapper
 
     def _PrepareSolverData(self, from_solver_data, to_solver_data, transfer_options):
         """
