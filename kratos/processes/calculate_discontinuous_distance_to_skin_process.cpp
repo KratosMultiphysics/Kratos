@@ -682,8 +682,8 @@ namespace Kratos
         const Element::GeometryType &rGeometry,
         array_1d<double,3> &rIntObjNormal)
     {
-        rIntObjNormal[0] = rGeometry[0].Y() - rGeometry[1].Y();
-        rIntObjNormal[1] = rGeometry[1].X() - rGeometry[0].X();
+        rIntObjNormal[0] = rGeometry[1].Y() - rGeometry[0].Y();
+        rIntObjNormal[1] = rGeometry[0].X() - rGeometry[1].X();
         rIntObjNormal[2] = 0.0;
     }
 
