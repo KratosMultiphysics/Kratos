@@ -74,6 +74,8 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         self.counter = 0
         self.sub_counter = 0
         self.number_of_mappers = 0
+        self.__debug_vtk_pre = {}
+        self.__debug_vtk_post = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         """
@@ -87,9 +89,9 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         Returns:
             None
 
-        This method prepares the solver data for transfer, checks the available mappers, and executes 
-        the transfer process. If the corresponding mappers for the given identifiers are not found, 
-        it creates a new mapper based on the distribution of the model parts and then executes the mapping. 
+        This method prepares the solver data for transfer, checks the available mappers, and executes
+        the transfer process. If the corresponding mappers for the given identifiers are not found,
+        it creates a new mapper based on the distribution of the model parts and then executes the mapping.
         It also generates VTK output for debugging purposes based on the auxiliary debug counter setting.
         """
         # Prepare the solver data
@@ -235,14 +237,6 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
         # Prepare the settings for VTK output processing
         vtk_settings = self.__PrepareSettings(from_solver_data, to_solver_data, transfer_options)
         variable_identifier_tuple = (vtk_settings.variable_origin_name, vtk_settings.variable_destination_name)
-
-        # Define __debug_vtk_pre if not defined
-        if not hasattr(self, "_KratosMappingDataTransferOperatorWithDebug__debug_vtk_pre"):
-            self.__debug_vtk_pre = {}
-
-        # Define __debug_vtk_post if not defined
-        if not hasattr(self, "_KratosMappingDataTransferOperatorWithDebug__debug_vtk_post"):
-            self.__debug_vtk_post = {}
 
         # Check if the VTK output processes are already defined
         current_identifier = None
