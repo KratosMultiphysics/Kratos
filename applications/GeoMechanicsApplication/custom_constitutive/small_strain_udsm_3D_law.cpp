@@ -336,14 +336,14 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
     std::vector<double> StateVariables;
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-             &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
+              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -387,14 +387,14 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
     std::vector<double> StateVariables;
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-             &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
+              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -413,7 +413,7 @@ SizeType SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Prope
 
     int nUDSM = rMaterialProperties[UDSM_NUMBER];
     int nParameters(0);
-    pGetParamCount(&nUDSM, &nParameters);
+    mpGetParamCount(&nUDSM, &nParameters);
 
     return static_cast<SizeType>(nParameters);
 
@@ -460,10 +460,10 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     }
 
     // resolve function GetParamCount address
-    pGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount");
-    if (!pGetParamCount) {
-        pGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount_");
-        if (!pGetParamCount) {
+    mpGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount");
+    if (!mpGetParamCount) {
+        mpGetParamCount = (f_GetParamCount)dlsym(lib_handle, "getparamcount_");
+        if (!mpGetParamCount) {
             KRATOS_INFO("Error in loadUDSMLinux")
                 << "cannot load function GetParamCount in the specified UDSM: "
                 << rMaterialProperties[UDSM_NAME] << std::endl;
@@ -473,12 +473,12 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     }
 
     // resolve function GetStateVarCount address
-    pGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
+    mpGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
 
-    pUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
-    if (!pUserMod) {
-        pUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
-        if (!pUserMod) {
+    mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
+    if (!mpUserMod) {
+        mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
+        if (!mpUserMod) {
             KRATOS_INFO("Error in loadUDSMLinux")
                 << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
                 << std::endl;
@@ -521,11 +521,11 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties& rMaterialProperties
     }
 
     // resolve function GetParamCount address
-    pGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount");
-    if (!pGetParamCount) {
+    mpGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount");
+    if (!mpGetParamCount) {
         // check if the dll is compiled with gfortran
-        pGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount_");
-        if (!pGetParamCount) {
+        mpGetParamCount = (f_GetParamCount)GetProcAddress(hGetProcIDDLL, "getparamcount_");
+        if (!mpGetParamCount) {
             KRATOS_INFO("Error in loadUDSMWindows")
                 << "cannot load function GetParamCount in the specified UDSM: "
                 << rMaterialProperties[UDSM_NAME] << std::endl;
@@ -535,13 +535,13 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties& rMaterialProperties
     }
 
     // resolve function GetStateVarCount address
-    pGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
+    mpGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
 
-    pUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
-    if (!pUserMod) {
+    mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
+    if (!mpUserMod) {
         // check if the dll is compiled with gfortran
-        pUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod_");
-        if (!pUserMod) {
+        mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod_");
+        if (!mpUserMod) {
             KRATOS_INFO("Error in loadUDSMWindows")
                 << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
                 << std::endl;
@@ -588,11 +588,12 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     // Get Values to compute the constitutive law:
     const Flags& rOptions = rValues.GetOptions();
 
-    // NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if (rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& rStrainVector = rValues.GetStrainVector();
-        CalculateCauchyGreenStrain(rValues, rStrainVector);
-    }
+    KRATOS_DEBUG_ERROR_IF(rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+        << "The GeoLinearElasticLaw needs an element provided strain" << std::endl;
+
+    KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
+    << "Constitutive laws in the geomechanics application need a valid provided strain"
+    << std::endl;
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         // Constitutive matrix (D matrix)
@@ -716,14 +717,14 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     auto nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
 
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-    pUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-             &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-             &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-             &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
-             (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-             &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-             &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-             &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
+              &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
+              (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
+              &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
+              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")
@@ -815,31 +816,12 @@ void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
     this->SetInternalStrainVector(rStrainVector);
 }
 
-void SmallStrainUDSM3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1() != space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got "
-        << F.size1() << "x" << F.size2() << std::endl;
-
-    Matrix E_tensor = prod(trans(F), F);
-    for (unsigned int i = 0; i < space_dimension; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
 double& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<double>&      rThisVariable,
                                              double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
         Vector& rStrainVector = rParameterValues.GetStrainVector();
-        this->CalculateCauchyGreenStrain(rParameterValues, rStrainVector);
         Vector& rStressVector = rParameterValues.GetStressVector();
         this->CalculateStress(rParameterValues, rStressVector);
 
@@ -852,11 +834,8 @@ Vector& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
                                              const Variable<Vector>&      rThisVariable,
                                              Vector&                      rValue)
 {
-    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
-    } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-               rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 
