@@ -84,7 +84,6 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
              print(f"Error occurred while copying the file {e}.")
              raise
 
-    # run simulation
         simulation = test_helper.run_kratos(file_path)
 
         # get element centers
