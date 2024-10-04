@@ -327,7 +327,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMe
                               expected_values, abs_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirstDerivativeValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;
