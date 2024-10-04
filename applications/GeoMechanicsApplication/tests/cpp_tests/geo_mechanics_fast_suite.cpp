@@ -26,10 +26,9 @@ KratosGeoMechanicsFastSuite::KratosGeoMechanicsFastSuite() : KratosCoreFastSuite
     this->ImportApplicationIntoKernel(mpLinearSolversApp);
 }
 
-// The macros used in the following constructor confuse Clang-Format. Therefore, we switch it off.
-// clang-format off
 KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKernel() : KratosCoreFastSuiteWithoutKernel()
 {
+    // clang-format off
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION)
@@ -43,6 +42,7 @@ KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKern
 
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR)
+    // clang-format on
 }
 
 KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
@@ -52,6 +52,5 @@ KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : Krato
     mpLinearSolversApp = std::make_shared<KratosLinearSolversApplication>();
     this->ImportApplicationIntoKernel(mpLinearSolversApp);
 }
-// clang-format on
 
 } // namespace Kratos::Testing
