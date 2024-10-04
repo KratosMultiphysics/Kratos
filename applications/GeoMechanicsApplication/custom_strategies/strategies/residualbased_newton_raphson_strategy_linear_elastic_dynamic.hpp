@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/sparse_system_utilities.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -129,14 +128,13 @@ public:
         // new constructor
     }
 
-
     /**
      * @brief Initialization of member variables and prior operations
      */
     void Initialize() override
     {
         KRATOS_TRY;
-        
+
         BaseType::Initialize();
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
@@ -156,19 +154,17 @@ public:
         KRATOS_CATCH("");
     }
 
-
     void Predict() override
     {
         KRATOS_TRY
-            const DataCommunicator& r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (BaseType::mInitializeWasPerformed == false)
-            this->Initialize();
+        const DataCommunicator& r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+        // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        // if the operations needed were already performed this does nothing
+        if (BaseType::mInitializeWasPerformed == false) this->Initialize();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
@@ -180,8 +176,7 @@ public:
         // Note that constraints are not applied in this predict
 
         // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true)
-            BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -266,7 +261,6 @@ public:
         if (is_converged) {
             // here only the derivatives are updated
             p_scheme->Update(r_model_part, r_dof_set, rA, dx_tot, rb);
-            //this->UpdateSolutionStepDerivative(dx_tot, r_model_part);
         }
 
         // plots a warning if the maximum number of iterations is exceeded
@@ -398,8 +392,7 @@ private:
 
         bool is_converged = false;
         rIterationNumber++;
-        for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++)
-        {
+        for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++) {
             // setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
 
@@ -451,8 +444,7 @@ private:
                 is_converged =
                     BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
-            if (is_converged)
-            {   
+            if (is_converged) {
                 return true;
             }
         }

@@ -197,14 +197,13 @@ public:
         try {
             BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, dummy_rDx, rb);
             mUsePerformSolutionStep = true;
-        }
-        catch (const Kratos::Exception& e) {
+        } catch (const Kratos::Exception& e) {
             std::string error_message = e.what();
 
             // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
             if (error_message.find("Error: Calling linear solver base class") != std::string::npos) {
                 mUsePerformSolutionStep = false;
-            }               
+            }
             // Re-throw the exception if it's not the specific error we're looking for
             else {
                 throw;
@@ -279,11 +278,9 @@ public:
 
             this->InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
-            //recover solution of the original problem
+            // recover solution of the original problem
             TSparseSpace::Mult(BaseType::mT, Dxmodified, rDx);
-        }
-        else
-        {
+        } else {
             this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
 
@@ -313,12 +310,9 @@ public:
 
         if (norm_b != 0.00) {
             // if the system is already factorized, perform solution step. In case the solver does not support this, use Solve
-            if (mUsePerformSolutionStep)
-            {
+            if (mUsePerformSolutionStep) {
                 BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
-            }
-            else
-            {
+            } else {
                 BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
             }
         } else {
@@ -617,7 +611,7 @@ private:
     double mGamma;
     bool   mCalculateInitialSecondDerivative;
     bool   mCopyExternalForceVector = false;
-    bool mUsePerformSolutionStep = false;
+    bool   mUsePerformSolutionStep  = false;
 
     void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,
                                  std::size_t                   MatrixSize,
