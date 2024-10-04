@@ -84,6 +84,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mElement3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mQuadElement3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mElement3D5N( 0, GeometryType::Pointer(new Pyramid3D5<NodeType >(GeometryType::PointsArrayType(5)))),
       mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
@@ -202,6 +203,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D2N", mElement3D2N)
     KRATOS_REGISTER_ELEMENT("Element3D3N", mElement3D3N)
     KRATOS_REGISTER_ELEMENT("Element3D4N", mElement3D4N)
+    KRATOS_REGISTER_ELEMENT("QuadElement3D4N", mQuadElement3D4N)
     KRATOS_REGISTER_ELEMENT("Element3D5N", mElement3D5N)
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
