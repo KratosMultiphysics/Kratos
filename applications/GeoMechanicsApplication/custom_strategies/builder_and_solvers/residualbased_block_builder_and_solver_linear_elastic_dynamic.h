@@ -156,10 +156,22 @@ public:
 
         Timer::Stop("Build");
 
-        // apply dirichlet conditions
+        //// apply constraints
         TSystemVectorType dummy_b(rA.size1(), 0.0);
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            const auto timer_constraints = BuiltinTimer();
+            Timer::Start("ApplyConstraints");
+            BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, dummy_b);
+            BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, dummy_b);
+            Timer::Stop("ApplyConstraints");
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
+                << "Constraints build time: " << timer_constraints << std::endl;
+        }
+
         TSystemVectorType dummy_rDx(rA.size1(), 0.0);
 
+        // apply dirichlet conditions
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, dummy_rDx, rb);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
@@ -180,6 +192,24 @@ public:
         // Initialize the linear solver, such that the solver can factorize the matrices already. In
         // case the matrices can be pre-factorized, this step is not performed during calculation.
         BaseType::mpLinearSystemSolver->InitializeSolutionStep(rA, dummy_rDx, rb);
+
+        // check if PerformSolutionStep can be performed instead of Solve, this is more efficient for solvers, which can be pre-factorized
+        try {
+            BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, dummy_rDx, rb);
+            mUsePerformSolutionStep = true;
+        }
+        catch (const Kratos::Exception& e) {
+            std::string error_message = e.what();
+
+            // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
+            if (error_message.find("Error: Calling linear solver base class") != std::string::npos) {
+                mUsePerformSolutionStep = false;
+            }               
+            // Re-throw the exception if it's not the specific error we're looking for
+            else {
+                throw;
+            }
+        }
     }
 
     /**
@@ -241,7 +271,21 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            TSystemVectorType Dxmodified(rb.size());
+
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+
+            this->InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+
+            //recover solution of the original problem
+            TSparseSpace::Mult(BaseType::mT, Dxmodified, rDx);
+        }
+        else
+        {
+            this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        }
 
         TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
 
@@ -269,19 +313,13 @@ public:
 
         if (norm_b != 0.00) {
             // if the system is already factorized, perform solution step. In case the solver does not support this, use Solve
-            try {
+            if (mUsePerformSolutionStep)
+            {
                 BaseType::mpLinearSystemSolver->PerformSolutionStep(rA, rDx, rb);
-            } catch (const Kratos::Exception& e) {
-                std::string error_message = e.what();
-
-                // if PerformSolutionStep is not implemented, the following error is thrown, in this case, use Solve
-                if (error_message.find("Error: Calling linear solver base class") != std::string::npos) {
-                    BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
-                }
-                // Re-throw the exception if it's not the specific error we're looking for
-                else {
-                    throw;
-                }
+            }
+            else
+            {
+                BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
             }
         } else {
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic",
@@ -579,6 +617,7 @@ private:
     double mGamma;
     bool   mCalculateInitialSecondDerivative;
     bool   mCopyExternalForceVector = false;
+    bool mUsePerformSolutionStep = false;
 
     void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,
                                  std::size_t                   MatrixSize,

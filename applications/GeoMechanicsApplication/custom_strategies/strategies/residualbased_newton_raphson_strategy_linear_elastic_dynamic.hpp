@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-
+#include "custom_utilities/sparse_system_utilities.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -156,123 +156,35 @@ public:
         KRATOS_CATCH("");
     }
 
-    ///**
-    // * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-    // * @details A member variable should be used as a flag to make sure this function is called only once per step.
-    // */
-    //void InitializeSolutionStep() override
-    //{
-    //    KRATOS_TRY;
 
-    //    // Pointers needed in the solution
-    //    typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
-    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-    //    ModelPart& r_model_part = BaseType::GetModelPart();
+    void Predict() override
+    {
+        KRATOS_TRY
+            const DataCommunicator& r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        //if the operations needed were already performed this does nothing
+        if (BaseType::mInitializeWasPerformed == false)
+            this->Initialize();
 
-    //    // Set up the system, operation performed just once unless it is required
-    //    // to reform the dof set at each iteration
-    //    BuiltinTimer system_construction_time;
-    //    if (!p_builder_and_solver->GetDofSetIsInitializedFlag()) {
-    //        // Setting up the list of the DOFs to be solved
-    //        BuiltinTimer setup_dofs_time;
-    //        p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-    //            << "Setup Dofs Time: " << setup_dofs_time << std::endl;
+        TSystemMatrixType& rA = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb = *mpb;
 
-    //        // Shaping correctly the system
-    //        BuiltinTimer setup_system_time;
-    //        p_builder_and_solver->SetUpSystem(r_model_part);
-    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-    //            << "Setup System Time: " << setup_system_time << std::endl;
+        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
-    //        // Setting up the Vectors involved to the correct size
-    //        BuiltinTimer system_matrix_resize_time;
-    //        p_builder_and_solver->ResizeAndInitializeVectors(
-    //            p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
-    //        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-    //            << "System Matrix Resize Time: " << system_matrix_resize_time << std::endl;
-    //    }
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
 
-    //    KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategyLinearElasticDynamic", BaseType::GetEchoLevel() > 0)
-    //        << "System Construction Time: " << system_construction_time << std::endl;
+        BaseType::GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
-    //    TSystemMatrixType& rA  = *BaseType::mpA;
-    //    TSystemVectorType& rDx = *BaseType::mpDx;
-    //    TSystemVectorType& rb  = *BaseType::mpb;
+        // Note that constraints are not applied in this predict
 
-    //    // Initial operations ... things that are constant over the Solution Step
-    //    p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true)
+            BaseType::MoveMesh();
 
-    //    // only initialize solution step of conditions
-    //    //const auto& r_current_process_info = r_model_part.GetProcessInfo();
-    //    //block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-    //    //    if (r_condition.IsActive()) {
-    //    //        r_condition.InitializeSolutionStep(r_current_process_info);
-    //    //    }
-    //    //});
-    //    p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-
-    //    // Initialisation of the convergence criteria
-    //    if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-    //        TSparseSpace::SetToZero(rb);
-    //        p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-    //    }
-
-    //    BaseType::mpConvergenceCriteria->InitializeSolutionStep(
-    //        r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-    //    if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-    //        TSparseSpace::SetToZero(rb);
-    //    }
-
-    //    KRATOS_CATCH("");
-    //}
-
-    ///**
-    // * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
-    // * @details A member variable should be used as a flag to make sure this function is called only once per step.
-    // */
-    //void FinalizeSolutionStep() override
-    //{
-    //    KRATOS_TRY;
-
-    //    ModelPart& r_model_part = BaseType::GetModelPart();
-
-    //    typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
-    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-
-    //    TSystemMatrixType& rA  = *BaseType::mpA;
-    //    TSystemVectorType& rDx = *BaseType::mpDx;
-    //    TSystemVectorType& rb  = *BaseType::mpb;
-
-    //    // Finalisation of the solution step,
-    //    // operations to be done after achieving convergence, for example the
-    //    // Final Residual Vector (mb) has to be saved in there
-    //    // to avoid error accumulation
-
-    //    // just finialize conditions and not elements as defined in the scheme
-    //    const auto& r_current_process_info = r_model_part.GetProcessInfo();
-
-    //    block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-    //        if (r_condition.IsActive()) {
-    //            r_condition.FinalizeSolutionStep(r_current_process_info);
-    //        }
-    //    });
-
-    //    p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
-    //    BaseType::mpConvergenceCriteria->FinalizeSolutionStep(
-    //        r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-    //    // Cleaning memory after the solution
-    //    p_scheme->Clean();
-
-    //    if (BaseType::mReformDofSetAtEachStep == true) // deallocate the systemvectors
-    //    {
-    //        this->Clear();
-    //    }
-
-    //    KRATOS_CATCH("");
-    //}
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
@@ -326,13 +238,6 @@ public:
         this->UpdateSolutionStepValue(rDx, dx_tot);
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
-
-        //// only finalize condition non linear iteration
-        //block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-        //    if (r_condition.IsActive()) {
-        //        r_condition.FinalizeNonLinearIteration(r_current_process_info);
-        //    }
-        //});
 
         BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
