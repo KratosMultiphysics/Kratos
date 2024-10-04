@@ -3,7 +3,6 @@ from KratosMultiphysics.CoSimulationApplication.data_transfer_operators.kratos_m
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-from KratosMultiphysics.MappingApplication import python_mapper_factory
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -119,10 +118,7 @@ class KratosMappingDataTransferOperatorWithDebug(KratosMappingDataTransferOperat
             model_part_origin      = self._GetModelPartFromInterfaceData(from_solver_data)
             model_part_destination = self._GetModelPartFromInterfaceData(to_solver_data)
 
-            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = python_mapper_factory.CreateMPIMapper
-            else:
-                mapper_create_fct = python_mapper_factory.CreateMapper
+            mapper_create_fct = self._DefineMapperFunction(model_part_origin, model_part_destination)
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
