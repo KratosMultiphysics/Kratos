@@ -40,6 +40,9 @@
 #include "utilities/pointer_communicator.h"
 #include "utilities/pointer_map_communicator.h"
 #include "processes/find_nodal_h_process.h"
+#include "utilities/time_discretization.h"
+#include "processes/calculate_nodal_area_process.h"
+
 
 namespace Kratos
 {
@@ -82,7 +85,7 @@ private:
         , pUnknownVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetUnknownVariable()))
         , pGradientVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetGradientVariable()))
         , pConvectionVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetConvectionVariable()))
-        , pVolumeSourceVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetVolumeSourceVariable()))
+        // , pVolumeSourceVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetVolumeSourceVariable()))
 
 
         {}
@@ -93,7 +96,7 @@ private:
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetUnknownVariable(*pUnknownVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetGradientVariable(*pGradientVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetConvectionVariable(*pConvectionVariable);
-            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetVolumeSourceVariable(*pVolumeSourceVariable);
+            // (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetVolumeSourceVariable(*pVolumeSourceVariable);
         }
 
     private:
@@ -101,7 +104,7 @@ private:
         const Variable<double>* pUnknownVariable;
         const Variable<array_1d<double,3>>* pGradientVariable;
         const Variable<array_1d<double,3>>* pConvectionVariable;
-        const Variable<double> *pVolumeSourceVariable;
+        // const Variable<double> *pVolumeSourceVariable;
     };
 
     ///@}
@@ -197,12 +200,20 @@ public:
      * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
      * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41].
      */
+    void ExecuteInitialize() override
+    {
+
+        ComputeNodalArea();
+    }
+
     void Execute() override
     {
         KRATOS_TRY;
 
+
         // Fill the auxiliary convection model part if not done yet
-        if(mDistancePartIsInitialized == false){
+        if (mDistancePartIsInitialized == false)
+        {
             ReGenerateConvectionModelPart(mrBaseModelPart);
         }
 
@@ -232,7 +243,7 @@ public:
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
-        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
+        // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
         // Save current level set value and current and previous step velocity values
         // If the nodal stabilization tau is to be used, it is also computed in here
@@ -248,6 +259,7 @@ public:
                 const double nodal_h = it_node-> GetValue(NODAL_H);
                 const double dynamic_tau = r_conv_process_info.GetValue(DYNAMIC_TAU);
                 const double tau = 1.0 / (dynamic_tau / dt + velocity_norm / std::pow(nodal_h,2));
+
                 it_node->GetValue(TAU) = tau;
             }
             }
@@ -286,8 +298,13 @@ public:
             if (mEvaluateLimiter) {
                 EvaluateLimiter();
             }
-
+            block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0); });
             mpSolvingStrategy->InitializeSolutionStep();
+            ComputeNodalArea();
+            if (mIsBDFElement)
+            {
+                NodalOSSProjection();
+            }
             mpSolvingStrategy->Predict();
             mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
             mpSolvingStrategy->FinalizeSolutionStep();
@@ -310,6 +327,9 @@ public:
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
         }
         );
+
+
+
 
         KRATOS_CATCH("")
     }
@@ -343,7 +363,6 @@ public:
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_volume_source_variable_name" : "HEAT_FLUX",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
@@ -403,7 +422,7 @@ protected:
 
     const Variable<double>* mpLevelSetVar = nullptr;
 
-    const Variable<double> *mpVolumeSourceVar = nullptr;
+    // const Variable<double> *mpVolumeSourceVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
@@ -476,6 +495,11 @@ protected:
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         ThisParameters["element_settings"].ValidateAndAssignDefaults(GetConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
 
+        std::string element_type = ThisParameters["element_type"].GetString();
+        if (element_type == "levelset_convection_bdf")
+        {
+            mIsBDFElement = true;
+        }
         // Checks and assign all the required member variables
         CheckAndAssignSettings(ThisParameters);
 
@@ -509,7 +533,7 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
+            // p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
             if (mpLevelSetGradientVar)
             {
@@ -829,6 +853,21 @@ protected:
         mpSolvingStrategy->FinalizeSolutionStep();
     }
 
+
+    void NodalOSSProjection (){
+
+        block_for_each(mrBaseModelPart.Nodes(), [this](Node& rNode){
+            double& sum_proj = rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION);
+            sum_proj /= rNode.GetValue(NODAL_AREA);
+            KRATOS_WATCH(rNode.GetValue(NODAL_AREA))
+        });
+    }
+
+    void ComputeNodalArea(){
+        // Calculate the NODAL_AREA
+        CalculateNodalAreaProcess<false> nodal_area_process(mrBaseModelPart);
+        nodal_area_process.Execute();
+    }
     /**
      * @brief Nodal H calculation
      * This function calculates the nodal h  by executing a process where the nodal h calculaiton is implemented.
@@ -863,7 +902,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
+        bool mIsBDFElement = false;
     ///@}
     ///@name Private Operations
     ///@{
@@ -904,7 +943,7 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
+        // mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
 
         if (ThisParameters["convection_model_part_name"].GetString() == "")
         {
@@ -1053,7 +1092,7 @@ private:
         // Check that the level set and convection variables are in the nodal database
         VariableUtils().CheckVariableExists<Variable<double>>(*mpLevelSetVar, mrBaseModelPart.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double>>(*mpVolumeSourceVar, mrBaseModelPart.Nodes());
+        // VariableUtils().CheckVariableExists<Variable<double>>(*mpVolumeSourceVar, mrBaseModelPart.Nodes());
         // Check the base model part element family (only simplex elements are supported)
         if constexpr (TDim == 2){
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<

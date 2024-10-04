@@ -119,7 +119,7 @@ public:
                                            return rNode.Has(TAU);
                                        });
     }
-    
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -202,7 +202,7 @@ public:
             double tau = 0.0;
 
             if (mElementTauNodal){
-                
+
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     tau += N[i] * GetGeometry()[i].GetValue(TAU);
@@ -365,6 +365,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    bool IsElementTauNodal() const
+    {
+        return mElementTauNodal;
+    }
     double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
     {
         double h=0.0;
