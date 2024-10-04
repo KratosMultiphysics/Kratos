@@ -494,6 +494,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
     const MeshElement mElement3D4N;
+    const MeshElement mQuadElement3D4N;
     const MeshElement mElement3D5N;
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;

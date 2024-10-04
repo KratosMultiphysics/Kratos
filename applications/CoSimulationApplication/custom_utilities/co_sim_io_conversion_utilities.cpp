@@ -94,6 +94,7 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
     {CoSimIO::ElementType::Quadrilateral2D4, "Element2D4N"},
     {CoSimIO::ElementType::Quadrilateral2D8, "Element2D8N"},
     {CoSimIO::ElementType::Quadrilateral2D9, "Element2D9N"},
+    {CoSimIO::ElementType::Quadrilateral3D4, "QuadElement3D4N"},
     {CoSimIO::ElementType::Quadrilateral3D8, "Element3D8N"},
     {CoSimIO::ElementType::Tetrahedra3D10, "Element3D10N"},
     {CoSimIO::ElementType::Tetrahedra3D4, "Element3D4N"},
