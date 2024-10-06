@@ -91,7 +91,7 @@ const std::string testParameters = R"(
 )";
 
 
-KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& dummy_model_part = model.CreateModelPart("dummy");

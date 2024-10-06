@@ -29,6 +29,8 @@ public:
     [[nodiscard]] SizeType GetStrainSize() const override;
     Vector&                GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using BaseType::GetValue;
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    using BaseType::CalculateValue;
     StressMeasure GetStressMeasure() override;
     bool          IsIncremental() override;
     void InitializeMaterial(const Properties&, const GeometryType&, const Vector&) override;

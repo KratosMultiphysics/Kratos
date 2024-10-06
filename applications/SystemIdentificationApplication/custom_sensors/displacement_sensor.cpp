@@ -95,7 +95,7 @@ double DisplacementSensor::CalculateValue(ModelPart& rModelPart)
             displacement += r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT) * Ns[i];
         }
 
-        directional_displacement = this->GetWeight() * inner_prod(displacement, mDirection);
+        directional_displacement = inner_prod(displacement, mDirection);
     }
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_displacement);
 }
@@ -126,8 +126,6 @@ void DisplacementSensor::CalculateGradient(
             rResponseGradient[i * block_size + 2] = Ns[i] * mDirection[2];
         }
     }
-
-    rResponseGradient *= this->GetWeight();
 
     KRATOS_CATCH("");
 }
