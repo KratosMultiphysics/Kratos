@@ -30,7 +30,9 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
             "resistance1"        : 0.0,
             "resistance2"        : 0.0,
             "compliance"         : 0.0,
-            "initial_pressure"   : 0.0
+            "initial_pressure"   : 0.0,
+            "pressure_in_mmHg"   : true,
+            "echo_level"         : 0
         }
         """)
 
@@ -52,6 +54,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         pres_settings.RemoveValue("resistance2")
         pres_settings.RemoveValue("compliance")
         pres_settings.RemoveValue("initial_pressure")
+        pres_settings.RemoveValue("echo_level")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
         ext_pres_settings = pres_settings.Clone()
@@ -74,16 +77,26 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
             if (ext_pres_settings["value"].GetString == ""):
                 raise Exception("Outlet external pressure function sting is empty.")
 
-        self.R1 = settings["resistance1"].GetDouble()
-        self.R2 = settings["resistance2"].GetDouble()
-        self.C  = settings["compliance"].GetDouble()
-        p0_mmHg = settings["initial_pressure"].GetDouble()
+        self.R1      = settings["resistance1"].GetDouble()
+        self.R2      = settings["resistance2"].GetDouble()
+        self.C       = settings["compliance"].GetDouble()
+        p0_mmHg      = settings["initial_pressure"].GetDouble()
+        self.echo    = settings["echo_level"].GetInt()
+        self.pressure_in_mmHg = settings["pressure_in_mmHg"].GetBool()
 
-        self.conv = 13.545*9.81 # Pressure must be provided in mmHg
-        p0 = p0_mmHg*self.conv
+        self.conv = 13.545*9.81 # Pressure conversion factor. It is used if pressure is provided in mmHg
+        if self.pressure_in_mmHg is True:
+            p0 = p0_mmHg*self.conv
+        else:
+            p0 = p0_mmHg   # The pressure variable passed from the json file is given in Pa
+
 
         self.previous_q1 = 0.0
-        self.current_p1 = p0
+        if self.pressure_in_mmHg is True:
+            self.current_p1 = p0 # in mmHg
+        else:
+            p0 = p0_mmHg
+
 
         # Set the OUTLET flag in the outlet model part nodes and conditions
         self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
@@ -92,27 +105,22 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         for condition in self.outlet_model_part.Conditions:
             condition.Set(KratosMultiphysics.OUTLET, True)
 
-
-        #self.pres_settings = pres_settings
-        #self.ext_pres_settings = ext_pres_settings
-
-        # Construct the base process AssignValueProcess
-        #self.aux_pressure_process = AssignScalarVariableProcess(Model, self.pres_settings)
-        #self.aux_external_pressure_process = AssignScalarVariableProcess(Model, self.ext_pres_settings)
-
-
-
     def ExecuteInitializeSolutionStep(self):
 
-        # Here the value to be provided to the pressure is computed from an external calculation
+        # Here the value to be provided to the outlet pressure is computed as the result of an ODE:
         delta_t = self.outlet_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         t = self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         self.current_q1 = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(self.outlet_model_part)
-        print('Current flow rate', self.current_q1)
 
         self.modified_p1 = (1/self.C*(self.current_q1*( 1 + self.R1/self.R2) + self.R1*self.C*(self.current_q1 - self.previous_q1)/delta_t - self.current_p1/self.R2))*delta_t + self.current_p1
-        print('Outlet new pressure:', self.modified_p1/self.conv)
+
+        if self.echo > 0:
+            print('Current flow rate', self.current_q1)
+            if self.pressure_in_mmHg:
+                print('Outlet new pressure:', self.modified_p1/self.conv, " mmHg")
+            else:
+                print('Outlet new pressure:', self.modified_p1, " Pa")
 
         for node in self.outlet_model_part.Nodes:
             # Setting new solution on the nodes
@@ -120,94 +128,10 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
             node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,self.modified_p1)
             node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE,self.modified_p1)
 
-        #self.pres_settings["value"].SetDouble(self.modified_p1)
-        #self.ext_pres_settings["value"].SetDouble(self.modified_p1)
-
-        # Call the base process ExecuteInitializeSolutionStep()
-        #self.aux_pressure_process.ExecuteInitializeSolutionStep()
-        #self.aux_external_pressure_process.ExecuteInitializeSolutionStep()
-
-
     def ExecuteFinalizeSolutionStep(self):
 
         self.previous_q1 = self.current_q1
         self.current_p1 = self.modified_p1
 
-        #self.pres_settings["value"].SetDouble(self.modified_p1)
-        #self.ext_pres_settings["value"].SetDouble(self.modified_p1)
-
-        # Call the base process ExecuteFinalizeSolutionStep()
-        #self.aux_pressure_process.ExecuteFinalizeSolutionStep()
-        #self.aux_external_pressure_process.ExecuteFinalizeSolutionStep()
-
-        #Set new pressure BCs to nodes (set the new pressure for each outlet)
-
-
-
 
     # Private methods section
-    def _AddOutletHydrostaticComponent(self):
-        # Initialize body force value (avoid segfault in MPI if the local mesh has no outlet nodes)
-        body_force = KratosMultiphysics.Vector(3)
-        body_force[0] = 0.0
-        body_force[1] = 0.0
-        body_force[2] = 0.0
-
-        # Get the body force value
-        for node in self.outlet_model_part.Nodes:
-            body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)
-            break
-
-        # Compute the body force unit normal vector
-        body_force_norm = math.sqrt(body_force[0]*body_force[0] + body_force[1]*body_force[1] + body_force[2]*body_force[2])    # Body force norm
-        body_force_dir = (1/(body_force_norm+1e-10))*body_force                                                                 # Body force unit director vector
-
-        # Compute the minimum body force projection value (reference value)
-        min_proj = 1.0e15
-        for node in self.outlet_model_part.Nodes:
-            body_force_proj = body_force_dir[0]*node.X + body_force_dir[1]*node.Y + body_force_dir[2]*node.Z    # Iteration node body force projection
-            min_proj = min(min_proj, body_force_proj)
-
-        # Add the hydrostatic component to the current PRESSURE and EXTERNAL_PRESSURE values
-        for node in self.outlet_model_part.Nodes:
-            body_force_proj = body_force_dir[0]*node.X + body_force_dir[1]*node.Y + body_force_dir[2]*node.Z    # Iteration node body force projection
-            rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY, 0)                                      # Nodal density value
-            hyd_pres = rho*body_force_norm*(self.h_top + (body_force_proj-min_proj))                            # Iteration node hydrostatic pressure
-            cur_pres = node.GetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE, 0)                       # Iteration node imposed external pressure
-
-            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, hyd_pres+cur_pres)                        # Add the hydrostatic component to the PRESSURE value
-            node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE, 0, hyd_pres+cur_pres)               # Add the hydrostatic component to the EXTERNAL_PRESSURE value
-
-
-    def __ComputeOutletAverageVelocity(self):
-        # Compute the outlet average velocity
-        outlet_avg_vel_norm = 0.0
-        for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
-            vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-            outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
-        comm = self.outlet_model_part.GetCommunicator().GetDataCommunicator()
-        outlet_avg_vel_norm = comm.SumAll(outlet_avg_vel_norm)
-
-        tot_len = len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)   # Partition outlet model part number of nodes
-        tot_len = comm.SumAll(tot_len)                                              # Get the total outlet model part nodes
-
-        outlet_avg_vel_norm /= tot_len
-
-        # Check the outlet average velocity minimum value and return
-        min_outlet_avg_vel_norm = 1.0e-12
-        return outlet_avg_vel_norm if outlet_avg_vel_norm >= min_outlet_avg_vel_norm else min_outlet_avg_vel_norm
-
-    def __ComputeOutletMaxVelocity(self):
-        # Compute the outlet max velocity
-        outlet_max_vel_norm = 0.0
-        for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
-            v_node = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-            aux_val = v_node[0]*v_node[0] + v_node[1]*v_node[1] + v_node[2]*v_node[2]
-            if aux_val > outlet_max_vel_norm:
-                outlet_max_vel_norm = aux_val
-        outlet_max_vel_norm = self.outlet_model_part.GetCommunicator().GetDataCommunicator().MaxAll(outlet_max_vel_norm)
-        outlet_max_vel_norm = math.sqrt(outlet_max_vel_norm)
-
-        # Check the outlet max velocity minimum value and return
-        min_outlet_vel_norm = 1.0e-12
-        return outlet_max_vel_norm if outlet_max_vel_norm >= min_outlet_vel_norm else min_outlet_vel_norm
