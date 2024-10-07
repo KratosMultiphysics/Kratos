@@ -62,9 +62,8 @@ jobs:
         configure.cmd
 
     - name: Running python tests
-      shell: pwsh
+      shell: cmd
       run: |
-        Set-MpPreference -DisableRealtimeMonitoring $true
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
@@ -142,9 +141,8 @@ jobs:
         exit /b %errorlevel%
 
     - name: Running python tests
-      shell: pwsh
+      shell: cmd
       run: |
-        Set-MpPreference -DisableRealtimeMonitoring $true
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
