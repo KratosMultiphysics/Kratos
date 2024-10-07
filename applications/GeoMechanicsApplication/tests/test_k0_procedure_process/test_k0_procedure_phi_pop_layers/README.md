@@ -7,4 +7,4 @@ A test for the K<sub>0</sub> procedure process.  The plane strain model consists
 
 K<sub>0</sub> is calculated using Phi and the POP method. This also corrects for V<sub>ur</sub>.
 
-The aim of the test is to verify that the computed effective stress distribution matches the one obtained with Plaxis.
+The aim of the test is to verify that the computed effective stress distribution matches the one obtained with comparative software.
