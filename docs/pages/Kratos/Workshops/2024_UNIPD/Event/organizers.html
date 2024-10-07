@@ -1,0 +1,35 @@
+<!-- Organizers section -->
+<div class="section scrollspy section-gray-section" id="organizers">
+  <div class="container">
+    <h4 class="center-align section-gray-header">Workshop Organizers</h4>
+
+    <div class="row">
+      <div class="col s12 m12 l12 section-gray-body">
+        <p class="center">For any question about the workshop organization, please contact <a href="mailto:{{page.organizer_email}}">{{page.organizer_email}}</a>.
+        </p>
+      </div>
+    </div>
+
+    <div class="row center-align">
+      {% for organizers in site.data.workshop2024.organizers %}
+        <div class="col s12 m6 l4">
+          <div class="card hoverable">
+            <div class="card-image">
+              <img class="activator portrait-img" src="{{organizers.image}}"
+              style="aspect-ratio: 1 / 1;">
+            </div>
+            <div class="card-content" id="secondary-title">
+               <div style="width: 100%; float: left;">
+               <span class="card-title activator" id="main-title-text">
+                  {{organizers.name}}</span>
+               <span class="card-title activator" id="secondary-title-text">
+                  {{organizers.affiliation}}</span>
+               </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
