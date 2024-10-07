@@ -32,7 +32,7 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
 
@@ -40,7 +40,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixT
 
     this->AddLHS(rLeftHandSideMatrix, stiffness_matrix);
 }
-
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,

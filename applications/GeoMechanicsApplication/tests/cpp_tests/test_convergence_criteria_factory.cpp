@@ -15,8 +15,8 @@
 #include "spaces/ublas_space.h"
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType                 = UblasSpace<double, Matrix, Vector>;
 using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>;
 
 namespace Kratos::Testing
@@ -33,7 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplaceme
     )";
 
     const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto displacement_criterion = dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    const auto displacement_criterion =
+        dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(
+            convergence_criteria.get());
     KRATOS_EXPECT_NE(displacement_criterion, nullptr);
 }
 
@@ -48,22 +50,20 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, 
     )";
 
     const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
-    const auto residual_criterion = dynamic_cast<const ResidualCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    const auto residual_criterion =
+        dynamic_cast<const ResidualCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
     KRATOS_EXPECT_NE(residual_criterion, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            ConvergenceCriteriaFactoryType::Create(Parameters{"{}"}),
-            "No convergence_criterion is defined, aborting.")
-}
+KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
+                          KratosGeoMechanicsFastSuiteWithoutKernel){
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(Parameters{"{}"}),
+                                      "No convergence_criterion is defined, aborting.")}
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            ConvergenceCriteriaFactoryType::Create(Parameters{R"({"convergence_criterion" : "something_unknown" })"}),
-             "The convergence_criterion (something_unknown) is unknown, supported criteria are: 'displacement_criterion'")
+        ConvergenceCriteriaFactoryType::Create(Parameters{R"({"convergence_criterion" : "something_unknown" })"}), "The convergence_criterion (something_unknown) is unknown, supported criteria are: 'displacement_criterion'")
 }
 
-}
+} // namespace Kratos::Testing
