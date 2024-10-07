@@ -296,7 +296,7 @@ namespace Kratos {
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, vel, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator, data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, neighbour_iterator);
@@ -416,7 +416,6 @@ namespace Kratos {
                                                                         equiv_poisson,
                                                                         indentation,
                                                                         indentation_particle,
-                                                                        LocalContactForce,
                                                                         LocalContactForce[2],
                                                                         GlobalContactForce,
                                                                         data_buffer.mLocalCoordSystem[2],
@@ -479,7 +478,7 @@ namespace Kratos {
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
-                AddNeighbourContributionToStressTensor(r_process_info, TotalGlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
+                AddNeighbourContributionToStressTensor(r_process_info, GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
             }
 
             AddContributionToRepresentativeVolume(data_buffer.mDistance, radius_sum, calculation_area);

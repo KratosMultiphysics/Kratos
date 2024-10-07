@@ -15,11 +15,12 @@
 // Project includes
 #include "containers/model.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
-        KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastSuiteWithoutKernel)
         {
 
             // initialize modelpart
@@ -33,8 +34,7 @@ namespace Kratos::Testing
             auto cond_prop = r_model_part.CreateNewProperties(0);
 
             // set constitutive law
-            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-            cond_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+            cond_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
             // Create the test piping element nodes
             auto node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -54,8 +54,11 @@ namespace Kratos::Testing
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{1, 2};
-            auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
-            // Initialize the element to initialize the constitutive law
+            Condition::Pointer                cond = Kratos::make_intrusive<PwNormalFluxCondition<2, 2>>(
+                1, make_shared<Line2D2<Node>>(node_1, node_2), cond_prop);
+            r_model_part.AddCondition(cond);
+
+            // Initialize the condition to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
             cond->Initialize(r_process_info);
 
@@ -82,7 +85,7 @@ namespace Kratos::Testing
             }
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(CalculateInclinedNormalFlux, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(CalculateInclinedNormalFlux, KratosGeoMechanicsFastSuiteWithoutKernel)
         {
 
             // initialize modelpart
@@ -96,8 +99,7 @@ namespace Kratos::Testing
             auto cond_prop = r_model_part.CreateNewProperties(0);
 
             // set constitutive law
-            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-            cond_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+            cond_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
             // Create the test piping element nodes
             auto node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -117,8 +119,9 @@ namespace Kratos::Testing
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{1, 2};
-            auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
-            // Initialize the element to initialize the constitutive law
+            Condition::Pointer                cond = Kratos::make_intrusive<PwNormalFluxCondition<2, 2>>(
+                1, make_shared<Line2D2<Node>>(node_1, node_2), cond_prop);
+            r_model_part.AddCondition(cond);            // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
             cond->Initialize(r_process_info);
 

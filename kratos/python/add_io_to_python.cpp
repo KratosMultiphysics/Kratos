@@ -186,15 +186,19 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
-        .def("ReadModelPart", &StlIO::ReadModelPart)
-        .def("WriteModelPart", &StlIO::WriteModelPart)
         ;
 
     py::class_<ObjIO, ObjIO::Pointer, IO>(m, "ObjIO")
         .def(py::init<std::filesystem::path const& >())
         .def(py::init<std::filesystem::path const&, Parameters>())
-        .def("ReadModelPart", &ObjIO::ReadModelPart)
-        .def("WriteModelPart", &ObjIO::WriteModelPart)
+        .def_static("CleanUpProblematicGeometriesInMesh", &ObjIO::CleanUpProblematicGeometriesInMesh,
+          py::arg("rThisModelPart"),
+          py::arg("rEntityType") = "element",
+          py::arg("FirstNodeId") = 1,
+          py::arg("FirstElementId") = 1,
+          py::arg("FirstConditionId") = 1,
+          py::arg("AreaTolerance") = 1.0e-6,
+          "Clean up the problematic geometries (null area geometries) in the mesh.")
         ;
 
     // Import of CAD models to the model part
