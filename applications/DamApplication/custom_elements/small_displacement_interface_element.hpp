@@ -26,7 +26,7 @@
 
 // Application includes
 #include "custom_utilities/poro_element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.h"
+#include "custom_utilities/interface_element_utilities.hpp"
 
 #include "dam_application_variables.h"
 #include "poromechanics_application_variables.h"
