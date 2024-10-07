@@ -20,7 +20,8 @@
 // Application includes
 #include "custom_operations/deactivate_model_part_operation.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
 KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSuite)
 {
@@ -29,10 +30,10 @@ KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSu
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
 
     // Set up the test model part mesh
-    auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    auto p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
+    auto                   p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto                   p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    auto                   p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
@@ -55,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(DeactivateModelPartOperation, KratosGeoMechanicsFastSu
     }
 
     // Create and execute the tested operation
-    Parameters operation_settings(R"({
+    Parameters                   operation_settings(R"({
         "model_part_name" : "TestModelPart"
     })");
     DeactivateModelPartOperation test_operation(test_model, operation_settings);
