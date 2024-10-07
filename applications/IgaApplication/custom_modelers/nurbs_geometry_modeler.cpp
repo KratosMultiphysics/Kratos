@@ -256,6 +256,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(isDefined) << "ERROR: NON MATCHING MODEL PART NAMES BETWEEN REFINEMENTS_IGA AND NURBS_GEOMETRY_MODELER";
         
         if (initial_skin_model_part_in.Conditions().size() > 0 || initial_skin_model_part_out.Conditions().size() > 0) {
+
             SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_in, skin_model_part_out, 
                                                             initial_skin_model_part_in, initial_skin_model_part_out, 
                                                             mEchoLevel, knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, 

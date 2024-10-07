@@ -103,7 +103,6 @@ namespace Kratos
         Vector GP_parameter_coord(2); 
         GP_parameter_coord = r_geometry.Center();
         
-        normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
         // MODIFIED
         Vector old_displacement(mat_size);
@@ -144,6 +143,10 @@ namespace Kratos
         Matrix B = ZeroMatrix(3,mat_size);
 
         CalculateB(B, DN_DX);
+
+        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+
+        normal_physical_space /= norm_2(normal_physical_space);
 
 
     //---------- MODIFIED ----------------------------------------------------------------
@@ -202,25 +205,32 @@ namespace Kratos
 
         Matrix DB = prod(r_D,B);
         double integration_factor = IntToReferenceWeight;
+        // KRATOS_WATCH(GP_parameter_coord)
         for (IndexType i = 0; i < number_of_nodes; i++) {
             for (IndexType j = 0; j < number_of_nodes; j++) {
                 
                 for (IndexType idim = 0; idim < 2; idim++) {
-                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
                     const int id1 = 2*idim;
                     const int iglob = 2*i+idim;
+
+                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
+
+                    // KRATOS_WATCH(iglob)
+                    // KRATOS_WATCH(H(0,j))
 
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
                         const int jglob = 2*j+jdim;
-                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_physical_space[0] + DB(id2, jglob)* normal_physical_space[1]) * integration_factor;
 
-                        rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                        rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
                     }
 
                 }
             }
         }
+        // KRATOS_WATCH(summ)
+        // KRATOS_WATCH("-----------------------------")
         
         
         if (CalculateResidualVectorFlag) {
@@ -249,7 +259,7 @@ namespace Kratos
 
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
-                        rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                        rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_physical_space[0] + DB(id2, 2*i+jdim)* normal_physical_space[1]) * integration_factor;
                     }
 
                 }
@@ -378,7 +388,7 @@ namespace Kratos
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         // Get the parameter coordinates
         Vector GP_parameter_coord(2); 
-        GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // Only one Integration Points 
+        GP_parameter_coord = r_geometry.Center(); // Only one Integration Points 
 
         double x_coord_gauss_point = 0;
         double y_coord_gauss_point = 0;
@@ -392,6 +402,43 @@ namespace Kratos
             x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
             y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
         }        
+
+        // ########################################################################333
+        double x = GP_parameter_coord[0];
+        double y = GP_parameter_coord[1];
+        // double true_sol = -cos(x)*sinh(y);
+        Vector approx_lhs = ZeroVector(9);
+        Vector approx_rhs = ZeroVector(9);
+
+        for (IndexType i = 0; i < 9; i++) {
+            for (IndexType j = 0; j < 9; j++) {
+                
+                for (IndexType idim = 0; idim < 1; idim++) {
+                    const int id1 = 2*idim;
+                    const int iglob = 2*i+idim;
+
+                    approx_lhs[i] -= r_N(0,i)*r_N(0,j)* r_geometry[j].GetSolutionStepValue(DISPLACEMENT_X);
+                }
+            }
+        }
+
+        Vector u_D(2);
+        u_D[0] = this->GetValue(DISPLACEMENT_X);
+        u_D[1] = this->GetValue(DISPLACEMENT_Y);
+
+        for (IndexType i = 0; i < 9; i++) {
+
+            for (IndexType idim = 0; idim < 1; idim++) {
+
+                approx_rhs[i] -= r_N(0,i)*u_D[idim];
+            }
+        }
+
+        // KRATOS_WATCH(approx_lhs - approx_rhs)
+
+        // ########################################################################333
+
+        // KRATOS_WATCH(err)
 
         // std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
         // if (output_file.is_open()) {

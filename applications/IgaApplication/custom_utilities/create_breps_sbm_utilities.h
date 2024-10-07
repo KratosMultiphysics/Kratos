@@ -166,6 +166,8 @@ private:
         /// Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
 
+        p_surface->SetValue(IS_SBM, true);
+
         SizeType last_geometry_id = rModelPart.GetParentModelPart().Geometries().size();
         p_brep_surface->SetId(1);
         rModelPart.AddGeometry(p_brep_surface);
@@ -194,6 +196,8 @@ private:
 
         /// Sets the brep as geometry parent of the nurbs surface.
         p_volume->SetGeometryParent(p_brep_volume.get());
+
+        p_volume->SetValue(IS_SBM, true);
 
         SizeType last_geometry_id = 0;
         p_brep_volume->SetId(1);

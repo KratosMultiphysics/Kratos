@@ -56,7 +56,7 @@ namespace Kratos
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
         const unsigned int dim = 2;
-        Matrix DN_DX(number_of_nodes,3);
+        Matrix DN_DX(number_of_nodes,2);
         Matrix InvJ0(dim,dim);
 
         // Compute the normals
@@ -76,20 +76,14 @@ namespace Kratos
         double DetJ0;
 
         Vector GP_parameter_coord(2); 
-        GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
+        GP_parameter_coord = r_geometry.Center();
         
-        normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
-
         // Stampa su file esterno le coordinate (projection[0],projection[1])
         std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
         outputFile << std::setprecision(14); // Set precision to 10^-14
         outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
         outputFile.close();
 
-        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-
-        
-        
         const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         Matrix Jacobian = ZeroMatrix(2,2);
@@ -100,18 +94,20 @@ namespace Kratos
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-        Matrix InvJ0_23 = ZeroMatrix(2,3);
-        InvJ0_23(0,0) = InvJ0(0,0);
-        InvJ0_23(0,1) = InvJ0(0,1);
-        InvJ0_23(1,0) = InvJ0(1,0);
-        InvJ0_23(1,1) = InvJ0(1,1);
-        InvJ0_23(0,2) = 0;
-        InvJ0_23(1,2) = 0;
+
+        Vector add_factor = prod(Jacobian, tangent_parameter_space);
+
+        DetJ0 = norm_2(add_factor);
+
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
-        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0_23);
+        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+
+        normal_physical_space /= norm_2(normal_physical_space);
         
         Matrix H = ZeroMatrix(1, number_of_nodes);
         for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -134,8 +130,11 @@ namespace Kratos
             // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
             // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
 
-            g_N[0] = this->GetValue(FORCE_X); 
-            g_N[1] = this->GetValue(FORCE_Y); 
+            g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * normal_physical_space[0]; 
+            g_N[1] = E/(1-nu)*(sin(x)*sinh(y))  * normal_physical_space[1]; 
+
+            // g_N[0] = this->GetValue(FORCE_X); 
+            // g_N[1] = this->GetValue(FORCE_Y); 
             
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 

@@ -255,118 +255,136 @@ public:
     void SpansLocalSpace(std::vector<double>& rSpans,
         double Start, double End) const
     {
-        // std::vector<double> surface_spans_u;
-        // std::vector<double> surface_spans_v;
-        // mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
-        // mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
-
-        // CoordinatesArrayType physical_coord_1 = ZeroVector(3);
-        // CoordinatesArrayType local_coord_1 = ZeroVector(3);
-        // local_coord_1[0] = Start;
-        // mpNurbsCurve->GlobalCoordinates(physical_coord_1, local_coord_1);
-
-        // CoordinatesArrayType physical_coord_2 = ZeroVector(3);
-        // CoordinatesArrayType local_coord_2 = ZeroVector(3);
-        // local_coord_2[0] = End;
-        // mpNurbsCurve->GlobalCoordinates(physical_coord_2, local_coord_2);
-
-        // // 2D need to re-order
-        // bool reverse_order = false;
-        // if ((physical_coord_2[0] - physical_coord_1[0] < 0 ) || 
-        //     (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
-        //     reverse_order = true;
-        // }
-        // std::vector<double> tempSpans;
-
-        // // Compute the intersection rSpans
-
-        // // LOWER SEGMENT
-        // const double toll = 1e-10;
-        // const double toll2 = 1e-15;
-        
-        // // Compute constant coordinate -> understand segment orientation (vertical/horizontal)
-
-        // // Scale factor between volume coordinate and surface one
-        // double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
-        // double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
-        // double scale_factor = parameter_length_segment/physical_length_segment;
-
-        // std::vector<double> knot_interval(2);
-        // // horizontal case
-        // if (std::abs(physical_coord_1[0]-physical_coord_2[0]) > toll) {// left or right face
-        //     // direction_lower_segment = 0; // compare to knot_spans_vector_u
-        //     knot_interval[0] = physical_coord_1[0]; 
-        //     knot_interval[1] = physical_coord_2[0];
-        //     std::sort(knot_interval.begin(), knot_interval.end());
-
-        //     knot_interval[0] -= toll2; 
-        //     knot_interval[1] += toll2;
-        //     // Compare with volume_spans_u
-        //     for (int i = 0; i < surface_spans_u.size(); i++) {
-        //         double curr_knot_value = surface_spans_u[i];
-        //         if (curr_knot_value < knot_interval[0]) {continue;}
-        //         if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
-        //         if (curr_knot_value > knot_interval[1]) {break;}
-        //         if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
-        //         double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-
-        //         tempSpans.push_back(knot_value_in_curve_parameter);
-
-        //     }
-            
-        // } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > toll) { // vertical segment
-        // // vertical case
-        //     // direction_lower_segment = 1;
-        //     knot_interval[0] = physical_coord_1[1]; 
-        //     knot_interval[1] = physical_coord_2[1];
-        //     std::sort(knot_interval.begin(), knot_interval.end());
-
-        //     knot_interval[0] -= toll2; 
-        //     knot_interval[1] += toll2;
-        //     // Compare with volume_spans_v
-        //     for (int i = 0; i < surface_spans_v.size(); i++) {
-        //         double curr_knot_value = surface_spans_v[i];
-        //         if (curr_knot_value < knot_interval[0]) {continue;}
-        //         if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
-        //         if (curr_knot_value > knot_interval[1]) {break;}
-        //         if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
-        //         double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-                
-        //         tempSpans.push_back(knot_value_in_curve_parameter);
-                
-        //     }
-        // } else {
-        //     KRATOS_ERROR << "CURVE NOT PARALLEL TO ANY SURFACE KNOT VECTOR";
-        // }
-
-        // rSpans.resize(tempSpans.size());
-        // if (tempSpans.size() > 2){
-        //     if (reverse_order) {
-        //         for (int i = 0; i < tempSpans.size(); i++) {
-
-        //             rSpans[i] = End - tempSpans[tempSpans.size()-1-i];
-        //         }
-        //     } else {
-        //         rSpans = tempSpans;
-        //     }
-        // } else rSpans = tempSpans;
-        
-        // // if (rSpans.size()>2) KRATOS_WATCH(rSpans)
-        // KRATOS_ERROR_IF(rSpans.size()<2) << "WRONG NUMBER OF INTERSECTION (<2) FOUND" << std::endl;
-
-        //-----------------------------------------------------------
-        // FOR TRIMMING ACTIVATE THIS
-        //----------------------------------------------------------
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
         mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
 
-        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+        const bool is_sbm = mpNurbsSurface->GetValue(IS_SBM);
+
+        if (true) {
+            // SBM case: compute only knot spans intersections
+            ComputeAxisIntersectionSBM(
+            rSpans,
+            Start, End,
+            surface_spans_u, surface_spans_v,
+            1e-12);
+        }
+        else {
+            // trimming case: compute also inner knot spans intersections
+            CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
             rSpans,
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
-            1e-6);
+            1e-12);
+        }
+    }
+    
+            
+
+     /**
+     * @brief 
+     * SBM case: compute only knot spans intersections
+     * @param rSpans 
+     * @param Start 
+     * @param End 
+     * @param surface_spans_u 
+     * @param surface_spans_v 
+     * @param Tolerance 
+     * @return int 
+     */
+   void ComputeAxisIntersectionSBM(
+            std::vector<double>& rSpans,
+            double Start,
+            double End,
+            const std::vector<double>& surface_spans_u,
+            const std::vector<double>& surface_spans_v,
+            const double tolerance = 1e-12) const 
+    {
+        CoordinatesArrayType physical_coord_1 = ZeroVector(3);
+        CoordinatesArrayType local_coord_1 = ZeroVector(3);
+        local_coord_1[0] = Start;
+        mpNurbsCurve->GlobalCoordinates(physical_coord_1, local_coord_1);
+
+        CoordinatesArrayType physical_coord_2 = ZeroVector(3);
+        CoordinatesArrayType local_coord_2 = ZeroVector(3);
+        local_coord_2[0] = End;
+        mpNurbsCurve->GlobalCoordinates(physical_coord_2, local_coord_2);
+
+        // 2D need to re-order
+        bool reverse_order = false;
+        if (((physical_coord_2[0] - physical_coord_1[0] < 0 ) || 
+            (physical_coord_2[1] - physical_coord_1[1] < 0 )) &&
+            Start > End) {
+            reverse_order = true;
+        }
+        std::vector<double> tempSpans;
+        const double toll = 1e-10;
+        const double toll2 = tolerance;
+        
+        // Scale factor between volume coordinate and surface one
+        double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
+        double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
+        double scale_factor = parameter_length_segment/physical_length_segment;
+
+        std::vector<double> knot_interval(2);
+
+        // Compute constant coordinate -> understand segment orientation (vertical/horizontal)
+        if (std::abs(physical_coord_1[0]-physical_coord_2[0]) > toll) {
+            // horizontal case
+            knot_interval[0] = physical_coord_1[0]; 
+            knot_interval[1] = physical_coord_2[0];
+            std::sort(knot_interval.begin(), knot_interval.end());
+
+            knot_interval[0] -= toll2; 
+            knot_interval[1] += toll2;
+            // Compare with volume_spans_u
+            for (int i = 0; i < surface_spans_u.size(); i++) {
+                double curr_knot_value = surface_spans_u[i];
+                if (curr_knot_value < knot_interval[0]) {continue;}
+                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (curr_knot_value > knot_interval[1]) {break;}
+                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
+
+                tempSpans.push_back(knot_value_in_curve_parameter);
+            }
+            
+        } else if (std::abs(physical_coord_1[1]-physical_coord_2[1]) > toll) {
+        // vertical case
+            knot_interval[0] = physical_coord_1[1]; 
+            knot_interval[1] = physical_coord_2[1];
+            std::sort(knot_interval.begin(), knot_interval.end());
+
+            knot_interval[0] -= toll2; 
+            knot_interval[1] += toll2;
+            // Compare with volume_spans_v
+            for (int i = 0; i < surface_spans_v.size(); i++) {
+                double curr_knot_value = surface_spans_v[i];
+                if (curr_knot_value < knot_interval[0]) {continue;}
+                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (curr_knot_value > knot_interval[1]) {break;}
+                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
+                
+                tempSpans.push_back(knot_value_in_curve_parameter);
+            }
+        } else {
+            KRATOS_ERROR << "CURVE NOT PARALLEL TO ANY SURFACE KNOT VECTOR";
+        }
+
+        rSpans.resize(tempSpans.size());
+        if (tempSpans.size() > 2){
+            if (reverse_order) {
+                for (int i = 0; i < tempSpans.size(); i++) {
+                    rSpans[i] = End - tempSpans[tempSpans.size()-1-i];
+                }
+            } else {
+                rSpans = tempSpans;
+            }
+        } else rSpans = tempSpans;
+        
+        KRATOS_ERROR_IF(rSpans.size()<2) << "WRONG NUMBER OF INTERSECTION (<2) FOUND" << std::endl;
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
@@ -551,11 +569,57 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
-        std::vector<CoordinatesArrayType> global_space_first(2);
-        std::vector<CoordinatesArrayType> global_space_second(2);
-        mpNurbsCurve->GlobalSpaceDerivatives(global_space_first,rIntegrationPoints[0],1);  // i = 0
-        mpNurbsCurve->GlobalSpaceDerivatives(global_space_second,rIntegrationPoints[1],1); // i = 1
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+        bool is_brep_internal = false;
+        IndexType InternalBrepSpanU;
+        IndexType InternalBrepSpanV;
 
+        if (is_sbm)
+        {
+            // IF IS_SBM -> check to which axis the brep is alligned
+            std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
+            std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+
+            // check if the brep is internal (external breps do not need to be computed in a different knot span) 
+            is_brep_internal = true; 
+            const double tolerance = 1e-14;
+            // At this point all the true are boundary GPs
+            if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[0]) < tolerance)
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][0]-mpNurbsSurface->KnotsU()[mpNurbsSurface->KnotsU().size()-1]) < tolerance) 
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[0]) < tolerance) 
+                is_brep_internal = false;
+            if (std::abs(first_integration_point[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < tolerance) 
+                is_brep_internal = false;
+
+            // If is_brep_internal -> the current GP is a surrogate GP otherwise it is an external GP
+            if (is_brep_internal) {
+                // brep = knot spans edge -> same SpanU and SpanV for all its integration points
+                InternalBrepSpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), first_integration_point[0][0]);
+                InternalBrepSpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), first_integration_point[0][1]);
+
+                // Understand if the knot-boundary is along U or V
+                bool gp_is_along_U;
+                if (std::abs(first_integration_point[0][0] - last_integration_point[0][0]) < tolerance) {
+                    gp_is_along_U = true;
+                }
+                else {gp_is_along_U = false; }
+
+                if (gp_is_along_U && first_integration_point[0][1] > last_integration_point[0][1]) {
+                    // Is decreasing along y -> Add 1 at InternalBrepSpanU
+                    InternalBrepSpanU++;
+                }
+                if (!gp_is_along_U && first_integration_point[0][0] < last_integration_point[0][0]) {
+                    // Is increasing along x -> Add 1 at InternalBrepSpanV
+                    InternalBrepSpanV++;
+                }
+            }
+        }
+
+        // Loop over the integration points of the brep
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {    
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
@@ -564,73 +628,43 @@ public:
                 rIntegrationPoints[i],
                 1);
 
-            if (mpNurbsSurface->IsRational()) {
+            if (mpNurbsSurface->IsRational()) { 
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(),
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
             }
             else {
-                // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
-                std::ifstream file("txt_files/input_data.txt");
-                std::string line;
-                int SBM_technique;
-                std::getline(file, line);
-                std::getline(file, line); // Read the second line
-                SBM_technique = std::stoi(line);
-                file.close();
-
-                // MODIFIED
-                bool is_surrogate_boundary = true; 
-                const double threshold = 1e-14 ;
-                // At this point all the true are boundary GPs
-                if (std::abs(global_space_derivatives[0][0]-mpNurbsSurface->KnotsU()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
-                if (std::abs(global_space_derivatives[0][0]-mpNurbsSurface->KnotsU()[mpNurbsSurface->KnotsU().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
-                if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
-                if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
-                
-                if (SBM_technique==1) {is_surrogate_boundary=false;}
-
-                // If it is 1 -> the current GP is a surrogate GP otherwise it is an external GP
-                if (is_surrogate_boundary) {
-                    // KRATOS_WATCH("SURROGATE BOUNDARY GP")
-                    IndexType SpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), global_space_derivatives[0][0]);
-                    IndexType SpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), global_space_derivatives[0][1]);
-
-                    // Understand if the knot-boundary is along U or V
-                    bool gp_is_along_U;
-                    if (std::abs(global_space_first[0][0] - global_space_second[0][0]) < threshold) {
-                        gp_is_along_U = true;
-                    }
-                    else {gp_is_along_U = false; }
-
-                    if (gp_is_along_U && global_space_first[0][1] > global_space_second[0][1]) {
-                        // Is decreasing along y -> Add 1 at SpanU
-                        SpanU++;
-                    }
-                    if (!gp_is_along_U && global_space_first[0][0] < global_space_second[0][0]) {
-                        // Is increasing along x -> Add 1 at SpanV
-                        SpanV++;
-                    }
-
+                if (is_sbm && is_brep_internal) {
+                    // SBM case on internal brep 
                     shape_function_container.ComputeBSplineShapeFunctionValuesAtSpan(
                         mpNurbsSurface->KnotsU(),
                         mpNurbsSurface->KnotsV(),
-                        SpanU,
-                        SpanV,
+                        InternalBrepSpanU,
+                        InternalBrepSpanV,
                         global_space_derivatives[0][0],
                         global_space_derivatives[0][1]);
-
-                    // shape_function_container.ComputeBSplineShapeFunctionValues(
-                    //     mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
-                    //     global_space_derivatives[0][0], global_space_derivatives[0][1]);
                 }
                 else {
-                    // 'EXTERNAL GP'
+                    // Trimming case or external brep
                     shape_function_container.ComputeBSplineShapeFunctionValues(
                         mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
                         global_space_derivatives[0][0], global_space_derivatives[0][1]);
-                }
+                } 
             }
+            
+            //************************************************************************************** */
+            // PRINT ON FILE GP COORDINATES ON PARAMETER SPACE */
+            std::ofstream outputFile("txt_files/Parameter_Gauss_Point_coordinates.txt", std::ios::app);
+            if (!outputFile.is_open())
+            {
+                std::cerr << "Failed to open the file for writing." << std::endl;
+                return;
+            }
+
+            outputFile << std::setprecision(14); // Set precision to 10^-14
+            outputFile << global_space_derivatives[0][0] << "  " << global_space_derivatives[0][1] <<"\n";
+            outputFile.close();
+            //************************************************************************************** */
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
