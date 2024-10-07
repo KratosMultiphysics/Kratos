@@ -92,11 +92,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
 
 
         self.previous_q1 = 0.0
-        if self.pressure_in_mmHg is True:
-            self.current_p1 = p0 # in mmHg
-        else:
-            p0 = p0_mmHg
-
+        self.current_p1 = p0 # in Pa
 
         # Set the OUTLET flag in the outlet model part nodes and conditions
         self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
