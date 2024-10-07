@@ -254,7 +254,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalc
     p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side, r_current_process_info);
 
     Matrix expected_matrix(3, 3);
-    expected_matrix <<= 5, -5, 0, -5, 5.5, -0.5, 0, -0.5, 0.5;
+    // clang-format off
+    expected_matrix <<=  5, -5,    0,
+                        -5,  5.5, -0.5,
+                         0, -0.5,  0.5;
+    // clang-format on
     ExpectDoubleMatrixEqual(expected_matrix, left_hand_side_matrix);
 
     // Calculated by hand (matrix multiplication between the

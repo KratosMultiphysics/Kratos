@@ -390,7 +390,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{3, 3, 0.0};
-    expected_lhs_matrix <<= 21.2568, -8.50271, 25.5081, -8.50271, 12.7541, 8.50271, 25.5081, 8.50271, 68.0217;
+    // clang-format off
+    expected_lhs_matrix <<= 21.2568,  -8.50271, 25.5081,
+                            -8.50271, 12.7541,   8.50271,
+                            25.5081,   8.50271, 68.0217;
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{3, 0.0};
@@ -417,10 +421,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{6, 6, 0.0};
-    expected_lhs_matrix <<= 1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729, -0.975729,
-        1.95146, -0.975729, 0.975729, 0.975729, -1.95146, -0.975729, -0.975729, 1.95146, -1.95146,
-        0.975729, 0.975729, 0.975729, 0.975729, -1.95146, 10.733, 7.80583, 7.80583, -1.95146, 0.975729,
-        0.975729, 7.80583, 10.733, 7.80583, 0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733;
+    // clang-format off
+    expected_lhs_matrix <<= 1.95146,  -0.975729, -0.975729,  0.975729, -1.95146,   0.975729,
+                           -0.975729,  1.95146,  -0.975729,  0.975729,  0.975729, -1.95146,
+                           -0.975729, -0.975729,  1.95146,  -1.95146,   0.975729,  0.975729,
+                            0.975729,  0.975729, -1.95146,  10.733,     7.80583,   7.80583,
+                           -1.95146,   0.975729,  0.975729,  7.80583,  10.733,     7.80583,
+                            0.975729, -1.95146,   0.975729,  7.80583,   7.80583,  10.733;
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
     auto expected_rhs_vector = Vector{6, 0.0};
@@ -447,13 +455,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
     auto expected_lhs_matrix = Matrix{8, 8, 0.0};
-    expected_lhs_matrix <<= 5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525,
-        -5.26894, 1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
-        2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525, 1.75631, 2.63447,
-        1.75631, 5.26894, -7.02525, -7.02525, -5.26894, -5.26894, -5.26894, -5.26894, -7.02525,
-        -7.02525, 28.101, 17.5631, 14.0505, 17.5631, -7.02525, -5.26894, -5.26894, -7.02525,
-        17.5631, 28.101, 17.5631, 14.0505, -7.02525, -7.02525, -5.26894, -5.26894, 14.0505, 17.5631,
-        28.101, 17.5631, -5.26894, -7.02525, -7.02525, -5.26894, 17.5631, 14.0505, 17.5631, 28.101;
+    // clang-format off
+    expected_lhs_matrix <<= 5.26894,  1.75631,  2.63447,  1.75631, -5.26894, -7.02525, -7.02525, -5.26894,
+                            1.75631,  5.26894,  1.75631,  2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
+                            2.63447,  1.75631,  5.26894,  1.75631, -7.02525, -5.26894, -5.26894, -7.02525,
+                            1.75631,  2.63447,  1.75631,  5.26894, -7.02525, -7.02525, -5.26894, -5.26894,
+                           -5.26894, -5.26894, -7.02525, -7.02525, 28.101,   17.5631,  14.0505,  17.5631,
+                           -7.02525, -5.26894, -5.26894, -7.02525, 17.5631,  28.101,   17.5631,  14.0505,
+                           -7.02525, -7.02525, -5.26894, -5.26894, 14.0505,  17.5631,  28.101,   17.5631,
+                           -5.26894, -7.02525, -7.02525, -5.26894, 17.5631,  14.0505,  17.5631,  28.101;
+    // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
