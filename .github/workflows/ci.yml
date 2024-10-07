@@ -34,7 +34,7 @@ jobs:
       run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Disable Defender
-      shell: pwdh
+      shell: pwsh
       run: | 
         Set-MpPreference -DisableRealtimeMonitoring $true
 
@@ -62,7 +62,7 @@ jobs:
         configure.cmd
 
     - name: Running python tests
-      shell: cmd
+      shell: pwsh
       run: |
         Set-MpPreference -DisableRealtimeMonitoring $true
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
@@ -93,7 +93,7 @@ jobs:
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
     - name: Disable Defender
-      shell: pwdh
+      shell: pwsh
       run: | 
         Set-MpPreference -DisableRealtimeMonitoring $true
 
@@ -142,7 +142,7 @@ jobs:
         exit /b %errorlevel%
 
     - name: Running python tests
-      shell: pwdh
+      shell: pwsh
       run: |
         Set-MpPreference -DisableRealtimeMonitoring $true
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
