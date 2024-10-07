@@ -286,17 +286,17 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_phi_pop_layers")
         file_path = test_helper.get_file_path(test_name)
-        plx_file_path = test_helper.get_file_path(os.path.join(test_name, "plx_results.res"))
-        # run simulation
+
         simulation = test_helper.run_kratos(file_path)
 
         cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
 
-        # Check the stresses at a few integration points near the bottom of the _bottom_ layer
-        # The expected stresses are taken from the same run using comparative software
         self.assert_cauchy_stresses_pop(cauchy_stress_tensors)
 
     def assert_cauchy_stresses_pop(self, cauchy_stress_tensors):
+        # The expected stresses are taken from the same run using comparative software
+
+        # Check the stresses at a few integration points near the bottom of the _bottom_ layer
         integration_point = (234, 0)  # far left
         self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point,
                                                   expected_vertical_stress=-6.09999999999999E+004,
@@ -344,13 +344,10 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_pop_layers")
         file_path = test_helper.get_file_path(test_name)
-        plx_file_path = test_helper.get_file_path(os.path.join(test_name, "plx_results.res"))
-        # run simulation
+
         simulation = test_helper.run_kratos(file_path)
 
-        # retrieve Cauchy stress tensor
         cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
-
         self.assert_cauchy_stresses_pop(cauchy_stresses)
 
     def test_k0_procedure_k0_umat(self):
