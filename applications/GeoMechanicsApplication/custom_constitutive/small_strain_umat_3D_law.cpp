@@ -384,11 +384,11 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     // Get Values to compute the constitutive law:
     const Flags& rOptions = rValues.GetOptions();
 
-    // NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if (rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& rStrainVector = rValues.GetStrainVector();
-        CalculateCauchyGreenStrain(rValues, rStrainVector);
-    }
+    KRATOS_DEBUG_ERROR_IF(rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+    << "The GeoLinearElasticLaw needs an element provided strain" << std::endl;
+
+    KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
+        << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         Vector& rStressVector = rValues.GetStressVector();
@@ -593,24 +593,6 @@ void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
     this->SetInternalStrainVector(rStrainVector);
 }
 
-void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1() != space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got "
-        << F.size1() << "x" << F.size2() << std::endl;
-
-    Matrix E_tensor = prod(trans(F), F);
-    for (unsigned int i = 0; i < space_dimension; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
 double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<double>&      rThisVariable,
                                              double&                      rValue)
@@ -619,7 +601,6 @@ double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
     Vector& rStressVector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rStrainVector);
         this->CalculateStress(rParameterValues, rStressVector);
 
         rValue = 0.5 * inner_prod(rStrainVector, rStressVector); // Strain energy = 0.5*E:C:E
@@ -632,12 +613,8 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
                                              const Variable<Vector>&      rThisVariable,
                                              Vector&                      rValue)
 {
-    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
-
-    } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-               rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 
