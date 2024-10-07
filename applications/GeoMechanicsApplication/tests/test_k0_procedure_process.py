@@ -290,8 +290,32 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         # run simulation
         simulation = test_helper.run_kratos(file_path)
 
-        # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
-        test_helper.compare_stress_results_with_plaxis_table_file(self, simulation, plx_file_path, 3, 0.001, 0.1)
+        cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
+
+        # Check the stresses at a few integration points near the bottom of the _bottom_ layer
+        # The expected stresses are taken from the same run using comparative software
+        integration_point = (234, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-6.09999999999999E+004, expected_horizontal_stress=-5.10990833491168E+004, rel_tol=0.02)
+        integration_point = (168, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-6.08613432647410E+004, expected_horizontal_stress=-5.09845041032569E+004, rel_tol=0.02)
+        integration_point = (237, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-6.09999999999999E+004, expected_horizontal_stress=-5.10990833491168E+004, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _middle_ layer
+        integration_point = (154, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-4.26666666666666E+004, expected_horizontal_stress=-3.61798406686105E+004, rel_tol=0.02)
+        integration_point = (90, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-4.29517389461450E+004, expected_horizontal_stress=-3.64154106662541E+004, rel_tol=0.02)
+        integration_point = (157, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-4.26666666666666E+004, expected_horizontal_stress=-3.61798406686105E+004, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _top_ layer
+        integration_point = (74, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-1.88888888888889E+004, expected_horizontal_stress=-1.64157603064465E+004, rel_tol=0.02)
+        integration_point = (10, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-1.91264491217876E+004, expected_horizontal_stress=-1.66120686378162E+004, rel_tol=0.02)
+        integration_point = (77, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-1.88888888888888E+004, expected_horizontal_stress=-1.64157603064465E+004, rel_tol=0.02)
 
     def test_k0_procedure_k0_nc_pop_layers(self):
         """
@@ -381,7 +405,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
     def test_k0_procedure_for_horizontal_layers(self):
         """
         Test to check whether the effective stress distribution is in line with results from
-        Plaxis.  To this end, we test the horizontal, vertical and shear stresses at a selection
+        comparative software.  To this end, we test the horizontal, vertical and shear stresses at a selection
         of integration points (defined as pairs of element IDs and integration point indices).
         There shouldn't be any significant variations in stress when querying integration points
         that are located at the same depth.
@@ -412,7 +436,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
     def test_k0_procedure_for_tilted_layers(self):
         """
         Test to check whether the effective stress distribution is in line with results from
-        Plaxis.  To this end, we test the horizontal, vertical and shear stresses at a selection
+        comparative software. To this end, we test the horizontal, vertical and shear stresses at a selection
         of integration points (defined as pairs of element IDs and integration point indices).
         """
         test_path = test_helper.get_file_path(os.path.join("test_k0_procedure_process", "test_k0_procedure_with_tilted_layers"))
