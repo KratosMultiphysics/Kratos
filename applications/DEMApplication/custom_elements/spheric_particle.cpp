@@ -1692,6 +1692,10 @@ void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_proce
             (*mDifferentialStrainTensor)(2,2) = (*mDifferentialStrainTensor)(0,2) = (*mDifferentialStrainTensor)(1,2) = (*mDifferentialStrainTensor)(2,1) = (*mDifferentialStrainTensor)(2,0) = 0.0;
         }
     }
+
+    if (total_number_of_neighbours < Dim) {
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
+    }
 }
 
 void SphericParticle::SymmetrizeDifferentialStrainTensor() {
