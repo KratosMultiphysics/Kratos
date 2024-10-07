@@ -14,12 +14,14 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
+#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
-        KRATOS_TEST_CASE_IN_SUITE(CalculateEquilibriumPipeHeight, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(CalculateEquilibriumPipeHeight, KratosGeoMechanicsFastSuiteWithoutKernel)
         {
 
             // initialize modelpart
@@ -42,8 +44,7 @@ namespace Kratos::Testing
             p_elem_prop->SetValue(PIPE_MODEL_FACTOR, 1);
 
             // set constitutive law
-            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-            p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
             // Create the test piping element nodes
             auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, -0.1, 0.0);
@@ -78,8 +79,10 @@ namespace Kratos::Testing
             p_node_4->UnSetLock();
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
-            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            auto p_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
+                1, Kratos::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4),
+                p_elem_prop, std::make_unique<PlaneStrainStressState>());
+            r_model_part.AddElement(p_element);
 
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -88,11 +91,8 @@ namespace Kratos::Testing
             // get element geometry
             auto Geom = p_element->GetGeometry();
 
-            // cast to piping element
-            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
-
             // calculate equilibrium height
-            double expected_eq_height = PipeEl->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
+            double expected_eq_height = p_element->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
 
             KRATOS_EXPECT_NEAR(
                 expected_eq_height,
@@ -100,7 +100,7 @@ namespace Kratos::Testing
                 1.0e-6);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(CalculateHeadGradient, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(CalculateHeadGradient, KratosGeoMechanicsFastSuiteWithoutKernel)
         {
             // initialize modelpart
             Model current_model;
@@ -115,8 +115,7 @@ namespace Kratos::Testing
             p_elem_prop->SetValue(DENSITY_WATER, 1000);
 
             // set constitutive law
-            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-            p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
             // Create the test piping element nodes
             auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, -0.1, 0.0);
@@ -151,8 +150,10 @@ namespace Kratos::Testing
             p_node_4->UnSetLock();
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
-            auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            auto p_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
+                1, Kratos::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4),
+                p_elem_prop, std::make_unique<PlaneStrainStressState>());
+            r_model_part.AddElement(p_element);
 
             // Initialize the element to initialize the constitutive law
             const auto &r_process_info = r_model_part.GetProcessInfo();
@@ -161,11 +162,8 @@ namespace Kratos::Testing
             // get element geometry
             auto Geom = p_element->GetGeometry();
 
-            // cast to piping element
-            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
-
             // calculate water pressure gradient
-            double expected_gradient = PipeEl->CalculateHeadGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
+            double expected_gradient = p_element->CalculateHeadGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
 
             // assert gradient
             // expected gradient should be 2. Test is failing on purpose to check CI

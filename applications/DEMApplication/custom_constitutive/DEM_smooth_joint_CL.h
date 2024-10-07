@@ -128,10 +128,9 @@ namespace Kratos{
                             double ViscoLocalRotationalMoment[3], 
                             double equiv_poisson, 
                             double indentation,
-                            double indentation_particle, 
-                            double LocalElasticContactForce[3],
+                            double indentation_particle,
                             double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             const int i_neighbor_count) override;     
         
