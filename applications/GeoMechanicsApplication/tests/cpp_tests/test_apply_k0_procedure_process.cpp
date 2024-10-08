@@ -180,7 +180,43 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMecha
                                             r_model_part.GetProcessInfo());
     Vector expected_stress_vector{4};
     expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
-    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector[0], expected_stress_vector, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector[0], expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    p_properties->SetValue(NUMBER_OF_UMAT_PARAMETERS, 1);
+    Vector umat_parameters{1};
+    umat_parameters[0] = 30.0;
+    p_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    auto p_element = make_intrusive<StubElement>();
+    p_element->SetProperties(p_properties);
+    r_model_part.AddElement(p_element);
+
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {initial_stress_vector},
+                                            r_model_part.GetProcessInfo());
+
+    const auto              k0_settings = Parameters{};
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+
+    // Act
+    process.ExecuteFinalizeSolutionStep();
+
+    // Assert
+    std::vector<Vector> actual_stress_vector;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector,
+                                            r_model_part.GetProcessInfo());
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector[0], expected_stress_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
