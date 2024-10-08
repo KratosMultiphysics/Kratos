@@ -63,6 +63,8 @@ public:
                               Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::string Info() const override;
+
 private:
     void InitializeProperties();
 

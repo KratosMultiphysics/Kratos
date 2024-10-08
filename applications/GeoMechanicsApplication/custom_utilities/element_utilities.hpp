@@ -15,15 +15,17 @@
 
 // Project includes
 #include "includes/element.h"
+#include "includes/kratos_export_api.h"
 #include "utilities/math_utils.h"
 
 // Application includes
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class GeoElementUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoElementUtilities
 {
 public:
     using IndexType    = std::size_t;
@@ -189,26 +191,6 @@ public:
         InvertMatrix2(rInvertedMatrix, InputMatrix, InputMatrixDet);
 
         KRATOS_CATCH("")
-    }
-
-    template <unsigned int TDim>
-    static inline void AssembleDensityMatrix(BoundedMatrix<double, TDim + 1, TDim + 1>& DensityMatrix, double Density)
-    {
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
-    }
-
-    template <typename MatrixType>
-    static inline void AssembleDensityMatrix(MatrixType& DensityMatrix, double Density)
-    {
-        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
-            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
     }
 
     template <typename MatrixType1, typename MatrixType2>
@@ -623,6 +605,9 @@ public:
         }
         return nodal_hydraulic_heads;
     }
+
+    static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                         const Geometry<Node>& rGeometry);
 
 private:
     template <typename VectorType1, typename VectorType2>

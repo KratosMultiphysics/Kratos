@@ -97,6 +97,52 @@ void CreateQuadratic3DModelPartForExtrapolation(ModelPart& rModelPart)
 
 /**
 * Checks the correct work of the internal variable extrapolation process
+* Test r_node
+*/
+KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessNode, KratosStructuralMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+    ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+    r_current_process_info[DOMAIN_SIZE] = 2;
+
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
+
+    auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    std::vector<std::size_t> nodes(1,1);
+    auto p_element = r_model_part.CreateNewElement("NodalConcentratedElement3D1N", 1, nodes, p_elem_prop);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+
+    // Initialize Elements
+    for (auto& r_elem : r_model_part.Elements())
+        r_elem.Initialize(r_process_info);
+
+    auto& process_info = r_model_part.GetProcessInfo();
+    process_info[STEP] = 1;
+    process_info[NL_ITERATION_NUMBER] = 1;
+
+    // Compute extrapolation
+    Parameters extrapolation_parameters = Parameters(R"(
+    {
+        "list_of_variables" : ["REFERENCE_DEFORMATION_GRADIENT_DETERMINANT"]
+    })");
+    IntegrationValuesExtrapolationToNodesProcess extrapolation_process(r_model_part, extrapolation_parameters);
+    extrapolation_process.ExecuteBeforeSolutionLoop();
+    extrapolation_process.ExecuteFinalizeSolutionStep();
+
+    const auto& r_variable = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.GetValue(r_variable), 0.0);
+    }
+
+    extrapolation_process.ExecuteFinalize();
+}
+
+/**
+* Checks the correct work of the internal variable extrapolation process
 * Test triangle
 */
 KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosStructuralMechanicsFastSuite)

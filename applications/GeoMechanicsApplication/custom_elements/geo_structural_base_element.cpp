@@ -20,28 +20,24 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType             NewId,
-                                                                   NodesArrayType const& ThisNodes,
-                                                                   PropertiesType::Pointer pProperties) const
+Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType,
+                                                                   NodesArrayType const&,
+                                                                   PropertiesType::Pointer) const
 {
     KRATOS_ERROR << "calling the default Create method for a particular "
                     "element ... illegal operation!!"
                  << std::endl;
-
-    return Element::Pointer(new GeoStructuralBaseElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType             NewId,
-                                                                   GeometryType::Pointer pGeom,
-                                                                   PropertiesType::Pointer pProperties) const
+Element::Pointer GeoStructuralBaseElement<TDim, TNumNodes>::Create(IndexType,
+                                                                   GeometryType::Pointer,
+                                                                   PropertiesType::Pointer) const
 {
     KRATOS_ERROR << "calling the default Create method for a particular "
                     "element ... illegal operation!!"
                  << std::endl;
-
-    return Element::Pointer(new GeoStructuralBaseElement(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

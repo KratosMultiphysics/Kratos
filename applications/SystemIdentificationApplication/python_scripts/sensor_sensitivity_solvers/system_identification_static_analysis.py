@@ -22,6 +22,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
             "list_of_sensors"              : [],
+            "p_coefficient"                : 1,
             "output_settings"              : {
                 "output_sensor_sensitivity_fields": false,
                 "output_folder"                   : "Optimization_Results/sensor_sensitivity_fields"
@@ -36,7 +37,9 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = sensor_settings["adapt_perturbation_size"].GetBool()
         self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
 
-        self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction()
+        p_coefficient = sensor_settings["p_coefficient"].GetDouble()
+        self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)
+
         for sensor in self.listof_sensors:
             sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)
@@ -89,7 +92,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
                     sensor.FinalizeSolutionStep()
                     self.FinalizeSolutionStep()
 
-                    sensitivities = self.GetSensitivities()
+                    sensitivities = self.GetSensitivities(self._GetSolver().GetSensitivityModelPart())
                     for var, cexp in sensitivities.items():
                         exp_io.Write(f"{sensor.GetName()}_{var.Name()}", cexp)
 
@@ -114,14 +117,13 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
         Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Computed sensitivities for {process_info[KratosSI.SENSOR_NAME]} using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
 
-    def GetSensitivities(self) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
-        sensitivity_model_part: Kratos.ModelPart = self._GetSolver().GetSensitivityModelPart()
+    def GetSensitivities(self, model_part: Kratos.ModelPart) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
         sensitivity_variables: 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
 
         result: 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]' = {}
         for data_location, variables in sensitivity_variables.items():
             for variable in variables:
-                result[variable] = GetContainerExpression(sensitivity_model_part, data_location, variable)
+                result[variable] = GetContainerExpression(model_part, data_location, variable)
         return result
 
 if __name__ == "__main__":

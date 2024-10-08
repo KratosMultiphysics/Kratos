@@ -1051,21 +1051,15 @@ void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void GeoTrussElementBase<TDim, TNumNodes>::FinalizeMaterialResponse(double Strain, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
-
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    Vector                      temp_strain = ZeroVector(1);
-    Vector                      temp_stress = ZeroVector(1);
-    temp_strain[0]                          = CalculateGreenLagrangeStrain();
-    Values.SetStrainVector(temp_strain);
-    Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
-    KRATOS_CATCH("")
+    auto values = ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    auto temp_strain = Vector{ScalarVector(1, Strain)};
+    auto temp_stress = Vector{ZeroVector(1)};
+    values.SetStrainVector(temp_strain);
+    values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_PK2);
 }
 
 //----------------------------------------------------------------------------------------

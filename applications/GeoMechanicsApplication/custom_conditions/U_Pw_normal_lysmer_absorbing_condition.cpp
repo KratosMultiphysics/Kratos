@@ -31,15 +31,22 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
-                                                                        VectorType& rRightHandSideVector,
-                                                                        const ProcessInfo& rCurrentProcessInfo)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
 
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->AddLHS(rLhsMatrix, stiffness_matrix);
+    this->AddLHS(rLeftHandSideMatrix, stiffness_matrix);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
+                                                                        VectorType& rRightHandSideVector,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
 
     this->CalculateAndAddRHS(rRightHandSideVector, rLhsMatrix);
 }
@@ -568,7 +575,12 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 1) = v_z[1];
     rRotationMatrix(2, 2) = v_z[2];
 }
-//
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwLysmerAbsorbingCondition";
+}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
