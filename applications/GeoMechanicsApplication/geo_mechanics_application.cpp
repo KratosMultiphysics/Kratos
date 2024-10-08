@@ -155,6 +155,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N)
 
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlainStrainElement2Plus2N", mUPwLineInterfacePlaneStrainElement2Plus2N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlainStrainElement3Plus3N", mUPwLineInterfacePlaneStrainElement3Plus3N)
+
     // Updated-Lagranian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D4N", mUPwUpdatedLagrangianElement2D4N)
@@ -366,6 +369,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw", mLinearElastic2DBeamLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("Geo_IncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
@@ -592,5 +597,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(STRAINS_OF_PIECEWISE_LINEAR_LAW)
     KRATOS_REGISTER_VARIABLE(STRESSES_OF_PIECEWISE_LINEAR_LAW)
+
+    KRATOS_REGISTER_VARIABLE(INTERFACE_NORMAL_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 }
 } // namespace Kratos.

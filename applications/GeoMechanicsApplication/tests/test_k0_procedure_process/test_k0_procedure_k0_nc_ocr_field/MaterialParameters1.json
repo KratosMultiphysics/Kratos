@@ -26,7 +26,7 @@
           "K0_VALUE_XX": 0.5,
           "K0_VALUE_YY": 0.5,
           "K0_VALUE_ZZ": 0.5,
-	  "K0_NC": 0.6,
+	      "K0_NC": 0.6,
           "RETENTION_LAW": "SaturatedLaw",
           "RESIDUAL_SATURATION": 0.06203,
           "SATURATED_SATURATION": 1.0,

@@ -28,19 +28,24 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Pro
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
-    ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters& rK0Settings);
+    ApplyK0ProcedureProcess(ModelPart& model_part, Parameters rK0Settings);
     ~ApplyK0ProcedureProcess() override = default;
 
     void ExecuteInitialize() override;
     void ExecuteFinalize() override;
+    int  Check() override;
 
     void                      ExecuteFinalizeSolutionStep() override;
     [[nodiscard]] std::string Info() const override;
 
 private:
-    [[nodiscard]] bool  UseStandardProcedure() const;
-    array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp) const;
-    void                CalculateK0Stresses(Element& rElement);
+    [[nodiscard]] bool                       UseStandardProcedure() const;
+    [[nodiscard]] static array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp);
+    void                                     CalculateK0Stresses(Element& rElement) const;
+    static void CheckK0MainDirection(const Properties& rProperties, IndexType ElementId);
+    static void CheckPhi(const Properties& rProperties, IndexType ElementId);
+    static void CheckPoissonUnloadingReloading(const Properties& rProperties, IndexType ElementId);
+    static void CheckSufficientMaterialParameters(const Properties& rProperties, IndexType ElementId);
 
     ModelPart&       mrModelPart;
     const Parameters mSettings;

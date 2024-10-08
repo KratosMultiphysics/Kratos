@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3N, 
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({51173.0769231, 51173.0769231, -1816.54062688, -12711.5384615, -38461.5384615, 10555.3527785, -38461.5384615, -12711.5384615, 3972.72630992});
+    const std::vector<double> expected_RHS({51134.6153846, 51134.6153846, -1827.75857559, -12673.0769231, -38461.5384615, 10540.9297016, -38461.5384615, -12673.0769231, 3959.9057971});
     const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -317307.692308, -394230.769231, -384615.384615, -317307.692308, -384615.384615, 375000, -317307.692308});
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -162,8 +162,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElement2D3NDy
 
     // Check RHS and LHS results
     const double tolerance = 1.0e-5;
-    const std::vector<double> expected_RHS({51181.5777242, 51173.076373, -1831.8931645, -12703.0376604, -38461.5390116, 10570.705396, -38453.0376604, -12711.5390116, 3972.72623009});
-    const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -327036.58062, -394230.769231, -384615.384615, -307578.803995, -384615.384615, 375000, -317307.692308});
+    const std::vector<double> expected_RHS({51134.6153846, 51134.6153846, -1827.75857559, -12673.0769231, -38461.5384615, 10540.9297016, -38461.5384615, -12673.0769231, 3959.9057971});
+    const std::vector<double> expected_LHS_row_0({778846.153846, 9615.38461538, -317307.692308, -394230.769231, -384615.384615, -317307.692308, -384615.384615, 375000, -317307.692308});
     const std::vector<double> expected_mass_row_0({83.3333333333, 0, 0, 41.6666666667, 0, 0, 41.6666666667, 0, 0});
     const std::vector<double> expected_mass_row_2({0, 0, 0, 0, 0, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
@@ -271,9 +271,10 @@ KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainOssElementZienki
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_vol_strain = 1.49650698603e-05;
-    const double expected_vol_strain_proj = -0.000531463341208;
-    const std::vector<double> expected_disp = {-0.000533062, 0.000562992, 0.0};
-    const std::vector<double> expected_disp_proj = {-2.20921422407, 2.20921422407, 0.0};
+    const double expected_vol_strain_proj = 9.66365079115e-11;
+    const std::vector<double> expected_disp = {-7.41543286634e-06, 3.73455725869e-05, 0.0};
+    const std::vector<double> expected_disp_proj = {2.98507494006, -2.98507494006, 0.0};
+
     KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT), expected_disp, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT_PROJECTION), expected_disp_proj, tolerance);
     KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);

@@ -59,6 +59,13 @@ def compare_stress_results_with_plaxis_table_file(test_case, simulation, plaxis_
             assert_relative_close(test_case, stress_xy_plx, stress_xy_kratos, rel_tol, abs_tol, f"Stress_xy - {submsg}")
         element += 1
 
+def make_geomechanics_analysis(model, project_parameters_file_path):
+    with open(project_parameters_file_path, 'r') as f:
+        project_parameters = Kratos.Parameters(f.read())
+
+    return analysis.GeoMechanicsAnalysis(model, project_parameters)
+
+
 def run_kratos(file_path, model=None):
     """
     Runs 1 stage in kratos
