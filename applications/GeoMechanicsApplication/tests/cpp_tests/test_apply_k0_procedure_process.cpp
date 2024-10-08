@@ -322,11 +322,16 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
         "Insufficient material data for K0 procedure process for element 1. No K0_NC, "
         "(INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS and "
         "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found).");
-
-    p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.25);
     p_element->GetProperties().SetValue(K0_VALUE_XX, 0.5);
     p_element->GetProperties().SetValue(K0_VALUE_YY, 0.5);
     p_element->GetProperties().SetValue(K0_VALUE_ZZ, 0.5);
+
+    p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.75);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "POISSON_UNLOADING_RELOADING (0.75) is not in range [-1.0, 0.5> for element 1.");
+    p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.25);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.Check(), "Insufficient material data for K0 procedure process for "

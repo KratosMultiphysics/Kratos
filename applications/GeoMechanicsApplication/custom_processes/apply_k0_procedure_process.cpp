@@ -81,6 +81,12 @@ int ApplyK0ProcedureProcess::Check()
                "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
             << std::endl;
 
+        KRATOS_ERROR_IF(r_properties.Has(POISSON_UNLOADING_RELOADING) &&
+                        (r_properties[POISSON_UNLOADING_RELOADING] < -1.0 ||
+                         r_properties[POISSON_UNLOADING_RELOADING] >= 0.5))
+            << "POISSON_UNLOADING_RELOADING (" << r_properties[POISSON_UNLOADING_RELOADING]
+            << ") is not in range [-1.0, 0.5> for element " << rElement.Id() << "." << std::endl;
+
         if (r_properties.Has(K0_VALUE_XX)) {
             KRATOS_ERROR_IF(r_properties.Has(POISSON_UNLOADING_RELOADING) ||
                             r_properties.Has(OCR) || r_properties.Has(POP))
