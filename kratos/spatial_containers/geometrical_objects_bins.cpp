@@ -71,15 +71,8 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    // Clear the results
-    rResults.clear();
-
-    // Initialize the current size
-    std::size_t current_size = 0;
-
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
-    std::unordered_set<GeometricalObject*> to_remove;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -96,35 +89,16 @@ void GeometricalObjectsBins::SearchInRadius(
         for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
-                if (IsCellBoundingBoxInsideRadius(i, j, k, rPoint, Radius)) {
-                    current_size = rResults.size();
-                    rResults.reserve(current_size + r_cell.size());
-                    for(auto p_geometrical_object : r_cell) {
-                        auto insert_result = to_remove.insert(p_geometrical_object);
-                        if (insert_result.second) {
-                            auto& r_geometry = p_geometrical_object->GetGeometry();
-                            const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
-                            rResults.push_back(ResultType(p_geometrical_object));
-                            rResults.back().SetDistance(distance);
-                        }
-                    }
-                } else {
-                    for(auto p_geometrical_object : r_cell) {
-                        candidates.insert(p_geometrical_object);
-                    }
+                for(auto p_geometrical_object : r_cell) {
+                    candidates.insert(p_geometrical_object);
                 }
             }
         }
     }
 
-    // Clear the candidates
-    for (const auto& r_element : to_remove) {
-        candidates.erase(r_element);
-    }
-
     // Loop over the candidates and filter by distance and fill the results
-    current_size = rResults.size();
-    rResults.reserve(current_size + candidates.size());
+    rResults.clear();
+    rResults.reserve(candidates.size());
     for(auto& p_geometrical_object : candidates) {
         auto& r_geometry = p_geometrical_object->GetGeometry();
         const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
