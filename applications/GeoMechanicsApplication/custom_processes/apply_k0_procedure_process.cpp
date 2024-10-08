@@ -62,6 +62,31 @@ void ApplyK0ProcedureProcess::ExecuteFinalize()
         SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
 }
 
+int ApplyK0ProcedureProcess::Check()
+{
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+        auto r_properties = rElement.GetProperties();
+        KRATOS_ERROR_IF(!r_properties.Has(K0_MAIN_DIRECTION))
+            << "K0_MAIN_DIRECTION is not defined for element " << rElement.Id() << "." << std::endl;
+        KRATOS_ERROR_IF_NOT(
+            r_properties.Has(K0_NC) ||
+            (r_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
+             r_properties.Has(NUMBER_OF_UMAT_PARAMETERS) && r_properties.Has(UMAT_PARAMETERS)) ||
+            (r_properties.Has(K0_VALUE_XX) && r_properties.Has(K0_VALUE_YY) && r_properties.Has(K0_VALUE_ZZ)))
+            << "Insufficient material data for K0 procedure process for element " << rElement.Id() << ". No K0_NC, "
+            << "(INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS and "
+               "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
+            << std::endl;
+
+        KRATOS_ERROR_IF(r_properties.Has(POISSON_UNLOADING_RELOADING) && r_properties.Has(K0_VALUE_XX))
+            << "Insufficient material data for K0 procedure process for element " << rElement.Id()
+            << ". Poisson unloading-reloading cannot be combined with K0_VALUE_XX, _YY and _ZZ."
+            << std::endl;
+    });
+
+    return 0;
+}
+
 void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY

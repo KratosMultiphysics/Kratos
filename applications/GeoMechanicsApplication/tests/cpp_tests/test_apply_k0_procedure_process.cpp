@@ -291,8 +291,43 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR, 
 
     // Assert
     Vector expected_stress_vector{4};
-    expected_stress_vector <<= -30.0 + 50.0/3.0, -10.0, -30.0 + 50.0/3.0, 0.0;
+    expected_stress_vector <<= -30.0 + 50.0 / 3.0, -10.0, -30.0 + 50.0 / 3.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  p_element    = make_intrusive<StubElement>();
+    p_element->SetId(1);
+    p_element->SetProperties(std::make_shared<Properties>());
+    r_model_part.AddElement(p_element);
+
+    const auto              k0_settings = Parameters{};
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "K0_MAIN_DIRECTION is not defined for element 1.");
+
+    p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "Insufficient material data for K0 procedure process for element 1. No K0_NC, "
+        "(INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS and "
+        "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found).");
+
+    p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.25);
+    p_element->GetProperties().SetValue(K0_VALUE_XX, 0.5);
+    p_element->GetProperties().SetValue(K0_VALUE_YY, 0.5);
+    p_element->GetProperties().SetValue(K0_VALUE_ZZ, 0.5);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "Insufficient material data for K0 procedure process for "
+        "element 1. Poisson unloading-reloading cannot be combined with K0_VALUE_XX, _YY and _ZZ.");
 }
 
 } // namespace Kratos::Testing

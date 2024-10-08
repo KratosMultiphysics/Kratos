@@ -33,6 +33,7 @@ public:
 
     void ExecuteInitialize() override;
     void ExecuteFinalize() override;
+    int  Check() override;
 
     void                      ExecuteFinalizeSolutionStep() override;
     [[nodiscard]] std::string Info() const override;
