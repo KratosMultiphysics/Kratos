@@ -29,10 +29,10 @@ ModelPart& PrepareTestModelPart(Model& rModel)
     auto& result = rModel.CreateModelPart("dummy");
 
     // Set up the test model part mesh
-    auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    auto p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
+    auto                   p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto                   p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    auto                   p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
@@ -43,7 +43,7 @@ ModelPart& PrepareTestModelPart(Model& rModel)
     })");
     StructuredMeshGeneratorProcess(domain_geometry, result, mesher_parameters).Execute();
 
-    auto p_dummy_law              = std::make_shared<Testing::StubLinearElasticLaw>();
+    auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     auto& r_model_part_properties = result.GetProperties(0);
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
 
@@ -113,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
 
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
-    process.ExecuteFinalize(); // stop considering diagonal entries only and no shear
+    process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
     KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
 }
