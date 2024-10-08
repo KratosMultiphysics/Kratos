@@ -138,12 +138,7 @@ public:
 
     std::string Info() const override
     {
-        std::stringstream claw_buffer;
-        if (mConstitutiveLawVector.size() != 0) {
-            claw_buffer << mConstitutiveLawVector[0]->Info();
-        } else {
-            claw_buffer << "not defined";
-        }
+        const std::string constitutive_info = !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
         return "U-Pw Base class Element #" + std::to_string(Id()) +
                "\nConstitutive law: " + claw_buffer.str();
     }
