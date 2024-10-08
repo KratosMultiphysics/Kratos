@@ -170,8 +170,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     UPwBaseElement::Initialize(rCurrentProcessInfo);
 
-    if (mpPressureGeometry == nullptr) {
-        this->SetUpPressureGeometryPointer();
+    KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
     }
 
     mIsInitialised = true;
