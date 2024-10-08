@@ -702,6 +702,35 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomElementChildrenIds(
+    const ModelPart& rModelPart,
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> children_ids;
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+    const auto& r_cond_weights = rHRomWeights.at("Conditions");
+
+    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        // Get the condition parent
+        const auto& r_elem = rModelPart.GetElement(it->first + 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        KRATOS_WATCH('alive')
+        const auto& r_neigh = r_elem.GetValue(NEIGHBOUR_CONDITIONS);
+        KRATOS_WATCH('still alive')
+        //KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_elem.Id() <<" has no child condition assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
+        // #TODO Plenty of elements can have no conditions assigned !!!!!!!!!!
+
+        // Add the parent to the HROM weights
+        // Note that we check if the element child has been already added by the HROM element selection strategy
+        if (r_cond_weights.find(r_neigh[0].Id() - 1) == r_cond_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            children_ids.push_back(r_neigh[0].Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
+    }
+
+    return children_ids;
+}
+
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     ModelPart& rModelPart,
     const std::vector<IndexType>& rConditionIds)
