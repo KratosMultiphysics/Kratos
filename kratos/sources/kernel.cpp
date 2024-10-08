@@ -52,6 +52,7 @@ void Kernel::PrintInfo() {
 }
 
 void Kernel::Initialize() {
+    this->PrintInfo();
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);

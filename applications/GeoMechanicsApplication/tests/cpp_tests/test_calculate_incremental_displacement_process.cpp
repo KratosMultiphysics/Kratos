@@ -19,7 +19,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // set up model part
     Model model;
@@ -52,8 +52,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMech
     const auto expected_incremental_displacement_1 = Kratos::array_1d<double, 3>{-3.0, -3.0, -3.0};
     const auto expected_incremental_displacement_2 = Kratos::array_1d<double, 3>{-4.0, 4.0, -5.0};
 
-    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement_1, 1e-12)
-    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement_2, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT),
+                             expected_incremental_displacement_1, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT),
+                             expected_incremental_displacement_2, 1e-12)
 }
 
 } // namespace Kratos::Testing
