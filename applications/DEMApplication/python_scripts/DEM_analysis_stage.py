@@ -530,32 +530,71 @@ class DEMAnalysisStage(AnalysisStage):
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
+        bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                bounding_box_servo_loading_option = True
+
         if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
                 time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
-                NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
-                if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
-                    self.UpdateSearchStartegyAndCPlusPlusStrategy()
-                    self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
+                if bounding_box_servo_loading_option:
+                    self.move_velocity = [0.0, 0.0, 0.0]
+                    NStepSearch = self.DEM_parameters["BoundingBoxServoLoadingFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
+                        self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(self.move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
+                else:
+                    NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetVector()
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
 
-    def UpdateSearchStartegyAndCPlusPlusStrategy(self):
+    def CalculateBoundingBoxMoveVelocity(self, measured_global_stress):
+
+        move_acceleration = [0.0, 0.0, 0.0]
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingFactor"].GetDouble()
+
+        move_acceleration[0] = (servo_loading_stress[0] - measured_global_stress[0]) * servo_loading_factor
+        move_acceleration[1] = (servo_loading_stress[1] - measured_global_stress[1]) * servo_loading_factor
+        move_acceleration[2] = (servo_loading_stress[2] - measured_global_stress[2]) * servo_loading_factor
+        
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        self.move_velocity[0] += delta_time * move_acceleration[0]
+        self.move_velocity[1] += delta_time * move_acceleration[1]
+        self.move_velocity[2] += delta_time * move_acceleration[2]
+
+        bonuding_box_move_velocity_max = self.DEM_parameters["BoundingBoxMoveVelocityMax"].GetDouble()
+        if abs(self.move_velocity[0]) > bonuding_box_move_velocity_max:
+            self.move_velocity[0] = bonuding_box_move_velocity_max * np.sign(self.move_velocity[0])
+        if abs(self.move_velocity[1]) > bonuding_box_move_velocity_max:
+            self.move_velocity[1] = bonuding_box_move_velocity_max * np.sign(self.move_velocity[1])
+        if abs(self.move_velocity[2]) > bonuding_box_move_velocity_max:
+            self.move_velocity[2] = bonuding_box_move_velocity_max * np.sign(self.move_velocity[2])
+
+    def UpdateSearchStartegyAndCPlusPlusStrategy(self, move_velocity):
 
         delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
 
+        # note: control_bool_vector = [MoveMinX, MoveMinY, MoveMinZ, MoveMaxX, MoveMaxY, MoveMaxZ]
         control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
         if control_bool_vector[0]:
-            self.BoundingBoxMinX_update += delta_time * move_velocity
+            self.BoundingBoxMinX_update += delta_time * move_velocity[0]
         if control_bool_vector[1]:
-            self.BoundingBoxMinY_update += delta_time * move_velocity
+            self.BoundingBoxMinY_update += delta_time * move_velocity[1]
         if control_bool_vector[2]:
-            self.BoundingBoxMinZ_update += delta_time * move_velocity
+            self.BoundingBoxMinZ_update += delta_time * move_velocity[2]
         if control_bool_vector[3]:
-            self.BoundingBoxMaxX_update -= delta_time * move_velocity
+            self.BoundingBoxMaxX_update -= delta_time * move_velocity[0]
         if control_bool_vector[4]:
-            self.BoundingBoxMaxY_update -= delta_time * move_velocity
+            self.BoundingBoxMaxY_update -= delta_time * move_velocity[1]
         if control_bool_vector[5]:
-            self.BoundingBoxMaxZ_update -= delta_time * move_velocity
+            self.BoundingBoxMaxZ_update -= delta_time * move_velocity[2]
 
         self._GetSolver().search_strategy = OMP_DEMSearch(self.BoundingBoxMinX_update,
                                                         self.BoundingBoxMinY_update,
@@ -1203,6 +1242,48 @@ class DEMAnalysisStage(AnalysisStage):
 
         if type == "strain":
             pass
+    
+    def MeasureSphereForGettingGlobalStressTensor(self):
+
+        if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+            bounding_box_volume = (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) * \
+                                (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) * \
+                                (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update)
+            
+            total_tensor        = np.empty((3, 3))
+            total_tensor[:]     = 0.0
+            stress_tensor_modulus = 0.0
+
+            for element in self.contact_model_part.Elements:
+        
+                x_0 = element.GetNode(0).X
+                x_1 = element.GetNode(1).X
+                y_0 = element.GetNode(0).Y
+                y_1 = element.GetNode(1).Y
+                z_0 = element.GetNode(0).Z
+                z_1 = element.GetNode(1).Z
+
+                if abs(x_0 - x_1) > 0.5 * (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) or \
+                    abs(y_0 - y_1) > 0.5 * (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) or \
+                    abs(z_0 - z_1) > 0.5 * (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update):
+                    continue
+                    
+                local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                tensor = np.outer(contact_force_vector, vector_l)
+                total_tensor += tensor
+            
+            total_tensor = total_tensor / bounding_box_volume
+
+            return total_tensor
+        
+        else:
+            
+            raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
     
     def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
         
