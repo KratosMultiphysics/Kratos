@@ -313,7 +313,8 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
                                       "K0_MAIN_DIRECTION is not defined for element 1.");
 
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 4);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(), "K0_MAIN_DIRECTION should be 0 or 1 for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "K0_MAIN_DIRECTION should be 0 or 1 for element 1.")
 
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 1);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -328,9 +329,26 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     p_element->GetProperties().SetValue(K0_VALUE_ZZ, 0.5);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(),
-        "Insufficient material data for K0 procedure process for "
-        "element 1. Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ.");
+        process.Check(), "Insufficient material data for K0 procedure process for "
+                         "element 1. Poisson unloading-reloading, OCR and POP functionality cannot "
+                         "be combined with K0_VALUE_XX, _YY and _ZZ.");
+
+    p_element->GetProperties().Erase(K0_VALUE_XX);
+    p_element->GetProperties().Erase(K0_VALUE_YY);
+    p_element->GetProperties().Erase(K0_VALUE_ZZ);
+    p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    p_element->GetProperties().SetValue(NUMBER_OF_UMAT_PARAMETERS, 0);
+    Vector umat_parameters{1};
+    umat_parameters[0] = -30.0;
+    p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "INDEX_OF_UMAT_PHI_PARAMETER (1) is not in range 1, "
+                                      "NUMBER_OF_UMAT_PARAMETERS (0) for element 1.");
+
+    p_element->GetProperties().SetValue(NUMBER_OF_UMAT_PARAMETERS, 1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "Phi should be between 0 and 90 degrees for element 1.");
 }
 
 } // namespace Kratos::Testing

@@ -88,6 +88,22 @@ int ApplyK0ProcedureProcess::Check()
                 << rElement.Id() << ". Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ."
                 << std::endl;
         }
+
+        if (r_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
+            r_properties.Has(NUMBER_OF_UMAT_PARAMETERS) && r_properties.Has(UMAT_PARAMETERS)) {
+            const auto phi_index                 = r_properties[INDEX_OF_UMAT_PHI_PARAMETER];
+            const auto number_of_umat_parameters = r_properties[NUMBER_OF_UMAT_PARAMETERS];
+
+            KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
+                << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index << ") is not in range 1, NUMBER_OF_UMAT_PARAMETERS ("
+                << number_of_umat_parameters << ") for element " << rElement.Id() << "." << std::endl;
+
+            const double phi = r_properties[UMAT_PARAMETERS][phi_index - 1];
+
+            KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
+                << "Phi should be between 0 and 90 degrees for element " << rElement.Id() << "."
+                << std::endl;
+        }
     });
 
     return 0;
