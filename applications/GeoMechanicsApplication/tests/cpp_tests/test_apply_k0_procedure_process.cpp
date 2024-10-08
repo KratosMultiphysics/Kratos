@@ -11,13 +11,46 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_k0_procedure_process.h"
+#include "geo_mechanics_application_variables.h"
 #include "geo_mechanics_fast_suite.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
+#include "test_utilities.h"
 
 #include <boost/algorithm/cxx11/all_of.hpp>
 #include <boost/algorithm/cxx11/none_of.hpp>
+#include <boost/numeric/ublas/assignment.hpp>
+
+namespace
+{
+
+using namespace Kratos;
+
+class StubElement : public Element
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElement);
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        rOutput = {mStressVector};
+    }
+
+    void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
+                                      const std::vector<Vector>& rValues,
+                                      const ProcessInfo&         rCurrentProcessInfo) override
+    {
+        mStressVector = rValues[0];
+    }
+
+private:
+    Vector mStressVector;
+};
+
+} // namespace
 
 using namespace Kratos;
 
@@ -116,6 +149,38 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
     KRATOS_EXPECT_TRUE(boost::algorithm::none_of(r_model_part.Elements(), ElementConsidersDiagonalEntriesOnlyAndNoShear))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    auto p_element = make_intrusive<StubElement>();
+    p_element->SetProperties(p_properties);
+    r_model_part.AddElement(p_element);
+
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {initial_stress_vector},
+                                            r_model_part.GetProcessInfo());
+
+    const auto              k0_settings = Parameters{};
+    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+
+    // Act
+    process.ExecuteFinalizeSolutionStep();
+
+    // Assert
+    std::vector<Vector> actual_stress_vector;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector,
+                                            r_model_part.GetProcessInfo());
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector[0], expected_stress_vector, 1e-12);
 }
 
 } // namespace Kratos::Testing
