@@ -49,8 +49,6 @@ public:
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit UPwSmallStrainFICElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
@@ -79,8 +77,6 @@ public:
 
     ~UPwSmallStrainFICElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -90,8 +86,6 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -116,8 +110,6 @@ public:
         rOStream << "U-Pw smal strain FIC Element #" << this->Id()
                  << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     struct FICElementVariables {
@@ -148,7 +140,6 @@ protected:
 
     array_1d<array_1d<double, TNumNodes>, TDim> mNodalDtStress;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     double CalculateShearModulus(const Matrix& ConstitutiveMatrix) const;
 
     void SaveGPConstitutiveTensor(array_1d<Matrix, TDim>& rConstitutiveTensorContainer,
@@ -220,13 +211,7 @@ protected:
                                              const ElementVariables&    rVariables,
                                              const FICElementVariables& rFICVariables);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     UPwSmallStrainFICElement& operator=(UPwSmallStrainFICElement const& rOther);
 
