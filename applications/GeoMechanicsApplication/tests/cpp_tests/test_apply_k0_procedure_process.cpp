@@ -327,7 +327,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.Check(),
         "Insufficient material data for K0 procedure process for "
-        "element 1. Poisson unloading-reloading cannot be combined with K0_VALUE_XX, _YY and _ZZ.");
+        "element 1. Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ.");
 }
 
 } // namespace Kratos::Testing

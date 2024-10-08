@@ -78,10 +78,13 @@ int ApplyK0ProcedureProcess::Check()
                "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
             << std::endl;
 
-        KRATOS_ERROR_IF(r_properties.Has(POISSON_UNLOADING_RELOADING) && r_properties.Has(K0_VALUE_XX))
-            << "Insufficient material data for K0 procedure process for element " << rElement.Id()
-            << ". Poisson unloading-reloading cannot be combined with K0_VALUE_XX, _YY and _ZZ."
-            << std::endl;
+        if (r_properties.Has(K0_VALUE_XX)) {
+            KRATOS_ERROR_IF(r_properties.Has(POISSON_UNLOADING_RELOADING) ||
+                            r_properties.Has(OCR) || r_properties.Has(POP))
+                << "Insufficient material data for K0 procedure process for element "
+                << rElement.Id() << ". Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ."
+                << std::endl;
+        }
     });
 
     return 0;
