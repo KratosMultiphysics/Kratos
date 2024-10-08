@@ -105,7 +105,6 @@ int ApplyK0ProcedureProcess::Check()
                 << number_of_umat_parameters << ") for element " << rElement.Id() << "." << std::endl;
 
             const double phi = r_properties[UMAT_PARAMETERS][phi_index - 1];
-
             KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
                 << "Phi should be between 0 and 90 degrees for element " << rElement.Id() << "."
                 << std::endl;
@@ -142,28 +141,14 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
         std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
     } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
                rProp.Has(UMAT_PARAMETERS)) {
-        if (rProp[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
-            rProp[INDEX_OF_UMAT_PHI_PARAMETER] > rProp[NUMBER_OF_UMAT_PARAMETERS]) {
-            KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER in ApplyK0ProcedureProcess: "
-                         << rProp[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
-        }
-        // is more checking is possible and should that happen here?
-        double phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
-        if (phi < 0. || phi > 90.) {
-            KRATOS_ERROR << "friction angle Phi out of range in ApplyK0ProcedureProcess: " << phi << std::endl;
-        }
+        const auto phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
         std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(MathUtils<>::DegreesToRadians(phi)));
-
-    } else if (rProp.Has(K0_VALUE_XX) && rProp.Has(K0_VALUE_YY) && rProp.Has(K0_VALUE_ZZ)) {
+    } else {
         k0_vector[0] = rProp[K0_VALUE_XX];
         k0_vector[1] = rProp[K0_VALUE_YY];
         k0_vector[2] = rProp[K0_VALUE_ZZ];
-    } else {
-        KRATOS_ERROR << "Insufficient material data for K0 procedure process. No K0_NC, "
-                     << "(INDEX_OF_UMAT_PHI_PARAMETER, NUMBER_OF_UMAT_PARAMETERS and "
-                        "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
-                     << std::endl;
     }
+
     return k0_vector;
 }
 
@@ -172,10 +157,6 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();
     const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
-    if (k0_main_direction < 0 || k0_main_direction > 1) {
-        KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
-                     << std::endl;
-    }
 
     auto k0_vector = CreateK0Vector(rProp);
 

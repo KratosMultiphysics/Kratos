@@ -327,7 +327,6 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     p_element->GetProperties().SetValue(K0_VALUE_ZZ, 0.5);
 
     p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.75);
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.Check(),
         "POISSON_UNLOADING_RELOADING (0.75) is not in range [-1.0, 0.5> for element 1.");
@@ -341,12 +340,12 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     p_element->GetProperties().Erase(K0_VALUE_XX);
     p_element->GetProperties().Erase(K0_VALUE_YY);
     p_element->GetProperties().Erase(K0_VALUE_ZZ);
+
     p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
     p_element->GetProperties().SetValue(NUMBER_OF_UMAT_PARAMETERS, 0);
     Vector umat_parameters{1};
     umat_parameters[0] = -30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
                                       "INDEX_OF_UMAT_PHI_PARAMETER (1) is not in range 1, "
                                       "NUMBER_OF_UMAT_PARAMETERS (0) for element 1.");
@@ -354,6 +353,10 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     p_element->GetProperties().SetValue(NUMBER_OF_UMAT_PARAMETERS, 1);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
                                       "Phi should be between 0 and 90 degrees for element 1.");
+
+    umat_parameters[0] = 30.0;
+    p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
+    KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 
 } // namespace Kratos::Testing
