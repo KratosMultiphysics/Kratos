@@ -78,8 +78,6 @@ public:
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Default Constructor
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 

@@ -40,8 +40,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     UPwLysmerAbsorbingCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
 
@@ -56,8 +54,6 @@ public:
         : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -110,8 +106,6 @@ public:
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     static constexpr SizeType N_DOF          = TNumNodes * TDim;
     static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim + TNumNodes;
@@ -139,8 +133,6 @@ protected:
     };
 
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * @brief Adds the condition matrix to the global left hand side
@@ -199,7 +191,6 @@ protected:
      * @param rNeighbourElement The neighbouring element of the condition
      */
     Matrix CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement);
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     using hashmap =
