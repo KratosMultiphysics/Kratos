@@ -312,6 +312,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, K
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
                                       "K0_MAIN_DIRECTION is not defined for element 1.");
 
+    p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 4);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(), "K0_MAIN_DIRECTION should be 0 or 1 for element 1.")
+
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 1);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.Check(),

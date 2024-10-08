@@ -68,6 +68,9 @@ int ApplyK0ProcedureProcess::Check()
         auto r_properties = rElement.GetProperties();
         KRATOS_ERROR_IF(!r_properties.Has(K0_MAIN_DIRECTION))
             << "K0_MAIN_DIRECTION is not defined for element " << rElement.Id() << "." << std::endl;
+        KRATOS_ERROR_IF(r_properties[K0_MAIN_DIRECTION] < 0 || r_properties[K0_MAIN_DIRECTION] > 1)
+            << "K0_MAIN_DIRECTION should be 0 or 1 for element " << rElement.Id() << "." << std::endl;
+
         KRATOS_ERROR_IF_NOT(
             r_properties.Has(K0_NC) ||
             (r_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
