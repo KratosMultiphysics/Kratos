@@ -49,7 +49,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
-        this->SetUpPressureGeometryPointer();
+        SetUpPressureGeometryPointer();
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
