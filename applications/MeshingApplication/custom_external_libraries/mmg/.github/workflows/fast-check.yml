@@ -1,0 +1,21 @@
+name: Fast check without dependencies
+
+on:
+  push:
+  # run tests on PR events
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: configure
+      run: mkdir build && cd build && cmake -DONLY_VERY_SHORT_TESTS=ON -DBUILD_TESTING=ON ..
+    - name: make
+      run: cd build && make
+    - name: test
+      run: cd build && ctest

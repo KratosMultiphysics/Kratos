@@ -926,11 +926,11 @@ class ResidualBasedNewtonRaphsonStrategy
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
         std::vector<Vector> NonconvergedSolutions;
 
-        if (mStoreNonconvergedSolutionsFlag) {
-            Vector initial;
-            GetCurrentSolution(r_dof_set,initial);
-            NonconvergedSolutions.push_back(initial);
-        }
+        // if (mStoreNonconvergedSolutionsFlag) {
+        //     Vector initial;
+        //     GetCurrentSolution(r_dof_set,initial);
+        //     NonconvergedSolutions.push_back(initial);
+        // }
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -971,11 +971,11 @@ class ResidualBasedNewtonRaphsonStrategy
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-        if (mStoreNonconvergedSolutionsFlag) {
-            Vector first;
-            GetCurrentSolution(r_dof_set,first);
-            NonconvergedSolutions.push_back(first);
-        }
+        // if (mStoreNonconvergedSolutionsFlag) {
+        //     Vector first;
+        //     GetCurrentSolution(r_dof_set,first);
+        //     NonconvergedSolutions.push_back(first);
+        // }
 
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -1044,10 +1044,14 @@ class ResidualBasedNewtonRaphsonStrategy
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-            if (mStoreNonconvergedSolutionsFlag == true){
+            if (mStoreNonconvergedSolutionsFlag == true &&
+                mSaved == false &&
+                r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] <= 0.001 &&
+                r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] > 1){
                 Vector ith;
                 GetCurrentSolution(r_dof_set,ith);
                 NonconvergedSolutions.push_back(ith);
+                mSaved = true;
             }
 
             residual_is_updated = false;
@@ -1094,7 +1098,7 @@ class ResidualBasedNewtonRaphsonStrategy
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
         if (mStoreNonconvergedSolutionsFlag) {
-            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), NonconvergedSolutions.size() );
+            mNonconvergedSolutionsMatrix = ZeroMatrix( r_model_part.NumberOfNodes()*2, NonconvergedSolutions.size() );
             for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
                 block_for_each(r_dof_set, [&](const auto& r_dof) {
                     mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = NonconvergedSolutions[i](r_dof.EquationId());
@@ -1321,6 +1325,8 @@ class ResidualBasedNewtonRaphsonStrategy
      * @details default = false
      */
     bool mUseOldStiffnessInFirstIteration = false;
+    
+    bool mSaved = false;
 
     unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
 

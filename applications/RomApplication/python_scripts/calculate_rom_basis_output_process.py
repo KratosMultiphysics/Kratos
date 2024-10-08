@@ -80,6 +80,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
         self.rom_manager = settings["rom_manager"].GetBool()
 
+        self.analysis_stage = settings["analysis_stage"].GetString()
+
         # Set the flag to print the Singular Values vector corresponding to the SVD modes
         self.print_singular_values = settings["print_singular_values"].GetBool()
         if self.print_singular_values and self.rom_basis_output_format == "json":
@@ -91,6 +93,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def GetDefaultParameters(self):
         default_settings = KratosMultiphysics.Parameters("""{
             "help": "A process to set the snapshots matrix and calculate the ROM basis from it.",
+            "analysis_stage": "",
             "model_part_name": "",
             "rom_manager" : false,
             "snapshots_control_type": "step",
@@ -169,6 +172,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         n_nodal_unknowns = len(self.snapshot_variables_list)
 
         # Save the nodal basis
+        rom_basis_dict["rom_settings"]["analysis_stage"] =  self.analysis_stage #passing here the analysis stage
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
         rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)

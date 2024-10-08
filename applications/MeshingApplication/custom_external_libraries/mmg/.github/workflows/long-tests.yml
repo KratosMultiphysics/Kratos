@@ -1,0 +1,28 @@
+name: Long tests
+
+on:
+  # run tests on push events
+  push:
+  # run tests on PR events
+  pull_request:
+    types: [synchronize]
+
+  # run tests manually on a given branch (default is master)
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      branch:
+        # branch to test
+        description: 'branch to test'
+        # Default value if no value is explicitly provided
+        default: 'master'
+        required: false
+
+# job
+jobs:
+  mmg-debug:
+    uses: ./.github/workflows/main-job.yml
+    with:
+      cmake_build_type: RelWithAssert
+      add_cmake_cfg_args: -D LONG_TESTS=ON
+      branch_name:  ${{github.event.inputs.branch}}

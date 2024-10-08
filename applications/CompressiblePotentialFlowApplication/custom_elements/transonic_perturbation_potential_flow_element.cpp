@@ -70,6 +70,26 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+
+    // TODO: Move from here
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    if (r_this.GetValue(SAVE_UPWIND_ELEMENT)){
+        size_t numColumns = rLeftHandSideMatrix.size2();
+        bool mark_elem = false;
+        if (rLeftHandSideMatrix.size2() == TNumNodes + 1) {
+            for (size_t i = 0; i < numColumns; ++i) {
+                if (rLeftHandSideMatrix(i, numColumns - 1) != 0) {
+                    mark_elem = true;
+                }
+            }
+            if (mark_elem) {
+                const auto& r_upstream_element = *pGetUpwindElement();
+                const auto& id_upwind_element = r_upstream_element.Id();
+                this->SetValue(ID_UPWIND_ELEMENT, id_upwind_element);
+            }
+        }
+    }
+
 }
 
 template <int TDim, int TNumNodes>
@@ -291,6 +311,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnInte
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
     {
         rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
+    }
+    else if (rVariable == ID_UPWIND_ELEMENT)
+    {
+        rValues[0] = this->GetValue(ID_UPWIND_ELEMENT);
+    }
+    else if (rVariable == SAVE_UPWIND_ELEMENT)
+    {
+        rValues[0] = this->GetValue(SAVE_UPWIND_ELEMENT);
     }
 }
 

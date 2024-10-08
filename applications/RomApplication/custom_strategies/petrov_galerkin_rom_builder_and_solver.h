@@ -464,7 +464,8 @@ protected:
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT      )) += dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_BASE))  = dxrom;
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();

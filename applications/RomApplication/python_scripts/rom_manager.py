@@ -13,7 +13,9 @@ from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
 
 class RomManager(object):
 
-    def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, UpdateProjectParameters=None,UpdateMaterialParametersFile=None, mu_names=None):
+    def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, 
+                 UpdateProjectParameters=None,UpdateMaterialParametersFile=None, mu_names=None, 
+                 relaunch_FOM=False, relaunch_ROM=False, relaunch_HROM=False, rebuild_phi=False):
         #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
@@ -35,92 +37,128 @@ class RomManager(object):
         self.SetUpQuantityOfInterestContainers()
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
         self.SetupErrorsDictionaries()
+        self.rebuild_phi   = rebuild_phi
+        self.relaunch_FOM  = relaunch_FOM
+        self.relaunch_ROM  = relaunch_ROM
+        self.relaunch_HROM = relaunch_HROM
 
     def Fit(self, mu_train=[None],mu_validation=[None]):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
-        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
-        #######################
-        ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
-                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+        if len(mu_train) > 0 or len(mu_validation) > 0:
+            chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+            type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+            if any(item == "FOM" for item in training_stages):
+                self._LaunchFOM(mu_train)
+            else:
+                #######################
+                ######  Galerkin ######
+                if chosen_projection_strategy == "galerkin":
+                    if type_of_decoder =="ann_enhanced":
+                        if any(item == "ROM" for item in training_stages):
+                            self._LaunchTrainROM(mu_train)
+                            self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                            self.TrainAnnEnhancedROM(mu_train,mu_validation)
+                            self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                            nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                            self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                        if any(item == "HROM" for item in training_stages):
+                            err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                            raise Exception(err_msg)
+                        
+                    elif type_of_decoder =="linear":
+                        if any(item == "ROM" for item in training_stages):
+                            self._LaunchTrainROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                            self._LaunchROM(mu_train)
+
+                        if any(item == "HROM" for item in training_stages):
+                            #FIXME there will be an error if we only train HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
+                            self._LaunchTrainHROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                            self._LaunchHROM(mu_train)
+
+                        if any(item == "HHROM" for item in training_stages):
+                            #FIXME there will be an error if we only train HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
+                            self._LaunchTrainHROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                            self._LaunchHHROM(mu_train)
+                #######################
+
+                #######################################
+                ##  Least-Squares Petrov Galerkin   ###
+                elif chosen_projection_strategy == "lspg":
+                    if type_of_decoder =="ann_enhanced":
+                        if any(item == "ROM" for item in training_stages):
+                            self._LaunchTrainROM(mu_train)
+                            self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                            self.TrainAnnEnhancedROM(mu_train,mu_validation)
+                            self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                            nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                            self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                        if any(item == "HROM" for item in training_stages):
+                            err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                            raise Exception(err_msg)
+                        
+                    elif type_of_decoder =="linear":
+                        if any(item == "ROM" for item in training_stages):
+                            self._LaunchTrainROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "lspg")
+                            self._LaunchROM(mu_train)
+
+                        if any(item == "HROM" for item in training_stages):
+                            # Change the flags to train the HROM for LSPG
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
+                            self._LaunchTrainHROM(mu_train)
+                            # Change the flags to run the HROM for LSPG
+                            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                            self._LaunchHROM(mu_train)
+
+                        if any(item == "HHROM" for item in training_stages):
+                            # Change the flags to train the HROM for LSPG
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
+                            self._LaunchTrainHROM(mu_train)
+                            # Change the flags to run the HROM for LSPG
+                            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                            self._LaunchHHROM(mu_train)
+                #######################################
+
+                ##########################
+                ###  Petrov Galerkin   ###
+                elif chosen_projection_strategy == "petrov_galerkin":
+                    if type_of_decoder =="ann_enhanced":
+                        err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                        raise Exception(err_msg)
+                    
+                    elif type_of_decoder =="linear":
+                    ##########################
+                        if any(item == "ROM" for item in training_stages):
+                            self._LaunchTrainROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "TrainPG")
+                            self._LaunchTrainPG(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "PG")
+                            self._LaunchROM(mu_train)
+
+                        if any(item == "HROM" for item in training_stages):
+                            #FIXME there will be an error if we only train HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
+                            self._LaunchTrainHROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                            self._LaunchHROM(mu_train)
+
+                        if any(item == "HHROM" for item in training_stages):
+                            #FIXME there will be an error if we only train HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
+                            self._LaunchTrainHROM(mu_train)
+                            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                            self._LaunchHHROM(mu_train)
+                    ##########################
+                else:
+                    err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
                     raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                    self._LaunchROM(mu_train)
-                if any(item == "HROM" for item in training_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                    self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_train)
-        #######################
-
-        #######################################
-        ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
-                    self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in training_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-                    raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "lspg")
-                    self._LaunchROM(mu_train)
-                if any(item == "HROM" for item in training_stages):
-                    # Change the flags to train the HROM for LSPG
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
-                    self._LaunchTrainHROM(mu_train)
-                    # Change the flags to run the HROM for LSPG
-                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_train)
-        #######################################
-
-        ##########################
-        ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
-            if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
-                raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-            ##########################
-                if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                    self._LaunchTrainPG(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "PG")
-                    self._LaunchROM(mu_train)
-
-                if any(item == "HROM" for item in training_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                    self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_train)
-            ##########################
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
-        self.ComputeErrors(mu_train)
+                self.ComputeErrors(mu_train)
+        return 
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
@@ -142,81 +180,96 @@ class RomManager(object):
 
 
     def Test(self, mu_test=[None], mu_train=[None]):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
-        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        if len(mu_test) > 0:
+            chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+            type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
 
-        #######################
-        ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in testing_stages):
-                    self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+            if any(item == "FOM" for item in testing_stages):
+                self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+            else:
+                #######################
+                ######  Galerkin ######
+                if chosen_projection_strategy == "galerkin":
+                    if type_of_decoder =="ann_enhanced":
+                        if any(item == "ROM" for item in testing_stages):
+                            self._LoadSolutionBasis(mu_train)
+                            self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                            self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                            nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                            self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                        if any(item == "HROM" for item in testing_stages):
+                            err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                            raise Exception(err_msg)
+                    elif type_of_decoder =="linear":
+                        if any(item == "ROM" for item in testing_stages):
+                            self._LoadSolutionBasis(mu_train)
+                            self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                            self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                            self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
+                        if any(item == "HROM" for item in testing_stages):
+                            #FIXME there will be an error if we only test HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                            self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                        if any(item == "HHROM" for item in testing_stages):
+                            #FIXME there will be an error if we only test HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                            self._LaunchHHROM(mu_test,gid_and_vtk_name='HHROM_Test')
+
+                #######################
+
+                #######################################
+                ##  Least-Squares Petrov Galerkin   ###
+                elif chosen_projection_strategy == "lspg":
+                    if type_of_decoder =="ann_enhanced":
+                        if any(item == "ROM" for item in testing_stages):
+                            self._LoadSolutionBasis(mu_train)
+                            self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                            self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                            nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                            self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                        if any(item == "HROM" for item in testing_stages):
+                            err_msg = f'HROM is not available yet for ann_enhanced decoders.'
+                    elif type_of_decoder =="linear":
+                        if any(item == "ROM" for item in testing_stages):
+                            self._LoadSolutionBasis(mu_train)
+                            self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                            self._ChangeRomFlags(simulation_to_run = "lspg")
+                            self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                        if any(item == "HROM" for item in testing_stages):
+                            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                            self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                        if any(item == "HHROM" for item in testing_stages):
+                            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                            self._LaunchHHROM(mu_test,gid_and_vtk_name='HHROM_Test')
+                    #######################################
+
+
+                ##########################
+                ###  Petrov Galerkin   ###
+                elif chosen_projection_strategy == "petrov_galerkin":
+                    if type_of_decoder =="ann_enhanced":
+                        err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
+                        raise Exception(err_msg)
+                    elif type_of_decoder =="linear":
+                        if any(item == "ROM" for item in testing_stages):
+                            self._LoadSolutionBasis(mu_train)
+                            self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                            self._ChangeRomFlags(simulation_to_run = "PG")
+                            self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
+                        if any(item == "HROM" for item in testing_stages):
+                            #FIXME there will be an error if we only train HROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                            self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                        if any(item == "HHROM" for item in testing_stages):
+                            #FIXME there will be an error if we only train HHROM, but not ROM
+                            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                            self._LaunchHHROM(mu_test,gid_and_vtk_name='HHROM_Test')
+                ##########################
+                else:
+                    err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
                     raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in testing_stages):
-                    self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
-                if any(item == "HROM" for item in testing_stages):
-                    #FIXME there will be an error if we only test HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
-
-        #######################
-
-        #######################################
-        ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
-            if type_of_decoder =="ann_enhanced":
-                if any(item == "ROM" for item in testing_stages):
-                    self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
-                if any(item == "HROM" for item in testing_stages):
-                    err_msg = f'HROM is not available yet for ann_enhanced decoders.'
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in testing_stages):
-                    self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "lspg")
-                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
-                if any(item == "HROM" for item in testing_stages):
-                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
-        #######################################
-
-
-        ##########################
-        ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
-            if type_of_decoder =="ann_enhanced":
-                err_msg = f'ann_enhanced rom only available for Galerkin Rom and LSPG ROM for the moment'
-                raise Exception(err_msg)
-            elif type_of_decoder =="linear":
-                if any(item == "ROM" for item in testing_stages):
-                    self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
-                    self._ChangeRomFlags(simulation_to_run = "PG")
-                    self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
-                if any(item == "HROM" for item in testing_stages):
-                    #FIXME there will be an error if we only train HROM, but not ROM
-                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
-        ##########################
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
-        self.ComputeErrors(mu_test, 'Test')
+                self.ComputeErrors(mu_test, 'Test')
 
 
     def RunFOM(self, mu_run=[None]):
@@ -296,37 +349,120 @@ class RomManager(object):
 
 
 
+
+    def RunHHROM(self, mu_run=[None], mu_train=[None]):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        self._LoadSolutionBasis(mu_train)
+        #######################
+        ######  Galerkin ######
+        if chosen_projection_strategy == "galerkin":
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+        #######################################
+        ##  Least-Squares Petrov Galerkin   ###
+        elif chosen_projection_strategy == "lspg":
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+        ##########################
+        ###  Petrov Galerkin   ###
+        elif chosen_projection_strategy == "petrov_galerkin":
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'HROM only supports linear projection strategy for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+        else:
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
+            raise Exception(err_msg)
+        self._LaunchRunHHROM(mu_run)
+
+
+
+
     def ComputeErrors(self, mu_list, case="Fit"):
         fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM')
         if case=="Fit":
             stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         elif case=="Test":
             stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
-        stages = {"ROM", "HROM"} & set(stages)  # Ensures only "ROM" or "HROM" if present
+        stages = {"ROM", "HROM", "HHROM"} & set(stages)  # Ensures only "ROM" or "HROM" if present
         rom_snapshots = None
+        rom_q_snapshots = None
         hrom_snapshots = None
+        hrom_q_snapshots = None
+        hhrom_q_snapshots = None
         if "ROM" in stages:
             rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
             error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
             self.ROMvsFOM[case] = error_rom_fom
+
+            q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM_q')
+            if (q.shape[0] == 1): q = q.T
+            # buscar la carpeta que le corresponde por mu con clusters ----
+            phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy') 
+            rom_q_snapshots = phi @ q
+            error_rom_q_fom = np.linalg.norm(fom_snapshots - rom_q_snapshots) / np.linalg.norm(fom_snapshots)
+
+            self.ROM_q_vsFOM[case] = error_rom_q_fom
+
         if "HROM" in stages:
             if rom_snapshots is None:  # Only fetch if not already fetched
                 rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
+            if rom_q_snapshots is None:  # Only fetch if not already fetched
+                q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM_q')
+                if (q.shape[0] == 1): q = q.T
+                phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
+                rom_q_snapshots = phi @ q
             hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
+            q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM_q')
+            if (q.shape[0] == 1): q = q.T
+            phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
+            hrom_q_snapshots = phi @ q
             error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            error_rom_q_hrom_q = np.linalg.norm(rom_q_snapshots - hrom_q_snapshots) / np.linalg.norm(rom_q_snapshots)
             error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
+            error_fom_hrom_q = np.linalg.norm(fom_snapshots - hrom_q_snapshots) / np.linalg.norm(fom_snapshots)
             self.ROMvsHROM[case] = error_rom_hrom
+            self.ROM_q_vsHROM_q[case] = error_rom_q_hrom_q
             self.FOMvsHROM[case] = error_fom_hrom
+            self.FOMvsHROM_q[case] = error_fom_hrom_q
+        if "HHROM" in stages:
+            if rom_snapshots is None:  # Only fetch if not already fetched
+                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
+            if hrom_q_snapshots is None and "HROM" in stages:  # Only fetch if not already fetched
+                q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM_q')
+                if (q.shape[0] == 1): q = q.T
+                phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
+                hrom_q_snapshots = phi @ q
+            q = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HHROM_q')
+            if (q.shape[0] == 1): q = q.T
+            phi = np.load(f'{self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString()}/RightBasisMatrix.npy')
+            hhrom_q_snapshots = phi @ q
+            error_fom_hhrom_q = np.linalg.norm(fom_snapshots - hhrom_q_snapshots) / np.linalg.norm(fom_snapshots)
+            self.FOMvsHHROM_q[case] = error_fom_hhrom_q
+            error_rom_hhrom_q = np.linalg.norm(rom_snapshots - hhrom_q_snapshots) / np.linalg.norm(rom_snapshots)
+            self.ROMvsHHROM_q[case] = error_rom_hhrom_q
+            if "HROM" in stages:
+                error_hhrom_q_hrom_q = np.linalg.norm(hrom_q_snapshots - hhrom_q_snapshots) / np.linalg.norm(hrom_q_snapshots)
+                self.HROM_q_vsHHROM_q[case] = error_hhrom_q_hrom_q
 
 
 
-    def PrintErrors(self):
+    def PrintErrors(self, show_q_errors=False):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
 
         training_set = set(training_stages)
         testing_set = set(testing_stages)
 
+        print("")
         # Check in Fit
         if "ROM" in training_set:
             self.aux_print_errors(self.ROMvsFOM['Fit'], 'train', 'FOM vs ROM')
@@ -334,24 +470,62 @@ class RomManager(object):
             self.aux_print_errors(self.ROMvsHROM['Fit'], 'train', 'ROM vs HROM')
             self.aux_print_errors(self.FOMvsHROM['Fit'], 'train', 'FOM vs HROM')
 
+        if show_q_errors:
+            # Check in Fit
+            if "ROM" in training_set:
+                self.aux_print_errors(self.ROM_q_vsFOM['Fit'], 'train', 'FOM vs ROM_q')
+            if "HROM" in training_set:
+                self.aux_print_errors(self.ROM_q_vsHROM_q['Fit'], 'train', 'ROM_q vs HROM_q')
+                self.aux_print_errors(self.FOMvsHROM_q['Fit'], 'train', 'FOM vs HROM_q')
+            if "HHROM" in training_set:
+                self.aux_print_errors(self.HROM_q_vsHHROM_q['Fit'], 'train', 'HROM_q vs HHROM_q')
+        else:
+            # Check in Fit
+            if "HHROM" in training_set:
+                self.aux_print_errors(self.ROMvsHHROM_q['Fit'], 'train', 'ROM vs HHROM_q')
+                self.aux_print_errors(self.FOMvsHHROM_q['Fit'], 'train', 'FOM vs HROM_q')
+
+        print("")
         # Check in Test
         if "ROM" in testing_set:
             self.aux_print_errors(self.ROMvsFOM['Test'], 'test', 'FOM vs ROM')
         if "HROM" in testing_set:
             self.aux_print_errors(self.ROMvsHROM['Test'], 'test', 'ROM vs HROM')
             self.aux_print_errors(self.FOMvsHROM['Test'], 'test', 'FOM vs HROM')
+        
+        if show_q_errors:
+            # Check in Test
+            if "ROM" in testing_set:
+                self.aux_print_errors(self.ROM_q_vsFOM['Test'], 'test', 'FOM vs ROM_q')
+            if "HROM" in testing_set:
+                self.aux_print_errors(self.ROM_q_vsHROM_q['Test'], 'test', 'ROM_q vs HROM_q')
+                self.aux_print_errors(self.FOMvsHROM_q['Test'], 'test', 'FOM vs HROM_q')
+            if "HHROM" in testing_set:
+                self.aux_print_errors(self.HROM_q_vsHHROM_q['Test'], 'test', 'HROM_q vs HHROM_q')
+        else:
+            # Check in Test
+            if "HHROM" in testing_set:
+                self.aux_print_errors(self.ROMvsHHROM_q['Test'], 'test', 'ROM vs HHROM_q')
+                self.aux_print_errors(self.FOMvsHHROM_q['Test'], 'test', 'FOM vs HHROM_q')
 
-    def aux_print_errors(self, error, train_or_test, comparison_in_string):
-        message = f"approximation error in {train_or_test} set {comparison_in_string}"
+
+    def aux_print_errors(self, error, train_test_run, comparison_in_string):
+        message = f"approximation error in {train_test_run} set {comparison_in_string}"
         if error is None:
             print(f"{message} not computed")
         else:
             print(f"{message}: {error}")
 
     def SetupErrorsDictionaries(self):
-        self.ROMvsFOM = {'Fit': None, 'Test': None}
-        self.ROMvsHROM = {'Fit': None, 'Test': None}
-        self.FOMvsHROM = {'Fit': None, 'Test': None}
+        self.ROMvsFOM         = {'Fit': None, 'Test': None, 'Run': None}
+        self.ROM_q_vsFOM      = {'Fit': None, 'Test': None, 'Run': None}
+        self.ROMvsHROM        = {'Fit': None, 'Test': None, 'Run': None}
+        self.ROM_q_vsHROM_q   = {'Fit': None, 'Test': None, 'Run': None}
+        self.FOMvsHROM        = {'Fit': None, 'Test': None, 'Run': None}
+        self.FOMvsHROM_q      = {'Fit': None, 'Test': None, 'Run': None}
+        self.HROM_q_vsHHROM_q = {'Fit': None, 'Test': None, 'Run': None}
+        self.FOMvsHHROM_q     = {'Fit': None, 'Test': None, 'Run': None}
+        self.ROMvsHHROM_q     = {'Fit': None, 'Test': None, 'Run': None}
 
 
     def _LaunchTrainROM(self, mu_train):
@@ -369,6 +543,10 @@ class RomManager(object):
 
         NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
         for Id, mu in enumerate(mu_train):
+            if self.relaunch_FOM:
+                self.data_base.delete_if_in_database("FOM", mu)
+                self.data_base.delete_if_in_database("QoI_FOM", mu)
+                self.data_base.delete_if_in_database("NonconvergedFOM", mu)
             fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
             nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
             if not fom_in_database or (NonConvergedSolutionsGathering and not nonconverged_fom_in_database):
@@ -396,11 +574,18 @@ class RomManager(object):
 
 
     def _LaunchComputeSolutionBasis(self, mu_train):
+        if self.rebuild_phi:
+            self.data_base.delete_if_in_database("RightBasis", mu_train)
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                SnapshotsMatrix_c = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM')
+                if len(mu_train) > 0:
+                    SnapshotsMatrix_nc = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')
+                    u,sigma = BasisOutputProcess._ComputeSVD(np.c_[SnapshotsMatrix_c, SnapshotsMatrix_nc]) #TODO this might be too large for single opeartion, add partitioned svd
+                else:
+                    u,sigma = BasisOutputProcess._ComputeSVD(SnapshotsMatrix_c) #TODO this might be too large for single opeartion, add partitioned svd
             else:
                 u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
             BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
@@ -440,6 +625,10 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
+            if self.relaunch_ROM:
+                self.data_base.delete_if_in_database("ROM", mu)
+                self.data_base.delete_if_in_database("ROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_ROM", mu)
             in_database, _ = self.data_base.check_if_in_database("ROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
@@ -452,6 +641,9 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("ROM_q", mu, q)
                 self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
@@ -507,6 +699,9 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
+        if self.relaunch_HROM:
+            self.data_base.delete_if_in_database("HROM_Elements", mu_train)
+            self.data_base.delete_if_in_database("HROM_Weights", mu_train)
         in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
         in_database_weights, hash_w =  self.data_base.check_if_in_database("HROM_Weights", mu_train)
         if not in_database_elems and not in_database_weights:
@@ -566,6 +761,10 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
+            if self.relaunch_HROM:
+                self.data_base.delete_if_in_database("HROM", mu)
+                self.data_base.delete_if_in_database("HROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_HROM", mu)
             in_database, _ = self.data_base.check_if_in_database("HROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
@@ -577,12 +776,52 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("HROM_q", mu, q)
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
+
+        self.GenerateDatabaseSummary()
+
+    def _LaunchHHROM(self, mu_train, gid_and_vtk_name ='HHROM_Fit'):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+        BasisOutputProcess = None
+        for Id, mu in enumerate(mu_train):
+            if self.relaunch_HROM:
+                self.data_base.delete_if_in_database("HHROM", mu)
+                self.data_base.delete_if_in_database("HHROM_q", mu)
+                self.data_base.delete_if_in_database("QoI_HHROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("HHROM", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                simulation.Run()
+                model_part = simulation._GetSolver().GetComputingModelPart().GetRootModelPart()
+                q = np.block(np.array(model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)).reshape(-1,1))
+                self.data_base.add_to_database("HHROM_q", mu, q)
+                self.data_base.add_to_database("QoI_HHROM", mu, simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                self.data_base.add_to_database("HHROM", mu, SnapshotsMatrix)
 
         self.GenerateDatabaseSummary()
 
@@ -595,6 +834,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -613,6 +853,7 @@ class RomManager(object):
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -635,7 +876,30 @@ class RomManager(object):
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            self.UpdateMaterialParametersFile(materials_file_name, mu)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+            simulation.Run()
+            self.QoI_Run_HROM.append(simulation.GetFinalData())
+
+
+    def _LaunchRunHHROM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+
+        for Id, mu in enumerate(mu_run):
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'HHROM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
@@ -664,7 +928,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = self._GetAnalysisStageClass(parameters)
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         for process in simulation._GetListOfOutputProcesses():
             if isinstance(process, CalculateRomBasisOutputProcess):
@@ -679,7 +943,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return simulation.GetHROM_utility()
 
@@ -691,7 +955,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return simulation.GetPetrovGalerkinTrainUtility()
 
@@ -858,11 +1122,14 @@ class RomManager(object):
                 elif isinstance(default_value, float):
                     defaults[key] = rom_params[key].GetDouble()
         return defaults
-
+    
     def _AddBasisCreationToProjectParameters(self, parameters):
         #FIXME make sure no other rom_output already existed. If so, erase the prior and keep only the one in self.general_rom_manager_parameters["ROM"]
         parameters["output_processes"].AddEmptyArray("rom_output")
         rom_basis_parameters = self._SetUpRomBasisParameters()
+        if self.general_rom_manager_parameters["ROM"]["analysis_stage"].GetString() == "":
+            current_analysis_stage = parameters["analysis_stage"].GetString()
+            self.general_rom_manager_parameters["ROM"]["analysis_stage"].SetString(current_analysis_stage)
         parameters["output_processes"]["rom_output"].Append(rom_basis_parameters)
 
         return parameters
@@ -904,8 +1171,8 @@ class RomManager(object):
 
 
         default_settings = KratosMultiphysics.Parameters("""{
-            "rom_stages_to_train" : ["ROM","HROM"],             // ["ROM","HROM"]
-            "rom_stages_to_test" : [],              // ["ROM","HROM"]
+            "rom_stages_to_train" : ["FOM","ROM","HROM","HHROM"],             // ["FOM","ROM","HROM","HHROM"]
+            "rom_stages_to_test" : [],              // ["FOM","ROM","HROM","HHROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
             "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
@@ -915,6 +1182,7 @@ class RomManager(object):
             "output_name": "id",                         // "id" , "mu"
             "store_nonconverged_fom_solutions": false,
             "ROM":{
+                "analysis_stage" : "",
                 "svd_truncation_tolerance": 1e-5,
                 "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
                 "nodal_unknowns": ["DISPLACEMENT_X","DISPLACEMENT_Y"],     // Main unknowns. Snapshots are taken from these
@@ -1040,6 +1308,7 @@ class RomManager(object):
         rom_params = self.general_rom_manager_parameters["ROM"]
 
         keys_to_copy = [
+            "analysis_stage",
             "svd_truncation_tolerance",
             "model_part_name",
             "rom_basis_output_format",
@@ -1078,7 +1347,8 @@ class RomManager(object):
                 "help"          : "This process should write the Rom basis",
                 "Parameters"    :
                 {
-                    "model_part_name": "",
+                    "analysis_stage" : "",     // can we get this automatically?
+                    "model_part_name": "",    // if so, we might not need to ask for this
                     "rom_manager" : false,      // set to false for manual manipulation of ROM via flags in the RomParameters
                     "snapshots_control_type": "step",
                     "snapshots_interval": 1.0,

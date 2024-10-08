@@ -72,6 +72,22 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
 
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
+
+        # Modify to generate de wake for a list of TEs
+        if self.trailing_edge_model_part.NumberOfConditions()<1 and self.wake_process_cpp_parameters["shed_wake_from_trailing_edge"].GetBool():
+            reference_point = [0.0, 0.0, 0.0]
+            prop = self.trailing_edge_model_part.GetProperties()[1]
+            node_ids = []
+            node_distances = []
+            for node in self.trailing_edge_model_part.Nodes:
+                diference = [node.X-reference_point[0], node.Y-reference_point[1], node.Z-reference_point[2]]
+                node_distances.append(math.sqrt(DotProduct(diference, diference)))
+                node_ids.append(node.Id)
+            ordered_indexes = sorted(range(len(node_distances)), key=lambda i: node_distances[i])
+            node_list = [node_ids[i] for i in ordered_indexes]
+            for i in range(1, self.trailing_edge_model_part.NumberOfNodes()):
+                self.trailing_edge_model_part.CreateNewCondition("LineCondition3D2N", self.fluid_model_part.NumberOfConditions()+i, [node_list[i-1], node_list[i]], prop)
+
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
         if self.wake_process_cpp_parameters.Has("wake_direction"):

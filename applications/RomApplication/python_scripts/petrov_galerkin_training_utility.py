@@ -53,6 +53,7 @@ class PetrovGalerkinTrainingUtility(object):
         # Note that this ensures that the residuals utility is created in the first residuals append call
         # If not, it might happen that the solver scheme is created by the ROM residuals call rather than by the solver one
         if not hasattr(self, '__rom_residuals_utility'):
+            if self.rom_settings.Has("analysis_stage"): self.rom_settings.RemoveValue("analysis_stage")
             self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
                 computing_model_part,
                 self.rom_settings,
