@@ -118,25 +118,26 @@ class SciPyAlgorithms(Algorithm):
 
     @time_decorator()
     def Output(self, *args) -> KratosOA.CollectiveExpression:
-        # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
-        if self.__objective.computed:
+        pass
+        # # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
+        # if self.__objective.computed:
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self._optimization_problem.GetStep()}")
+        #     Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self._optimization_problem.GetStep()}")
 
-            shape = [c.GetItemShape() for c in self.__control_field.GetContainerExpressions()]
-            KratosOA.CollectiveExpressionIO.Read(self.__control_field, args[0], shape)
+        #     shape = [c.GetItemShape() for c in self.__control_field.GetContainerExpressions()]
+        #     KratosOA.CollectiveExpressionIO.Read(self.__control_field, args[0], shape)
 
-            self.algorithm_data.GetBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
-            OutputGradientFields(self.__objective, self._optimization_problem, True)
-            for constraint in self.__kratos_constraints:
-                OutputGradientFields(constraint, self._optimization_problem, True)
-            for process in self._optimization_problem.GetListOfProcesses("output_processes"):
-                if process.IsOutputStep():
-                    process.PrintOutput()
+        #     self.algorithm_data.GetBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
+        #     OutputGradientFields(self.__objective, self._optimization_problem, True)
+        #     for constraint in self.__kratos_constraints:
+        #         OutputGradientFields(constraint, self._optimization_problem, True)
+        #     for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+        #         if process.IsOutputStep():
+        #             process.PrintOutput()
             
-            # Advance in Optimization Iteration
-            self._optimization_problem.AdvanceStep()
-            self.__objective.computed = False
+        #     # Advance in Optimization Iteration
+        #     self._optimization_problem.AdvanceStep()
+        #     self.__objective.computed = False
 
     def __GetOptions(self):
         options = self.SciPy_settings["options"]

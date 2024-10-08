@@ -50,6 +50,7 @@ class StandardizedSciPyObjective(ResponseRoutine):
         self.__unbuffered_data = component_data_view.GetUnBufferedData()
 
         self.computed = False
+        self.gradient_calculate_count=0
 
         scaling = parameters["scaling"].GetDouble()
         if scaling < 0.0:
@@ -76,6 +77,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
         KratosOA.CollectiveExpressionIO.Read(control_field, x, shape)
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):
+            if not save_data:
+                Kratos.Logger.PrintInfo("call from CalculateStandardizedGradient")
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
 
@@ -89,6 +92,18 @@ class StandardizedSciPyObjective(ResponseRoutine):
                 self.computed = True
 
                 DictLogger("Objective info",self.GetInfo())
+
+                        # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
+
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self.__optimization_problem.GetStep()}")
+
+                for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
+                    if process.IsOutputStep():
+                        process.PrintOutput()
+                
+                # Advance in Optimization Iteration
+                self.__optimization_problem.AdvanceStep()
+
 
         return standardized_response_value
 
@@ -104,6 +119,8 @@ class StandardizedSciPyObjective(ResponseRoutine):
 
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
+            self.gradient_calculate_count+=1
+            Kratos.Logger.PrintInfo(f"Gradient expression: {self.GetResponseName()}. Gradient calcultaion count is {self.gradient_calculate_count}")
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():

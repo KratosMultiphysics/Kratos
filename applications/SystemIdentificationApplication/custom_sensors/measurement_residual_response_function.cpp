@@ -13,6 +13,7 @@
 // System includes
 #include <cmath>
 #include <sstream>
+#include <cmath> 
 
 // External includes
 
@@ -147,6 +148,8 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
     KRATOS_TRY
 
     double sum = 0.0;
+    double abs_sum = 0.0;
+    int count = 0;
 
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
@@ -156,9 +159,25 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
         p_sensor->SetValue(SENSOR_ERROR, current_sensor_error);
 
         sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        abs_sum += fabs(current_sensor_error);
+        count++;
     }
 
+
     mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
+
+    // Open abs_error.csv file and add abs_sum value to it
+    std::ofstream file("Optimization_Results/abs_error.csv", std::ios::app);
+    if (file.is_open()) {
+        file << abs_sum / count << "\n";
+        file.close();
+    } else {
+        // Handle error if file cannot be opened
+        std::cerr << "Unable to open file Optimization_Results/abs_error.csv";
+    }
+    KRATOS_WATCH(abs_sum / count);
+
+    if (abs_sum/count <= 1e-6) KRATOS_ERROR << "The sum of the absolute values of the errors is too small. Please check the sensor values and the measured values.";
 
     return std::pow(sum, 1 / mPCoefficient);
 

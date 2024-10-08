@@ -102,6 +102,7 @@ class DamageDetectionResponse(ResponseFunction):
         return self.analysis_model_part
 
     def CalculateValue(self) -> float:
+        Kratos.Logger.PrintInfo(f"Damage_detection_response {self.GetName()}", "Calculating response value.")
         result = 0.0
         for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
             # first run the primal analysis.
@@ -111,6 +112,7 @@ class DamageDetectionResponse(ResponseFunction):
 
             result += test_case_weight * self.adjoint_analysis.GetResponseFunction().CalculateValue(exec_policy.GetAnalysisModelPart())
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Computed \"{exec_policy.GetName()}\".")
+
 
         return result
 
