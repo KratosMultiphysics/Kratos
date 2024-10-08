@@ -256,4 +256,23 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCRandNu_UR, 
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(POP, 50.0);
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -30.0, -10.0, -30.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing
