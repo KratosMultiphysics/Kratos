@@ -167,7 +167,7 @@
     "rotation_dofs":                      true,
     "scheme_type":                        "Newmark",
     "second_alpha_value":                 1.0,
-    "solution_type":                      "K0-Procedure",
+    "solution_type":                      "Quasi-Static",
     "solver_type":                        "U_Pw",
     "strategy_type":                      "linear",
     "time_stepping":                      {

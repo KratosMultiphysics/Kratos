@@ -30,7 +30,7 @@
     "reform_dofs_at_each_step":           false,
     "nodal_smoothing":                    false,
     "block_builder":                      true,
-    "solution_type":                      "K0-Procedure",
+    "solution_type":                      "Quasi-Static",
     "scheme_type":                        "Newmark",
     "reset_displacements":                true,
     "strategy_type":                      "linear",
