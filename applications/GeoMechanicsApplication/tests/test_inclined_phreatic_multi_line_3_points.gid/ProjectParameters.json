@@ -148,14 +148,13 @@
             "model_part_name":      "PorousDomain.Fluid_Pressure-auto-1",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
-            "value":                0.0,
-            "table":                [0, 0, 0],
             "fluid_pressure_type": "Phreatic_Multi_Line",
             "gravity_direction":    1,
             "out_of_plane_direction":    2,
             "x_coordinates" :    [0.0,0.5,1.0],
             "y_coordinates":    [1.0,0.9,0.5],
-			"z_coordinates":    [0.0,0.0,0.0], 
+            "z_coordinates":    [0.0,0.0,0.0],
+            "table":                [0, 0, 0],
             "specific_weight":      10000.0
         }
     }],

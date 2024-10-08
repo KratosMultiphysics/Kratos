@@ -23,6 +23,11 @@ ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableP
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].GetVector().size())
+        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
+        << rParameters["table"].GetVector().size() << " table references. The number of coordinates "
+        << "and table references should be equal." << std::endl;
+
     for (auto value : rParameters["table"].GetVector()) {
         const auto TableId = static_cast<unsigned int>(value);
         if (TableId > 0) {
@@ -80,7 +85,7 @@ std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
+    rOStream << Info();
 }
 
 } // namespace Kratos
