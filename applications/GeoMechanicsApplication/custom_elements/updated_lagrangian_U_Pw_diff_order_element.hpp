@@ -162,16 +162,21 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
+        std::stringstream claw_buffer;
+        if (mConstitutiveLawVector.size() != 0) {
+            claw_buffer << mConstitutiveLawVector[0]->Info();
+        } else {
+            claw_buffer << "not defined";
+        }
         buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+               << "\nConstitutive law: " << claw_buffer.str();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << Info();
     }
 
     /// Print object's data.

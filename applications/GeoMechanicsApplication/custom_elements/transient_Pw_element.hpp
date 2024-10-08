@@ -119,16 +119,21 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
+        std::stringstream retention_law_buffer;
+        if (mConstitutiveLawVector.size() != 0) {
+            retention_law_buffer << mRetentionLawVector[0]->Info();
+        } else {
+            retention_law_buffer << "not defined";
+        }
         buffer << "transient Pw flow Element #" << this->Id()
-               << "\nRetention law: " << mRetentionLawVector[0]->Info();
+               << "\nRetention law: " << retention_law_buffer.str();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "transient Pw flow Element #" << this->Id()
-                 << "\nRetention law: " << mRetentionLawVector[0]->Info();
+        rOStream << Info();
     }
 
 protected:

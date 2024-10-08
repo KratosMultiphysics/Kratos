@@ -119,8 +119,14 @@ public:
 
     std::string Info() const override
     {
+        std::stringstream claw_buffer;
+        if (mConstitutiveLawVector.size() != 0) {
+            claw_buffer << mConstitutiveLawVector[0]->Info();
+        } else {
+            claw_buffer << "not defined";
+        }
         return "U-Pw small strain Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
+               "\nConstitutive law: " + claw_buffer.str();
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
