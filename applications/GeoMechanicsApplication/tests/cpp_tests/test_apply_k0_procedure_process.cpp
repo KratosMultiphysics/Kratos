@@ -54,7 +54,7 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
-    auto p_element = make_intrusive<StubElement>();
+    auto  p_element    = make_intrusive<StubElement>();
     p_element->SetProperties(rProperties);
     r_model_part.AddElement(p_element);
 
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi, KratosGeoMechani
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto  p_properties = std::make_shared<Properties>();
+    auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
     p_properties->SetValue(OCR, 1.5);
@@ -272,6 +272,26 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP, KratosGe
     // Assert
     Vector expected_stress_vector{4};
     expected_stress_vector <<= -30.0, -10.0, -30.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    p_properties->SetValue(POP, 50.0);
+    p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -30.0 + 50.0/3.0, -10.0, -30.0 + 50.0/3.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
