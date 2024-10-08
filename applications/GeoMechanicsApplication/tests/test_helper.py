@@ -10,54 +10,11 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+
 def get_file_path(fileName):
     import os
     return os.path.join(os.path.dirname(__file__), fileName)
 
-def assert_relative_close(test_case, a, b, rel_tol, abs_tol, msg):
-    # Calculate the percentage difference
-    difference = abs(a - b)
-    average = (a + b) / 2
-    # Check if the difference is less than the tolerance percentage of the average
-    if average != 0:
-        test_case.assertTrue((difference / average) < rel_tol if average != 0 else difference < rel_tol, f"{msg} - REL Error {rel_tol}, Expected: {a}, Actual: {b}, error: {difference / average}")
-    test_case.assertTrue(difference < abs_tol, f"{msg} - ABS Error {abs_tol}, Expected: {a}, Actual: {b}, error: {difference}")
-
-def compare_stress_results_with_plaxis_table_file(test_case, simulation, plaxis_table_file, int_points, rel_tol=1e-6, abs_tol=1e-6):
-    """
-    Compares the stress results with the results from a plaxis table file
-    :param plaxis_table_file (3 integration points for element, i.e. 6 noded element)
-    :return:
-    """
-    cauchy_stresses = get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
-
-    # read data
-    with open(plaxis_table_file, "r") as f:
-        all_data = f.readlines()[1:]
-
-    element = 0
-    if int_points == 3:
-        map_plx_int_to_kratos_int = [2, 0, 1]
-    else:
-        raise NotImplementedError("Only 3 integration points per element are supported currently")
-
-    for i in range(0, len(all_data), int_points):
-        element_data = all_data[i:i+int_points]
-        sig_ele = cauchy_stresses[element]
-        for plx_int_no in range(0, int_points):
-            kratos_int_no = map_plx_int_to_kratos_int[plx_int_no]
-            integration_pt_data = element_data[plx_int_no].split("\t")
-            stress_xx_plx = float(integration_pt_data[5]) * 1000 # in kN/m^2
-            stress_xx_kratos = sig_ele[kratos_int_no][0,0]
-            submsg = f"element: {element+1}, plx int point: {plx_int_no+1}, kratos int point: {kratos_int_no+1}"
-            assert_relative_close(test_case, stress_xx_plx, stress_xx_kratos, rel_tol, abs_tol, f"Stress_xx - {submsg}")
-            stress_yy_plx = float(integration_pt_data[6]) * 1000 # in kN/m^2
-            stress_yy_kratos = sig_ele[kratos_int_no][1,1]
-            assert_relative_close(test_case, stress_yy_plx, stress_yy_kratos, rel_tol, abs_tol, f"Stress_yy - {submsg}")
-            stress_xy_plx = float(integration_pt_data[8]) * 1000 # in kN/m^2
-            stress_xy_kratos = sig_ele[kratos_int_no][0,1]
-            assert_relative_close(test_case, stress_xy_plx, stress_xy_kratos, rel_tol, abs_tol, f"Stress_xy - {submsg}")
-        element += 1
 
 def make_geomechanics_analysis(model, project_parameters_file_path):
     with open(project_parameters_file_path, 'r') as f:
