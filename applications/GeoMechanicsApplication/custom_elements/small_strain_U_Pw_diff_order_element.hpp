@@ -58,7 +58,7 @@ public:
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
-        this->SetUpPressureGeometryPointer();
+        SetUpPressureGeometryPointer();
     }
 
     ~SmallStrainUPwDiffOrderElement() override = default;
