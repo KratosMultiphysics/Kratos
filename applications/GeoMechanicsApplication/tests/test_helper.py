@@ -1,4 +1,3 @@
-from typing import Dict, Any
 import sys,os
 import math
 
@@ -10,60 +9,10 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+
 def get_file_path(fileName):
     import os
     return os.path.join(os.path.dirname(__file__), fileName)
-
-def assert_relative_close(test_case, a, b, rel_tol, abs_tol, msg):
-    # Calculate the percentage difference
-    difference = abs(a - b)
-    average = (a + b) / 2
-    # Check if the difference is less than the tolerance percentage of the average
-    if average != 0:
-        test_case.assertTrue((difference / average) < rel_tol if average != 0 else difference < rel_tol, f"{msg} - REL Error {rel_tol}, Expected: {a}, Actual: {b}, error: {difference / average}")
-    test_case.assertTrue(difference < abs_tol, f"{msg} - ABS Error {abs_tol}, Expected: {a}, Actual: {b}, error: {difference}")
-
-def compare_stress_results_with_plaxis_table_file(test_case, simulation, plaxis_table_file, int_points, rel_tol=1e-6, abs_tol=1e-6):
-    """
-    Compares the stress results with the results from a plaxis table file
-    :param plaxis_table_file (3 integration points for element, i.e. 6 noded element)
-    :return:
-    """
-    cauchy_stresses = get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
-
-    # read data
-    with open(plaxis_table_file, "r") as f:
-        all_data = f.readlines()[1:]
-
-    element = 0
-    if int_points == 3:
-        map_plx_int_to_kratos_int = [2, 0, 1]
-    else:
-        raise NotImplementedError("Only 3 integration points per element are supported currently")
-
-    for i in range(0, len(all_data), int_points):
-        element_data = all_data[i:i+int_points]
-        sig_ele = cauchy_stresses[element]
-        for plx_int_no in range(0, int_points):
-            kratos_int_no = map_plx_int_to_kratos_int[plx_int_no]
-            integration_pt_data = element_data[plx_int_no].split("\t")
-            stress_xx_plx = float(integration_pt_data[5]) * 1000 # in kN/m^2
-            stress_xx_kratos = sig_ele[kratos_int_no][0,0]
-            submsg = f"element: {element+1}, plx int point: {plx_int_no+1}, kratos int point: {kratos_int_no+1}"
-            assert_relative_close(test_case, stress_xx_plx, stress_xx_kratos, rel_tol, abs_tol, f"Stress_xx - {submsg}")
-            stress_yy_plx = float(integration_pt_data[6]) * 1000 # in kN/m^2
-            stress_yy_kratos = sig_ele[kratos_int_no][1,1]
-            assert_relative_close(test_case, stress_yy_plx, stress_yy_kratos, rel_tol, abs_tol, f"Stress_yy - {submsg}")
-            stress_xy_plx = float(integration_pt_data[8]) * 1000 # in kN/m^2
-            stress_xy_kratos = sig_ele[kratos_int_no][0,1]
-            assert_relative_close(test_case, stress_xy_plx, stress_xy_kratos, rel_tol, abs_tol, f"Stress_xy - {submsg}")
-        element += 1
-
-def make_geomechanics_analysis(model, project_parameters_file_path):
-    with open(project_parameters_file_path, 'r') as f:
-        project_parameters = Kratos.Parameters(f.read())
-
-    return analysis.GeoMechanicsAnalysis(model, project_parameters)
 
 
 def run_kratos(file_path, model=None):
@@ -470,88 +419,6 @@ def find_closest_index_greater_than_value(input_list, value):
     return None
 
 
-def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
-    """
-    Checks whether two values are almost equal.
-
-    Args:
-        - expected (Any): Expected value.
-        - actual (Any): Actual value.
-
-    Returns:
-        - True if the values are almost equal, False otherwise.
-
-    """
-    # check if the value is a dictionary and check the dictionary
-    if isinstance(expected, dict):
-        return are_dictionaries_almost_equal(expected, actual)
-    elif isinstance(expected, str):
-        return expected == actual
-    elif isinstance(expected, (list, tuple, set)):
-        return are_iterables_almost_equal(expected, actual)
-    elif expected is None:
-        return actual is None
-    elif isinstance(expected, (float, int, complex)):
-        return math.isclose(expected, actual, abs_tol=abs_tolerance)
-    else:
-        raise TypeError(f"Unsupported type {type(expected)}")
-
-
-def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
-                               abs_tolerance: float = 1e-7) -> bool:
-    """
-    Checks whether two iterables are almost equal.
-
-    Args:
-        - expected (list, tuple, set): Expected iterable.
-        - actual (list, tuple, set): Actual iterable.
-
-    Returns:
-        - True if the iterables are almost equal, False otherwise.
-
-    """
-    # check if the value is a list, tuple or set and compare the values
-    if len(expected) != len(actual):
-        return False
-
-    for v_i, actual_i in zip(expected, actual):
-        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
-            return False
-
-    return True
-
-
-def are_dictionaries_almost_equal(expected: Dict[Any, Any],
-                                  actual: Dict[Any, Any],
-                                  abs_tolerance: float = 1e-7) -> bool:
-    """
-    Checks whether two dictionaries are equal.
-
-    Args:
-        - expected: Expected dictionary.
-        - actual: Actual dictionary.
-
-    Returns:
-        - True if the dictionaries are equal, False otherwise.
-
-    """
-    if len(expected) != len(actual):
-        return False
-
-    for k, v in expected.items():
-
-        # check if key is present in both dictionaries
-        if k not in actual:
-            return False
-
-        # check if values are almost equal
-        if not are_values_almost_equal(v, actual[k], abs_tolerance):
-            return False
-
-    # all checks passed
-    return True
-
-
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -633,7 +500,7 @@ class GiDOutputFileReader:
         value = {"node": int(words[0])}
         if self.result_type == "Scalar":
             value["value"] = float(words[1])
-        elif self.result_type == "Vector" or self.result_type == "Matrix":
+        elif self.result_type == "Vector":
             value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
@@ -649,10 +516,8 @@ class GiDOutputFileReader:
         value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
         if self.result_type == "Scalar":
             value.append(float(words[0]))
-        elif self.result_type == "Matrix" or self.result_type == "Vector":
+        elif self.result_type == "Matrix":
             value.append([float(x) for x in words])
-        else:
-            raise RuntimeError(f'Unsupported result type "{self.result_type}"')
 
     def _process_begin_of_block(self, line):
         assert(self.current_block_name is None)  # nested blocks are not supported
