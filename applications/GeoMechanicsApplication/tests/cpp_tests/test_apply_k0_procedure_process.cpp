@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR, 
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasSufficientMaterialData, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
