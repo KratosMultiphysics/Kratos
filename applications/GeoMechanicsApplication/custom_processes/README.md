@@ -62,8 +62,12 @@ When this process is added to the `ProjectParameters.json`, the variables specif
 
 ## $K_0$ procedure process
 For the initialization of an in-situ stress field, the $K_0$ procedure derives the horizontal effective stresses from a field of vertical effective stresses.
-Pre-requisite is a computed stress field with the desired normal effective stresses in the direction indicated with "K0_MAIN_DIRECTION". The normal effective stress in "K0_MAIN_DIRECTION" remains as is. Effective normal stresses in the other two directions are affected by the $K_0$ value, all shear stresses are erased.
-
+Pre-requisite is a computed stress field with the desired normal effective stresses in the direction indicated with "K0_MAIN_DIRECTION".
+The normal effective stress in "K0_MAIN_DIRECTION" remains as is.
+Effective normal stresses in the other two directions are affected by the $K_0$ value, all shear stresses are erased.
+A specialized method for computation of the stress field with normal effective stresses is steered with "use_standard_procedure".
+When set to true, the material used for the modelpart used for the $K_0$ procedure process is changed to an incremental elastic material with constitutive tensor that has only zero off-diagonal terms and zero shear terms.
+When the stress computation is completed, the original constitutive law is restored.
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
 $K_{0^{nc}}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
