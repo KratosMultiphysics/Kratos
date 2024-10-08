@@ -782,7 +782,6 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                     double equiv_poisson, 
                     double indentation,
                     double indentation_particle,
-                    double LocalContactForce[3],
                     double normalLocalContactForce,
                     double GlobalContactForce[3],
                     double LocalCoordSystem_2[3],
@@ -802,8 +801,7 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 ElasticLocalRotationalMoment, 
                                 ViscoLocalRotationalMoment, 
                                 equiv_poisson, 
-                                indentation, 
-                                LocalContactForce);
+                                indentation);
         CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment); 
     }                  
 
@@ -840,8 +838,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalContactForce[3]) {
+                                                double indentation) {
 
     KRATOS_TRY
     //const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
