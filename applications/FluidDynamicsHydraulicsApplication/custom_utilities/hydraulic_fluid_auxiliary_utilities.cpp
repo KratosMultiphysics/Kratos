@@ -302,8 +302,142 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
         if (rNode.Is(rSkinFlag)){
             double inlet_dist = rNode.GetValue(rDistanceVariable);
             rNode.FastGetSolutionStepValue(DISTANCE) = inlet_dist;
-            rNode.Fix(DISTANCE);
+            // The distance is fixed in the water nodes since the inlet has velocity.
+            if (inlet_dist<0.0){
+                rNode.Fix(DISTANCE);
+            }
         }
+    });
+}
+
+void HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(ModelPart &rModelPart){
+    block_for_each(rModelPart.Elements(), [](Element &rElement){
+        auto &r_geom = rElement.GetGeometry();
+        Vector distances = ZeroVector(r_geom.PointsNumber());
+        const Vector gravity = ZeroVector(3);
+        for (unsigned int i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++){
+            distances[i_nodes] = r_geom[i_nodes].FastGetSolutionStepValue(DISTANCE);
+        }
+        if (FluidAuxiliaryUtilities::IsPositive(distances)){
+            for (unsigned int i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++)
+            {
+                r_geom[i_nodes].FastGetSolutionStepValue(BODY_FORCE) = gravity;
+            }
+        }
+    });
+}
+
+void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
+    ModelPart &rModelPart,
+    const double MaximumAngle)
+{
+    // Obtain for each condition each neighbor condition
+    block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){ rNode.SetValue(AUX_INDEX, 0); });
+    auto &r_cond = rModelPart.Conditions();
+    const double angle_corner_rad = MaximumAngle / 180.0 * Globals::Pi; //
+    double acceptable_cos = cos(angle_corner_rad);
+    double max_height = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](NodeType &rNode){return rNode.Z();});
+
+    block_for_each(rModelPart.Nodes(),[&](NodeType &rNode){
+       if(rNode.Z() >=max_height){
+         rNode.Set(MARKER,true);
+       }
+    });
+    for (auto cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
+    {
+        // reference for area normal of the face
+        const auto &r_face_normal = cond_it->GetValue(NORMAL);
+        const double An = norm_2(face_normal);
+        const auto &r_neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+        const auto &r_geom = cond_it->GetGeometry();
+        auto edgelist = r_geom.GenerateEdges();
+        for (unsigned int c_itr = 0; c_itr < neighb.size(); c_itr++){
+            auto rCondition = neighb[c_itr];
+            const auto& r_face_neig_normal = rCondition.GetValue(NORMAL);
+            const double cos_angle = 1 / (An * norm_2(face_neig_normal)) * inner_prod(face_normal, face_neig_normal);
+            const auto &r_geom_neig = rCondition.GetGeometry();
+            auto edgelist_neig = r_geom_neig.GenerateEdges();
+            array_1d<double, 2> ids_neig;
+            array_1d<double, 2> ids_cond;
+            if (cos_angle < acceptable_cos){
+                for (IndexType edge = 0; edge < edgelist.size(); edge++){
+                    for (IndexType i = 0; i < edgelist[edge].size(); i++){
+                        ids_cond[i] = edgelist[edge][i].Id();
+                    }
+                    std::sort(ids_cond.begin(), ids_cond.end());
+                    for (IndexType edge_neg = 0; edge_neg < edgelist_neig.size(); edge_neg++){
+                        for (IndexType i = 0; i < edgelist_neig[edge_neg].size(); i++){
+                            ids_neig[i] = edgelist_neig[edge_neg][i].Id();
+                        }
+                        std::sort(ids_neig.begin(), ids_neig.end());
+                        if (ids_cond == ids_neig){
+                            for (IndexType i = 0; i < edgelist[edge].size(); i++){
+                                double repeated = edgelist[edge][i].GetValue(AUX_INDEX);
+                                repeated += 1;
+                                edgelist[edge][i].SetValue(AUX_INDEX, repeated);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    block_for_each(rModelPart.Nodes(),[&](NodeType &rNode){
+        if (rNode.GetValue(AUX_INDEX)*0.5>=3 && rNode.Is(MARKER)){
+            Vector veloctiy = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(VELOCITY) = veloctiy;
+            rNode.Fix(VELOCITY_X);
+            rNode.Fix(VELOCITY_Y);
+            rNode.Fix(VELOCITY_Z);
+            double value= rNode.GetValue(AUX_INDEX);
+            rNode.SetValue(AUX_INDEX,value*0.5);
+        }
+        else{
+            rNode.SetValue(AUX_INDEX,0.0);
+        }
+    });
+}
+
+bool HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(const ModelPart &rModelPart){
+    // make sure the Ids of the Nodes start with one
+    const double &min_Z = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](const auto &rNode){ return rNode.Z(); });
+    //TODO: Try to create a min reduction with a pointer to avoid this second loop
+    bool maximum_water_depth_change = false;
+    block_for_each(rModelPart.Nodes(), [&](const Node &rNode){
+        if (std::abs(rNode.Z() - min_Z) < 1.0e-10 && !maximum_water_depth_change){
+            const double inlet_phi = rNode.GetValue(AUX_DISTANCE);
+            const double domain_phi = rNode.FastGetSolutionStepValue(DISTANCE);
+            if (std::abs(domain_phi) > std::abs(inlet_phi)){
+                maximum_water_depth_change=true;
+            }
+        }});
+    return maximum_water_depth_change;
+}
+
+void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart, double LimiterCoefficient)
+{
+    const auto &r_process_info = rModelPart.GetProcessInfo();
+    block_for_each(rModelPart.Elements(), [&](Element &rElement){
+    double artificial_viscosity;
+    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+    if (artificial_viscosity > LimiterCoefficient){
+        artificial_viscosity = LimiterCoefficient;
+    }
+    double neg_nodes = 0.0;
+    double pos_nodes = 0.0;
+    for (const auto &r_node : rElement.GetGeometry()){
+        const double distance = r_node.FastGetSolutionStepValue(DISTANCE);
+        if (distance > 0){
+            pos_nodes += 1;
+        }
+        else{
+            neg_nodes += 1;
+        }
+    }
+    if (neg_nodes > 0 && pos_nodes > 0){
+        artificial_viscosity = 0.0;
+    }
+    rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
     });
 }
 
