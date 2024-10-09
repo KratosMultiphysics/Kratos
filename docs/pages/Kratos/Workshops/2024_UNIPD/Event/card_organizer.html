@@ -3,13 +3,24 @@
       <div class="card-image">
          <img class="activator portrait-img" src="{{include.image}}" style="aspect-ratio: 1 / 1;">
       </div>
-      <div class="card-content" id="secondary-title">
-         <div style="width: 100%; float: left;">
-            <span class="card-title activator" id="main-title-text">
-               {{include.name}}</span>
-            <span class="card-title activator" id="secondary-title-text">
-               {{include.affiliation}}</span>
-         </div>
+      <!-- <div class="card-content" id="secondary-title"> -->
+      <!--    <div style="width: 100%; float: left;"> -->
+      <!--       <span class="card-title left-align" id="main-title-text"> -->
+      <!--          {{include.name}}</span> -->
+      <!--       <span class="card-title left-align" id="secondary-title-text"> -->
+      <!--          {{include.affiliation}}</span> -->
+      <!--       <a href="www.google.it"><i class="bi bi-github right"></i></a> -->
+      <!--    </div> -->
+      <!-- </div> -->
+      <div class="card-content white-text" style="padding: 10px; background-color: #3D1419">
+         <span class="truncate" style="font-weight: bold; font-size: 18px">
+            {{include.name}}</span>
+         <span style="font-style: italic; font-size: 15px">
+            {{include.affiliation}}
+            <a href="{{include.github}}">
+               <i class="bi bi-github" style="color: white; padding-left: 5px"></i></a></span>
+            <a href="{{include.linkedin}}">
+               <i class="bi bi-linkedin" style="color: white; padding-left: 5px"></i></a></span>
       </div>
    </div>
 </div>
