@@ -61,6 +61,9 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     if (rGeom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
+    // check pressure geometry pointer
+    KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
+
     // verify that the variables are correctly initialized
     // Verify specific properties
     const PropertiesType& rProp = this->GetProperties();
@@ -160,20 +163,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     }
 
     return 0;
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    UPwBaseElement::Initialize(rCurrentProcessInfo);
-
-    KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
-    }
-
-    mIsInitialised = true;
 
     KRATOS_CATCH("")
 }

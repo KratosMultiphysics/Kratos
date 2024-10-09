@@ -71,8 +71,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
