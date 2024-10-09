@@ -108,23 +108,14 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        std::stringstream claw_buffer;
-        if (mConstitutiveLawVector.size() != 0) {
-            claw_buffer << mConstitutiveLawVector[0]->Info();
-        } else {
-            claw_buffer << "not defined";
-        }
-        buffer << "U-Pw small strain different order Element #" << Id()
-               << "\nConstitutive law: " << claw_buffer.str();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "U-Pw small strain different order Element #" + std::to_string(Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     struct ElementVariables {

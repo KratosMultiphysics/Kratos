@@ -138,7 +138,8 @@ public:
 
     std::string Info() const override
     {
-        const std::string constitutive_info = !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
         return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
     }
 

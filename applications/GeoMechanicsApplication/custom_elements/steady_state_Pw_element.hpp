@@ -94,23 +94,13 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        std::stringstream retention_law_buffer;
-        if (mConstitutiveLawVector.size() != 0) {
-            retention_law_buffer << mRetentionLawVector[0]->Info();
-        } else {
-            retention_law_buffer << "not defined";
-        }
-        buffer << "steady-state Pw flow Element #" << this->Id()
-               << "\nRetention law: " << retention_law_buffer.str();
-        return buffer.str();
+        const std::string retention_info =
+            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+        return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
