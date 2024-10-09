@@ -24,7 +24,6 @@ SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCon
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 1
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId,
                                                                                        GeometryType::Pointer pGeometry)
@@ -32,7 +31,6 @@ SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCon
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 2
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
@@ -40,7 +38,6 @@ SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCon
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType NewId,
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
@@ -49,7 +46,6 @@ Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::Create(IndexType 
         NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                           unsigned int PointNumber)
 {
@@ -67,7 +63,6 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                                                                ConditionVariables& rVariables)
 {

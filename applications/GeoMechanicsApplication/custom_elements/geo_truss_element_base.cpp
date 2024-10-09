@@ -27,14 +27,12 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType               NewId,
                                                           GeometryType::Pointer   pGeometry,
@@ -43,7 +41,6 @@ GeoTrussElementBase<TDim, TNumNodes>::GeoTrussElementBase(IndexType             
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                               NodesArrayType const& rThisNodes,
@@ -53,7 +50,6 @@ Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType         
     return Kratos::make_intrusive<GeoTrussElementBase>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType             NewId,
                                                               GeometryType::Pointer pGeom,
@@ -62,27 +58,23 @@ Element::Pointer GeoTrussElementBase<TDim, TNumNodes>::Create(IndexType         
     return Kratos::make_intrusive<GeoTrussElementBase>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElementBase<TDim, TNumNodes>::~GeoTrussElementBase()
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -102,7 +94,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurren
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
                                                                         const ProcessInfo& rCurrentProcessInfo)
@@ -119,7 +110,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CreateElementStiffnessMatrix(MatrixTy
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -128,7 +118,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rD
         *this, rDampingMatrix, rCurrentProcessInfo, TDim * TNumNodes);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                const ProcessInfo& rCurrentProcessInfo)
@@ -157,7 +146,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMass
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
                                                                          const ProcessInfo& rCurrentProcessInfo) const
@@ -179,7 +167,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateConsistentMassMatrix(MatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType& rGlobalBodyForces)
 {
@@ -211,28 +198,24 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractSolutionStepValues(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
@@ -246,7 +229,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -268,7 +250,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                  const ProcessInfo& rCurrentProcessInfo)
@@ -281,7 +262,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLe
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
                                                      Matrix&                 rOutput,
@@ -300,7 +280,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVa
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVariable,
                                                      double&                 rOutput,
@@ -352,7 +331,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::Calculate(const Variable<double>& rVa
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                         std::vector<double>& rOutput,
@@ -381,7 +359,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                         std::vector<Vector>& rOutput,
@@ -427,7 +404,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                         std::vector<array_1d<double, 3>>& rOutput,
@@ -450,7 +426,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Va
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -517,7 +492,6 @@ int GeoTrussElementBase<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementBase<TDim, TNumNodes>::CalculateGreenLagrangeStrain() const
 {
@@ -531,7 +505,6 @@ double GeoTrussElementBase<TDim, TNumNodes>::CalculateGreenLagrangeStrain() cons
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorType& rInternalForces,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -541,7 +514,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::UpdateInternalForces(FullDofVectorTyp
                  << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates)
 {
@@ -559,7 +531,6 @@ void GeoTrussElementBase<3, 2>::WriteTransformationCoordinates(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::WriteTransformationCoordinates(FullDofVectorType& rReferenceCoordinates)
 {
@@ -575,7 +546,6 @@ void GeoTrussElementBase<2, 2>::WriteTransformationCoordinates(FullDofVectorType
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rRotationMatrix)
 {
@@ -642,7 +612,6 @@ void GeoTrussElementBase<3, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rRotationMatrix)
 {
@@ -696,7 +665,6 @@ void GeoTrussElementBase<2, 2>::CreateTransformationMatrix(FullDofMatrixType& rR
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
                                                                    const Variable<VectorType>& rRHSVariable,
@@ -722,7 +690,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
                                                                    const Variable<VectorType>& rRHSVariable,
@@ -764,7 +731,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::AddExplicitContribution(const VectorT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -862,7 +828,6 @@ void GeoTrussElementBase<3, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixType& rGeometricStiffnessMatrix,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -927,7 +892,6 @@ void GeoTrussElementBase<2, 2>::CalculateGeometricStiffnessMatrix(FullDofMatrixT
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -1005,7 +969,6 @@ void GeoTrussElementBase<3, 2>::CalculateElasticStiffnessMatrix(MatrixType& rEla
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <>
 void GeoTrussElementBase<2, 2>::CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
                                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -1062,7 +1025,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::FinalizeMaterialResponse(double Strai
     mpConstitutiveLaw->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_PK2);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
@@ -1070,7 +1032,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::save(Serializer& rSerializer) const
     rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
@@ -1078,7 +1039,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::load(Serializer& rSerializer)
     rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType& rLumpedMassVector,
                                                                      const ProcessInfo& rCurrentProcessInfo) const
@@ -1107,7 +1067,6 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateLumpedMassVector(VectorType&
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double GeoTrussElementBase<TDim, TNumNodes>::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1139,7 +1098,6 @@ Element::DofsVectorType GeoTrussElementBase<TDim, TNumNodes>::GetDofs() const
     return result;
 }
 
-//--------------------------------------------------------------------------------------------
 template class GeoTrussElementBase<2, 2>;
 template class GeoTrussElementBase<3, 2>;
 
