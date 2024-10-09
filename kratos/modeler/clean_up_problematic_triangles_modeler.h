@@ -88,7 +88,8 @@ public:
     CleanUpProblematicTrianglesModeler(
         ModelPart& rSourceModelPart,
         Parameters ModelerParameters = Parameters()
-        ) : mrModelPart(rSourceModelPart)
+        ) : BaseType(rSourceModelPart.GetModel(), ModelerParameters),
+            mrModelPart(rSourceModelPart)
     {
         mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     }
