@@ -25,8 +25,6 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                        GeometryType::Pointer pGeom,
@@ -36,7 +34,6 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
                                                              this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -47,7 +44,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -93,7 +89,6 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                        ElementVariables& rVariables)
@@ -105,7 +100,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixTyp
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                        ElementVariables& rVariables,
@@ -120,8 +114,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTyp
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class DrainedUPwSmallStrainElement<2, 3>;
 template class DrainedUPwSmallStrainElement<2, 4>;

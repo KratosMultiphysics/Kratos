@@ -53,8 +53,6 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit SteadyStatePwInterfaceElement(IndexType NewId = 0)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId)
     {
@@ -87,8 +85,6 @@ public:
 
     ~SteadyStatePwInterfaceElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -110,13 +106,7 @@ protected:
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwInterfaceElement& operator=(SteadyStatePwInterfaceElement const& rOther);
 
