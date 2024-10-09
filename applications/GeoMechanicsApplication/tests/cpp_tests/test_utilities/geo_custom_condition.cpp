@@ -15,54 +15,51 @@
 namespace Kratos::Testing
 {
 
-void GeoCustomCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (!mStiffnessMatrixSet) {
-        mStiffnessMatrix    = rLeftHandSideMatrix;
-        mStiffnessMatrixSet = true;
-    } else rLeftHandSideMatrix = mStiffnessMatrix;
-}
-
-void GeoCustomCondition::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (!mMassMatrixSet) {
-        mMassMatrix.resize(rMassMatrix.size1(), rMassMatrix.size2(), false);
-        for (unsigned int i = 0; i < rMassMatrix.size1(); i++) {
-            for (unsigned int j = 0; j < rMassMatrix.size2(); j++) {
-                mMassMatrix(i, j) = rMassMatrix(i, j);
-            }
-        }
-
-        mMassMatrixSet = true;
+    void GeoMockCondition::SetLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        mStiffnessMatrix = rLeftHandSideMatrix;
     }
 
-    else {
-        rMassMatrix.resize(mMassMatrix.size1(), mMassMatrix.size2(), false);
-        for (unsigned int i = 0; i < mMassMatrix.size1(); i++) {
-            for (unsigned int j = 0; j < mMassMatrix.size2(); j++) {
-                rMassMatrix(i, j) = mMassMatrix(i, j);
-            }
-        }
+    void GeoMockCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        rLeftHandSideMatrix = mStiffnessMatrix;
+        ++mCountCalculateLeftHandSideCalled;
     }
-}
 
-void GeoCustomCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (!mDampingMatrixSet) {
-        mDampingMatrix    = rDampingMatrix;
-        mDampingMatrixSet = true;
-    } else rDampingMatrix = mDampingMatrix;
-}
+    void GeoMockCondition::SetMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        mMassMatrix = rMassMatrix;
+    }
 
-void GeoCustomCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (!mRhsSet) {
-        mRhs    = rRightHandSideVector;
-        mRhsSet = true;
-    } else rRightHandSideVector = mRhs;
-}
+    void GeoMockCondition::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        rMassMatrix = mMassMatrix;
+        ++mCountCalculateMassMatrixCalled;
+    }
 
-void GeoCustomCondition::EquationIdVector(Condition::EquationIdVectorType& rResult,
+    void GeoMockCondition::SetDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        mDampingMatrix = rDampingMatrix;
+    }
+
+    void GeoMockCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        rDampingMatrix = mDampingMatrix;
+        ++mCalculateDampingMatrixCalled;
+    }
+
+    void GeoMockCondition::SetRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    {
+        mRhs = rRightHandSideVector;
+    }
+
+    void GeoMockCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    {
+        rRightHandSideVector = mRhs;
+        ++mCountCalculateRightHandSideCalled;
+    }
+
+void GeoMockCondition::EquationIdVector(Condition::EquationIdVectorType& rResult,
                                           const ProcessInfo& rCurrentProcessInfo) const
 {
     rResult.resize(2);
@@ -71,7 +68,7 @@ void GeoCustomCondition::EquationIdVector(Condition::EquationIdVectorType& rResu
     rResult[1] = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
 }
 
-void GeoCustomCondition::GetDofList(Condition::DofsVectorType& rElementalDofList,
+void GeoMockCondition::GetDofList(Condition::DofsVectorType& rElementalDofList,
                                     const ProcessInfo&         rCurrentProcessInfo) const
 {
     rElementalDofList.resize(2);
@@ -80,4 +77,23 @@ void GeoCustomCondition::GetDofList(Condition::DofsVectorType& rElementalDofList
     rElementalDofList[1] = GetGeometry()[0].pGetDof(DISPLACEMENT_Y);
 }
 
+std::size_t GeoMockCondition::GetCountCalculateLeftHandSideCalled() const
+{
+    return mCountCalculateLeftHandSideCalled;
+}
+
+std::size_t GeoMockCondition::GetCountCalculateMassMatrixCalled() const
+{
+    return mCountCalculateMassMatrixCalled;
+}
+
+std::size_t GeoMockCondition::GetCalculateDampingMatrixCalled() const
+{
+    return mCalculateDampingMatrixCalled;
+}
+
+std::size_t GeoMockCondition::GetCountCalculateRightHandSideCalled() const
+{
+    return mCountCalculateRightHandSideCalled;
+}
 } // namespace Kratos::Testing

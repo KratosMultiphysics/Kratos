@@ -24,10 +24,10 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class IncrementalNewmarkLinearElasticUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
+class IncrementalNewmarkLinearElasticUScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(IncrementalNewmarkLinearElasticUPwScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(IncrementalNewmarkLinearElasticUScheme);
 
     using BaseType              = Scheme<TSparseSpace, TDenseSpace>;
     using DofsArrayType         = typename BaseType::DofsArrayType;
@@ -36,7 +36,7 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    IncrementalNewmarkLinearElasticUPwScheme(double beta, double gamma)
+    IncrementalNewmarkLinearElasticUScheme(double beta, double gamma)
         : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
               {}, {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)}, beta, gamma, std::nullopt)
     {
@@ -130,7 +130,7 @@ public:
         // Empty function because the derivatives are updated outside of the function since it needs more input. And this function is required to be defined
     }
 
-protected:
+private:
     inline void PredictVariablesDerivatives(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -170,8 +170,6 @@ protected:
 
         KRATOS_CATCH("")
     }
-
-private:
-}; // Class NewmarkDynamicUPwScheme
+}; // Class IncrementalNewmarkLinearElasticUScheme
 
 } // namespace Kratos

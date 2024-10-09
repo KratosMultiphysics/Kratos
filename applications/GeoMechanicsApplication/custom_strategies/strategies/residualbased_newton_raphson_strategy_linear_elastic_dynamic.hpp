@@ -294,15 +294,7 @@ public:
     {
         auto default_parameters = Parameters(R"(
         {
-            "name"                                : "newton_raphson_strategy_linear_elastic_dynamic",
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iteration"                       : 10,
-            "reform_dofs_at_each_step"            : false,
-            "compute_reactions"                   : false,
-            "builder_and_solver_settings"         : {},
-            "convergence_criteria_settings"       : {},
-            "linear_solver_settings"              : {},
-            "scheme_settings"                     : {}
+            "name"                                : "newton_raphson_strategy_linear_elastic_dynamic"
         })");
 
         // Getting base class default parameters

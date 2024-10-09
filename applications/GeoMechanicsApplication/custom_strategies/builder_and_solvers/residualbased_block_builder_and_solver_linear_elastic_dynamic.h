@@ -156,7 +156,6 @@ public:
 
         Timer::Stop("Build");
 
-        
         TSystemVectorType dummy_b(rA.size1(), 0.0);
         TSystemVectorType dummy_rDx(rA.size1(), 0.0);
 
@@ -168,7 +167,7 @@ public:
             BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, dummy_b);
             BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, dummy_b);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 1)
                 << "Constraints build time: " << timer_constraints << std::endl;
         }
 
@@ -177,7 +176,7 @@ public:
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 3)
             << "Before the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << dummy_rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -222,15 +221,13 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+        KRATOS_ERROR_IF_NOT(pScheme) << "No scheme provided!" << std::endl;
 
         this->InitializeDynamicMatrix(mMassMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
         this->InitializeDynamicMatrix(mDampingMatrix, BaseType::mEquationSystemSize, pScheme, rModelPart);
 
-        // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        // getting the array of the conditions
         const ElementsArrayType& r_elements = rModelPart.Elements();
         this->CalculateGlobalMatrices(r_elements, rA, rModelPart);
 
@@ -263,7 +260,7 @@ public:
     {
         this->BuildRHS(pScheme, rModelPart, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 3)
             << "Before the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -291,7 +288,7 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 1)
             << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() == 3)
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 3)
             << "After the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -428,21 +425,20 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
+private:
+    TSystemMatrixType mMassMatrix;
+    TSystemMatrixType mDampingMatrix;
+    TSystemVectorType mPreviousExternalForceVector;
+    TSystemVectorType mCurrentExternalForceVector;
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+    TSystemVectorType mPreviousOutOfBalanceVector;
+    TSystemVectorType mCurrentOutOfBalanceVector;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
+    double mBeta;
+    double mGamma;
+    bool   mCalculateInitialSecondDerivative;
+    bool   mCopyExternalForceVector = false;
+    bool   mUsePerformSolutionStep  = false;
 
     void BuildRHSNoDirichlet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart, TSystemVectorType& rb)
     {
@@ -626,21 +622,6 @@ protected:
         Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, rModelPart);
     }
-
-private:
-    TSystemMatrixType mMassMatrix;
-    TSystemMatrixType mDampingMatrix;
-    TSystemVectorType mPreviousExternalForceVector;
-    TSystemVectorType mCurrentExternalForceVector;
-
-    TSystemVectorType mPreviousOutOfBalanceVector;
-    TSystemVectorType mCurrentOutOfBalanceVector;
-
-    double mBeta;
-    double mGamma;
-    bool   mCalculateInitialSecondDerivative;
-    bool   mCopyExternalForceVector = false;
-    bool   mUsePerformSolutionStep  = false;
 
     void InitializeDynamicMatrix(TSystemMatrixType&            rMatrix,
                                  std::size_t                   MatrixSize,

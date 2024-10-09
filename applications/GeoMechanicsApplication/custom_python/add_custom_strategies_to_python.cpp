@@ -35,7 +35,7 @@
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
@@ -63,7 +63,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using NewmarkQuasistaticDampedUPwSchemeType =
         NewmarkQuasistaticDampedUPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>;
-	using IncrementalNewmarkLinearElasticUPwSchemeType = IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>;
+	using IncrementalNewmarkLinearElasticUSchemeType = IncrementalNewmarkLinearElasticUScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticTSchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
@@ -96,8 +96,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         m, "NewmarkDynamicUPwScheme", py::module_local())
         .def(py::init<double, double, double>());
 		
-	py::class_<IncrementalNewmarkLinearElasticUPwSchemeType, typename IncrementalNewmarkLinearElasticUPwSchemeType::Pointer, BaseSchemeType>(
-	    m, "IncrementalNewmarkLinearElasticUPwScheme", py::module_local())
+	py::class_<IncrementalNewmarkLinearElasticUSchemeType, typename IncrementalNewmarkLinearElasticUSchemeType::Pointer, BaseSchemeType>(
+	    m, "IncrementalNewmarkLinearElasticUScheme", py::module_local())
 	    .def(py::init<double, double>());
 
     py::class_<NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType>(

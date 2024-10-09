@@ -11,8 +11,8 @@
 //
 
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
+#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_Pw_scheme.hpp"
 #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 #include "tests/cpp_tests/test_utilities/geo_custom_condition.h"
 #include "tests/cpp_tests/test_utilities/geo_custom_element.h"
@@ -40,24 +40,13 @@ using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 class NewtonRaphsonStrategyLinearElasticDynamicTester
 {
 public:
-    Model mModel;
-
-    explicit NewtonRaphsonStrategyLinearElasticDynamicTester() { CreateValidModelPart(); }
-
-    /// <summary>
-    /// Creates the valid model part with 2 degrees of freedom.
-    /// </summary>
-    void CreateValidModelPart()
+    NewtonRaphsonStrategyLinearElasticDynamicTester()
     {
-        // Register custom test elements and conditions
-        GeoCustomElement custom_element{
-            0, Kratos::make_shared<Point2D<Node>>(Element::GeometryType::PointsArrayType(1))};
-        KRATOS_REGISTER_ELEMENT("CustomElement", custom_element)
+        CreateValidModelPartWithTwoDegreesOfFreedom();
+    }
 
-        GeoCustomCondition custom_condition{
-            0, Kratos::make_shared<Point2D<Node>>(Condition::GeometryType::PointsArrayType(1))};
-        KRATOS_REGISTER_CONDITION("CustomCondition", custom_condition)
-
+    void CreateValidModelPartWithTwoDegreesOfFreedom()
+    {
         // add solution step variables
         auto& result = mModel.CreateModelPart("model_part", 2);
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -67,10 +56,13 @@ public:
         // add nodes, elements and conditions
         auto       p_node   = result.CreateNewNode(0, 0.0, 0.0, 0.0);
         const auto node_ids = std::vector<ModelPart::IndexType>{0};
-        auto       p_element =
-            result.CreateNewElement("CustomElement", 0, node_ids, result.CreateNewProperties(0));
-        auto p_condition =
-            result.CreateNewCondition("CustomCondition", 0, node_ids, result.pGetProperties(0));
+
+        auto p_geometry = result.CreateNewGeometry("Point2D", node_ids);
+        auto p_element  = Kratos::make_intrusive<GeoMockElement>(0, p_geometry);
+        result.AddElement(p_element, 0);
+
+        auto p_condition = Kratos::make_intrusive<GeoMockCondition>(0, p_geometry);
+        result.AddCondition(p_condition, 0);
 
         // add dofs
         p_node->AddDof(DISPLACEMENT_X);
@@ -89,36 +81,27 @@ public:
         p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
     }
 
-    /// <summary>
-    /// Gets the test model part
-    /// </summary>
-    /// <returns>
-    /// The test model part
-    /// </returns>
     ModelPart& GetModelPart() { return mModel.GetModelPart("model_part"); }
 
     /// <summary>
     /// Creates a valid strategy with either a direct linear solve or an iterative linear solver
     /// </summary>
     /// <param name="rModelPart">model part to be solved</param>
-    /// <param name="RelativeTollerance">relative tollerance for the displacement criteria</param>
-    /// <param name="AbsoluteTollerance">absolute tollerance for the displacement criteria</param>
+    /// <param name="RelativeTollerance">relative tolerance for the displacement criteria</param>
+    /// <param name="AbsoluteTollerance">absolute tolerance for the displacement criteria</param>
     /// <param name="CalculateInitialSecondDerivative">When true, the initial value for the second derivative is calculated which
     /// fullfills equilibrium in the very first timestep</param>
     /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used</param>
     /// <returns></returns>
-    GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
-        ModelPart& rModelPart,
-        double     RelativeTollerance,
-        double     AbsoluteTollerance,
-        bool       CalculateInitialSecondDerivative,
-        bool       UseDirectSolver) const
+    static GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType> CreateValidStrategy(
+        ModelPart& rModelPart, double RelativeTolerance, double AbsoluteTolerance, bool CalculateInitialSecondDerivative, bool UseDirectSolver)
     {
         double beta  = 0.25;
         double gamma = 0.5;
         // create strategy
         auto pScheme =
-            std::make_shared<IncrementalNewmarkLinearElasticUPwScheme<SparseSpaceType, LocalSpaceType>>(beta, gamma);
+            std::make_shared<IncrementalNewmarkLinearElasticUScheme<SparseSpaceType, LocalSpaceType>>(
+                beta, gamma);
 
         auto factory = LinearSolverFactory<SparseSpaceType, LocalSpaceType>{};
 
@@ -135,28 +118,31 @@ public:
             std::make_shared<ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
                 pLinearSolver, 0.25, 0.5, CalculateInitialSecondDerivative);
         auto pConvergenceCriteria = std::make_shared<DisplacementCriteria<SparseSpaceType, LocalSpaceType>>(
-            RelativeTollerance, AbsoluteTollerance);
+            RelativeTolerance, AbsoluteTolerance);
         auto dummy_parameters = Parameters();
 
         return GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>(
             rModelPart, pScheme, pLinearSolver, pConvergenceCriteria, pBuilderAndSolver,
             dummy_parameters, 30, false, false);
     }
+
+private:
+    Model mModel;
 };
 
 /// <summary>
 /// Runs the tests for NewtonRaphsonLinearElasticDynamic
 /// </summary>
-/// <param name="RelativeConvergenceTollerance"> relative tollerance for the displacement criteria</param>
-/// <param name="AbsoluteConvergenceTollerance"> absolute tollerance for the displacement criteria</param>
+/// <param name="RelativeConvergenceTollerance"> relative tolerance for the displacement criteria</param>
+/// <param name="AbsoluteConvergenceTollerance"> absolute tolerance for the displacement criteria</param>
 /// <param name="DeltaTime"> time step size</param>
 /// <param name="CalculateInitialAcceleration">When true, the initial value for the second derivative is calculated which
 /// fullfills equilibrium in the very first timestep</param>
 /// <param name="UseDirectSolver"> When true, the sparse lu linear solver is used, when false, the cg linear solver is used </param>
 /// <param name="rExpectedDisplacementX"> expected displacements in x direction</param>
 /// <param name="rExpectedDisplacementY"> expected dusplacements in y direction</param>
-void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeConvergenceTollerance,
-                                           double                     AbsoluteConvergenceTollerance,
+void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeConvergenceTolerance,
+                                           double                     AbsoluteConvergenceTolerance,
                                            double                     DeltaTime,
                                            bool                       CalculateInitialAcceleration,
                                            bool                       UseDirectSolver,
@@ -185,24 +171,24 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeCo
     mass_matrix(1, 0) = 0.0;
     mass_matrix(1, 1) = 1.0;
 
-    auto damping_matrix  = Matrix(2, 2);
-    damping_matrix(0, 0) = 0.0;
-    damping_matrix(0, 1) = 0.0;
-    damping_matrix(1, 0) = 0.0;
-    damping_matrix(1, 1) = 0.0;
+    auto damping_matrix = Matrix(ZeroMatrix(2, 2));
 
     auto rhs = Vector(2);
     rhs(0)   = 0.0;
     rhs(1)   = 10.0;
 
-    model_part.GetElement(0).CalculateLeftHandSide(stiffness_matrix, r_current_process_info);
-    model_part.GetElement(0).CalculateMassMatrix(mass_matrix, r_current_process_info);
-    model_part.GetElement(0).CalculateDampingMatrix(damping_matrix, r_current_process_info);
+    auto& geo_custom_element = dynamic_cast<GeoMockElement&>(model_part.GetElement(0));
 
-    model_part.GetCondition(0).CalculateRightHandSide(rhs, r_current_process_info);
+    geo_custom_element.SetLeftHandSide(stiffness_matrix, r_current_process_info);
+    geo_custom_element.SetMassMatrix(mass_matrix, r_current_process_info);
+    geo_custom_element.SetDampingMatrix(damping_matrix, r_current_process_info);
+
+    auto& geo_custom_condition = dynamic_cast<GeoMockCondition&>(model_part.GetCondition(0));
+
+    geo_custom_condition.SetRightHandSide(rhs, r_current_process_info);
 
     // create strategy
-    auto r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTollerance, AbsoluteConvergenceTollerance,
+    auto r_solver = tester.CreateValidStrategy(model_part, RelativeConvergenceTolerance, AbsoluteConvergenceTolerance,
                                                CalculateInitialAcceleration, UseDirectSolver);
     // initialize solver
     r_solver.Initialize();
@@ -210,8 +196,9 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeCo
     std::vector<double> calculated_displacement_x;
     std::vector<double> calculated_displacement_y;
 
+    std::size_t n_steps = 12;
     // run test solution loop
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < n_steps; i++) {
         double new_time = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
 
         r_current_process_info[STEP] += 1;
@@ -231,6 +218,19 @@ void TestNewtonRaphsonLinearElasticDynamic(double                     RelativeCo
         calculated_displacement_y.push_back(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y, 0));
     }
 
+    // check if the building functions are called the right amount, as this is largely why this solver is efficient for linear elastic systems
+    KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateLeftHandSideCalled(), 1);
+    KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateMassMatrixCalled(), 1);
+    KRATOS_EXPECT_EQ(geo_custom_element.GetCalculateDampingMatrixCalled(), 1);
+    KRATOS_EXPECT_EQ(geo_custom_element.GetCountCalculateRightHandSideCalled(), 0);
+
+    KRATOS_EXPECT_EQ(geo_custom_condition.GetCountCalculateLeftHandSideCalled(), 1);
+    KRATOS_EXPECT_EQ(geo_custom_condition.GetCountCalculateMassMatrixCalled(), 1);
+    KRATOS_EXPECT_EQ(geo_custom_condition.GetCalculateDampingMatrixCalled(), 1);
+
+    // rhs for conditions is called each time step and during initialisation
+    KRATOS_EXPECT_EQ(geo_custom_condition.GetCountCalculateRightHandSideCalled(), n_steps + 1);
+
     // check results
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_x, rExpectedDisplacementX, 0.01);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_displacement_y, rExpectedDisplacementY, 0.01);
@@ -247,9 +247,15 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
                                                    2.23,    2.76,   3.0,   2.85,  2.28,  1.40};
     std::vector<double> expected_displacement_y = {0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
                                                    5.13,  4.48, 3.64, 2.90, 2.44, 2.31};
+    double              relative_convergence_tolerance = 100;
+    double              absolute_convergence_tolerance = 100;
+    double              delta_time                     = 0.28;
+    bool                calculate_initial_acceleration = true;
+    bool                use_direct_solver              = true;
 
-    TestNewtonRaphsonLinearElasticDynamic(100, 100, 0.28, true, true, expected_displacement_x,
-                                          expected_displacement_y);
+    TestNewtonRaphsonLinearElasticDynamic(relative_convergence_tolerance, absolute_convergence_tolerance,
+                                          delta_time, calculate_initial_acceleration, use_direct_solver,
+                                          expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -264,8 +270,15 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     std::vector<double> expected_displacement_y = {0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
                                                    5.13,  4.48, 3.64, 2.90, 2.44, 2.31};
 
-    TestNewtonRaphsonLinearElasticDynamic(100, 100, 0.28, true, false, expected_displacement_x,
-                                          expected_displacement_y);
+    double relative_convergence_tolerance = 100;
+    double absolute_convergence_tolerance = 100;
+    double delta_time                     = 0.28;
+    bool   calculate_initial_acceleration = true;
+    bool   use_direct_solver              = false;
+
+    TestNewtonRaphsonLinearElasticDynamic(relative_convergence_tolerance, absolute_convergence_tolerance,
+                                          delta_time, calculate_initial_acceleration, use_direct_solver,
+                                          expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -280,8 +293,15 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     std::vector<double> expected_displacement_y = {0.364, 1.35, 2.68, 4.00, 4.95, 5.34,
                                                    5.13,  4.48, 3.64, 2.90, 2.44, 2.31};
 
-    TestNewtonRaphsonLinearElasticDynamic(1e-12, 1e-12, 0.28, true, true, expected_displacement_x,
-                                          expected_displacement_y);
+    double relative_convergence_tolerance = 1e-12;
+    double absolute_convergence_tolerance = 1e-12;
+    double delta_time                     = 0.28;
+    bool   calculate_initial_acceleration = true;
+    bool   use_direct_solver              = true;
+
+    TestNewtonRaphsonLinearElasticDynamic(relative_convergence_tolerance, absolute_convergence_tolerance,
+                                          delta_time, calculate_initial_acceleration, use_direct_solver,
+                                          expected_displacement_x, expected_displacement_y);
 }
 
 /// <summary>
@@ -295,8 +315,15 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicZeroInitialAccelerati
     std::vector<double> expected_displacement_y = {2.99, 3.02, 2.97, 3.04, 2.95, 3.06,
                                                    2.93, 3.08, 2.91, 3.09, 2.90, 3.11};
 
-    TestNewtonRaphsonLinearElasticDynamic(100, 100, 28.0, false, true, expected_displacement_x,
-                                          expected_displacement_y);
+    double relative_convergence_tolerance = 100;
+    double absolute_convergence_tolerance = 100;
+    double delta_time                     = 28;
+    bool   calculate_initial_acceleration = false;
+    bool   use_direct_solver              = true;
+
+    TestNewtonRaphsonLinearElasticDynamic(relative_convergence_tolerance, absolute_convergence_tolerance,
+                                          delta_time, calculate_initial_acceleration, use_direct_solver,
+                                          expected_displacement_x, expected_displacement_y);
 }
 
 } // namespace Kratos::Testing
