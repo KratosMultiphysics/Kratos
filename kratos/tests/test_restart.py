@@ -145,7 +145,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         temporary_model = KratosMultiphysics.Model() #this lives only until the end of this function
 
-        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), temporary_model)
+        model_part = ReadModelPart(GetFilePath("test_files/mdpa_files/test_model_part_io_read"), temporary_model)
 
         serializer_save = KratosMultiphysics.FileSerializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
@@ -173,7 +173,7 @@ class TestRestart(KratosUnittest.TestCase):
         #creating a Model which will be destroyed at the end of the save function
         temporary_model = KratosMultiphysics.Model()
 
-        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), temporary_model)
+        model_part = ReadModelPart(GetFilePath("test_files/mdpa_files/test_model_part_io_read"), temporary_model)
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0 # saving is only done if time > 0.0
 
@@ -244,7 +244,7 @@ class TestRestart(KratosUnittest.TestCase):
 
     def test_save_restart_process(self):
         model = KratosMultiphysics.Model()
-        model_part = ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), model)
+        model_part = ReadModelPart(GetFilePath("test_files/mdpa_files/test_model_part_io_read"), model)
 
         # Here "step" is used as control type, since "time" (=> default) is covered in the tests above
         save_restart_process_params = KratosMultiphysics.Parameters("""{

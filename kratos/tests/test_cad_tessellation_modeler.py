@@ -29,7 +29,7 @@ class TestCadTessellationModeler(KratosUnittest.TestCase):
                 "echo_level": 0,
                 "cad_model_part_name": "CadModelPart",
                 "geometry_file_name":
-                    "auxiliar_files_for_python_unittest/cad_json_files/cylinder.cad.json"
+                    "test_files/cad_json_files/cylinder.cad.json"
             } }, {
             "modeler_name": "CadTessellationModeler",
             "Parameters": {

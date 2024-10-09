@@ -100,7 +100,7 @@ def FiniteDifferenceNormalShapeSensitivityTest(UnitTestObject, model_part, check
 class TestCoordinateTransformationUtilitiesCoarseSphere(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        SetupModelPart(cls, "auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions", 3)
+        SetupModelPart(cls, "test_files/mdpa_files/coarse_sphere_with_conditions", 3)
 
     @classmethod
     def tearDownClass(cls):
@@ -117,7 +117,7 @@ class TestCoordinateTransformationUtilitiesCoarseSphere(KratosUnittest.TestCase)
 class TestCoordinateTransformationUtilities2DSymmetricalSquare(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        SetupModelPart(cls, "auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", 2)
+        SetupModelPart(cls, "test_files/mdpa_files/two_dim_symmetrical_square", 2)
 
     @classmethod
     def tearDownClass(cls):

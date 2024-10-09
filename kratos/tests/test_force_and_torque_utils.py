@@ -21,7 +21,7 @@ def GenerateModelPart(generate_moments=True):
 
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
     KratosMultiphysics.ModelPartIO(
-        str(GetFullPathToFile("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        str(GetFullPathToFile("test_files/mdpa_files/test_model_part_io_read"))
     ).ReadModelPart(model_part)
 
     model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.REACTION_X, 10.0)

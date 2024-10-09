@@ -33,7 +33,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         # Adding PARTITION_INDEX
         if KM.IsDistributedRun():
             cls.model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod

@@ -117,7 +117,7 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KM.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
-        model_part_io = KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KM.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         utility = KM.ApplyFunctionToNodesUtility(model_part.Nodes, function)
@@ -139,7 +139,7 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KM.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
-        model_part_io = KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KM.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         current_process_info[KM.TIME] = 0.0

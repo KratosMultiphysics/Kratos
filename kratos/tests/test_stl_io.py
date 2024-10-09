@@ -96,7 +96,7 @@ class TestStlIO(KratosUnittest.TestCase):
         """
         Test the WriteModelPart function form StlIO
         """
-        mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
+        mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_skin")
         ReadModelPart(mdpa_name, self.model_part)
         data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
 

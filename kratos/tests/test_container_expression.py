@@ -29,7 +29,7 @@ class TestContainerExpression(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.STEP)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.STATIONARY)
         with kratos_unittest.WorkFolderScope(".", __file__, True):
-            ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
+            ReadModelPart("test_files/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
         for node in cls.model_part.Nodes:
             id = node.Id
@@ -941,7 +941,7 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
         cls.model_part = cls.model.CreateModelPart("test")
 
         with kratos_unittest.WorkFolderScope(".", __file__, True):
-            ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
+            ReadModelPart("test_files/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
         for node in cls.model_part.Nodes:
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 2]))

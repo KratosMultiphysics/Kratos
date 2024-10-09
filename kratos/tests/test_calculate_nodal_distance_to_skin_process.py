@@ -112,11 +112,11 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
         cls.current_model = KratosMultiphysics.Model()
         cls.model_part = cls.current_model.CreateModelPart("main_model_part")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere")
         ReadModelPart(cls.mdpa_name, cls.model_part)
         cls.skin_model_part = cls.current_model.CreateModelPart("skin_model_part")
         cls.skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        cls.skin_mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
+        cls.skin_mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_skin")
         ReadModelPart(cls.skin_mdpa_name, cls.skin_model_part)
 
     @classmethod

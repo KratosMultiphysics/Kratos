@@ -109,7 +109,7 @@ def ExecuteBasicTikZoutputProcessCheck():
     tikz_output_process.ExecuteBeforeSolutionLoop()
 
     Check(os.path.join("test_tikz_output","Main_STEP_" + str(step)+".tex"),\
-                os.path.join("auxiliar_files_for_python_unittest", "tikz_output_process_ref_files", "Main_STEP_"+str(step)+".tex"))
+                os.path.join("test_files", "tikz_output_process_ref_files", "Main_STEP_"+str(step)+".tex"))
 
     # NOTE: Once postprocess works, activate this
     #while (time <= end_time):
@@ -124,7 +124,7 @@ def ExecuteBasicTikZoutputProcessCheck():
             #tikz_output_process.PrintOutput()
 
             #Check(os.path.join("test_tikz_output","Main_STEP_" + str(step)+".tex"),\
-                #os.path.join("auxiliar_files_for_python_unittest", "tikz_output_process_ref_files", "Main_STEP_"+str(step)+".tex"))
+                #os.path.join("test_files", "tikz_output_process_ref_files", "Main_STEP_"+str(step)+".tex"))
 
 if __name__ == '__main__':
     KratosUnittest.main()

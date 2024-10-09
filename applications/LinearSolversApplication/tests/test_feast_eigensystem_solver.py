@@ -29,7 +29,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, K) # symmetric test matrix
         self.assertTrue(file_read, msg="The matrix file could not be read")
@@ -90,7 +90,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "small_A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "small_A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, K) # symmetric test matrix
         self.assertTrue(file_read, msg="The matrix file could not be read")
@@ -213,7 +213,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, K_real) # symmetric test matrix
         self.assertTrue(file_read, msg="The matrix file could not be read")
@@ -274,7 +274,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "small_A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "small_A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, K_real) # symmetric test matrix
         self.assertTrue(file_read, msg="The matrix file could not be read")

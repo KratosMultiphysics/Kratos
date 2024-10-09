@@ -58,7 +58,7 @@ class TestSequentialOrchestrator(KratosMultiphysics.KratosUnittest.TestCase):
 
     def test_sequential_orchestrator(self):
         # Parse sequential orchestrator settings
-        project_parameters_filename = pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/test_sequential_orchestrator.json")
+        project_parameters_filename = pathlib.Path("test_files/orchestrators_files/test_sequential_orchestrator.json")
         with open(project_parameters_filename, 'r') as parameter_file:
             project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -74,14 +74,14 @@ class TestSequentialOrchestrator(KratosMultiphysics.KratosUnittest.TestCase):
 
         # Check that the checkpoint files exist
         # Note that content cannot be checked as some values depend on the compilation
-        self.assertTrue(pathlib.Path.exists(pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/checkpoints/stage_1")))
-        self.assertTrue(pathlib.Path.exists(pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/checkpoints/stage_2")))
-        self.assertTrue(pathlib.Path.exists(pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/checkpoints/test_sequential_orchestrator_stage_1.json")))
-        self.assertTrue(pathlib.Path.exists(pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/checkpoints/test_sequential_orchestrator_stage_2.json")))
+        self.assertTrue(pathlib.Path.exists(pathlib.Path("test_files/orchestrators_files/checkpoints/stage_1")))
+        self.assertTrue(pathlib.Path.exists(pathlib.Path("test_files/orchestrators_files/checkpoints/stage_2")))
+        self.assertTrue(pathlib.Path.exists(pathlib.Path("test_files/orchestrators_files/checkpoints/test_sequential_orchestrator_stage_1.json")))
+        self.assertTrue(pathlib.Path.exists(pathlib.Path("test_files/orchestrators_files/checkpoints/test_sequential_orchestrator_stage_2.json")))
 
     def tearDown(self):
         # Remove the checkpointing files
-        KratosMultiphysics.kratos_utilities.DeleteDirectoryIfExisting("auxiliar_files_for_python_unittest/orchestrators_files/checkpoints")
+        KratosMultiphysics.kratos_utilities.DeleteDirectoryIfExisting("test_files/orchestrators_files/checkpoints")
 
         # Remove the auxiliary EmptyAnalysisStage from the registry
         KratosMultiphysics.Registry.RemoveItem("Stages.KratosMultiphysics.EmptyAnalysisStage")

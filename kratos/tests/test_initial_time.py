@@ -16,7 +16,7 @@ class TestInitialTime(KratosUnittest.TestCase):
 
     def testInitialTime(self):
         model = KratosMultiphysics.Model()
-        parameters_name = GetFilePath("auxiliar_files_for_python_unittest/parameters_files/test_initial_time.json")
+        parameters_name = GetFilePath("test_files/parameters_files/test_initial_time.json")
         with open(parameters_name, 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -44,7 +44,7 @@ class TestInitialTime(KratosUnittest.TestCase):
     def _SetModelPartName(parameters, model_part_name):
         parameters["solver_settings"]["model_part_name"].SetString(model_part_name)
 
-        materials_pattern = "auxiliar_files_for_python_unittest/materials_files/initial_time_{}.json"
+        materials_pattern = "test_files/materials_files/initial_time_{}.json"
         materials_filename = GetFilePath(materials_pattern.format(model_part_name.lower()))
         parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(materials_filename)
 
