@@ -571,6 +571,11 @@ class RomManager(object):
                 if NonConvergedSolutionsGathering:
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
 
+                simulation.Clear()
+                del simulation
+                del SnapshotsMatrix
+                import gc
+                gc.collect()
 
 
     def _LaunchComputeSolutionBasis(self, mu_train):
@@ -651,6 +656,12 @@ class RomManager(object):
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
+                simulation.Clear()
+                del simulation
+                del SnapshotsMatrix
+                import gc
+                gc.collect()
+
         self.GenerateDatabaseSummary()
 
 
@@ -722,6 +733,13 @@ class RomManager(object):
                     simulation.Run()
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
+
+                simulation.Clear()
+                del simulation
+                del ResidualProjected
+                import gc
+                gc.collect()
+
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
             self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
@@ -786,6 +804,12 @@ class RomManager(object):
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
+                simulation.Clear()
+                del simulation
+                del SnapshotsMatrix
+                import gc
+                gc.collect()
+
         self.GenerateDatabaseSummary()
 
     def _LaunchHHROM(self, mu_train, gid_and_vtk_name ='HHROM_Fit'):
@@ -823,6 +847,12 @@ class RomManager(object):
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("HHROM", mu, SnapshotsMatrix)
 
+                simulation.Clear()
+                del simulation
+                del SnapshotsMatrix
+                import gc
+                gc.collect()
+
         self.GenerateDatabaseSummary()
 
 
@@ -844,6 +874,11 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
+            simulation.Clear()
+            del simulation
+            import gc
+            gc.collect()
+
     def _LaunchRunROM(self, mu_run, nn_rom_interface=None):
         """
         This method should be parallel capable
@@ -862,6 +897,11 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
+
+            simulation.Clear()
+            del simulation
+            import gc
+            gc.collect()
 
 
     def _LaunchRunHROM(self, mu_run, use_full_model_part):
@@ -886,6 +926,11 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
+            simulation.Clear()
+            del simulation
+            import gc
+            gc.collect()
+
 
     def _LaunchRunHHROM(self, mu_run):
         """
@@ -907,6 +952,11 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
+
+            simulation.Clear()
+            del simulation
+            import gc
+            gc.collect()
 
     def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
