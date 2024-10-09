@@ -356,10 +356,20 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
 
     p_element->GetProperties().SetValue(NUMBER_OF_UMAT_PARAMETERS, 1);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                      "Phi should be between 0 and 90 degrees for element 1.");
+                                      "Phi (-30) should be between 0 and 90 degrees for element 1.");
 
     umat_parameters[0] = 30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
+    p_element->GetProperties().SetValue(OCR, 0.5);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "OCR (0.5) should be in the range [1.0,-> for element 1.");
+
+    p_element->GetProperties().Erase(OCR);
+    p_element->GetProperties().SetValue(POP, -100.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "POP (-100) should be in the range [0.0,-> for element 1.");
+
+    p_element->GetProperties().Erase(POP);
     KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 

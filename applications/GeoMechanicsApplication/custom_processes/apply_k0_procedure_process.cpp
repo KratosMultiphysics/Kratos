@@ -65,6 +65,7 @@ int ApplyK0ProcedureProcess::Check()
         const auto& r_properties = rElement.GetProperties();
         CheckK0MainDirection(r_properties, rElement.Id());
         CheckSufficientMaterialParameters(r_properties, rElement.Id());
+        CheckOCRorPOP(r_properties, rElement.Id());
         CheckPoissonUnloadingReloading(r_properties, rElement.Id());
         CheckPhi(r_properties, rElement.Id());
     });
@@ -93,10 +94,28 @@ void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType 
 
         const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
         KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-            << "Phi should be between 0 and 90 degrees for element " << ElementId << "." << std::endl;
+            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId << "." << std::endl;
     }
 }
 
+void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
+{
+    if ( rProperties.Has(K0_NC) || (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
+        rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS))) {
+
+        if (rProperties.Has(OCR)) {
+            const double ocr = rProperties[OCR];
+            KRATOS_ERROR_IF(ocr<1.0)
+                << "OCR (" << ocr << ") should be in the range [1.0,-> for element " << ElementId << "." << std::endl;
+        }
+
+        if (rProperties.Has(POP)) {
+            const double pop = rProperties[POP];
+            KRATOS_ERROR_IF(pop <= 0.0)
+                << "POP (" << pop << ") should be in the range [0.0,-> for element " << ElementId << "." << std::endl;
+        }
+    }
+}
 void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& rProperties, IndexType ElementId)
 {
     KRATOS_ERROR_IF(rProperties.Has(POISSON_UNLOADING_RELOADING) &&
