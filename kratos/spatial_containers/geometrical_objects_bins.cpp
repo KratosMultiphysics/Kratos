@@ -284,63 +284,41 @@ bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
     )
 {
     // Check the indices
-    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
-    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
-    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction: " << mNumberOfCells[0] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction: " << mNumberOfCells[1] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction: " << mNumberOfCells[2] << std::endl;
 
     // Calculate the squared radius
     const double squared_radius = Radius * Radius;
 
-    // Get the bounding box points min point
+    // Get the bounding box's minimum point
     const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
 
-    // Calculate the minimum point in the bounding box
+    // Calculate the minimum point of the cell
     array_1d<double, 3> min_point;
     min_point[0] = r_min_point[0] + I * mCellSizes[0];
     min_point[1] = r_min_point[1] + J * mCellSizes[1];
     min_point[2] = r_min_point[2] + K * mCellSizes[2];
 
-    // Calculate the maximum point in the bounding box
+    // Calculate the maximum point of the cell
     array_1d<double, 3> max_point;
     max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
     max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
     max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
 
-    // Determine the farthest point in the bounding box from the center point
-    const double x_farthest = (rPoint[0] < (min_point[0] + max_point[0]) / 2) ? max_point[0] : min_point[0];
-    const double y_farthest = (rPoint[1] < (min_point[1] + max_point[1]) / 2) ? max_point[1] : min_point[1];
-    const double z_farthest = (rPoint[2] < (min_point[2] + max_point[2]) / 2) ? max_point[2] : min_point[2];
+    // Calculate squared distances from rPoint to min_point and max_point
+    const double dx_min = min_point[0] - rPoint[0];
+    const double dy_min = min_point[1] - rPoint[1];
+    const double dz_min = min_point[2] - rPoint[2];
+    const double distance_squared_min = dx_min * dx_min + dy_min * dy_min + dz_min * dz_min;
 
-    // Calculate the squared distance to avoid using sqrt
-    const double dx = x_farthest - rPoint[0];
-    const double dy = y_farthest - rPoint[1];
-    const double dz = z_farthest - rPoint[2];
-    const double distance_squared = dx * dx + dy * dy + dz * dz;
+    const double dx_max = max_point[0] - rPoint[0];
+    const double dy_max = max_point[1] - rPoint[1];
+    const double dz_max = max_point[2] - rPoint[2];
+    const double distance_squared_max = dx_max * dx_max + dy_max * dy_max + dz_max * dz_max;
 
-    // Compare squared distance with squared radius
-    return distance_squared <= squared_radius;
-
-    // NOTE: This is the brute force way to do it, but it is not efficient
-    // // Iterate over all 8 corners of the bounding box
-    // double dx, dy, dz, distance_squared;
-    // array_1d<double, 3> corner;
-    // for (int i = 0; i < 8; ++i) {
-    //     corner[0] = (i & 1) ? max_point[0] : min_point[0];
-    //     corner[1] = (i & 2) ? max_point[1] : min_point[1];
-    //     corner[2] = (i & 4) ? max_point[2] : min_point[2];
-
-    //     // Calculate the squared distance to avoid using sqrt
-    //     dx = corner[0] - rPoint[0];
-    //     dy = corner[1] - rPoint[1];
-    //     dz = corner[2] - rPoint[2];
-    //     distance_squared = dx * dx + dy * dy + dz * dz;
-
-    //     // If any corner is outside the radius, return false
-    //     if (distance_squared > squared_radius) {
-    //         return false;
-    //     }
-    // }
-    // return true;
+    // Check if both min_point and max_point are within the squared radius
+    return (distance_squared_min <= squared_radius) && (distance_squared_max <= squared_radius);
 }
 
 /***********************************************************************************/
