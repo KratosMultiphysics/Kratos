@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Additional imports
 import os
+import sys
 
 import numpy as np
 
@@ -27,7 +28,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
         # Print A Matrix file
         with open(file_name, "r") as f:
-            print(f.read())
+            print(f.read(), file=sys.stderr)
 
         A_python = io.mmread(GetFilePath(file_name))
         A_python.toarray()
