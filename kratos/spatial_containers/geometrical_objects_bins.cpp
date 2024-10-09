@@ -173,12 +173,9 @@ void GeometricalObjectsBins::SearchInBoundingBox(
     noalias(bounding_box.GetMinPoint().Coordinates()) = rMinPoint;
     noalias(bounding_box.GetMaxPoint().Coordinates()) = rMaxPoint;
 
-    // Initialize the current size
-    std::size_t current_size = 0;
-
     // Initialize the candidates
     std::unordered_set<GeometricalObject*> candidates;
-    std::unordered_set<GeometricalObject*> to_remove;
+    std::unordered_set<GeometricalObject*> processed_objects;
 
     // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
@@ -195,16 +192,15 @@ void GeometricalObjectsBins::SearchInBoundingBox(
         for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
             for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
                 auto& r_cell = GetCell(i, j, k);
+
+                // Check if the cell's bounding box intersects with the search bounding box
                 if (IsCellBoundingBoxInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
-                    current_size = rResults.size();
-                    rResults.reserve(current_size + r_cell.size());
                     for(auto p_geometrical_object : r_cell) {
-                        auto insert_result = to_remove.insert(p_geometrical_object);
+                        // Insert the object into the processed set to avoid duplicates
+                        auto insert_result = processed_objects.insert(p_geometrical_object);
                         if (insert_result.second) {
-                            auto& r_geometry = p_geometrical_object->GetGeometry();
-                            const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+                            // Add the object to the results without calculating distance
                             rResults.push_back(ResultType(p_geometrical_object));
-                            rResults.back().SetDistance(distance);
                         }
                     }
                 } else {
@@ -216,27 +212,23 @@ void GeometricalObjectsBins::SearchInBoundingBox(
         }
     }
 
-    // Clear the candidates
-    for (const auto& r_element : to_remove) {
-        candidates.erase(r_element);
+    // Remove already processed objects from candidates
+    for (const auto& p_object : processed_objects) {
+        candidates.erase(p_object);
     }
 
-    // Loop over the candidates and filter by distance and fill the results
+    // Loop over the remaining candidates and check for intersection
     const auto& r_min_point = bounding_box.GetMinPoint();
     const auto& r_max_point = bounding_box.GetMaxPoint();
-    current_size = rResults.size();
-    rResults.reserve(current_size + candidates.size());
     for(auto& p_geometrical_object : candidates) {
         const auto& r_geometry = p_geometrical_object->GetGeometry();
-        if(r_geometry.HasIntersection(r_min_point, r_max_point)) { // NOTE: This operation is expensive, we should think a way to avoid it
-            const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+        if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
+            // Add the object to the results without calculating distance
             rResults.push_back(ResultType(p_geometrical_object));
-            rResults.back().SetDistance(distance);
         }
     }
 
-    // NOTE: We avoid shrink_to_fit for performance potential issues
-    // // Shrink the results
+    // Note: We avoid shrink_to_fit for potential performance issues
     // rResults.shrink_to_fit();
 }
 
