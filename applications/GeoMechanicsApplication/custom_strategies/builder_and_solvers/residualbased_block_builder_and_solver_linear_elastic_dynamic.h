@@ -156,8 +156,11 @@ public:
 
         Timer::Stop("Build");
 
-        //// apply constraints
+        
         TSystemVectorType dummy_b(rA.size1(), 0.0);
+        TSystemVectorType dummy_rDx(rA.size1(), 0.0);
+
+        // apply constraints
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
@@ -168,8 +171,6 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", this->GetEchoLevel() >= 1)
                 << "Constraints build time: " << timer_constraints << std::endl;
         }
-
-        TSystemVectorType dummy_rDx(rA.size1(), 0.0);
 
         // apply dirichlet conditions
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, dummy_rDx, rb);
@@ -182,7 +183,7 @@ public:
             << "\nRHS vector = " << rb << std::endl;
 
         if (mCalculateInitialSecondDerivative) {
-            this->CalculateInitialSecondDerivative(rModelPart, rA, rb);
+            this->CalculateInitialSecondDerivative(rModelPart, rA, rb, pScheme);
             mCopyExternalForceVector = true;
         }
 
@@ -469,6 +470,14 @@ protected:
         TSparseSpace::ScaleAndAdd(1.0, mCurrentExternalForceVector, -1.0,
                                   mPreviousExternalForceVector, mCurrentOutOfBalanceVector);
 
+        // Add constraint to the out of balance force before mass and damping components are added, since the mass and damping components are
+        // already constraint by the constraint mass and damping matrix.
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyRHSConstraints");
+            BaseType::ApplyRHSConstraints(pScheme, rModelPart, mCurrentOutOfBalanceVector);
+            Timer::Stop("ApplyRHSConstraints");
+        }
+
         this->AddMassAndDampingToRhs(rModelPart, mCurrentOutOfBalanceVector);
 
         // Does: rb = mCurrentOutOfBalanceVector - mPreviousOutOfBalanceVector;
@@ -559,9 +568,10 @@ protected:
         }
     }
 
-    void CalculateInitialSecondDerivative(ModelPart&         rModelPart,
-                                          TSystemMatrixType& rStiffnessMatrix,
-                                          TSystemVectorType& rExternalForce)
+    void CalculateInitialSecondDerivative(ModelPart&                    rModelPart,
+                                          TSystemMatrixType&            rStiffnessMatrix,
+                                          TSystemVectorType&            rExternalForce,
+                                          typename TSchemeType::Pointer pScheme)
     {
         TSystemVectorType solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
@@ -588,10 +598,29 @@ protected:
         TSparseSpace::ScaleAndAdd(1.0, rExternalForce, -1.0, stiffness_contribution, initial_force_vector);
         TSparseSpace::UnaliasedAdd(initial_force_vector, -1.0, damping_contribution);
 
+        // apply constraint to initial force vector, as the mMassmatrix is also constrained
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyRHSConstraints");
+            BaseType::ApplyRHSConstraints(pScheme, rModelPart, initial_force_vector);
+            Timer::Stop("ApplyRHSConstraints");
+        }
+
         // add dirichlet conditions to initial_force_vector
         this->ApplyDirichletConditionsRhs(initial_force_vector);
 
-        // solve for initial second derivative vector
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            TSystemVectorType Dxmodified(initial_force_vector.size());
+
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+            BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
+
+            // recover solution of the original problem
+            TSparseSpace::Mult(BaseType::mT, Dxmodified, second_derivative_vector);
+        } else {
+            BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
+        }
+
         BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);
 
         Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(

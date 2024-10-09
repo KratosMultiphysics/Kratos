@@ -60,7 +60,7 @@
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
-        "initialize_acceleration":            false,
+        "initialize_acceleration":            true,
         "min_alpha":                          0.1,
         "max_alpha":                          2.0,
         "line_search_tolerance":              0.5,
@@ -109,7 +109,7 @@
             "slave_model_part_name"  : "PorousDomain.SlaveTrial",
             "master_model_part_name" : "PorousDomain.MasterTrial",
             "variable_names"         : ["DISPLACEMENT","WATER_PRESSURE"],
-            "search_radius"          : 0.25,
+            "search_radius"          : 0.0001,
             "minimum_number_of_neighbouring_nodes": 2,
             "reform_constraints_at_each_step"     : false
         }

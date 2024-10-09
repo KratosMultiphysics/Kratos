@@ -30,7 +30,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_1d_wave_prop_drained_soil'
-        self.run_wave_through_drained_linear_elastic_soil_test(test_name)
+        self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
 
     def test_wave_through_drained_linear_elastic_soil_constant_mass_damping(self):
         """
@@ -46,7 +46,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         """
         test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping'
 
-        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name)
+        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
 
         # check if the correct builder and solver is used
         self.assertTrue(isinstance(simulation._GetSolver().builder_and_solver,
@@ -66,7 +66,31 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         """
         test_name = 'test_1d_wave_prop_drained_soil_linear_elastic_solver'
 
-        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name)
+        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
+
+        # check if the correct solver is used
+        self.assertTrue(isinstance(simulation._GetSolver().solver,
+                                   KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
+
+
+    def test_wave_through_drained_linear_elastic_soil_linear_elastic_solver_master_slave(self):
+        """
+        Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
+        on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
+        bottom of the geometry such that half the stress in the soil column is cancelled out. In this a solver is used
+        which is designed for linear elastic systems, thus matrices, are not recalculated every step and the linear
+        solver is factorized only once. Furthermore, the initial acceleration is calculated such that the first step is
+        in equilibrium. A master slave constraint is added in the middle of the column. Both master and slave nodes
+        should have the same displacement.
+
+        Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
+        time step size is increased for faster calculation
+        :return:
+        """
+        test_name = 'test_1d_wave_prop_drained_soil_linear_elastic_solver_master_slave'
+
+        node_keys = ["NODE_41", "NODE_83"]
+        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name,node_keys)
 
         # check if the correct solver is used
         self.assertTrue(isinstance(simulation._GetSolver().solver,
@@ -87,7 +111,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         """
         test_name = 'test_1d_wave_prop_drained_soil_linear_elastic_solver_initial_acceleration'
 
-        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name)
+        simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
 
         # check if the correct solver is used
         self.assertTrue(isinstance(simulation._GetSolver().solver,
@@ -131,7 +155,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what])
 
-    def run_wave_through_drained_linear_elastic_soil_test(self, test_name):
+    def run_wave_through_drained_linear_elastic_soil_test(self, test_name, node_keys):
         """
         Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
         on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
@@ -154,9 +178,9 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         with open(os.path.join(file_path, "expected_result.json")) as fp:
             expected_result = json.load(fp)
 
-        where = "NODE_41"
         what = "VELOCITY_Y"
-        self.assertVectorAlmostEqual(calculated_result[where][what], expected_result[where][what])
+        for node_key in node_keys:
+            self.assertVectorAlmostEqual(calculated_result[node_key][what], expected_result[node_key][what])
 
         return simulation
 

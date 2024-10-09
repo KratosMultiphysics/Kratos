@@ -157,23 +157,19 @@ public:
     void Predict() override
     {
         KRATOS_TRY
-        const DataCommunicator& r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         // if the operations needed were already performed this does nothing
         if (BaseType::mInitializeWasPerformed == false) this->Initialize();
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb  = *mpb;
+        TSystemMatrixType& rA  = *BaseType::mpA;
+        TSystemVectorType& rDx = *BaseType::mpDx;
+        TSystemVectorType& rb  = *BaseType::mpb;
 
-        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
-
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        DofsArrayType& r_dof_set = BaseType::GetBuilderAndSolver()->GetDofSet();
 
         BaseType::GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
-        // Note that constraints are not applied in this predict
+        // Note that constraints are not applied in this predict, nor is an update performed
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
