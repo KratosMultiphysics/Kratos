@@ -38,6 +38,7 @@ public:
     {
         rOutput = {mStressVector};
     }
+
     using Element::CalculateOnIntegrationPoints;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
@@ -46,6 +47,7 @@ public:
     {
         mStressVector = rValues[0];
     }
+
     using Element::SetValuesOnIntegrationPoints;
 
 private:
