@@ -81,7 +81,6 @@ double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
     return rValue;
 }
 
-//------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
 void SaturatedLaw::InitializeMaterial(const Properties&   rMaterialProperties,
                                       const GeometryType& rElementGeometry,
                                       const Vector&       rShapeFunctionsValues)

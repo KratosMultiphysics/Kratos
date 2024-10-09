@@ -36,8 +36,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
                 5.0, 6.0;
     // clang-format on
 
-    const auto calculated_matrix =
-        p_stress_state_policy->CalculateBMatrix(GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
+    const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
+        GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
     // clang-format off
     Matrix expected_matrix(4, 6);

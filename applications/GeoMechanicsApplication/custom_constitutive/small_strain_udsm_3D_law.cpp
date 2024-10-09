@@ -592,8 +592,7 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
         << "The GeoLinearElasticLaw needs an element provided strain" << std::endl;
 
     KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
-    << "Constitutive laws in the geomechanics application need a valid provided strain"
-    << std::endl;
+        << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         // Constitutive matrix (D matrix)
