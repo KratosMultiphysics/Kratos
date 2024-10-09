@@ -4,6 +4,7 @@
       <h4 class="center-align section-gray-header">Schedule</h4>
 
       <div class="row">
+
          <div class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
             <ul class="tabs">
                <li class="tab col s4"><a class="active" href="#day1"><span  style="font-weight: bold; font-size: 20px;">Day 1</span></a></li>
@@ -13,38 +14,78 @@
          </div>
 
          <!--- First Day -->
-         {% for day in site.data.workshop2024.schedule.days %}
-         <div id="{{day.name}}" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
-            {% for session in day.sessions %}
+         <div id="day1" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
             <table class="schedule">
                <tbody>
-                  {% if session.talks %}
                   <tr>
-                     <th>{{session.start_time}}-{{session.end_time}}</th>
-                     <td><h5>{{session.title}}</h5></td>
+                     <th>14:00-14:30</th>
+                     <td><h5>Welcome</h5></td>
                   </tr>
-                  <!-- {% for talk in session.talks %} -->
-                  <!-- <tr> -->
-                  <!--    <th>{{talk.start_time}}-{{talk.end_time}}</th> -->
-                  <!--    {% assign talksp = site.data.workshop2024.talks[talk.label] %} -->
-                  <!--    {% assign speaker = site.data.workshop2024.speakers[talksp.speaker] %} -->
-                  <!--    <td><b>{{speaker.name}}:</b> <i>{{talksp.title}}</i></td> -->
-                  <!-- </tr> -->
-                  <!-- {% endfor %} -->
-                  {% else %}
                   <tr>
-                     <th>{{session.start_time}}-{{session.end_time}}</th>
-                     <td><h5>{{session.title}}</h5></td>
+                     <th>14:30-16:00</th>
+                     <td><h5>Introduction to Kratos</h5></td>
                   </tr>
-                  {% endif %}
+                  <tr>
+                     <th>16:00-16:30</th>
+                     <td><h5>Coffee Break</h5></td>
+                  </tr>
+                  <tr>
+                     <th>16:30-18:30</th>
+                     <td><h5>Kratos 4 Industry</h5></td>
+                  </tr>
                </tbody>
             </table>
-            {% endfor %}
          </div>
-         {% endfor %}
+
+         <!--- Second Day -->
+         <div id="day2" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
+            <table class="schedule">
+               <tbody>
+                  <tr>
+                     <th>09:00-10:30</th>
+                     <td><h5>What's new in Kratos? Application Session (1)</h5></td>
+                  </tr>
+                  <tr>
+                     <th>10:30-11:00</th>
+                     <td><h5>Coffee Break</h5></td>
+                  </tr>
+                  <tr>
+                     <th>11:00-12:30</th>
+                     <td><h5>What's new in Kratos? Application Session (2)</h5></td>
+                  </tr>
+                  <tr>
+                     <th>12:30-14:00</th>
+                     <td><h5>Lunch Break</h5></td>
+                  </tr>
+                  <tr>
+                     <th>14:00-15:00</th>
+                     <td><h5>What's new in Kratos? Application Session (3)</h5></td>
+                  </tr>
+                  <tr>
+                     <th>15:00-16:00</th>
+                     <td><h5>What's new in Kratos? Core Session</h5></td>
+                  </tr>
+                  <tr>
+                     <th>16:00-18:00</th>
+                     <td><h5>Round Table & Coffee</h5></td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+
+         <!--- Third Day -->
+         <div id="day3" class="col s12 m10 offset-m1 l10 offset-l1 section-gray-body">
+            <table class="schedule">
+               <tbody>
+                  <tr>
+                     <th>09:00-TBD</th>
+                     <td><h5>Kratos Course</h5></td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+
       </div>
 
-      <div class="row">
-      </div>
    </div>
 </div>
