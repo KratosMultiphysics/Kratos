@@ -12,7 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.kratos_utilities import DeleteFilesEndingWith
 
 # TODO: Add fluid counter part
-class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanicsRemeshingTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.work_folder = "mmg_lagrangian_test"
