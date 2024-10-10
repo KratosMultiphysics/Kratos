@@ -84,8 +84,6 @@ public:
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Default Constructor
     explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)

@@ -24,7 +24,6 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluid
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 1
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
@@ -32,7 +31,6 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluid
 {
 }
 
-//----------------------------------------------------------------------------------------
 // Constructor 2
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
@@ -40,7 +38,6 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluid
 {
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
@@ -48,7 +45,6 @@ Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
 double AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(
     const IndexType                                 PointNumber,
     const GeometryType::JacobiansType&              JContainer,

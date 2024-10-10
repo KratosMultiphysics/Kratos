@@ -49,8 +49,6 @@ public:
     using EquationIdVectorType = Element::EquationIdVectorType;
     using DofsVectorType       = Element::DofsVectorType;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit UndrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
@@ -83,7 +81,6 @@ public:
 
     ~UndrainedUPwSmallStrainElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -113,19 +110,13 @@ public:
         rOStream << Info();
     }
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     /// Member Variables
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;

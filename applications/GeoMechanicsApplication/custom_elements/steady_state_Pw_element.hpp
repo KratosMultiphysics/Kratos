@@ -51,8 +51,6 @@ public:
 
     using ElementVariables = typename BaseType::ElementVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
@@ -78,18 +76,13 @@ public:
 
     ~SteadyStatePwElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Turn back information as a string.
     std::string Info() const override
@@ -112,12 +105,9 @@ public:
         rOStream << Info();
     }
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     /// Member Variables
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
@@ -128,13 +118,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;
