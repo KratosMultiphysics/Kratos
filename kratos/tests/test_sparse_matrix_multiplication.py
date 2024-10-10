@@ -24,12 +24,12 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
         from scipy.io import mmread
 
-        print('Reading matrix file ', file_name, file=sys.stderr)
-        print('Reading matrix file ', file_name, file=sys.stdout)
+        print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
+        print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
 
         try:
 
-            matrix_test = mmread(file_name)
+            matrix_test = mmread(GetFilePath(file_name))
 
         except Exception as e:
 
@@ -38,14 +38,10 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
             raise e
 
-        # A = KratosMultiphysics.CompressedMatrix()
-        # B = KratosMultiphysics.CompressedMatrix()
+        A = KratosMultiphysics.CompressedMatrix()
+        B = KratosMultiphysics.CompressedMatrix()
         # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
         # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
-
-        # Print A Matrix file
-        with open(file_name, "r") as f:
-            print(f.read(), file=sys.stderr)
 
         A_python = io.mmread(GetFilePath(file_name))
         A_python.toarray()
