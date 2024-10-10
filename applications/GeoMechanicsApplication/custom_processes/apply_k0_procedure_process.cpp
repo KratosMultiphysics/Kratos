@@ -18,6 +18,7 @@
 
 #include "containers/flags.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
@@ -68,6 +69,7 @@ int ApplyK0ProcedureProcess::Check()
         CheckOCRorPOP(r_properties, rElement.Id());
         CheckPoissonUnloadingReloading(r_properties, rElement.Id());
         CheckPhi(r_properties, rElement.Id());
+        CheckK0(r_properties, rElement.Id());
     });
 
     return 0;
@@ -79,6 +81,20 @@ void ApplyK0ProcedureProcess::CheckK0MainDirection(const Properties& rProperties
         << "K0_MAIN_DIRECTION is not defined for element " << ElementId << "." << std::endl;
     KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 1)
         << "K0_MAIN_DIRECTION should be 0 or 1 for element " << ElementId << "." << std::endl;
+}
+
+void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType ElementId)
+{
+    const auto k0_variables = Geo::ConstVariableRefs{
+        std::cref(K0_NC), std::cref(K0_VALUE_XX), std::cref(K0_VALUE_YY), std::cref(K0_VALUE_ZZ)};
+    for (const auto& k0_variable_ref : k0_variables) {
+        if (const auto& r_k0_variable = k0_variable_ref.get(); rProperties.Has(r_k0_variable)) {
+            const double k0_var_value = rProperties[r_k0_variable];
+            KRATOS_ERROR_IF(k0_var_value < 0.0)
+                << r_k0_variable.Name() << " (" << k0_var_value
+                << ") should be in the range [0.0,-> for element " << ElementId << "." << std::endl;
+        }
+    }
 }
 
 void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType ElementId)
@@ -94,28 +110,30 @@ void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType 
 
         const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
         KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId << "." << std::endl;
+            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId
+            << "." << std::endl;
     }
 }
 
 void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
 {
-    if ( rProperties.Has(K0_NC) || (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
-        rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS))) {
-
+    if (rProperties.Has(K0_NC) ||
+        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
+         rProperties.Has(NUMBER_OF_UMAT_PARAMETERS) && rProperties.Has(UMAT_PARAMETERS))) {
         if (rProperties.Has(OCR)) {
             const double ocr = rProperties[OCR];
-            KRATOS_ERROR_IF(ocr<1.0)
-                << "OCR (" << ocr << ") should be in the range [1.0,-> for element " << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
+                                       << ElementId << "." << std::endl;
         }
 
         if (rProperties.Has(POP)) {
             const double pop = rProperties[POP];
-            KRATOS_ERROR_IF(pop <= 0.0)
-                << "POP (" << pop << ") should be in the range [0.0,-> for element " << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(pop <= 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
+                                        << ElementId << "." << std::endl;
         }
     }
 }
+
 void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& rProperties, IndexType ElementId)
 {
     KRATOS_ERROR_IF(rProperties.Has(POISSON_UNLOADING_RELOADING) &&

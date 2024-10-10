@@ -42,6 +42,7 @@ private:
     [[nodiscard]] bool                       UseStandardProcedure() const;
     [[nodiscard]] static array_1d<double, 3> CreateK0Vector(const Element::PropertiesType& rProp);
     void                                     CalculateK0Stresses(Element& rElement) const;
+    static void CheckK0(const Properties& rProperties, IndexType ElementId);
     static void CheckK0MainDirection(const Properties& rProperties, IndexType ElementId);
     static void CheckOCRorPOP(const Properties& rProperties, IndexType ElementId);
     static void CheckPhi(const Properties& rProperties, IndexType ElementId);
