@@ -306,6 +306,17 @@ class DEMEnergyCalculator():
 
             self.energy_graph_counter += 1
 
+    def CalculateNormalizedKinematicEnergy(self):
+
+        particle_number_times_max_normal_ball_to_ball_force_times_radius = self.SpheresEnergyUtil.CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(self.SpheresModelPart)
+        
+        if particle_number_times_max_normal_ball_to_ball_force_times_radius == 0.0:
+            normalized_kinematic_energy = 0.0
+        else:
+            normalized_kinematic_energy = self.kinematic_energy / particle_number_times_max_normal_ball_to_ball_force_times_radius
+        
+        return normalized_kinematic_energy
+    
     def CalculateEnergy(self):
 
         self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart)
@@ -506,6 +517,7 @@ class Procedures():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR_RAW)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
@@ -817,16 +829,25 @@ class Procedures():
     def UpdateBoundingBox(self, spheres_model_part, creator_destructor):
 
         delta_time = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        #NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+        #delta_time_real = delta_time * NStepSearch
         move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
         
         b_box_low = Array3()
         b_box_high = Array3()
-        self.b_box_minX += delta_time * move_velocity
-        self.b_box_minY += delta_time * move_velocity
-        self.b_box_minZ += delta_time * move_velocity
-        self.b_box_maxX -= delta_time * move_velocity
-        self.b_box_maxY -= delta_time * move_velocity
-        self.b_box_maxZ -= delta_time * move_velocity
+        control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
+        if control_bool_vector[0]:
+            self.b_box_minX += delta_time * move_velocity
+        if control_bool_vector[1]:
+            self.b_box_minY += delta_time * move_velocity
+        if control_bool_vector[2]:
+            self.b_box_minZ += delta_time * move_velocity
+        if control_bool_vector[3]:
+            self.b_box_maxX -= delta_time * move_velocity
+        if control_bool_vector[4]:
+            self.b_box_maxY -= delta_time * move_velocity
+        if control_bool_vector[5]:
+            self.b_box_maxZ -= delta_time * move_velocity
         b_box_low[0] = self.b_box_minX
         b_box_low[1] = self.b_box_minY
         b_box_low[2] = self.b_box_minZ

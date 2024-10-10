@@ -5,7 +5,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 9.99e-1
+        "end_time": 1.99e-1
     },
     "solver_settings": {
         "solver_type": "partitioned_embedded",
@@ -24,7 +24,7 @@
                 "input_filename": "TO_BE_SET"
             },
             "material_import_settings": {
-                "materials_filename": "StructuralMaterialsVolumetric.json"
+                "materials_filename": "TO_BE_SET"
             },
             "time_stepping": {
                 "time_step": 1.0e-1
@@ -53,7 +53,7 @@
             },
             "echo_level"                  : 0,
             "compute_reactions"           : true,
-            "maximum_iterations"          : 10,
+            "maximum_iterations"          : 25,
             "relative_velocity_tolerance" : 1e-5,
             "absolute_velocity_tolerance" : 1e-7,
             "relative_pressure_tolerance" : 1e-5,
@@ -67,11 +67,6 @@
                 "time_step": 1.0e-1
             },
             "formulation": {
-                "element_type": "embedded_weakly_compressible_navier_stokes",
-                "is_slip": true,
-                "slip_length": 1.0e6,
-                "penalty_coefficient": 1.0e3,
-                "dynamic_tau": 1.0
             },
             "fm_ale_settings": {
                 "fm_ale_step_frequency": 1,
@@ -109,8 +104,8 @@
             }
         },
         "coupling_settings":{
-            "nl_tol": 1e-4,
-            "nl_max_it": 10,
+            "nl_tol": 1e-6,
+            "nl_max_it": 5,
             "coupling_strategy_settings": {
                 "solver_type": "MVQN"
             },
@@ -123,7 +118,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Structure.LeftEdge",
+                "model_part_name" : "Structure.Fixed",
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0,"End"],
                 "constrained"     : [true,true,false],

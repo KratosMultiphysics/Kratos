@@ -945,16 +945,6 @@ public:
         return tmp.Create();
     }
 
-   /**
-    * @brief Check if the UblasSpace is distributed.
-    * @details This static member function checks whether the UblasSpace is distributed or not.
-    * @return True if the space is distributed, false otherwise.
-    */
-    static constexpr bool IsDistributedSpace()
-    {
-        return false;
-    }
-
     ///@}
     ///@name Friends
     ///@{

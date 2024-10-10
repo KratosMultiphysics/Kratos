@@ -111,3 +111,16 @@ class ResponseFunction(ABC):
             Kratos.ModelPart: Response function model part which influences the response value.
         """
         pass
+
+    def GetChildResponses(self) -> 'list[ResponseFunction]':
+        """Returns the list of child responses.
+
+        This method returns list of child responses. If the current response is a leaf response,
+        then it will return empty list.
+
+        Needs to be implemented in non-leaf response functions.
+
+        Returns:
+            list[ResponseFunction]: List of child responses.
+        """
+        return []

@@ -186,6 +186,7 @@ class SimpControl(Control):
             self.control_phi = control_field
             self._UpdateAndOutputFields(update)
             self.filter.Update()
+            return True
 
             self.density_projection.Update()
             self.young_modulus_projection.Update()

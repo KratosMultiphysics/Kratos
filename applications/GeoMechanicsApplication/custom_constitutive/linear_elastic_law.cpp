@@ -52,21 +52,18 @@ void GeoLinearElasticLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
     const Flags& r_options = rValues.GetOptions();
 
-    Vector& r_strain_vector = rValues.GetStrainVector();
+    KRATOS_DEBUG_ERROR_IF(r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+        << "The GeoLinearElasticLaw needs an element provided strain" << std::endl;
 
-    // NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if (r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateCauchyGreenStrain(rValues, r_strain_vector);
-    }
+    KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
+        << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     }
 
     if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        Vector& r_stress_vector = rValues.GetStressVector();
-        CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
+        CalculatePK2Stress(rValues.GetStrainVector(), rValues.GetStressVector(), rValues);
     }
 
     KRATOS_CATCH("")
@@ -89,7 +86,6 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
     if (rThisVariable == STRAIN_ENERGY) {
         Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector& r_stress_vector = rParameterValues.GetStressVector();
-        this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
         this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
 
         rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
@@ -102,11 +98,8 @@ Vector& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
                                             const Variable<Vector>&      rThisVariable,
                                             Vector&                      rValue)
 {
-    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
-    } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-               rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 

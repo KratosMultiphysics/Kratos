@@ -28,7 +28,6 @@ Condition::Pointer UPwFaceLoadCondition<TDim, TNumNodes>::Create(IndexType      
     return Condition::Pointer(new UPwFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& CurrentProcessInfo)
@@ -71,6 +70,12 @@ void UPwFaceLoadCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRig
         noalias(UVector) = prod(trans(Nu), TractionVector) * integration_coefficient;
         GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwFaceLoadCondition<TDim, TNumNodes>::Info() const
+{
+    return "UPwFaceLoadCondition";
 }
 
 template class UPwFaceLoadCondition<2, 2>;
