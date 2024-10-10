@@ -20,8 +20,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCoreFastSuite)
 {
@@ -142,5 +141,91 @@ KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
 
     KRATOS_EXPECT_EQ(p_dof->GetId(), p_dof->Id());
 }
+
+KRATOS_TEST_CASE_IN_SUITE(Active, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(REACTION);
+    model_part.SetBufferSize(1);
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Dof<double>* p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
+
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
+
+    p_dof->Activate();
+    KRATOS_EXPECT_TRUE(p_dof->IsActive());
+
+    p_dof->Deactivate();
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
 }
-}  // namespace Kratos.
+
+KRATOS_TEST_CASE_IN_SUITE(DofFlags, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(REACTION);
+    model_part.SetBufferSize(1);
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Dof<double>* p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
+    p_dof->GetSolutionStepValue(VELOCITY_Y) = 1.23;
+
+    KRATOS_EXPECT_FALSE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_FALSE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    p_dof->Set(MASTER);
+    KRATOS_EXPECT_TRUE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_FALSE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    p_dof->Set(MASTER, false);
+    KRATOS_EXPECT_FALSE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_FALSE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    p_dof->Set(SLAVE);
+    KRATOS_EXPECT_FALSE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_TRUE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_FALSE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    p_dof->Activate();
+    KRATOS_EXPECT_FALSE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_TRUE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    {
+        Dof<double> copy = *p_dof;
+        KRATOS_EXPECT_FALSE(copy.Is(MASTER));
+        KRATOS_EXPECT_TRUE(copy.Is(SLAVE));
+        KRATOS_EXPECT_TRUE(copy.IsActive());
+        KRATOS_EXPECT_DOUBLE_EQ(copy.GetSolutionStepValue(VELOCITY_Y), 1.23);
+    }
+
+    p_dof->Set(MASTER);
+    KRATOS_EXPECT_TRUE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_TRUE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 1.23);
+
+    p_dof->GetSolutionStepValue(VELOCITY_Y) = 3.21;
+    KRATOS_EXPECT_TRUE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_TRUE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 3.21);
+
+    p_dof->Set(MASTER, false);
+    p_dof->Set(SLAVE, false);
+    KRATOS_EXPECT_FALSE(p_dof->Is(MASTER));
+    KRATOS_EXPECT_FALSE(p_dof->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(p_dof->IsActive());
+    KRATOS_EXPECT_DOUBLE_EQ(p_dof->GetSolutionStepValue(VELOCITY_Y), 3.21);
+}
+}  // namespace Kratos::Testing
