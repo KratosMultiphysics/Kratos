@@ -326,7 +326,7 @@ class ExplicitStrategy():
         else:
             self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
 
-        if self.servo_loading_option:
+        if self.bounding_box_servo_loading_option:
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 0)
