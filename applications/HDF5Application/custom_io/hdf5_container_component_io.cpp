@@ -1,383 +1,117 @@
-#include "custom_io/hdf5_container_component_io.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya, https://github.com/sunethwarna
+//
 
+// System includes
+#include <numeric>
+#include <type_traits>
+
+// Project includes
+#include "expression/container_data_io.h"
+
+// Application includes
+#include "custom_utilities/container_io_utils.h"
+#include "custom_utilities/data_type_utilities.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
-#include "custom_utilities/local_ghost_splitting_utility.h"
-#include "custom_utilities/registered_component_lookup.h"
-#include "custom_utilities/vertex.h"
-#include "includes/communicator.h"
-#include "includes/kratos_parameters.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/parallel_utilities.h"
+
+// Include base h
+#include "custom_io/hdf5_container_component_io.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
 
-// Local aliases
-using Vertex = Detail::Vertex;
-using VertexContainerType = Detail::VertexContainerType;
-
-namespace
+// TODO: rename this namespace once HDF5 refactoring is complete
+namespace NewContainerComponentIOUtilities
 {
-template <typename TContainerItemType, typename TDataType>
-void SetDataBuffer(Variable<TDataType> const&,
-                   std::vector<TContainerItemType*> const&,
-                   Vector<TDataType>&);
-
-template <typename TContainerItemType>
-void SetDataBuffer(Flags const&, std::vector<TContainerItemType*> const&, Vector<int>&);
-
-template <typename TContainerItemType>
-void SetDataBuffer(Variable<Vector<double>> const&,
-                   std::vector<TContainerItemType*> const&,
-                   Matrix<double>&);
-
-template <typename TContainerItemType>
-void SetDataBuffer(Variable<Matrix<double>> const&,
-                   std::vector<TContainerItemType*> const&,
-                   Matrix<double>&);
-
-template <typename TContainerItemType, typename TDataType>
-void SetItemDataValues(Variable<TDataType> const&,
-                       Vector<TDataType> const&,
-                       std::vector<TContainerItemType*>&);
-
-template <typename TContainerItemType>
-void SetItemDataValues(Flags const&, Vector<int> const&, std::vector<TContainerItemType*>&);
-
-template <typename TContainerItemType>
-void SetItemDataValues(Variable<Vector<double>> const&,
-                       Matrix<double> const&,
-                       std::vector<TContainerItemType*>&);
-
-template <typename TContainerItemType>
-void SetItemDataValues(Variable<Vector<double>> const&,
-                       Matrix<double> const&,
-                       std::vector<TContainerItemType*>&);
-
-template <typename TContainerItemType>
-void SetItemDataValues(Variable<Matrix<double>> const&,
-                       Matrix<double> const&,
-                       std::vector<TContainerItemType*>&,
-                       int,
-                       int);
-
-template <typename TContainerItemType>
-class ContainerItemComponentIO
-{
-public:
-    template <typename TComponent, typename dummy = void>
-    class WriteComponentFunctor
-    {
-    public:
-        void operator()(TComponent const& rComponent,
-                        std::vector<TContainerItemType*>& rContainerItems,
-                        File& rFile,
-                        std::string const& rPath,
-                        WriteInfo& rInfo,
-                        std::string const&)
-        {
-            Vector<typename TComponent::Type> data;
-            SetDataBuffer(rComponent, rContainerItems, data);
-            rFile.WriteDataSet(rPath + "/" + rComponent.Name(), data, rInfo);
-        }
-    };
-
-    template <typename dummy>
-    class WriteComponentFunctor<Flags, dummy>
-    {
-    public:
-        void operator()(Flags const& rComponent,
-                        std::vector<TContainerItemType*>& rContainerItems,
-                        File& rFile,
-                        std::string const& rPath,
-                        WriteInfo& rInfo,
-                        std::string const& rComponentName)
-        {
-            Vector<int> data;
-            SetDataBuffer(rComponent, rContainerItems, data);
-            rFile.WriteDataSet(rPath + "/" + rComponentName, data, rInfo);
-        }
-    };
-
-    template <typename dummy>
-    class WriteComponentFunctor<Variable<Vector<double>>, dummy>
-    {
-    public:
-        void operator()(Variable<Vector<double>> const& rComponent,
-                        std::vector<TContainerItemType*>& rContainerItems,
-                        File& rFile,
-                        std::string const& rPath,
-                        WriteInfo& rInfo,
-                        std::string const&)
-        {
-            Matrix<double> data;
-            SetDataBuffer(rComponent, rContainerItems, data);
-            rFile.WriteDataSet(rPath + "/" + rComponent.Name(), data, rInfo);
-        }
-    };
-
-    template <typename dummy>
-    class WriteComponentFunctor<Variable<Matrix<double>>, dummy>
-    {
-    public:
-        void operator()(Variable<Matrix<double>> const& rComponent,
-                        std::vector<TContainerItemType*>& rContainerItems,
-                        File& rFile,
-                        std::string const& rPath,
-                        WriteInfo& rInfo,
-                        std::string const&)
-        {
-            Matrix<double> data;
-            SetDataBuffer(rComponent, rContainerItems, data);
-            rFile.WriteDataSet(rPath + "/" + rComponent.Name(), data, rInfo);
-            const int size1 = rContainerItems.front()->GetValue(rComponent).size1();
-            const int size2 = rContainerItems.front()->GetValue(rComponent).size2();
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", size1);
-            rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", size2);
-        }
-    };
-
-    template <typename TComponent, template <typename T> class TSynchronizingFunctor>
-    class ReadComponentFunctor
-    {
-    public:
-        void operator()(TComponent const& rComponent,
-                        std::vector<TContainerItemType*>& rLocalItems,
-                        Communicator& rCommunicator,
-                        File& rFile,
-                        std::string const& rPath,
-                        std::size_t StartIndex,
-                        std::size_t BlockSize,
-                        std::string const&)
-        {
-            Vector<typename TComponent::Type> data;
-            rFile.ReadDataSet(rPath + "/" + rComponent.Name(), data, StartIndex, BlockSize);
-            SetItemDataValues(rComponent, data, rLocalItems);
-            TSynchronizingFunctor<TComponent>()(rComponent, rCommunicator);
-        }
-    };
-
-    template <template <typename T> class TSynchronizingFunctor>
-    class ReadComponentFunctor<Flags, TSynchronizingFunctor>
-    {
-    public:
-        void operator()(Flags const& rComponent,
-                        std::vector<TContainerItemType*>& rLocalItems,
-                        Communicator& rCommunicator,
-                        File& rFile,
-                        std::string const& rPath,
-                        std::size_t StartIndex,
-                        std::size_t BlockSize,
-                        std::string const& rComponentName)
-        {
-            Vector<int> data;
-            rFile.ReadDataSet(rPath + "/" + rComponentName, data, StartIndex, BlockSize);
-            SetItemDataValues(rComponent, data, rLocalItems);
-        }
-    };
-
-    template <template <typename T> class TSynchronizingFunctor>
-    class ReadComponentFunctor<Variable<Vector<double>>, TSynchronizingFunctor>
-    {
-    public:
-        void operator()(Variable<Vector<double>> const& rComponent,
-                        std::vector<TContainerItemType*>& rLocalItems,
-                        Communicator& rCommunicator,
-                        File& rFile,
-                        std::string const& rPath,
-                        std::size_t StartIndex,
-                        std::size_t BlockSize,
-                        std::string const&)
-        {
-            Matrix<double> data;
-            rFile.ReadDataSet(rPath + "/" + rComponent.Name(), data, StartIndex, BlockSize);
-            SetItemDataValues(rComponent, data, rLocalItems);
-            TSynchronizingFunctor<Variable<Vector<double>>>()(rComponent, rCommunicator);
-        }
-    };
-
-    template <template <typename T> class TSynchronizingFunctor>
-    class ReadComponentFunctor<Variable<Matrix<double>>, TSynchronizingFunctor>
-    {
-    public:
-        void operator()(Variable<Matrix<double>> const& rComponent,
-                        std::vector<TContainerItemType*>& rLocalItems,
-                        Communicator& rCommunicator,
-                        File& rFile,
-                        std::string const& rPath,
-                        std::size_t StartIndex,
-                        std::size_t BlockSize,
-                        std::string const&)
-        {
-            Matrix<double> data;
-            rFile.ReadDataSet(rPath + "/" + rComponent.Name(), data, StartIndex, BlockSize);
-            int size1, size2;
-            rFile.ReadAttribute(rPath + "/" + rComponent.Name(), "Size1", size1);
-            rFile.ReadAttribute(rPath + "/" + rComponent.Name(), "Size2", size2);
-            SetItemDataValues(rComponent, data, rLocalItems, size1, size2);
-            TSynchronizingFunctor<Variable<Matrix<double>>>()(rComponent, rCommunicator);
-        }
-    };
+template<class TContainerType>
+struct SynchronizeComponent {
+    template<class TContainerDataIO, class TComponent>
+    static void Execute(
+        Communicator& rCommunicator,
+        const TComponent& rComponent)
+    {}
 };
 
-template <typename TComponent>
-class ComponentElementSynchronizingFunctor
+template<>
+struct SynchronizeComponent<ModelPart::NodesContainerType>
 {
-public:
-    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
+    template<class TContainerDataIO, class TComponent>
+    static void Execute(
+        Communicator& rCommunicator,
+        const TComponent& rComponent)
     {
+        if constexpr(std::is_same_v<TContainerDataIO, Internals::FlagIO>) {
+            rCommunicator.SynchronizeOrNodalFlags(rComponent);
+        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::HistoricalIO> || std::is_same_v<TContainerDataIO, Internals::BossakIO>) {
+            rCommunicator.SynchronizeVariable(rComponent);
+        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::NonHistoricalIO>) {
+            rCommunicator.SynchronizeNonHistoricalVariable(rComponent);
+        } else {
+            static_assert(!std::is_same_v<TContainerDataIO, TContainerDataIO>, "Unsupported TContainerDataIO.");
+        }
     }
 };
+} // namespace NewContainerComponentIOUtilities
 
-template <typename TComponent>
-class ComponentConditionSynchronizingFunctor
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::CheckReservedAttributes(const Parameters Attributes)
 {
-public:
-    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
-    {
+    KRATOS_TRY
+
+    for (const auto& r_attribute_key : ReservedAttributeKeys) {
+        KRATOS_ERROR_IF(Attributes.Has(r_attribute_key))
+            << "The reserved keyword \"" << r_attribute_key << "\" is found. Please remove it from attributes."
+            << "Followings are the given attributes:\n" << Attributes << std::endl;
     }
-};
 
-template <typename TComponent>
-class ComponentNodeSynchronizingFunctor
-{
-public:
-    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
-    {
-        rCommunicator.SynchronizeNonHistoricalVariable(rComponent);
-    }
-};
-
-template <>
-class ComponentNodeSynchronizingFunctor<Flags>
-{
-public:
-    void operator()(Flags const& rComponent, std::vector<NodeType*>& rGhostNodes, Communicator& rCommunicator)
-    {
-    }
-};
-
-template <typename TComponent>
-class WriteElementComponent
-    : public ContainerItemComponentIO<ElementType>::WriteComponentFunctor<TComponent, void>
-{
-};
-
-template <typename TComponent>
-class ReadElementComponent
-    : public ContainerItemComponentIO<ElementType>::ReadComponentFunctor<TComponent, ComponentElementSynchronizingFunctor>
-{
-};
-
-template <typename TComponent>
-class WriteConditionComponent
-    : public ContainerItemComponentIO<ConditionType>::WriteComponentFunctor<TComponent, void>
-{
-};
-
-template <typename TComponent>
-class ReadConditionComponent
-    : public ContainerItemComponentIO<ConditionType>::ReadComponentFunctor<TComponent, ComponentConditionSynchronizingFunctor>
-{
-};
-
-template <typename TComponent>
-class WriteNodeComponent
-    : public ContainerItemComponentIO<NodeType>::WriteComponentFunctor<TComponent, void>
-{
-};
-
-template <typename TComponent>
-class ReadNodeComponent
-    : public ContainerItemComponentIO<NodeType>::ReadComponentFunctor<TComponent, ComponentNodeSynchronizingFunctor>
-{
-};
-
-template <class TComponent>
-class WriteVertexComponent
-    : public ContainerItemComponentIO<Vertex>::WriteComponentFunctor<TComponent, void>
-{
-};
-
-// Reading into a Vertex is not (yet) supported
-template <class TComponent>
-class ReadVertexComponent
-{
-public:
-    template <class ...TArguments>
-    void operator()(TArguments&&... rArguments)
-    {
-        KRATOS_ERROR << "Reading Vertex data from HDF5 is not implemented";
-    }
-};
-
-void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
-                                ElementsContainerType const& rElements)
-{
-    rLocalElements.resize(rElements.size());
-
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
-    {
-        auto it = rElements.begin() + i;
-        rLocalElements[i] = (&(*it));
-    }
+    KRATOS_CATCH("");
 }
 
-void GetContainerItemReferences(std::vector<ConditionType*>& rLocalConditions,
-                                ConditionsContainerType const& rConditions)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::RemoveReservedAttributes(Parameters Attributes)
 {
-    rLocalConditions.resize(rConditions.size());
+    KRATOS_TRY
 
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rConditions.size()); ++i)
-    {
-        auto it = rConditions.begin() + i;
-        rLocalConditions[i] = (&(*it));
+    for (const auto& r_attribute_key : ReservedAttributeKeys) {
+        if (Attributes.Has(r_attribute_key)) Attributes.RemoveValue(r_attribute_key);
     }
+
+    KRATOS_CATCH("");
 }
 
-void GetContainerItemReferences(std::vector<NodeType*>& rLocalNodes,
-                                NodesContainerType const& rNodes)
-{
-    GetLocalNodes(rNodes, rLocalNodes);
-}
-
-void GetContainerItemReferences(std::vector<Vertex*>& rLocalVertices,
-                                const VertexContainerType& rVertices)
-{
-    rLocalVertices.resize(rVertices.size());
-
-    IndexPartition<std::size_t>(rVertices.size()).for_each([&rVertices,&rLocalVertices](std::size_t i_vertex){
-        // Why is this even allowed in PointerVectorSet?
-        // The const qualifier from rElements is just discarded
-        // without warning when copying to rLocalElements! If this is
-        // intentional, a comment should explain why it is necessary.
-        rLocalVertices[i_vertex] = &*(rVertices.begin() + i_vertex);
-    });
-}
-
-} // unnamed namespace
-
-template <typename TContainerType, typename TContainerItemType, typename... TComponents>
-ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::ContainerComponentIO(
-    Parameters Settings, File::Pointer pFile, const std::string& rComponentPath)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ContainerComponentIO(
+    Parameters Settings,
+    File::Pointer pFile,
+    const std::string& rLegacySuffix)
     : mpFile(pFile)
 {
     KRATOS_TRY;
 
     Parameters default_params(R"(
         {
-            "prefix": "",
+            "prefix"           : "",
             "list_of_variables": []
         })");
 
     Settings.AddMissingParameters(default_params);
 
-    mComponentPath = Settings["prefix"].GetString() + rComponentPath;
+    mComponentPrefix = Settings["prefix"].GetString() + rLegacySuffix;
     mComponentNames = Settings["list_of_variables"].GetStringArray();
+
+    KRATOS_ERROR_IF(mComponentPrefix == "" || mComponentPrefix == "/")
+        << "The prefix must not be empty or \"/\" [ prefix = " << mComponentPrefix << " ].\n";
 
     // Sort component names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of components is identical on every
@@ -389,477 +123,313 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
     KRATOS_CATCH("");
 }
 
-// Adding element flags WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ElementsContainerType, ElementType, Flags>::WriteRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
+    const ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
 {
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteElementComponent>(args...);
+    KRATOS_TRY
+
+    if constexpr(
+        std::is_same_v<TContainerType, NodesContainerType> ||
+        std::is_same_v<TContainerType, ConditionsContainerType> ||
+        std::is_same_v<TContainerType, ElementsContainerType>) {
+        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
+    } else {
+        KRATOS_ERROR << "Unsupported container type.";
+    }
+
+    KRATOS_CATCH("");
 }
 
-// Adding element other variable WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ElementsContainerType,
-                          ElementType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
-                                                                              Targs&... args)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
+    ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO)
 {
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteElementComponent>(args...);
+    KRATOS_TRY
+
+    if constexpr(
+        std::is_same_v<TContainerType, NodesContainerType> ||
+        std::is_same_v<TContainerType, ConditionsContainerType> ||
+        std::is_same_v<TContainerType, ElementsContainerType>) {
+        return Read(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, rModelPart.GetCommunicator());
+    } else {
+        KRATOS_ERROR << "Unsupported container type.";
+        return {};
+    }
+
+    KRATOS_CATCH("");
 }
 
-// Adding element flags ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ElementsContainerType, ElementType, Flags>::ReadRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadElementComponent>(args...);
-}
-
-// Adding element other variable ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ElementsContainerType,
-                          ElementType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
-                                                                             Targs&... args)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<ReadElementComponent>(args...);
-}
-
-// Adding condition flags WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>::WriteRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteConditionComponent>(args...);
-}
-
-// Adding condition other variable WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ConditionsContainerType,
-                          ConditionType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
-                                                                              Targs&... args)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteConditionComponent>(args...);
-}
-
-// Adding condition flags ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>::ReadRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadConditionComponent>(args...);
-}
-
-// Adding condition other variable ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<ConditionsContainerType,
-                          ConditionType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
-                                                                             Targs&... args)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<ReadConditionComponent>(args...);
-}
-
-// Adding node flags WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<NodesContainerType, NodeType, Flags>::WriteRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteNodeComponent>(args...);
-}
-
-// Adding node other variable WriteRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<NodesContainerType,
-                          NodeType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
-                                                                              Targs&... args)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteNodeComponent>(args...);
-}
-
-// Adding node flags ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<NodesContainerType, NodeType, Flags>::ReadRegisteredComponent(
-    const std::string& rComponentName, Targs&... args)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadNodeComponent>(args...);
-}
-
-// Adding node other variable ReadRegisteredComponent template definition
-template <>
-template <typename... Targs>
-void ContainerComponentIO<NodesContainerType,
-                          NodeType,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
-                                                                             Targs&... args)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<ReadNodeComponent>(args...);
-}
-
-template <>
-template <class ...TArguments>
-void ContainerComponentIO<VertexContainerType, Vertex, Flags>::WriteRegisteredComponent(
-    const std::string& rComponentName, TArguments&... rArguments)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteVertexComponent>(rArguments...);
-}
-
-template <>
-template <class ...TArguments>
-void ContainerComponentIO<VertexContainerType,
-                          Vertex,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
-                                                                              TArguments&... rArguments)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteVertexComponent>(rArguments...);
-}
-
-template <>
-template <typename... TArguments>
-void ContainerComponentIO<VertexContainerType, Vertex, Flags>::ReadRegisteredComponent(
-    const std::string& rComponentName, TArguments&... rArguments)
-{
-    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadVertexComponent>(rArguments...);
-}
-
-template <>
-template <typename... TArguments>
-void ContainerComponentIO<VertexContainerType,
-                          Vertex,
-                          Variable<array_1d<double, 3>>,
-                          Variable<double>,
-                          Variable<int>,
-                          Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
-                                                                             TArguments&... rArguments)
-{
-    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<ReadVertexComponent>(rArguments...);
-}
-
-template <typename TContainerType, typename TContainerItemType, typename... TComponents>
-void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::WriteContainerComponents(
-    TContainerType const& rContainer)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
+    const TContainerType& rLocalContainer,
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
 {
     KRATOS_TRY;
 
-    if (mComponentNames.size() == 0)
+    if (mComponentNames.size() == 0) {
         return;
+    }
 
     WriteInfo info;
-    std::vector<TContainerItemType*> local_items;
-    GetContainerItemReferences(local_items, rContainer);
 
     // Write each variable.
-    for (const std::string& r_component_name : mComponentNames)
-        WriteRegisteredComponent(r_component_name, local_items, *mpFile,
-                                 mComponentPath, info, r_component_name);
+    for (const auto& r_component_name : mComponentNames) {
+        const bool is_component_written = (... || (WriteComponents<TComponents>(
+                        r_component_name, rContainerDataIO, rLocalContainer, Attributes.Clone(), info)));
+        KRATOS_ERROR_IF_NOT(is_component_written)
+            << "Component \"" << r_component_name << "\" is not found in registered components.";
+    }
 
     // Write block partition.
-    WritePartitionTable(*mpFile, mComponentPath, info);
+    WritePartitionTable(*mpFile, mComponentPrefix, info);
 
     KRATOS_CATCH("");
 }
 
-template <typename TContainerType, typename TContainerItemType, typename... TComponents>
-void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::ReadContainerComponents(
-    TContainerType& rContainer, Communicator& rCommunicator)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
+    TContainerType& rLocalContainer,
+    const TContainerDataIO& rContainerDataIO,
+    Communicator& rCommunicator)
 {
     KRATOS_TRY;
 
-    if (mComponentNames.size() == 0)
-        return;
+    std::map<std::string, Parameters> attributes;
 
-    std::vector<std::string> current_components_list(mComponentNames.size());
-    std::copy(mComponentNames.begin(), mComponentNames.end(), current_components_list.begin());
+    if (mComponentNames.size() == 0) {
+        return attributes;
+    }
 
-    if (mComponentNames.size() == 1 && mComponentNames[0] == "ALL_VARIABLES_FROM_FILE") {
-        if (mpFile->HasPath(mComponentPath)) {
-            current_components_list = mpFile->GetDataSetNames(mComponentPath);
+    IndexType start_index, block_size;
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPrefix);
+
+    // Write each variable.
+    for (const auto& r_component_name : mComponentNames) {
+        const bool is_component_written =
+            (... || (ReadComponents<TComponents>(
+                        r_component_name, rContainerDataIO, rLocalContainer, rCommunicator, attributes, start_index, block_size)));
+        KRATOS_ERROR_IF_NOT(is_component_written)
+            << "Component \"" << r_component_name << "\" is not found in registered components.";
+    }
+
+    return attributes;
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+template <class TComponentType>
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponents(
+    const std::string& rComponentName,
+    const TContainerDataIO& rContainerDataIO,
+    const TContainerType& rLocalContainer,
+    Parameters Attributes,
+    WriteInfo& rInfo)
+{
+    KRATOS_TRY
+
+    using component_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
+
+    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
+
+    using value_type_traits = DataTypeTraits<value_type>;
+
+    using value_primitive_type = typename value_type_traits::PrimitiveType;
+
+    if (KratosComponents<TComponentType>::Has(rComponentName)) {
+        const auto& r_data_set_path = mComponentPrefix + rComponentName;
+        const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
+
+        std::vector<int> shape(value_type_traits::Dimension);
+        if constexpr(value_type_traits::Dimension == 0) {
+            Vector<value_type> values(rLocalContainer.size());
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), values.size());
+            mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
-            KRATOS_WARNING("ContainerComponentIO")
-                << "ALL_VARIABLES_FROM_FILE are specified to be read, but no variable "
-                   "data is found at "
-                << mComponentPath << " in " << mpFile->GetFileName() << ".\n";
-            return;
+            // get the correct size
+            value_type value_prototype{};
+            if (!rLocalContainer.empty()) {
+                // if the value type is not static, then we need to get the shape
+                // of the first element assuming all the entities will have the same
+                // shape.
+                typename TContainerDataIO::template TLSType<component_type> tls;
+                value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
+            }
+
+            // now retrieve the shape
+            value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
+
+            // communicate between ranks(to provide shape for the ranks which are empty.)
+            shape = mpFile->GetDataCommunicator().MaxAll(shape);
+
+            Matrix<value_primitive_type> values;
+            values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), values.size1() * values.size2());
+            mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
-    }
 
-    std::vector<TContainerItemType*> local_items;
-    GetContainerItemReferences(local_items, rContainer);
-    std::size_t start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPath);
+        // add the shape to attributes.
+        CheckReservedAttributes(Attributes);
 
-    // Read local data for each variable.
-    for (const std::string& r_component_name : current_components_list)
-        ReadRegisteredComponent(r_component_name, local_items, rCommunicator, *mpFile,
-                                mComponentPath, start_index, block_size, r_component_name);
+        if (shape.size() > 0) {
+            Attributes.AddEmptyArray("__data_shape");
+            for (const auto v : shape) {
+                Attributes["__data_shape"].Append(v);
+            }
+        }
+        Attributes.AddInt("__data_dimension", value_type_traits::Dimension);
+        Attributes.AddString("__container_type", Internals::GetContainerName<TContainerType>());
+        Attributes.AddString("__data_location", Internals::GetContainerIOName<TContainerDataIO>());
+        Attributes.AddString("__data_name", rComponentName);
 
-    KRATOS_CATCH("");
-}
-
-namespace
-{
-template <typename TContainerItemType, typename TDataType>
-void SetDataBuffer(Variable<TDataType> const& rVariable,
-                   std::vector<TContainerItemType*> const& rContainerItems,
-                   Vector<TDataType>& rData)
-{
-    KRATOS_TRY;
-
-    rData.resize(rContainerItems.size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        rData[i] = r_item.GetValue(rVariable);
+        // now write the attributes
+        mpFile->WriteAttribute(r_data_set_path, Attributes);
+        return true;
+    } else {
+        // if the component is not a match.
+        return false;
     }
 
     KRATOS_CATCH("");
 }
 
-template <typename TContainerItemType>
-void SetDataBuffer(Flags const& rVariable,
-                   std::vector<TContainerItemType*> const& rContainerItems,
-                   Vector<int>& rData)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+template <class TComponentType>
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponents(
+    const std::string& rComponentName,
+    const TContainerDataIO& rContainerDataIO,
+    TContainerType& rLocalContainer,
+    Communicator& rCommunicator,
+    std::map<std::string, Parameters>& rAttributesMap,
+    const IndexType StartIndex,
+    const IndexType BlockSize)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    rData.resize(rContainerItems.size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        rData[i] = static_cast<int>(r_item.Is(rVariable));
+    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
+
+    using value_type_traits = DataTypeTraits<value_type>;
+
+    using value_primitive_type = typename value_type_traits::PrimitiveType;
+
+    if (KratosComponents<TComponentType>::Has(rComponentName)) {
+        const auto& r_data_set_path = mComponentPrefix + rComponentName;
+        const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
+
+        KRATOS_ERROR_IF_NOT(mpFile->IsDataSet(r_data_set_path))
+            << "Dataset \"" << r_data_set_path << "\" not found to read \""
+            << rComponentName << "\".";
+
+        KRATOS_ERROR_IF_NOT(BlockSize == rLocalContainer.size())
+            << "Container size and the file block size mismatch [ rLocalContainer.size() = "
+            << rLocalContainer.size() << ", file block size = " << BlockSize << " ].\n";
+
+        KRATOS_ERROR_IF(rAttributesMap.find(rComponentName) != rAttributesMap.end())
+            << "The attributes for component \"" << rComponentName << "\" already exists.";
+
+        auto attributes = mpFile->ReadAttribute(r_data_set_path);
+
+        if constexpr(value_type_traits::IsDynamic) {
+            std::vector<unsigned int> shape;
+            Internals::GetShapeFromAttributes(shape, attributes);
+
+            Matrix<value_primitive_type> values;
+            values.resize(BlockSize, std::accumulate(shape.begin(), shape.end(), 1U, std::multiplies<unsigned int>{}));
+            mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
+            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape);
+        } else {
+            Vector<value_type> values;
+            values.resize(BlockSize);
+            mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
+            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}));
+        }
+
+        NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
+
+        RemoveReservedAttributes(attributes);
+        rAttributesMap[rComponentName] = attributes;
+
+        return true;
+    } else {
+        // if the component is not a match.
+        return false;
     }
 
     KRATOS_CATCH("");
 }
 
-template <typename TContainerItemType>
-void SetDataBuffer(Variable<Vector<double>> const& rVariable,
-                   std::vector<TContainerItemType*> const& rContainerItems,
-                   Matrix<double>& rData)
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadAttributes()
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    rData.resize(rContainerItems.size(),
-                 rContainerItems.front()->GetValue(rVariable).size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        Vector<double> const& r_vec = r_item.GetValue(rVariable);
-        KRATOS_ERROR_IF(r_vec.size() != rData.size2())
-            << "Invalid dimension.\n";
-        for (std::size_t j = 0; j < rData.size2(); ++j)
-            rData(i, j) = r_vec(j);
+    std::map<std::string, Parameters> attributes_map;
+
+    for (const auto& r_component_name : mComponentNames) {
+        KRATOS_ERROR_IF(attributes_map.find(r_component_name) != attributes_map.end())
+            << "The attributes for component \"" << r_component_name << "\" already exists.";
+
+        const auto& r_data_set_path = mComponentPrefix + r_component_name;
+        auto attributes = mpFile->ReadAttribute(r_data_set_path);
+        RemoveReservedAttributes(attributes);
+        attributes_map[r_component_name] = attributes;
     }
 
-    KRATOS_CATCH("");
+    return attributes_map;
+
+    KRATOS_CATCH("")
 }
 
-template <typename TContainerItemType>
-void SetDataBuffer(Variable<Matrix<double>> const& rVariable,
-                   std::vector<TContainerItemType*> const& rContainerItems,
-                   Matrix<double>& rData)
-{
-    KRATOS_TRY;
-
-    rData.resize(rContainerItems.size(),
-                 rContainerItems.front()->GetValue(rVariable).data().size(), false);
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainerItems.size()); ++i)
-    {
-        const TContainerItemType& r_item = *rContainerItems[i];
-        const auto& r_data = r_item.GetValue(rVariable).data();
-        KRATOS_ERROR_IF(r_data.size() != rData.size2())
-            << "Invalid dimension.\n";
-        for (std::size_t j = 0; j < rData.size2(); ++j)
-            rData(i, j) = r_data[j];
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <typename TContainerItemType, typename TDataType>
-void SetItemDataValues(Variable<TDataType> const& rVariable,
-                       Vector<TDataType> const& rData,
-                       std::vector<TContainerItemType*>& rContainerItems)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rContainerItems.size() != rData.size())
-        << "Number of items does not equal data set dimension\n"
-        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
-        << rContainerItems.size() << ", ReadData.size() = "
-        << rData.size() << " ].\n";
-    for (std::size_t i = 0; i < rContainerItems.size(); ++i)
-        rContainerItems[i]->GetValue(rVariable) = rData[i];
-
-    KRATOS_CATCH("");
-}
-
-template <typename TContainerItemType>
-void SetItemDataValues(Flags const& rVariable,
-                       Vector<int> const& rData,
-                       std::vector<TContainerItemType*>& rContainerItems)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rContainerItems.size() != rData.size())
-        << "Number of items does not equal data set dimension\n"
-        << "[ rVariable = " << rVariable << ", rContainer.size() = "
-        << rContainerItems.size() << ", ReadData.size() = "
-        << rData.size() << " ].\n";
-    for (std::size_t i = 0; i < rContainerItems.size(); ++i) {
-        rContainerItems[i]->Set(rVariable, static_cast<bool>(rData[i]));
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <typename TContainerItemType>
-void SetItemDataValues(Variable<Vector<double>> const& rVariable,
-                       Matrix<double> const& rData,
-                       std::vector<TContainerItemType*>& rContainerItems)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rContainerItems.size() != rData.size1())
-        << "Number of items does not equal data set dimension\n"
-        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
-        << rContainerItems.size() << ", ReadData.size() = "
-        << rData.size1() << " ].\n";
-    for (std::size_t i = 0; i < rContainerItems.size(); ++i)
-    {
-        Vector<double>& r_vec = rContainerItems[i]->GetValue(rVariable);
-        r_vec.resize(rData.size2(), false);
-        for (std::size_t j = 0; j < rData.size2(); ++j)
-            r_vec(j) = rData(i, j);
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <typename TContainerItemType>
-void SetItemDataValues(Variable<Matrix<double>> const& rVariable,
-                       Matrix<double> const& rData,
-                       std::vector<TContainerItemType*>& rContainerItems,
-                       int size1,
-                       int size2)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rContainerItems.size() != rData.size1())
-        << "Number of items does not equal data set dimension\n"
-        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
-        << rContainerItems.size() << ", ReadData.size() = "
-        << rData.size1() << " ].\n";
-    for (std::size_t k = 0; k < rContainerItems.size(); ++k)
-    {
-        Matrix<double>& r_mat = rContainerItems[k]->GetValue(rVariable);
-        r_mat.resize(size1, size2, false);
-        for (int i = 0; i < size1; ++i)
-            for (int j = 0; j < size2; ++j)
-                r_mat(i, j) = rData(k, i * size2 + j);
-    }
-
-    KRATOS_CATCH("");
-}
-} // unnamed namespace.
 
 // template instantiations
+#ifndef KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO
+#define KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO, ...)                      \
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<CONTAINER_TYPE, CONTAINER_DATA_IO, __VA_ARGS__>;
+#endif
 
-template class ContainerComponentIO<ElementsContainerType, ElementType, Flags>;
-template class ContainerComponentIO<ElementsContainerType,
-                                    ElementType,
-                                    Variable<array_1d<double, 3>>,
-                                    Variable<double>,
-                                    Variable<int>,
-                                    Variable<Vector<double>>,
-                                    Variable<Matrix<double>>>;
+#ifndef KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO
+#define KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                \
+KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internals::FlagIO, Flags);
+#endif
 
-template class ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>;
-template class ContainerComponentIO<ConditionsContainerType,
-                                    ConditionType,
-                                    Variable<array_1d<double, 3>>,
-                                    Variable<double>,
-                                    Variable<int>,
-                                    Variable<Vector<double>>,
-                                    Variable<Matrix<double>>>;
+#ifndef KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO
+#define KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO)  \
+KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO,                   \
+                                               Variable<int>,                                       \
+                                               Variable<double>,                                    \
+                                               Variable<array_1d<double, 3>>,                       \
+                                               Variable<array_1d<double, 4>>,                       \
+                                               Variable<array_1d<double, 6>>,                       \
+                                               Variable<array_1d<double, 9>>,                       \
+                                               Variable<Kratos::Vector>,                            \
+                                               Variable<Kratos::Matrix>);
+#endif
 
-template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
-template class ContainerComponentIO<NodesContainerType,
-                                    NodeType,
-                                    Variable<array_1d<double, 3>>,
-                                    Variable<double>,
-                                    Variable<int>,
-                                    Variable<Vector<double>>,
-                                    Variable<Matrix<double>>>;
-template class ContainerComponentIO<VertexContainerType,
-                                    Vertex,
-                                    Variable<array_1d<double, 3>>,
-                                    Variable<double>,
-                                    Variable<int>,
-                                    Variable<Vector<double>>,
-                                    Variable<Matrix<double>>>;
+#ifndef KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO
+#define KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                              \
+KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                                        \
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internals::NonHistoricalIO)
+#endif
+
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::HistoricalIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::BossakIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(Detail::VertexContainerType, Internals::VertexValueIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType, Internals::GaussPointIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType, Internals::GaussPointIO);
+KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType);
+KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType);
+KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType);
+
+
+#undef KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO
+#undef KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO
+#undef KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO
+#undef KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO
 
 } // namespace HDF5.
 } // namespace Kratos.
