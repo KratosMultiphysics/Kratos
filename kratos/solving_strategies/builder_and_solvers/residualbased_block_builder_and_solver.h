@@ -14,27 +14,27 @@
 
 #pragma once
 
-/* System includes */
-#include <unordered_set>
+// System includes
 
-/* External includes */
+// External includes
 #ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
-#include "utilities/timer.h"
-#include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
+#include "utilities/timer.h"
+#include "utilities/variable_utils.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/custom_containers/unordered_set.h"
 
 namespace Kratos
 {
@@ -124,6 +124,9 @@ public:
     typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
+
+    /// Large Structure definitions
+    typedef Kratos::Containers::unordered_set<std::size_t> IndicesType;
 
     ///@}
     ///@name Life Cycle
@@ -1466,11 +1469,10 @@ protected:
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
-        std::vector< LockObject > lock_array(equation_size);
+        std::vector<LockObject> lock_array(equation_size);
+        std::vector<IndicesType> indices(equation_size);
 
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-
-        block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
+        block_for_each(indices, [](IndicesType& rIndices){
             rIndices.reserve(40);
         });
 
