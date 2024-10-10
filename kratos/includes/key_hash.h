@@ -90,6 +90,29 @@ namespace Kratos
 ///@{
 
     class VariableData; // forward declaration
+    
+    /**
+     * @brief A custom hash function for std::vector<TIntType>.
+     * @details This struct defines a custom hash function for std::vector<TIntType>. It computes the hash value of a vector by iterating through its elements and combining their hash values.
+     * @tparam TIntType The integer type
+     */
+    template<class TIntegerType = int>
+    struct VectorIntegerHash 
+    {
+        /**
+         * @brief Calculate the hash value for a std::vector<int>.
+         * @details This function computes the hash value for a given std::vector<int> by iterating through its elements and combining their hash values using HashCombine.
+         * @param v The input vector for which the hash value is to be calculated.
+         * @return The computed hash value for the input vector.
+         */
+        std::size_t operator()(const std::vector<TIntegerType>& v) const {
+            std::size_t seed = 0;
+            for (int i : v) {
+                HashCombine(seed, i);
+            }
+            return seed;
+        }
+    };
 
     /**
      * @brief This is a key comparer of general pourpose between two classes
