@@ -92,18 +92,14 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "undrained small strain Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "undrained small strain Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "undrained small strain Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     /// Member Variables
