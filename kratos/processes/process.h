@@ -116,11 +116,24 @@ public:
     {
     }
 
-
     /**
      * @brief This function will be executed at every time step BEFORE performing the solve phase
      */
     virtual void ExecuteInitializeSolutionStep()
+    {
+    }
+
+    /**
+     * @brief This function will be executed at every time BEFORE EVERY COUPLING ITERATION during the solve phase
+     */
+    virtual void ExecuteInitializeCouplingStep()
+    {
+    }
+
+    /**
+     * @brief This function will be executed at every time AFTER EVERY COUPLING ITERATION during the solve phase
+     */
+    virtual void ExecuteFinalizeCouplingStep()
     {
     }
 
@@ -131,7 +144,6 @@ public:
     {
     }
 
-
     /**
      * @brief This function will be executed at every time step BEFORE  writing the output
      */
@@ -139,14 +151,12 @@ public:
     {
     }
 
-
     /**
      * @brief This function will be executed at every time step AFTER writing the output
      */
     virtual void ExecuteAfterOutputStep()
     {
     }
-
 
     /**
      * @brief This function is designed for being called at the end of the computations
