@@ -78,7 +78,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
         .def(py::init([](Parameters Settings) {
-            KRATOS_WARNING("HDF5File") << "Using deprecated constructor. Please use constructor with DataCommunicator.";
+            // KRATOS_WARNING("HDF5File") << "Using deprecated constructor. Please use constructor with DataCommunicator.";
             return Kratos::make_shared<HDF5::File>(ParallelEnvironment::GetDefaultDataCommunicator(), Settings);
         }))
         .def(py::init<const DataCommunicator&, Parameters>())
