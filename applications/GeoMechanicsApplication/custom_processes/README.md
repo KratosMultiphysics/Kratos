@@ -6,7 +6,7 @@ Documented processes:
 - $c-\phi$ reduction process
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 - [ResetDisplacementProcess](#reset-displacement-process)
-- $K_0$ procedure process
+- [$K_0$ procedure process](#$K_0$ procedure process)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -81,13 +81,13 @@ When set to true, the material used for the modelpart used for the $K_0$ procedu
 When the stress computation is completed, the original constitutive law is restored.
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
-$K_{0^{nc}}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS"
+$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
 
 $$K_0^{nc} = 1.0 - \sin \phi$$
 
-When the overconsolidation ratio ("OCR") and optionally the unloading-reloading Poisson's ratio $\nu_{ur}$ ("POISSON_UNLOADING_RELOADING") are supplied, the normal consolidation value $K_{0_{NC}}$ is modified:
+When the overconsolidation ratio ("OCR") and optionally the unloading-reloading Poisson's ratio $\nu_{ur}$ ("POISSON_UNLOADING_RELOADING") are supplied, the normal consolidation value $K_0^{nc}$ is modified:
 
-$$K_0 = OCR K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
+$$K_0 = OCR.K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
 $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \sigma^{'}_{zz}} & 0 & 0 \\
                                          0 & {K_0 \sigma^{'}_{zz}} & 0 \\
@@ -103,7 +103,7 @@ $$\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} (\sigma^{'}_{zz} + POP )} - \
 After the stress adaptation by the $K_0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.
 
 ### Usage
-The process is defined as follows in json (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
+The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
   "auxilliary_process_list": [
