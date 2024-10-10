@@ -1132,7 +1132,7 @@ private:
                 CompareKey key_comparator;
 
                 while (p_existing_data_itr != mData.end() && first != last) {
-                    if (key_comparator(*p_existing_data_itr, *first)) {
+                    if (key_comparator(*p_existing_data_itr, KeyOf(GetReference(first)))) {
                         temp.push_back(TPointerType(&GetReference(p_existing_data_itr++)));
                     } else if (EqualKeyTo(KeyOf(GetReference(p_existing_data_itr)))(*first)) {
                         // here we keep the old entity, and discard the new entity.
