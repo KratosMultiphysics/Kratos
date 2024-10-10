@@ -61,6 +61,9 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     if (rGeom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
+    // check pressure geometry pointer
+    KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
+
     // verify that the variables are correctly initialized
     // Verify specific properties
     const PropertiesType& rProp = this->GetProperties();
@@ -160,21 +163,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     }
 
     return 0;
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    UPwBaseElement::Initialize(rCurrentProcessInfo);
-
-    if (mpPressureGeometry == nullptr) {
-        this->SetUpPressureGeometryPointer();
-    }
-
-    mIsInitialised = true;
 
     KRATOS_CATCH("")
 }
@@ -1548,36 +1536,47 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 
 void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
 {
-    const auto& r_geometry = GetGeometry();
-    const auto number_of_U_nodes = r_geometry.PointsNumber();
-    const auto dimension = r_geometry.WorkingSpaceDimension();
+    const auto& r_geometry        = GetGeometry();
+    const auto  number_of_U_nodes = r_geometry.PointsNumber();
+    const auto  dimension         = r_geometry.WorkingSpaceDimension();
     switch (number_of_U_nodes) {
-        case 6: // 2D T6P3
-            mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
-            break;
-        case 8: // 2D Q8P4
-            mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
-            break;
-        case 9: // 2D Q9P4
-            mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
-            break;
-        case 10:
-            if (dimension == 3) // 3D T10P4
-                mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
-            else if (dimension == 2) //2D T10P6
-                mpPressureGeometry = make_shared<Triangle2D6<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
-            break;
-        case 15: // 2D T15P10
-            mpPressureGeometry = make_shared<Triangle2D10<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
-            break;
-        case 20: // 3D H20P8
-            mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
-            break;
-        case 27: // 3D H27P8
-            mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
-            break;
-        default:
-            KRATOS_ERROR << "Unexpected geometry type for different order interpolation element " << this->Id() << std::endl;
+    case 6: // 2D T6P3
+        mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
+        break;
+    case 8: // 2D Q8P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 9: // 2D Q9P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 10:
+        if (dimension == 3) // 3D T10P4
+            mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                  r_geometry(2), r_geometry(3));
+        else if (dimension == 2) // 2D T10P6
+            mpPressureGeometry = make_shared<Triangle2D6<Node>>(
+                r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
+        break;
+    case 15: // 2D T15P10
+        mpPressureGeometry = make_shared<Triangle2D10<Node>>(
+            r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
+            r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
+        break;
+    case 20: // 3D H20P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    case 27: // 3D H27P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    default:
+        KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
+                     << this->Id() << std::endl;
     }
 }
 
