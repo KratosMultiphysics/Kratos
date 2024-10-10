@@ -265,7 +265,7 @@ public:
      * @brief This method writes the mesh
      * @param rThisMesh The mesh to be written
      */
-    void WriteMesh(MeshType & rThisMesh) override;
+    void WriteMesh(const MeshType & rThisMesh) override;
 
     /**
      * @brief This method reads the model part
@@ -277,7 +277,7 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
-    void WriteModelPart(ModelPart & rThisModelPart) override;
+    void WriteModelPart(const ModelPart & rThisModelPart) override;
 
     /**
      * @brief Read the input file and create the nodal connectivities graph, stored in CSR format.
@@ -473,7 +473,7 @@ private:
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
 
-    void WriteNodalDataBlock(ModelPart& rThisModelPart);
+    void WriteNodalDataBlock(const ModelPart& rThisModelPart);
 
     template<class TVariableType>
     void ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
@@ -559,7 +559,7 @@ private:
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
 
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
+    void WriteSubModelPartBlock(const ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
