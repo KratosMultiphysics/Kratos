@@ -302,6 +302,16 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     Vector RHS;
     this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+    KRATOS_WATCH(RHS)
+    Matrix  Mass_Matrix;
+    this->pGetPrimalElement()->CalculateMassMatrix(Mass_Matrix, rCurrentProcessInfo);
+    KRATOS_WATCH(Mass_Matrix)
+    Vector Acc_0;
+    this->pGetPrimalElement()->GetSecondDerivativesVector(Acc_0, 0);
+    Vector Acc_1;
+    this->pGetPrimalElement()->GetSecondDerivativesVector(Acc_1, 1);
+    KRATOS_WATCH(Acc_0)
+    KRATOS_WATCH(Acc_1)
 
     // Get pseudo-load from utility
     FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);

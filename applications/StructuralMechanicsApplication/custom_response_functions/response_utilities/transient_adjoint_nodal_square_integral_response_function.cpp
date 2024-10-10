@@ -25,6 +25,7 @@ namespace Kratos
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
         mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
+        mAlphaBossak = ResponseSettings["alpha_bossak"].GetDouble();
 
         // Check if response direction is valid and normalize it
         if ( norm_2( mResponseDirection ) > 1.0e-7 ) {
@@ -189,6 +190,8 @@ namespace Kratos
                             rResponseGradient[i]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[0];
                             rResponseGradient[i+1]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[1];
                             rResponseGradient[i+2]   = 2 * inner_prod(mResponseDirection, mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0)) * mResponseDirection[2];
+                            KRATOS_WATCH(mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 0))
+                            KRATOS_WATCH(mrModelPart.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof, 1))
                             break;
                         }
                     }
@@ -263,7 +266,18 @@ namespace Kratos
         double response_value = 0.0;
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         for(auto& node_i : response_part.Nodes()){
-            response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0)) * inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
+            if (mTracedDofLabel == "ACCELERATION")
+            {
+                const auto& current_acc = node_i.FastGetSolutionStepValue(r_traced_dof, 0);
+                const auto& previous_acc = node_i.FastGetSolutionStepValue(r_traced_dof, 1);
+                response_value += inner_prod(mResponseDirection, mAlphaBossak * previous_acc + (1-mAlphaBossak) * current_acc) * 
+                                  inner_prod(mResponseDirection, mAlphaBossak * previous_acc + (1-mAlphaBossak) * current_acc);
+                KRATOS_WATCH(mAlphaBossak * previous_acc + (1-mAlphaBossak) * current_acc)
+            }
+            else
+            {
+                response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0)) * inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
+            }
         }
 
         return response_value;

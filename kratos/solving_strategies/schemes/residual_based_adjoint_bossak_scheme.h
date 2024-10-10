@@ -14,6 +14,8 @@
 #define KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED
 
 // System includes
+#include <iostream>
+#include <typeinfo>
 #include <vector>
 #include <string>
 #include <unordered_set>
@@ -181,14 +183,67 @@ public:
         SystemVectorType& rb) override
     {
         KRATOS_TRY;
+        std::cout << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::cout << ">>> PRIMAL RESULTS AT TIME " << rModelPart.GetProcessInfo().GetValue(TIME) << " : " << std::endl;
+        const Variable<array_1d<double, 3>>& rDisVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("DISPLACEMENT");
+        const auto& current_displacement = rModelPart.GetNode(2).FastGetSolutionStepValue(rDisVariable, 0);
+        const auto& previous_displacement = rModelPart.GetNode(2).FastGetSolutionStepValue(rDisVariable, 1);
+        KRATOS_WATCH(current_displacement)
+        KRATOS_WATCH(previous_displacement)
+        const Variable<array_1d<double, 3>>& rVelVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("VELOCITY");
+        const auto& current_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rVelVariable, 0);
+        const auto& previous_velocity = rModelPart.GetNode(2).FastGetSolutionStepValue(rVelVariable, 1);
+        KRATOS_WATCH(current_velocity)
+        KRATOS_WATCH(previous_velocity)
+        const Variable<array_1d<double, 3>>& rAccVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get("ACCELERATION");
+        const auto& current_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAccVariable, 0);
+        const auto& previous_acceleration= rModelPart.GetNode(2).FastGetSolutionStepValue(rAccVariable, 1);
+        KRATOS_WATCH(current_acceleration)
+        KRATOS_WATCH(previous_acceleration)
+
+        std::cout << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::cout << ">>> InitializeSolutionStep(rModelPart, ...)" << std::endl;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
 
+        KRATOS_WATCH(mBossak.Alpha)
+        KRATOS_WATCH(mBossak.Beta)
+        KRATOS_WATCH(mBossak.Gamma)
+        KRATOS_WATCH(mBossak.C0)
+        KRATOS_WATCH(mBossak.C1)
+        KRATOS_WATCH(mBossak.C2)
+        KRATOS_WATCH(mBossak.C3)
+        KRATOS_WATCH(mBossak.C4)
+        KRATOS_WATCH(mBossak.C5)
+        KRATOS_WATCH(mBossak.C6)
+        KRATOS_WATCH(mBossak.C7)
+
         this->CalculateNodeNeighbourCount(rModelPart);
 
+        auto& rElements = rModelPart.Elements();
+        for (auto iter=rElements.begin(); iter!=rElements.end(); ++iter)
+        {
+            size_t element_id = iter->GetId();
+            size_t neighbour_nr = iter->GetGeometry().GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            KRATOS_WATCH(element_id) 
+            KRATOS_WATCH(neighbour_nr) 
+        }
+        auto& rNodes = rModelPart.Nodes();
+        for (auto iter=rNodes.begin(); iter !=rNodes.end(); ++iter)
+        {
+            size_t node_id = iter->GetId();
+            size_t neighbour_nr = iter->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            KRATOS_WATCH(node_id)
+            KRATOS_WATCH(neighbour_nr)
+            
+        }
+
+        std::cout << "------------------------------" << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -199,10 +254,15 @@ public:
         SystemVectorType& rb) override
     {
         KRATOS_TRY;
+        std::cout << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::cout << ">>> FinalizeSolutionStep(rModelPart, ...)" << std::endl;
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
         this->UpdateAuxiliaryVariable(rModelPart);
 
+        std::cout << "------------------------------" << std::endl;
+        std::cout << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -214,13 +274,27 @@ public:
         SystemVectorType& rb) override
     {
         KRATOS_TRY;
+        std::cout << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::cout << ">>> Update(rModelPart, ...)" << std::endl;
 
         // Update degrees of freedom: adjoint variables associated to the
         // residual of the physical problem.
         this->mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        std::cout << ">> DofUpdater:" << std::endl;
+        for (auto dofIter=rDofSet.begin(); dofIter!=rDofSet.end(); dofIter++)
+        {
+            size_t dof_id = dofIter->GetId();
+            const std::string& dof_name = dofIter->GetVariable().Name();
+            double dof_value = dofIter->GetSolutionStepValue(0);
+            std::cout<< dof_name << " at node " << dof_id << ": " << dof_value << std::endl;
+        }
+
         // Update adjoint variables associated to time integration.
         this->UpdateTimeSchemeAdjoints(rModelPart);
 
+        std::cout << "------------------------------" << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -232,6 +306,9 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
+        std::cout << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::cout << ">>> CalculateSystemContributions(rCurrentElement, ...)" << std::endl;
 
         const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_elem_ref = rCurrentElement;
@@ -251,20 +328,49 @@ public:
         this->CalculateGradientContributions(rCurrentElement, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
 
+        //--------------------------
+        std::cout << ">> CalculateGradientContributions" << std::endl;
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
+
         this->CalculateFirstDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        //--------------------------
+        std::cout << ">> CalculateFirstDerivativeContributions" << std::endl;
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
 
         this->CalculateSecondDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
+        //--------------------------
+        std::cout << ">> CalculateSecondDerivativeContributions" << std::endl;
+        KRATOS_WATCH(rLHS_Contribution)
+        KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
+
         this->CalculatePreviousTimeStepContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        //--------------------------
+        std::cout << ">> CalculatePreviousTimeStepContributions" << std::endl;
+        KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
 
         this->CalculateResidualLocalContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
+        //--------------------------
+        std::cout << ">> CalculateResidualLocalContributions" << std::endl;
+        KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
+
         rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
+        std::cout << "------------------------------" << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -307,11 +413,29 @@ public:
         this->CalculateGradientContributions(rCurrentCondition, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
 
+        //--------------------------
+        // std::cout << "CalculateGradientContributions" << std::endl;
+        // KRATOS_WATCH(rLHS_Contribution)
+        // KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
+
         this->CalculateFirstDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
+        //--------------------------
+        // std::cout << "CalculateFirstDerivativeContributions" << std::endl;
+        // KRATOS_WATCH(rLHS_Contribution)
+        // KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
+
         this->CalculateSecondDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        //--------------------------
+        // std::cout << "CalculateSecondDerivativeContributions" << std::endl;
+        // KRATOS_WATCH(rLHS_Contribution)
+        // KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
 
         // It is not required to call CalculatePreviousTimeStepContributions here again
         // since, the previous time step contributions from conditions are stored in variables
@@ -320,6 +444,11 @@ public:
 
         this->CalculateResidualLocalContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        //--------------------------
+        // std::cout << "CalculateResidualLocalContributions" << std::endl;
+        // KRATOS_WATCH(rRHS_Contribution)
+        //--------------------------
 
         rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -458,6 +587,8 @@ protected:
     {
         CalculateEntitySecondDerivativeContributions(
             rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        int k = OpenMPUtils::ThisThread();
+        std::cout << "del_J_del_a = " << mSecondDerivsResponseGradient[k] << std::endl;
     }
 
     virtual void CalculateSecondDerivativeContributions(
@@ -760,7 +891,7 @@ private:
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
         noalias(rRHS_Contribution) -=
-            mBossak.C7 * mSecondDerivsResponseGradient[k];
+            mBossak.C7 * (1.0 - mBossak.Alpha) * mSecondDerivsResponseGradient[k];
     }
 
     /**
@@ -864,7 +995,7 @@ private:
         if (rAdjointTimeSchemeValues3.size() != mSecondDerivsResponseGradient[k].size())
             rAdjointTimeSchemeValues3.resize(mSecondDerivsResponseGradient[k].size(), false);
         noalias(rAdjointTimeSchemeValues3) =
-            -mSecondDerivsResponseGradient[k] -
+            - (1.0 - mBossak.Alpha) * mSecondDerivsResponseGradient[k] -
             prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
 
         KRATOS_CATCH("");
@@ -903,8 +1034,8 @@ private:
         if (rAdjointAuxiliaryValues.size() != mSecondDerivsLHS[k].size1())
             rAdjointAuxiliaryValues.resize(mSecondDerivsLHS[k].size1(), false);
         noalias(rAdjointAuxiliaryValues) =
-            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
-            mSecondDerivsResponseGradient[k];
+            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k])
+            + mBossak.Alpha * mSecondDerivsResponseGradient[k];
 
         KRATOS_CATCH("");
     }
@@ -929,6 +1060,8 @@ private:
     void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         KRATOS_TRY;
+        std::cout << ">> UpdateTimeSchemeAdjoints(rModelPart, ...)" << std::endl;
+
         std::vector<const VariableData*> lambda2_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
@@ -945,18 +1078,109 @@ private:
                 return rExtensions.GetAuxiliaryVariables(rVec);
             });
 
+        std::cout << "> GatherVariables: " << std::endl;
+        std::cout << "lambda2_vars = [ ";
+        for(auto iter=lambda2_vars.begin(); iter != lambda2_vars.end(); ++iter)
+        {
+            std::cout << (*iter)->Name() << " ";
+
+        }
+        std::cout << "]" << std::endl;
+
+        std::cout << "lambda3_vars = [ ";
+        for(auto iter=lambda3_vars.begin(); iter != lambda3_vars.end(); ++iter)
+        {
+            std::cout << (*iter)->Name() << " ";
+        }
+        std::cout << "]" << std::endl;
+
+        std::cout << "auxiliary_vars = [ ";
+        for(auto iter=auxiliary_vars.begin(); iter != auxiliary_vars.end(); ++iter)
+        {
+            std::cout << (*iter)->Name() << " ";
+        }
+        std::cout << "]" << std::endl;
+
+        std::cout << ">>> PREVIOUS VALUES:" << std::endl;
+        auto& rNodes = rModelPart.Nodes();
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=lambda2_vars.begin(); var_iter!=lambda2_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << "Previous " << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar, 1) << std::endl;
+            }
+            for (auto var_iter=lambda3_vars.begin(); var_iter!=lambda3_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << "Previous " << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar, 1) << std::endl;
+            }
+            for (auto var_iter=auxiliary_vars.begin(); var_iter!=auxiliary_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << "Previous " << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar, 1) << std::endl;
+            }
+        }
+
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
+
+        std::cout << "> SetToZero_AdjointVars: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=lambda2_vars.begin(); var_iter!=lambda2_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+            for (auto var_iter=lambda3_vars.begin(); var_iter!=lambda3_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
+
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
         UpdateEntityTimeSchemeContributions(rModelPart.Elements(), r_process_info);
         UpdateEntityTimeSchemeContributions(rModelPart.Conditions(), r_process_info);
 
+        std::cout << "> UpdateEntityTimeSchemeContributions: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=lambda2_vars.begin(); var_iter!=lambda2_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+            for (auto var_iter=lambda3_vars.begin(); var_iter!=lambda3_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
+
         // Finalize global assembly
         Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
         Assemble_AdjointVars(lambda3_vars, rModelPart.GetCommunicator());
 
-        for (unsigned int i_var = 0; i_var < lambda2_vars.size(); ++i_var) {
+        std::cout << "> Assemble_AdjointVars: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=lambda2_vars.begin(); var_iter!=lambda2_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+            for (auto var_iter=lambda3_vars.begin(); var_iter!=lambda3_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
+
+        for (unsigned int i_var = 0; i_var < lambda2_vars.size(); ++i_var) 
+        {
             const auto& r_lambda2_variable_name = lambda2_vars[i_var]->Name();
             const auto& r_lambda3_variable_name = lambda3_vars[i_var]->Name();
             const auto& r_auxiliary_variable_name = auxiliary_vars[i_var]->Name();
@@ -975,6 +1199,20 @@ private:
             }
         }
 
+        std::cout << "> UpdateTimeSchemeVariablesFromOldContributions: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=lambda2_vars.begin(); var_iter!=lambda2_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+            for (auto var_iter=lambda3_vars.begin(); var_iter!=lambda3_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
         KRATOS_CATCH("");
     }
 
@@ -992,8 +1230,8 @@ private:
     {
         KRATOS_TRY
 
-        Vector adjoint2_aux, adjoint3_aux;
-        auto aux_TLS = std::make_pair(adjoint2_aux, adjoint3_aux);
+        // Vector adjoint2_aux, adjoint3_aux;
+        // auto aux_TLS = std::make_pair(adjoint2_aux, adjoint3_aux);
         using tls_type = std::tuple<Vector, Vector>;
         block_for_each(rEntityContainer, tls_type(), [&, this](typename TEntityContainerType::value_type& rEntity, tls_type& rAdjointTLS){
             auto& r_adjoint2_aux = std::get<0>(rAdjointTLS);
@@ -1076,19 +1314,52 @@ private:
     void UpdateAuxiliaryVariable(ModelPart& rModelPart)
     {
         KRATOS_TRY;
+        std::cout << ">> UpdateAuxiliaryVariable(rModelPart)" << std::endl;
+
         std::vector<const VariableData*> aux_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rOut) {
                 return rExtensions.GetAuxiliaryVariables(rOut);
             });
+        std::cout << "> GatherVariables:" << std::endl;
+        std::cout << "aux_vars = [ ";
+        for(auto iter=aux_vars.begin(); iter != aux_vars.end(); ++iter)
+        {
+            std::cout << (*iter)->Name() << " ";
+
+        }
+        std::cout << "]" << std::endl;
 
         SetToZero_AdjointVars(aux_vars, rModelPart.Nodes());
+
+        auto& rNodes = rModelPart.Nodes();
+        std::cout << "> SetToZero_AdjointVars: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=aux_vars.begin(); var_iter!=aux_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
         // Loop over elements to assemble the remaining terms
         UpdateEntityAuxiliaryVariableContributions(rModelPart.Elements(), r_process_info);
+        int k = OpenMPUtils::ThisThread();
+        std::cout << "del_J_del_a = " << mSecondDerivsResponseGradient[k] << std::endl;
         // Loop over conditions to assemble the remaining terms
         UpdateEntityAuxiliaryVariableContributions(rModelPart.Conditions(), r_process_info);
+
+        std::cout << "> UpdateEntityAuxiliaryVariableContributions: " << std::endl;
+        for (auto node_iter=rNodes.begin(); node_iter!=rNodes.end(); ++node_iter)
+        {
+            for (auto var_iter=aux_vars.begin(); var_iter!=aux_vars.end(); ++var_iter)
+            {
+                const auto& rVar = KratosComponents<Variable<array_1d<double, 3>>>::Get((*var_iter)->Name());
+                std::cout << (*var_iter)->Name() << " at node " << node_iter->GetId() << ": " << node_iter->FastGetSolutionStepValue(rVar) << std::endl;
+            }
+        }
 
         // Finalize global assembly
         Assemble_AdjointVars(aux_vars, rModelPart.GetCommunicator());

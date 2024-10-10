@@ -418,10 +418,15 @@ void SensitivityBuilder::InitializeSolutionStep()
 void SensitivityBuilder::UpdateSensitivities()
 {
     KRATOS_TRY;
+    std::cout << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    std::cout << ">>>UpdateSensitivities()" << std::endl;
+    
     double scaling_factor{};
     if (mBuildMode == "integrate") {
         // integrate in time
         scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
+        KRATOS_WATCH(mpModelPart->GetProcessInfo()[DELTA_TIME])
     } else if (mBuildMode == "sum") {
         scaling_factor = 1.0;
     } else if (mBuildMode == "static") {
@@ -456,6 +461,8 @@ void SensitivityBuilder::UpdateSensitivities()
     mpSensitivityBuilderScheme->Update(
         *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
 
+    std::cout << "------------------------------" << std::endl;
+    std::cout << std::endl;
     KRATOS_CATCH("");
 }
 
