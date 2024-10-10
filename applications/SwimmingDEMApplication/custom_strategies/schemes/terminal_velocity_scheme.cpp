@@ -57,9 +57,6 @@ namespace Kratos {
             i.FastGetSolutionStepValue(DENSITY) = rho_p;
             const double drag_coeff = 6.0 * Globals::Pi * mu * rad;
 
-            double& nodal_density = i.FastGetSolutionStepValue(NODAL_DENSITY);
-            nodal_density = rho_p;
-
             // std::cout << "rho_p = " << rho_p << ", drag_coef = " << drag_coeff << ", disp_volume " << disp_volume << std::endl;
             for (int k = 0; k < 3; k++){
                 if (Fix_vel[k] == false){
@@ -75,7 +72,7 @@ namespace Kratos {
                 //    coor[k] = initial_coor[k] + displ[k];
 
                 // Force drag to be in balance with the forces hardcoded (assume different densities in z direction)
-                if (k == 2) {
+                if ((k == 2) && (rho_f >= 0.0)) {
                     vel[k] = fluid_vel[k] - (disp_volume / drag_coeff) * (rho_p - rho_f) * g;
                 } else {
                     vel[k] = fluid_vel[k];
