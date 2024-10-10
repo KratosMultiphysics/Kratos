@@ -27,6 +27,7 @@
 #include "modeler/copy_properties_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
 #include "modeler/voxel_mesh_generator_modeler.h"
+#include "modeler/clean_up_problematic_triangles_modeler.h"
 
 namespace Kratos::Python
 {
@@ -115,6 +116,20 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<VoxelMeshGeneratorModeler, VoxelMeshGeneratorModeler::Pointer, Modeler>(m, "VoxelMeshGeneratorModeler")
         .def(py::init<Model &, Parameters>())
+    ;
+
+    py::class_<CleanUpProblematicTrianglesModeler, CleanUpProblematicTrianglesModeler::Pointer, Modeler>(m, "CleanUpProblematicTrianglesModeler")
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&>())
+        .def_static("CleanUpProblematicGeometriesInMesh", &CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometriesInMesh,
+          py::arg("rThisModelPart"),
+          py::arg("rEntityType") = "element",
+          py::arg("FirstNodeId") = 1,
+          py::arg("FirstElementId") = 1,
+          py::arg("FirstConditionId") = 1,
+          py::arg("AreaTolerance") = 2.5e-5,
+          "Clean up the problematic geometries (null area geometries) in the mesh.")
     ;
 }
 
