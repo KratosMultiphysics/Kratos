@@ -7,14 +7,11 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vahid Galavi
-//
+//  Main authors:    Wijtze Pieter Kikstra
+//                   Richard Faasse
 
-// System includes
-
-// Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
-#include "constitutive_type.h"
+#include "constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -22,8 +19,13 @@ namespace Kratos
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw() = default;
 
-GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveType> pConstitutiveDimension)
-    : GeoLinearElasticLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
+GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : GeoLinearElasticLaw{},
+      mpConstitutiveDimension(std::move(pConstitutiveDimension)),
+      mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mDeltaStrainVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
 {
 }
 
@@ -39,7 +41,7 @@ GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(const GeoLine
         mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
 }
 
-GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(GeoLinearElasticPlaneStrain2DLaw const& rOther)
+GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther)
 {
     GeoLinearElasticLaw::operator=(rOther);
     mStressVector          = rOther.mStressVector;
@@ -57,7 +59,7 @@ GeoLinearElasticPlaneStrain2DLaw::~GeoLinearElasticPlaneStrain2DLaw() = default;
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
 {
-    return std::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
+    return Kratos::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
 }
 
 bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
@@ -105,7 +107,7 @@ void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
     const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
 
-    C = mpConstitutiveDimension->CreateConstitutiveMatrix(c1, c2, c3);
+    C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
 
     KRATOS_CATCH("")
 }

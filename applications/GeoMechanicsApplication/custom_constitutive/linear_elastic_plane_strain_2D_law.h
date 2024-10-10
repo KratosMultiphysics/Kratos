@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ConstitutiveType;
+class ConstitutiveLawDimension;
 
 /**
  * @class GeoLinearElasticPlaneStrain2DLaw
@@ -29,17 +29,15 @@ class ConstitutiveType;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw : public GeoLinearElasticLaw
 {
 public:
-    using BaseType                      = GeoLinearElasticLaw;
-    using SizeType                      = std::size_t;
-    static constexpr SizeType Dimension = N_DIM_2D;
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+    using BaseType = GeoLinearElasticLaw;
+    using SizeType = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStrain2DLaw);
     GeoLinearElasticPlaneStrain2DLaw();
 
-    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveType> pConstitutiveDimension);
+    explicit GeoLinearElasticPlaneStrain2DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
     GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
-    GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw const& rOther);
+    GeoLinearElasticPlaneStrain2DLaw& operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
     GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther)            = delete;
     GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther) = delete;
@@ -62,7 +60,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension where the law is working
+     * @return The dimension for which the law is working
      */
     SizeType WorkingSpaceDimension() override;
 
@@ -104,12 +102,12 @@ protected:
     ///@}
 
 private:
-    Vector                            mStressVector          = ZeroVector(VoigtSize);
-    Vector                            mStressVectorFinalized = ZeroVector(VoigtSize);
-    Vector                            mDeltaStrainVector     = ZeroVector(VoigtSize);
-    Vector                            mStrainVectorFinalized = ZeroVector(VoigtSize);
-    bool                              mIsModelInitialized    = false;
-    std::unique_ptr<ConstitutiveType> mpConstitutiveDimension;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector                                    mStressVector;
+    Vector                                    mStressVectorFinalized;
+    Vector                                    mDeltaStrainVector;
+    Vector                                    mStrainVectorFinalized;
+    bool                                      mIsModelInitialized = false;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

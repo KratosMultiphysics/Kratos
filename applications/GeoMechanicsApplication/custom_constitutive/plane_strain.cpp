@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "plane_strain_type.h"
+#include "plane_strain.h"
 
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-Matrix PlaneStrainType::CreateConstitutiveMatrix(double c1, double c2, double c3)
+Matrix PlaneStrain::FillConstitutiveMatrix(double c1, double c2, double c3) const
 {
     Matrix result = ZeroMatrix(4, 4);
 
@@ -39,15 +39,15 @@ Matrix PlaneStrainType::CreateConstitutiveMatrix(double c1, double c2, double c3
     return result;
 }
 
-std::unique_ptr<ConstitutiveType> PlaneStrainType::Clone()
+std::unique_ptr<ConstitutiveLawDimension> PlaneStrain::Clone() const
 {
-    return std::make_unique<PlaneStrainType>();
+    return std::make_unique<PlaneStrain>();
 }
 
-std::size_t PlaneStrainType::GetStrainSize() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
+std::size_t PlaneStrain::GetStrainSize() const { return VOIGT_SIZE_2D_PLANE_STRAIN; }
 
-std::size_t PlaneStrainType::GetDimension() { return N_DIM_2D; }
+std::size_t PlaneStrain::GetDimension() const { return N_DIM_2D; }
 
-Flags PlaneStrainType::GetSpatialType() { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
+Flags PlaneStrain::GetSpatialType() const { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
 
 } // namespace Kratos
