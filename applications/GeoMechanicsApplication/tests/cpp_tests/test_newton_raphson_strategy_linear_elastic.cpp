@@ -321,8 +321,6 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicZeroInitialAccelerati
     std::vector<double> expected_displacement_y = {2.99, 3.02, 2.97, 3.04, 2.95, 3.06,
                                                    2.93, 3.08, 2.91, 3.09, 2.90, 3.11};
 
-    double relative_convergence_tolerance = 100;
-    double absolute_convergence_tolerance = 100;
     double delta_time                     = 28;
     bool   use_iterations                 = false;
     bool   calculate_initial_acceleration = false;
