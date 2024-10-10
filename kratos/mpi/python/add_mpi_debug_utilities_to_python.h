@@ -10,8 +10,7 @@
 //  Main author:     Carlos A. Roig
 //
 
-#ifndef KRATOS_ADD_MPI_DEBUG_UTILITIES_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_MPI_DEBUG_UTILITIES_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -20,13 +19,9 @@
 
 // Project includes
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddMPIDebugUtilitiesToPython(pybind11::module& m);
 
-} // namespace Python
-} // namespace Kratos
-
-#endif // KRATOS_ADD_MPI_DEBUG_UTILITIES_TO_PYTHON_H_INCLUDED
+} // namespace Kratos::Python
 

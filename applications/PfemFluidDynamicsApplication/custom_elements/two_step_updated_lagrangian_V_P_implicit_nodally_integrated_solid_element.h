@@ -60,8 +60,8 @@ namespace Kratos
     /// base type:
     typedef TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -182,33 +182,18 @@ namespace Kratos
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement::CalculateRightHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
     void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
                                          const ProcessInfo &rCurrentProcessInfo) override;
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                          double TimeStep,
-                                          unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo,
-                                          double &Density,
-                                          double &DeviatoricCoeff,
-                                          double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows

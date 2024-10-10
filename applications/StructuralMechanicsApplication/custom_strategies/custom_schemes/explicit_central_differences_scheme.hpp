@@ -1,24 +1,21 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of MSantasusana)
-//
 //
 
 #pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
@@ -288,10 +285,10 @@ public:
             const auto it_node_begin = rModelPart.NodesBegin();
 
             // Construct the node initializer lambda based on whether rot_z exists
-            std::function<void(Node<3>&)> initializer_base, initializer;
+            std::function<void(Node&)> initializer_base, initializer;
             const array_1d<double, 3> zero_array = ZeroVector(3);
 
-            initializer_base = [&zero_array, DomainSize](Node<3>& rNode){
+            initializer_base = [&zero_array, DomainSize](Node& rNode){
                 rNode.SetValue(NODAL_MASS, 0.0);
                 rNode.FastGetSolutionStepValue(MIDDLE_VELOCITY) = zero_array;
 
@@ -309,7 +306,7 @@ public:
 
             const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
             if (has_dof_for_rot_z) {
-                initializer = [&zero_array, DomainSize, &initializer_base](Node<3>& rNode){
+                initializer = [&zero_array, DomainSize, &initializer_base](Node& rNode){
                     initializer_base(rNode);
                     rNode.SetValue(NODAL_INERTIA, zero_array);
                     rNode.FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY) = zero_array;
@@ -537,9 +534,9 @@ public:
             const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
             // Construct initializer lambda
-            std::function<void(Node<3>&)> initializer_base, initializer;
+            std::function<void(Node&)> initializer_base, initializer;
 
-            initializer_base = [&zero_array, &disppos, DomainSize, this](Node<3>& rNode) {
+            initializer_base = [&zero_array, &disppos, DomainSize, this](Node& rNode) {
                 const double nodal_mass = rNode.GetValue(NODAL_MASS);
                 const array_1d<double, 3>& r_current_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
@@ -577,7 +574,7 @@ public:
             };
 
             if (has_dof_for_rot_z) {
-                initializer = [&rotppos, &initializer_base, DomainSize, this](Node<3>& rNode) {
+                initializer = [&rotppos, &initializer_base, DomainSize, this](Node& rNode) {
                     initializer_base(rNode);
                     const array_1d<double, 3>& nodal_inertia = rNode.GetValue(NODAL_INERTIA);
                     const array_1d<double, 3>& r_current_residual_moment = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);

@@ -51,7 +51,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) InterfaceOptResponse : public Response
+class InterfaceOptResponse : public Response
 {
 public:
     ///@name Type Definitions
@@ -85,7 +85,7 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        for(int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
             auto eval_obj = mrResponseSettings["evaluated_objects"][i].GetString();
             ModelPart& eval_model_part = mrModel.GetModelPart(eval_obj);
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
@@ -97,7 +97,7 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"InterfaceOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-                   
+
         }
     };
     // --------------------------------------------------------------------------
@@ -113,12 +113,11 @@ public:
 			}
         }
         return total_mass;
-    };    
+    };
 
     double CalculateElementValue(Element& elem_i, const std::size_t DomainSize){
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         // We copy the current coordinates and move the coordinates to the initial configuration
@@ -129,8 +128,7 @@ public:
         }
 
         double element_density = elem_i.GetProperties().GetValue(DENSITY);
-        double element_density_f = std::floor(element_density);
-        double element_val =  elem_i.GetGeometry().Volume() * std::pow((element_density) * (1.0-element_density),2); 
+        double element_val =  elem_i.GetGeometry().Volume() * std::pow((element_density) * (1.0-element_density),2);
 
         // We restore the current configuration
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -145,7 +143,7 @@ public:
 
 		KRATOS_TRY;
 
-        for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const std::size_t domain_size = controlled_model_part.GetProcessInfo()[DOMAIN_SIZE];
@@ -157,38 +155,36 @@ public:
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active){
                     if(control_type=="material")
-                        CalculateElementMaterialGradients(elem_i,domain_size);                                              
+                        CalculateElementMaterialGradients(elem_i,domain_size);
                 }
             }
 
-            
+
         }
 
 		KRATOS_CATCH("");
- 
-    };  
+
+    };
 
     void CalculateElementMaterialGradients(Element& elem_i, const std::size_t DomainSize){
 
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         double curr_density = elem_i.GetProperties().GetValue(DENSITY);
-        double curr_density_f = std::floor(curr_density);
         double elem_dens_grad = elem_i.GetGeometry().Volume() * 2 * std::pow((curr_density) * (1.0-curr_density),1) * (1.0 - 2.0 * curr_density);
-        
+
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
             r_this_geometry[i_node].FastGetSolutionStepValue(D_INTERFACE_D_FD) += d_pd_d_fd * elem_dens_grad / number_of_nodes;
         }
-    };        
+    };
 
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -239,7 +235,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

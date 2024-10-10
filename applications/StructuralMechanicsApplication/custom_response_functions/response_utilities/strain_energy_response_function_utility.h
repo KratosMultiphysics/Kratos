@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//	             license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
@@ -12,19 +12,13 @@
 
 #pragma once
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"

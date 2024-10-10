@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class Shell3pElement
+class KRATOS_API(IGA_APPLICATION) Shell3pElement
     : public Element
 {
 protected:
@@ -117,7 +117,7 @@ public:
     typedef std::size_t IndexType;
 
     // GometryType
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
     ///@}
     ///@name Life Cycle

@@ -31,7 +31,7 @@ namespace Kratos
 ///@{
 
 /// The definition of the node
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /// The definition of the geometry
 typedef Geometry<NodeType> GeometryType;
@@ -73,7 +73,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;

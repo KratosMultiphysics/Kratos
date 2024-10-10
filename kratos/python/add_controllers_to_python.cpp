@@ -10,14 +10,16 @@
 //  Main authors:    Daniel Diez
 //
 
-
 // System includes
 
 // External includes
+#include <pybind11/stl.h>
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_controllers_to_python.h"
 #include "controllers/controller.h"
+#include "controllers/output_controller.h"
 
 namespace Kratos::Python
 {
@@ -28,7 +30,7 @@ public:
     //Inherit the constructors
     using Controller::Controller;
 
-    bool Evaluate() override
+    bool Evaluate() const override
     {
         using ReturnType = bool;
         using BaseType = Controller;
@@ -59,10 +61,19 @@ void AddControllersToPython(pybind11::module& m)
 
     py::class_<Controller, Controller::Pointer, ControllerTrampoline>(m,"Controller")
         .def(py::init<>())
-        .def("Create", &Controller::Create)
+        .def("Check", &Controller::Check)
+        .def("Create", &Controller::Create, py::arg("model"), py::arg("parameters"))
         .def("Evaluate", &Controller::Evaluate)
+        .def("Update", &Controller::Update)
         .def("GetDefaultParameters", &Controller::GetDefaultParameters)
         .def("__str__", PrintObject<Controller>)
+        ;
+
+    py::class_<OutputController, OutputController::Pointer, Controller>(m, "OutputController")
+        .def(py::init<const Model&, Parameters>(), py::arg("model"), py::arg("parameters"))
+        .def("GetCurrentControlValue", &OutputController::GetCurrentControlValue)
+        .def("GetInterval", &OutputController::GetInterval)
+        .def("GetNextPossibleEvaluateControlValue", &OutputController::GetNextPossibleEvaluateControlValue)
         ;
 }
 

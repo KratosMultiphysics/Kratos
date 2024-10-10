@@ -7,16 +7,21 @@
 //  License:		 BSD License
 //					 license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
+//  Main author:     Reza Najian Asl,
+//                   Suneth Warnakulasuriya
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+
+// Application includes
 #include "optimization_application_variables.h"
 
 namespace Kratos
 {
-
-    // KRATOS_CREATE_VARIABLE(double,TEST_MAP);
-
     //Auxilary field
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUXILIARY_FIELD);
 
@@ -73,6 +78,10 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, D_MASS_D_FD);
     KRATOS_CREATE_VARIABLE(double, D_MASS_D_CD);
 
+    //max overhang angle
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_X);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_CX);
+
     //stress
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_X);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_CX);
@@ -127,13 +136,36 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_RADIUS_DENSITY );
     KRATOS_CREATE_VARIABLE( bool, COMPUTE_CONTROL_DENSITIES );
 
+    // For helholtz solvers
+    KRATOS_CREATE_VARIABLE( bool, COMPUTE_HELMHOLTZ_INVERSE);
+    KRATOS_CREATE_VARIABLE( bool, HELMHOLTZ_INTEGRATED_FIELD);
+    KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_RADIUS);
+    KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_SCALAR);
+    KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_SCALAR_SOURCE);
+    KRATOS_CREATE_VARIABLE( int, NUMBER_OF_SOLVERS_USING_NODES);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VECTOR);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VECTOR_SOURCE);
+
     //Adjoint RHS
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);
 
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE);
     KRATOS_CREATE_VARIABLE(double, CROSS_AREA);
     KRATOS_CREATE_VARIABLE(double, DENSITY_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, THICKNESS_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, CROSS_AREA_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, YOUNG_MODULUS_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, POISSON_RATIO_SENSITIVITY);
+
+    // do not expose the following variables to python. They are used
+    // as temporary data holders. They can be changed
+    // at any point of time in an analysis.
+    // Hence, not recommended to be used for calculations
+    // unless existing values on those variables are not of interest
+    KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_1);
+    KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_2);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_1);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_2);
+
+    KRATOS_CREATE_VARIABLE(std::vector<std::string>, MODEL_PART_STATUS);
 }

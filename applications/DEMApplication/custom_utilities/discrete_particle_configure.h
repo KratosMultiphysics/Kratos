@@ -64,7 +64,6 @@ public:
     typedef SearchType::ElementsContainerType                       ElementsContainerType;
     typedef SearchType::NodesContainerType                          NodesContainerType;
 
-    typedef SearchType::ElementType                                 ElementType;
     typedef ContainerType::value_type                               PointerType;
     typedef ContainerType::iterator                                 IteratorType;
     typedef ElementsContainerType::iterator                         ElementIteratorType;
@@ -74,11 +73,6 @@ public:
 
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-
-    typedef ContactPair<PointerType>                                ContactPairType;
-    typedef std::vector<ContactPairType>                            ContainerContactType;
-    typedef ContainerContactType::iterator                          IteratorContactType;
-    typedef ContainerContactType::value_type                        PointerContactType;
 
     DiscreteParticleConfigure(){};
     virtual ~DiscreteParticleConfigure(){

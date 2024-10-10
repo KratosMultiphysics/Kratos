@@ -27,7 +27,7 @@ class ModelPartsController:
         self.mdpa_model_part_controllers: 'list[MdpaModelPartController]' = []
         for params in self.model_parts_settings:
             params["settings"].AddString("model_part_name", params["name"].GetString())
-            self.mdpa_model_part_controllers.append(MdpaModelPartController(model, params["settings"], None))
+            self.mdpa_model_part_controllers.append(MdpaModelPartController(model, params["settings"]))
 
     # --------------------------------------------------------------------------
     def Initialize(self) -> None:

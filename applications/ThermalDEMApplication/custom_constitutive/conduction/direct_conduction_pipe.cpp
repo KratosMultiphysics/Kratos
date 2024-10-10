@@ -30,8 +30,9 @@ namespace Kratos {
     const double d         = particle->mNeighborDistanceAdjusted;
     const double kavg      = particle->ComputeAverageConductivity();
     const double temp_grad = particle->GetNeighborTemperature() - particle->GetParticleTemperature();
+    const double area      = (particle->mDimension == 2) ? 2.0 * Rc : Globals::Pi * Rc * Rc;
 
-    return kavg * (Globals::Pi * Rc * Rc) * temp_grad / d;
+    return kavg * area * temp_grad / d;
 
     KRATOS_CATCH("")
   }

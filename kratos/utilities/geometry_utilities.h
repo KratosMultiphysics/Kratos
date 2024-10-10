@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-#include <algorithm>
 
 // External includes
 
@@ -38,16 +37,13 @@ public:
     ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type definition
-    typedef std::size_t IndexType;
-
-    /// Definition of the node
-    typedef Node<3> NodeType;
+    using IndexType = std::size_t;
 
     /// Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Operations
@@ -58,6 +54,117 @@ public:
      * @param TypeOfGeometry The geometry type
      */
     static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear tetrahedra
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesPlanarFaceTetrahedra(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        // Debug check that it is at least a tetrahedra
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) << "Geometry should be a tetrahedra in order to use PointLocalCoordinatesPlanarFaceTetrahedra" << std::endl;
+
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+
+        // Auxiliary coordinates
+        const auto& r_coordinates_0 = rGeometry[0].Coordinates();
+        const auto& r_coordinates_1 = rGeometry[1].Coordinates();
+        const auto& r_coordinates_2 = rGeometry[2].Coordinates();
+        const auto& r_coordinates_3 = rGeometry[3].Coordinates();
+        const double x1 = r_coordinates_0[0];
+        const double y1 = r_coordinates_0[1];
+        const double z1 = r_coordinates_0[2];
+        const double x2 = r_coordinates_1[0];
+        const double y2 = r_coordinates_1[1];
+        const double z2 = r_coordinates_1[2];
+        const double x3 = r_coordinates_2[0];
+        const double y3 = r_coordinates_2[1];
+        const double z3 = r_coordinates_2[2];
+        const double x4 = r_coordinates_3[0];
+        const double y4 = r_coordinates_3[1];
+        const double z4 = r_coordinates_3[2];
+
+        // Auxiliary diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+
+        // Compute LHS
+        BoundedMatrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*rGeometry.Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+
+        // Compute result
+        const array_1d<double,4> result = prod(invJ, X);
+
+        // Resize if needed
+        if (rResult.size() != 3) {
+            rResult.resize(3,false);
+        }
+
+        // Copy result
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
 
     /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
@@ -156,9 +263,8 @@ public:
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|    |x1-x0   x2-x0|
-        //J=|                |=    |              |
+        //J=|               |=   |             |
         //  |dy/dxi  dy/deta|    |y1-y0   y2-y0|
-
 
         double detJ = x10 * y20-y10 * x20;
 
@@ -431,233 +537,67 @@ public:
      * @return The distance between the point and the line
      */
     static double PointDistanceToLineSegment3D(
-        Point const& rLinePoint1,
-        Point const& rLinePoint2,
-        Point const& rToPoint
-        )
-    {
-        const double epsilon = 1e-15; //1.00e-9;
-
-        const array_1d<double,3> v1 = rLinePoint2 - rLinePoint1;
-        const array_1d<double,3> v2 = rLinePoint1 - rToPoint;
-        array_1d<double,3> v3;
-
-        const double square_distance = inner_prod(v1,v1);
-
-        if(square_distance < epsilon) // near zero length line
-            return norm_2(v2); // we return the distance to the first point of line
-
-        const double t = - inner_prod(v1,v2) / square_distance;
-
-        if(t < 0.0) { // it is before point 1
-            // We return the distance to point 1
-            noalias(v3) = rLinePoint1 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        if(t > 1.00) { // it is after point 2
-            // We return the distance to point 2
-            noalias(v3) = rLinePoint2 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        // The projection point is between point 1 and 2 of the line segment
-        noalias(v3) = rLinePoint1 * (1.0 - t) + rLinePoint2 * t;
-
-        return norm_2(v3 - rToPoint);
-
-    }
+        const Point& rLinePoint1,
+        const Point& rLinePoint2,
+        const Point& rToPoint
+        );
 
     /**
      * @brief This function calculates the distance of a 3D point to a 3D triangle
      * @details The implementation is done using following reference:
      *          http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
-     * @param TrianglePoint1 First point of triangle
-     * @param TrianglePoint2 Second point of triangle
-     * @param TrianglePoint3 Third point of triangle
-     * @param ToPoint The point which distance is required
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rPoint The point which distance is required
      * @return The distance between the point and the triangle
      */
     static double PointDistanceToTriangle3D(
-        Point const& TrianglePoint1,
-        Point const& TrianglePoint2,
-        Point const& TrianglePoint3,
-        Point const& ToPoint
-    )
-    {
-        const array_1d<double, 3> e0 = TrianglePoint2 - TrianglePoint1;
-        const array_1d<double, 3> e1 = TrianglePoint3 - TrianglePoint1;
-        const array_1d<double, 3> dd = TrianglePoint1 - ToPoint;
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rPoint
+        );
 
-        const double a = inner_prod(e0, e0);
-        const double b = inner_prod(e0, e1);
-        const double c = inner_prod(e1, e1);
-        const double d = inner_prod(e0, dd);
-        const double e = inner_prod(e1, dd);
-        const double f = inner_prod(dd, dd);
+    /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadratic triangle
+     * @details The implementation is done by decomposing the quadratic triangle into 3 triangles and calling PointDistanceToTriangle3D
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rTrianglePoint4 Fourth point of triangle
+     * @param rTrianglePoint5 Fifth point of triangle
+     * @param rTrianglePoint6 Sixth point of triangle
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the triangle
+     */
+    static double PointDistanceToTriangle3D(
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rTrianglePoint4,
+        const Point& rTrianglePoint5,
+        const Point& rTrianglePoint6,
+        const Point& rPoint
+        );
 
-        const double det = a*c-b*b;
-        double s = b*e-c*d;
-        double t = b*d-a*e;
-
-        double square_distance = 0.00;
-
-        if ( s + t <= det ) {
-            if ( s < 0.0 ) {
-                if ( t < 0.0 ) { // region 4
-                    if (d < 0) {
-                        t = 0;
-                        if (-d >= a) {
-                            s = 1;
-                            square_distance = a + 2*d + f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    } else {
-                        s = 0;
-                        if (e >= 0) {
-                            t = 0;
-                            square_distance = f;
-                        } else {
-                            if (-e >= c) {
-                                t = 1;
-                                square_distance = c + 2*e + f;
-                            } else {
-                                t = -e/c;
-                                square_distance = e*t + f;
-                            }
-                        }
-                    }
-                } else { // region 3
-                    s = 0.0;
-                    if(e >= 0.0) {
-                        t = 0.0;
-                        square_distance = f;
-                    } else {
-                        if (-e >= c) {
-                            t = 1.00;
-                            square_distance = c + 2*e +f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-
-                }
-            } else if ( t < 0.00 ) { // region 5
-                t = 0;
-                if (d >= 0) {
-                    s = 0;
-                    square_distance = f;
-                } else {
-                    if (-d >= a) {
-                        s = 1;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = -d / a;
-                        square_distance = d * s + f;
-                    }
-                }
-            } else { // region 0
-                double inv_det = 1.0 / det;
-                s *= inv_det;
-                t *= inv_det;
-                square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-            }
-        } else {
-            if ( s < 0.00 ) {
-                // Region 2
-                const double temp0 = b + d;
-                const double temp1 = c + e;
-                if (temp1 > temp0)  { // Minimum on edge s+t=1
-                    const double numer = temp1 - temp0;
-                    const double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        s = numer/denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else { // Minimum on edge s=0
-                    s = 0.0;
-                    if(temp1 <= 0.0) {
-                        t = 1;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        if(e >= 0.0) {
-                            t = 0.0;
-                            square_distance = f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-                }
-            } else if ( t < 0.0 ) {
-                // Region 6
-                double temp0 = b + e;
-                double temp1 = a + d;
-                if (temp1 > temp0) {
-                    double numer = temp1 - temp0;
-                    double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 0.0;
-                        t = 1.0;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        t = numer/denom;
-                        s = 1.0 - t;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else {
-                    t = 0.0;
-                    if(temp1 <= 0.0) {
-                        s = 1;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        if(d >= 0.0) {
-                            s = 0.0;
-                            square_distance = f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    }
-                }
-            } else {
-                // Region 1
-                double numer = c + e - b - d;
-
-                if (numer <= 0.0) {
-                    s = 0.0;
-                    t = 1.0;
-                    square_distance = c + 2.0 * e + f;
-                } else {
-                    double denom = a - 2.0 * b + c;
-                    if (numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = numer / denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                }
-            }
-        }
-
-        if(square_distance < 0.0)
-            return 0.0; // avoiding -0 case!!
-
-        return std::sqrt(square_distance);
-    }
+    /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadrilateral
+     * @details The implementation is done by decomposing the quadrilateral into 2 triangles and calling PointDistanceToTriangle3D
+     * @param rQuadrilateralPoint1 First point of quadrilateral
+     * @param rQuadrilateralPoint2 Second point of quadrilateral
+     * @param rQuadrilateralPoint3 Third point of quadrilateral
+     * @param rQuadrilateralPoint4 Third point of quadrilateral
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the quadrilateral
+     */
+    static double PointDistanceToQuadrilateral3D(
+        const Point& rQuadrilateralPoint1,
+        const Point& rQuadrilateralPoint2,
+        const Point& rQuadrilateralPoint3,
+        const Point& rQuadrilateralPoint4,
+        const Point& rPoint
+        );
 
     /**
      * @brief Calculate the gradients of shape functions.
@@ -672,12 +612,8 @@ public:
         TMatrix3& rDN_DX
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("ShapeFunctionsGradients", rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2()) << "ShapeFunctionsGradients has detected an incorrect size of your DN_DX matrix. Please resize before compute" << std::endl;
-    #else
         if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
             rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rDN_DX) = prod(rDN_De, rInvJ);
     }
@@ -696,12 +632,8 @@ public:
         TMatrix3& rF
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("DeformationGradient", rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2()) << "DeformationGradient has detected an incorrect size of your F matrix. Please resize before compute" << std::endl;
-    #else
         if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
             rF.resize(rJ.size1(), rInvJ0.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rF) = prod(rJ, rInvJ0);
     }
@@ -854,6 +786,28 @@ public:
         const int Step = 0);
 
     /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated in all integration points
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod );
+
+
+    /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated on an integration point.
+     * @details The method used can be found here. https://scicomp.stackexchange.com/questions/25196/implementing-higher-order-derivatives-for-finite-element
+     *  @param rLocalIntegrationPointCoordinates the local coordinates of the integration point
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+        const Matrix& DN_DX,
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+        DenseVector<Matrix>& rResult);
+
+    /**
      * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
      * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
      * @param rPointGlobalCoordinates the global coordinates of the external point.
@@ -866,6 +820,135 @@ public:
         const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
         GeometryType::CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
+
+    /**
+    * @brief Computes the distance between an point in global coordinates and the closest point of this geometry.
+    * @param rGeometry the geometry to compute the distance to.
+    * @param rPointGlobalCoordinates the point to which the closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    template <class TGeometryType>
+    static double CalculateDistanceFrom3DGeometry(
+        const TGeometryType& rGeometry,
+        const typename TGeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        typename TGeometryType::CoordinatesArrayType aux_coordinates;
+        if (rGeometry.IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Generate faces
+        std::vector<double> distances(rGeometry.FacesNumber());
+        unsigned int i = 0;
+        for (auto& r_face : rGeometry.GenerateFaces()) {
+            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+            ++i;
+        }
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
+
+    /**
+     * @brief use separating axis theorem to test overlap between triangle and box
+     * @details Need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     * @param rBoxCenter The center of the box
+     * @param rBoxHalfSize The half size of the box
+     * @param rVertex0 The first vertex of the triangle
+     * @param rVertex1 The second vertex of the triangle
+     * @param rVertex2 The third vertex of the triangle
+     */
+    static bool TriangleBoxOverlap(
+        const Point& rBoxCenter,
+        const Point& rBoxHalfSize,
+        const Point& rVertex0,
+        const Point& rVertex1,
+        const Point& rVertex2
+        );
+
+    /**
+     * @brief Check if a plane intersects a box
+     * @see TriBoxOverlap
+     * @details Plane equation: rNormal*x+rDist=0
+     * @return bool intersection flag
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     */
+    static bool PlaneBoxOverlap(
+        const array_1d<double,3>& rNormal,
+        const double Distance,
+        const array_1d<double,3>& rMaxBox
+        );
+
+private:
+
+    /**
+     * @brief AxisTestX
+     * @details This method returns true if there is a separating axis
+     * @param EdgeY, EdgeZ: i-edge coordinates
+     * @param AbsEdgeY, AbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestX(
+        const double EdgeY,
+        const double EdgeZ,
+        const double AbsEdgeY,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestY
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestY(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestZ
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestZ(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeY,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
         );
 };
 

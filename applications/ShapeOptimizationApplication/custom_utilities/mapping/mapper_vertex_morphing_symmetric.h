@@ -43,7 +43,7 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer NodePointerType;
     typedef std::vector<NodePointerType> NodeVectorType;
     typedef std::vector<NodePointerType>::iterator NodeIteratorType;

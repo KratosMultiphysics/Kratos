@@ -306,6 +306,17 @@ class DEMEnergyCalculator():
 
             self.energy_graph_counter += 1
 
+    def CalculateNormalizedKinematicEnergy(self):
+
+        particle_number_times_max_normal_ball_to_ball_force_times_radius = self.SpheresEnergyUtil.CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(self.SpheresModelPart)
+        
+        if particle_number_times_max_normal_ball_to_ball_force_times_radius == 0.0:
+            normalized_kinematic_energy = 0.0
+        else:
+            normalized_kinematic_energy = self.kinematic_energy / particle_number_times_max_normal_ball_to_ball_force_times_radius
+        
+        return normalized_kinematic_energy
+    
     def CalculateEnergy(self):
 
         self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart)
@@ -506,6 +517,7 @@ class Procedures():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR_RAW)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
@@ -518,6 +530,11 @@ class Procedures():
         # ONLY VISUALIZATION
         if self.DEM_parameters["PostExportId"].GetBool():  # TODO: add suffix Option
             model_part.AddNodalSolutionStepVariable(EXPORT_ID)
+
+        # ONLY VISUALIZATION
+        if "PostGroupId" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGroupId"].GetBool(): 
+                model_part.AddNodalSolutionStepVariable(GROUP_ID)
 
         #model_part.AddNodalSolutionStepVariable(SPRAYED_MATERIAL)
 
@@ -809,6 +826,38 @@ class Procedures():
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
+    def UpdateBoundingBox(self, spheres_model_part, creator_destructor):
+
+        delta_time = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        #NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+        #delta_time_real = delta_time * NStepSearch
+        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
+        
+        b_box_low = Array3()
+        b_box_high = Array3()
+        control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
+        if control_bool_vector[0]:
+            self.b_box_minX += delta_time * move_velocity
+        if control_bool_vector[1]:
+            self.b_box_minY += delta_time * move_velocity
+        if control_bool_vector[2]:
+            self.b_box_minZ += delta_time * move_velocity
+        if control_bool_vector[3]:
+            self.b_box_maxX -= delta_time * move_velocity
+        if control_bool_vector[4]:
+            self.b_box_maxY -= delta_time * move_velocity
+        if control_bool_vector[5]:
+            self.b_box_maxZ -= delta_time * move_velocity
+        b_box_low[0] = self.b_box_minX
+        b_box_low[1] = self.b_box_minY
+        b_box_low[2] = self.b_box_minZ
+        b_box_high[0] = self.b_box_maxX
+        b_box_high[1] = self.b_box_maxY
+        b_box_high[2] = self.b_box_maxZ
+        creator_destructor.SetLowNode(b_box_low)
+        creator_destructor.SetHighNode(b_box_high)
+        creator_destructor.UpdateSurroundingBoundingBox(spheres_model_part)
+    
     def DeleteFiles(self):
         files_to_delete_list = glob('*.time')
         for to_erase_file in files_to_delete_list:
@@ -1262,6 +1311,7 @@ class DEMIo():
         self.PostAppliedForces = self.DEM_parameters["PostAppliedForces"].GetBool()
         self.PostDampForces = self.DEM_parameters["PostDampForces"].GetBool()
         self.PostRadius = self.DEM_parameters["PostRadius"].GetBool()
+        self.PostGroupId = GetBoolParameterIfItExists(self.DEM_parameters, "PostGroupId")
         self.PostExportId = self.DEM_parameters["PostExportId"].GetBool()
         self.PostSkinSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostSkinSphere")
         self.PostGluedSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostGluedSphere")
@@ -1275,6 +1325,7 @@ class DEMIo():
         self.PostContactTau = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactTau")
         self.PostContactSigma = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactSigma")
         self.PostMeanContactArea = GetBoolParameterIfItExists(self.DEM_parameters, "PostMeanContactArea")
+        self.PostContactRadius = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactRadius")
         self.PostElasticForces = self.DEM_parameters["PostElasticForces"].GetBool()
         self.PostContactForces = self.DEM_parameters["PostContactForces"].GetBool()
         self.PostRigidElementForces = self.DEM_parameters["PostRigidElementForces"].GetBool()
@@ -1283,7 +1334,7 @@ class DEMIo():
         self.PostShearStress = self.DEM_parameters["PostShearStress"].GetBool()
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
-        self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
+        self.PostDamageRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostDamageRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
@@ -1371,8 +1422,8 @@ class DEMIo():
     def Flush(self, a):
         a.flush()
 
-    def ShowPrintingResultsOnScreen(self, all_model_parts):
-        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR GID  ***************************")
+    def ShowPrintingResultsOnScreen(self, all_model_parts, format_name):
+        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR {}  ***************************".format(format_name))
         self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
         self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
         self.KratosPrintInfo("")
@@ -1448,9 +1499,9 @@ class DEMIo():
             if self.DEM_parameters["PostNeighbourSize"].GetBool():
                 self.PushPrintVar(self.PostNeighbourSize, NEIGHBOUR_SIZE, self.spheres_variables)
 
-        if "PostBrokenRatio" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostBrokenRatio"].GetBool():
-                self.PushPrintVar(self.PostBrokenRatio, DAMAGE_RATIO, self.spheres_variables)
+        if "PostDamageRatio" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostDamageRatio"].GetBool():
+                self.PushPrintVar(self.PostDamageRatio, DAMAGE_RATIO, self.spheres_variables)
 
         if self.PostGluedSphere:
             self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
@@ -1474,6 +1525,10 @@ class DEMIo():
         if "PostPoissonRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostPoissonRatio"].GetBool():
                 self.PushPrintVar(1, POISSON_VALUE, self.spheres_variables)
+
+        if "PostGroupId" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGroupId"].GetBool():
+                self.PushPrintVar(self.PostGroupId, GROUP_ID, self.spheres_variables)
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)
@@ -1502,6 +1557,7 @@ class DEMIo():
                 self.PushPrintVar(self.PostContactTau, CONTACT_TAU, self.contact_variables)
                 self.PushPrintVar(self.PostContactSigma, CONTACT_SIGMA, self.contact_variables)
                 self.PushPrintVar(self.PostMeanContactArea, MEAN_CONTACT_AREA, self.contact_variables)
+                self.PushPrintVar(self.PostContactRadius, CONTACT_RADIUS, self.contact_variables)
 
     def AddMpiVariables(self):
         pass

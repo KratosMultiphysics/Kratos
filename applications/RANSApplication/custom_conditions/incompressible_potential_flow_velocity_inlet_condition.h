@@ -48,7 +48,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowVelocityInletCondition);
 
     using BaseType = Condition;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using PropertiesType = Properties;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;

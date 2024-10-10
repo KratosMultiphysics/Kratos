@@ -577,20 +577,30 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     )
 {
     const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+    const Vector strain_vector = rParameterValues.GetStrainVector();
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
     // We combine the value of each layer
     rValue = 0.0;
     double aux_value = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
 
+        Properties& r_prop = *(it_prop_begin + i_layer);
         rParameterValues.SetMaterialProperties(r_prop);
+
+        // We rotate to local axes the strain
+        noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
         aux_value = 0.0;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+        p_law->CalculateValue(rParameterValues, rThisVariable, aux_value);
         rValue += factor * aux_value;
+
+        // We reset the strain to its original global axes
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
     }
 
     // Reset properties
@@ -670,6 +680,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
+        if (rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_ONE && rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
         const Vector strain_vector = rParameterValues.GetStrainVector();
 
@@ -701,6 +712,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
 
         // Reset properties
         rParameterValues.SetMaterialProperties(r_material_properties);
+        }
     }
 
     return( rValue );

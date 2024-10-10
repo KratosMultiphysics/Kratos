@@ -78,8 +78,8 @@ namespace Kratos
 
 		typedef typename BaseType::TDataType TDataType;
 
-		/// Node type (default is: Node<3>)
-		typedef Node<3> NodeType;
+		/// Node type (default is: Node)
+		typedef Node NodeType;
 
 		/// Geometry type (using with given NodeType)
 		typedef Geometry<NodeType> GeometryType;
@@ -104,7 +104,7 @@ namespace Kratos
 
 		typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-		typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+		typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 		///@}
 		///@name Life Cycle
 		///@{
@@ -277,7 +277,7 @@ namespace Kratos
 			double pressureNorm = 0;
 			double velocityNorm = 0;
 
-			this->InitializeSolutionStep();
+			this->FillNodalSFDVector();
 			for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 			{
 				if (BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -344,7 +344,6 @@ namespace Kratos
 
 			if (mReformDofSet)
 				this->Clear();
-
 
 			return converged;
 		}
@@ -552,33 +551,6 @@ namespace Kratos
 				}
 			}
 			// }
-		}
-
-		void InitializeSolutionStep() override
-		{
-			this->FillNodalSFDVector();
-		}
-
-		void FillNodalSFDVector()
-		{
-
-			ModelPart &rModelPart = BaseType::GetModelPart();
-
-			//  #pragma omp parallel
-			//  	{
-			// 		ModelPart::NodeIterator NodesBegin;
-			// 		ModelPart::NodeIterator NodesEnd;
-			// 		OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-			// for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-			// 	{
-
-			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-			{
-				InitializeNodalVariablesForRemeshedDomain(itNode);
-
-				SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
-			}
 		}
 
 		void SetNeighboursOrderToNode(ModelPart::NodeIterator itNode)
@@ -975,7 +947,7 @@ namespace Kratos
 					deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
 				}
 			}
-			else  if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
 			{
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 			}
@@ -1663,8 +1635,7 @@ namespace Kratos
 			double NormV = 0.00;
 			errorNormDv = 0;
 
-#pragma omp parallel reduction(+ \
-							   : NormV)
+#pragma omp parallel reduction(+ : NormV)
 			{
 				ModelPart::NodeIterator NodeBegin;
 				ModelPart::NodeIterator NodeEnd;
@@ -1714,8 +1685,7 @@ namespace Kratos
 
 			double NormV = 0.00;
 
-#pragma omp parallel reduction(+ \
-							   : NormV)
+#pragma omp parallel reduction(+ : NormV)
 			{
 				ModelPart::NodeIterator NodeBegin;
 				ModelPart::NodeIterator NodeEnd;
@@ -1750,8 +1720,7 @@ namespace Kratos
 
 			double NormP = 0.00;
 
-#pragma omp parallel reduction(+ \
-							   : NormP)
+#pragma omp parallel reduction(+ : NormP)
 			{
 				ModelPart::NodeIterator NodeBegin;
 				ModelPart::NodeIterator NodeEnd;
@@ -2188,6 +2157,29 @@ namespace Kratos
 			this->Check();
 
 			KRATOS_CATCH("");
+		}
+
+	private:
+		void FillNodalSFDVector()
+		{
+
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			//  #pragma omp parallel
+			//  	{
+			// 		ModelPart::NodeIterator NodesBegin;
+			// 		ModelPart::NodeIterator NodesEnd;
+			// 		OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+			// for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+			// 	{
+
+			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+			{
+				InitializeNodalVariablesForRemeshedDomain(itNode);
+
+				SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
+			}
 		}
 
 		///@}

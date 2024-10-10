@@ -250,31 +250,66 @@ public:
 //***********************************************************************************
 //***********************************************************************************
 
+/**
+ * @brief A template class for accumulating values into a collection in a modifiable way.
+ * @tparam TDataType Type of the data to be accumulated.
+ * @tparam TReturnType Type of the container used to store the data, defaults to std::vector<TDataType>.
+ */
 template<class TDataType, class TReturnType = std::vector<TDataType>>
 class AccumReduction
 {
 public:
-    typedef TDataType   value_type;
-    typedef TReturnType return_type;
+    using value_type = TDataType; ///< Alias for the type of data being reduced.
+    using return_type = TReturnType; ///< Alias for the type of the container used for reduction.
 
-    TReturnType mValue = TReturnType(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = TReturnType(); ///< Public member variable for the accumulation storage, modifiable as needed.
 
-    /// access to reduced value
+    /**
+     * @brief Accessor for the reduced value.
+     * @return The current accumulated value.
+     */
     TReturnType GetValue() const
     {
         return mValue;
     }
 
-    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    /**
+     * @brief Performs a non-thread-safe reduction by adding a single value to the end of the accumulation.
+     * @param value The value to add to the accumulation.
+     */
     void LocalReduce(const TDataType value){
-        mValue.push_back(value);
+        mValue.insert(mValue.end(), value);
     }
 
-    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    /**
+     * @brief Performs a thread-safe reduction by merging another AccumReduction's values into this one.
+     * @param rOther Reference to another AccumReduction object of the same type.
+     */
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
         KRATOS_CRITICAL_SECTION
-        mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
+        std::copy(rOther.mValue.begin(), rOther.mValue.end(), std::inserter(mValue, mValue.end()));
+    }
+};
+
+/**
+ * @brief A derived template class from AccumReduction that only accumulates values based on a filtering condition.
+ * @tparam TDataType Type of the data to be accumulated.
+ * @tparam TReturnType Type of the container used to store the data, defaults to std::vector<TDataType>.
+ */
+template<class TDataType, class TReturnType = std::vector<TDataType>>
+class FilteredAccumReduction : public AccumReduction<TDataType, TReturnType>
+{
+public:
+    /**
+     * @brief Performs a non-thread-safe reduction by adding a value to the accumulation only if a specified condition is true.
+     * @param ValuePair A pair consisting of a boolean (the condition) and the value to be potentially added.
+     */
+    void LocalReduce(const std::pair<bool, TDataType> ValuePair)
+    {
+        if (ValuePair.first) {
+            this->mValue.push_back(ValuePair.second);
+        }
     }
 };
 

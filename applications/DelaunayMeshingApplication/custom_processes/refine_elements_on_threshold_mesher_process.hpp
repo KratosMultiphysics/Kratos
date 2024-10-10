@@ -203,7 +203,7 @@ private:
 	  if( variable_value > critical_value )
 	    {
 	      //std::cout<<" Refine element "<<std::endl;
-	      Geometry< Node<3> >& rGeometry = iii->GetGeometry();
+	      Geometry< Node >& rGeometry = iii->GetGeometry();
 	      for(unsigned int i = 0; i<rGeometry.size(); ++i)
 		{
 		  if(rGeometry[i].IsNot(BOUNDARY))

@@ -3,12 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
 #pragma once
@@ -72,6 +70,8 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -108,6 +108,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+
+    /**
+    * @brief This function calculates a matrix which is used to reduce rigidity at the beam connections
+    */
+    void CalculateRigidityReductionMatrix(
+        BoundedMatrix<double, msElementSize, msElementSize>& rReductionMatrix) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

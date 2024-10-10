@@ -20,52 +20,18 @@
 // Project includes
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
 
 namespace Kratos
 {
-
-bool FluidAuxiliaryUtilities::IsSplit(const Vector& rElementDistancesVector)
-{
-    std::size_t n_pos(0);
-    std::size_t n_neg(0);
-    const std::size_t pts_number = rElementDistancesVector.size();
-    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
-        if (rElementDistancesVector[i_node] > 0.0)
-            n_pos++;
-        else
-            n_neg++;
-    }
-    return (n_pos > 0 && n_neg > 0) ? true : false;
-}
-
-bool FluidAuxiliaryUtilities::IsPositive(const Vector &rElementDistancesVector)
-{
-    std::size_t n_pos (0);
-    const std::size_t pts_number = rElementDistancesVector.size();
-    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
-        if (rElementDistancesVector[i_node] > 0.0)
-            n_pos++;
-    }
-    return (n_pos == pts_number) ? true : false;
-}
-
-bool FluidAuxiliaryUtilities::IsNegative(const Vector &rElementDistancesVector)
-{
-    std::size_t n_neg (0);
-    const std::size_t pts_number = rElementDistancesVector.size();
-    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
-        if (rElementDistancesVector[i_node] < 0.0)
-            n_neg++;
-    }
-    return n_neg == pts_number;
-}
 
 double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
 {
@@ -420,73 +386,130 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
     rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-    void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
-        ModelPart& rVolumeModelPart,
-        ModelPart& rSkinModelPart,
-        const double SearchRadius
-        )
-    {
-        //put the nodes in the skin into a search database
-        typedef BinsDynamic<3, Node<3>, std::vector<Node<3>::Pointer>> DynamicBins;
-        DynamicBins locator(rSkinModelPart.Nodes().GetContainer().begin(), rSkinModelPart.Nodes().GetContainer().end());
+void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
+    ModelPart& rVolumeModelPart,
+    ModelPart& rSkinModelPart,
+    const double SearchRadius)
+{
+    //put the nodes in the skin into a search database
+    typedef BinsDynamic<3, Node, std::vector<Node::Pointer>> DynamicBins;
+    DynamicBins locator(rSkinModelPart.Nodes().GetContainer().begin(), rSkinModelPart.Nodes().GetContainer().end());
 
-        //reset the EMBEDDED_VELOCITY
-        block_for_each(rVolumeModelPart.Nodes(), [](auto& rNode){
-            rNode.GetValue(EMBEDDED_VELOCITY).clear();
-        });
+    //reset the EMBEDDED_VELOCITY
+    block_for_each(rVolumeModelPart.Nodes(), [](auto& rNode){
+        rNode.GetValue(EMBEDDED_VELOCITY).clear();
+    });
 
-        //detect all the nodes that belong to cut elements
-        ModelPart::NodesContainerType cut_elem_nodes;
-        for(const auto& r_elem : rVolumeModelPart.Elements()){
-            const auto& r_geom = r_elem.GetGeometry();
-            
-            unsigned int npos=0, nneg=0;
-            for (const auto& r_node : r_geom) {
-                r_node.FastGetSolutionStepValue(DISTANCE) > 0 ? ++npos : ++nneg;
-            }
+    //detect all the nodes that belong to cut elements
+    ModelPart::NodesContainerType cut_elem_nodes;
+    for(const auto& r_elem : rVolumeModelPart.Elements()){
+        const auto& r_geom = r_elem.GetGeometry();
 
-            if(npos>0 && nneg>0){ //element is split
-                for(unsigned int i=0; i<r_geom.size(); ++i) {
-                    cut_elem_nodes.push_back(r_geom(i));
-                }
+        unsigned int npos=0, nneg=0;
+        for (const auto& r_node : r_geom) {
+            r_node.FastGetSolutionStepValue(DISTANCE) > 0 ? ++npos : ++nneg;
+        }
+
+        if(npos>0 && nneg>0){ //element is split
+            for(unsigned int i=0; i<r_geom.size(); ++i) {
+                cut_elem_nodes.push_back(r_geom(i));
             }
         }
-        cut_elem_nodes.Unique();
+    }
+    cut_elem_nodes.Unique();
 
-        unsigned int max_results = 100; //deliberately low, we do not want to interpolate from more than this nodes
-        auto TLS = std::make_pair(std::vector<Node<3>::Pointer>(max_results), std::vector<double>(max_results));
-        
-        //for every interface node (nodes in cut elements)
-        block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){
-                //find all neighbours within a radius
-                auto& r_neighbours = rTLS.first;
-                auto& r_distances  = rTLS.second;
-                const unsigned int nfound = locator.SearchInRadius(
-                    rNode, 
-                    SearchRadius, 
-                    r_neighbours.begin(), 
-                    r_distances.begin(), 
-                    r_neighbours.size());
-                KRATOS_ERROR_IF(nfound == 0) << "Not found any neighbor for node " << rNode.Id() << " in skin model part." << std::endl;
+    unsigned int max_results = 100; //deliberately low, we do not want to interpolate from more than this nodes
+    auto TLS = std::make_pair(std::vector<Node::Pointer>(max_results), std::vector<double>(max_results));
 
-                //compute RBF basis
-                Matrix cloud_coords(nfound,3);
-                Vector shape_functions(nfound);
-                for(unsigned int i=0; i<nfound; ++i){
-                    cloud_coords(i,0)=r_neighbours[i]->X(); 
-                    cloud_coords(i,1)=r_neighbours[i]->Y(); 
-                    cloud_coords(i,2)=r_neighbours[i]->Z();
-                }
-                RBFShapeFunctionsUtility::CalculateShapeFunctions(cloud_coords,rNode.Coordinates(), shape_functions);
+    //for every interface node (nodes in cut elements)
+    block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){
+            //find all neighbours within a radius
+            auto& r_neighbours = rTLS.first;
+            auto& r_distances  = rTLS.second;
+            const unsigned int nfound = locator.SearchInRadius(
+                rNode,
+                SearchRadius,
+                r_neighbours.begin(),
+                r_distances.begin(),
+                r_neighbours.size());
+            KRATOS_ERROR_IF(nfound == 0) << "Not found any neighbor for node " << rNode.Id() << " in skin model part." << std::endl;
 
-                //assign interpolation
-                auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
-                for(unsigned int i=0; i<nfound; ++i){
-                    noalias(r_v) += shape_functions[i]*r_neighbours[i]->FastGetSolutionStepValue(VELOCITY);
-                }
-            });
+            //compute RBF basis
+            Matrix cloud_coords(nfound,3);
+            Vector shape_functions(nfound);
+            for(unsigned int i=0; i<nfound; ++i){
+                cloud_coords(i,0)=r_neighbours[i]->X();
+                cloud_coords(i,1)=r_neighbours[i]->Y();
+                cloud_coords(i,2)=r_neighbours[i]->Z();
+            }
+            RBFShapeFunctionsUtility::CalculateShapeFunctions(cloud_coords,rNode.Coordinates(), shape_functions);
+
+            //assign interpolation
+            auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
+            for(unsigned int i=0; i<nfound; ++i){
+                noalias(r_v) += shape_functions[i]*r_neighbours[i]->FastGetSolutionStepValue(VELOCITY);
+            }
+        });
+}
+
+double FluidAuxiliaryUtilities::FindMaximumEdgeLength(
+    ModelPart &rModelPart,
+    const bool CalculateNodalNeighbours)
+{
+    // If required, calculate nodal neighbours
+    if (CalculateNodalNeighbours) {
+        FindGlobalNodalNeighboursProcess nodal_neigh_process(rModelPart);
+        nodal_neigh_process.Execute();
     }
 
+    // Find maximum edge length by iterating the nodal neigbours
+    const double l_max = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](auto& rNode){
+        const auto& r_coords = rNode.Coordinates();
+        double l_max_local = 0.0;
+        for (auto& r_neigh : rNode.GetValue(NEIGHBOUR_NODES)) {
+            const auto& r_coords_neigh = r_neigh.Coordinates();
+            const double l_aux = std::pow(r_coords[0] - r_coords_neigh[0], 2) + std::pow(r_coords[1] - r_coords_neigh[1], 2) + std::pow(r_coords[2] - r_coords_neigh[2], 2);
+            l_max_local = l_aux > l_max_local ? l_aux : l_max_local;
+        }
+        return std::sqrt(l_max_local);
+    });
 
+    return l_max;
+}
+
+void FluidAuxiliaryUtilities::PostprocessP2P1ContinuousPressure(ModelPart& rModelPart)
+{
+    // Reset VISITED flag to indicate the already postprocessed nodes
+    VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+    // Loop the P2P1 elements to postprocess the pressure in edge midpoint nodes
+    // Note that there is no need to do MPI synchronization as we are updating the ghost nodes too
+    if (rModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0) {
+        // Check DOMAIN_SIZE
+        KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
+            << "DOMAIN_SIZE cannot be found in '" << rModelPart.FullName() << "' ProcessInfo container."<<  std::endl;
+        // Loop the elements to assign the edge midpoint nodes PRESSURE
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            block_for_each(rModelPart.Elements(), [](auto& rElement){
+                auto& r_geometry = rElement.GetGeometry();
+                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D6);
+                PostprocessP2P1NodePressure(r_geometry, 3, 0, 1);
+                PostprocessP2P1NodePressure(r_geometry, 4, 1, 2);
+                PostprocessP2P1NodePressure(r_geometry, 5, 0, 2);
+            });
+        } else {
+            block_for_each(rModelPart.Elements(), [](auto& rElement){
+                auto& r_geometry = rElement.GetGeometry();
+                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10);
+                PostprocessP2P1NodePressure(r_geometry, 4, 0, 1);
+                PostprocessP2P1NodePressure(r_geometry, 5, 1, 2);
+                PostprocessP2P1NodePressure(r_geometry, 6, 0, 2);
+                PostprocessP2P1NodePressure(r_geometry, 7, 0, 3);
+                PostprocessP2P1NodePressure(r_geometry, 8, 1, 3);
+                PostprocessP2P1NodePressure(r_geometry, 9, 2, 3);
+            });
+        }
+    }
+}
 
 } // namespace Kratos

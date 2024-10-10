@@ -20,10 +20,6 @@
 /* Project includes */
 #include "spaces/ublas_space.h"
 #include "utilities/math_utils.h"
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-#include "boost/numeric/ublas/matrix.hpp" // for the identity matrix used here.
-#else
-#endif // KRATOS_USE_AMATRIX
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"

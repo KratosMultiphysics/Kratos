@@ -333,7 +333,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+        block_for_each(GetModelPart().Nodes(), [](Node& rNode){
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
             noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
         });

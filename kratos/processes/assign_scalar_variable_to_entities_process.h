@@ -5,31 +5,38 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLE_TO_ENTITIES_PROCESS_H_INCLUDED )
-#define  KRATOS_ASSIGN_SCALAR_VARIABLE_TO_ENTITIES_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @brief This struct is used in order to identify when using the historical and non historical variables
+ */
+struct AssignScalarVariableToEntitiesProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
 
 /**
  * @class AssignScalarVariableToEntitiesProcess
@@ -40,7 +47,7 @@ namespace Kratos
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
 */
-template<class TEntity>
+template<class TEntity, bool THistorical = AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>
 class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess
     : public Process
 {
@@ -48,11 +55,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Node type definition
-    typedef Node<3> NodeType;
-
     /// The container of the entities
-    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+    using EntityContainerType = PointerVectorSet<TEntity, IndexedObject>;
 
     /// Pointer definition of AssignScalarVariableToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToEntitiesProcess);
@@ -60,6 +64,16 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     * @param rModel The model part to be set
+     * @param rParameters The configuration parameters
+     */
+    AssignScalarVariableToEntitiesProcess(
+        Model& rModel,
+        Parameters rParameters
+        );
 
     /**
      * @brief Default constructor
@@ -72,7 +86,7 @@ public:
         );
 
     /// Destructor.
-    ~AssignScalarVariableToEntitiesProcess() override {}
+    ~AssignScalarVariableToEntitiesProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -107,16 +121,6 @@ public:
     const Parameters GetDefaultParameters() const override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -138,40 +142,10 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-    ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    /// Copy constructor.
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -191,34 +165,13 @@ private:
      * @brief This method assigns the value (with OMP)
      * @param rVar The variable to be assigned
      * @param Value The value to assign
+     * @tparam TVarType The variable data type
      */
-    template< class TVarType, class TDataType >
-    void InternalAssignValue(TVarType& rVar, const TDataType Value)
-    {
-        VariableUtils().SetNonHistoricalVariable(rVar, Value, GetEntitiesContainer());
-    }
-
-    /**
-     * @brief This method assigns the value (without OMP)
-     * @param rVar The variable to be assigned
-     * @param Value The value to assign
-     */
-    template< class TVarType, class TDataType >
-    void InternalAssignValueSerial(TVarType& rVar, const TDataType Value)
-    {
-        auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                it_entity->SetValue(rVar, Value);
-            }
-        }
-    }
+    template<class TVarType>
+    void InternalAssignValue(
+        TVarType& rVar,
+        const typename TVarType::Type Value
+        );
 
     /**
      * @brief This method returns the current entity container
@@ -227,46 +180,25 @@ private:
     EntityContainerType& GetEntitiesContainer();
 
     ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    /// Assignment operator.
-    ///@}
-    ///@name Serialization
-    ///@{
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
-
 }; // Class AssignScalarVariableToEntitiesProcess
 
-
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-template<class TEntity>
+template<class TEntity, bool THistorical>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignScalarVariableToEntitiesProcess<TEntity>& rThis);
+                                  AssignScalarVariableToEntitiesProcess<TEntity, THistorical>& rThis);
 
 /// output stream function
-template<class TEntity>
+template<class TEntity, bool THistorical>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignScalarVariableToEntitiesProcess<TEntity>& rThis)
+                                  const AssignScalarVariableToEntitiesProcess<TEntity, THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -276,7 +208,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_ASSIGN_SCALAR_VARIABLE_TO_ENTITIES_PROCESS_H_INCLUDED  defined

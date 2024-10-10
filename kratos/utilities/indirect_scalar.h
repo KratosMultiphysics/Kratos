@@ -117,7 +117,7 @@ std::ostream& operator<<(std::ostream& os, const IndirectScalar<T>& s)
 ///@} // Kratos Classes
 
 template <class TVariableType>
-IndirectScalar<typename TVariableType::Type> MakeIndirectScalar(Node<3>& rNode,
+IndirectScalar<typename TVariableType::Type> MakeIndirectScalar(Node& rNode,
                                                                 const TVariableType& rVariable)
 {
     auto fset = [&rNode, &rVariable](typename TVariableType::Type s) {
@@ -132,7 +132,7 @@ IndirectScalar<typename TVariableType::Type> MakeIndirectScalar(Node<3>& rNode,
 }
 
 template <class TVariableType>
-IndirectScalar<typename TVariableType::Type> MakeIndirectScalar(Node<3>& rNode,
+IndirectScalar<typename TVariableType::Type> MakeIndirectScalar(Node& rNode,
                                                                 const TVariableType& rVariable,
                                                                 std::size_t Step)
 {

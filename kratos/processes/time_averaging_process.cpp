@@ -374,7 +374,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(
     const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
         this->GetTimeAveragingMethod<TDataType>();
 
-    block_for_each(rNodes, [&](Node<3>& rNode){
+    block_for_each(rNodes, [&](Node& rNode){
         const TDataType& r_temporal_value = rNode.FastGetSolutionStepValue(rVariable);
         TDataType& r_integrated_value = rNode.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);

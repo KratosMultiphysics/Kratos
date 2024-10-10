@@ -559,7 +559,7 @@ private:
 
             VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
 
-            block_for_each(mrModelPartDestination.Nodes(), [&](Node<3>& rNode){
+            block_for_each(mrModelPartDestination.Nodes(), [&](Node& rNode){
                 rNode.GetData().Erase(PAIRING_STATUS);
             });
         }

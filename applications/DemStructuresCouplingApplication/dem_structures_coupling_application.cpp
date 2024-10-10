@@ -15,7 +15,7 @@
 namespace Kratos {
 
     // We define the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // STRUCTURAL COUPLING
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)

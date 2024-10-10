@@ -908,9 +908,9 @@ public:
                 for( int j=i+1; j<n; j++ )
                 {
                     double theta = 0.0;
-                    if( MathUtilsType::Abs( A(i,j) ) >= zero_tolerance )
+                    if( std::abs( A(i,j) ) >= zero_tolerance )
                     {
-                        if( MathUtilsType::Abs( A(i,i)-A(j,j) ) > 0.0 )
+                        if( std::abs( A(i,i)-A(j,j) ) > 0.0 )
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
@@ -936,9 +936,9 @@ public:
             {
                 for( unsigned int j=0; j<A.size2(); j++ )
                 {
-                    sTot += MathUtilsType::Abs(A(i,j));
+                    sTot += std::abs(A(i,j));
                 }
-                sDiag+= MathUtilsType::Abs(A(i,i));
+                sDiag+= std::abs(A(i,i));
             }
             error=(sTot-sDiag)/sDiag;
         }
@@ -1162,13 +1162,6 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-      Matrix A(input);
-      AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-      int singular = lu_factorization.determinant();
-      inverse = lu_factorization.inverse();
-      return singular;
-#else
       typedef permutation_matrix<std::size_t> pmatrix;
       Matrix A(input);
       pmatrix pm(A.size1());
@@ -1176,7 +1169,6 @@ public:
       inverse.assign( IdentityMatrix(A.size1()));
       lu_substitute(A, pm, inverse);
       return singular;
- #endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**

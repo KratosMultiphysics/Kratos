@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -28,14 +28,14 @@ public:
     /**
      * Type Definitions
      */
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
+    using ProcessInfoType = ProcessInfo;
+    using BaseType = ConstitutiveLaw;
+    using SizeType = std::size_t;
     /**
      * Counted pointer of BeamConstitutiveLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( BeamConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(BeamConstitutiveLaw);
 
     /**
      * Life Cycle
@@ -145,12 +145,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
     }
 
 

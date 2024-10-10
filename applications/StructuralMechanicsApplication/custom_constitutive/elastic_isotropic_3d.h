@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -358,6 +358,16 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
+
+
+    /** @brief General information identifying this instance. */
+    std::string Info() const override;
+
+    /**
+     * @brief General information identifying this instance.
+     * @param rOstream The stream where the info will be printed.
+     */
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
 

@@ -62,22 +62,19 @@ public:
     ///@{
 
     /// Define the base class
-    typedef FrictionalLaw BaseType;
-
-    /// Node definition
-    typedef Node<3> NodeType;
+    using BaseType = FrictionalLaw;
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType= std::size_t;
 
     /// Size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the derivative data
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster> DerivativeDataType;
+    using DerivativeDataType = DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>;
 
     /// The definition of the mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, true, TNumNodesMaster> MortarConditionMatrices;
+    using MortarConditionMatrices = MortarOperatorWithDerivatives<TDim, TNumNodes, true, TNumNodesMaster>;
 
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -125,7 +122,7 @@ public:
      * @param IndexNode The corresponding node index on the condition geometry
      */
     virtual double GetDerivativeThresholdValue(
-        const NodeType& rNode,
+        const Node& rNode,
         const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo,
         const DerivativeDataType& rDerivativeData,

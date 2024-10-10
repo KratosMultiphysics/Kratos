@@ -74,7 +74,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DamageDPlusDMinusMasonry3DLaw);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;

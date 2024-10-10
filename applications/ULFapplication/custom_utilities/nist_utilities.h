@@ -99,7 +99,7 @@ public:
         Properties::Pointer properties = OriginModelPart.GetMesh().pGetProperties(1);
         for(ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
         {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
+            Geometry< Node >& geom = iii->GetGeometry();
             Element::Pointer p_element = rReferenceElement.Create(id, geom ,properties);
             DestinationModelPart.Elements().push_back(p_element);
             id = id + 1;
@@ -110,7 +110,7 @@ public:
         id = 1;
         for(ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
         {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
+            Geometry< Node >& geom = iii->GetGeometry();
             double nfree_surf = 0;
             for(unsigned int k = 0; k<geom.size(); k++)
                 nfree_surf += geom[k].FastGetSolutionStepValue(IS_FREE_SURFACE);

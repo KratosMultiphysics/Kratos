@@ -68,8 +68,8 @@ namespace Kratos
     ///base type:
     typedef TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -108,7 +108,7 @@ namespace Kratos
 
     typedef typename BaseType::ElementalVariables ElementalVariables;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 
     /// Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
@@ -192,44 +192,6 @@ namespace Kratos
     }
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
-
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
-    /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
-
-    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
-
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitFluidPspgElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitFluidPspgElement::CalculateRightHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    // The following methods have different implementations depending on TDim
-    /// Provides the global indices for each one of this element's local rows
-    /**
-       * this determines the elemental equation ID vector for all elemental
-       * DOFs
-       * @param rResult A vector containing the global Id of each row
-       * @param rCurrentProcessInfo the current process info object (unused)
-       */
-
-    /// Returns a list of the element's Dofs
-    /**
-       * @param ElementalDofList the list of DOFs
-       * @param rCurrentProcessInfo the current process info instance
-       */
 
     ///@}
     ///@name Access

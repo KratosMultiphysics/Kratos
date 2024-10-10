@@ -10,13 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_HYDROSTATIC_PRESSURE_PROCESS )
-#define  KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_HYDROSTATIC_PRESSURE_PROCESS
+#pragma once
 
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "processes/process.h"
-#include "utilities/parallel_utilities.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -25,22 +24,16 @@ namespace Kratos
 
 class ApplyConstantBoundaryHydrostaticPressureProcess : public Process
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantBoundaryHydrostaticPressureProcess);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
-    ApplyConstantBoundaryHydrostaticPressureProcess(ModelPart& model_part,
-                                                    Parameters rParameters
-                                                    ) : Process(Flags()) , mrModelPart(model_part)
+    ApplyConstantBoundaryHydrostaticPressureProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
-        //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        // only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
@@ -49,39 +42,31 @@ public:
                 "reference_coordinate" : 0.0,
                 "specific_weight" : 10000.0,
                 "table" : 1
-            }  )" );
+            }  )");
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values have to be input by the user since no meaningful default value exist. For
+        // this reason, we try to access them, so that an error is thrown if they don't exist.
         rParameters["reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
         mIsFixedProvided = rParameters.Has("is_fixed");
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
-        mGravityDirection = rParameters["gravity_direction"].GetInt();
+        mVariableName        = rParameters["variable_name"].GetString();
+        mIsFixed             = rParameters["is_fixed"].GetBool();
+        mGravityDirection    = static_cast<unsigned int>(rParameters["gravity_direction"].GetInt());
         mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
-        mSpecificWeight = rParameters["specific_weight"].GetDouble();
+        mSpecificWeight      = rParameters["specific_weight"].GetDouble();
 
         KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyConstantBoundaryHydrostaticPressureProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the ApplyConstantBoundaryHydrostaticPressureProcess algorithms.
-    void Execute() override
-    {
-    }
+    ApplyConstantBoundaryHydrostaticPressureProcess(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
+    ApplyConstantBoundaryHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
+    ~ApplyConstantBoundaryHydrostaticPressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
@@ -89,81 +74,41 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
 
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
-                if (mIsFixed) rNode.Fix(var);
-                else if (mIsFixedProvided) rNode.Free(var);
+        block_for_each(GetModelPart().Nodes(), [&r_variable, this](Node& rNode) {
+            if (mIsFixed) rNode.Fix(r_variable);
+            else if (mIsFixedProvided) rNode.Free(r_variable);
 
-                const double pressure = mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
-
-                if (pressure > 0.0) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = 0.0;
-                }
-            });
-        }
+            const auto pressure = GetSpecificWeight() * (GetReferenceCoordinate() -
+                                                         rNode.Coordinates()[GetGravityDirection()]);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.);
+        });
 
         KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyConstantBoundaryHydrostaticPressureProcess";
-    }
+    std::string Info() const override { return "ApplyConstantBoundaryHydrostaticPressureProcess"; }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyConstantBoundaryHydrostaticPressureProcess";
-    }
+    ModelPart& GetModelPart() { return mrModelPart; }
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    [[nodiscard]] const std::string& GetVariableName() const { return mVariableName; }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [[nodiscard]] unsigned int GetGravityDirection() const { return mGravityDirection; }
 
-protected:
+    [[nodiscard]] double GetReferenceCoordinate() const { return mReferenceCoordinate; }
 
-    /// Member Variables
-
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
-    unsigned int mGravityDirection;
-    double mReferenceCoordinate;
-    double mSpecificWeight;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [[nodiscard]] double GetSpecificWeight() const { return mSpecificWeight; }
 
 private:
+    ModelPart&   mrModelPart;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
+    unsigned int mGravityDirection;
+    double       mReferenceCoordinate;
+    double       mSpecificWeight;
+};
 
-    /// Assignment operator.
-    ApplyConstantBoundaryHydrostaticPressureProcess& operator=(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
-
-}; // Class ApplyConstantBoundaryHydrostaticPressureProcess
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyConstantBoundaryHydrostaticPressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyConstantBoundaryHydrostaticPressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_HYDROSTATIC_PRESSURE_PROCESS defined */
+} // namespace Kratos

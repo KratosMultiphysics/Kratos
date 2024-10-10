@@ -402,8 +402,7 @@ GeometryData PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocal
     {}, {}, {});
 
 template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground>
-const GeometryDimension PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryDimension(
-    0, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground);
+const GeometryDimension PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryDimension(TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground);
 
 ///@}
 }// namespace Kratos.

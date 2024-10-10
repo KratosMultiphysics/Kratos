@@ -45,7 +45,7 @@ public:
 
     using BaseType = ConvectionDiffusionReactionElementData<TDim>;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using GeometryType = typename BaseType::GeometryType;
 

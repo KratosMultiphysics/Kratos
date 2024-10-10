@@ -129,10 +129,10 @@ class KratosCoSimIO(CoSimulationIO):
 
 def GetDataLocation(location_str):
     location_map = {
-        "node_historical"     : CoSimIO.DataLocation.NodeHistorical,
-        "node_non_historical" : CoSimIO.DataLocation.NodeNonHistorical,
-        "element"             : CoSimIO.DataLocation.Element,
-        "condition"           : CoSimIO.DataLocation.Condition,
-        "model_part"          : CoSimIO.DataLocation.ModelPart
+        "node_historical"     : KM.Globals.DataLocation.NodeHistorical,
+        "node_non_historical" : KM.Globals.DataLocation.NodeNonHistorical,
+        "element"             : KM.Globals.DataLocation.Element,
+        "condition"           : KM.Globals.DataLocation.Condition,
+        "model_part"          : KM.Globals.DataLocation.ModelPart
     }
     return location_map[location_str]

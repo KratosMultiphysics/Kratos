@@ -3,97 +3,47 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
-
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
+from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 class TestOptimizationInfo(kratos_unittest.TestCase):
-    class TestRoutine(Kratos.Process):
-        def __init__(self):
-            super().__init__()
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+        cls.optimization_problem = OptimizationProblem()
 
-    def test_AdvanceSolutionStepGet(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
+        cls.response_function = MassResponseFunction("mass", cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
+        cls.optimization_problem.AddComponent(cls.response_function)
 
-        optimization_info["step"] = 1
-        self.assertEqual(optimization_info["step"], 1)
+    def test_AdvanceStep(self):
+        mass_problem_data = self.optimization_problem.GetProblemDataContainer()
+        mass_problem_data["mass_1"] = BufferedDict(3)
 
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 2
-        self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 1)
+        initial_step = self.optimization_problem.GetStep()
 
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 3
-        self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 1)
+        mass_problem_data["mass_1/int"] = 1
+        self.assertEqual(self.optimization_problem.GetStep(), initial_step)
 
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 4
-        self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-        with self.assertRaises(RuntimeError):
-            optimization_info.GetSolutionStepData(3)["step"]
+        self.optimization_problem.AdvanceStep()
+        mass_problem_data["mass_1/int"] = 2
+        self.assertEqual(mass_problem_data["mass_1/int", 1], 1)
+        self.assertEqual(self.optimization_problem.GetStep(), initial_step + 1)
+        self.assertEqual(self.optimization_problem.GetResponse("mass"), self.response_function)
 
-    def test_AdvanceSolutionStepSet(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
+        self.optimization_problem.AdvanceStep()
+        mass_problem_data["mass_1/int"] = 3
+        self.assertEqual(mass_problem_data["mass_1/int", 1], 2)
+        self.assertEqual(mass_problem_data["mass_1/int", 2], 1)
+        self.assertEqual(self.optimization_problem.GetStep(), initial_step + 2)
+        self.assertEqual(self.optimization_problem.GetResponse("mass"), self.response_function)
 
-        optimization_info["step"] = 1
-        self.assertEqual(optimization_info["step"], 1)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 2
-        optimization_info.GetSolutionStepData(1)["step"] = 10
-        self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 10)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 3
-        optimization_info.GetSolutionStepData(2)["step"] = 15
-        self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 15)
-
-        optimization_info.AdvanceSolutionStep()
-        optimization_info["step"] = 4
-        self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
-        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
-
-        with self.assertRaises(RuntimeError):
-            optimization_info.GetSolutionStepData(3)["step"]
-
-    def test_OptimizationProcess(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(1)
-        temp = TestOptimizationInfo.TestRoutine()
-        optimization_info.AddOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp", temp)
-
-        self.assertTrue(optimization_info.HasOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp"))
-        self.assertTrue(optimization_info.HasOptimizationProcessType(TestOptimizationInfo.TestRoutine))
-        self.assertEqual(temp, optimization_info.GetOptimizationProcess(TestOptimizationInfo.TestRoutine, "temp"))
-        self.assertEqual([temp], optimization_info.GetOptimizationProcesses(TestOptimizationInfo.TestRoutine))
-
-    def test_HasSetGetValue(self):
-        optimization_info = OptimizationInfo()
-        optimization_info.SetBufferSize(3)
-
-        self.assertFalse(optimization_info.HasValue("test/hello/there/3"))
-        optimization_info.SetValue("test/hello/there/3", 20)
-        self.assertTrue(optimization_info.HasValue("test"))
-        self.assertTrue(optimization_info.HasValue("test/hello"))
-        self.assertTrue(optimization_info.HasValue("test/hello/there"))
-        self.assertTrue(optimization_info.HasValue("test/hello/there/3"))
-        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 20)
-
-        optimization_info.SetValue("test/hello/there/3", 40, overwrite=True)
-        self.assertEqual(optimization_info.GetValue("test/hello/there/3"), 40)
-
-        optimization_info.SetValue("test/hello/there/8", 60, 1)
-        self.assertEqual(optimization_info.GetValue("test/hello/there/8", 1), 60)
+        self.optimization_problem.AdvanceStep()
+        mass_problem_data["mass_1/int"] = 4
+        self.assertEqual(mass_problem_data["mass_1/int", 1], 3)
+        self.assertEqual(mass_problem_data["mass_1/int", 2], 2)
+        self.assertEqual(self.optimization_problem.GetStep(), initial_step + 3)
+        self.assertEqual(self.optimization_problem.GetResponse("mass"), self.response_function)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

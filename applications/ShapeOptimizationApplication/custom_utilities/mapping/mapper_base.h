@@ -61,7 +61,7 @@ public:
     // Type definitions for better reading later
     typedef array_1d<double,3> array_3d;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
   /// Pointer definition of Mapper
   KRATOS_CLASS_POINTER_DEFINITION(Mapper);

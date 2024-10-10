@@ -43,7 +43,7 @@ enum class PairingIndex
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-typedef Geometry<Node<3>> GeometryType;
+typedef Geometry<Node> GeometryType;
 
 PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnLine(const GeometryType& rGeometry,
                            const Point& rPointToProject,

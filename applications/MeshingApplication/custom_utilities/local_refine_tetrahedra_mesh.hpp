@@ -78,7 +78,7 @@ public:
     * @return model_part: The model part of the model (it is the input too)
     */
 
-    unsigned int CreateCenterNode(Geometry<Node < 3 > >& geom, ModelPart& model_part)
+    unsigned int CreateCenterNode(Geometry<Node >& geom, ModelPart& model_part)
     {
         // Determine a new unique id
         unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
@@ -98,7 +98,7 @@ public:
         double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
 
         // Generate the new node
-        Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
+        Node ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
 
         unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
         pnode->SetBufferSize(buffer_size);
@@ -108,13 +108,13 @@ public:
         pnode->Z0() = Z0;
 
         // Add the dofs
-        Node < 3 > ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
         unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
 
-        for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+        for (Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
         {
-            Node < 3 > ::DofType& rDof = **iii;
-            Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+            Node::DofType& rDof = **iii;
+            Node::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
             (p_new_dof)->FreeDof();
@@ -137,10 +137,10 @@ public:
         }
 
         pnode->GetValue(FATHER_NODES).resize(0);
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(0) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(1) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(2) ) );
-        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(3) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(0) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(1) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(2) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( geom(3) ) );
 
         return new_id;
     }
@@ -245,7 +245,7 @@ public:
 		  unsigned int i2 = aux[t[base + 2]];
 		  unsigned int i3 = aux[t[base + 3]];
 
-		  Tetrahedra3D4<Node < 3 > > geom(
+		  Tetrahedra3D4<Node > geom(
 		      this_model_part.Nodes()(i0),
 		      this_model_part.Nodes()(i1),
 		      this_model_part.Nodes()(i2),
@@ -429,7 +429,7 @@ public:
                             unsigned int i1   = aux[t[base+1]];
                             unsigned int i2   = aux[t[base+2]];
 
-                            Triangle3D3<Node<3> > newgeom(
+                            Triangle3D3<Node > newgeom(
                                     this_model_part.Nodes()(i0),
                                     this_model_part.Nodes()(i1),
                                     this_model_part.Nodes()(i2)
@@ -473,12 +473,6 @@ public:
                 this_model_part.Conditions().push_back( *iCond );
             }
 
-            /* Renumber id */
-            unsigned int my_index = 1;
-            for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
-            {
-                it->SetId(my_index++);
-            }
 
 
             // Now update the conditions in SubModelParts
@@ -550,10 +544,10 @@ public:
     {
       aux.resize(11, false);
 
-      int index_0 = geom[0].Id() - 1;
-      int index_1 = geom[1].Id() - 1;
-      int index_2 = geom[2].Id() - 1;
-      int index_3 = geom[3].Id() - 1;
+      int index_0 = mMapNodeIdToPos[geom[0].Id()];
+      int index_1 = mMapNodeIdToPos[geom[1].Id()];
+      int index_2 = mMapNodeIdToPos[geom[2].Id()];
+      int index_3 = mMapNodeIdToPos[geom[3].Id()];
 
       // Put the global ids in aux
       aux[0] = geom[0].Id();
@@ -638,9 +632,9 @@ public:
 		      array_1d<int, 6>& aux
 		      )
     {
-        int index_0 = geom[0].Id() - 1;
-        int index_1 = geom[1].Id() - 1;
-        int index_2 = geom[2].Id() - 1;
+        int index_0 = mMapNodeIdToPos[geom[0].Id()];
+        int index_1 = mMapNodeIdToPos[geom[1].Id()];
+        int index_2 = mMapNodeIdToPos[geom[2].Id()];
 
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();

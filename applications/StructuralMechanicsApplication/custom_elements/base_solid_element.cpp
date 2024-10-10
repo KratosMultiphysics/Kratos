@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -64,7 +64,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             }
         }
 
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
+        const auto& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         //Constitutive Law initialisation
         if ( mConstitutiveLawVector.size() != integration_points.size() )
@@ -501,7 +501,7 @@ void BaseSolidElement::AddExplicitContribution(
     Vector damping_residual_contribution = ZeroVector(element_size);
 
     // Calculate damping contribution to residual -->
-    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(r_prop, rCurrentProcessInfo)) {
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
@@ -626,7 +626,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+        const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
         const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
@@ -839,7 +839,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     // Compute element kinematics B, F, DN_DX ...
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
@@ -899,7 +899,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute material reponse, not encessary to rotate since it's an invariant
+                // Compute material response, not encessary to rotate since it's an invariant
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                 // Compute VM stress
@@ -1049,10 +1049,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy, is_rotated);
                 } else {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2, is_rotated);
                 }
 
@@ -1093,7 +1093,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure, false);
 
                 if (strain_size == 4) { // Axysimmetric
@@ -1220,7 +1220,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
@@ -1746,8 +1746,7 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     } else {
         const auto& integration_points =  this->IntegrationPoints();
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom, integration_points[PointNumber],rJ0);
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[PointNumber],rJ0);
         MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         Matrix DN_De;
         GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
@@ -1892,9 +1891,7 @@ void BaseSolidElement::CalculateLumpedMassVector(
 {
     KRATOS_TRY;
 
-    if(!UseGeometryIntegrationMethod())
-        KRATOS_ERROR << "CalculateLumpedMassVector not implemented for element-based integration in base class" << std::endl;
-
+    KRATOS_ERROR_IF_NOT(UseGeometryIntegrationMethod()) << "CalculateLumpedMassVector not implemented for element-based integration in base class" << std::endl;
 
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();

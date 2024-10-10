@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Ruben Zorrilla
+//                   Carlos Roig
 //
 
 #pragma once
@@ -17,7 +18,12 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
-#include <any>
+
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+    #include <boost/any.hpp>
+#else
+    #include <any>
+#endif 
 
 // External includes
 
@@ -149,6 +155,15 @@ public:
           mpValue(Kratos::make_shared<SubRegistryItemType>()),
           mGetValueStringMethod(&RegistryItem::GetRegistryItemType) {}
 
+    /// Constructor with the name and lambda
+    template <typename TItemType, typename... TArgs>
+    RegistryItem(
+        const std::string &rName,
+        const std::function<std::shared_ptr<TItemType>(TArgs...)> &rValue)
+        : mName(rName),
+          mpValue(rValue()),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
+
     /// Constructor with the name and value
     template<class TItemType>
     RegistryItem(
@@ -228,11 +243,30 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
-    template<typename TDataType> TDataType const& GetValue() const
+    template<typename TDataType>
+    TDataType const& GetValue() const
     {
         KRATOS_TRY
 
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#else
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#endif
+
+        KRATOS_CATCH("");
+    }
+
+    template<typename TDataType, typename TCastType> 
+    TCastType const& GetValueAs() const
+    {
+        KRATOS_TRY
+
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *std::dynamic_pointer_cast<TCastType>(boost::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#else
+        return *std::dynamic_pointer_cast<TCastType>(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+#endif
 
         KRATOS_CATCH("");
     }
@@ -272,7 +306,11 @@ private:
     ///@{
 
     std::string mName;
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+    boost::any mpValue;
+#else
     std::any mpValue;
+#endif
     std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}
@@ -312,6 +350,14 @@ private:
     class SubValueItemFunctor
     {
     public:
+        template<class... TArgumentsList, class TFunctionType = std::function<std::shared_ptr<TItemType>(TArgumentsList...)>>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TFunctionType && Function)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName, std::forward<TFunctionType>(Function));
+        }
+
         template<class... TArgumentsList>
         static inline RegistryItem::Pointer Create(
             std::string const& ItemName,

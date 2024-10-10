@@ -39,8 +39,6 @@
 namespace Kratos
 {
 
-class Element;
-
 ///@name Kratos Globals
 ///@{
 
@@ -63,41 +61,41 @@ class Element;
 /// This class defines the node
 /** The node class from Kratos is defined in this class
 */
-template<std::size_t TDimension, class TDofType = Dof<double> >
 class Node : public Point, public Flags
 {
-
 public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
-    typedef Node<TDimension, TDofType> NodeType;
+    /// Node definition
+    using NodeType = Node;
 
-    /// Pointer definition of Node
+    /// Base type
+    using BaseType = Point;
 
+    /// Point type
+    using PointType = Point;
 
-    typedef Point BaseType;
+    /// Dof type
+    using DofType = Dof<double>;
 
-    typedef Point PointType;
+    /// The index type
+    using IndexType = std::size_t;
 
-    typedef TDofType DofType;
+    /// The size type
+    using SizeType = std::size_t;
 
-    typedef std::size_t IndexType;
+    /// The DoF container type definition
+    using DofsContainerType = std::vector<std::unique_ptr<Dof<double>>>;
 
-    typedef typename std::size_t SizeType;
+    /// The solution step data container type
+    using SolutionStepsNodalDataContainerType = VariablesListDataValueContainer;
 
-    typedef std::vector<std::unique_ptr<TDofType>> DofsContainerType;
-
-    typedef VariablesListDataValueContainer SolutionStepsNodalDataContainerType;
-
-    typedef VariablesListDataValueContainer::BlockType BlockType;
-
-    typedef Variable<double> DoubleVariableType;
-
-    typedef GlobalPointersVector<NodeType > WeakPointerVectorType;
-
+    /// The block type
+    using BlockType = VariablesListDataValueContainer::BlockType;
 
     ///@}
     ///@name Life Cycle
@@ -184,11 +182,6 @@ public:
     /** Copy constructor. Initialize this node with given node.*/
     Node(Node const& rOtherNode) = delete;
 
-    /** Copy constructor from a node with different dimension.*/
-    template<SizeType TOtherDimension>
-    Node(Node<TOtherDimension> const& rOtherNode) = delete;
-
-
     /**
      * Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
@@ -233,12 +226,12 @@ public:
     {
     }
 
-    typename Node<TDimension>::Pointer Clone()
+    typename Node::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = Kratos::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mNodalData = this->mNodalData;
 
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
+        Node::DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
             p_new_node->pAddDof(**it_dof);
@@ -300,6 +293,7 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
@@ -317,27 +311,6 @@ public:
         mInitialPosition = rOther.mInitialPosition;
 
         return *this;
-    }
-
-    /// Assignment operator.
-    template<SizeType TOtherDimension>
-    Node& operator=(const Node<TOtherDimension>& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator =(rOther);
-
-        mNodalData = rOther.mNodalData;
-
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
-        {
-            pAddDof(**it_dof);
-        }
-
-        mData = rOther.mData;
-        mInitialPosition = rOther.mInitialPosition;
-
-        return *this;
-
     }
 
     bool operator==(const Node& rOther)
@@ -451,7 +424,7 @@ public:
     }
 
 
-    template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
+    bool SolutionStepsDataHas(const VariableData& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
     }
@@ -735,7 +708,7 @@ public:
      * @return The DoF associated to the given variable
      */
     template<class TVariableType>
-    inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
+    inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
             if((*it_dof)->GetVariable() == rDofVariable){
@@ -755,7 +728,7 @@ public:
      * @return The DoF associated to the given variable
      */
     template<class TVariableType>
-    inline const typename DofType::Pointer pGetDof(
+    inline typename DofType::Pointer pGetDof(
         TVariableType const& rDofVariable,
         int Position
         ) const
@@ -1101,8 +1074,8 @@ private:
 
 ///@}
 
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double> >;
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double>::Pointer >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node::Pointer >;
 
 ///@name Type Definitions
 ///@{
@@ -1114,14 +1087,12 @@ private:
 
 
 /// input stream function
-template<std::size_t TDimension, class TDofType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Node<TDimension, TDofType>& rThis);
+                                  Node& rThis);
 
 /// output stream function
-template<std::size_t TDimension, class TDofType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Node<TDimension, TDofType>& rThis)
+                                  const Node& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : ";
@@ -1133,7 +1104,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 //     namespace Globals
 //     {
-// 	extern Node<3> DefaultNode3;
+// 	extern Node DefaultNode3;
 //     }
 
 }  // namespace Kratos.

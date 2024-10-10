@@ -364,19 +364,6 @@ public:
     ///@name Informations
     ///@{
 
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
-    SizeType Dimension() const
-    {
-        return mpGeometryDimension->Dimension();
-    }
-
     /** Working space dimension. for example a triangle is a 2
     dimensional shape but can be used in 3 dimensional space.
 
