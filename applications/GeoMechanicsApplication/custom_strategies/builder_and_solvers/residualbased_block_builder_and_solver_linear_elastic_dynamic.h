@@ -659,9 +659,19 @@ private:
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, BaseType::mDofSet, rModelPart, 0);
 
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        TSystemVectorType m_part_vector =
+            first_derivative_vector * (1.0 / (mBeta * delta_time)) +
+            second_derivative_vector * (1.0 / (2.0 * mBeta));
+
+        TSystemVectorType c_part_vector =
+            first_derivative_vector * (mGamma / mBeta) +
+            second_derivative_vector *
+            (delta_time * (mGamma / (2 * mBeta) - 1));
+
         // calculate and add mass and damping contribution to rhs
-        this->CalculateAndAddDynamicContributionToRhs(second_derivative_vector, mMassMatrix, rb);
-        this->CalculateAndAddDynamicContributionToRhs(first_derivative_vector, mDampingMatrix, rb);
+        this->CalculateAndAddDynamicContributionToRhs(m_part_vector, mMassMatrix, rb);
+        this->CalculateAndAddDynamicContributionToRhs(c_part_vector, mDampingMatrix, rb);
     }
 
     void ApplyDirichletConditionsRhs(TSystemVectorType& rb)

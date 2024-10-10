@@ -76,12 +76,7 @@ public:
 
     void Predict(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
     {
-        KRATOS_TRY
-
-        // Update (Angular) Acceleration, (Angular) Velocity and DtPressure
-        this->PredictVariablesDerivatives(rModelPart);
-
-        KRATOS_CATCH("")
+        // no prediction is used in the scheme
     }
 
     void Update(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType&, TSystemVectorType& Dx, TSystemVectorType&) override
@@ -93,7 +88,7 @@ public:
         TSystemVectorType second_derivative_vector;
 
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
-            first_derivative_vector, second_derivative_vector, rDofSet, rModelPart, 1);
+            first_derivative_vector, second_derivative_vector, rDofSet, rModelPart, 0);
 
         TSystemVectorType delta_first_derivative_vector = TSystemVectorType(rDofSet.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
@@ -130,46 +125,6 @@ public:
         // Empty function because the derivatives are updated outside of the function since it needs more input. And this function is required to be defined
     }
 
-private:
-    inline void PredictVariablesDerivatives(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        // make sure the timestep size is correct
-        this->SetTimeFactors(rModelPart);
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
-                if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
-
-                // firstly get current values of first and second derivative
-                const array_1d<double, 3> first_derivative_array = rNode.FastGetSolutionStepValue(
-                    r_second_order_vector_variable.first_time_derivative, 0);
-
-                const array_1d<double, 3> second_derivative_array = rNode.FastGetSolutionStepValue(
-                    r_second_order_vector_variable.second_time_derivative, 0);
-
-                // secondly calculate prediction of first and second derivative
-                const array_1d<double, 3> predicted_first_time_derivative =
-                    first_derivative_array * (this->GetGamma() / this->GetBeta()) +
-                    second_derivative_array *
-                        (this->GetDeltaTime() * (this->GetGamma() / (2 * this->GetBeta()) - 1));
-
-                const array_1d<double, 3> predicted_second_time_derivative =
-                    first_derivative_array * (1.0 / (this->GetBeta() * this->GetDeltaTime())) +
-                    second_derivative_array * (1.0 / (2.0 * this->GetBeta()));
-
-                // update values after calculating both the first and second derivative prediction
-                NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
-                    rNode, r_second_order_vector_variable.first_time_derivative, predicted_first_time_derivative);
-
-                NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
-                    rNode, r_second_order_vector_variable.second_time_derivative, predicted_second_time_derivative);
-            }
-        });
-
-        KRATOS_CATCH("")
-    }
 }; // Class IncrementalNewmarkLinearElasticUScheme
 
 } // namespace Kratos
