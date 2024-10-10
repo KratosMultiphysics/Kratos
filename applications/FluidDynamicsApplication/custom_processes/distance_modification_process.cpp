@@ -30,7 +30,7 @@ namespace Kratos
 {
 /* Type definitions *******************************************************/
 constexpr std::array<std::array<std::size_t,2>, 3> DistanceModificationProcess::NodeIDs2D;
-constexpr std::array<std::array<std::size_t,2>, 6> DistanceModificationProcess::NodeIDs3D; 
+constexpr std::array<std::array<std::size_t,2>, 6> DistanceModificationProcess::NodeIDs3D;
 
 /* Public functions *******************************************************/
 DistanceModificationProcess::DistanceModificationProcess(
@@ -145,6 +145,7 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop()
 
 void DistanceModificationProcess::ExecuteInitializeSolutionStep()
 {
+
     if(!mIsModified){
         // Modify the nodal distance values to avoid bad intersections
         if (mContinuousDistance) {
@@ -496,7 +497,7 @@ void DistanceModificationProcess::RecoverOriginalDistance()
 }
 
 void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance()
-{    
+{
     // Recover original elemental distances
     #pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mModifiedDistancesIDs.size()); ++i_elem) {
@@ -656,8 +657,8 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
 }
 
 const std::array<std::size_t,2> DistanceModificationProcess::GetNodeIDs(
-    const std::size_t NumEdges, 
-    const std::size_t EdgeID) 
+    const std::size_t NumEdges,
+    const std::size_t EdgeID)
 {
     switch (NumEdges)
     {
