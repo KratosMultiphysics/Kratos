@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Additional imports
 import os
+import sys
 
 import numpy as np
 
@@ -20,10 +21,27 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
     def __sparse_matrix_sum(self, file_name = "auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
         # Read the matrices
-        A = KratosMultiphysics.CompressedMatrix()
-        B = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
+
+        from scipy.io import mmread
+
+        print('Reading matrix file ', file_name, file=sys.stderr)
+        print('Reading matrix file ', file_name, file=sys.stdout)
+
+        try:
+
+            matrix_test = mmread(file_name)
+
+        except Exception as e:
+
+            print('Error reading matrix file ', file_name, file=sys.stderr)
+            print('Error reading matrix file ', file_name, file=sys.stdout)
+
+            raise e
+
+        # A = KratosMultiphysics.CompressedMatrix()
+        # B = KratosMultiphysics.CompressedMatrix()
+        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
 
         # A_python = io.mmread(GetFilePath(file_name))
         # A_python.toarray()
