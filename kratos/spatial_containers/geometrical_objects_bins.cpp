@@ -158,6 +158,83 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GeometricalObjectsBins::SearchInBoundingBox(
+    const PointType& rPoint,
+    const array_1d<double, 3>& rMinPoint,
+    const array_1d<double, 3>& rMaxPoint,
+    std::vector<ResultType>& rResults
+    )
+{
+    // Clear the results
+    rResults.clear();
+
+    // Define bounding box
+    BoundingBox<PointType> bounding_box;
+    noalias(bounding_box.GetMinPoint().Coordinates()) = rMinPoint;
+    noalias(bounding_box.GetMaxPoint().Coordinates()) = rMaxPoint;
+
+    // Initialize the candidates
+    std::unordered_set<GeometricalObject*> candidates;
+    std::unordered_set<GeometricalObject*> processed_objects;
+
+    // Initialize the position bounds
+    array_1d<std::size_t, Dimension> min_position;
+    array_1d<std::size_t, Dimension> max_position;
+
+    // Calculate the position bounds
+    for(unsigned int i = 0; i < Dimension; i++ ) {
+        min_position[i] = CalculatePosition(rMinPoint[i], i);
+        max_position[i] = CalculatePosition(rMaxPoint[i], i) + 1;
+    }
+
+    // Loop over the cells and gather candidates
+    for(std::size_t k = min_position[2]; k < max_position[2]; k++) {
+        for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
+            for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
+                auto& r_cell = GetCell(i, j, k);
+
+                // Check if the cell's bounding box intersects with the search bounding box
+                if (IsCellBoundingBoxInsideBoundingBox(i, j, k, rPoint, bounding_box)) {
+                    for(auto p_geometrical_object : r_cell) {
+                        // Insert the object into the processed set to avoid duplicates
+                        auto insert_result = processed_objects.insert(p_geometrical_object);
+                        if (insert_result.second) {
+                            // Add the object to the results without calculating distance
+                            rResults.push_back(ResultType(p_geometrical_object));
+                        }
+                    }
+                } else {
+                    for(auto p_geometrical_object : r_cell) {
+                        candidates.insert(p_geometrical_object);
+                    }
+                }
+            }
+        }
+    }
+
+    // Remove already processed objects from candidates
+    for (const auto& p_object : processed_objects) {
+        candidates.erase(p_object);
+    }
+
+    // Loop over the remaining candidates and check for intersection
+    const auto& r_min_point = bounding_box.GetMinPoint();
+    const auto& r_max_point = bounding_box.GetMaxPoint();
+    for(auto& p_geometrical_object : candidates) {
+        const auto& r_geometry = p_geometrical_object->GetGeometry();
+        if(r_geometry.HasIntersection(r_min_point, r_max_point)) {
+            // Add the object to the results without calculating distance
+            rResults.push_back(ResultType(p_geometrical_object));
+        }
+    }
+
+    // Note: We avoid shrink_to_fit for potential performance issues
+    // rResults.shrink_to_fit();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const PointType& rPoint)
 {
     ResultType current_result;
@@ -185,6 +262,90 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
     SearchIsInsideInCell(r_cell, rPoint, current_result);
 
     return current_result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::IsCellBoundingBoxInsideRadius(
+    const std::size_t I,
+    const std::size_t J,
+    const std::size_t K,
+    const Point& rPoint,
+    const double Radius
+    )
+{
+    // Check the indices
+    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction: " << mNumberOfCells[0] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction: " << mNumberOfCells[1] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction: " << mNumberOfCells[2] << std::endl;
+
+    // Calculate the squared radius
+    const double squared_radius = Radius * Radius;
+
+    // Get the bounding box's minimum point
+    const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
+
+    // Calculate the minimum point of the cell
+    array_1d<double, 3> min_point;
+    min_point[0] = r_min_point[0] + I * mCellSizes[0];
+    min_point[1] = r_min_point[1] + J * mCellSizes[1];
+    min_point[2] = r_min_point[2] + K * mCellSizes[2];
+
+    // Calculate the maximum point of the cell
+    array_1d<double, 3> max_point;
+    max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
+    max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
+    max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
+
+    // Calculate squared distances from rPoint to min_point and max_point
+    const double dx_min = min_point[0] - rPoint[0];
+    const double dy_min = min_point[1] - rPoint[1];
+    const double dz_min = min_point[2] - rPoint[2];
+    const double distance_squared_min = dx_min * dx_min + dy_min * dy_min + dz_min * dz_min;
+
+    const double dx_max = max_point[0] - rPoint[0];
+    const double dy_max = max_point[1] - rPoint[1];
+    const double dz_max = max_point[2] - rPoint[2];
+    const double distance_squared_max = dx_max * dx_max + dy_max * dy_max + dz_max * dz_max;
+
+    // Check if both min_point and max_point are within the squared radius
+    return (distance_squared_min <= squared_radius) && (distance_squared_max <= squared_radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::IsCellBoundingBoxInsideBoundingBox(
+    const std::size_t I,
+    const std::size_t J,
+    const std::size_t K,
+    const Point& rPoint,
+    const BoundingBox<PointType>& rBoundingBox
+    )
+{
+    // Check the indices
+    KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
+    KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+
+    // Get the bounding box points min point
+    const array_1d<double, 3>& r_min_point = mBoundingBox.GetMinPoint();
+
+    // Calculate the minimum point in the bounding box
+    array_1d<double, 3> min_point;
+    min_point[0] = r_min_point[0] + I * mCellSizes[0];
+    min_point[1] = r_min_point[1] + J * mCellSizes[1];
+    min_point[2] = r_min_point[2] + K * mCellSizes[2];
+
+    // Calculate the maximum point in the bounding box
+    array_1d<double, 3> max_point;
+    max_point[0] = r_min_point[0] + (I + 1) * mCellSizes[0];
+    max_point[1] = r_min_point[1] + (J + 1) * mCellSizes[1];
+    max_point[2] = r_min_point[2] + (K + 1) * mCellSizes[2];
+
+    // We do the checks of both points
+    return rBoundingBox.IsInside(min_point) && rBoundingBox.IsInside(max_point);
 }
 
 /***********************************************************************************/
