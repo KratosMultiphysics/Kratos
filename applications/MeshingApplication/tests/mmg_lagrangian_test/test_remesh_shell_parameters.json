@@ -78,7 +78,7 @@
                 "initial_remeshing"                : false,
                 "initial_step"                     : 2,
                 "step_frequency"                   : 2,
-                "filename"                         : "mmg_lagrangian_test/test_remesh_shell",
+                "filename"                         : "test_remesh_shell",
                 "save_external_files"              : true,
                 "echo_level"                       : 0
             }
@@ -91,8 +91,8 @@
             "help"                  : "This process compares two files and executes an Unittest Assert",
             "process_name"          : "CompareTwoFilesCheckProcess",
             "Parameters"            : {
-                "reference_file_name"   : "test_remesh_shell_result.sol",
-                "output_file_name"      : "test_remesh_shell_step=2.o.sol",
+                "reference_file_name"   : "test_remesh_shell_step=2.ref",
+                "output_file_name"      : "test_remesh_shell_step=2.sol",
                 "dimension"             : 3,
                 "tolerance"             : 1.0e-3,
                 "relative_tolerance"    : 1.0e-3,

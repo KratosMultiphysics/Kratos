@@ -39,7 +39,7 @@ class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         DeleteFilesEndingWith(self.work_folder, ".mesh")
-        DeleteFilesEndingWith(self.work_folder, "o.sol")
+        DeleteFilesEndingWith(self.work_folder, ".sol")
 
     def __test_execution(self):
         # Within this location context:
