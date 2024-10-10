@@ -718,7 +718,7 @@ class RomManager(object):
         if not in_database_elems and not in_database_weights:
             with open(self.project_parameters_name,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            simulation = None
+            # simulation = None
             for mu in mu_train:
                 in_database, _ = self.data_base.check_if_in_database("ResidualsProjected", mu)
                 if not in_database:
@@ -734,19 +734,19 @@ class RomManager(object):
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
 
-                simulation.Clear()
-                del simulation
-                del ResidualProjected
-                import gc
-                gc.collect()
+                    simulation.Clear()
+                    del simulation
+                    del ResidualProjected
+                    import gc
+                    gc.collect()
 
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
             self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
-            if simulation is None:
-                HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
-            else:
-                HROM_utility = simulation.GetHROM_utility()
+            # if simulation is None:
+            HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
+            # else:
+            #     HROM_utility = simulation.GetHROM_utility()
             HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
             HROM_utility.hyper_reduction_element_selector.Run()
             if not HROM_utility.hyper_reduction_element_selector.success:
