@@ -298,6 +298,35 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
+        .def("VectorizedFind", [](BinBasedFastPointLocator < 3 >& rSelf, const Matrix& rCoords ){
+            std::vector<unsigned int> element_ids(rCoords.size1());
+            Matrix node_ids(rCoords.size1(),4); //this is designed to work with Tets
+            Matrix shape_function_values(rCoords.size1(),4);;
+
+            Vector N;
+            for(unsigned int i=0; i<node_ids.size1(); ++i){
+                Element::Pointer pelem;
+                const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
+                const auto& r_geom = pelem->GetGeometry();
+                if(is_found){
+                    for(unsigned int k = 0; k<4; ++k){
+                        node_ids(i,k) = r_geom[k].Id();
+                        shape_function_values(i,k) = N[k];
+                        element_ids[i] = pelem->Id();
+                    }
+                }
+                else
+                {
+                    for(unsigned int k = 0; k<4; ++k){
+                        node_ids(i,k) = 1; //deliberately set to 1
+                        shape_function_values(i,k) = 0.0;
+                        element_ids[i] = -1;
+                    }
+                }
+
+            }
+            return std::tuple{element_ids, node_ids, shape_function_values};
+        })
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
@@ -337,6 +366,9 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
+
+
+
 
     //embedded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
