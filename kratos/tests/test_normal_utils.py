@@ -106,7 +106,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCES_VECTOR)
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod
@@ -283,7 +283,7 @@ class TestNormalUtilsQuadSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/quad_sphere")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod
@@ -311,7 +311,7 @@ class TestNormalUtils2DSymmetricalSquare(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/two_dim_symmetrical_square")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod

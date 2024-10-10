@@ -12,7 +12,7 @@ class TestCadJsonInput(KratosUnittest.TestCase):
         cad_model = KratosMultiphysics.Model()
         cad_model_part = cad_model.CreateModelPart("CadModelPart")
 
-        KratosMultiphysics.CadJsonInput(GetFilePath("auxiliar_files_for_python_unittest/cad_json_files/single_square")).ReadModelPart(cad_model_part)
+        KratosMultiphysics.CadJsonInput(GetFilePath("test_files/cad_json_files/single_square")).ReadModelPart(cad_model_part)
 
         self.assertEqual(cad_model_part.NumberOfGeometries(), 10)
         self.assertTrue(cad_model_part.HasGeometry(1))

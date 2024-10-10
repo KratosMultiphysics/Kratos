@@ -17,7 +17,7 @@ class TestSerializer(KratosUnittest.TestCase):
     def _prepare_fluid_test(self):
         # Define a model and load the parameters
         self.pre_serialized_model = KratosMultiphysics.Model()
-        with open(GetFilePath("auxiliar_files_for_python_unittest/parameters_files/test_serializer.json"),'r') as parameter_file:
+        with open(GetFilePath("test_files/parameters_files/test_serializer.json"),'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         file_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(GetFilePath(file_name))
@@ -31,7 +31,7 @@ class TestSerializer(KratosUnittest.TestCase):
         self.serialized_model = KratosMultiphysics.StreamSerializer()
         self.serialized_model.Save("ModelSerialization",self.pre_serialized_model)
 
-        with open(GetFilePath("auxiliar_files_for_python_unittest/parameters_files/test_serializer.json"),'r') as parameter_file:
+        with open(GetFilePath("test_files/parameters_files/test_serializer.json"),'r') as parameter_file:
             self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
         # Parameters are read again and input type set to use_input_model_part since the serialized model already has the mdpa loaded
         self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")

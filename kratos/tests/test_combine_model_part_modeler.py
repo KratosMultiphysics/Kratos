@@ -15,7 +15,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
     def setUp(self):
         self.comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         self.file_name = "combine_model_part_modeler"
-        self.work_folder = "auxiliar_files_for_python_unittest/combine_model_part_modeler"
+        self.work_folder = "test_files/combine_model_part_modeler"
         self.size = self.comm.Size()
         self.rank = self.comm.Rank()
 
@@ -54,7 +54,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
         model_part = self._CreateModelPart()
         material_settings = KratosMultiphysics.Parameters('''{
             "Parameters" : {
-                "materials_filename" : "auxiliar_files_for_python_unittest/combine_model_part_modeler/material.json"
+                "materials_filename" : "test_files/combine_model_part_modeler/material.json"
             }
         }''')
         full_path = GetFilePath(material_settings["Parameters"]["materials_filename"].GetString())

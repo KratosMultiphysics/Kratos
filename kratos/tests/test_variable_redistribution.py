@@ -8,7 +8,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
 
     def setUp(self):
         self.input_file = "redistribution_test"
-        self.work_folder = "auxiliar_files_for_python_unittest/variable_redistribution_utility"
+        self.work_folder = "test_files/variable_redistribution_utility"
 
         self.domain_size = 3
         self.redistribution_iterations = 100
@@ -87,7 +87,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
         # Read mdpa and set test model part
         self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
-        self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
+        self.work_folder = "test_files/mdpa_files"
         self._SetUpProblem()
 
         # Set scalar origin field
@@ -123,7 +123,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
         # Read mdpa and set test model part
         self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
-        self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
+        self.work_folder = "test_files/mdpa_files"
         self._SetUpProblem()
 
         # Set scalar origin field

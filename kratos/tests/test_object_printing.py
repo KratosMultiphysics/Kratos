@@ -94,7 +94,7 @@ class TestObjectPrinting(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         self.assertMultiLineEqual(str(model_part), model_part_str)

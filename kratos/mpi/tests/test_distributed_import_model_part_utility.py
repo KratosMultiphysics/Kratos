@@ -31,7 +31,7 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        settings["model_import_settings"].AddEmptyValue("input_filename").SetString(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator"))
+        settings["model_import_settings"].AddEmptyValue("input_filename").SetString(GetFilePath("test_files/mdpa_files/test_mpi_communicator"))
         settings["model_import_settings"].AddEmptyValue("partition_in_memory").SetBool(in_memory)
 
         data_comm_name = "World"

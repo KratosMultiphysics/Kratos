@@ -21,7 +21,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
         ## Serial partition of the original .mdpa file
-        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
+        input_filename = GetFilePath("test_files/mdpa_files/test_mpi_serializer")
         ReadModelPart(input_filename, main_model_part)
 
         for node in main_model_part.Nodes:
@@ -30,7 +30,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             node.SetValue(KratosMultiphysics.DISTANCE,distance)
 
         ## Read reference
-        file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
+        file_name = "test_files/reference_files/test_compute_nodal_gradient_process_results.json"
         reference_file_name = GetFilePath(file_name)
         with open(reference_file_name, 'r') as f:
             reference_values = json.load(f)
@@ -104,7 +104,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         ## Serial partition of the original .mdpa file
-        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
+        input_filename = GetFilePath("test_files/mdpa_files/test_mpi_serializer")
         ReadModelPart(input_filename, main_model_part)
 
         for node in main_model_part.Nodes:
@@ -113,7 +113,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             node.SetValue(KratosMultiphysics.DISTANCE,distance)
 
         ## Read reference
-        file_name = "auxiliar_files_for_python_unittest/reference_files/test_compute_nodal_gradient_process_results.json"
+        file_name = "test_files/reference_files/test_compute_nodal_gradient_process_results.json"
         reference_file_name = GetFilePath(file_name)
         with open(reference_file_name, 'r') as f:
             reference_values = json.load(f)
@@ -185,7 +185,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
-        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_distance")
+        input_filename = GetFilePath("test_files/mdpa_files/test_mpi_distance")
         ReadModelPart(input_filename, main_model_part)
         skin_model_part  = model.CreateModelPart('skin')
         skin_model_part.CreateNewNode(1, -0.25, 0.0, 0.0)
@@ -228,7 +228,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
-        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_distance")
+        input_filename = GetFilePath("test_files/mdpa_files/test_mpi_distance")
         ReadModelPart(input_filename, main_model_part)
 
         params = KratosMultiphysics.Parameters()
