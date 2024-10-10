@@ -1022,6 +1022,17 @@ private:
         }
 
         /**
+        * @brief Compare an object with the stored key.
+        * @details This function checks if the key stored in this `EqualKeyTo` object is equal to the extracted key from the object of type `TDataType`.
+        * @param a An object of type `TDataType`.
+        * @return True if the stored key is equal to the extracted key from `a`, false otherwise.
+        */
+        bool operator()(const TDataType& a) const
+        {
+            return TEqualType()(mKey, TGetKeyType()(a));
+        }
+
+        /**
         * @brief Compare two pointers to objects with each other.
         * @details This function checks if the extracted keys from two pointers to objects of type `TPointerType` are equal using the specified equality function and key extraction function.
         * @param a The pointer to the first object of type `TPointerType`.
@@ -1082,34 +1093,66 @@ private:
 
             if (lower_bound_first == lower_bound_last &&
                 lower_bound_first == upper_bound_first &&
-                lower_bound_first == upper_bound_last)
-            {
+                lower_bound_first == upper_bound_last) {
                 // all 4 bounds are equal, hence this can be inserted without checking further
-                mData.reserve(mData.size() + std::distance(first, last));
                 if (lower_bound_first == mData.end()) {
+                    // all bounds are pointing to the end of the vector, hence pushing back.
+                    mData.reserve(mData.size() + std::distance(first, last));
                     for (auto it = first; it != last; ++it) {
                         mData.push_back(TPointerType(&GetReference(it)));
                     }
                 } else {
-                    // now if the capacity of the new mData is larger than the existing
-                    // capacity, then the current lower_bound_first is invalidated.
-                    // hence needs to find it again.
-                    const auto new_lower_bound = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-                    auto current_pos = new_lower_bound - 1;
-                    for (auto it = first; it != last; ++it) {
-                        current_pos = mData.insert(current_pos + 1, TPointerType(&GetReference(it)));
+                    // all bounds are pointing to a middle section, hence creating a new vector
+                    // and will push back to it.
+                    TContainerType temp;
+                    temp.reserve(mData.size() + std::distance(first, last));
+
+                    // insert the original block first
+                    for (auto it = mData.begin(); it != lower_bound_first; ++it) {
+                        temp.push_back(TPointerType(&GetReference(it)));
                     }
+
+                    // now insert the new items
+                    for (auto it = first; it != last; ++it) {
+                        temp.push_back(TPointerType(&GetReference(it)));
+                    }
+
+                    // now add the rest of the items from the original vector
+                    for (auto it = lower_bound_first; it != mData.end(); ++it) {
+                        temp.push_back(TPointerType(&GetReference(it)));
+                    }
+
+                    mData.swap(temp);
                 }
             } else {
-                auto p_current_itr = mData.begin();
-                // now add the new elements
-                for (auto it = first; it != last; ++it) {
-                    // find the lower bound element.
-                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(GetReference(it)), CompareKey());
-                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(GetReference(it)))(*p_current_itr)) {
-                        p_current_itr = mData.insert(p_current_itr, TPointerType(&GetReference(it)));
+                TContainerType temp;
+                temp.reserve(mData.size() + std::distance(first, last));
+                auto p_existing_data_itr = mData.begin();
+
+                CompareKey key_comparator;
+
+                while (p_existing_data_itr != mData.end() && first != last) {
+                    if (key_comparator(*p_existing_data_itr, *first)) {
+                        temp.push_back(TPointerType(&GetReference(p_existing_data_itr++)));
+                    } else if (EqualKeyTo(KeyOf(GetReference(p_existing_data_itr)))(*first)) {
+                        // here we keep the old entity, and discard the new entity.
+                        temp.push_back(TPointerType(&GetReference(p_existing_data_itr++)));
+                        ++first;
+                    } else {
+                        temp.push_back(TPointerType(&GetReference(first++)));
                     }
                 }
+
+                // now either p_existing_data_itr reached the end or first reached the end,
+                // hence we add the remaining without checking
+                for (; p_existing_data_itr != mData.end(); ++p_existing_data_itr) {
+                    temp.push_back(TPointerType(&GetReference(p_existing_data_itr)));
+                }
+                for (; first != last; ++first) {
+                    temp.push_back(TPointerType(&GetReference(first)));
+                }
+
+                mData.swap(temp);
             }
         }
 
