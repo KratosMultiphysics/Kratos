@@ -66,6 +66,8 @@ inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<do
 
 template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
+    std::cout << "Reading Matrix Market Matrix" << std::endl;
+
     typedef typename CompressedMatrixType::value_type ValueType;
 
     // Open MM file for reading
@@ -267,6 +269,15 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     for (int i = 0; i < size1; i++)
         for (int j = 0; j < nz[i]; j++)
             (*m)(i, columns[indices[i] + j]) = values[k++];
+
+    std::cout << "-M Size: " << M.size1() << " " << M.size2() << std::endl;
+    std::cout << "-m Size: " << m->size1() << " " << m->size2() << std::endl;
+
+    M.resize(m->size1(), m->size2(), false);
+
+    std::cout << "+M Size: " << M.size1() << " " << M.size2() << std::endl;
+    std::cout << "+m Size: " << m->size1() << " " << m->size2() << std::endl;
+
 
     M = *m;
 

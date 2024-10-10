@@ -27,7 +27,7 @@ class TestImportMDPAModeler(KratosUnittest.TestCase):
             "input_filename" : "",
             "model_part_name" : "Main"
         }''')
-        settings["input_filename"].SetString(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        settings["input_filename"].SetString(GetFilePath("test_files/mdpa_files/test_model_part_io_read"))
         import_mdpa_modeler = ImportMDPAModeler(model, settings)
 
         # Get the model part created by the modeler

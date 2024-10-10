@@ -13,7 +13,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
     def test_condition_number(self):
         # Read the matrices
         K = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"),K)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("test_files/sparse_matrix_files/A.mm"),K)
 
         # Construct the solver
         settings_max = KratosMultiphysics.Parameters("""

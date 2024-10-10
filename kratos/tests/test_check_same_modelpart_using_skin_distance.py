@@ -19,7 +19,7 @@ class TestCheckSameModelPartUsingSkinDistanceProcess(KratosUnittest.TestCase):
         self.model_part_2 = self.current_model.CreateModelPart("model_part_2")
         self.model_part_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
 
-        input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
+        input_mdpa = GetFilePath("test_files/mdpa_files/coarse_sphere_skin")
         model_part_io = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io.ReadModelPart(self.model_part_1)
         model_part_io.ReadModelPart(self.model_part_2)

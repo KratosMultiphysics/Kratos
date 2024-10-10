@@ -18,7 +18,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         cls.current_model = KratosMultiphysics.Model()
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod

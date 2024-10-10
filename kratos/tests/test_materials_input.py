@@ -24,7 +24,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
+        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
         self.test_settings = KratosMultiphysics.Parameters("""
@@ -36,7 +36,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         """)
 
         # Assign the real path
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unittest/materials_files/" + input_file))
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("test_files/materials_files/" + input_file))
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
@@ -122,31 +122,31 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("auxiliar_files_for_python_unittest","materials_files","wrong_materials_input","wrong_materials_1.json")))
+            GetFilePath(os.path.join("test_files","materials_files","wrong_materials_input","wrong_materials_1.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main\" are specified multiple times!"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("auxiliar_files_for_python_unittest","materials_files","wrong_materials_input","wrong_materials_2.json")))
+            GetFilePath(os.path.join("test_files","materials_files","wrong_materials_input","wrong_materials_2.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("auxiliar_files_for_python_unittest","materials_files","wrong_materials_input","wrong_materials_3.json")))
+            GetFilePath(os.path.join("test_files","materials_files","wrong_materials_input","wrong_materials_3.json")))
         expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub\" is being overrided by Parent Model Part \"Main\"!\n"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("auxiliar_files_for_python_unittest","materials_files","wrong_materials_input","wrong_materials_4.json")))
+            GetFilePath(os.path.join("test_files","materials_files","wrong_materials_input","wrong_materials_4.json")))
         expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub1.subsub\" is being overrided by Parent Model Part \"Main.sub1\"!\n"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("auxiliar_files_for_python_unittest","materials_files","wrong_materials_input","wrong_materials_5.json")))
+            GetFilePath(os.path.join("test_files","materials_files","wrong_materials_input","wrong_materials_5.json")))
         expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub1.subsub\" is being overrided by Parent Model Part \"Main\"!\n"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
@@ -154,7 +154,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_without_tables_and_variables(self):
         self._prepare_test()
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unittest/materials_files/material_without_tables_and_variables.json"))
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("test_files/materials_files/material_without_tables_and_variables.json"))
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         for elem in self.current_model["Main.Inlets"].Elements:

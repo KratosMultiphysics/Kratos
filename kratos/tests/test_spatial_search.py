@@ -29,7 +29,7 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(KM.NODAL_VAUX)
         cls.model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_FORCES_VECTOR)
         cls.model_part.AddNodalSolutionStepVariable(KM.LOCAL_AXES_MATRIX)
-        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
+        cls.mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
     @classmethod

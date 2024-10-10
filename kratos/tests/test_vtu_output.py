@@ -46,7 +46,7 @@ class TestVtuOutputBase:
         a *= 3
         vtu_output.AddContainerExpression("elem_exp", a)
 
-        with kratos_unittest.WorkFolderScope("./auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+        with kratos_unittest.WorkFolderScope("./test_files/vtk_output_process_ref_files", __file__, True):
             if output_format == Kratos.VtuOutput.ASCII:
                 output_file_prefix = "ascii" + self.output_prefix + "/Main"
             else:

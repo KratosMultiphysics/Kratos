@@ -92,7 +92,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -151,7 +151,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -211,7 +211,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "type" : "outer_shell",
                     "Parameters" : {
@@ -269,7 +269,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -328,7 +328,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh_conditions",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh_conditions",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -378,7 +378,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/un_connected_parts",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/un_connected_parts",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -448,7 +448,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/two_particles",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/two_particles",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -514,7 +514,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -562,7 +562,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh_conditions",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh_conditions",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -611,7 +611,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -662,7 +662,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -720,7 +720,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
@@ -777,7 +777,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
             "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
+                "mdpa_file_name" : "test_files/voxel_mesh_modeler/cube_skin_mesh",
                 "key_plane_generator": {
                     "Parameters" : {
                         "voxel_sizes" : [0.03, 0.03, 0.03],
