@@ -357,7 +357,7 @@ public:
         this->BuildRHSNoDirichlet(pScheme, rModelPart, b);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof) {
+        block_for_each(BaseType::mDofSet, [b](Dof<double>& rDof) {
             const std::size_t i = rDof.EquationId();
 
             rDof.GetSolutionStepReactionValue() = -b[i];

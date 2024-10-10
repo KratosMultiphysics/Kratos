@@ -26,7 +26,7 @@ void SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(SystemVectorType&
     rFirstDerivativeVector  = SystemVectorType(rDofSet.size(), 0.0);
     rSecondDerivativeVector = SystemVectorType(rDofSet.size(), 0.0);
 
-    block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, bufferIndex](Node& rNode) {
+    block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, bufferIndex](const Node& rNode) {
         if (rNode.IsActive()) {
             GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector, bufferIndex);
             GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector, bufferIndex);

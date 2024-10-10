@@ -15,7 +15,7 @@
 namespace Kratos::Testing
 {
 
-void GeoMockElement::SetLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void GeoMockElement::SetLeftHandSide(const MatrixType& rLeftHandSideMatrix)
 {
     mStiffnessMatrix = rLeftHandSideMatrix;
 }
@@ -26,10 +26,7 @@ void GeoMockElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, cons
     ++mCountCalculateLeftHandSideCalled;
 }
 
-void GeoMockElement::SetMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    mMassMatrix = rMassMatrix;
-}
+void GeoMockElement::SetMassMatrix(const MatrixType& rMassMatrix) { mMassMatrix = rMassMatrix; }
 
 void GeoMockElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -37,7 +34,7 @@ void GeoMockElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
     ++mCountCalculateMassMatrixCalled;
 }
 
-void GeoMockElement::SetDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+void GeoMockElement::SetDampingMatrix(const MatrixType& rDampingMatrix)
 {
     mDampingMatrix = rDampingMatrix;
 }
@@ -48,7 +45,7 @@ void GeoMockElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, const Pr
     ++mCalculateDampingMatrixCalled;
 }
 
-void GeoMockElement::SetRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void GeoMockElement::SetRightHandSide(const VectorType& rRightHandSideVector)
 {
     mRhs = rRightHandSideVector;
 }

@@ -28,21 +28,21 @@ public:
     ///@name Operators
     ///@{
 
-    void SetLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void SetLeftHandSide(const MatrixType& rLeftHandSideMatrix);
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void SetMassMatrix(const MatrixType& rMassMatrix);
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void SetDampingMatrix(const MatrixType& rDampingMatrix);
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void SetRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void SetRightHandSide(const VectorType& rRightHandSideVector);
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
