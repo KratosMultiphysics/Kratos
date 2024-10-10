@@ -585,8 +585,6 @@ protected:
 
         DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
-        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
-
         // Declaring temporal variables
         DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_slave;
 
@@ -594,19 +592,12 @@ protected:
         BaseType::mDofSet = DofsArrayType(); /// This corresponds with all the DoF of the system
         mDoFSlaveSet = DofsArrayType();    /// This corresponds with the slave (the ones not solved after compacting the system using MPC)
 
-        /**
-         * Here we declare three sets.
-         * - The global set: Contains all the DoF of the system
-         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
-         */
-        set_type dof_global_set, dof_global_slave_set;
-
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
-            set_type dofs_tmp_set, dof_temp_slave_set;
+            DofsArrayType dofs_tmp_set, dof_temp_slave_set;
             dofs_tmp_set.reserve(20000);
             dof_temp_slave_set.reserve(200);
 
@@ -651,27 +642,12 @@ protected:
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-                dof_global_slave_set.insert(dof_temp_slave_set.begin(), dof_temp_slave_set.end());
+                BaseType::mDofSet.insert(dofs_tmp_set);
+                mDoFSlaveSet.insert(dof_temp_slave_set);
             }
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-
-        /// We transfer the temporal sets to our DoF set
-        dof_temp_all.reserve(dof_global_set.size());
-        for (auto p_dof : dof_global_set) {
-            dof_temp_all.push_back( p_dof );
-        }
-        dof_temp_all.Sort();
-        BaseType::mDofSet = dof_temp_all;
-
-        dof_temp_slave.reserve(dof_global_slave_set.size());
-        for (auto p_dof : dof_global_slave_set) {
-            dof_temp_slave.push_back( p_dof );
-        }
-        dof_temp_slave.Sort();
-        mDoFSlaveSet = dof_temp_slave;
 
         // Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
@@ -737,16 +713,16 @@ protected:
 
         if (norm_b > 0.0) {
              // Create the auxiliar dof set
-             DofsArrayType aux_dof_set;
-             aux_dof_set.reserve(mDoFToSolveSystemSize);
+             std::vector<DofPointerType> aux_dofs;
+             aux_dofs.reserve(mDoFToSolveSystemSize);
              for (auto& r_dof : BaseType::mDofSet) {
                  if (r_dof.EquationId() < BaseType::mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(r_dof);
                     if (it == mDoFSlaveSet.end())
-                        aux_dof_set.push_back( &r_dof );
+                        aux_dofs.push_back( &r_dof );
                  }
              }
-             aux_dof_set.Sort();
+             DofsArrayType aux_dof_set(aux_dofs.begin(), aux_dofs.end());
 
              KRATOS_ERROR_IF_NOT(aux_dof_set.size() == mDoFToSolveSystemSize) << "Inconsistency (I) in system size: " << mDoFToSolveSystemSize << " vs " << aux_dof_set.size() << "\n Size dof set " << BaseType::mDofSet.size() << " vs Size slave dof set " << mDoFSlaveSet.size() << std::endl;
              KRATOS_ERROR_IF_NOT(aux_dof_set.size() == rA.size1()) << "Inconsistency (II) in system size: " << rA.size1() << " vs " << aux_dof_set.size() << "\n Size dof set " << BaseType::mDofSet.size() << " vs Size slave dof set " << mDoFSlaveSet.size() << std::endl;
@@ -1512,11 +1488,7 @@ private:
         // Vector containing the localization in the system of the different terms
         DofsVectorType slave_dof_list, master_dof_list;
 
-        // Declaring temporal variables
-        DofsArrayType dof_temp_fixed_master;
-
-        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
-        set_type dof_global_fixed_master_set;
+        mDoFMasterFixedSet = DofsArrayType();
 
         // Iterate over constraints
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
@@ -1524,7 +1496,7 @@ private:
         #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
         {
             // We cleate the temporal set and we reserve some space on them
-            set_type dof_temp_fixed_master_set;
+            DofsArrayType dof_temp_fixed_master_set;
             dof_temp_fixed_master_set.reserve(2000);
 
             #pragma omp for schedule(guided, 512) nowait
@@ -1547,16 +1519,9 @@ private:
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                dof_global_fixed_master_set.insert(dof_temp_fixed_master_set.begin(), dof_temp_fixed_master_set.end());
+                mDoFMasterFixedSet.insert(dof_temp_fixed_master_set);
             }
         }
-
-        dof_temp_fixed_master.reserve(dof_global_fixed_master_set.size());
-        for (auto p_dof : dof_global_fixed_master_set) {
-            dof_temp_fixed_master.push_back( p_dof );
-        }
-        dof_temp_fixed_master.Sort();
-        mDoFMasterFixedSet = dof_temp_fixed_master;
 
         /// Now we compute as expected ///
         int free_id = 0;

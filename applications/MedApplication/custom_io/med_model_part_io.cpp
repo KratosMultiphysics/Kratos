@@ -654,13 +654,13 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     KRATOS_INFO_IF("MedModelPartIO", num_geometries_total > 0) << "Read " << num_geometries_total << " geometries in total" << std::endl;
 
-    for (const auto& r_map : smp_nodes) {
-        // TODO making unique is more efficient, as requires less searches!
+    for (auto& r_map : smp_nodes) {
+        std::sort(r_map.second.begin(), r_map.second.end());
         rThisModelPart.GetSubModelPart(r_map.first).AddNodes(r_map.second);
     }
 
-    for (const auto& r_map : smp_geoms) {
-        // TODO making unique is more efficient, as requires less searches!
+    for (auto& r_map : smp_geoms) {
+        std::sort(r_map.second.begin(), r_map.second.end());
         rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
     }
 

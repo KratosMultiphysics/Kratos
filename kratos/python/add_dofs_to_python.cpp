@@ -57,7 +57,7 @@ void  AddDofsToPython(pybind11::module& m)
             return py::make_iterator(self.begin(), self.end());
         }, py::keep_alive<0, 1>())
         .def("append", [](ModelPart::DofsArrayType &self, Dof<double> &value) {
-            self.push_back(&value);
+            self.insert(self.end(), &value);
         })
         .def("unique", [](ModelPart::DofsArrayType &self) {
             self.Unique();

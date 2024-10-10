@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
@@ -62,7 +62,7 @@ void DuplicateMeshModeler::GenerateMesh(
             element_nodes_array(i) = rThisModelPart.pGetNode(geometry[i].Id());
 
         Element::Pointer p_element = rReferenceElement.Create(i_element->Id(), element_nodes_array, i_element->pGetProperties());
-        rThisModelPart.Elements().push_back(p_element);
+        rThisModelPart.Elements().insert(rThisModelPart.Elements().end(), p_element);
     }
 
     Timer::Stop("Generating Elements");
@@ -84,7 +84,7 @@ void DuplicateMeshModeler::GenerateMesh(
             condition_nodes_array(i) = rThisModelPart.pGetNode(geometry[i].Id());
 
         Condition::Pointer p_condition = rReferenceCondition.Create(i_condition->Id(), condition_nodes_array, i_condition->pGetProperties());
-        rThisModelPart.Conditions().push_back(p_condition);
+        rThisModelPart.Conditions().insert(rThisModelPart.Conditions().end(), p_condition);
     }
 
     Timer::Stop("Generating Conditions");
