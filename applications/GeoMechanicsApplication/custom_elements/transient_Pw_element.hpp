@@ -118,7 +118,6 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
         const std::string retention_info =
             !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
         return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
