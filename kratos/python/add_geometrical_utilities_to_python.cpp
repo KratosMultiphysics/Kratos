@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include <pybind11/numpy.h>
 #include "processes/process.h"
 #include "python/add_geometrical_utilities_to_python.h"
 
@@ -300,16 +301,22 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         })
         .def("VectorizedFind", [](BinBasedFastPointLocator < 3 >& rSelf, const Matrix& rCoords ){
             std::vector<unsigned int> element_ids(rCoords.size1());
-            Matrix node_ids(rCoords.size1(),4); //this is designed to work with Tets
-            Matrix shape_function_values(rCoords.size1(),4);;
 
-            Vector N;
-            for(unsigned int i=0; i<node_ids.size1(); ++i){
+            unsigned int nnodes=4; //only for tets
+            unsigned int ncoords=rCoords.size1();
+            py::array_t<int> node_ids_container({ncoords,nnodes}); //this is designed to work with Tets
+            py::array_t<double> shape_function_values_container({ncoords,nnodes});
+            auto node_ids = node_ids_container.mutable_unchecked<2>();
+            auto shape_function_values = shape_function_values_container.mutable_unchecked<2>();
+
+            Vector N(nnodes);
+            IndexPartition(ncoords).for_each(N,[&](unsigned int i, Vector& N)
+            {
                 Element::Pointer pelem;
                 const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
                 const auto& r_geom = pelem->GetGeometry();
                 if(is_found){
-                    for(unsigned int k = 0; k<4; ++k){
+                    for(unsigned int k = 0; k<nnodes; ++k){
                         node_ids(i,k) = r_geom[k].Id();
                         shape_function_values(i,k) = N[k];
                         element_ids[i] = pelem->Id();
@@ -317,15 +324,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
                 }
                 else
                 {
-                    for(unsigned int k = 0; k<4; ++k){
+                    for(unsigned int k = 0; k<nnodes; ++k){
                         node_ids(i,k) = 1; //deliberately set to 1
                         shape_function_values(i,k) = 0.0;
                         element_ids[i] = -1;
                     }
                 }
-
-            }
-            return std::tuple{element_ids, node_ids, shape_function_values};
+            });
+            return std::tuple{element_ids, node_ids_container, shape_function_values_container};
         })
         ;
 
