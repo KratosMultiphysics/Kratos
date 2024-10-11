@@ -44,6 +44,47 @@
 
 namespace Kratos::Python {
 
+template<std::size_t TDim>
+    std::tuple<pybind11::array_t<int>, pybind11::array_t<int>, pybind11::array_t<double> >
+    VectorizedFindHelper(BinBasedFastPointLocator < TDim >& rSelf, const Matrix& rCoords )
+        {
+            pybind11::array_t<int> element_ids_container(rCoords.size1());
+            auto element_ids = element_ids_container.mutable_unchecked<1>();
+
+            unsigned int nnodes=TDim+1; //only for triangles and tets
+            unsigned int ncoords=rCoords.size1();
+            KRATOS_ERROR_IF(rCoords.size2() != TDim) << "the expected size of coordinates is not correct ";
+
+            pybind11::array_t<int> node_ids_container({ncoords,nnodes}); //this is designed to work with Tets
+            pybind11::array_t<double> shape_function_values_container({ncoords,nnodes});
+            auto node_ids = node_ids_container.mutable_unchecked<2>();
+            auto shape_function_values = shape_function_values_container.mutable_unchecked<2>();
+
+            Vector N(nnodes);
+            IndexPartition(ncoords).for_each(N,[&](unsigned int i, Vector& N)
+            {
+                Element::Pointer pelem;
+                const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
+                const auto& r_geom = pelem->GetGeometry();
+                if(is_found){
+                    for(unsigned int k = 0; k<nnodes; ++k){
+                        node_ids(i,k) = r_geom[k].Id();
+                        shape_function_values(i,k) = N[k];
+                        element_ids[i] = pelem->Id();
+                    }
+                }
+                else
+                {
+                    for(unsigned int k = 0; k<nnodes; ++k){
+                        node_ids(i,k) = 1; //deliberately set to 1
+                        shape_function_values(i,k) = 0.0;
+                        element_ids[i] = -1;
+                    }
+                }
+            });
+            return std::tuple{element_ids_container, node_ids_container, shape_function_values_container};
+        }
+
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
 void InterpolateMeshVariableToSkinDouble(
@@ -287,6 +328,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
+        .def("VectorizedFind", &VectorizedFindHelper<2>)
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
@@ -299,40 +341,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
-        .def("VectorizedFind", [](BinBasedFastPointLocator < 3 >& rSelf, const Matrix& rCoords ){
-            std::vector<unsigned int> element_ids(rCoords.size1());
-
-            unsigned int nnodes=4; //only for tets
-            unsigned int ncoords=rCoords.size1();
-            py::array_t<int> node_ids_container({ncoords,nnodes}); //this is designed to work with Tets
-            py::array_t<double> shape_function_values_container({ncoords,nnodes});
-            auto node_ids = node_ids_container.mutable_unchecked<2>();
-            auto shape_function_values = shape_function_values_container.mutable_unchecked<2>();
-
-            Vector N(nnodes);
-            IndexPartition(ncoords).for_each(N,[&](unsigned int i, Vector& N)
-            {
-                Element::Pointer pelem;
-                const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
-                const auto& r_geom = pelem->GetGeometry();
-                if(is_found){
-                    for(unsigned int k = 0; k<nnodes; ++k){
-                        node_ids(i,k) = r_geom[k].Id();
-                        shape_function_values(i,k) = N[k];
-                        element_ids[i] = pelem->Id();
-                    }
-                }
-                else
-                {
-                    for(unsigned int k = 0; k<nnodes; ++k){
-                        node_ids(i,k) = 1; //deliberately set to 1
-                        shape_function_values(i,k) = 0.0;
-                        element_ids[i] = -1;
-                    }
-                }
-            });
-            return std::tuple{element_ids, node_ids_container, shape_function_values_container};
-        })
+        .def("VectorizedFind", &VectorizedFindHelper<3>)
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
