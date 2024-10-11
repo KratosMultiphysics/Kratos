@@ -3,7 +3,6 @@ import os
 import KratosMultiphysics                as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-import math
 
 class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
     """
@@ -27,14 +26,6 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         """
         for integration_point in integration_points:
             self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_horizontal_stress, expected_vertical_stress, rel_tol)
-
-
-    def assert_relative_close(self, a, b, rel_tol):
-        # Calculate the percentage difference
-        difference = abs(a - b)
-        average = (a + b) / 2
-        # Check if the difference is less than the tolerance percentage of the average
-        return self.assertTrue((difference / average) < rel_tol if average != 0 else difference < rel_tol)
 
     def test_k0_procedure_k0_nc(self):
         """
