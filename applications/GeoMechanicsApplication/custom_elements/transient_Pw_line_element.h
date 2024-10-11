@@ -31,9 +31,9 @@ public:
     InputProvider(std::function<const Properties&()>                         rElementProperties,
                   std::function<const std::vector<RetentionLaw::Pointer>&()> rRetentionLaws,
                   std::function<const Matrix&()>                             rNContainer,
-                  std::function<const Vector&()> rIntegrationCoefficients,
+                  std::function<Vector()>        rIntegrationCoefficients,
                   std::function<const double()>  DtPressureCoefficient,
-                  std::function<const Vector&()> rNodalValuesOfDtWaterPressure)
+                  std::function<Vector()> rNodalValuesOfDtWaterPressure)
         : mGetElementProperties(rElementProperties),
           mGetRetentionLaws(rRetentionLaws),
           mGetNContainer(rNContainer),
@@ -52,11 +52,11 @@ public:
 
     const Matrix& GetNContainer() const { return mGetNContainer(); }
 
-    const Vector& GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
+    Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
 
     double GetDtPressureCoefficient() const { return mGetDtPressureCoefficient(); }
 
-    const Vector& GetNodalValuesOfDtWaterPressure() const
+    Vector GetNodalValuesOfDtWaterPressure() const
     {
         return mGetNodalValuesOfDtWaterPressure();
     }
@@ -65,9 +65,9 @@ private:
     std::function<const Properties&()>                         mGetElementProperties;
     std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
     std::function<const Matrix&()>                             mGetNContainer;
-    std::function<const Vector&()>                             mGetIntegrationCoefficients;
+    std::function<Vector()>                                    mGetIntegrationCoefficients;
     std::function<const double()>                              mGetDtPressureCoefficient;
-    std::function<const Vector&()>                             mGetNodalValuesOfDtWaterPressure;
+    std::function<Vector()>                             mGetNodalValuesOfDtWaterPressure;
 };
 
 class Calculator
@@ -193,23 +193,25 @@ public:
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix);
         AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
 
-        Vector dt_water_pressures = GetNodalValuesOf(DT_WATER_PRESSURE);
-
         std::function<const Properties&()> get_properties = [this]() -> const Properties& {
             return GetProperties();
         };
         std::function<const std::vector<RetentionLaw::Pointer>&()> get_retention_law_vector =
             [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
-        std::function<const Matrix&()> get_N_container = [&r_N_container]() -> const Matrix& { return r_N_container; };
-        std::function<const Vector&()> get_integration_coefficients = [&integration_coefficients]() -> const Vector& {
+        std::function<const Matrix&()> get_N_container = [this]() -> const Matrix& {
+            return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        };
+        std::function<Vector()> get_integration_coefficients = [this]() -> Vector {
+            Vector det_J_container;
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
             return integration_coefficients;
         };
         std::function<const double()> get_dt_pressure_coefficient = [&rCurrentProcessInfo]() -> double {
             return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
         };
-        std::function<const Vector&()> get_nodal_values_of_dt_water_pressure = [&dt_water_pressures]() -> const Vector& {
-            return dt_water_pressures;
-        };
+        std::function<Vector()> get_nodal_values_of_dt_water_pressure =
+            [this]() -> Vector { return GetNodalValuesOf(DT_WATER_PRESSURE); };
 
         InputProvider provider(get_properties, get_retention_law_vector, get_N_container, get_integration_coefficients,
                                get_dt_pressure_coefficient, get_nodal_values_of_dt_water_pressure);
@@ -392,7 +394,7 @@ private:
 
     Vector GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
-        auto        result = Vector{TNumNodes};
+        auto        result     = Vector{TNumNodes};
         const auto& r_geometry = GetGeometry();
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
