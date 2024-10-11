@@ -1,7 +1,6 @@
 {
     "custom_entries": [
         "Obtain_Kratos.md",
-        "Hello_World.md",
         "Kratos_Input_Files_And_IO.md",
         "Data_Structure/Generate_New_Modelpart.md",
         "Data_Structure/Entities_Creation_From_Scratch.md"
