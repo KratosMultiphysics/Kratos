@@ -8,6 +8,9 @@ import os
 
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+# Import KratosUtilities
+from KratosMultiphysics.kratos_utilities import DeleteFilesEndingWith
+
 class TestRemeshMMG2D(KratosUnittest.TestCase):
 
     def test_remesh_rectangle_hessian(self):
@@ -232,7 +235,7 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         # We check the solution
         check_parameters = KratosMultiphysics.Parameters("""
         {
-            "reference_file_name"   : "mmg_rectangle_test/remesh_rectangle_result.sol",
+            "reference_file_name"   : "mmg_rectangle_test/remesh_rectangle_step=0.ref",
             "output_file_name"      : "mmg_rectangle_test/remesh_rectangle_step=0.sol",
             "dimension"             : 2,
             "comparison_type"       : "sol_file"
@@ -247,6 +250,10 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
+
+    def tearDown(self):
+        DeleteFilesEndingWith("mmg_rectangle_test", ".mesh")
+        DeleteFilesEndingWith("mmg_rectangle_test", ".sol")
 
 if __name__ == '__main__':
     KratosUnittest.main()
