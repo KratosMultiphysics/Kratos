@@ -4,8 +4,46 @@
       <h4 class="center-align section-gray-header">Schedule</h4>
 
       <div class="row">
-         <div class="col s12 m12 l12 section-gray-body">
-            <p class="center">More details about the schedule will be announced soon.</p>
+         <!-- <div class="col s12 m12 l12 section-gray-body"> -->
+         <!--    <p class="center-align">More details about the schedule will be announced soon.</p> -->
+         <!-- </div> -->
+         <div class="center-align">
+            <div class="col s10 offset-s1 m4 offset-m2 l3 offset-l3">
+               <a href="https://raw.githubusercontent.com/ncrescenzio/km2024/refs/heads/main/tex/info.pdf"
+                  class="btn-large" style="width: 100%; font-weight: bold; background-color: #3D1419">
+                  <i class="material-icons left">file_download</i>Download PDF
+               </a>
+            </div>
+            <div class="col s10 offset-s1 m4 l3 button-space" >
+               <a class="btn-large" id="my-default-button" style="width: 100%; font-weight: bold; background-color: #3D1419">
+                  <i class="material-icons left">event</i>Add to Calendar
+               </a>
+            </div>
+
+            <style>
+               /* For small screens (small devices) */
+               @media only screen and (max-width: 600px) {
+                  .button-space {
+                     margin-top: 10px; /* Adjust the value as needed */
+                  }
+               }
+            </style>
+
+            <script type="application/javascript">
+               const config = {
+                  name: "Kratos Multiphysics Workshop 2024",
+                  startDate: "2024-10-13",
+                  subscribe: true,
+                  icsFile:"https://raw.githubusercontent.com/ncrescenzio/km2024/refs/heads/main/assets/meeting.ics",
+                  options: ["Apple", "Google", "iCal", "Outlook.com"],
+                  timeZone: "America/Los_Angeles"
+               };
+               const button = document.getElementById('my-default-button');
+               if (button) {
+                  button.addEventListener('click', () => atcb_action(config, button));
+               }
+            </script>
+
          </div>
       </div>
 
