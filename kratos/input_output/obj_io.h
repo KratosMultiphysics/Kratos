@@ -130,6 +130,29 @@ public:
      */
     void WriteModelPart(const ModelPart& rThisModelPart) override;
 
+    /**
+     * @brief This method clean up the problematic geometries (null area geometries) in the mesh.
+     * @details For the moment it will be assumed that the problematic geometries are triangles with two nodes in the same position. This means several this:
+     * - The triangle is degenerated, one of the nodes is redundant and should be cleaned up.
+     * - The triangle must be removed as well. The sides must be reconnected, so the mesh is water-tight.
+     * - The nodes and entities must be renumbered
+     * @param rThisModelPart Reference to the model part to clean up into.
+     * @param rEntityType The entity type to create in the model part. Can be "element", "condition" or "geometry".
+     * @param FirstNodeId The first node ID to create in the model part.
+     * @param FirstELementId The first element ID to create in the model part.
+     * @param FirstConditionId The first condition ID to create in the model part.
+     * @param AreaTolerance The tolerance to consider a geometry as problematic.
+     * @todo This could be moved to an independent utility. It is a temporary solution to clean up problematic geometries in the mesh that can be found in the OBJ files
+     */
+    static void CleanUpProblematicGeometriesInMesh(
+        ModelPart& rThisModelPart,
+        const std::string& rEntityType = "element",
+        const IndexType FirstNodeId = 1,
+        const IndexType FirstElementId = 1,
+        const IndexType FirstConditionId = 1,
+        const double AreaTolerance = 1.0e-6
+        );
+
     ///@}
     ///@name Input and output
     ///@{
@@ -148,13 +171,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mParameters;         /// The configuration parameters
+    Parameters mParameters;          /// The configuration parameters
 
-    IndexType mFirstNodeId = 0;     /// The first node ID
-    IndexType mNextNodeId = 0;      /// The next node ID
-    IndexType mNextElementId = 0;   /// The next element ID
-    IndexType mNextConditionId = 0; /// The next condition ID
-    IndexType mNormalCounter = 0;   /// The normal counter
+    IndexType mFirstNodeId = 0;      /// The first node ID
+    IndexType mNextNodeId = 0;       /// The next node ID
+
+    IndexType mFirstElementId = 0;   /// The first element ID
+    IndexType mNextElementId = 0;    /// The next element ID
+
+    IndexType mFirstConditionId = 0; /// The first condition ID
+    IndexType mNextConditionId = 0;  /// The next condition ID
+
+    IndexType mNormalCounter = 0;    /// The normal counter
 
     ///@}
 private:
@@ -174,11 +202,13 @@ private:
      * @param rThisModelPart Reference to the model part to read into.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
      * @param NormalAsHistoricalVariable If true, the normals are stored as historical variables in the nodes.
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ReadVerticesAndFaces(
         ModelPart& rThisModelPart,
         const std::string& rEntityType = "element",
-        const bool NormalAsHistoricalVariable = false
+        const bool NormalAsHistoricalVariable = false,
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
@@ -211,11 +241,13 @@ private:
      * @param rThisModelPart Reference to the model part.
      * @param rLine The line containing the face data.
      * @param rEntityType The entity type to create in the model part. Can be "element" or "condition".
+     * @param DecomposeQuadrilateral If true, the quadrilateral faces are decomposed into triangles.
      */
     void ParseFaceLine(
         ModelPart& rThisModelPart,
         const std::string& rLine,
-        const std::string& rEntityType = "element"
+        const std::string& rEntityType = "element",
+        const bool DecomposeQuadrilateral = false
         );
 
     /**
@@ -225,12 +257,50 @@ private:
      */
     std::vector<std::string> Tokenize(const std::string& rLine);
 
+    /**
+     * @brief Clean up the problematic geometries (null area geometries) in the mesh.
+     * @details For the moment it will be assumed that the problematic geometries are triangles with two nodes in the same position. This means several this:
+     * - The triangle is degenerated, one of the nodes is redundant and should be cleaned up.
+     * - The triangle must be removed as well. The sides must be reconnected, so the mesh is water-tight.
+     * - The nodes and entities must be renumbered
+     * @param rThisModelPart Reference to the model part to clean up into.
+     * @param rEntityType The entity type to create in the model part. Can be "element", "condition" or "geometry".
+     * @param FirstNodeId The first node ID to create in the model part.
+     * @param FirstEntityId The first entity ID to create in the model part.
+     * @param AreaTolerance The tolerance to consider a geometry as problematic.
+     * @tparam TEntityType The entity type to create in the model part. Can be Element, Condition or Geometry.
+     */
+    template <typename TEntityType>
+    static void CleanUpProblematicGeometries(
+        ModelPart& rThisModelPart,
+        const IndexType FirstNodeId = 1,
+        const IndexType FirstEntityId = 1,
+        const double AreaTolerance = 1.0e-6
+        );
+
+    /// Helper function declarations
+
+    /**
+     * @brief Get the nodes of the model part.
+     * @param rThisModelPart Reference to the model part.
+     * @return The nodes of the model part.
+     * @tparam TEntityType The entity type to get from the model part. Can be Element,  Condition or Geometry.
+     */
+    template <typename TEntityType>
+    static void RemoveEntitiesAndNodes(ModelPart& rThisModelPart);
+
     ///@}
 
 }; // Class ObjIO
 
-///@}
+// Helper function definitions specialization
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Element>(ModelPart& rThisModelPart);
 
+template <>
+void ObjIO::RemoveEntitiesAndNodes<Condition>(ModelPart& rThisModelPart);
+
+///@}
 ///@name Input and output
 ///@{
 
