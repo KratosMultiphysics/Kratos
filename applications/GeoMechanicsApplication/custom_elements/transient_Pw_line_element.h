@@ -373,25 +373,6 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(const Matrix& rNContainer,
-                                                                               const Vector& rIntegrationCoefficients) const
-    {
-        const auto&              r_properties = GetProperties();
-        RetentionLaw::Parameters parameters(r_properties);
-        auto                     retention_law = RetentionLawFactory::Clone(r_properties);
-
-        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            const auto   N                  = Vector{row(rNContainer, integration_point_index)};
-            const double BiotModulusInverse = CalculateBiotModulusInverse(integration_point_index);
-            result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix<TNumNodes>(
-                N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
-        }
-        return result;
-    }
-
     Vector GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
         auto        result     = Vector{TNumNodes};
@@ -415,29 +396,6 @@ private:
                 GetProperties(), GetGeometry(),
                 row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
         }
-    }
-
-    double CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
-    {
-        const auto&  r_properties     = GetProperties();
-        const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
-
-        double bulk_fluid = TINY;
-        if (!r_properties[IGNORE_UNDRAINED]) {
-            bulk_fluid = r_properties[BULK_MODULUS_FLUID];
-        }
-        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
-                        r_properties[POROSITY] / bulk_fluid;
-
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-        const double             degree_of_saturation =
-            mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
-        const double derivative_of_saturation =
-            mRetentionLawVector[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
-
-        result *= degree_of_saturation;
-        result -= derivative_of_saturation * r_properties[POROSITY];
-        return result;
     }
 
     void InitializeSolutionStep(const ProcessInfo&) override
