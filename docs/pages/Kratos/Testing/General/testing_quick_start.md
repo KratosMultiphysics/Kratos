@@ -22,7 +22,7 @@ This section outlines the steps to execute various Kratos tests and describes th
 There are several ways to run the different cpp level tests in Kratos:
 
 - [Direct Execution](#direct-execution)
-- [Python Launcher](#python-launcher)
+- [Python Launcher](#python-launcher-for-cpp)
 
 #### Direct Execution
 
@@ -86,9 +86,84 @@ For more details, we also provide several [examples]() demonstrating the usage o
 
 While historically it has been hard for the Kratos tests to be run alongisde debugging tools due to its reliance on python launcher, this is no longer the case anymore with GTest as they provide a direct access to the C++ layer of Kratos. 
 
-#### Python Launcher
+#### Python Launcher for Cpp
 
-You may also run the tests through the python launcher located in 
+You may also run the tests through the python launcher located in `../bin/Release/KratosMultiphysics/testing`. For cpp tests there are two variants that you may use:
+
+- run_cpp_tests.py: To run the serial tests
+- run_cpp_mpi_tests.py: To run the distributed tests
 
 ### Python Tests
+
+There are three main methods to run python tests:
+
+- [Direct Execution of the Test](#direct-execution-test)
+- [Direct Execution of the Suite](#direct-execution-suite)
+- [Python Launcher](#python-launcher-for-python)
+
+#### Direct Execution Test
+
+every python test can be treated as a individual python script that executes the given Kratos feature being evaluated. For example:
+
+```Python
+import KratosMultiphysics as KM
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+class TestControllers(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = KM.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+    def setUp(self) -> None:
+        self.model_part.ProcessInfo[KM.STEP] = 0
+        self.model_part.ProcessInfo[KM.TIME] = 0
+
+    def test_TemporalControllerStep(self):
+        params = KM.Parameters("""{
+            "model_part_name"     : "test",
+            "output_control_type" : "step",
+            "output_interval"     : 3
+        }""")
+
+        # testing from start
+        controller = KM.OutputController(self.model, params)
+        for _ in range(100):
+            self.model_part.ProcessInfo[KM.STEP] += 1
+            self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
+            controller.Update()
+
+        # testing for restart
+        self.model_part.ProcessInfo[KM.STEP] = 99
+        controller = KM.OutputController(self.model, params)
+        for _ in range(100):
+            self.model_part.ProcessInfo[KM.STEP] += 1
+            self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
+            controller.Update()
+
+if __name__ == "__main__":
+    KratosUnittest.main()
+```
+
+The `KratosUnittest.main()` method will ensure that the script can be launch as stand alone python script. Note that the deveoper of the test may choose not to provide this method for several reasons which means that the tests file in particular is not ment to be executed separately.
+
+```bash
+python test_controlers.py
+```
+
+#### Direct Execution Suite
+
+Python tests are organized in suits inside the test_[ApplicationName].py file. In order to run a suite with all the tests, you may execute this file as stand alone script:
+
+```bash
+python test_KratosCore.py
+```
+
+#### Python Launcher for Python
+
+You may also run the tests through the python launcher located in `../bin/Release/KratosMultiphysics/testing`. For python tests there are two variants that you may use:
+
+- run_python_tests.py: To run the serial tests
+- run_python_mpi_tests.py: To run the distributed tests
+
 

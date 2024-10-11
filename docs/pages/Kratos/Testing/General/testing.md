@@ -448,3 +448,24 @@ if (rank != 0) {
 ```
 
 Which can be tweaked according to different needs.
+
+### Python Tests
+
+Tests targeting features in the python layer such as stages, processes and factories are constructed and run in python. Each application and the core has different tests located in:
+
+Python test are based on the [Python Unittest module](https://docs.python.org/3/library/unittest.html) which is wrapped arround or homebrew `KratosUnittest` module, which extends it with some functionalities.
+
+For the core and each application, all the tests will be located in `application/tests/test_[ApplicationName].py`.
+
+As instance:
+
+| Component | Test File |
+| --------- | --------- |
+| Core | kratos/tests/test_KratosCore.py |
+| FluidDynamics | applications/tests/test_FluidDynamicsApplication.py |
+
+If the application contains distributed components, a `_mpi`` variant may also exists:
+
+| Component | Test File |
+| --------- | --------- |
+| FluidDynamics | applications/tests/test_FluidDynamicsApplication_mpi.py |
