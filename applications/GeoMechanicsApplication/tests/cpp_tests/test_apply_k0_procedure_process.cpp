@@ -17,6 +17,7 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
 #include "test_utilities.h"
+#include "includes/element.h"
 
 #include <boost/algorithm/cxx11/all_of.hpp>
 #include <boost/algorithm/cxx11/none_of.hpp>
