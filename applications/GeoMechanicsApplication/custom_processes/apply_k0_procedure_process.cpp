@@ -12,7 +12,6 @@
 
 #include "apply_k0_procedure_process.h"
 
-// System includes
 #include <cmath>
 #include <ostream>
 
@@ -43,8 +42,8 @@ void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& 
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Parameters rK0Settings)
-    : Process(Flags()), mrModelPart(model_part), mSettings(std::move(rK0Settings))
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Parameters K0Settings)
+    : Process(Flags()), mrModelPart(model_part), mSettings(std::move(K0Settings))
 {
 }
 
@@ -128,8 +127,8 @@ void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, Index
 
         if (rProperties.Has(POP)) {
             const double pop = rProperties[POP];
-            KRATOS_ERROR_IF(pop <= 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
-                                        << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(pop < 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
+                                       << ElementId << "." << std::endl;
         }
     }
 }
@@ -219,7 +218,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
         if (rProp.Has(OCR)) {
             // Determine OCR dependent K0 values ( constant per element! )
             k0_vector *= rProp[OCR];
-            array_1d<double, 3> correction(3, PoissonURfactor * (rProp[OCR] - 1.0));
+            const array_1d<double, 3> correction(3, PoissonURfactor * (rProp[OCR] - 1.0));
             k0_vector -= correction;
         } else if (rProp.Has(POP)) {
             // POP is entered as positive value, convention here is compression negative.
