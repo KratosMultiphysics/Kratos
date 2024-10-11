@@ -229,26 +229,26 @@ public:
 
     InputProvider CreateInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
-        std::function<const Properties&()> get_properties = [this]() -> const Properties& {
+        auto get_properties = [this]() -> const Properties& {
             return GetProperties();
         };
-        std::function<const std::vector<RetentionLaw::Pointer>&()> get_retention_law_vector =
+        auto get_retention_law_vector =
             [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
-        std::function<const Matrix&()> get_N_container = [this]() -> const Matrix& {
+        auto get_N_container = [this]() -> const Matrix& {
             return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
         };
-        std::function<Vector()> get_integration_coefficients = [this]() -> Vector {
+        auto get_integration_coefficients = [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
             return integration_coefficients;
         };
-        std::function<const double()> get_dt_pressure_coefficient = [&rCurrentProcessInfo]() -> double {
+        auto get_dt_pressure_coefficient = [&rCurrentProcessInfo]() -> double {
             return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
         };
-        std::function<Vector(const Variable<double>& variable)> get_nodal_values_of_dt_water_pressure =
+        auto get_nodal_values_of_dt_water_pressure =
             [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
-        std::function<GeometryType::ShapeFunctionsGradientsType()> get_shape_function_gradients =
+        auto get_shape_function_gradients =
             [this]() -> GeometryType::ShapeFunctionsGradientsType {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
