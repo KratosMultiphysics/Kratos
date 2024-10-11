@@ -39,8 +39,8 @@ public:
     GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther);
     GeoLinearElasticPlaneStrain2DLaw& operator=(const GeoLinearElasticPlaneStrain2DLaw& rOther);
 
-    GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther);
-    GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther);
+    GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
+    GeoLinearElasticPlaneStrain2DLaw& operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept;
     ~GeoLinearElasticPlaneStrain2DLaw() override;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
