@@ -224,10 +224,8 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_k0_nc_ocr_field")
         file_path = test_helper.get_file_path(test_name)
 
-        # run simulation
         simulation = test_helper.run_kratos(file_path)
 
-        # retrieve Cauchy stress tensor
         cauchy_stresses = test_helper.get_on_integration_points(simulation,Kratos.CAUCHY_STRESS_TENSOR)
 
         # compare cauchy_stress_xx = k0 * cauchy_stress_yy, cauchy_stress_xy = 0.0
