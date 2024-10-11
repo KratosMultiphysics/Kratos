@@ -59,7 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfterGeoAppRegistration,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
     const auto constitutive_law_name = "Geo_IncrementalLinearElasticInterfaceLaw"s;
@@ -74,8 +75,9 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfte
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
-    const auto element_type_names = std::vector<std::string>{"Geo_UPwLineInterfacePlainStrainElement2Plus2N",
-                                                             "Geo_UPwLineInterfacePlainStrainElement3Plus3N"};
+    const auto                    element_type_names =
+        std::vector<std::string>{"Geo_UPwLineInterfacePlainStrainElement2Plus2N",
+                                 "Geo_UPwLineInterfacePlainStrainElement3Plus3N"};
 
     for (const auto& r_name : element_type_names) {
         KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
