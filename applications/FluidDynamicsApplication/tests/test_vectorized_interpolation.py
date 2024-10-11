@@ -13,8 +13,9 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
         self.mp.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 3)
         self.mp.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.mp.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        Kratos.ModelPartIO("./TwoFluidMassConservationProcTest/3Dtest").ReadModelPart(self.mp)
+        Kratos.ModelPartIO("..//..//applications//FluidDynamicsApplication//TwoFluidMassConservationProcTest//3Dtest").ReadModelPart(self.mp)
 
+        #initialize VELOCITY on nodes with the spatial position. This will allow checking analitically for the interpolation
         for node in self.mp.Nodes:
             node.SetSolutionStepValue(Kratos.VELOCITY,0,[node.X,node.Y,node.Z])
 
@@ -36,28 +37,34 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
         locator.UpdateSearchDatabase()
 
         nnodes = len(self.mp.Nodes)
-        vdata = np.array(Kratos.VariableUtils().GetSolutionStepValuesVector(self.mp.Nodes, Kratos.VELOCITY, 0, 3)).reshape(nnodes,3)
+        vdata = np.array(Kratos.VariableUtils().GetSolutionStepValuesVector(self.mp.Nodes, Kratos.VELOCITY, 0, 3),copy=False).reshape(nnodes,3)
         coords = np.array(Kratos.VariableUtils().GetCurrentPositionsVector(self.mp.Nodes,3)).reshape(nnodes,3)
 
+        ##coordinates to search for
         xyz = np.array([
             [0.2,0.3,0.4],
-            [0.1,0.1,0.3]
+            [0.7,0.1,0.3]
         ])
         print("xyz",xyz)
 
         elem_ids, geom_ids,N = locator.VectorizedFind(xyz)
-        N = np.array(N)
-        geom_ids = np.array(geom_ids, dtype=int)
-        geom_ids -= 1 #indices are IDs-1
 
+        #### here we are transofrming Ids into indices to address vdata and coords.
+        #### In the current example it simply involves adding -1 as the Kratos Ids start on 1
+        #### on more complex examples, where the nodes in modelpart are not numbered consecutively, this would be a more complex op
+        geom_ids -= 1
 
+        #### calling pure-python function for interpolation (vectorized)
         interpolated_data = self.Interpolate(geom_ids, N, vdata)
-        print("interpolated",interpolated_data)
+
+        ##check for the result of interpolation
+        err_norm = np.linalg.norm(xyz - interpolated_data)
+        self.assertAlmostEqual(err_norm, 0.0)
 
 
 
     def tearDown(self):
-        KratosUtils.DeleteFileIfExisting("Cavity/square5.time")
+        pass
 
 
 if __name__ == '__main__':
