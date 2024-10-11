@@ -107,10 +107,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
     def __init__(self, model, custom_settings):
         super().__init__(model,custom_settings)
 
-        time_order = 2
-        self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(
-            time_order)
-
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
@@ -246,6 +242,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
+
+
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
     def Check(self):
         super().Check()
@@ -254,14 +253,18 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
-        # Recompute the BDF2 coefficients
-        self.time_discretization.ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        # bdf_vec = [1.5/current_dt, -2.0/current_dt, 0.5/current_dt]
+        # self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
 
         # self.__ModifyBodyForceTerm()
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
+
+        # # Recompute the BDF2 coefficients
+        # (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
@@ -333,7 +336,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Acceleration for generalised alpha time integration method.
         # self.__CalculateTimeIntegrationAcceleration()
 
-        self.__CalculateAccelerationTime()
+        # self.__CalculateAccelerationTime()
 
     def _ComputeStepInitialWaterVolume(self):
 
@@ -353,14 +356,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         system_volume = inlet_volume + self.__initial_system_volume - outlet_volume
         self.__initial_system_volume = system_volume
 
-    def __CalculateAccelerationTime(self):
-        bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
-        for node in self.GetComputingModelPart().Nodes:
-            vn_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
-            v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-            v_n_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2)
-            an = bdf_vec[0]*vn_1+bdf_vec[1]*v_n+bdf_vec[2]*v_n_1
-            node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,an)
+    # def __CalculateAccelerationTime(self):
+    #     bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+    #     for node in self.GetComputingModelPart().Nodes:
+    #         vn_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+    #         v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+    #         v_n_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,2)
+    #         an = bdf_vec[0]*vn_1+bdf_vec[1]*v_n+bdf_vec[2]*v_n_1
+    #         node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,an)
 
     # def __ModifyBodyForceTerm(self):
     #     for node in self.GetComputingModelPart().Nodes:

@@ -341,6 +341,9 @@ namespace Testing
         p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE, 1) = 2;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE, 1) = 3;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE, 1) = 5;
+        p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE, 2) = 2;
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE, 2) = 3;
+        p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE, 2) = 5;
         p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
@@ -351,6 +354,17 @@ namespace Testing
         Matrix lhs_reference = ZeroMatrix(3, 3);
         const ProcessInfo &const_process_info = model_part.GetProcessInfo();
         p_element->Initialize(const_process_info);
+        p_element->InitializeSolutionStep (const_process_info);
+        // CalculateNodalAreaProcess<false> nodal_area_process(mrBaseModelPart);
+        // nodal_area_process.Execute();
+        // for (auto &node : model_part.Nodes())
+        // {
+        //     double nodal_area = node.GetValue(NODAL_AREA);
+        //     double &proj = node.GetValue(VOLUMETRIC_STRAIN_PROJECTION)
+        //     if (nodal_area > 0.0){
+        //         proj /= nodal_area;
+        //     }
+        // }
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
         KRATOS_EXPECT_EQ(rhs.size(), 3);
         KRATOS_EXPECT_EQ(lhs.size1(), 3);

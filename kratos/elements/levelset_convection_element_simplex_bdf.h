@@ -105,7 +105,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
+    // void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

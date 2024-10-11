@@ -12,8 +12,8 @@
 //                   Mohammad Reza Hashemi
 //
 
-#if !defined(KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
-#define  KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
+#if !defined(KRATOS_LEVELSET_CONVECTION_BDF_PROCESS_INCLUDED )
+#define KRATOS_LEVELSET_CCONVECTION_BDF_PROCESS_INCLUDED
 
 // System includes
 #include <string>
@@ -71,7 +71,7 @@ namespace Kratos
  * on the top of it
  */
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
-class LevelSetConvectionProcess
+class LevelSetConvectionBDFProcess
     : public Process
 {
 private:
@@ -124,8 +124,8 @@ public:
     ///@name Pointer Definitions
     ///@{
 
-    /// Pointer definition of LevelSetConvectionProcess
-    KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionProcess);
+    /// Pointer definition of LevelSetConvectionBDFProcess
+    KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionBDFProcess);
 
     ///@}
     ///@name Life Cycle
@@ -138,11 +138,11 @@ public:
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
      */
-    LevelSetConvectionProcess(
+    LevelSetConvectionBDFProcess(
         Model& rModel,
         typename TLinearSolver::Pointer pLinearSolver,
         Parameters ThisParameters)
-        : LevelSetConvectionProcess(
+        : LevelSetConvectionBDFProcess(
             rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
             pLinearSolver,
             ThisParameters)
@@ -156,11 +156,11 @@ public:
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
      */
-    LevelSetConvectionProcess(
+    LevelSetConvectionBDFProcess(
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
         Parameters ThisParameters)
-        : LevelSetConvectionProcess(
+        : LevelSetConvectionBDFProcess(
             rBaseModelPart,
             ThisParameters)
     {
@@ -173,10 +173,10 @@ public:
     }
 
     /// Copy constructor.
-    LevelSetConvectionProcess(LevelSetConvectionProcess const& rOther) = delete;
+    LevelSetConvectionBDFProcess(LevelSetConvectionBDFProcess const& rOther) = delete;
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override
+    ~LevelSetConvectionBDFProcess() override
     {
         mrModel.DeleteModelPart(mAuxModelPartName);
     }
@@ -269,7 +269,7 @@ public:
         );
 
         // for(unsigned int step = 1; step <= n_substep; ++step){
-        //     KRATOS_INFO_IF("LevelSetConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
+        //     KRATOS_INFO_IF("LevelSetConvectionBDFProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
         //         "Doing step "<< step << " of " << n_substep << std::endl;
 
         //     if (mIsBfecc || mElementRequiresLevelSetGradient){
@@ -408,12 +408,12 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "LevelSetConvectionProcess";
+        return "LevelSetConvectionBDFProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << "LevelSetConvectionProcess";
+        rOStream << "LevelSetConvectionBDFProcess";
     }
 
     /// Print object's data.
@@ -504,7 +504,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    LevelSetConvectionProcess(
+    LevelSetConvectionBDFProcess(
         ModelPart& rModelPart,
         Parameters ThisParameters)
         : mrBaseModelPart(rModelPart)
@@ -1180,10 +1180,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    LevelSetConvectionProcess& operator=(LevelSetConvectionProcess const& rOther);
+    LevelSetConvectionBDFProcess& operator=(LevelSetConvectionBDFProcess const& rOther);
 
     ///@}
-}; // Class LevelSetConvectionProcess
+}; // Class LevelSetConvectionBDFProcess
 
 ///@}
 ///@name Type Definitions
@@ -1197,13 +1197,13 @@ private:
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
+    LevelSetConvectionBDFProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// Output stream function
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
+    const LevelSetConvectionBDFProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
 
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
