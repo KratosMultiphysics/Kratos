@@ -41,14 +41,14 @@ protected:
     Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
 public:
-    using BaseType          = GeoTrussElementBase<TDim, TNumNodes>;
-    using GeometryType      = Element::GeometryType;
-    using NodesArrayType    = Element::NodesArrayType;
-    using PropertiesType    = Element::PropertiesType;
-    using IndexType         = Element::IndexType;
-    using SizeType          = Element::SizeType;
-    using MatrixType        = Element::MatrixType;
-    using VectorType        = Element::VectorType;
+    using BaseType       = GeoTrussElementBase<TDim, TNumNodes>;
+    using GeometryType   = Element::GeometryType;
+    using NodesArrayType = Element::NodesArrayType;
+    using PropertiesType = Element::PropertiesType;
+    using IndexType      = Element::IndexType;
+    using SizeType       = Element::SizeType;
+    using MatrixType     = Element::MatrixType;
+    using VectorType     = Element::VectorType;
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 

@@ -427,28 +427,61 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        /*
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
-          double particle_max_normal_ball_to_ball_force_times_radius = 0.0;
+        double particle_max_normal_ball_to_ball_force_times_radius = 0.0;
 
-          #pragma omp parallel for reduction(+ : particle_max_normal_ball_to_ball_force_times_radius)
-          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+        #pragma omp parallel for
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
-              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
-                      double particle_normal_ball_to_ball_force_times_radius = 0.0;
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                    double particle_normal_ball_to_ball_force_times_radius = 0.0;
 
-                      (it)->Calculate(PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS, particle_normal_ball_to_ball_force_times_radius, r_model_part.GetProcessInfo());
+                    (it)->Calculate(PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS, particle_normal_ball_to_ball_force_times_radius, r_model_part.GetProcessInfo());
 
-                      if (particle_max_normal_ball_to_ball_force_times_radius < particle_normal_ball_to_ball_force_times_radius){
-                        particle_max_normal_ball_to_ball_force_times_radius = particle_normal_ball_to_ball_force_times_radius;
-                      }
-                  }
-              }
+                    if (particle_max_normal_ball_to_ball_force_times_radius < particle_normal_ball_to_ball_force_times_radius){
+                    particle_max_normal_ball_to_ball_force_times_radius = particle_normal_ball_to_ball_force_times_radius;
+                    }
+                }
+            }
 
-          }
+        }*/
 
-          return particle_max_normal_ball_to_ball_force_times_radius * r_model_part.GetCommunicator().LocalMesh().Elements().size();
+        double global_max_normal_force_times_radius = 0.0;
+
+        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        #pragma omp parallel
+        {
+            double local_max = 0.0;
+
+            #pragma omp for
+            for (int k = 0; k < (int)pElements.size(); k++) {
+
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+
+                if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                    double particle_normal_ball_to_ball_force_times_radius = 0.0;
+
+                    (it)->Calculate(PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS, particle_normal_ball_to_ball_force_times_radius, r_model_part.GetProcessInfo());
+
+                    if (local_max < particle_normal_ball_to_ball_force_times_radius) {
+                        local_max = particle_normal_ball_to_ball_force_times_radius;
+                    }
+                }
+            }
+
+            #pragma omp critical
+            {
+                if (global_max_normal_force_times_radius < local_max) {
+                    global_max_normal_force_times_radius = local_max;
+                }
+            }
+        }
+
+          return global_max_normal_force_times_radius * r_model_part.GetCommunicator().LocalMesh().Elements().size();
       }
 
       //***************************************************************************************************************

@@ -4,8 +4,10 @@ from typing import Any, Union
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
+from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 
 class OptimizationProblem:
     """This is the main data holder for optimization problems
@@ -28,7 +30,9 @@ class OptimizationProblem:
         self.__components: 'dict[Any, dict[str, Any]]' = {
             ResponseFunction: {},
             ExecutionPolicy: {},
-            Control: {}
+            Control: {},
+            MasterControl:{},
+            ResponseRoutine:{}
         }
 
         # now set the processes dict with different categories of processes
@@ -41,14 +45,14 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
-    def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> Any:
+    def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> Any:
         for k in self.__components.keys():
             if isinstance(component, k):
                 return k
 
         return None
 
-    def GetComponentName(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> str:
+    def GetComponentName(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> str:
         component_type = self.GetComponentType(component)
         if not component_type is None:
             components = self.__components[component_type]
@@ -61,7 +65,7 @@ class OptimizationProblem:
 
         raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
 
-    def AddComponent(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> None:
+    def AddComponent(self, component: Union[ExecutionPolicy, ResponseFunction, Control, MasterControl, ResponseRoutine]) -> None:
         for k, v in self.__components.items():
             if isinstance(component, k):
                 added_component_type = k.__name__
@@ -127,6 +131,40 @@ class OptimizationProblem:
 
     def AddProcessType(self, process_type: str) -> None:
         self.__proceses[process_type] = []
+
+    def GetResponseRoutine(self, name: str) -> ResponseRoutine:
+        return self.GetComponent(name, ResponseRoutine)
+
+    def GetListOfResponseRoutines(self) -> 'list[ResponseRoutine]':
+        return self.__components[ResponseRoutine].values()
+
+    def HasResponseRoutine(self, name_or_response_routine: 'Union[str, ResponseRoutine]') -> bool:
+        if isinstance(name_or_response_routine, str):
+            return name_or_response_routine in [response_routine.GetName() for response_routine in self.GetListOfResponseRoutines()]
+        elif isinstance(name_or_response_routine, ResponseRoutine):
+            return name_or_response_routine in self.GetListOfResponseRoutines()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_control. Only allowed to have string or Control types.")
+
+    def RemoveResponseRoutine(self, name: str) -> None:
+        self.RemoveComponent(name, ResponseRoutine)
+
+    def GetMasterControl(self, name: str) -> MasterControl:
+        return self.GetComponent(name, MasterControl)
+
+    def GetListOfMasterControls(self) -> 'list[MasterControl]':
+        return self.__components[MasterControl].values()
+
+    def HasMasterControl(self, name_or_master_control: 'Union[str, MasterControl]') -> bool:
+        if isinstance(name_or_master_control, str):
+            return name_or_master_control in [master_control.GetName() for master_control in self.GetListOfMasterControls()]
+        elif isinstance(name_or_master_control, MasterControl):
+            return name_or_master_control in self.GetListOfMasterControls()
+        else:
+            raise RuntimeError(f"Unsupported type provided for name_or_control. Only allowed to have string or Control types.")
+
+    def RemoveMasterControl(self, name: str) -> None:
+        self.RemoveComponent(name, MasterControl)
 
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
