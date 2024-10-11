@@ -1,4 +1,4 @@
-# Test K<sub>0</sub> procedure normal consolidation with pop
+# Test K<sub>0</sub> procedure normal consolidation with POP
 
 **Author:** [Wijtze Pieter Kikstra](https://github.com/WPK4FEM)
 

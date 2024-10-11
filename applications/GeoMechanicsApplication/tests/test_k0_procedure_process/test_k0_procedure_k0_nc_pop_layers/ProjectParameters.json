@@ -145,7 +145,7 @@
     "min_iterations":                     6,
     "min_radius_factor":                  0.1,
     "model_import_settings":              {
-      "input_filename": "plxMesh",
+      "input_filename": "Mesh",
       "input_type":     "mdpa"
     },
     "model_part_name":                    "PorousDomain",
