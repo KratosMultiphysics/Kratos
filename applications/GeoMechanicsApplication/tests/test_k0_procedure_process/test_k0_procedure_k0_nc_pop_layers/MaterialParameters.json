@@ -25,7 +25,9 @@
                     "POISSON_RATIO": 0.3,
                     "IGNORE_UNDRAINED": true,
                     "K0_MAIN_DIRECTION": 1,
-                    "K0_NC": 0.5
+                    "POP": 1400,
+                    "POISSON_UNLOADING_RELOADING": 0.2,
+                    "K0_NC": 0.826352
                 }
             }
         },
@@ -54,7 +56,9 @@
                     "POISSON_RATIO": 0.1,
                     "IGNORE_UNDRAINED": true,
                     "K0_MAIN_DIRECTION": 1,
-                    "K0_NC": 0.5
+                    "POP": 1600,
+                    "POISSON_UNLOADING_RELOADING": 0.2,
+                    "K0_NC": 0.826352
                 }
             }
         },
@@ -83,7 +87,9 @@
                     "POISSON_RATIO": 0.2,
                     "IGNORE_UNDRAINED": true,
                     "K0_MAIN_DIRECTION": 1,
-                    "K0_NC": 0.5
+                    "POP": 1200,
+                    "POISSON_UNLOADING_RELOADING": 0.2,
+                    "K0_NC": 0.826352
                 }
             }
         }
