@@ -63,11 +63,5 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
         err_norm = np.linalg.norm(xyz - interpolated_data)
         self.assertAlmostEqual(err_norm, 0.0)
 
-
-
-    def tearDown(self):
-        pass
-
-
 if __name__ == '__main__':
     UnitTest.main()
