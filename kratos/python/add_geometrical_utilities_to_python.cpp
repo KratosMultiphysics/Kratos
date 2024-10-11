@@ -14,10 +14,10 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
-#include <pybind11/numpy.h>
 #include "processes/process.h"
 #include "python/add_geometrical_utilities_to_python.h"
 
