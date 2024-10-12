@@ -572,6 +572,7 @@ class RomManager(object):
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
 
                 simulation.Clear()
+                del model
                 del simulation
                 del SnapshotsMatrix
                 import gc
@@ -657,6 +658,7 @@ class RomManager(object):
                 self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
                 simulation.Clear()
+                del model
                 del simulation
                 del SnapshotsMatrix
                 import gc
@@ -735,6 +737,7 @@ class RomManager(object):
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
 
                     simulation.Clear()
+                    del model
                     del simulation
                     del ResidualProjected
                     import gc
@@ -805,6 +808,7 @@ class RomManager(object):
                 self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
                 simulation.Clear()
+                del model
                 del simulation
                 del SnapshotsMatrix
                 import gc
@@ -848,6 +852,7 @@ class RomManager(object):
                 self.data_base.add_to_database("HHROM", mu, SnapshotsMatrix)
 
                 simulation.Clear()
+                del model
                 del simulation
                 del SnapshotsMatrix
                 import gc
@@ -875,6 +880,7 @@ class RomManager(object):
             self.QoI_Run_FOM.append(simulation.GetFinalData())
 
             simulation.Clear()
+            del model
             del simulation
             import gc
             gc.collect()
@@ -899,6 +905,7 @@ class RomManager(object):
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
             simulation.Clear()
+            del model
             del simulation
             import gc
             gc.collect()
@@ -927,6 +934,7 @@ class RomManager(object):
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
             simulation.Clear()
+            del model
             del simulation
             import gc
             gc.collect()
@@ -954,6 +962,7 @@ class RomManager(object):
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
             simulation.Clear()
+            del model
             del simulation
             import gc
             gc.collect()
