@@ -76,14 +76,21 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
 
     def ComputeSpotDiameter(self):
-        spot_diameter = self.beam_waist_diameter * sqrt(1.0 + (self.focus_z_offset / self.rayleigh_length)**2)
+        spot_diameter = self.beam_waist_diameter * sqrt(1.0 + ((self.focus_z_offset + self.z_ast_max) / self.rayleigh_length)**2)
         return spot_diameter
+
+    def ComputePeakFluence(self):
+        return 2.0 * self.Q / (np.pi * self.omega_0**2) # J/mm2
+
+    def ComputeMaximumAblationRadius(self):
+        import math
+        return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
 
     def SetParameters(self):
 
         self.some_elements_are_above_the_evap_temp = False
         self.jump_between_pulses_counter = 0
-        self.pulse_number = 1
+        self.pulse_number = 0
         self.print_hdf5_and_gnuplot_files = False
 
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -105,7 +112,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.beam_waist_diameter = 0.0179
         else:
             self.beam_waist_diameter = self.project_parameters["problem_data"]["beam_waist_diameter"].GetDouble()
-        
+
         if not self.project_parameters["problem_data"].Has("Rayleigh_length"):
             self.rayleigh_length = 0.409
         else:
@@ -116,7 +123,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.focus_z_offset = self.project_parameters["problem_data"]["focus_Z_offset"].GetDouble()
 
-        self.spot_diameter = self.ComputeSpotDiameter()
+        self.z_ast_max = 0.0
+
+        #self.spot_diameter = self.ComputeSpotDiameter()
 
         if not self.project_parameters["problem_data"].Has("vaporisation_temperature"):
             self.T_e = 1000.0
@@ -134,9 +143,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.compute_vaporisation = self.project_parameters["problem_data"]["compute_vaporisation"].GetBool()
 
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
-            self.ionization_alpha = 0.95
+            self.ionization_alpha = 1.0 #0.95
         else:
-            self.ionization_alpha = self.material_settings['Variables']['IONIZATION_ALPHA'].GetDouble()
+            self.ionization_alpha = 1.0 #self.material_settings['Variables']['IONIZATION_ALPHA'].GetDouble()
 
         if not self.material_settings["Variables"].Has("PENETRATION_DEPTH"):
             self.l_s = 0.002148 # mm.
@@ -178,21 +187,71 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # else:
         #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_no_evap.txt"
 
-        self.R_far = self.spot_diameter * 0.5
+        #self.R_far = self.spot_diameter * 0.5
         self.cp = self.material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = self.material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = self.material_settings['Variables']['DENSITY'].GetDouble()
         self.T0 = self.settings['ambient_temperature'].GetDouble()
         self.kappa = self.conductivity / (self.rho * self.cp)
         self.ablation_energy_fraction = self.ionization_alpha
-        self.evaporation_energy_fraction = 1.0 - self.ionization_alpha        
-        self.sigma = 0.5 * self.R_far
-        self.K = 1 / (2 * self.sigma**2)
-        import math
-        self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - math.exp(-self.K * self.R_far**2)))
-        self.irradiated_surface_area = np.pi * self.R_far**2
+        self.evaporation_energy_fraction = 1.0 - self.ionization_alpha
 
-        if self.ablation_energy_fraction:
+        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+        ## Laser data
+        self.omega_0 = 0.5 * self.ComputeSpotDiameter() #self.R_far # mm
+        import numpy as np
+        y_limit = 2.0 * self.omega_0
+        self.hole_theoretical_Y_coords = np.linspace(0.0, float(y_limit), 101)
+        self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+        self.F_p = self.ComputePeakFluence()
+
+        ## Material calibration using experiments
+        if not self.material_settings["Variables"].Has("OPTICAL_PENETRATION_DEPTH"):
+            self.delta_pen = 5e-4 # mm
+        else:
+            self.delta_pen = self.material_settings['Variables']['OPTICAL_PENETRATION_DEPTH'].GetDouble()
+
+        if not self.material_settings["Variables"].Has("ENERGY_PER_VOLUME_THRESHOLD"):
+            self.q_ast = 10.0 # J/mm3
+        else:
+            self.q_ast = self.material_settings['Variables']['ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
+
+        if not self.material_settings["Variables"].Has("REFRACTIVE_INDEX"):
+            self.refractive_index_n = 1.5
+        else:
+            self.refractive_index_n = self.material_settings['Variables']['REFRACTIVE_INDEX'].GetDouble()
+
+        if self.material_settings['compute_optical_penetration_depth_using_refractive_index'].GetBool():
+            self.ComputeOpticalPenetrationDepth()
+            self.delta_pen = self.l_s
+
+        if self.material_settings['compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization'].GetBool():
+            self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+            self.use_enthalpy_and_ionization = True
+        else:
+            self.use_enthalpy_and_ionization = False
+
+        self.decomposed_nodes_coords_filename = "hole_coords_q_ast=" + str(self.q_ast) + "_delta_pen=" + str(self.delta_pen) + "_" + self.mesh_type + "_" + self.mesh_size + ".txt"
+
+        self.r_ast_max = self.ComputeMaximumAblationRadius()
+
+        if not self.project_parameters["problem_data"].Has("adjust_T_field_after_ablation"):
+            self.adjust_T_field_after_ablation = False
+        else:
+            self.adjust_T_field_after_ablation = self.project_parameters["problem_data"]["adjust_T_field_after_ablation"].GetBool()
+
+        if not self.project_parameters["problem_data"].Has("reference_T_after_laser"):
+            self.reference_T_after_laser = 298.15
+        else:
+            self.reference_T_after_laser = self.project_parameters["problem_data"]["reference_T_after_laser"].GetDouble()
+
+        #self.sigma = 0.5 * self.R_far
+        #self.K = 1 / (2 * self.sigma**2)
+        #import math
+        #self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - math.exp(-self.K * self.R_far**2)))
+        #self.irradiated_surface_area = np.pi * self.R_far**2
+
+        #if self.ablation_energy_fraction:
             # Find F_th_fraction multiplying F_th so Radius_th = R_far
             # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
             # F_th_fraction = self.C * np.exp(-self.K * self.R_far**2) / (self.ablation_energy_fraction * self.Q / A)
@@ -205,7 +264,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             ####################################
 
             #self.F_th = 0.009667 # J/mm2 #F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
-            self.radius_th = math.sqrt(math.log(self.C / self.F_th) / self.K)
+            #self.radius_th = math.sqrt(math.log(self.C / self.F_th) / self.K)
 
             #self.l_s = self.PenetrationDepthEstimation() #0.001 # 5 pulses, with evaporation
 
@@ -217,13 +276,23 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
 
         # Finite Elements
-        self.n_surface_elements = 10 # number of elements
-        self.sparse_option = True
+        #self.n_surface_elements = 10 # number of elements
+        #self.sparse_option = True
         #self.surface_nodes_Y_values = np.linspace(0.0, self.R_far, self.n_surface_elements + 1)
-        self.surface_element_size = self.R_far / self.n_surface_elements
+        #self.surface_element_size = self.R_far / self.n_surface_elements
 
         # Debug
         self.plot_progressive_hole_figures = False
+
+    def ComputeMaximumDepth(self):
+        maximum_depth = self.list_of_ablated_nodes_coords_X[0]
+        return maximum_depth
+
+    def UpdateLaserRelatedParameters(self):
+        self.z_ast_max = self.ComputeMaximumDepth()
+        self.omega_0 = 0.5 * self.ComputeSpotDiameter()
+        self.F_p = self.ComputePeakFluence()
+        self.r_ast_max = self.ComputeMaximumAblationRadius()
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -285,11 +354,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         initial_system_energy = self.MonitorEnergy()
 
-        self.RemoveElementsByAblation()
+        #self.RemoveElementsByAblation()
 
         computed_energy_after_ablation = self.MonitorEnergy()
 
-        self.AdjustTemperatureFieldAfterAblation()
+        #self.AdjustTemperatureFieldAfterAblation()
 
         residual_heat = self.evaporation_energy_fraction * self.Q
 
@@ -631,6 +700,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
+    def ComputePulseHoleAndAddToTotalHole(self):
+        for i, Y_coord in enumerate(self.hole_theoretical_Y_coords):
+            self.hole_theoretical_X_coords[i] += self.EvaporationDepth(Y_coord)
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         if self.print_hdf5_and_gnuplot_files:
@@ -645,6 +718,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                     self.temperature_alpha_file.write(str(temperature) + " " + str(thermal_decomposition) + "\n")
                     self.time_alpha_file.write(str(current_time) + " " + str(thermal_decomposition) + "\n")
                     break
+        self.UpdateLaserRelatedParameters()
+        self.ComputePulseHoleAndAddToTotalHole()
 
     def Finalize(self):
         super().Finalize()
@@ -775,13 +850,26 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return l_s
 
     # Based on Eq. 27 from Gamaly (2002) - Ablation of solids by femtosecond lasers: Ablation mechanism and ablation thresholds for metals and dielectrics
-    def EvaporationDepth(self, r): 
+    '''def EvaporationDepth(self, r): 
         if r >= self.radius_th:
             return 0
         else:
             q = self.C * np.exp(-self.K * r**2)
             d_ev = 0.5 * self.l_s * (np.log(q) - np.log(self.F_th))
-            return d_ev
+            return d_ev'''
+
+    # Based on eq. 6 in Woodfield (2024)
+    def EvaporationDepth(self, r):
+        if r >= self.r_ast_max:
+            return 0.0
+        else:
+            delta_pen = self.delta_pen
+            F_p = self.F_p
+            q_ast = self.q_ast
+            omega_0 = self.omega_0
+            import math
+            z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0)**2)
+            return z_ast
 
     def CreateResultsFile(self, filename):
         if os.path.exists(self.results_filename):

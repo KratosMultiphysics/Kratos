@@ -15,55 +15,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def SolveSolutionStep(self):
         super(laserdrilling_transient_solver.LaserDrillingTransientSolver, self).SolveSolutionStep()
 
-    def SetParameters(self):
-        super().SetParameters()
-
-        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
-        ## Laser data
-        self.omega_0 = self.R_far # mm
-        self.F_p = 2.0 * self.Q / (np.pi * self.omega_0**2) # J/mm2
-
-        ## Material calibration using experiments
-        if not self.material_settings["Variables"].Has("OPTICAL_PENETRATION_DEPTH"):
-            self.delta_pen = 5e-4 # mm
-        else:
-            self.delta_pen = self.material_settings['Variables']['OPTICAL_PENETRATION_DEPTH'].GetDouble()
-
-        if not self.material_settings["Variables"].Has("ENERGY_PER_VOLUME_THRESHOLD"):
-            self.q_ast = 10.0 # J/mm3
-        else:
-            self.q_ast = self.material_settings['Variables']['ENERGY_PER_VOLUME_THRESHOLD'].GetDouble()
-
-        if not self.material_settings["Variables"].Has("REFRACTIVE_INDEX"):
-            self.refractive_index_n = 1.5
-        else:
-            self.refractive_index_n = self.material_settings['Variables']['REFRACTIVE_INDEX'].GetDouble()
-
-        if self.material_settings['compute_optical_penetration_depth_using_refractive_index'].GetBool():
-            self.ComputeOpticalPenetrationDepth()
-            self.delta_pen = self.l_s
-
-        if self.material_settings['compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization'].GetBool():
-            self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
-            self.use_enthalpy_and_ionization = True
-        else:
-            self.use_enthalpy_and_ionization = False
-
-        self.decomposed_nodes_coords_filename = "hole_coords_q_ast=" + str(self.q_ast) + "_delta_pen=" + str(self.delta_pen) + "_" + self.mesh_type + "_" + self.mesh_size + ".txt"
-
-        import math
-        self.r_ast_max = self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
-
-        if not self.project_parameters["problem_data"].Has("adjust_T_field_after_ablation"):
-            self.adjust_T_field_after_ablation = False
-        else:
-            self.adjust_T_field_after_ablation = self.project_parameters["problem_data"]["adjust_T_field_after_ablation"].GetBool()
-
-        if not self.project_parameters["problem_data"].Has("reference_T_after_laser"):
-            self.reference_T_after_laser = 298.15
-        else:
-            self.reference_T_after_laser = self.project_parameters["problem_data"]["reference_T_after_laser"].GetDouble()
-
     def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
         # Compute ionization energy per volume of C11_H12_O3
         E_m_H = 1312e3 #  J/mol (1st level ionization energy)
@@ -124,18 +75,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         delta_temp = q_energy_per_volume / (self.rho * self.cp)            
         return delta_temp
 
-    def EvaporationDepth(self, r):
-        if r >= self.r_ast_max:
-            return 0.0
-        else:
-            delta_pen = self.delta_pen
-            F_p = self.F_p
-            q_ast = self.q_ast
-            omega_0 = self.omega_0
-            import math
-            z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0)**2)
-            return z_ast
-
     def RemoveElementsByAblation(self):
 
         '''initial_system_energy = self.MonitorEnergy()
@@ -162,7 +101,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         omega_0 = self.omega_0
         import math
         vol_n_pulses = self.pulse_number * 0.25 * delta_pen * math.pi * omega_0**2 * (math.log(F_p / (delta_pen * q_ast)))**2
-        print("Expected volume loss due to laser:", vol_n_pulses, "\n\n")
+        print("Expected volume loss due to laser:", vol_n_pulses, "\n")
+
+        relative_error = 100.0 * (decomp_vol - vol_n_pulses) / vol_n_pulses
+        print("Relative error in volume (%):", relative_error, "\n\n")
 
     def ResidualHeatStage(self):
         pass
@@ -197,7 +139,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         super().Finalize()
         if self.print_hole_geometry_files:
             self.hole_theoretical_profile_file = open('hole_theoretical_profile.txt', "w")
-            for node_Y in self.list_of_decomposed_nodes_coords_Y:
+            '''for node_Y in self.list_of_decomposed_nodes_coords_Y:
                 Z_coord = self.pulse_number * self.EvaporationDepth(node_Y)
-                self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-Z_coord) + "\n")
+                self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-Z_coord) + "\n")'''
+            for i, node_Y in enumerate(self.hole_theoretical_Y_coords):
+                if self.hole_theoretical_X_coords[i]:
+                    self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n")
             self.hole_theoretical_profile_file.close()
