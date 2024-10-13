@@ -65,8 +65,9 @@ template<std::size_t TDim>
             {
                 Element::Pointer pelem;
                 const bool is_found = rSelf.FindPointOnMeshSimplified(row(rCoords,i),N,pelem);
-                const auto& r_geom = pelem->GetGeometry();
+
                 if(is_found){
+                    const auto& r_geom = pelem->GetGeometry();
                     for(unsigned int k = 0; k<nnodes; ++k){
                         node_ids(i,k) = r_geom[k].Id();
                         shape_function_values(i,k) = N[k];

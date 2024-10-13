@@ -14,7 +14,7 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
         self.mp.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.mp.AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
-        Kratos.ModelPartIO(os.path.join("..","..","applications","FluidDynamicsApplication","tests","TwoFluidMassConservationProcTest","3Dtest")).ReadModelPart(self.mp)
+        Kratos.ModelPartIO(os.path.join(".","auxiliar_files_for_python_unittest","mdpa_files","coarse_sphere")).ReadModelPart(self.mp)
 
         #initialize VELOCITY on nodes with the spatial position. This will allow checking analitically for the interpolation
         for node in self.mp.Nodes:
@@ -44,12 +44,12 @@ class TestVectorizedInterpolation(UnitTest.TestCase):
 
         ##coordinates to search for
         xyz = np.array([
-            [0.2,0.3,0.4],
-            [0.7,0.1,0.3]
+            [0.02,0.03,0.04],
+            [0.07,0.01,0.03]
         ])
-
+        print("50")
         elem_ids, geom_ids,N = locator.VectorizedFind(xyz)
-
+        print(elem_ids)
         #### here we are transofrming Ids into indices to address vdata and coords.
         #### In the current example it simply involves adding -1 as the Kratos Ids start on 1
         #### on more complex examples, where the nodes in modelpart are not numbered consecutively, this would be a more complex op
