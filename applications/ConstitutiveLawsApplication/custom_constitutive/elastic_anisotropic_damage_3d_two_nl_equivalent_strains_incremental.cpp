@@ -84,7 +84,9 @@ bool ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::Has(const Vari
         return false;
     }else if(rThisVariable == DAMAGE_VECTOR){
         return true;
-    } else if(rThisVariable == EQUIVALENT_STRAINS_TC){
+    }else if(rThisVariable == DAMAGE_VECTOR_VOIGT){
+        return true;
+    }else if(rThisVariable == EQUIVALENT_STRAINS_TC){
         return true;
     }else if(rThisVariable == STRAIN_HISTORY_VARIABLES){
         return true;
@@ -106,6 +108,14 @@ Vector& ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::GetValue(
     KRATOS_TRY
     if(rThisVariable == DAMAGE_VECTOR){
         rValues = mDamageVector;
+    }else if(rThisVariable == DAMAGE_VECTOR_VOIGT){
+        rValues = ZeroVector(6);
+        rValues[0] = mDamageMatrix(0,0);
+        rValues[1] = mDamageMatrix(1,1);
+        rValues[2] = mDamageMatrix(2,2);
+        rValues[3] = mDamageMatrix(0,1);
+        rValues[4] = mDamageMatrix(1,2);
+        rValues[5] = mDamageMatrix(0,2);
     }else if(rThisVariable == EQUIVALENT_STRAINS_TC) {
         rValues = mEquivalentStrains;
     }else if(rThisVariable == STRAIN_HISTORY_VARIABLES){
@@ -129,28 +139,22 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::SetValue(
     KRATOS_TRY
     if(rThisVariable == DAMAGE_VECTOR){
         mDamageVector = rValues;
+    }else if(rThisVariable == DAMAGE_VECTOR_VOIGT) {
+        mDamageMatrix(0,0) = rValues[0];
+        mDamageMatrix(1,1) = rValues[1];
+        mDamageMatrix(2,2) = rValues[2];
+        mDamageMatrix(0,1) = rValues[3];
+        mDamageMatrix(1,0) = rValues[3];
+        mDamageMatrix(1,2) = rValues[4];
+        mDamageMatrix(2,1) = rValues[4];
+        mDamageMatrix(2,0) = rValues[5];
+        mDamageMatrix(0,2) = rValues[5];
     }else if(rThisVariable == EQUIVALENT_STRAINS_TC) {
         mEquivalentStrains = rValues;
     }else if(rThisVariable == STRAIN_HISTORY_VARIABLES ) {
         mStrainHistoryParameters = rValues;
     }else if(rThisVariable == INTERNAL_VARIABLES ){
         mKappa = rValues;
-    }
-    KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void ElasticAnisotropicDamage3DTwoNLEquivalentStrainsIncremental::SetValue(
-    const Variable<Matrix>& rThisVariable,
-    const Matrix& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY
-    if(rThisVariable == DAMAGE_MATRIX){
-        mDamageMatrix = rValue;
     }
     KRATOS_CATCH("")
 }

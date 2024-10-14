@@ -169,12 +169,6 @@ public:
         const Vector& rValues,
         const ProcessInfo& rProcessInfo
         ) override;
-
-    void SetValue(
-        const Variable<Matrix>& rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        )override;
     /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
