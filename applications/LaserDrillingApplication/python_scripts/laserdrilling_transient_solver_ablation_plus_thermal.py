@@ -75,6 +75,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         delta_temp = q_energy_per_volume / (self.rho * self.cp)            
         return delta_temp
 
+    def ComputePulseVolume(self):
+        import math
+        return 0.25 * self.delta_pen * math.pi * self.omega_0**2 * (math.log(self.F_p / (self.delta_pen * self.q_ast)))**2
+
     def RemoveElementsByAblation(self):
 
         '''initial_system_energy = self.MonitorEnergy()
@@ -95,15 +99,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         decomp_vol = self.MonitorDecomposedVolume()
         print("Actual volume loss due to laser:",  decomp_vol)
 
-        delta_pen = self.delta_pen
-        F_p = self.F_p
-        q_ast = self.q_ast
-        omega_0 = self.omega_0
-        import math
-        vol_n_pulses = self.pulse_number * 0.25 * delta_pen * math.pi * omega_0**2 * (math.log(F_p / (delta_pen * q_ast)))**2
-        print("Expected volume loss due to laser:", vol_n_pulses, "\n")
+        self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
+        print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "\n")
 
-        relative_error = 100.0 * (decomp_vol - vol_n_pulses) / vol_n_pulses
+        relative_error = 100.0 * (decomp_vol - self.analytical_ablated_volume_in_n_pulses) / self.analytical_ablated_volume_in_n_pulses
         print("Relative error in volume (%):", relative_error, "\n\n")
 
     def ResidualHeatStage(self):
@@ -134,7 +133,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             self.AddDecomposedNodesToSurfaceList()
             self.list_of_ablated_nodes_coords_X = self.list_of_decomposed_nodes_coords_X
             self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
-    
+
     def Finalize(self):
         super().Finalize()
         if self.print_hole_geometry_files:
@@ -146,3 +145,9 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                 if self.hole_theoretical_X_coords[i]:
                     self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n")
             self.hole_theoretical_profile_file.close()
+
+            self.hole_theoretical_profile_file_no_z_offset_variation = open('hole_theoretical_profile_no_z_offset_variation.txt', "w")
+            for i, node_Y in enumerate(self.one_pulse_hole_theoretical_Y_coords):
+                if self.one_pulse_hole_theoretical_X_coords[i]:
+                    self.hole_theoretical_profile_file_no_z_offset_variation.write(str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n")
+            self.hole_theoretical_profile_file_no_z_offset_variation.close()

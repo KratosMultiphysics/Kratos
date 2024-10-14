@@ -203,6 +203,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         y_limit = 2.0 * self.omega_0
         self.hole_theoretical_Y_coords = np.linspace(0.0, float(y_limit), 101)
         self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+        self.one_pulse_hole_theoretical_Y_coords = np.linspace(0.0, 0.0, 101)
+        self.one_pulse_hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
         self.F_p = self.ComputePeakFluence()
 
         ## Material calibration using experiments
@@ -244,6 +246,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.reference_T_after_laser = 298.15
         else:
             self.reference_T_after_laser = self.project_parameters["problem_data"]["reference_T_after_laser"].GetDouble()
+
+        self.analytical_ablated_volume_in_n_pulses = 0.0
 
         #self.sigma = 0.5 * self.R_far
         #self.K = 1 / (2 * self.sigma**2)
@@ -703,6 +707,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def ComputePulseHoleAndAddToTotalHole(self):
         for i, Y_coord in enumerate(self.hole_theoretical_Y_coords):
             self.hole_theoretical_X_coords[i] += self.EvaporationDepth(Y_coord)
+        if self.pulse_number == 1:
+            import copy
+            self.one_pulse_hole_theoretical_X_coords = copy.deepcopy(self.hole_theoretical_X_coords)
+            self.one_pulse_hole_theoretical_Y_coords = self.hole_theoretical_Y_coords
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
