@@ -24,7 +24,6 @@ using namespace Kratos;
 Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 {
     ConstitutiveLaw::Parameters parameters;
-    parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -184,6 +183,42 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     Vector expected_stress{4};
     expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenNoElementProvidedStrain,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = CreateLinearElasticPlaneStrainLaw();
+
+    ConstitutiveLaw::Parameters initial_parameters;
+    auto                        initial_strain = Vector{ScalarVector{4, 0.5}};
+    initial_parameters.SetStrainVector(initial_strain);
+    auto initial_stress = Vector{ScalarVector{4, 1e6}};
+    initial_parameters.SetStressVector(initial_stress);
+    law.InitializeMaterialResponseCauchy(initial_parameters);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    parameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+    auto strain = Vector{ScalarVector{4, 1.0}};
+    parameters.SetStrainVector(strain);
+
+    Vector stress;
+    parameters.SetStressVector(stress);
+
+    Matrix constitutive_matrix;
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
+
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    parameters.SetMaterialProperties(properties);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.CalculateMaterialResponsePK2(parameters),
+        "The GeoLinearElasticLaw needs an element provided strain");
 }
 
 } // namespace Kratos::Testing
