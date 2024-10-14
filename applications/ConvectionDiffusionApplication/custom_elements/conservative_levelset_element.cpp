@@ -93,7 +93,7 @@ namespace Kratos
             //obtain the phi and other phi_related variables in the middle of the tiem step 
             double phi_gauss = 0.0;
             double oneminusphi_gauss = 0.0;
-            double oneminus2phi_gauss = 0.0;
+            //double oneminus2phi_gauss = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
@@ -106,24 +106,28 @@ namespace Kratos
             //KRATOS_INFO("Gauss point phi:") << phi_gauss << std::endl;
             oneminusphi_gauss = 1.0 - phi_gauss;
             //KRATOS_INFO("Gauss point 1-phi:") << oneminusphi_gauss << std::endl;
-            oneminus2phi_gauss = 1.0 - 2*phi_gauss;
+            //oneminus2phi_gauss = 1.0 - 2*phi_gauss;
             //KRATOS_INFO("Gauss point 1-2phi:") << oneminus2phi_gauss << std::endl;
 
-            const double norm_vel = norm_2(oneminus2phi_gauss*vel_gauss);
-            array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, oneminus2phi_gauss*vel_gauss);
+            //const double norm_vel = norm_2(oneminus2phi_gauss*vel_gauss);
+            //array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, oneminus2phi_gauss*vel_gauss);
+            const double norm_vel = norm_2(oneminusphi_gauss*vel_gauss);
+            array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, oneminusphi_gauss*vel_gauss);
 
-            const double tau = this->CalculateTau(Variables,norm_vel,h);
+            //const double tau = this->CalculateTau(Variables,norm_vel,h);
+            const double tau = 0.0;
 
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
             noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
 
             //terms multiplying volumetric_source (aux3)
-            noalias(aux3) += phi_gauss*oneminusphi_gauss*(1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
-            noalias(aux3) +=  phi_gauss*oneminusphi_gauss*tau*outer_prod(a_dot_grad, N);
+            //noalias(aux3) += phi_gauss*oneminusphi_gauss*(1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
+            //noalias(aux3) +=  phi_gauss*oneminusphi_gauss*tau*outer_prod(a_dot_grad, N);
 
             //terms which multiply the gradient of phi
-            noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
+            //noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
+            noalias(aux2) -= (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(a_dot_grad, N);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
         }
 
@@ -141,7 +145,7 @@ namespace Kratos
 
         // volume source terms (affecting the RHS only)
         noalias(rRightHandSideVector) += prod(aux1, Variables.volumetric_source);
-        noalias(rRightHandSideVector) -= prod(aux3, div_v_vector);
+        //noalias(rRightHandSideVector) -= prod(aux3, div_v_vector);
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, Variables.phi);
