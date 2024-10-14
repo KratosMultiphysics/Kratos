@@ -193,9 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProv
     ConstitutiveLaw::Parameters parameters;
     parameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        law.CalculateMaterialResponsePK2(parameters),
-        "The GeoLinearElasticLaw needs an element provided strain");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
+                                      "The GeoLinearElasticLaw needs an element provided strain");
 }
 
 } // namespace Kratos::Testing
