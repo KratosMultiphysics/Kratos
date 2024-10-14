@@ -17,7 +17,6 @@ class ResponseRoutine:
         # set the response
         self.__response = response
         self.__response_value = None
-        self.value_calculate_count = 0
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
 
