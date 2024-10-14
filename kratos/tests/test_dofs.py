@@ -161,8 +161,6 @@ class TestDofs(KratosUnittest.TestCase):
             dofs_vector.append(node.GetDof(KratosMultiphysics.PRESSURE))
             dofs_vector.append(node.GetDof(KratosMultiphysics.PRESSURE))
 
-        self.assertEqual(len(dofs_vector), 3*test_model_part.NumberOfNodes())
-        dofs_vector.unique()
         self.assertEqual(len(dofs_vector), test_model_part.NumberOfNodes())
 
 if __name__ == '__main__':

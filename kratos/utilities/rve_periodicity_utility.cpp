@@ -249,7 +249,7 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
     // Define translation vector
     Vector aux_translation(1);
 
-    ModelPart::MasterSlaveConstraintContainerType constraints;
+    std::vector<ModelPart::MasterSlaveConstraintType::Pointer> constraints;
 
     for (const auto& r_data : mAuxPairings) {
         const IndexType slave_id = r_data.first;

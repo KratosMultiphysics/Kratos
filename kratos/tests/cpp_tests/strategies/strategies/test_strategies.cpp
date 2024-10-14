@@ -129,14 +129,7 @@ namespace Kratos
             (pnode->FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
             (pnode->FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
 
-            DofsArrayType Doftemp;
-            Doftemp.reserve(DoF.size());
-            for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( *it );
-
-            Doftemp.Sort();
-
-            return Doftemp;
+            return DofsArrayType(DoF.begin(), DoF.end());
         }
 
         /**

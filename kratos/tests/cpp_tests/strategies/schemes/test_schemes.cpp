@@ -91,20 +91,13 @@ namespace Kratos
                 pnode->FastGetSolutionStepValue(ACCELERATION, i) = zero_vector;
             }
 
-            DofsArrayType Doftemp;
-            Doftemp.reserve(rDoF.size());
-            for (auto it= rDoF.begin(); it!= rDoF.end(); ++it) {
-                Doftemp.push_back( *it );
-            }
-            Doftemp.Sort();
-
             CompressedMatrix A(ZeroMatrix(3, 3));
             Vector Dx = ZeroVector(3);
             Vector b = ZeroVector(3);
 
             pScheme->Initialize(rModelPart);
 
-            return Doftemp;
+            return DofsArrayType(rDoF.begin(), rDoF.end());
         }
 
         /**

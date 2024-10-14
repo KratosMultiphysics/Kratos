@@ -662,9 +662,7 @@ public:
 
         SizeType nthreads = ParallelUtilities::GetNumThreads();
 
-        typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-
-        std::vector<set_type> dofs_aux_list(nthreads);
+        std::vector<DofsArrayType> dofs_aux_list(nthreads);
 
         for (int i = 0; i < static_cast<int>(nthreads); ++i) {
             dofs_aux_list[i].reserve(nelements);
@@ -692,31 +690,10 @@ public:
             dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
         });
 
-        // Here we do a reduction in a tree so to have everything on thread 0
-        SizeType old_max = nthreads;
-        SizeType new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max >= 1 && new_max != old_max) {
-            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
-                if (Index + new_max < old_max) {
-                    dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
-                    dofs_aux_list[Index + new_max].clear();
-                }
-            });
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-        }
-
-        DofsArrayType dof_temp;
         BaseType::mDofSet = DofsArrayType();
-
-        dof_temp.reserve(dofs_aux_list[0].size());
-        for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); ++it) {
-            dof_temp.push_back(*it);
+        for (const auto& dofs_aux : dofs_aux_list) {
+            BaseType::mDofSet.insert(dofs_aux);
         }
-        dof_temp.Sort();
-
-        BaseType::mDofSet = dof_temp;
 
         // Throws an exception if there are no Degrees of freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
@@ -903,7 +880,7 @@ public:
         ) override
     {
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
     }
 
     /**

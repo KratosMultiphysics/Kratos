@@ -74,7 +74,7 @@ void SimpleBoundingVolumePartitioner::Partition(ConditionsContainerType& rAllCon
     if(rAllConditions.size() == 1)
     {
         for(ConditionsContainerType::ptr_iterator it = rAllConditions.ptr_begin(); it != rAllConditions.ptr_end(); ++it)
-            rOutputSet1.push_back(*it);
+            rOutputSet1.insert(rOutputSet1.end(), *it);
     }
 
     // for another simple case, if there are only 2 segments then divide by half and quit
@@ -84,9 +84,9 @@ void SimpleBoundingVolumePartitioner::Partition(ConditionsContainerType& rAllCon
         for(ConditionsContainerType::ptr_iterator it = rAllConditions.ptr_begin(); it != rAllConditions.ptr_end(); ++it)
         {
             if(cnt == 0)
-                rOutputSet1.push_back(*it);
+                rOutputSet1.insert(rOutputSet1.end(), *it);
             else
-                rOutputSet2.push_back(*it);
+                rOutputSet2.insert(rOutputSet2.end(), *it);
             ++cnt;
         }
         return;
@@ -121,9 +121,9 @@ void SimpleBoundingVolumePartitioner::Partition(ConditionsContainerType& rAllCon
         for(std::size_t j = 0; j < 3; ++j)
             v += (C[j] - Median[j]) * longest_dir[j];
         if(v < 0)
-            rOutputSet1.push_back(*it);
+            rOutputSet1.insert(rOutputSet1.end(), *it);
         else
-            rOutputSet2.push_back(*it);
+            rOutputSet2.insert(rOutputSet2.end(), *it);
     }
 
     // make a size check

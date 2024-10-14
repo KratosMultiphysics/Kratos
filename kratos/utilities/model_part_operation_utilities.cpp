@@ -76,7 +76,7 @@ void ModelPartOperationUtilities::FillCommonNodes(
 
     std::for_each(result.begin(), result.end(), [&rOutput](auto& p_node) {
         if (p_node != nullptr) {
-            rOutput.push_back(p_node);
+            rOutput.insert(rOutput.end(), p_node);
         }
     });
 }
@@ -160,13 +160,8 @@ void ModelPartOperationUtilities::SetCommunicator(
 
     // there are no ghost or interface conditions and elements. Hence, we add all conditions
     // and elements to the local mesh
-    std::for_each(rOutputModelPart.Conditions().begin(), rOutputModelPart.Conditions().end(), [&p_output_communicator](auto& rCondition) {
-        p_output_communicator->LocalMesh().Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(&rCondition));
-    });
-
-    std::for_each(rOutputModelPart.Elements().begin(), rOutputModelPart.Elements().end(), [&p_output_communicator](auto& rElement) {
-        p_output_communicator->LocalMesh().Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(&rElement));
-    });
+    p_output_communicator->LocalMesh().Conditions().insert(rOutputModelPart.Conditions().ptr_begin(), rOutputModelPart.Conditions().ptr_end());
+    p_output_communicator->LocalMesh().Elements().insert(rOutputModelPart.Elements().ptr_begin(), rOutputModelPart.Elements().ptr_end());
 
     // now set the local, interface and ghost meshes
     FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
@@ -196,44 +191,19 @@ void ModelPartOperationUtilities::FillOutputSubModelPart(
     KRATOS_ERROR_IF(entity_info[0] > 0 || entity_info[1] > 0 || entity_info[2] > 0)
         << rOutputSubModelPart.FullName() << " is not empty.";
 
-    // add unique conditions
-    std::sort(rOutputConditions.begin(), rOutputConditions.end());
-    const auto& condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
-    std::for_each(rOutputConditions.begin(), condition_last, [&rOutputSubModelPart](auto p_condition) {
-        rOutputSubModelPart.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
-    });
-    FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), condition_last);
+    // add conditions
+    rOutputSubModelPart.Conditions().insert(rOutputConditions.begin(), rOutputConditions.end());
+    FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), rOutputConditions.end());
 
-    // add uniqe elements
-    std::sort(rOutputElements.begin(), rOutputElements.end());
-    const auto& element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
-    std::for_each(rOutputElements.begin(), element_last, [&rOutputSubModelPart](auto p_element) {
-        rOutputSubModelPart.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
-    });
-    FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), element_last);
+    // add elements
+    rOutputSubModelPart.Elements().insert(rOutputElements.begin(), rOutputElements.end());
+    FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), rOutputElements.end());
 
     // populate the mesh with nodes.
-    std::sort(rOutputNodes.begin(), rOutputNodes.end());
-    const auto& node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
-    std::for_each(rOutputNodes.begin(), node_last, [&rOutputSubModelPart](auto p_node) {
-        rOutputSubModelPart.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
-    });
+    rOutputSubModelPart.Nodes().insert(rOutputNodes.begin(), rOutputNodes.end());
 
     // sets the communicator info.
     SetCommunicator(rOutputSubModelPart, rMainModelPart);
-
-    // until now everything is sorted based on the memory location ptrs.
-    // sorting them based on the ids.
-    const auto& sort_mesh = [](ModelPart::MeshType& rMesh) {
-        rMesh.Nodes().Sort();
-        rMesh.Conditions().Sort();
-        rMesh.Elements().Sort();
-    };
-
-    sort_mesh(rOutputSubModelPart.GetMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().LocalMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().GhostMesh());
-    sort_mesh(rOutputSubModelPart.GetCommunicator().InterfaceMesh());
 }
 
 void ModelPartOperationUtilities::CheckNodes(

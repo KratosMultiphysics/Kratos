@@ -547,13 +547,14 @@ public:
                 << " Please set IN THE STRATEGY SETTINGS "
                 << " UseOldStiffnessInFirstIteration=false " << std::endl;
 
-        DofsArrayType fixed_dofs;
+        std::vector<DofType::Pointer> temp_dofs;
         for(auto& r_dof : BaseType::mDofSet){
             if(r_dof.IsFixed()){
-                fixed_dofs.push_back(&r_dof);
+                temp_dofs.push_back(&r_dof);
                 r_dof.FreeDof();
             }
         }
+        DofsArrayType fixed_dofs(temp_dofs.begin(), temp_dofs.end());
 
         //TODO: Here we need to take the vector from other ones because
         // We cannot create a trilinos vector without a communicator. To be improved!
@@ -724,26 +725,19 @@ public:
 
         unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
-        typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
-        /**
-         * Here we declare three sets.
-         * - The global set: Contains all the DoF of the system
-         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
-         */
-        set_type dof_global_set;
-        dof_global_set.reserve(number_of_elements*20);
+        BaseType::mDofSet = DofsArrayType();
+        BaseType::mDofSet.reserve(number_of_elements*20);
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
-            set_type dofs_tmp_set;
+            DofsArrayType dofs_tmp_set;
             dofs_tmp_set.reserve(20000);
 
             // Gets the array of elements from the modeler
@@ -784,23 +778,11 @@ public:
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+                BaseType::mDofSet.insert(dofs_tmp_set);
             }
         }
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-
-        DofsArrayType Doftemp;
-        BaseType::mDofSet = DofsArrayType();
-
-        Doftemp.reserve(dof_global_set.size());
-        for (auto it= dof_global_set.begin(); it!= dof_global_set.end(); it++)
-        {
-            Doftemp.push_back( *it );
-        }
-        Doftemp.Sort();
-
-        BaseType::mDofSet = Doftemp;
 
         //Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
