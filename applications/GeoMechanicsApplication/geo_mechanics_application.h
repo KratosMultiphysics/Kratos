@@ -560,10 +560,10 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const LineInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
+    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
                Element::GeometryType::PointsArrayType(4))};
-    const LineInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
+    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
                Element::GeometryType::PointsArrayType(6))};
 

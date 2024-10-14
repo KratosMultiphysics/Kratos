@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistrati
 {
     KratosGeoMechanicsApplication geo_app;
     const auto                    element_type_names =
-        std::vector<std::string>{"Geo_UPwLineInterfacePlaneStrainElement2Plus2N",
-                                 "Geo_UPwLineInterfacePlaneStrainElement3Plus3N"};
+        std::vector<std::string>{"Geo_ULineInterfacePlaneStrainElement2Plus2N",
+                                 "Geo_ULineInterfacePlaneStrainElement3Plus3N"};
 
     for (const auto& r_name : element_type_names) {
         KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
