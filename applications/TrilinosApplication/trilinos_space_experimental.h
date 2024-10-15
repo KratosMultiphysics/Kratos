@@ -1254,7 +1254,7 @@ public:
         auto colMap = rA.getColMap();
         auto localRhs = rb.getLocalViewHost();
 
-        for (std::size_t i = 0; i < localMatrix.numRows(); ++i) {
+        for (int i = 0; i < localMatrix.numRows(); ++i) {
             auto localRow = localMatrix.row(i);
             const auto row_gid = rowMap->getGlobalElement(i);
             bool empty = true;
@@ -1272,18 +1272,15 @@ public:
 
             // If diagonal empty assign scale factor
             if (empty) {
-                localMatrix.replaceValues(i, Teuchos::ArrayView<const GO>(&row_gid, 1), Teuchos::ArrayView<const ST>(&scale_factor, 1));
+                const int row_gid_int = static_cast<int>(row_gid);  // Casting to int
+                localMatrix.replaceValues(i, &row_gid_int, 1, &scale_factor, false, true);
                 localRhs(i, 0) = 0.0;
             }
         }
 
-        // Global assembly
-        rb.doExport(*rb, Tpetra::REPLACE);
-        rA.doExport(*rA, Tpetra::REPLACE);
-
         return scale_factor;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
