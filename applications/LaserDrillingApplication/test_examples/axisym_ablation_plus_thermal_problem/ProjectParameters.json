@@ -51,7 +51,7 @@
             "time_step" : 5e-6
         },
         "linear_solver_settings":             {
-            "solver_type":   "LinearSolversApplication.sparse_lu"
+            "solver_type":   "amgcl"
         },
         "element_replace_settings" : {
             "element_name" : "LaserAxisymmetricEulerianConvectionDiffusion",
@@ -117,7 +117,7 @@
                         "plane_output"                : [],
                         "nodal_results"               : [],
                         "nodal_nonhistorical_results" : ["DECOMPOSED_NODE"],
-                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_DECOMPOSITION", "THERMAL_ENERGY_PER_VOLUME", "ELEMENTAL_VOLUME"]
+                        "gauss_point_results"         : ["TEMPERATURE", "THERMAL_ENERGY_PER_VOLUME", "ELEMENTAL_VOLUME"]
                     },
                     "point_data_configuration"  : []
                 },

@@ -187,65 +187,6 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
 
             rOutput[g] = temperature; // This is an elemental variable, and thus it is constant for all GPs
         }
-    } else if (rVariable == THERMAL_DECOMPOSITION) {
-
-        double temperature = 0.0;
-        double thermal_energy = 0.0;
-        double decomposed_elemental_volume = 0.0;
-
-        // Initialize element data container
-        typename BaseType::ElementVariables Variables;
-        this->InitializeEulerianElement(Variables, rCurrentProcessInfo);
-
-        // Fill element data container with nodal data
-        this->GetNodalValues(Variables, rCurrentProcessInfo);
-
-        // Calculate kinematics
-        Vector det_J_vect;
-        ShapeFunctionsGradientsType DN_DX;
-        const auto N = r_geom.ShapeFunctionsValues(mMyIntegrationMethod);
-        r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mMyIntegrationMethod);
-
-        // Gauss points loop
-        array_1d<double,TNumNodes> N_g;
-        for (IndexType g = 0; g < n_gauss; ++g) {
-
-            // Get Gauss point data
-            noalias(N_g) = row(N, g);
-            double Radius = 0.0;
-            double T = 0.0;
-            for (IndexType i = 0; i < TNumNodes; ++i) {
-                Radius += N_g[i] * r_geom[i].Y();
-                T += N_g[i] * Variables.phi[i]; // This is the unknown variable which, by default, is the Temperature variable
-            }
-            temperature = T;
-            const double w_g = 2.0 * Globals::Pi * Radius * integration_points[g].Weight() * det_J_vect[g];
-
-            thermal_energy += T * Variables.specific_heat * Variables.density * w_g;
-            decomposed_elemental_volume += w_g;
-        }
-
-        double thermal_energy_per_volume_threshold = rCurrentProcessInfo[THERMAL_ENERGY_PER_VOLUME_THRESHOLD];
-        double alpha_threshold = rCurrentProcessInfo[ALPHA_THRESHOLD];
-        std::string law = rCurrentProcessInfo[DECOMPOSITION_LAW];
-
-        double old_alpha = this->GetValue(THERMAL_DECOMPOSITION);
-        double alpha = ComputeAlpha(law, temperature, old_alpha, rCurrentProcessInfo);
-
-        // Set elemental alpha 
-        for (IndexType g = 0; g < n_gauss; ++g) {
-            rOutput[g] = alpha; // This is an elemental variable, and thus it is constant for all GPs
-        }
-
-        // Here we assume a single Gauss point
-        this->SetValue(THERMAL_DECOMPOSITION, alpha);
-        double thermal_energy_per_volume = thermal_energy / decomposed_elemental_volume;
-
-        if (thermal_energy_per_volume > thermal_energy_per_volume_threshold) {
-            if (alpha > alpha_threshold) {
-                this->Set(ACTIVE, false);
-            }
-        }
     } else if (rVariable == DECOMPOSED_ELEMENTAL_VOLUME) {
 
         if (this->IsActive()) return;
@@ -382,28 +323,6 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
         for (IndexType g = 0; g < n_gauss; ++g) {
             rOutput[g] = elem_energy_per_volume; // This is an elemental variable, and thus it is constant for all GPs
         }
-    }
-}
-
-double ComputeAlpha(std::string law, double temperature, double old_alpha, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (law == "Prout-Tompkins") {
-        double delta_time = rCurrentProcessInfo[DELTA_TIME];
-        double A  = rCurrentProcessInfo[A_COEFFICIENT];
-        double Ea = rCurrentProcessInfo[EA_COEFFICIENT];
-        double R  = rCurrentProcessInfo[R_GAS_CONSTANT];
-        double m  = rCurrentProcessInfo[M_COEFFICIENT];
-        double n  = rCurrentProcessInfo[N_COEFFICIENT];
-        double new_alpha = old_alpha + A * std::exp(-Ea / (R * temperature)) * std::pow(1.0 - old_alpha, n) * std::pow(old_alpha, m) * delta_time;
-        return new_alpha;
-    } else if (law == "custom") {
-        double time = rCurrentProcessInfo[TIME];
-        double K1 = rCurrentProcessInfo[DECOMPOSITION_LAW_CONSTANT_1];
-        double K2 = rCurrentProcessInfo[DECOMPOSITION_LAW_CONSTANT_2];
-        double T0 = rCurrentProcessInfo[DECOMPOSITION_LAW_REFERENCE_TEMPERATURE];
-        return std::exp(-K1 / time) / (1.0 + std::exp(-K2 * (temperature - T0)));
-    } else {
-        return 0.0;
     }
 }
 
