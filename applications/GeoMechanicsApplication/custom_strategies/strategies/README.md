@@ -7,12 +7,12 @@ described in
 2. Technisch rapport Zandmeevoerende wellen. Technische Adviescommissie
    voor de Waterkeringen, Delft, The Netherlands, 1999.
 
-## Algotrithm
+## Algorithm
 
 The algorithm is implemented in FinalizeSolutionStep function that loops over all piping elements until the erosion
-groth is finished or all piping elements are checked.
+growth is finished or all piping elements are checked.
 
-### FinalizeSolutionStep
+### FinalizeSolutionStep function
 
 ![FinalizeSolutionStep.svg](FinalizeSolutionStep.svg)
 
@@ -39,9 +39,9 @@ get the height value.
 ### CalculateParticleDiameter
 
 This is SteadyStatePwPipingElement class function. In case of PIPE_MODIFIED_D
-$$ diameter = 2.08\times 10^{-4} * \Bigg(\frac{PIPE\_D\_70}{2.08\times 10^{-4}}\Bigg)^{0.4}$$
+$$ diameter = 2.08\times 10^{-4} * \Bigg(\frac{D_{70}}{2.08\times 10^{-4}}\Bigg)^{0.4}$$
 
-otherwise, $$diameter = PIPE\_D\_70$$
+otherwise, $$diameter = D_{70}$$
 
 ### check_pipe_equilibrium function
 
