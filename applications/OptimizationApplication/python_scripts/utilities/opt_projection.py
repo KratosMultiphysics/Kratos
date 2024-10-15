@@ -6,10 +6,10 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
-class Projection(ABC):
-    """Projection methods to convert given x space values to given y space values
+class DesignVariableProjection(ABC):
+    """Design variable projection methods to convert given x space values to given y space values
 
-    This is the interface class which can be used to implement projection classes
+    This is the interface class which can be used to implement design variable projection classes
     which project forward and backward given x space values to y space.
 
     The projection spaces should be scalar spaces.
@@ -66,7 +66,7 @@ class Projection(ABC):
         """Updates the projection method
         """
 
-class IdentityProjection(Projection):
+class IdentityDesignVariableProjection(DesignVariableProjection):
     def __init__(self, parameters: Kratos.Parameters, _):
         default_settings = Kratos.Parameters("""{
             "type"       : "identity_projection",
@@ -96,7 +96,7 @@ class IdentityProjection(Projection):
     def Update(self) -> None:
         pass
 
-class SigmoidalProjection(Projection):
+class SigmoidalDesignVariableProjection(DesignVariableProjection):
     def __init__(self, parameters: Kratos.Parameters, _):
         default_parameters = Kratos.Parameters("""{
             "type"          : "sigmoidal_projection",
@@ -127,7 +127,7 @@ class SigmoidalProjection(Projection):
     def Update(self) -> None:
         pass
 
-class AdaptiveSigmoidalProjection(Projection):
+class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "type"          : "adaptive_sigmoidal_projection",
@@ -172,16 +172,16 @@ class AdaptiveSigmoidalProjection(Projection):
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
 
-def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Projection:
+def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> DesignVariableProjection:
     if not parameters.Has("type"):
-        raise RuntimeError("Projection \"type\" is not present in following parameters:\n" + str(parameters))
+        raise RuntimeError("DesignVariableProjection \"type\" is not present in following parameters:\n" + str(parameters))
 
     projection_type = parameters["type"].GetString()
 
-    projection_types_map: 'dict[str, type[Projection]]' = {
-        "identity_projection"          : IdentityProjection,
-        "sigmoidal_projection"         : SigmoidalProjection,
-        "adaptive_sigmoidal_projection": AdaptiveSigmoidalProjection
+    projection_types_map: 'dict[str, type[DesignVariableProjection]]' = {
+        "identity_projection"          : IdentityDesignVariableProjection,
+        "sigmoidal_projection"         : SigmoidalDesignVariableProjection,
+        "adaptive_sigmoidal_projection": AdaptiveSigmoidalDesignVariableProjection
     }
 
     if projection_type in projection_types_map.keys():
