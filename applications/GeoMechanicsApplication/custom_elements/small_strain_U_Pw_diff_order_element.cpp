@@ -1275,8 +1275,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix);
 
     if (!rVariables.IgnoreUndrained) {
-        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        Matrix CouplingMatrixT = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+        //const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
+        //Matrix CouplingMatrixT = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+        //                         rVariables.VelocityCoefficient * trans(CouplingMatrix);
+        Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+            rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
+        Matrix CouplingMatrixT = PORE_PRESSURE_SIGN_FACTOR *
                                  rVariables.VelocityCoefficient * trans(CouplingMatrix);
         GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, CouplingMatrixT);
     }
@@ -1329,7 +1334,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& r
 
     Vector stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce     ") << "dF  = " << stiffness_force << std::endl;
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce     ") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1361,6 +1368,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
                                                   rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddBodyForce          ") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1375,13 +1383,26 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
                      rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "v   = " << rVariables.VelocityVector << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "Pw  = " << rVariables.PressureVector << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "dF  = " << coupling_force << std::endl;
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "RHS = " << rRightHandSideVector << std::endl;
 
     if (!rVariables.IgnoreUndrained) {
-        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const Vector coupling_flow = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+        //const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
+        //const Vector coupling_flow = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+        //                             prod(trans(coupling_matrix), rVariables.VelocityVector);
+        const Matrix coupling_matrix =
+            (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                         rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
+        const Vector coupling_flow = PORE_PRESSURE_SIGN_FACTOR *
                                      prod(trans(coupling_matrix), rVariables.VelocityVector);
+        KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "v   = " << rVariables.VelocityVector << std::endl;
+        KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "dQ  = " << coupling_flow << std::endl;
         GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
+        KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms      ") << "RHS = " << rRightHandSideVector << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -1395,7 +1416,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
     Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
     Vector CompressibilityFlow = -prod(CompressibilityMatrix, rVariables.PressureDtVector);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << "dPdt= " << rVariables.PressureDtVector << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << "dQ  = " << CompressibilityFlow << std::endl;
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, CompressibilityFlow);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1442,7 +1466,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
 
     const Vector permeability_flow = -prod(permeability_matrix, rVariables.PressureVector);
 
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow   ") << "dQ  = " << permeability_flow << std::endl;
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow   ") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1471,10 +1497,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
         }
     }
 
-    for (SizeType i = 0; i < num_P_nodes; ++i) {
-        rRightHandSideVector[num_U_nodes * dimension + i] +=
-            inner_prod(row(grad_Np_T_perm, i), body_acceleration);
-    }
+    const Vector fluid_body_flow = prod(grad_Np_T_perm, body_acceleration);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, fluid_body_flow);
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow      ") << "dQ  = " << fluid_body_flow << std::endl;
+
+    //for (SizeType i = 0; i < num_P_nodes; ++i) {
+    //    rRightHandSideVector[num_U_nodes * dimension + i] +=
+    //        inner_prod(row(grad_Np_T_perm, i), body_acceleration);
+    //}
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow      ") << "RHS = " << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
