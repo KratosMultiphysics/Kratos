@@ -56,7 +56,8 @@ GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(co
 }
 
 GeoLinearElasticPlaneStrain2DLaw::GeoLinearElasticPlaneStrain2DLaw(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept = default;
-GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept = default;
+GeoLinearElasticPlaneStrain2DLaw& GeoLinearElasticPlaneStrain2DLaw::operator=(
+    GeoLinearElasticPlaneStrain2DLaw&& rOther) noexcept               = default;
 GeoLinearElasticPlaneStrain2DLaw::~GeoLinearElasticPlaneStrain2DLaw() = default;
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const

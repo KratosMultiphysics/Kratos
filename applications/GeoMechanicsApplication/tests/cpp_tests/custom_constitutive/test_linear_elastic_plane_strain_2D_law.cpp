@@ -24,7 +24,6 @@ using namespace Kratos;
 Vector CalculateStress(GeoLinearElasticPlaneStrain2DLaw& rConstitutiveLaw)
 {
     ConstitutiveLaw::Parameters parameters;
-    parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -185,5 +184,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
+
+#ifdef KRATOS_DEBUG
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = CreateLinearElasticPlaneStrainLaw();
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
+                                      "The GeoLinearElasticLaw needs an element provided strain");
+}
+#endif
 
 } // namespace Kratos::Testing
