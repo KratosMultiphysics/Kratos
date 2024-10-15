@@ -1,8 +1,11 @@
 # GeoMechanicsNewtonRaphsonErosionProcessStrategy class.
 
-## Setup
+This class implements a Newton-Raphson process for the backward erosion piping. The physics of the piping process is
+described in
 
-This class implements a Newton-Raphson process for the erosion piping process. Details can be found in
+1. van Beek M. Backward erosion piping,initiation and progression. TUDelft PhD. Thesis, 2015.
+2. Technisch rapport Zandmeevoerende wellen. Technische Adviescommissie
+   voor de Waterkeringen, Delft, The Netherlands, 1999.
 
 ## Algotrithm
 
@@ -58,12 +61,17 @@ This function performs the modeling using prescribed GeoMechanicsNewtonRaphsonSt
 
 This is a function from SteadyStatePwPipingElement. It calculates the equilibrium pipe height as
 
-$$PIPE\_MODEL\_FACTOR * \pi / 3.0 * D_p * (SolidDensity / FluidDensity - 1) * \eta *
-\tan(\theta + pipeSlope) / dhdx$$
+$$PIPE\_MODEL\_FACTOR \frac{\pi }{3} D_p \Big(\frac{\rho_s}{\rho_w} - 1\Big) \eta
+\frac{\sin(\theta + \alpha)}{\cos(\theta)  \frac{dh}{dx}}$$
 
 where $D_p$ is the particle diameter calculated with CalculateParticleDiameter function,\
-$dhdx$ is the head gradient obtained with CalculateHeadGradient function,\
-Currently, the pipe is assumed horizontal $pipeSlope = 0$.
+$\rho_s$ is the solid density,\
+$\rho_w$ is the water density,\
+$\eta=\frac{n d^2}{A}$ is the packing coefficient?\
+$\theta$ is the angle of repose or bedding angle?\
+$\alpha$ is the slope of the pipe,\
+$\frac{dh}{dx}$ is the head gradient obtained with CalculateHeadGradient function,\
+Currently, the pipe is assumed horizontal $\alpha = 0$.
 
 ### check_status_tip_element function
 
