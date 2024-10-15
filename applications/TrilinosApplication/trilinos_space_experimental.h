@@ -1070,10 +1070,10 @@ public:
     }
 
     /**
-     * @brief Generates a graph combining the graphs of two matrices
-     * @param rA The first matrix
-     * @param rB The second matrix
-     */
+    * @brief Generates a graph combining the graphs of two matrices
+    * @param rA The first matrix
+    * @param rB The second matrix
+    */
     static GraphPointerType CombineMatricesGraphs(
         const MatrixType& rA,
         const MatrixType& rB
@@ -1083,62 +1083,77 @@ public:
         KRATOS_ERROR_IF(!rA.getRowMap()->isSameAs(*rB.getRowMap())) << "Row maps are not compatible" << std::endl;
 
         // Getting the graphs
-        auto r_graph_a = rA.getCrsGraph();
-        auto r_graph_b = rB.getCrsGraph();
+        auto p_graph_a = rA.getCrsGraph();
+        auto p_graph_b = rB.getCrsGraph();
 
         // Assuming local indexes
-        KRATOS_ERROR_IF(!r_graph_a->isLocallyIndexed() || !r_graph_b->isLocallyIndexed()) << "Graphs indexes must be local" << std::endl;
+        KRATOS_ERROR_IF(!p_graph_a->isLocallyIndexed() || !p_graph_b->isLocallyIndexed()) << "Graphs indexes must be local" << std::endl;
 
         // Some definitions
-        size_t num_entries; // Number of non-zero entries
-        Teuchos::ArrayView<const GO> cols_a, cols_b; // Column indices of row non-zero values
+        Teuchos::ArrayView<const int> cols_a, cols_b; // Column indices of row non-zero values (local indices should be 'int')
         const bool same_col_map = rA.getColMap()->isSameAs(*rB.getColMap());
-        GraphPointerType graph;
+        Teuchos::RCP<GraphType> graph;
 
         if (same_col_map) {
-            graph = Teuchos::rcp(new Tpetra::CrsGraph<>(rA.getRowMap(), rA.getColMap(), 1000));
+            // Same column map: create the graph with row and column maps from matrix A
+            graph = Teuchos::rcp(new GraphType(rA.getRowMap(), rA.getColMap(), 1000));
         } else {
-            graph = Teuchos::rcp(new Tpetra::CrsGraph<>(rA.getRowMap(), 1000));
+            // Different column maps: create the graph only with the row map from matrix A
+            auto map = Teuchos::rcp(new MapType(0, 0, rA.getMap()->getComm()));
+            graph = Teuchos::rcp(new GraphType(rA.getRowMap(), map, 1000));
         }
 
+        const auto numLocalRows = p_graph_a->getRowMap()->getNodeNumElements();
+
         if (same_col_map) {
-            for (std::size_t i = 0; i < r_graph_a->getLocalNumRows(); ++i) {
+            // Combine graphs for the same column map using local indexing
+            for (std::size_t i = 0; i < numLocalRows; ++i) {
                 std::unordered_set<int> combined_indexes;
+
                 // First graph
-                r_graph_a->getLocalRowView(i, cols_a);
+                p_graph_a->getLocalRowView(i, cols_a);
                 combined_indexes.insert(cols_a.begin(), cols_a.end());
+
                 // Second graph
-                r_graph_b->getLocalRowView(i, cols_b);
+                p_graph_b->getLocalRowView(i, cols_b);
                 combined_indexes.insert(cols_b.begin(), cols_b.end());
+
                 // Vector equivalent
                 std::vector<int> combined_indexes_vector(combined_indexes.begin(), combined_indexes.end());
+
                 // Adding to graph
                 graph->insertLocalIndices(i, Teuchos::ArrayView<const int>(combined_indexes_vector));
             }
-        } else { // Different column map, global indices
-            for (std::size_t i = 0; i < r_graph_a->getLocalNumRows(); ++i) {
-                const auto global_row_index = r_graph_a->getRowMap()->getGlobalElement(i);
-                std::vector<int> combined_indexes_vector;
+        } else {
+            // Combine graphs with different column maps using global indexing
+            for (std::size_t i = 0; i < numLocalRows; ++i) {
+                const auto global_row_index = p_graph_a->getRowMap()->getGlobalElement(i);
+                std::vector<long long int> combined_indexes_vector; // Global indices should be 'long long int'
+
                 // First graph
-                r_graph_a->getLocalRowView(i, cols_a);
+                p_graph_a->getLocalRowView(i, cols_a);
                 combined_indexes_vector.reserve(cols_a.size());
-                for (std::size_t j = 0; j < cols_a.size(); ++j) {
-                    combined_indexes_vector.push_back(r_graph_a->getColMap()->getGlobalElement(cols_a[j]));
+                for (long int j = 0; j < cols_a.size(); ++j) {
+                    combined_indexes_vector.push_back(p_graph_a->getColMap()->getGlobalElement(cols_a[j]));
                 }
+
                 // Adding to graph
-                graph->insertGlobalIndices(global_row_index, Teuchos::ArrayView<const int>(combined_indexes_vector));
+                graph->insertGlobalIndices(global_row_index, Teuchos::ArrayView<const long long int>(combined_indexes_vector));
             }
-            for (std::size_t i = 0; i < r_graph_b->getLocalNumRows(); ++i) {
-                const auto global_row_index = r_graph_b->getRowMap()->getGlobalElement(i);
-                std::vector<int> combined_indexes_vector;
+
+            for (std::size_t i = 0; i < numLocalRows; ++i) {
+                const auto global_row_index = p_graph_b->getRowMap()->getGlobalElement(i);
+                std::vector<long long int> combined_indexes_vector; // Global indices should be 'long long int'
+
                 // Second graph
-                r_graph_b->getLocalRowView(i, cols_b);
+                p_graph_b->getLocalRowView(i, cols_b);
                 combined_indexes_vector.reserve(cols_b.size());
-                for (std::size_t j = 0; j < cols_b.size(); ++j) {
-                    combined_indexes_vector.push_back(r_graph_b->getColMap()->getGlobalElement(cols_b[j]));
+                for (long int j = 0; j < cols_b.size(); ++j) {
+                    combined_indexes_vector.push_back(p_graph_b->getColMap()->getGlobalElement(cols_b[j]));
                 }
+
                 // Adding to graph
-                graph->insertGlobalIndices(global_row_index, Teuchos::ArrayView<const int>(combined_indexes_vector));
+                graph->insertGlobalIndices(global_row_index, Teuchos::ArrayView<const long long int>(combined_indexes_vector));
             }
         }
 
@@ -1170,7 +1185,7 @@ public:
         const bool same_col_map = rA.getColMap()->isSameAs(*rB.getColMap());
 
         // Getting the graph of the source matrix
-        auto r_graph_b = rB.getCrsGraph();
+        auto p_graph_b = rB.getCrsGraph();
 
         // Copy values from rB to rA
         std::size_t num_entries; // Number of non-zero entries in rB matrix
@@ -1198,7 +1213,7 @@ public:
 
                 Teuchos::Array<GO> global_cols(num_entries);
                 for (std::size_t j = 0; j < num_entries; ++j) {
-                    global_cols[j] = r_graph_b->getColMap()->getGlobalElement(cols[j]);
+                    global_cols[j] = p_graph_b->getColMap()->getGlobalElement(cols[j]);
                 }
 
                 // Sum values into global matrix using global row and column indices
