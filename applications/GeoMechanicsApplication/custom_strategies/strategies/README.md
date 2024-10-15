@@ -61,10 +61,11 @@ This function performs the modeling using prescribed GeoMechanicsNewtonRaphsonSt
 
 This is a function from SteadyStatePwPipingElement. It calculates the equilibrium pipe height as
 
-$$PIPE\_MODEL\_FACTOR \frac{\pi }{3} D_p \Big(\frac{\rho_s}{\rho_w} - 1\Big) \eta
+$$F \frac{\pi }{3} D_p \Big(\frac{\rho_s}{\rho_w} - 1\Big) \eta
 \frac{\sin(\theta + \alpha)}{\cos(\theta)  \frac{dh}{dx}}$$
 
-where $D_p$ is the particle diameter calculated with CalculateParticleDiameter function,\
+where $F$ is the model factor,\
+$D_p$ is the particle diameter calculated with CalculateParticleDiameter function,\
 $\rho_s$ is the solid density,\
 $\rho_w$ is the water density,\
 $\eta=\frac{n d^2}{A}$ is the packing coefficient?\
