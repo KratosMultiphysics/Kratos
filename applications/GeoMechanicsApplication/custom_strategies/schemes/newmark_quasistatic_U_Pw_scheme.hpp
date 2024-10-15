@@ -38,7 +38,6 @@ public:
     {
     }
 
-
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {

@@ -76,8 +76,6 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
         .def(py::init<double, double, double>());

@@ -164,6 +164,8 @@ class ShellThicknessControl(Control):
 
                 self.__UpdateBeta()
                 return True
+
+        self.__UpdateBeta()
         return False
 
     def __UpdateBeta(self) -> None:

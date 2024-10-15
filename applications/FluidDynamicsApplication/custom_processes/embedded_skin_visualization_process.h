@@ -184,6 +184,9 @@ public:
         const Parameters rParameters,
         std::vector<const Variable<TDataType>*>& rVariablesList);
 
+    /// Default constructor.
+    EmbeddedSkinVisualizationProcess() : Process() {};
+
     /// Constructor.
 
     /**
@@ -237,6 +240,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters) override
+    {
+        return Kratos::make_shared<EmbeddedSkinVisualizationProcess>(rModel, ThisParameters);
+    }
 
     void ExecuteBeforeSolutionLoop() override;
 
@@ -298,6 +308,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    /// Registry current operation
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.FluidDynamicsApplication", Process, EmbeddedSkinVisualizationProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, EmbeddedSkinVisualizationProcess)
 
     ///@}
     ///@name Member Variables
@@ -310,19 +323,19 @@ private:
     ModelPart::ElementsContainerType mNewElementsPointers;
 
     // Reference to the origin model part
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     // Reference to the visualization model part
-    ModelPart& mrVisualizationModelPart;
+    ModelPart* mpVisualizationModelPart = nullptr;
 
     // Level set type. Current available options continuous and discontinuous
-    const LevelSetType mLevelSetType;
+    const LevelSetType mLevelSetType = LevelSetType::Continuous;
 
     // Shape functions type. Current available options ausas and standard
-    const ShapeFunctionsType mShapeFunctionsType;
+    const ShapeFunctionsType mShapeFunctionsType = ShapeFunctionsType::Standard;
 
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
-    const bool mReformModelPartAtEachTimeStep;
+    const bool mReformModelPartAtEachTimeStep = false;
 
     // Pointer to the variable that stores the nodal level set function
     const Variable<double>* mpNodalDistanceVariable;
@@ -566,9 +579,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Default constructor.
-    EmbeddedSkinVisualizationProcess() = delete;
 
     /// Assignment operator.
     EmbeddedSkinVisualizationProcess& operator=(EmbeddedSkinVisualizationProcess const& rOther) = delete;

@@ -28,7 +28,6 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                      GeometryType::Pointer pGeom,
@@ -131,7 +130,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
                  << std::endl;
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -174,7 +172,6 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,

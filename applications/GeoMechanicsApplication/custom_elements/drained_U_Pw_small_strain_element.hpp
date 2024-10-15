@@ -48,8 +48,6 @@ public:
     using EquationIdVectorType = Element::EquationIdVectorType;
     using DofsVectorType       = Element::DofsVectorType;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit DrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
@@ -82,7 +80,6 @@ public:
 
     ~DrainedUPwSmallStrainElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -91,11 +88,7 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     /// Member Variables
@@ -103,11 +96,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;

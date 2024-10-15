@@ -109,6 +109,9 @@ class StandardizedConstraint(ResponseRoutine):
             DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
+    
+    def IsActive(self):
+        return self.GetStandardizedValue() > 0.0
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
 

@@ -22,14 +22,12 @@
 
 namespace Kratos
 {
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElement<TDim, TNumNodes>::GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeoTrussElementBase<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTrussElement<TDim, TNumNodes>::GeoTrussElement(IndexType               NewId,
                                                   GeometryType::Pointer   pGeometry,
@@ -38,7 +36,6 @@ GeoTrussElement<TDim, TNumNodes>::GeoTrussElement(IndexType               NewId,
 {
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType               NewId,
                                                           NodesArrayType const&   rThisNodes,
@@ -47,7 +44,6 @@ Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType             
     return make_intrusive<GeoTrussElement>(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType               NewId,
                                                           GeometryType::Pointer   pGeom,
@@ -56,7 +52,6 @@ Element::Pointer GeoTrussElement<TDim, TNumNodes>::Create(IndexType             
     return make_intrusive<GeoTrussElement>(NewId, pGeom, pProperties);
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
 {
@@ -69,7 +64,6 @@ void GeoTrussElement<TDim, TNumNodes>::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -89,7 +83,6 @@ void GeoTrussElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                     std::vector<Vector>& rOutput,
@@ -132,7 +125,6 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                                                     std::vector<array_1d<double, 3>>& rOutput,
@@ -178,7 +170,6 @@ void GeoTrussElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variab
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double, TDim * TNumNodes>& rInternalForces,
                                                             const ProcessInfo& rCurrentProcessInfo)
@@ -221,7 +212,6 @@ void GeoTrussElement<TDim, TNumNodes>::UpdateInternalForces(BoundedVector<double
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -234,7 +224,6 @@ void GeoTrussElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& r
     KRATOS_CATCH("")
 }
 
-//--------------------------------------------------------------------------------------------
 template class GeoTrussElement<2, 2>;
 template class GeoTrussElement<3, 2>;
 

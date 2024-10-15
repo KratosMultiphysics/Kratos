@@ -76,7 +76,6 @@ public:
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
-    //----------------------------------------------------------------------------------------
     /**
      * @brief Dimension of the law:
      */
@@ -98,13 +97,6 @@ public:
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
     ///@name Inquiry

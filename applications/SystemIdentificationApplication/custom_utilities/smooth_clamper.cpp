@@ -156,8 +156,8 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
 
 
 // template instantiations
-template class SmoothClamper<ModelPart::NodesContainerType>;
-template class SmoothClamper<ModelPart::ConditionsContainerType>;
-template class SmoothClamper<ModelPart::ElementsContainerType>;
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::NodesContainerType>;
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::ConditionsContainerType>;
+template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::ElementsContainerType>;
 
 } /* namespace Kratos.*/

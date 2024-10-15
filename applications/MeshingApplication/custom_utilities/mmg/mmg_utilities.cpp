@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -3563,20 +3563,23 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
     // Iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
         (it_node_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over conditions
     auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&](std::size_t i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over elements
     auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each([&](std::size_t i) {
         (it_elem_begin + i)->SetId(i + 1);
+    });
 
     r_nodes_array.Unique();
     r_conditions_array.Unique();

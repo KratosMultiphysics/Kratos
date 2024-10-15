@@ -93,6 +93,20 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mElement3D20N( 0, GeometryType::Pointer(new Hexahedra3D20<NodeType >(GeometryType::PointsArrayType(20)))),
       mElement3D27N( 0, GeometryType::Pointer(new Hexahedra3D27<NodeType >(GeometryType::PointsArrayType(27)))),
 
+      mPointElement2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),
+      mPointElement3D1N( 0, GeometryType::Pointer(new Point3D<NodeType >(GeometryType::PointsArrayType(1)))),
+
+      mLineElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineElement2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLineElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineElement3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+
+      mSurfaceElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mSurfaceElement3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      mSurfaceElement3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mSurfaceElement3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mSurfaceElement3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
+
       mDistanceCalculationElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
@@ -160,26 +174,29 @@ void KratosApplication::RegisterKratosCore() {
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition
     KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
-    //point conditions
+    
+    // Point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
-    //line conditions
+
+    // Line conditions
     KRATOS_REGISTER_CONDITION("LineCondition2D2N", mLineCondition2D2N);
     KRATOS_REGISTER_CONDITION("LineCondition2D3N", mLineCondition2D3N);
     KRATOS_REGISTER_CONDITION("LineCondition3D2N", mLineCondition3D2N);
     KRATOS_REGISTER_CONDITION("LineCondition3D3N", mLineCondition3D3N);
-    //surface conditions
+
+    // Surface conditions
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D3N", mSurfaceCondition3D3N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D6N", mSurfaceCondition3D6N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
-    //prism conditions
+
+    //Prism conditions
     KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
     KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
 
-
-    //master-slave constraints
+    //Master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
@@ -210,6 +227,20 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D15N", mElement3D15N)
     KRATOS_REGISTER_ELEMENT("Element3D20N", mElement3D20N)
     KRATOS_REGISTER_ELEMENT("Element3D27N", mElement3D27N)
+
+    KRATOS_REGISTER_ELEMENT("PointElement2D1N", mPointElement2D1N)
+    KRATOS_REGISTER_ELEMENT("PointElement3D1N", mPointElement3D1N)
+
+    KRATOS_REGISTER_ELEMENT("LineElement2D2N", mLineElement2D2N)
+    KRATOS_REGISTER_ELEMENT("LineElement2D3N", mLineElement2D3N)
+    KRATOS_REGISTER_ELEMENT("LineElement3D2N", mLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LineElement3D3N", mLineElement3D3N)
+
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D3N", mSurfaceElement3D3N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D6N", mSurfaceElement3D6N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D4N", mSurfaceElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D8N", mSurfaceElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D9N", mSurfaceElement3D9N)
 
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D3N", mDistanceCalculationElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)

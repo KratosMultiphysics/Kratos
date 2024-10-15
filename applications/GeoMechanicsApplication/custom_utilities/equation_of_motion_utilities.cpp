@@ -17,6 +17,63 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "utilities/geometry_utilities.h"
 
+#include <algorithm>
+
+namespace
+{
+
+using namespace Kratos;
+
+void CheckThatVectorsHaveSameSizeAndAreNotEmpty(const std::vector<Matrix>& rBs,
+                                                const std::vector<Vector>& rStressVectors,
+                                                const std::vector<double>& rIntegrationCoefficients)
+{
+    KRATOS_DEBUG_ERROR_IF((rBs.size() != rStressVectors.size()) ||
+                          (rBs.size() != rIntegrationCoefficients.size()))
+        << "Cannot calculate the internal force vector: input vectors have different sizes\n";
+    KRATOS_DEBUG_ERROR_IF(rBs.empty())
+        << "Cannot calculate the internal force vector: input vectors are empty\n";
+}
+
+void CheckThatBMatricesHaveSameSizes(const std::vector<Matrix>& rBs)
+{
+    auto has_inconsistent_sizes = [number_of_rows    = rBs.front().size1(),
+                                   number_of_columns = rBs.front().size2()](const auto& rMatrix) {
+        return (rMatrix.size1() != number_of_rows) || (rMatrix.size2() != number_of_columns);
+    };
+    KRATOS_DEBUG_ERROR_IF(std::any_of(rBs.begin() + 1, rBs.end(), has_inconsistent_sizes))
+        << "Cannot calculate the internal force vector: B-matrices have different sizes\n";
+}
+
+void CheckThatStressVectorsHaveSameSize(const std::vector<Vector>& rStressVectors)
+{
+    auto has_inconsistent_size = [size = rStressVectors.front().size()](const auto& rVector) {
+        return rVector.size() != size;
+    };
+    KRATOS_DEBUG_ERROR_IF(std::any_of(rStressVectors.begin() + 1, rStressVectors.end(), has_inconsistent_size))
+        << "Cannot calculate the internal force vector: stress vectors have different sizes\n";
+}
+
+void CheckThatTransposedMatrixVectorProductCanBeCalculated(const Matrix& rFirstB, const Vector& rFirstStressVector)
+{
+    // B-matrix will be transposed, so check against its number of rows rather than its number of columns!
+    KRATOS_DEBUG_ERROR_IF(rFirstB.size1() != rFirstStressVector.size())
+        << "Cannot calculate the internal force vector: matrix-vector product cannot be calculated "
+           "due to size mismatch\n";
+}
+
+void CheckInputOfCalculateInternalForceVector(const std::vector<Matrix>& rBs,
+                                              const std::vector<Vector>& rStressVectors,
+                                              const std::vector<double>& rIntegrationCoefficients)
+{
+    CheckThatVectorsHaveSameSizeAndAreNotEmpty(rBs, rStressVectors, rIntegrationCoefficients);
+    CheckThatBMatricesHaveSameSizes(rBs);
+    CheckThatStressVectorsHaveSameSize(rStressVectors);
+    CheckThatTransposedMatrixVectorProductCanBeCalculated(rBs.front(), rStressVectors.front());
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -80,6 +137,20 @@ Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<
         result += CalculateStiffnessMatrixGPoint(rBs[GPoint], rConstitutiveMatrices[GPoint],
                                                  rIntegrationCoefficients[GPoint]);
     }
+    return result;
+}
+
+Vector GeoEquationOfMotionUtilities::CalculateInternalForceVector(const std::vector<Matrix>& rBs,
+                                                                  const std::vector<Vector>& rStressVectors,
+                                                                  const std::vector<double>& rIntegrationCoefficients)
+{
+    CheckInputOfCalculateInternalForceVector(rBs, rStressVectors, rIntegrationCoefficients);
+
+    auto result = Vector{ZeroVector{rBs.front().size2()}};
+    for (auto i = std::size_t{0}; i < rBs.size(); ++i) {
+        result += prod(trans(rBs[i]), rStressVectors[i]) * rIntegrationCoefficients[i];
+    }
+
     return result;
 }
 

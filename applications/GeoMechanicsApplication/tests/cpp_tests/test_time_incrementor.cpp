@@ -17,12 +17,10 @@
 
 using namespace Kratos;
 
-
 namespace
 {
 
-struct AdaptiveTimeIncrementorSettings
-{
+struct AdaptiveTimeIncrementorSettings {
     double      StartTime{0.0};
     double      EndTime{8.0};
     double      StartIncrement{0.5};
@@ -36,19 +34,14 @@ struct AdaptiveTimeIncrementorSettings
 
 AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncrementorSettings& rSettings)
 {
-    return AdaptiveTimeIncrementor{rSettings.StartTime,
-                                   rSettings.EndTime,
-                                   rSettings.StartIncrement,
-                                   rSettings.MaxNumOfCycles,
-                                   rSettings.ReductionFactor,
-                                   rSettings.IncreaseFactor,
-                                   rSettings.MaxDeltaTimeFactor,
-                                   rSettings.MinNumOfIterations,
+    return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
+                                   rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
+                                   rSettings.ReductionFactor,    rSettings.IncreaseFactor,
+                                   rSettings.MaxDeltaTimeFactor, rSettings.MinNumOfIterations,
                                    rSettings.MaxNumOfIterations};
 }
 
-}
-
+} // namespace
 
 namespace Kratos::Testing
 {
@@ -89,7 +82,8 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartIncrementEqualsZ
                                       "Start increment must be positive, but got 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqualsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqualsZero,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles = std::size_t{0};
@@ -98,7 +92,8 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqua
                                       "Maximum number of cycles must be positive")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsGreaterThanOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsGreaterThanOne,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 2.0;
@@ -125,104 +120,106 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorEquals
                                       "Reduction factor must be positive, but got 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorIsInRange, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorIsInRange,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 0.5;
-    auto has_thrown = false;
+    auto has_thrown          = false;
 
-    try
-    {
+    try {
         MakeAdaptiveTimeIncrementor(settings);
-    }
-    catch (const Exception&)
-    {
+    } catch (const Exception&) {
         has_thrown = true;
     }
 
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorEqualsOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorEqualsOne,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 1.0;
-    auto has_thrown = false;
+    auto has_thrown          = false;
 
-    try
-    {
+    try {
         MakeAdaptiveTimeIncrementor(settings);
-    }
-    catch (const Exception&)
-    {
+    } catch (const Exception&) {
         has_thrown = true;
     }
 
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmallerThanOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmallerThanOne,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.IncreaseFactor = 0.5;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
-                                      "Increase factor must be greater than or equal to 1, but got 0.5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MakeAdaptiveTimeIncrementor(settings),
+        "Increase factor must be greater than or equal to 1, but got 0.5")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsSmallerThanOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsSmallerThanOne,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxDeltaTimeFactor = 0.9;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
-                                      "Max_delta_time_factor must be greater than or equal to 1, but got 0.9")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MakeAdaptiveTimeIncrementor(settings),
+        "Max_delta_time_factor must be greater than or equal to 1, but got 0.9")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorEqualsOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorEqualsOne,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.IncreaseFactor = 1.0;
-    auto has_thrown = false;
+    auto has_thrown         = false;
 
-    try
-    {
+    try {
         MakeAdaptiveTimeIncrementor(settings);
-    }
-    catch (const Exception&)
-    {
+    } catch (const Exception&) {
         has_thrown = true;
     }
 
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfIterationsEqualsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfIterationsEqualsZero,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MinNumOfIterations = std::size_t{0};
     settings.MaxNumOfIterations = std::size_t{0};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
-                                      "Minimum number of iterations (0) is not less than maximum number of iterations (0)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MakeAdaptiveTimeIncrementor(settings),
+        "Minimum number of iterations (0) is not less than maximum number of iterations (0)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMinNumberOfIterationsIsGreaterThanMaxNumberOfIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMinNumberOfIterationsIsGreaterThanMaxNumberOfIterations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfIterations = std::size_t{10};
     settings.MinNumOfIterations = settings.MaxNumOfIterations + 1;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
-                                      "Minimum number of iterations (11) is not less than maximum number of iterations (10)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        MakeAdaptiveTimeIncrementor(settings),
+        "Minimum number of iterations (11) is not less than maximum number of iterations (10)")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenMoreThanStartIncrementLeftUntilEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto       previous_state   = TimeStepEndState{};
-    previous_state.time         = settings.EndTime - 2 * settings.StartIncrement;
+    const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
+    previous_state.time = settings.EndTime - 2 * settings.StartIncrement;
 
     KRATOS_EXPECT_TRUE(time_incrementor.WantNextStep(previous_state))
 }
@@ -230,9 +227,9 @@ KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenMoreThanStartIncrementLeftUntilEnd
 KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenLessThanStartIncrementLeftUntilEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto       previous_state   = TimeStepEndState{};
-    previous_state.time         = settings.EndTime - 0.5 * settings.StartIncrement;
+    const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
+    previous_state.time = settings.EndTime - 0.5 * settings.StartIncrement;
 
     KRATOS_EXPECT_TRUE(time_incrementor.WantNextStep(previous_state))
 }
@@ -240,9 +237,9 @@ KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenLessThanStartIncrementLeftUntilEnd
 KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenEndTimeIsExceeded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto       previous_state   = TimeStepEndState{};
-    previous_state.time         = settings.EndTime + 1.0;
+    const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
+    previous_state.time                              = settings.EndTime + 1.0;
 
     KRATOS_EXPECT_FALSE(time_incrementor.WantNextStep(previous_state))
 }
@@ -250,9 +247,9 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenEndTimeIsExceeded, KratosGeoMechanic
 KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenAtEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto       previous_state   = TimeStepEndState{};
-    previous_state.time         = settings.EndTime;
+    const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
+    previous_state.time                              = settings.EndTime;
 
     KRATOS_EXPECT_FALSE(time_incrementor.WantNextStep(previous_state))
 }
@@ -271,10 +268,10 @@ KRATOS_TEST_CASE_IN_SUITE(RetryWhenNotAttemptedYet, KratosGeoMechanicsFastSuiteW
 KRATOS_TEST_CASE_IN_SUITE(RetryWhenPreviousAttemptDidNotConvergeButAtLeastOneMoreLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    settings.MaxNumOfCycles     = std::size_t{4};
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    const auto cycle_number     = settings.MaxNumOfCycles - 1;
-    auto previous_state         = TimeStepEndState{};
+    settings.MaxNumOfCycles          = std::size_t{4};
+    const auto time_incrementor      = MakeAdaptiveTimeIncrementor(settings);
+    const auto cycle_number          = settings.MaxNumOfCycles - 1;
+    auto       previous_state        = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     KRATOS_EXPECT_TRUE(time_incrementor.WantRetryStep(cycle_number, previous_state))
@@ -283,9 +280,9 @@ KRATOS_TEST_CASE_IN_SUITE(RetryWhenPreviousAttemptDidNotConvergeButAtLeastOneMor
 KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptDidNotConvergeAndNoAttemptsLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    settings.MaxNumOfCycles     = std::size_t{4};
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state         = TimeStepEndState{};
+    settings.MaxNumOfCycles          = std::size_t{4};
+    const auto time_incrementor      = MakeAdaptiveTimeIncrementor(settings);
+    auto       previous_state        = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     KRATOS_EXPECT_FALSE(time_incrementor.WantRetryStep(settings.MaxNumOfCycles, previous_state))
@@ -294,10 +291,10 @@ KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptDidNotConvergeAndNoAttempt
 KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    settings.MaxNumOfCycles     = std::size_t{4};
-    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    const auto cycle_number     = std::size_t{1};
-    auto previous_state         = TimeStepEndState{};
+    settings.MaxNumOfCycles          = std::size_t{4};
+    const auto time_incrementor      = MakeAdaptiveTimeIncrementor(settings);
+    const auto cycle_number          = std::size_t{1};
+    auto       previous_state        = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
 
     KRATOS_EXPECT_FALSE(time_incrementor.WantRetryStep(cycle_number, previous_state))
@@ -306,7 +303,7 @@ KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptConverged, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(GetStartIncrementWhenItWouldNotResultInExceedingTheEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    settings.StartIncrement = 0.6;
+    settings.StartIncrement     = 0.6;
     const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
 
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement, time_incrementor.GetIncrement());
@@ -317,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceStartIncrementWhenItWouldResultInExceedingTheEnd
     AdaptiveTimeIncrementorSettings settings;
     settings.StartTime      = 0.0;
     settings.StartIncrement = 1.0;
-    settings.EndTime        = settings.StartTime + 0.5 * settings.StartIncrement; // EndTime would be exceeded if StartIncrement is applied
+    settings.EndTime = settings.StartTime + 0.5 * settings.StartIncrement; // EndTime would be exceeded if StartIncrement is applied
     const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
 
     KRATOS_EXPECT_DOUBLE_EQ(settings.EndTime - settings.StartTime, time_incrementor.GetIncrement());
@@ -326,19 +323,20 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceStartIncrementWhenItWouldResultInExceedingTheEnd
 KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenPreviousAttemptDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     time_incrementor.PostTimeStepExecution(previous_state); // process previous non-converged state
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotConverge,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     time_incrementor.PostTimeStepExecution(previous_state); // process first non-converged state
@@ -347,11 +345,12 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotCo
                             time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIterationsWasAttained, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIterationsWasAttained,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
     previous_state.num_of_iterations = settings.MaxNumOfIterations;
 
@@ -359,11 +358,12 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIteratio
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIterations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
     previous_state.num_of_iterations = settings.MinNumOfIterations - 1;
 
@@ -374,11 +374,12 @@ KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIt
 KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
     previous_state.num_of_iterations = settings.MinNumOfIterations + 1; // don't attempt to increase the increment
-    previous_state.time              = settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
+    previous_state.time =
+        settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
@@ -387,11 +388,13 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMecha
 KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto                            previous_state   = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
-    previous_state.num_of_iterations = settings.MinNumOfIterations - 1; // this should normally increase the increment
-    previous_state.time              = settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
+    previous_state.num_of_iterations =
+        settings.MinNumOfIterations - 1; // this should normally increase the increment
+    previous_state.time =
+        settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
@@ -401,25 +404,27 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFac
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxDeltaTimeFactor = 1.5; // lower than the increase factor, this should lead to truncation
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
-    previous_state.num_of_iterations = settings.MinNumOfIterations - 1; // this should normally increase the increment
+    previous_state.num_of_iterations =
+        settings.MinNumOfIterations - 1; // this should normally increase the increment
 
     time_incrementor.PostTimeStepExecution(previous_state);
-    KRATOS_EXPECT_DOUBLE_EQ(settings.MaxDeltaTimeFactor * settings.StartIncrement, time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.MaxDeltaTimeFactor * settings.StartIncrement,
+                            time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
-    settings.StartIncrement = 7.9999;
-    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state   = TimeStepEndState{};
+    settings.StartIncrement          = 7.9999;
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
 
-}
+} // namespace Kratos::Testing

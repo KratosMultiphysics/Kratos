@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -69,7 +69,7 @@ public:
 
     /// Construction with container of points.
     template<typename TIteratorType>
-    BoundingBox(TIteratorType const& itPointsBegin, TIteratorType const& itPointsEnd) 
+    BoundingBox(TIteratorType const& itPointsBegin, TIteratorType const& itPointsEnd)
     {
         Set(itPointsBegin, itPointsEnd);
     }
@@ -165,6 +165,25 @@ public:
             r_min_point[i] -= Margin;
             r_max_point[i] += Margin;
         }
+    }
+
+    /**
+     * @brief Checks if a point is inside the bounding box with tolerance.
+     * @details This function checks if a given point is inside the bounding box defined by the minimum and maximum points. It returns true if the point is inside the bounding box within the given tolerance, and false otherwise.
+     * @param rPoint The point to be checked.
+     * @param Tolerance A tolerance value to allow for slight inaccuracies (default is std::numeric_limits<double>::epsilon()).
+     * @return True if the point is inside the bounding box within the given tolerance, false otherwise.
+     */
+    bool IsInside(
+        const array_1d<double, 3>& rPoint, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        for (unsigned int i = 0; i < Dimension; i++) {
+            if (rPoint[i] < GetMinPoint()[i] - Tolerance || rPoint[i] > GetMaxPoint()[i] + Tolerance)
+                return false;
+        }
+        return true;
     }
 
     ///@}

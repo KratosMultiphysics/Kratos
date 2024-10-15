@@ -116,7 +116,8 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
                             expected_dt_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerUPwSchemeTester tester;
 

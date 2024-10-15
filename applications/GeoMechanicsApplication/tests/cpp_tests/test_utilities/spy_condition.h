@@ -14,20 +14,20 @@
 
 #include "includes/condition.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-class SpyCondition : public Condition {
+class SpyCondition : public Condition
+{
 public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     bool IsSolutionStepInitialized() const;
     bool IsSolutionStepFinalized() const;
@@ -37,12 +37,12 @@ public:
     bool IsGetDofListCalled() const;
 
 private:
-    bool mSolutionStepInitialized = false;
-    bool mSolutionStepFinalized = false;
-    bool mNonLinIterationInitialized = false;
-    bool mNonLinIterationFinalized = false;
-    mutable bool mIsEquationIdRetrieved = false;
-    mutable bool mIsGetDofListCalled = false;
+    bool         mSolutionStepInitialized    = false;
+    bool         mSolutionStepFinalized      = false;
+    bool         mNonLinIterationInitialized = false;
+    bool         mNonLinIterationFinalized   = false;
+    mutable bool mIsEquationIdRetrieved      = false;
+    mutable bool mIsGetDofListCalled         = false;
 };
 
-} // namespace Kratos
+} // namespace Kratos::Testing

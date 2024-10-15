@@ -176,7 +176,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
         print(f"RGP Constraint {self.GetResponseName()}:: BS = {self.BS}")
         print(f"RGP Constraint {self.GetResponseName()}:: CF = {self.CF}")
 
-    def IsActiveConstrant(self):
+    def IsActive(self):
         return self.ComputeW() > 0.0
 
     def IsSatisfied(self, value=None):

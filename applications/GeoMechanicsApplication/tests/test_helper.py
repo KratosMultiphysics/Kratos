@@ -16,6 +16,13 @@ def get_file_path(fileName):
     return os.path.join(os.path.dirname(__file__), fileName)
 
 
+def make_geomechanics_analysis(model, project_parameters_file_path):
+    with open(project_parameters_file_path, 'r') as f:
+        project_parameters = Kratos.Parameters(f.read())
+
+    return analysis.GeoMechanicsAnalysis(model, project_parameters)
+
+
 def run_kratos(file_path, model=None):
     """
     Runs 1 stage in kratos

@@ -125,7 +125,6 @@ public:
     //@name Life Cycle
     //@{
 
-    //----------------------------------------------------------------------------------------
     /**
      * @brief Default constructor.
      */
@@ -285,13 +284,6 @@ public:
     void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector);
-
-    /**
      * This can be used in order to reset all internal variables of the
      * constitutive law (e.g. if a model should be reset to its reference state)
      * @param rMaterialProperties the Properties instance of the current element
@@ -417,9 +409,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    pF_GetParamCount    pGetParamCount;
-    pF_GetStateVarCount pGetStateVarCount;
-    pF_UserMod          pUserMod;
+    pF_GetParamCount    mpGetParamCount    = nullptr;
+    pF_GetStateVarCount mpGetStateVarCount = nullptr;
+    pF_UserMod          mpUserMod          = nullptr;
 
     bool mIsModelInitialized = false;
     bool mIsUDSMLoaded       = false;

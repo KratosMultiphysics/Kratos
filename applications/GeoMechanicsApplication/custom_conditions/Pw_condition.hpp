@@ -37,8 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) PwCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PwCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     PwCondition() : PwCondition(0, nullptr, nullptr) {}
 
     PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,8 +51,6 @@ public:
 
     ~PwCondition() override = default;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
@@ -62,8 +58,6 @@ public:
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -77,16 +71,12 @@ public:
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;

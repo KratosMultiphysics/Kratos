@@ -13,6 +13,7 @@
 
 #include "geometries/geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 
 #include "iga_application_variables.h"
 
@@ -50,7 +51,9 @@ namespace TestCreationUtility
         }
     }
 
-    inline typename NurbsSurfaceType::Pointer GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree)
+    inline typename NurbsSurfaceType::Pointer GenerateNurbsSurface(
+        ModelPart& rModelPart, 
+        SizeType PolynomialDegree)
     {
         SizeType p = PolynomialDegree;
         SizeType q = 1;
@@ -114,7 +117,9 @@ namespace TestCreationUtility
     }
 
     inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
-        ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
+        ModelPart& rModelPart, 
+        SizeType PolynomialDegree, 
+        IntegrationPoint<3> IntegrationPoint)
     {
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
@@ -126,6 +131,54 @@ namespace TestCreationUtility
         p_nurbs_surface->CreateQuadraturePointGeometries(
                 result_geometries, 3, integration_points, integration_info);
         rModelPart.AddGeometry(p_nurbs_surface);
+
+        return result_geometries(0);
+    }
+
+
+    inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometryOnCurve(
+        ModelPart& rModelPart,
+        SizeType PolynomialDegree,
+        IntegrationPoint<3> IntegrationPoint)
+    {
+        typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+        IntegrationPointsArrayType integration_points(1);
+        integration_points[0] = IntegrationPoint;
+        typedef typename Geometry<NodeType>::GeometriesArrayType GeometriesArrayType;
+
+        GeometriesArrayType result_geometries;
+
+        // Create the BrepCurve in Surface
+        // Assign the points belonging to the curve
+        PointerVector<Node> points_curve;
+        points_curve.push_back(Node::Pointer(new Node(1, 0.0, 0.05)));
+        points_curve.push_back(Node::Pointer(new Node(2, 1.0, 0.05)));
+        // Assign the curve's knot vector
+        Vector knot_vector_curve = ZeroVector(4);
+        knot_vector_curve[0] = 0.0;
+        knot_vector_curve[1] = 0.0;
+        knot_vector_curve[2] = 1.0;
+        knot_vector_curve[3] = 1.0;
+        // Polynomial degree of the curve
+        int p_curve = 1;
+        // Create the 2D embedded curve
+        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Node>>>(points_curve, p_curve, knot_vector_curve);
+
+        auto p_nurbs_surface = GenerateNurbsSurface(rModelPart, 3);
+        p_nurbs_surface->SetId(1);
+        IntegrationInfo integration_info_surface = p_nurbs_surface->GetDefaultIntegrationInfo();
+        p_nurbs_surface->CreateQuadraturePointGeometries(
+                result_geometries, 3, integration_points, integration_info_surface);
+
+        auto p_curve_nurbs_surface = Kratos::make_shared<NurbsCurveOnSurfaceGeometry<3, PointerVector<NodeType>, PointerVector<NodeType>>>(p_nurbs_surface, curve);
+
+        p_curve_nurbs_surface->SetId(2);
+        IntegrationInfo integration_info = p_curve_nurbs_surface->GetDefaultIntegrationInfo();
+        
+        p_curve_nurbs_surface->CreateQuadraturePointGeometries(result_geometries, 3, integration_points, integration_info);
+
+        rModelPart.AddGeometry(p_nurbs_surface);
+        rModelPart.AddGeometry(p_curve_nurbs_surface);
 
         return result_geometries(0);
     }

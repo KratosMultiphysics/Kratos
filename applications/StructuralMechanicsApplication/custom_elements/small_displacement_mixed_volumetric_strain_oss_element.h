@@ -135,6 +135,8 @@ public:
         IndexType NewId,
         NodesArrayType const& rThisNodes) const override;
 
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,

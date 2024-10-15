@@ -240,31 +240,34 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateLeftHan
         rCurrentProcessInfo);
 
     // Call the base element OSS operator
+    // Note that this calculates the LHS of the OSS stabilization operator
     MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesStabilizationOperator(
         aux_oss_stab_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS operator
+    // Call the element OSS operator
+    // Note that this calculates the OSS operator to be applied to the RHS (transpose to the stabilization operator)
     MatrixType aux_oss_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesOperator(
         aux_oss_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS lumped projection operator
+    // Call the element OSS lumped projection operator
+    // Note that this calculates the lumped projection operator to be applied to the RHS
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
         rCurrentProcessInfo);
 
-    // Assemble the extended modal analysis LHS
+    // Assemble the extended LHS
     for (IndexType i = 0; i < matrix_size; ++i) {
         for (IndexType j = 0; j < matrix_size; ++j) {
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
-            rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            rLeftHandSideMatrix(i, matrix_size + j) = -aux_oss_stab_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, j) = -aux_oss_operator(i,j);
             // rLeftHandSideMatrix(matrix_size + j, i) = aux_oss_stab_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = -aux_lumped_mass_operator(i,j);
         }
     }
 }
@@ -288,20 +291,24 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
     if (rRightHandSideVector.size() != matrix_size_full) {
         rRightHandSideVector.resize(matrix_size_full, false);
     }
+    rRightHandSideVector.clear();
 
-    // Call the base element to get the standard residual matrix
+    // Call the base element to get the standard residual vector
+    // Note that this already includes the substraction of the OSS projections
     VectorType aux_rhs(block_size * n_nodes);
     BaseType::CalculateRightHandSide(
         aux_rhs,
         rCurrentProcessInfo);
 
-    // Call the base element OSS operator
-    MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
-    CalculateOrthogonalSubScalesStabilizationOperator(
-        aux_oss_stab_operator,
+    // Call the element OSS operator
+    // Note that this calculates the OSS operator to be applied to the RHS (transpose to the stabilization operator)
+    MatrixType aux_oss_operator(matrix_size, matrix_size);
+    CalculateOrthogonalSubScalesOperator(
+        aux_oss_operator,
         rCurrentProcessInfo);
 
-    // Call the base element OSS lumped projection operator
+    // Call the element OSS lumped projection operator
+    // Note that this calculates the lumped projection operator to be applied to the RHS
     MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
     CalculateOrthogonalSubScalesLumpedProjectionOperator(
         aux_lumped_mass_operator,
@@ -339,14 +346,13 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateRightHa
     }
 
     // Calculate auxiliary arrays
-    const VectorType oss_stab_times_unk = prod(trans(aux_oss_stab_operator), aux_unk);
-    const VectorType oss_stab_times_proj = prod(aux_oss_stab_operator, aux_projection);
+    const VectorType oss_stab_times_unk = prod(aux_oss_operator, aux_unk);
     const VectorType lumped_mass_times_proj = prod(aux_lumped_mass_operator, aux_projection);
 
     // Assemble the extended modal analysis RHS
     for (IndexType i = 0; i < matrix_size; ++i) {
-        rRightHandSideVector(i) = aux_rhs(i) - oss_stab_times_proj(i);
-        rRightHandSideVector(matrix_size + i) = - oss_stab_times_unk(i) - lumped_mass_times_proj(i);
+        rRightHandSideVector(i) = aux_rhs(i); // Note that this already includes the projections substraction
+        rRightHandSideVector(matrix_size + i) = lumped_mass_times_proj(i) + oss_stab_times_unk(i);
     }
 }
 
@@ -426,7 +432,7 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::GetSecondDerivat
     rValues.clear();
 
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        const SizeType index = i_node * block_size_full;
+        const SizeType index = i_node * block_size;
         const auto& r_acc = r_geometry[i_node].FastGetSolutionStepValue(ACCELERATION, Step);
         for(IndexType d = 0; d < dim; ++d) {
             rValues[index + d] = r_acc[d];
@@ -589,10 +595,10 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogo
 
             for (IndexType i = 0; i < n_nodes; ++i) {
                 const double N_i = kinematic_variables.N[i];
-                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j; // Note that we multiply by kappa*tau_2 to symmetrize
+                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) -= aux_w_kappa_tau_2 * N_i * N_j; // Note that we multiply by kappa*tau_2 to symmetrize
                 for (IndexType d = 0; d < dim; ++d) {
                     rOrthogonalSubScalesOperator(i * block_size + d, j * block_size + dim) -= aux_w_kappa_tau_1 * N_i * G_j[d]; // Note that we multiply by tau_1 to symmetrize
-                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) -= aux_w_kappa_tau_2 * N_i * psi_j[d]; // Note that we multiply by kappa*tau_2 to symmetrize
+                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) += aux_w_kappa_tau_2 * N_i * psi_j[d]; // Note that we multiply by kappa*tau_2 to symmetrize
                 }
             }
         }
@@ -745,7 +751,7 @@ void SmallDisplacementMixedVolumetricStrainOssNonLinearElement::CalculateOrthogo
             for (IndexType d = 0; d < dim; ++d) {
                 rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + d, i * block_size + d) += aux_w_tau_1 * N_i * sum_N_j; // Note that we multiply by tau_1 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
             }
-            rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + dim, i * block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j; // Note that we multiply by kappa*tau_2 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
+            rOrthogonalSubScalesLumpedProjectionOperator(i * block_size + dim, i * block_size + dim) -= aux_w_kappa_tau_2 * N_i * sum_N_j; // Note that we multiply by kappa*tau_2 to scale the projection with the symmetrization factors (see CalculateOrthogonalSubScalesOperator)
         }
     }
 }

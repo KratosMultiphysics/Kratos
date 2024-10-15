@@ -458,6 +458,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mIsDynamic; // Bool variable to indicate if the problem is dynamic
+
     std::vector<Vector> mDisplacementSubscale1; /// Gauss points displacement subscale at previous time step
 
     std::vector<Vector> mDisplacementSubscale2; /// Gauss points displacement subscale at two previous time step
@@ -697,8 +699,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    bool mIsDynamic; // Bool variable to indicate if the problem is dynamic
 
     Matrix mAnisotropyTensor; // The anisotropy transformation tensor
 

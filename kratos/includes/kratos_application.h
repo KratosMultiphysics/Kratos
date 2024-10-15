@@ -460,21 +460,25 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General conditions must be defined
     // Generic condition
     const MeshCondition mGenericCondition;
+
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
+
     // Line conditions
     const MeshCondition mLineCondition2D2N;
     const MeshCondition mLineCondition2D3N;
     const MeshCondition mLineCondition3D2N;
     const MeshCondition mLineCondition3D3N;
+
     // Surface conditions
     const MeshCondition mSurfaceCondition3D3N;
     const MeshCondition mSurfaceCondition3D6N;
     const MeshCondition mSurfaceCondition3D4N;
     const MeshCondition mSurfaceCondition3D8N;
     const MeshCondition mSurfaceCondition3D9N;
-    //prisms
+
+    // Prisms conditions
     const MeshCondition mPrismCondition2D4N;
     const MeshCondition mPrismCondition3D6N;
 
@@ -491,17 +495,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General elements must be defined
     const MeshElement mGenericElement;
 
-    const MeshElement mElement2D1N;
-    const MeshElement mElement2D2N;
+    // 2D elements
+    const MeshElement mElement2D1N; // NOTE: This would be duplicated mPointElement2D1N
+    const MeshElement mElement2D2N; // NOTE: This would be duplicated mLineElement2D2N
     const MeshElement mElement2D3N;
     const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
     const MeshElement mElement2D8N;
     const MeshElement mElement2D9N;
 
-    const MeshElement mElement3D1N;
-    const MeshElement mElement3D2N;
-    const MeshElement mElement3D3N;
+    // 3D elements
+    const MeshElement mElement3D1N; // NOTE: This would be duplicated mPointElement3D1N
+    const MeshElement mElement3D2N; // NOTE: This would be duplicated mLineElement3D2N
+    const MeshElement mElement3D3N; // NOTE: This would be duplicated mSurfaceElement3D3N
     const MeshElement mElement3D4N;
     const MeshElement mElement3D5N;
     const MeshElement mElement3D6N;
@@ -512,12 +518,33 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D20N;
     const MeshElement mElement3D27N;
 
+    // For sake of consistency and in order to define missing geometries for elements
+    // Point elements
+    const MeshElement mPointElement2D1N;
+    const MeshElement mPointElement3D1N;
+
+    // Line elements
+    const MeshElement mLineElement2D2N;
+    const MeshElement mLineElement2D3N;
+    const MeshElement mLineElement3D2N;
+    const MeshElement mLineElement3D3N;
+
+    // Surface elements
+    const MeshElement mSurfaceElement3D3N;
+    const MeshElement mSurfaceElement3D6N;
+    const MeshElement mSurfaceElement3D4N;
+    const MeshElement mSurfaceElement3D8N;
+    const MeshElement mSurfaceElement3D9N;
+
+    // Distance calculation elements
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
+    // Edge based gradient recovery elements
     const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
     const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
 
+    // Level set convection elements
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
     const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;

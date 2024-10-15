@@ -102,10 +102,10 @@ class BBStep(ConstStep):
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
             dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
-            if not math.isclose(dy, 0.0, abs_tol=1e-16):
-                self.step = abs( dd / dy )
-            else:
+            if math.isclose(dy, 0.0, abs_tol=1e-16):
                 self.step = self._max_step / norm
+            else:
+                self.step = abs( dd / dy )
 
             if self.step > self._max_step / norm:
                 self.step = self._max_step / norm
@@ -144,12 +144,12 @@ class QNBBStep(BBStep):
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
             d = d.Evaluate()
             for i in range(len(y)):
-                yy = y[i] * y[i]
-                yd = y[i] * d[i]
-                if math.isclose(yy, 0.0, abs_tol=1e-16):
+                dy = d[i] * y[i]
+                dd = d[i] * d[i]
+                if math.isclose(dy, 0.0, abs_tol=1e-16):
                     self.step_numpy[i] = self._max_step / norm
                 else:
-                    self.step_numpy[i] = abs( yd / yy )
+                    self.step_numpy[i] = abs( dd / dy )
                 if self.step_numpy[i] > self._max_step / norm:
                     self.step_numpy[i] = self._max_step / norm
 

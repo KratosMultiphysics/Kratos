@@ -3,8 +3,10 @@
 This folder contains the custom processes that are used in the GeoMechanicsApplication. Processes are commands that can be executed during several stages of a calculation. In the GeoMechanicsApplication, their main use is to apply boundary conditions and/or constraints , but there are more specific examples (e.g. the K0 procedure, nodal extrapolation, or (de)activation of certain parts of the model). Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the maintainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
-- $c-\phi$ reduction process
+- [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
+- [ResetDisplacementProcess](#reset-displacement-process)
+- [$K_0$ procedure process](#K_0-procedure-process)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -58,6 +60,86 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
+
+## Reset displacement process
+The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+
+### Requirements
+For this process to work, the following requirements have to be met:
+1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
+2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
+3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
+
+
+## $K_0$ procedure process
+For the initialization of an in-situ stress field, the $K_0$ procedure derives the horizontal effective stresses from a field of vertical effective stresses.
+Pre-requisite is a computed stress field with the desired normal effective stresses in the direction indicated with "K0_MAIN_DIRECTION".
+The normal effective stress in "K0_MAIN_DIRECTION" remains as is.
+Effective normal stresses in the other two directions are affected by the $K_0$ value, all shear stresses are erased.
+A specialized method for computation of the stress field with normal effective stresses is steered with "use_standard_procedure".
+When set to true, the material used for the modelpart used for the $K_0$ procedure process is changed to an incremental elastic material with constitutive tensor that has only zero off-diagonal terms and zero shear terms.
+When the stress computation is completed, the original constitutive law is restored.
+
+Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
+$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
+
+$$K_0^{nc} = 1.0 - \sin \phi$$
+
+When the overconsolidation ratio ("OCR") and optionally the unloading-reloading Poisson's ratio $\nu_{ur}$ ("POISSON_UNLOADING_RELOADING") are supplied, the normal consolidation value $K_0^{nc}$ is modified:
+
+$$K_0 = OCR.K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
+
+![Initial effective stress tensor](initial_effective_stress_tensor.png)
+
+Alternatively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
+
+![Initial effective stress tensor with POP](initial_effective_stress_tensor_with_POP.png)
+
+When the optional unloading-reloading Poisson's ratio is omitted, a default value $\nu_{ur} = 0$ is used such that the correction term drops to 0.
+
+### Note:
+After the stress adaptation by the $K_0$ procedure, the stress state may not be in equilibrium with the present external forces anymore. Equilibrium may be reached by performing a step without applying additional load. Reaching equilibrium may then be accomplished by movement.
+
+### Usage
+The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
+```json
+{
+  "auxilliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name": "PorousDomain.porous_computational_model_part",
+        "variable_name": "CAUCHY_STRESS_TENSOR",
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
+```json
+{
+  "Variables": {
+    "K0_MAIN_DIRECTION":           1,
+    "K0_NC":                       0.6,
+    "UDSM_NAME"                :  "MohrCoulomb64.dll",
+    "IS_FORTRAN_UDSM"          :  true,
+    "NUMBER_OF_UMAT_PARAMETERS":  6,
+    "INDEX_OF_UMAT_PHI_PARAMETER": 4,
+    "UMAT_PARAMETERS"          :  [30000000,
+                                   0.2,
+                                   1000.0,
+                                   30,
+                                   0.0,
+                                   1000],
+    "OCR":                         1.4,
+    "POISSON_UNLOADING_RELOADING": 0.35,
+    "POP":                         800.0
+  },
+}
+```
 
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.

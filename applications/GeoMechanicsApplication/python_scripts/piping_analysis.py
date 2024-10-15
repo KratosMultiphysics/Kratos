@@ -115,30 +115,23 @@ class PipingAnalysis(GeoMechanicsAnalysis):
 
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "--------------------------------------", " ")
 
-            is_piping = True
-            if is_piping:
+            # todo set this as solver input
+            max_piping_iterations = 500
 
-                # todo set this as solver input
-                max_piping_iterations = 500
+            grow_pipe = True
+            while grow_pipe:
+                self.initialise_grow_step()
+                piping_converged = False
+                piping_iter = 0
 
-                grow_pipe = True
-                while grow_pipe:
+                while not piping_converged and piping_iter < max_piping_iterations:
+                    self.run_flow_calculation()
 
-                    self.initialise_grow_step()
-                    piping_converged = False
-                    piping_iter = 0
+                    # update all pipe heights and check for piping convergence and check if
+                    piping_converged = self.update_pipe_heights()
+                    piping_iter += 1
 
-                    while not piping_converged and piping_iter < max_piping_iterations:
-                        self.run_flow_calculation()
-
-                        # update all pipe heights and check for piping convergence and check if
-                        piping_converged = self.update_pipe_heights()
-                        piping_iter += 1
-
-                    grow_pipe = self.finalise_grow_step()
-
-            else:
-                self.run_flow_calculation()
+                grow_pipe = self.finalise_grow_step()
 
             self.OutputSolutionStep()
 

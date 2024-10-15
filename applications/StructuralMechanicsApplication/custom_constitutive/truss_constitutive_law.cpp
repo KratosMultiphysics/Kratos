@@ -138,9 +138,11 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
+    AddInitialStrainVectorContribution(rValues.GetStrainVector());
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
     stress_vector[0] = this->CalculateStressElastic(rValues);
+    AddInitialStressVectorContribution(stress_vector);
 }
 //************************************************************************************
 //************************************************************************************

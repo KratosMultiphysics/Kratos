@@ -113,7 +113,7 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
             directional_strain += *(strain.data().begin() + mStrainType);
         }
 
-        directional_strain *= (this->GetWeight() / strains.size());
+        directional_strain /= strains.size();
     }
 
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(directional_strain);
@@ -182,8 +182,6 @@ void StrainSensor::CalculateGradient(
             }
         }
     }
-
-    rResponseGradient *= this->GetWeight();
 
     KRATOS_CATCH("");
 }

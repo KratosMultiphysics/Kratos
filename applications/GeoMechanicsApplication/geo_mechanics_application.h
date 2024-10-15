@@ -52,6 +52,7 @@
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
+#include "custom_geometries/line_interface_geometry.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -88,6 +89,7 @@
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
+#include "custom_elements/line_interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
@@ -118,12 +120,14 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
+#include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
@@ -556,6 +560,13 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
+    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+        0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
+               Element::GeometryType::PointsArrayType(4))};
+    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+        0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
+               Element::GeometryType::PointsArrayType(6))};
+
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
@@ -931,10 +942,10 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw            mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw            mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law           mLinearPlaneStrainK0Law;
-    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw;
+    const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
+    const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
+    const GeoLinearElasticPlaneStrain2DLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const ElasticIsotropicK03DLaw          mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
@@ -953,6 +964,8 @@ private:
 
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
+
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
 
     ///@}
 

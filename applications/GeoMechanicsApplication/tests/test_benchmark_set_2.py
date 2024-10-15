@@ -111,7 +111,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         test_name = r'dike_with_sheetpile_all_stage'
         project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 3
-        stages = test_helper.run_stages(project_path, n_stages)
+        test_helper.run_stages(project_path, n_stages)
 
         # max_x_disp_plaxis = 0.01279
         # min_x_disp_plaxis = -0.012234

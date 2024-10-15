@@ -129,7 +129,7 @@ Kratos::BoundedMatrix<double, 8, 8> GetExtrapolationMatrixFor3D8NElement()
     return result;
 }
 
-}
+} // namespace
 
 namespace Kratos
 {

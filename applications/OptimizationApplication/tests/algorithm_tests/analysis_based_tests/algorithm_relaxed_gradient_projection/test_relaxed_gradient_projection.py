@@ -35,7 +35,7 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
 
             model = Kratos.Model()
             analysis = OptimizationAnalysis(model, parameters)
-            
+
             analysis.Initialize()
             analysis.Check()
             algorithm = analysis.GetAlgorithm()
@@ -61,11 +61,11 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
             value = constraint.CalculateStandardizedValue(control_field*0.5)
             constraint.UpdateBufferSize()
             w = constraint.ComputeW()
-            self.assertAlmostEqual(w, 1.4727706310667317)
+            self.assertAlmostEqual(w, 1.472738040151665)
             self.assertAlmostEqual(constraint.BSF, 2.0)
             self.assertAlmostEqual(constraint.BSF_init, 2.0)
             self.assertAlmostEqual(constraint.CBV, 0.0)
-            self.assertAlmostEqual(int(constraint.BS), 143814638)
+            self.assertAlmostEqual(int(constraint.BS), 143622435)
             self.assertAlmostEqual(constraint.max_w_c, 10)
             self.assertAlmostEqual(constraint.CF, 1)
 

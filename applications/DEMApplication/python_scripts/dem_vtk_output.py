@@ -83,6 +83,9 @@ class VtkOutput():
     def ConvertParticlesToNumpyArrays(self):
         number_of_nodes = self.spheres_model_part.NumberOfNodes(0)
 
+        if number_of_nodes == 0:
+            return False
+
         self.particles_X = np.empty(number_of_nodes)
         self.particles_Y = np.empty(number_of_nodes)
         self.particles_Z = np.empty(number_of_nodes)
@@ -235,8 +238,36 @@ class VtkOutput():
 
             i += 1
 
+        return True
+
     def ConvertContactsToNumpyArrays(self):
-        number_of_elements = self.contact_model_part.NumberOfElements(0)
+        
+        max_radius = 0.0
+        for node in self.spheres_model_part.Nodes:
+            r = node.GetSolutionStepValue(RADIUS)
+            if r > max_radius:
+                max_radius = r
+        
+        number_of_elements = 0
+
+        for element in self.contact_model_part.Elements:
+            
+            X1 = element.GetNode(0).X
+            X2 = element.GetNode(1).X
+            Y1 = element.GetNode(0).Y
+            Y2 = element.GetNode(1).Y
+            Z1 = element.GetNode(0).Z
+            Z2 = element.GetNode(1).Z
+
+            element_length = ((X2-X1)**2 + (Y2-Y1)**2 + (Z2-Z1)**2)**0.5
+
+            if element_length < 3 * max_radius:
+                number_of_elements += 1
+        
+        if number_of_elements == 0:
+            return False
+        
+        #number_of_elements = self.contact_model_part.NumberOfElements(0)
         number_of_nodes = number_of_elements * 2
 
         self.start_and_end_points_X = np.empty(number_of_nodes)
@@ -250,6 +281,9 @@ class VtkOutput():
             self.local_contact_force_X_point = np.empty(number_of_nodes)
             self.local_contact_force_Y_point = np.empty(number_of_nodes)
             self.local_contact_force_Z_point = np.empty(number_of_nodes)
+
+            self.local_contact_force_mag = np.empty(number_of_elements)
+            self.local_contact_force_mag_point = np.empty(number_of_nodes)
 
         if self.PostFailureCriterionState:
             self.failure_criterion_state = np.empty(number_of_elements)
@@ -273,50 +307,72 @@ class VtkOutput():
         i_contact = 0
         for element in self.contact_model_part.Elements:
             
-            self.start_and_end_points_X[i_point] = element.GetNode(0).X
-            self.start_and_end_points_X[i_point+1] = element.GetNode(1).X
-            self.start_and_end_points_Y[i_point] = element.GetNode(0).Y
-            self.start_and_end_points_Y[i_point+1] = element.GetNode(1).Y
-            self.start_and_end_points_Z[i_point] = element.GetNode(0).Z
-            self.start_and_end_points_Z[i_point+1] = element.GetNode(1).Z
+            X1 = element.GetNode(0).X
+            X2 = element.GetNode(1).X
+            Y1 = element.GetNode(0).Y
+            Y2 = element.GetNode(1).Y
+            Z1 = element.GetNode(0).Z
+            Z2 = element.GetNode(1).Z
 
-            if self.PostLocalContactForce:
-                self.local_contact_force_X[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_Y[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Z[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
-                self.local_contact_force_X_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_X_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                self.local_contact_force_Y_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Y_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                self.local_contact_force_Z_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
-                self.local_contact_force_Z_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+            element_length = ((X2-X1)**2 + (Y2-Y1)**2 + (Z2-Z1)**2)**0.5
 
-            if self.PostFailureCriterionState:
-                self.failure_criterion_state[i_contact] = element.GetValue(FAILURE_CRITERION_STATE)
+            if element_length < 3 * max_radius:
 
-            if self.PostContactFailureId:
-                self.contact_failure_id[i_contact] = element.GetValue(CONTACT_FAILURE)
+                self.start_and_end_points_X[i_point] = X1
+                self.start_and_end_points_X[i_point+1] = X2
+                self.start_and_end_points_Y[i_point] = Y1
+                self.start_and_end_points_Y[i_point+1] = Y2
+                self.start_and_end_points_Z[i_point] = Z1
+                self.start_and_end_points_Z[i_point+1] = Z2
 
-            if self.PostContactTau:
-                self.contact_tau[i_contact] = element.GetValue(CONTACT_TAU)
-                self.contact_tau_point[i_point] = element.GetValue(CONTACT_TAU)
-                self.contact_tau_point[i_point+1] = element.GetValue(CONTACT_TAU)
+                if self.PostLocalContactForce:
+                    self.local_contact_force_X[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_Y[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Z[i_contact] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                    self.local_contact_force_X_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_X_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                    self.local_contact_force_Y_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Y_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                    self.local_contact_force_Z_point[i_point] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                    self.local_contact_force_Z_point[i_point+1] = element.GetValue(LOCAL_CONTACT_FORCE)[2]
 
-            if self.PostContactSigma:
-                self.contact_sigma[i_contact] = element.GetValue(CONTACT_SIGMA)
-                self.contact_sigma_point[i_point] = element.GetValue(CONTACT_SIGMA)
-                self.contact_sigma_point[i_point+1] = element.GetValue(CONTACT_SIGMA)
+                    local_contact_force_mag_value = (self.local_contact_force_X[i_contact]**2 + self.local_contact_force_Y[i_contact]**2 + self.local_contact_force_Z[i_contact]**2)**0.5
+                    self.local_contact_force_mag[i_contact] = local_contact_force_mag_value
+                    self.local_contact_force_mag_point[i_point] = local_contact_force_mag_value
+                    self.local_contact_force_mag_point[i_point + 1] = local_contact_force_mag_value
 
-            if self.PostContactRadius:
-                self.contact_radius[i_contact] = element.GetValue(CONTACT_RADIUS)
-                self.contact_radius_point[i_point] = element.GetValue(CONTACT_RADIUS)
-                self.contact_radius_point[i_point+1] = element.GetValue(CONTACT_RADIUS)
+                if self.PostFailureCriterionState:
+                    self.failure_criterion_state[i_contact] = element.GetValue(FAILURE_CRITERION_STATE)
 
-            i_point += 2
-            i_contact += 1
+                if self.PostContactFailureId:
+                    self.contact_failure_id[i_contact] = element.GetValue(CONTACT_FAILURE)
+
+                if self.PostContactTau:
+                    self.contact_tau[i_contact] = element.GetValue(CONTACT_TAU)
+                    self.contact_tau_point[i_point] = element.GetValue(CONTACT_TAU)
+                    self.contact_tau_point[i_point+1] = element.GetValue(CONTACT_TAU)
+
+                if self.PostContactSigma:
+                    self.contact_sigma[i_contact] = element.GetValue(CONTACT_SIGMA)
+                    self.contact_sigma_point[i_point] = element.GetValue(CONTACT_SIGMA)
+                    self.contact_sigma_point[i_point+1] = element.GetValue(CONTACT_SIGMA)
+
+                if self.PostContactRadius:
+                    self.contact_radius[i_contact] = element.GetValue(CONTACT_RADIUS)
+                    self.contact_radius_point[i_point] = element.GetValue(CONTACT_RADIUS)
+                    self.contact_radius_point[i_point+1] = element.GetValue(CONTACT_RADIUS)
+
+                i_point += 2
+                i_contact += 1
+
+        return True
 
     def ConvertWallsToNumpyArrays(self):
         number_of_nodes = self.rigid_face_model_part.NumberOfNodes(0)
+
+        if number_of_nodes == 0:
+            return False
+        
         self.walls_X = np.empty(number_of_nodes)
         self.walls_Y = np.empty(number_of_nodes)
         self.walls_Z = np.empty(number_of_nodes)
@@ -331,7 +387,7 @@ class VtkOutput():
             i += 1
 
         number_of_conditions = self.rigid_face_model_part.NumberOfConditions(0)
-        self.walls_connectivity = np.empty(number_of_conditions * 3)
+        self.walls_connectivity = np.empty(number_of_conditions * 4) #TODO: here could be problematic if 'condition' is a triangle.
         self.walls_offsets = np.empty(number_of_conditions)
         self.walls_cell_types = np.empty(number_of_conditions)
         i = 0
@@ -348,65 +404,66 @@ class VtkOutput():
             self.walls_cell_types[j] = vtk.VtkTriangle.tid
             j += 1
 
+        return True
 
     def WriteResults(self, time):
 
         #---------------Partciles part---------------------
-        self.ConvertParticlesToNumpyArrays()
-        particles_filename = self.problem_name + "_Particles_" + str(self.counter)
-        path = os.path.join(self.vtk_post_path_directory, particles_filename)
-        
-        particles_output_dict = {'material':self.particles_material}
-        
-        if self.PostRadius:
-            particles_output_dict['radius'] = self.particles_R
+        if self.ConvertParticlesToNumpyArrays():
+            particles_filename = self.problem_name + "_Particles_" + str(self.counter)
+            path = os.path.join(self.vtk_post_path_directory, particles_filename)
+            
+            particles_output_dict = {'material':self.particles_material}
+            
+            if self.PostRadius:
+                particles_output_dict['radius'] = self.particles_R
 
-        if self.PostVelocity:
-            particles_output_dict['velocity'] = (self.velocities_X, self.velocities_Y, self.velocities_Z)
-        
-        if self.PostDisplacement:
-            particles_output_dict['displacement'] = (self.displacement_X, self.displacement_Y, self.displacement_Z)
+            if self.PostVelocity:
+                particles_output_dict['velocity'] = (self.velocities_X, self.velocities_Y, self.velocities_Z)
+            
+            if self.PostDisplacement:
+                particles_output_dict['displacement'] = (self.displacement_X, self.displacement_Y, self.displacement_Z)
 
-        if self.PostTotalForces:
-            particles_output_dict['total_forces'] = (self.total_force_X, self.total_force_Y, self.total_force_Z)
+            if self.PostTotalForces:
+                particles_output_dict['total_forces'] = (self.total_force_X, self.total_force_Y, self.total_force_Z)
 
-        if self.PostNonDimensionalVolumeWear:
-            particles_output_dict['non_dimensional_volume_wear'] = self.non_dimensional_volume_wear
-        
-        if self.PostAppliedForces:
-            particles_output_dict['applied_forces'] = (self.applied_force_X, self.applied_force_Y, self.applied_force_Z)
+            if self.PostNonDimensionalVolumeWear:
+                particles_output_dict['non_dimensional_volume_wear'] = self.non_dimensional_volume_wear
+            
+            if self.PostAppliedForces:
+                particles_output_dict['applied_forces'] = (self.applied_force_X, self.applied_force_Y, self.applied_force_Z)
 
-        if self.PostDampForces:
-            particles_output_dict['damp_forces'] = (self.damp_force_X, self.damp_force_Y, self.damp_force_Z)
+            if self.PostDampForces:
+                particles_output_dict['damp_forces'] = (self.damp_force_X, self.damp_force_Y, self.damp_force_Z)
 
-        if self.PostGroupId:
-            particles_output_dict['group_id'] = self.group_id
+            if self.PostGroupId:
+                particles_output_dict['group_id'] = self.group_id
 
-        if self.PostExportId:
-            particles_output_dict['group_id'] = self.export_id
+            if self.PostExportId:
+                particles_output_dict['group_id'] = self.export_id
 
-        if self.PostSkinSphere:
-            particles_output_dict['skin_sphere'] = self.skin_sphere
-        
-        if self.PostAngularVelocity:
-            particles_output_dict['angular_velocity'] = (self.angular_velocity_X, self.angular_velocity_Y, self.angular_velocity_Z)
-        
-        if self.PostParticleMoment:
-            particles_output_dict['particle_moment'] = (self.particle_moment_X, self.particle_moment_Y, self.particle_moment_Z)
-        
-        if self.PostEulerAngles:
-            particles_output_dict['euler_angles'] = (self.euler_angles_X, self.euler_angles_Y, self.euler_angles_Z)
-        
-        if self.PostRollingResistanceMoment:
-            particles_output_dict['rolling_resistance_moment'] = (self.rolling_resistance_moment_X, self.rolling_resistance_moment_Y, self.rolling_resistance_moment_Z)
-        
-        if self.PostNeighbourSize:
-            particles_output_dict['neighbour_size'] = self.neighbour_size
-        
-        if self.PostDamageRatio:
-            particles_output_dict['damage_ratio'] = self.damage_ratio
+            if self.PostSkinSphere:
+                particles_output_dict['skin_sphere'] = self.skin_sphere
+            
+            if self.PostAngularVelocity:
+                particles_output_dict['angular_velocity'] = (self.angular_velocity_X, self.angular_velocity_Y, self.angular_velocity_Z)
+            
+            if self.PostParticleMoment:
+                particles_output_dict['particle_moment'] = (self.particle_moment_X, self.particle_moment_Y, self.particle_moment_Z)
+            
+            if self.PostEulerAngles:
+                particles_output_dict['euler_angles'] = (self.euler_angles_X, self.euler_angles_Y, self.euler_angles_Z)
+            
+            if self.PostRollingResistanceMoment:
+                particles_output_dict['rolling_resistance_moment'] = (self.rolling_resistance_moment_X, self.rolling_resistance_moment_Y, self.rolling_resistance_moment_Z)
+            
+            if self.PostNeighbourSize:
+                particles_output_dict['neighbour_size'] = self.neighbour_size
+            
+            if self.PostDamageRatio:
+                particles_output_dict['damage_ratio'] = self.damage_ratio
 
-        hl.pointsToVTK(path, self.particles_X, self.particles_Y, self.particles_Z, particles_output_dict)
+            hl.pointsToVTK(path, self.particles_X, self.particles_Y, self.particles_Z, particles_output_dict)
 
         #------------------------------Contacts part---------------------------
         # Tips:
@@ -415,42 +472,45 @@ class VtkOutput():
         #       2. Apply 'Extract Surface' filter;
         #       3. Apply 'Tube' filter, and select 'Vary radius'->'By Ansolute Scalar', and set the 'Radius factor' as 1.
         #----------------------------------------------------------------------
-        self.ConvertContactsToNumpyArrays()
-        contacts_filename = self.problem_name + "_Contacts_" + str(self.counter)
-        path = os.path.join(self.vtk_post_path_directory, contacts_filename)
+        if self.ConvertContactsToNumpyArrays():
+            contacts_filename = self.problem_name + "_Contacts_" + str(self.counter)
+            path = os.path.join(self.vtk_post_path_directory, contacts_filename)
 
-        contacts_output_dict_cell = {}
-        contacts_output_dict_point = {}
+            contacts_output_dict_cell = {}
+            contacts_output_dict_point = {}
 
-        if self.PostLocalContactForce:
-            contacts_output_dict_cell['local_contact_force'] = (self.local_contact_force_X, self.local_contact_force_Y, self.local_contact_force_Z) 
-            contacts_output_dict_point['local_contact_force'] = (self.local_contact_force_X_point, self.local_contact_force_Y_point, self.local_contact_force_Z_point)
+            if self.PostLocalContactForce:
+                contacts_output_dict_cell['local_contact_force'] = (self.local_contact_force_X, self.local_contact_force_Y, self.local_contact_force_Z) 
+                contacts_output_dict_point['local_contact_force'] = (self.local_contact_force_X_point, self.local_contact_force_Y_point, self.local_contact_force_Z_point)
 
-        if self.PostFailureCriterionState:
-            contacts_output_dict_cell['failure_criterion_state'] = self.failure_criterion_state
+                contacts_output_dict_cell['local_contact_force_mag'] = self.local_contact_force_mag
+                contacts_output_dict_point['local_contact_force_mag'] = self.local_contact_force_mag_point
 
-        if self.PostContactFailureId:
-            contacts_output_dict_cell['contact_failure_id'] = self.contact_failure_id
+            if self.PostFailureCriterionState:
+                contacts_output_dict_cell['failure_criterion_state'] = self.failure_criterion_state
 
-        if self.PostContactTau:
-            contacts_output_dict_cell['contact_tau'] = self.contact_tau
-            contacts_output_dict_point['contact_tau'] = self.contact_tau_point
+            if self.PostContactFailureId:
+                contacts_output_dict_cell['contact_failure_id'] = self.contact_failure_id
 
-        if self.PostContactSigma:
-            contacts_output_dict_cell['contact_sigma'] = self.contact_sigma
-            contacts_output_dict_point['contact_sigma'] = self.contact_sigma_point
+            if self.PostContactTau:
+                contacts_output_dict_cell['contact_tau'] = self.contact_tau
+                contacts_output_dict_point['contact_tau'] = self.contact_tau_point
 
-        if self.PostContactRadius:
-            contacts_output_dict_cell['contact_radius'] = self.contact_radius
-            contacts_output_dict_point['contact_radius'] = self.contact_radius_point
+            if self.PostContactSigma:
+                contacts_output_dict_cell['contact_sigma'] = self.contact_sigma
+                contacts_output_dict_point['contact_sigma'] = self.contact_sigma_point
 
-        hl.linesToVTK(path, self.start_and_end_points_X, self.start_and_end_points_Y, self.start_and_end_points_Z, contacts_output_dict_cell, contacts_output_dict_point)
+            if self.PostContactRadius:
+                contacts_output_dict_cell['contact_radius'] = self.contact_radius
+                contacts_output_dict_point['contact_radius'] = self.contact_radius_point
+
+            hl.linesToVTK(path, self.start_and_end_points_X, self.start_and_end_points_Y, self.start_and_end_points_Z, contacts_output_dict_cell, contacts_output_dict_point)
         
         #-------------------------------Walls part------------------------------
-        self.ConvertWallsToNumpyArrays()
-        walls_filename = self.problem_name + "_Walls_" + str(self.counter)
-        path = os.path.join(self.vtk_post_path_directory, walls_filename)
-        hl.unstructuredGridToVTK(path, self.walls_X, self.walls_Y, self.walls_Z, self.walls_connectivity, self.walls_offsets, self.walls_cell_types, cellData=None, pointData=None)
+        if self.ConvertWallsToNumpyArrays():
+            walls_filename = self.problem_name + "_Walls_" + str(self.counter)
+            path = os.path.join(self.vtk_post_path_directory, walls_filename)
+            hl.unstructuredGridToVTK(path, self.walls_X, self.walls_Y, self.walls_Z, self.walls_connectivity, self.walls_offsets, self.walls_cell_types, cellData=None, pointData=None)
 
         self.counter += 1
 

@@ -237,7 +237,8 @@ namespace Kratos {
                                                                                      other_radius,
                                                                                      data_buffer.mDt,
                                                                                      ang_vel,
-                                                                                     neighbour_iterator);
+                                                                                     neighbour_iterator,
+                                                                                     data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info,
@@ -362,7 +363,7 @@ namespace Kratos {
                 double ViscoLocalRotationalMoment[3] = {0.0};
 
                 ComputeMoments(LocalContactForce[2],
-                               TotalGlobalElasticContactForce,
+                               GlobalContactForce,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
@@ -379,8 +380,7 @@ namespace Kratos {
                                                                                    ElasticLocalRotationalMoment,
                                                                                    ViscoLocalRotationalMoment,
                                                                                    equiv_poisson,
-                                                                                   indentation,
-                                                                                   LocalElasticContactForce);
+                                                                                   indentation);
                 }
 
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
