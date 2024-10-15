@@ -567,38 +567,39 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCombineMatricesGraphs, KratosTrili
     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(*copied_matrix, local_matrix);
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
-// {
-//     Model current_model;
-//     ModelPart& r_model_part = current_model.CreateModelPart("Main");
-//     auto& r_process_info = r_model_part.GetProcessInfo();
-//     r_process_info.SetValue(BUILD_SCALE_FACTOR, 1.0);
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(BUILD_SCALE_FACTOR, 1.0);
 
-//     // The data communicator
-//     const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
-//     // The dummy matrix
-//     const int size = 12;
-//     auto matrix12x12 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size);
+    // The dummy matrix
+    const int size = 12;
+    auto matrix12x12 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size);
 
-//     // Generate Tpetra communicator
-//     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-//     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
-//     TrilinosSparseSpaceType::CommunicatorType tpetra_comm(raw_mpi_comm);
+    // Generate Tpetra communicator
+    KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorPointerType tpetra_comm = Teuchos::rcp(new TrilinosSparseSpaceType::CommunicatorType(raw_mpi_comm));
 
-//     // Dummy vector
-//     TrilinosSparseSpaceType::MapType map(size, 0, tpetra_comm);
-//     TrilinosVectorType vector12(map);
+    // Dummy vector
+    auto map = Teuchos::rcp(new TrilinosSparseSpaceType::MapType(size, size, tpetra_comm));
+    TrilinosVectorType vector12(map);
 
-//     // Test the norm of the matrix
-//     double norm = 0.0;
-//     norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, *matrix12x12, *vector12, SCALING_DIAGONAL::NO_SCALING);
-//     KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
-//     if (r_comm.Rank() == 0) {
-//         const auto& raw_values = matrix12x12.ExpertExtractValues();
-//         KRATOS_EXPECT_DOUBLE_EQ(raw_values[0], 1.0);
-//     }
-// }
+    // Test the norm of the matrix
+    double norm = 0.0;
+    norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, *matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
+    if (r_comm.Rank() == 0) {
+        auto localMatrix = matrix12x12->getLocalMatrixHost();
+        auto valuesView = localMatrix.values;
+        KRATOS_EXPECT_DOUBLE_EQ(valuesView(0), 1.0);
+    }
+}
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalIsDistributed, KratosTrilinosApplicationMPITestSuite)
 {
