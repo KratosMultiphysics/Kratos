@@ -3,6 +3,12 @@ FROM quay.io/pypa/manylinux2014_x86_64
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
+# Install MKL
+RUN yum install -y yum-utils
+RUN yum-config-manager --add-repo https://yum.repos.intel.com/oneapi 
+RUN rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+RUN yum install -y intel-oneapi-mkl-devel
+
 # Prepare package dependencies
 RUN yum install -y git wget zip mpich mpich-devel mpich-autoload metis metis-devel
 

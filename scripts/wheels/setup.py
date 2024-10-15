@@ -1,10 +1,30 @@
-import setuptools
 import os
 import json
 import glob
 import shutil
+import setuptools
 
 kratos_version = os.environ["KRATOS_VERSION"]
+
+kratos_classifiers=[
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Natural Language :: English",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Other Audience",
+    "Intended Audience :: Developers",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console"
+]
 
 def replaceKeyword(str):
     return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
@@ -38,7 +58,7 @@ if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
     f.close()
-
+       
 package_classifiers = [
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
@@ -59,10 +79,15 @@ package_classifiers = [
         "Environment :: Console"
     ]
 
-if "licence" not in conf.keys():
-    package_classifiers.append("License :: OSI Approved :: BSD License")
-else:
-    package_classifiers.append(conf["licence"])
+if "licence" in conf:
+    for tag in conf["licence"]:
+        if tag == "ISSL":
+            kratos_classifiers.append("License :: Other/Proprietary License")
+        elif tag == "BSD":
+            kratos_classifiers.append("License :: OSI Approved :: BSD License")
+        else:
+            print("[WARNING] Unknown licence tag: {}".format(tag))
+            kratos_classifiers.append("License :: Other/Proprietary License")
 
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
@@ -72,6 +97,7 @@ class EmptyListWithLength(list):
     def __len__(self):
         return 1
 
+# Build the main wheel
 setuptools.setup(
     name=conf["wheel_name"],
     version=kratos_version,
@@ -83,7 +109,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=replaceKeywords(conf["dependencies"]),
-    classifiers=package_classifiers,
+    classifiers=kratos_classifiers,
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
