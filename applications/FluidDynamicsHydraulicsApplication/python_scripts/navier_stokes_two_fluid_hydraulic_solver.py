@@ -65,7 +65,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
             },
-            "time_scheme": "bdf2",
+            "time_scheme": "NEEDS TO BE FIXED --> PROBLEMS CONVERGENCE CRITERIO",
             "eulerian_fm_ale": true,
             "eulerian_fm_ale_settings":{
                 "max_CFL" : 1.0,
@@ -158,6 +158,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
         # Initialize the system volue to None
+        # current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] 
+        # print(current_dt)
+        bdf_vec = [1.5/0.01, -2.0/0.01, 0.5/0.01] 
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+        print( self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.BDF_COEFFICIENTS))
+
         # Note that this will be computed only once in the first InitializeSolutionStep call
         self.__initial_system_volume = None
 
@@ -230,8 +236,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._GetLevelSetConvectionProcess()
 
         # Instantiate the eulerian historical data convection
-        if self.eulerian_fm_ale:
-            self._GetEulerianFmAleProcess()
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        # Perform the convection of the historical database (Eulerian FM-ALE)
+        if current_time > 2 * delta_time:
+            if self.eulerian_fm_ale:
+                self._GetEulerianFmAleProcess()
 
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
@@ -253,9 +263,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
-        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        # bdf_vec = [1.5/current_dt, -2.0/current_dt, 0.5/current_dt]
-        # self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+
 
         # self.__ModifyBodyForceTerm()
 
@@ -268,11 +276,14 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
-
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  # Obtener el tiempo actual en Kratos
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         # Perform the convection of the historical database (Eulerian FM-ALE)
-        if self.eulerian_fm_ale:
-            self.__PerformEulerianFmAleVelocity()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
+        if current_time > 2 * delta_time:
+            if self.eulerian_fm_ale:
+                print("ENTRA")     
+                self.__PerformEulerianFmAleVelocity()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
 
         # Perform the level-set convection according to the previous step velocity
 
@@ -628,12 +639,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         linear_solver = self._GetLevelsetLinearSolver()
         eulerian_fm_ale_settings = self.settings["eulerian_fm_ale_settings"]
         if domain_size == 2:
-            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionProcess2D(
+            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionBDFProcess2D(
                 computing_model_part,
                 linear_solver,
                 eulerian_fm_ale_settings)
         else:
-            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionProcess3D(
+            eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionBDFProcess3D(
                 computing_model_part,
                 linear_solver,
                 eulerian_fm_ale_settings)

@@ -168,7 +168,6 @@ namespace Kratos
                 const double tau_denom = std::max(dyn_st_beta * dt_inv + 2.0 * norm_vel / h, 1e-2);
                 // const double tau_denom = 1.0* norm_vel / h;
                 tau = 1.0 / (tau_denom);
-                KRATOS_WATCH(tau)
                 // tau = 0.0;
 ;
 
@@ -181,9 +180,6 @@ namespace Kratos
             //     proj_oss += N[i]*this->GetGeometry()[i].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
             // }
 
-
-
-            KRATOS_WATCH(BDFcoeffs)
             // assemble RHS and LHS Gaus point contribution
 
              for (unsigned int i = 0; i < TNumNodes; i++)
@@ -227,8 +223,6 @@ namespace Kratos
         // multiply by the integration weight (constant in the element)
         rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
-        KRATOS_WATCH(rRightHandSideVector)
-        KRATOS_WATCH(rLeftHandSideMatrix)
 
         KRATOS_CATCH("Error in Levelset Element")
     }

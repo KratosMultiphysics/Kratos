@@ -268,58 +268,6 @@ public:
             }
         );
 
-        // for(unsigned int step = 1; step <= n_substep; ++step){
-        //     KRATOS_INFO_IF("LevelSetConvectionBDFProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
-        //         "Doing step "<< step << " of " << n_substep << std::endl;
-
-        //     if (mIsBfecc || mElementRequiresLevelSetGradient){
-        //         mpGradientCalculator->Execute();
-        //     }
-
-        //     // Compute shape functions of old and new step
-        //     const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
-        //     const double Nnew = 1.0 - Nold;
-
-        //     const double Nold_before = 1.0 - static_cast<double>(step-1) / static_cast<double>(n_substep);
-        //     const double Nnew_before = 1.0 - Nold_before;
-
-        //     // Emulate clone time step by copying the new distance onto the old one
-        //     IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        //     [&](int i_node){
-        //         auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-
-        //         const array_1d<double,3>& r_v = mVelocity[i_node];
-        //         const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
-
-        //         noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = Nold * r_v_old + Nnew * r_v;
-        //         noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = Nold_before * r_v_old + Nnew_before * r_v;
-        //         it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
-        //     }
-        //     );
-
-        //     // Storing the levelset variable for error calculation and Evaluating the limiter
-        //     if (mEvaluateLimiter) {
-        //         EvaluateLimiter();
-        //     }
-        //     block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0); });
-        //     mpSolvingStrategy->InitializeSolutionStep();
-        //     ComputeNodalArea();
-        //     if (mIsBDFElement)
-        //     {
-        //         NodalOSSProjection();
-        //     }
-        //     mpSolvingStrategy->Predict();
-        //     mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
-        //     mpSolvingStrategy->FinalizeSolutionStep();
-
-        //     // Error Compensation and Correction
-        //     if (mIsBfecc) {
-        //         ErrorCalculationAndCorrection();
-        //     }
-        // }
-
-
-
         // block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0); });
         mpSolvingStrategy->InitializeSolutionStep();
         // ComputeNodalArea();
@@ -330,9 +278,6 @@ public:
         mpSolvingStrategy->Predict();
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
-
-
-
 
         // Reset the processinfo to the original settings
         process_info_data.RestoreProcessInfoData(mpDistanceModelPart->GetProcessInfo());
@@ -1060,7 +1005,7 @@ private:
         }
         else if (ElementType == "levelset_convection_bdf"){
             default_parameters = Parameters(R"({
-                "dynamic_tau" : 0.0,
+                "dynamic_tau" : 0.1,
                 "cross_wind_stabilization_factor" : 0.7,
                 "requires_distance_gradient" : false,
                 "tau_nodal": false
@@ -1161,7 +1106,7 @@ private:
         //     CalculateReactions,
         //     ReformDofAtEachIteration,
         //     CalculateNormDxFlag);
-        mpSolvingStrategy->SetEchoLevel(1);
+        mpSolvingStrategy->SetEchoLevel(0);
         mpSolvingStrategy->Check();
         mpSolvingStrategy->Solve();
 
@@ -1215,4 +1160,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
+#endif // KRATOS_LEVELSET_CONVECTION_BDF_PROCESS_INCLUDED  defined

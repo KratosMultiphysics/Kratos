@@ -43,6 +43,7 @@
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
+#include "processes/levelset_convection_bdf_process.h"
 #include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
@@ -353,6 +354,14 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
     ;
+
+    py::class_<LevelSetConvectionBDFProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>, LevelSetConvectionBDFProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "LevelSetConvectionBDFProcess2D")
+        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
+
+    py::class_<LevelSetConvectionBDFProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>, LevelSetConvectionBDFProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "LevelSetConvectionBDFProcess3D")
+        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
 
     py::class_<FluxCorrectedTransportConvectionProcess<2>, FluxCorrectedTransportConvectionProcess<2>::Pointer, Process>(m,"FluxCorrectedTransportConvectionProcess2D")
         .def(py::init<Model&, Parameters>())

@@ -349,7 +349,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         self.time = model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         gid_output = GiDOutputProcess(model_part,
-                                      "testing_uxue/test",
+                                      "testing_uxue/test_ux",
                                       KratosMultiphysics.Parameters("""
                                         {
                                             "result_file_configuration" : {
@@ -394,7 +394,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
                 "eulerian_error_compensation" : false,
                 "element_type" : "levelset_convection_bdf"
             }""")
-            KratosMultiphysics.LevelSetConvectionProcess2D(
+            KratosMultiphysics.LevelSetConvectionBDFProcess2D(
                 model_part,
                 linear_solver,
                 levelset_convection_settings).Execute()
