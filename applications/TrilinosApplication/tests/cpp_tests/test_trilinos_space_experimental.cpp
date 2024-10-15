@@ -34,6 +34,9 @@ using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
 using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
 
+using TrilinosMatrixPointerType = TrilinosSparseSpaceType::MatrixPointerType;
+using TrilinosVectorPointerType = TrilinosSparseSpaceType::VectorPointerType;
+
 using TrilinosLocalMatrixType = TrilinosLocalSpaceType::MatrixType;
 using TrilinosLocalVectorType = TrilinosLocalSpaceType::VectorType;
 
@@ -542,27 +545,27 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCopyMatrixValues, KratosTrilinosAp
     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(*matrix_1, local_matrix);
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCombineMatricesGraphs, KratosTrilinosApplicationMPITestSuite)
-// {
-//     // The data communicator
-//     const auto& r_comm = Testing::GetDefaultDataCommunicator();
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCombineMatricesGraphs, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
 
-//     // The dummy vector
-//     const int size = 2 * r_comm.Size();
-//     auto matrix_1 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
-//     auto matrix_2 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
-//     auto local_matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
+    auto matrix_2 = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
 
-//     // Creating new matrix
-//     const auto combined_graph = TrilinosSparseSpaceType::CombineMatricesGraphs(matrix_1, matrix_2);
-//     TrilinosSparseMatrixType copied_matrix(::Copy, combined_graph);
+    // Creating new matrix
+    const auto combined_graph = TrilinosSparseSpaceType::CombineMatricesGraphs(*matrix_1, *matrix_2);
+    TrilinosMatrixPointerType copied_matrix = Teuchos::rcp(new TrilinosSparseMatrixType(combined_graph));
 
-//     // Solution
-//     TrilinosSparseSpaceType::CopyMatrixValues(copied_matrix, matrix_2);
+    // Solution
+    TrilinosSparseSpaceType::CopyMatrixValues(*copied_matrix, *matrix_2);
 
-//     // Check
-//     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(copied_matrix, local_matrix);
-// }
+    // Check
+    TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(*copied_matrix, local_matrix);
+}
 
 // KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 // {
