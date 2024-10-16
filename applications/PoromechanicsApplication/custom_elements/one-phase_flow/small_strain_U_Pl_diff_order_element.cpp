@@ -563,7 +563,7 @@ void SmallStrainUPlDiffOrderElement::FinalizeSolutionStep( const ProcessInfo& rC
             ThreadSafeNodeWrite(rGeom[16],LIQUID_PRESSURE, 0.5 * (p4 + p5) );
             ThreadSafeNodeWrite(rGeom[17],LIQUID_PRESSURE, 0.5 * (p5 + p6) );
             ThreadSafeNodeWrite(rGeom[18],LIQUID_PRESSURE, 0.5 * (p6 + p7) );
-            ThreadSafeNodeWrite(rGeom[19],LIQUID_PRESSURE, 0.5 * (p7 + p0) );
+            ThreadSafeNodeWrite(rGeom[19],LIQUID_PRESSURE, 0.5 * (p7 + p4) );
             break;
         }
         case 27: //3D H27P8
