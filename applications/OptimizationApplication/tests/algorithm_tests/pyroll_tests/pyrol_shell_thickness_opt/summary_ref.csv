@@ -1,0 +1,25 @@
+# Optimization problem ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# --------------- Initial values ----------------
+# 	strain_energy_shell:
+# 		initial_value: 4.2050e-03
+# ------------ End of initial values ------------
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP, strain_energy_shell:value
+      0,                4.2050e-03
+      1,                4.0897e-03
+      2,                3.9876e-03
+      2,                4.0638e-03
+      2,                4.0832e-03
+      2,                4.0881e-03
+      2,                4.0893e-03
+      2,                4.0896e-03
+      2,                4.0897e-03
+      2,                4.0897e-03
+      2,                4.0897e-03
+      2,                4.0897e-03
+# End of file
