@@ -18,7 +18,7 @@
 // System includes
 
 // External includes
-// #include <gismo>
+#include <gismo.h>
 // using namespace gismo;
 
 // Project includes
