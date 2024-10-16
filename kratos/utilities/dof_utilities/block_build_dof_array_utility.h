@@ -37,7 +37,7 @@ namespace Kratos
  * handle the DOFs when doing a block build.
  * @author Ruben Zorrilla
  */
-class KRATOS_API(KRATOS_CORE) BlockBuildDofArrayUtility
+class BlockBuildDofArrayUtility
 {
 public:
     ///@name Type Definitions
