@@ -140,6 +140,19 @@ public:
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
         }
 
+        if (mStoreNonconvergedSolutionsFlag) {
+            CollectCurrentSolution();
+            auto& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
+            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), mNonconvergedSolutions.size() );
+            for (std::size_t i = 0; i < mNonconvergedSolutions.size(); ++i) {
+                block_for_each(r_dof_set, [this, i](const auto& r_dof) {
+                    mNonconvergedSolutionsMatrix(r_dof.EquationId(), i) = mNonconvergedSolutions[i](r_dof.EquationId());
+                });
+            }
+        }
+
+        mNonconvergedSolutions.clear();
+
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
     }
 
@@ -236,6 +249,24 @@ private:
     double       small_pipe_height    = 1e-10;
     double       pipe_height_accuracy = small_pipe_height * 10;
 
+    /**
+     * @brief std vector containing non-converged solutions.
+     * @details Each entry in the std vector is a Kratos Vector containing the solution at a specific non-converged iteration.
+     */
+    std::vector<Vector> mNonconvergedSolutions;
+
+    /**
+     * @brief This matrix stores the non-converged solutions
+     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
+     */
+    Matrix mNonconvergedSolutionsMatrix;
+
+    /**
+     * @brief Flag indicating whether to store non-converged solutions
+     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
+     */
+    bool mStoreNonconvergedSolutionsFlag = false;
+
     /// <summary>
     /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi
     /// staged analysis.
@@ -325,6 +356,25 @@ private:
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 
+
+
+    /**
+     * @brief Collects the current solution vector for the degrees of freedom (DOFs).
+     * @details This method retrieves the current solution values for the provided DOF set.
+     * The solution vector will be resized to match the size of the DOF set if necessary,
+     * and will be filled with the solution values corresponding to each DOF. Each value is accessed
+     * using the equation ID associated with each DOF.
+     */
+    void CollectCurrentSolution() {
+        auto& rDofSet = this->GetBuilderAndSolver()->GetDofSet();
+        Vector this_solution(rDofSet.size());
+        block_for_each(rDofSet, [&this_solution](const auto& r_dof) {
+            this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
+        });
+        mNonconvergedSolutions.push_back(this_solution);
+    }
+
+
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
     {
         bool         equilibrium = false;
@@ -348,6 +398,10 @@ private:
             //{
             //    grow = false;
             //}
+
+            if (mStoreNonconvergedSolutionsFlag && !converged) {
+                CollectCurrentSolution();
+            }
 
             if (converged) {
                 // Update depth of open piping Elements

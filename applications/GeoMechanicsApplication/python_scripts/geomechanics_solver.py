@@ -365,7 +365,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
-        
+
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
@@ -576,3 +576,5 @@ class GeoMechanicalSolver(PythonSolver):
 
         return residual_criterion
 
+    def _GetSolutionStrategy(self):
+        return self.solver
