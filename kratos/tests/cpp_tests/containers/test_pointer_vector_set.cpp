@@ -418,6 +418,29 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert8, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&*(itr++), &*elements[48]);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsertUnorderedSet, KratosCoreFastSuite)
+{
+    Model model;
+    auto& model_part = model.CreateModelPart("test");
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+    std::unordered_set<Dof<double>::Pointer, DofPointerHasher, PointerComparor<Dof<double>>> dofs;
+    dofs.insert(model_part.CreateNewNode(4, 0, 0, 0)->pAddDof(PRESSURE));
+    dofs.insert(model_part.CreateNewNode(3, 0, 0, 0)->pAddDof(PRESSURE));
+    dofs.insert(model_part.CreateNewNode(2, 0, 0, 0)->pAddDof(PRESSURE));
+    dofs.insert(model_part.CreateNewNode(1, 0, 0, 0)->pAddDof(PRESSURE));
+    dofs.insert(model_part.GetNode(2).pAddDof(PRESSURE));
+    KRATOS_EXPECT_EQ(dofs.size(), 4);
+
+    PointerVectorSet<Dof<double>> test_container;
+    test_container.insert<Dof<double>::Pointer, DofPointerHasher, PointerComparor<Dof<double>>>(dofs.begin(), dofs.end());
+
+    KRATOS_EXPECT_EQ(test_container.size(), 4);
+    for (IndexType i = 0; i < 4; ++i) {
+        KRATOS_EXPECT_EQ(&*(test_container.begin() + i), model_part.GetNode(i + 1).pGetDof(PRESSURE));
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)
 {
     // create model and model part
