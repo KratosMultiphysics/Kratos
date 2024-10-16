@@ -86,10 +86,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double previous_min_stress = mPreviousMinStress;
     double max_stress;
     double min_stress;
-    double uniaxial_stress;
     double ultimate_stress;
     double relaxation_factor = mRelaxationFactor;
-    bool first_cycle_nonlinearity = mFirstCycleNonlinearity;
     bool first_max_indicator = mFirstMaxDetected;
     bool first_min_indicator = mFirstMinDetected;
     bool max_indicator = mMaxDetected;
@@ -123,7 +121,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
     if (((time - time_offset) % load_increments_per_cycle) == 0 && (time - time_offset) > 0) {
 
-        if (relaxation_factor < 1.0) {
+        if (relaxation_factor < 1.0 || local_number_of_cycles >= 10) {
             mFirstCycleNonlinearity = false; 
         }
 
@@ -152,7 +150,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         if (residual_stress_sign_factor > 0.0) {
            uniaxial_residual_stress *= relaxation_factor;
         } else {
-           uniaxial_residual_stress = 0.0;
+           uniaxial_residual_stress *= - relaxation_factor;
         }
 
         double alphat;
@@ -199,7 +197,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         if (residual_stress_sign_factor > 0.0) {
            uniaxial_residual_stress *= relaxation_factor;
         } else {
-           uniaxial_residual_stress = 0.0;
+           uniaxial_residual_stress *= - relaxation_factor;
         }
                
         double alphat;

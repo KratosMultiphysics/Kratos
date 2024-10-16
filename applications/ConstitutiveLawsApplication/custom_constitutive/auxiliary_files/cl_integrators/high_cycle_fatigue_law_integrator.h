@@ -286,15 +286,15 @@ public:
                 rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                 rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
-                // const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-                // const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+                const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
                 
-                // if (softening_type == curve_by_points) {
-                //     rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
-                //     if (MaxStress >= Threshold){
-                //         rN_f = 1.0;
-                //     }
-                // }
+                if (softening_type == curve_by_points) {
+                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                    if (MaxStress >= Threshold){
+                        rN_f = 1.0;
+                    }
+                }
                  
                 if (std::isnan(rN_f)) {
                     rN_f = std::numeric_limits<double>::infinity();
@@ -332,15 +332,15 @@ public:
                         rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                         rB0 = -(std::log(equivalent_max_stress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
-                        // const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-                        // const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+                        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+                        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
 
-                        // if (softening_type == curve_by_points) {
-                        //     rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
-                        //     if (equivalent_max_stress >= Threshold){
-                        //         rN_f = 1.0;
-                        //     }
-                        // }
+                        if (softening_type == curve_by_points) {
+                            rN_f = std::pow(rN_f, std::pow(std::log(equivalent_max_stress / Threshold) / std::log(equivalent_max_stress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
+                            if (equivalent_max_stress >= Threshold){
+                                rN_f = 1.0;
+                            }
+                        }
                     }
                 }
         }
