@@ -9,8 +9,8 @@ namespace Kratos
 {
 
 void SplitNodesIntoLocalAndGhost(ModelPart::NodesContainerType const& rNodes,
-                                 std::vector<ModelPart::NodeType*>& rLocalNodes,
-                                 std::vector<ModelPart::NodeType*>& rGhostNodes)
+                                 std::vector<Node*>& rLocalNodes,
+                                 std::vector<Node*>& rGhostNodes)
 {
     KRATOS_TRY;
 
@@ -63,11 +63,11 @@ void SplitNodesIntoLocalAndGhost(ModelPart::NodesContainerType const& rNodes,
 }
 
 void GetLocalNodes(ModelPart::NodesContainerType const& rNodes,
-                   std::vector<ModelPart::NodeType*>& rLocalNodes)
+                   std::vector<Node*>& rLocalNodes)
 {
     KRATOS_TRY;
 
-    std::vector<ModelPart::NodeType*> ghost_nodes;
+    std::vector<Node*> ghost_nodes;
     SplitNodesIntoLocalAndGhost(rNodes, rLocalNodes, ghost_nodes);
 
     KRATOS_CATCH("");
