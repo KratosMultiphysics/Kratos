@@ -34,6 +34,9 @@
 
 #include "geometries/point_on_geometry.h"
 
+#include "geometries/thb_surface_geometry.h"
+#include "geometries/thb_brep_surface.h"
+
 namespace Kratos
 {
 

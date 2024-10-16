@@ -32,6 +32,9 @@
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_curve.h"
 
+#include "geometries/thb_surface_geometry.h"
+#include "geometries/thb_brep_surface.h"
+
 namespace Kratos
 {
 
