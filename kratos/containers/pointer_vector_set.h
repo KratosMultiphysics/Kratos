@@ -1083,46 +1083,13 @@ private:
                 mData.push_back(TPointerType(&GetReference(it)));
             }
         } else {
-            // first find the largest range
             const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(GetReference(last-1)), CompareKey());
 
-            // then find the compact sub range
-            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(first)), CompareKey());
-            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(last-1)), CompareKey());
-
-            if (lower_bound_first == lower_bound_last &&
-                lower_bound_first == upper_bound_first &&
-                lower_bound_first == upper_bound_last) {
-                // all 4 bounds are equal, hence this can be inserted without checking further
-                if (lower_bound_first == mData.end()) {
-                    // all bounds are pointing to the end of the vector, hence pushing back.
-                    mData.reserve(mData.size() + std::distance(first, last));
-                    for (auto it = first; it != last; ++it) {
-                        mData.push_back(TPointerType(&GetReference(it)));
-                    }
-                } else {
-                    // all bounds are pointing to a middle section, hence creating a new vector
-                    // and will push back to it.
-                    TContainerType temp;
-                    temp.reserve(mData.size() + std::distance(first, last));
-
-                    // insert the original block first
-                    for (auto it = mData.begin(); it != lower_bound_first; ++it) {
-                        temp.push_back(TPointerType(&GetReference(it)));
-                    }
-
-                    // now insert the new items
-                    for (auto it = first; it != last; ++it) {
-                        temp.push_back(TPointerType(&GetReference(it)));
-                    }
-
-                    // now add the rest of the items from the original vector
-                    for (auto it = lower_bound_first; it != mData.end(); ++it) {
-                        temp.push_back(TPointerType(&GetReference(it)));
-                    }
-
-                    mData.swap(temp);
+            if (lower_bound_first == mData.end()) {
+                // all are pointing to the end of the vector, hence pushing back.
+                mData.reserve(mData.size() + std::distance(first, last));
+                for (auto it = first; it != last; ++it) {
+                    mData.push_back(TPointerType(&GetReference(it)));
                 }
             } else {
                 TContainerType temp;
