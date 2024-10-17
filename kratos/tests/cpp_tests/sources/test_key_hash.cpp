@@ -261,9 +261,9 @@ KRATOS_TEST_CASE_IN_SUITE(VectorIndexComparor, KratosCoreFastSuite)
 }
 
 /**
- *  Here the DofPointerComparor is test
+ *  Here the PointerComparor is test
  */
-KRATOS_TEST_CASE_IN_SUITE(DofPointerComparor, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PointerComparor, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("test");
@@ -272,7 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(DofPointerComparor, KratosCoreFastSuite)
     auto p_node = r_model_part.CreateNewNode(1, 1., 0, 0);
     p_node->AddDof(DISPLACEMENT_X, REACTION_X);
     p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
-    DofPointerComparor dof_pointer_comparor;
+    PointerComparor<Dof<double>> dof_pointer_comparor;
 
     KRATOS_EXPECT_FALSE(dof_pointer_comparor(p_node->pGetDof(DISPLACEMENT_X), p_node->pGetDof(DISPLACEMENT_Y)));
 }
