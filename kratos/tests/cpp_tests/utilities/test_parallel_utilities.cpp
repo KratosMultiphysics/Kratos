@@ -56,8 +56,9 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     std::vector<double> data_vector(nsize, 5.0);
 
     //here we raise every entry of a vector to the power 0.1
-    BlockPartition<std::vector<double>>(data_vector).for_each(
-                                         [](double& item)
+    BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
+                                                  data_vector.end()).for_each(
+        [](double& item)
     {
         item = std::pow(item, 0.1);
     });
@@ -65,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_EXPECT_EQ(item, std::pow(5.0, 0.1));
     }
 
     //shorter form
@@ -76,11 +77,12 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_EXPECT_EQ(item, std::pow(5.0, 0.1));
     }
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_each<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
+                                                                   data_vector.end()).for_each<SumReduction<double>>(
         [](double& item)
         {
             return item;
@@ -88,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     );
 
     double expected_value = std::pow(5.0, 0.1)*nsize;
-    KRATOS_CHECK_NEAR( std::abs(final_sum-expected_value)/std::abs(expected_value), 0.0, 1e-10  );
+    KRATOS_EXPECT_NEAR( std::abs(final_sum-expected_value)/std::abs(expected_value), 0.0, 1e-10  );
 }
 
 // Basic Type
@@ -98,7 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     const std::vector<double> data_vector(nsize, 5.0);
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto final_sum = BlockPartition<decltype(data_vector)>(data_vector).for_each<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>::const_iterator>(data_vector.begin(),
+                                                                         data_vector.end()).for_each<SumReduction<double>>(
         [](const double item)
         {
             return item;
@@ -114,8 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     );
 
     const double expected_value = 5.0*nsize;
-    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, expected_value);
-    KRATOS_CHECK_DOUBLE_EQUAL(final_sum_short, expected_value);
+    KRATOS_EXPECT_DOUBLE_EQ(final_sum, expected_value);
+    KRATOS_EXPECT_DOUBLE_EQ(final_sum_short, expected_value);
 }
 
 // Basic Type
@@ -132,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         );
 
     for(unsigned int i=0; i<output.size(); ++i)
-        KRATOS_CHECK_EQUAL(output[i], -2.0 );
+        KRATOS_EXPECT_EQ(output[i], -2.0 );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
@@ -172,13 +175,14 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // Manual Reduction, long form
     // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
     // the result is checked with a "manual reduction"
-    BlockPartition<std::vector<RHSElementType>>(elements).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+    BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
+                                                          elements.end()).for_each(std::vector<double>(), tls_lambda_manual_reduction);
 
     const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(sum_elem_rhs_vals, exp_sum, tol);
 
 
     // Manual Reduction, short form
@@ -190,16 +194,17 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
 
 
     // Reduction, long form
     // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
     // checking the results using reduction
     std::vector<double> tls(6);
-    const double final_sum = BlockPartition<std::vector<RHSElementType>>(elements).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
+    const double final_sum = BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
+                                                                                   elements.end()).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
 
-    KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(final_sum, exp_sum, tol);
 
 
     // Reduction, short form
@@ -208,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     std::vector<double> tls_short(6);
     const double final_sum_short = block_for_each<SumReduction<double>>(elements, tls_short, tls_lambda_reduction);
 
-    KRATOS_CHECK_NEAR(final_sum_short, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(final_sum_short, exp_sum, tol);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuite)
@@ -254,13 +259,13 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(sum_elem_rhs_vals, exp_sum, tol);
 
     const double sum_elem_rhs_vals_short = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
 
 
     // Reduction, long form
@@ -269,7 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     std::vector<double> tls(6);
     const double final_sum = IndexPartition<std::size_t>(elements.size()).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
 
-    KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
+    KRATOS_EXPECT_NEAR(final_sum, exp_sum, tol);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
@@ -287,9 +292,9 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
 
     for(unsigned int i=0; i<output.size(); ++i) {
         if (i%4 == 0) {
-            KRATOS_CHECK_DOUBLE_EQUAL(output[i], 3.3);
+            KRATOS_EXPECT_DOUBLE_EQ(output[i], 3.3);
         } else {
-            KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0);
+            KRATOS_EXPECT_DOUBLE_EQ(output[i], -2.0);
         }
     }
 }
@@ -309,8 +314,48 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
 
     std::sort(assembled_vector.begin(), assembled_vector.end());
 
-    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+    KRATOS_EXPECT_VECTOR_EQ(assembled_vector, expct_data_vector);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(AccumReductionSet, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+
+    const auto& assembled_vector = block_for_each<AccumReduction<int, std::set<int>>>(input_data_vector, [](const int rValue) -> int {
+        return rValue+1;
+    });
+
+    for (int i = 0; i < nsize; ++i) {
+        KRATOS_EXPECT_NE(assembled_vector.find(i+1), assembled_vector.end());
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FilteredAccumReductionInt, KratosCoreFastSuite)
+{
+    const int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize/2);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+    std::transform(
+        expct_data_vector.begin(),
+        expct_data_vector.end(),
+        expct_data_vector.begin(),
+        [] (int x) { return x * 2; });
+
+    auto assembled_vector = block_for_each<FilteredAccumReduction<int>>(input_data_vector, [](int& rValue) {
+        const bool add_value = rValue % 2 != 0;
+        return std::pair<bool, std::size_t>(add_value, rValue + 1);
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_EXPECT_VECTOR_EQ(assembled_vector, expct_data_vector);
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
 {
@@ -325,7 +370,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
     });
 
     for (const auto i : input_data_vector) {
-        KRATOS_CHECK_EQUAL(assembled_map[i], i+1);
+        KRATOS_EXPECT_EQ(assembled_map[i], i+1);
     }
 }
 
@@ -387,16 +432,16 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
-    KRATOS_CHECK_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
+    KRATOS_EXPECT_EQ(max_value, 0.0 );
+    KRATOS_EXPECT_EQ(max_abs, nsize-1 );
 
     //same but with short form with block version
     std::tie(max_value,max_abs) = block_for_each<CustomReducer>(data_vector,[&](double& item){
             return item; //note that here the lambda returns the values to be reduced
         });
 
-    KRATOS_CHECK_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
+    KRATOS_EXPECT_EQ(max_value, 0.0 );
+    KRATOS_EXPECT_EQ(max_abs, nsize-1 );
 
 
 
@@ -424,12 +469,12 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                     return std::make_tuple( to_sum, to_max, to_min, to_abs_max, to_abs_min, to_sub ); //note that these may have different types
                 }
             );
-    KRATOS_CHECK_EQUAL(sum, reference_sum );
-    KRATOS_CHECK_EQUAL(min, reference_min );
-    KRATOS_CHECK_EQUAL(max, reference_max );
-    KRATOS_CHECK_EQUAL(abs_min, reference_abs_min );
-    KRATOS_CHECK_EQUAL(abs_max, reference_abs_max );
-    KRATOS_CHECK_EQUAL(sub, reference_sub );
+    KRATOS_EXPECT_EQ(sum, reference_sum );
+    KRATOS_EXPECT_EQ(min, reference_min );
+    KRATOS_EXPECT_EQ(max, reference_max );
+    KRATOS_EXPECT_EQ(abs_min, reference_abs_min );
+    KRATOS_EXPECT_EQ(abs_max, reference_abs_max );
+    KRATOS_EXPECT_EQ(sub, reference_sub );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
@@ -438,7 +483,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
     std::vector<double> data_vector(nsize, 5.0);
 
     // basic version
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         block_for_each(data_vector, [](double& item){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
         });
@@ -447,7 +492,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with reductions
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         // deliberately ignoring [[nodiscard]] as it is not relevant for this test
         std::ignore = block_for_each<SumReduction<double>>(data_vector, [](double& item){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
@@ -458,7 +503,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with TLS
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         block_for_each(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
         });
@@ -467,7 +512,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with reduction and TLS
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         // deliberately ignoring [[nodiscard]] as it is not relevant for this test
         std::ignore = block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
@@ -484,7 +529,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
     std::vector<double> data_vector(nsize, 5.0);
 
     // basic version
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         IndexPartition<unsigned int>(data_vector.size()).for_each(
         [&](unsigned int i){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
@@ -495,7 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with reductions
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         // deliberately ignoring [[nodiscard]] as it is not relevant for this test
         std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
         [&](unsigned int i){
@@ -508,7 +553,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with TLS
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         IndexPartition<unsigned int>(data_vector.size()).for_each(std::vector<double>(),
         [&](unsigned int i, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
@@ -519,7 +564,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
     );
 
     // version with reduction and TLS
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         // deliberately ignoring [[nodiscard]] as it is not relevant for this test
         std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
         [&](unsigned int i, std::vector<double>& rTLS){
@@ -540,7 +585,7 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
         data_vector[i] = i;
 
     //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
                 if(i==0)
                     KRATOS_ERROR << "test error on thread 0";
@@ -581,7 +626,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosCriticalSection, KratosCoreFastSuite)
             }
         );
 
-    KRATOS_CHECK_EQUAL(size, sum);
+    KRATOS_EXPECT_EQ(size, sum);
 }
 
 } // namespace Kratos::Testing

@@ -135,7 +135,7 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDe
 /***********************************************************************************/
 
 template<>
-array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetNode(Id)->Coordinates();
 }
@@ -144,7 +144,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInpu
 /***********************************************************************************/
 
 template<>
-array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetNode(Id)->Coordinates();
 }
@@ -171,7 +171,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element, AssignScalarInpu
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
+PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Nodes();
 }
@@ -180,7 +180,7 @@ PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Nod
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
+PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Nodes();
 }
@@ -207,7 +207,7 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Ele
 /***********************************************************************************/
 
 template<>
-void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::ResetValues()
+void AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::ResetValues()
 {
     VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, GetEntitiesContainer());
 }
@@ -216,7 +216,7 @@ void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProc
 /***********************************************************************************/
 
 template<>
-void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::ResetValues()
+void AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::ResetValues()
 {
     VariableUtils().SetVariable(*mpVariable, 0.0, GetEntitiesContainer());
 }
@@ -243,8 +243,8 @@ void AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProc
 /***********************************************************************************/
 
 template<>
-void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::SetValue(
-    Node<3>& rEntity,
+void AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::SetValue(
+    Node& rEntity,
     const Variable<double>& rVariable,
     const double Value
     )
@@ -256,8 +256,8 @@ void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProc
 /***********************************************************************************/
 
 template<>
-void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::SetValue(
-    Node<3>& rEntity,
+void AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::SetValue(
+    Node& rEntity,
     const Variable<double>& rVariable,
     const double Value
     )
@@ -295,8 +295,8 @@ void AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProc
 /***********************************************************************************/
 
 template<>
-double& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetValue(
-    Node<3>& rEntity,
+double& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetValue(
+    Node& rEntity,
     const Variable<double>& rVariable
     )
 {
@@ -307,8 +307,8 @@ double& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesP
 /***********************************************************************************/
 
 template<>
-double& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetValue(
-    Node<3>& rEntity,
+double& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetValue(
+    Node& rEntity,
     const Variable<double>& rVariable
     )
 {
@@ -637,8 +637,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
-template class AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>;
+template class AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>;
 template class AssignScalarInputToEntitiesProcess<Condition>;
 template class AssignScalarInputToEntitiesProcess<Element>;
 

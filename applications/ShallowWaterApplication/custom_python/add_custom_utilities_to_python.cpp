@@ -22,6 +22,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/move_shallow_mesh_utility.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
+#include "custom_utilities/interpolate_sw_to_pfem_utility.hpp"
 
 
 namespace Kratos
@@ -154,6 +155,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             const std::size_t BufferStep) {
                 DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;
+
+    py::class_< InterpolateSwToPfemUtility >
+        (m, "InterpolateSwToPfemUtility")
+        .def( py::init<>())
+        .def("InterpolateVariables",&InterpolateSwToPfemUtility::InterpolateVariables)
+    ;
 
 }
 

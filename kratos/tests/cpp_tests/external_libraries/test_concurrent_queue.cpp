@@ -20,7 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 
 
 namespace Kratos {
@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConcurrentQueue, KratosExternalLibrariesFastSuite)
         sum += value;
     }
 
-    KRATOS_CHECK_EQUAL(n * (n - 1) / 2, sum);
+    KRATOS_EXPECT_EQ(n * (n - 1) / 2, sum);
 }
 
 } // namespace Testing.

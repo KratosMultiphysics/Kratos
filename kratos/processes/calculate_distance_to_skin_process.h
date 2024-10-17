@@ -55,7 +55,6 @@ public:
     using NodeType = ModelPart::NodeType;
 
     /// Types from the ApplyRayCastingProcess
-    using DistanceDatabase = typename ApplyRayCastingProcess<TDim>::DistanceDatabase;
     using IntersectionGeometryType = typename ApplyRayCastingProcess<TDim>::IntersectionGeometryType;
     using IntersectionsContainerType = typename ApplyRayCastingProcess<TDim>::IntersectionsContainerType;
     using NodeScalarGetFunctionType = typename ApplyRayCastingProcess<TDim>::NodeScalarGetFunctionType;
@@ -104,7 +103,7 @@ public:
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -164,7 +163,7 @@ public:
      * @return double the nodal distance of the node of interest
      */
     double CalculateDistanceToNode(
-        Node<3> &rNode,
+        Node &rNode,
         PointerVector<GeometricalObject> &rIntersectedObjects,
         const double Epsilon);
 
@@ -218,11 +217,11 @@ private:
     ///@name Member Variables
     ///@{
 
+    Parameters mSettings;
+
     double mRayCastingRelativeTolerance = 1.0e-8;
 
     const Variable<double>* mpDistanceVariable = &DISTANCE;
-
-    DistanceDatabase mDistanceDatabase = DistanceDatabase::NodeHistorical;
 
     ///@}
     ///@name Private Operators

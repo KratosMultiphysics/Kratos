@@ -969,8 +969,7 @@ const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msG
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TPointType>
-const GeometryDimension NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryDimension(
-    2, TWorkingSpaceDimension, 2);
+const GeometryDimension NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryDimension(TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 

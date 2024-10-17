@@ -24,7 +24,7 @@
 
 namespace Kratos {
 namespace Testing {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // /// Factory functions
 namespace {
@@ -76,47 +76,47 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
+        KRATOS_EXPECT_EQ(geom->EdgesNumber(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
+        KRATOS_EXPECT_EQ(geom->FacesNumber(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15Area, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->Area(), 0.5, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15MinEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15MaxEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15AverageEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15Circumradius, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15Inradius, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15IsInside, KratosCoreGeometriesFastSuite) {
@@ -126,10 +126,10 @@ namespace {
         Point PointInVertex(0.0, 0.0);
         Point PointInEdge(0.5, 0.15);
         Point LocalCoords;
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
@@ -137,18 +137,18 @@ namespace {
         Vector JacobianDeterminants;
         geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2);
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-            KRATOS_CHECK_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15IntegrationPointsNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
-        KRATOS_CHECK_EQUAL(geom->IntegrationPointsNumber(), 12);
+        KRATOS_EXPECT_EQ(geom->IntegrationPointsNumber(), 12);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D15();
         for (unsigned g = 0; g < geom->IntegrationPointsNumber(); ++g)
-        KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D15ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -157,21 +157,21 @@ namespace {
         coord[0] = 1.0 / 2.0;
         coord[1] = 1.0 / 8.0;
         coord[2] = 0.0;
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 0, coord),  0.0234375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 1, coord),  0.0      , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 2, coord), -0.0390625, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 3, coord), -0.125    , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 4, coord),  0.375    , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 5, coord),  0.0      , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 6, coord),  0.0      , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 7, coord), -0.125    , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 8, coord),  0.125    , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue( 9, coord),  0.09375  , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(10, coord), -0.046875 , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(11, coord), -0.03125  , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(12, coord),  0.375    , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(13, coord),  0.75     , TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(14, coord), -0.375    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 0, coord),  0.0234375, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 1, coord),  0.0      , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 2, coord), -0.0390625, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 3, coord), -0.125    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 4, coord),  0.375    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 5, coord),  0.0      , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 6, coord),  0.0      , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 7, coord), -0.125    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 8, coord),  0.125    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue( 9, coord),  0.09375  , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(10, coord), -0.046875 , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(11, coord), -0.03125  , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(12, coord),  0.375    , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(13, coord),  0.75     , TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(14, coord), -0.375    , TOLERANCE);
         CrossCheckShapeFunctionsValues(*geom);
     }
 
@@ -184,59 +184,59 @@ namespace {
         auto geom = GenerateReferenceTriangle2D15();
 
         Vector lumping_factors(15);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
-        KRATOS_CHECK_NEAR(lumping_factors[ 0],  0.0     , TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 1],  0.0     , TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 2],  0.0     , TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 3],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 4], -1.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 5],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 6],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 7], -1.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 8],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 9],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[10], -1.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[11],  4.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[12],  8.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[13],  8.0/45.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[14],  8.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 0],  0.0     , TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 1],  0.0     , TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 2],  0.0     , TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 3],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 4], -1.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 5],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 6],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 7], -1.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 8],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 9],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[10], -1.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[11],  4.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[12],  8.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[13],  8.0/45.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[14],  8.0/45.0, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
-        KRATOS_CHECK_NEAR(lumping_factors[ 0], 0.0049479514208965, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 1], 0.0049479514208965, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 2], 0.0049479514208965, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 3], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 4], 0.0411365548334816, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 5], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 6], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 7], 0.0411365548334816, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 8], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 9], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[10], 0.0411365548334816, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[11], 0.0415105750486979, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[12], 0.2042276769815594, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[13], 0.2042276769815594, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[14], 0.2042276769815594, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 0], 0.0049479514208965, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 1], 0.0049479514208965, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 2], 0.0049479514208965, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 3], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 4], 0.0411365548334816, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 5], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 6], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 7], 0.0411365548334816, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 8], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 9], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[10], 0.0411365548334816, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[11], 0.0415105750486979, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[12], 0.2042276769815594, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[13], 0.2042276769815594, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[14], 0.2042276769815594, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
-        KRATOS_CHECK_NEAR(lumping_factors[ 0], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 1], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 2], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 3], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 4], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 5], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 6], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 7], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 8], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 9], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[10], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[11], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[12], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[13], 1.0/15.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[14], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 0], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 1], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 2], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 3], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 4], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 5], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 6], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 7], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 8], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[ 9], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[10], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[11], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[12], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[13], 1.0/15.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(lumping_factors[14], 1.0/15.0, TOLERANCE);
     }
 
 } // namespace Testing.

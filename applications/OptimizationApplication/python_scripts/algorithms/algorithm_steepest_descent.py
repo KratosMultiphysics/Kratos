@@ -1,129 +1,154 @@
-# ==============================================================================
-#  KratosShapeOptimizationApplication
-#
-#  License:         BSD License
-#                   license: ShapeOptimizationApplication/license.txt
-#
-#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
-#                   Geiser Armin, https://github.com/armingeiser
-#
-# ==============================================================================
-
-# Kratos Core and Apps
-import KratosMultiphysics as KM
-import KratosMultiphysics.OptimizationApplication as KOA
-from KratosMultiphysics import Parameters, Logger
-
-# Additional imports
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
-from KratosMultiphysics.OptimizationApplication.utilities.timer import Timer
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
+from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
+from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
 
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    return AlgorithmSteepestDescent(model, parameters, optimization_problem)
 
-# ==============================================================================
-class AlgorithmSteepestDescent(OptimizationAlgorithm):
-    # --------------------------------------------------------------------------
-    def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
-        super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
-        default_algorithm_settings = Parameters("""
-        {
-            "max_iterations"     : 100,
-            "relative_tolerance" : 1e-3
+class AlgorithmSteepestDescent(Algorithm):
+    """
+        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+    """
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        return Kratos.Parameters("""{
+            "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
+            "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
+            "objective"         : {},
+            "controls"          : [],
+            "echo_level"        : 0,
+            "settings"          : {
+                "echo_level"      : 0,
+                "line_search"     : {},
+                "conv_settings"   : {}
+            }
         }""")
 
-        self.opt_settings["algorithm_settings"].RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
-        self.algorithm_settings = self.opt_settings["algorithm_settings"]
-        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
+    def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        self.model = model
+        self.parameters = parameters
+        self._optimization_problem = optimization_problem
 
-        self.opt_algorithm = KOA.AlgorithmSteepestDescent(self.name,self.model,self.opt_parameters)
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        Logger.PrintInfo("::[AlgorithmSteepestDescent]:: ", "Construction finished")
+        self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
-
-    # --------------------------------------------------------------------------
-    def InitializeOptimizationLoop(self):
-        super().InitializeOptimizationLoop()
-        self.opt_algorithm.Initialize()
-        self._InitializeCSVLogger()
-
-    # --------------------------------------------------------------------------
-    def RunOptimizationLoop(self):
-
-        timer = Timer()
-        timer.StartTimer()        
-
-        for self.optimization_iteration in range(1,self.max_iterations+1):
-            Logger.Print("")
-            Logger.Print("===============================================================================")
-            Logger.PrintInfo("AlgorithmSteepestDescent", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
-            Logger.Print("===============================================================================\n")
-
-            self.model_parts_controller.UpdateTimeStep(self.optimization_iteration)
-            self.opt_parameters["opt_itr"].SetInt(self.optimization_iteration)
-
-            # update controls
-            for control in self.controls:
-                self.controls_controller.UpdateControl(control,False)            
+        for control_name in parameters["controls"].GetStringArray():
+            control = optimization_problem.GetControl(control_name)
+            self.master_control.AddControl(control)
 
 
-            # evaluate all analysis-based responses
-            for analysis in self.analyses_responses.keys():
-                self.analyses_controller.RunAnalysis(analysis)
-                for response in self.analyses_responses[analysis]:
-                    response_value = self.responses_controller.CalculateResponseValue(response)
-                    self.SetResponseValue(response,response_value)
-                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+        settings = parameters["settings"]
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
-            # evaluate all analysis-free responses  
-            for response in self.analysis_free_responses:
-                response_value = self.responses_controller.CalculateResponseValue(response)
-                self.SetResponseValue(response,response_value)
-                self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])   
+        self.echo_level = settings["echo_level"].GetInt()
 
-            self._WriteCurrentResponseValuesToCSVFile()
+        ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
-            # compute objective values
-            responses_value = self.responses_controller.CalculateResponsesValue(self.objectives)
-            for response,value in responses_value.items():
-                Logger.Print("  ========================= objective ",response,": ",value," =========================  ")
+        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
+        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
-            # calculate gradients
-            for response in self.responses_controlled_objects.keys():
-                self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+        self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
+        self.__control_field = None
+        self.__obj_val = None
 
-            # calculate control gradients
-            for control in self.controls_response_gradient_names.keys():
-                for itr in range(len(self.controls_response_gradient_names[control])):
-                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
+    def GetMinimumBufferSize(self) -> int:
+        return 2
 
-            # calcuate 
-            self.opt_algorithm.CalculateSolutionStep() 
+    def Check(self):
+        self.master_control.Check()
+        self.__objective.Check()
 
-            # compute controls
-            for control in self.controls:
-                self.controls_controller.ComputeControl(control,False)
+    @time_decorator()
+    def Initialize(self):
+        self.converged = False
+        self.__obj_val = None
+        self.master_control.Initialize()
+        self.__objective.Initialize()
+        self.__control_field = self.master_control.GetControlField()
+        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
-            # now output 
-            for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():
-                root_control_model_part = self.model_parts_controller.GetRootModelPart(control_model_part)
-                OriginalTime = root_control_model_part.ProcessInfo[KM.TIME]
-                root_control_model_part.ProcessInfo[KM.TIME] = self.optimization_iteration
+    def Finalize(self):
+        self.master_control.Finalize()
+        self.__objective.Finalize()
 
-                vtkIO.ExecuteInitializeSolutionStep()
-                if(vtkIO.IsOutputStep()):
-                    vtkIO.PrintOutput()
-                vtkIO.ExecuteFinalizeSolutionStep()
+    @time_decorator()
+    def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
+        search_direction = obj_grad * -1.0
+        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
+        return search_direction
 
-                root_control_model_part.ProcessInfo[KM.TIME] = OriginalTime
-                            
-            Logger.Print("")
-            Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+    @time_decorator()
+    def ComputeControlUpdate(self, alpha):
+        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
+        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
-        self.FinalizeOptimizationLoop()
+    @time_decorator()
+    def UpdateControl(self) -> KratosOA.CollectiveExpression:
+        update = self.algorithm_data.GetBufferedData()["control_field_update"]
+        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
-    # --------------------------------------------------------------------------
-    def FinalizeOptimizationLoop(self):
-        super().FinalizeOptimizationLoop()
+    @time_decorator()
+    def Output(self) -> KratosOA.CollectiveExpression:
+        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+            if process.IsOutputStep():
+                process.PrintOutput()
 
-# ==============================================================================
+    def GetCurrentObjValue(self) -> float:
+        return self.__obj_val
+
+    def GetCurrentControlField(self):
+        return self.__control_field
+
+    @time_decorator()
+    def Solve(self):
+        while not self.converged:
+            with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
+                self._InitializeIteration()
+
+                self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
+                obj_info = self.__objective.GetInfo()
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
+                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                if "abs_change [%]" in obj_info:
+                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
+
+                obj_grad = self.__objective.CalculateStandardizedGradient()
+
+                self.ComputeSearchDirection(obj_grad)
+
+                alpha = self.__line_search_method.ComputeStep()
+
+                self.ComputeControlUpdate(alpha)
+
+                self._FinalizeIteration()
+
+                self.Output()
+
+                self.UpdateControl()
+
+                self.converged = self.__convergence_criteria.IsConverged()
+
+                self._optimization_problem.AdvanceStep()
+
+        return self.converged
+
+    def GetOptimizedObjectiveValue(self) -> float:
+        if self.converged:
+            return self.__obj_val
+        else:
+            raise RuntimeError("Optimization problem hasn't been solved.")

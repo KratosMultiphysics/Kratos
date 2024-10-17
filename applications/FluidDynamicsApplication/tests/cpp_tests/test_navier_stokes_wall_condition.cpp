@@ -12,13 +12,13 @@
 
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos::Testing {
 
@@ -161,9 +161,12 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NZero, FluidDynamicsApplic
     Matrix LHS;
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
+    Vector expected_RHS = ZeroVector(6);
+    Matrix expected_LHS = ZeroMatrix(6,6);
+
     // Check results
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ZeroVector(6), 1.0e-12)
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynamicsApplicationFastSuite)
@@ -197,8 +200,8 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynami
 
     // Check results
     std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NSlipTangentialCorrection, FluidDynamicsApplicationFastSuite)
@@ -237,8 +240,8 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NSlipTangentialCorrection,
     // Check results
     std::vector<double> rhs_out = {0,-4.0,0,-4.0/3.0,-4.0/3.0,0};
     std::vector<double> lhs_row_3_out = {0,0,-1.0/12.0,0,0,-1.0/6.0};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(row(LHS,3), lhs_row_3_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,3), lhs_row_3_out, 1.0e-8)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition3D3NSlipTangentialCorrection, FluidDynamicsApplicationFastSuite)
@@ -280,8 +283,8 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition3D3NSlipTangentialCorrection,
     // Check results
     std::vector<double> rhs_out = {-0.4444444444,4,0.4444444444,0,-0.4444444444,4,0.4444444444,0,-0.4444444444,4,0.4444444444,0};
     std::vector<double> lhs_row_2_out = {0,0,0,0.04166666667,0,0,0,0.02083333333,0,0,0,0.02083333333};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(row(LHS,2), lhs_row_2_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,2), lhs_row_2_out, 1.0e-8)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesNavierSlipWallCondition3D3N, FluidDynamicsApplicationFastSuite)
@@ -319,8 +322,8 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesNavierSlipWallCondition3D3N, FluidDynamics
     // Check results
     std::vector<double> rhs_out = {75,150,0,0,58.33333333,116.66666666,0,0,66.66666666,133.33333333,0,0};
     std::vector<double> lhs_row_1_out = {0,-16.66666666,0,0,0,-8.33333333,0,0,0,-8.33333333,0,0};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(row(LHS,1), lhs_row_1_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,1), lhs_row_1_out, 1.0e-8)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NavierStokesLinearLogWallCondition3D3N, FluidDynamicsApplicationFastSuite)
@@ -363,8 +366,8 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesLinearLogWallCondition3D3N, FluidDynamicsA
         lhs_diag[i] = LHS(i,i);
     }
     std::vector<double> lhs_diag_out = {9.3137335939, 9.3137335939, 9.3137335939, 0, 4.39172965973, 4.39172965973, 4.39172965973, 0, 7.01611748328, 7.01611748328, 7.01611748328, 0};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(lhs_diag, lhs_diag_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(lhs_diag, lhs_diag_out, 1.0e-8)
 }
 
 }  // namespace Kratos::Testing

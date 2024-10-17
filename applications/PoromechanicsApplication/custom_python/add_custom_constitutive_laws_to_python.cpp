@@ -14,30 +14,38 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 //constitutive laws
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
-#include "custom_constitutive/exponential_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastoplastic_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastoplastic_mod_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/isotropic_damage_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/isotropic_damage_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastic_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/elastic_cohesive_2D_law.hpp"
+#include "custom_constitutive/interface_element_laws/exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/interface_element_laws/exponential_cohesive_2D_law.hpp"
 
-#include "custom_constitutive/simo_ju_local_damage_3D_law.hpp"
-#include "custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/simo_ju_local_damage_plane_stress_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_local_damage_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_local_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_local_damage_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/simo_ju_nonlocal_damage_3D_law.hpp"
-#include "custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/modified_mises_nonlocal_damage_3D_law.hpp"
-#include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
-#include "custom_constitutive/history_linear_elastic_3D_law.hpp"
-#include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
-#include "custom_constitutive/history_linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_3D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_plane_strain_2D_law.hpp"
+// #include "custom_constitutive/continuum_laws/history_linear_elastic_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/hyperelastic_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/continuum_laws/linear_elastic_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -50,6 +58,34 @@ namespace py = pybind11;
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
     // Module local to avoid conflicts with other apps
+    py::class_< ElastoPlasticMohrCoulombCohesive3DLaw, ElastoPlasticMohrCoulombCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticMohrCoulombCohesive3DLaw", py::module_local())
+    .def( py::init<>() );
+    py::class_< ElastoPlasticMohrCoulombCohesive2DLaw, ElastoPlasticMohrCoulombCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticMohrCoulombCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
+    py::class_< ElastoPlasticModMohrCoulombCohesive3DLaw, ElastoPlasticModMohrCoulombCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticModMohrCoulombCohesive3DLaw", py::module_local())
+    .def( py::init<>() );
+    py::class_< ElastoPlasticModMohrCoulombCohesive2DLaw, ElastoPlasticModMohrCoulombCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElastoPlasticModMohrCoulombCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
+    py::class_< ElasticCohesive2DLaw, ElasticCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElasticCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+    py::class_< ElasticCohesive3DLaw, ElasticCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ElasticCohesive3DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
+    py::class_< IsotropicDamageCohesive3DLaw, IsotropicDamageCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "IsotropicDamageCohesive3DLaw", py::module_local())
+    .def( py::init<>() ) ;
+    py::class_< IsotropicDamageCohesive2DLaw, IsotropicDamageCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "IsotropicDamageCohesive2DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
     py::class_< BilinearCohesive3DLaw, BilinearCohesive3DLaw::Pointer, ConstitutiveLaw >
     (m, "BilinearCohesive3DLaw", py::module_local())
     .def( py::init<>() );
@@ -107,15 +143,6 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "ModifiedMisesNonlocalDamagePlaneStress2DLaw")
     .def( py::init<>() );
 
-    py::class_< HistoryLinearElastic3DLaw, HistoryLinearElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "HistoryLinearElastic3DLaw")
-    .def( py::init<>() );
-    py::class_< HistoryLinearElasticPlaneStrain2DLaw, HistoryLinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-    (m, "HistoryLinearElasticPlaneStrain2DLaw")
-    .def( py::init<>() );
-    py::class_< HistoryLinearElasticPlaneStress2DLaw, HistoryLinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
-    (m, "HistoryLinearElasticPlaneStress2DLaw")
-    .def( py::init<>() );
 }
 
 }  // namespace Python.

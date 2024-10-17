@@ -53,7 +53,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(FluidCharacteristicNumbersUtilities);
 
     /// Function type for the element size calculator function
-    typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
+    typedef std::function<double(const Geometry<Node>&)> ElementSizeFunctionType;
 
 	///@}
 	///@name Life Cycle
@@ -211,7 +211,7 @@ public:
      * @param rGeometry Geoemtry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the minimum element size
      */
-    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node>& rGeometry);
 
     /**
      * @brief Get the average element size calculation function
@@ -220,7 +220,7 @@ public:
      * @param rGeometry Geoemtry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the average element size
      */
-    static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node>& rGeometry);
 
     ///@}
 

@@ -476,6 +476,21 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
+    std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
+    {
+        return mConstitutiveLaws;
+    }
+
+    std::vector<double>& GetCombinationFactors()
+    {
+        return mCombinationFactors;
+    }
+
+    void SetCombinationFactors(const std::vector<double>& rVector )
+    {
+        mCombinationFactors = rVector;
+    }
+
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters

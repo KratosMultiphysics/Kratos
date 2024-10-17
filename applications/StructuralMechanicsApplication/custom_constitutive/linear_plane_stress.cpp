@@ -4,10 +4,11 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
+
 // System includes
 #include <iostream>
 
@@ -91,7 +92,10 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 
 void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, rValues);
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, E, NU);
 }
 
 //************************************************************************************
@@ -107,13 +111,7 @@ void LinearPlaneStress::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c1 = E / (1.00 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5* E / (1 + NU);
-
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStress(rStressVector, rStrainVector, E, NU);
 }
 
 //************************************************************************************
@@ -121,23 +119,7 @@ void LinearPlaneStress::CalculatePK2Stress(
 
 void LinearPlaneStress::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double,2,2> F2x2;
-    for (unsigned int i = 0; i<2; ++i)
-        for (unsigned int j = 0; j<2; ++j)
-            F2x2(i, j) = F(i, j);
-
-    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
-
-    for (unsigned int i = 0; i<2; ++i)
-        E_tensor(i, i) -= 1.0;
-
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(rValues, rStrainVector);
 }
 
 } // Namespace Kratos

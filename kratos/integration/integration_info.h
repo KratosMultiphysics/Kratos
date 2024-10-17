@@ -157,7 +157,7 @@ public:
             break;
         case 5:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::NumberOfIntegrationMethods;
+                return IntegrationMethod::GI_GAUSS_5;
             }
             else {
                 return IntegrationMethod::GI_EXTENDED_GAUSS_5;

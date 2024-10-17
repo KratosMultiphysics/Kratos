@@ -285,8 +285,8 @@ public:
             double h_max = 0.0;
 
             //compute nodal h (by max edge size)
-            GlobalPointersVector<Node<3> >& neigbours = i->GetValue(NEIGHBOUR_NODES);
-            for(GlobalPointersVector<Node<3> >::iterator ineighb=neigbours.begin(); ineighb!=neigbours.end(); ineighb++)
+            GlobalPointersVector<Node >& neigbours = i->GetValue(NEIGHBOUR_NODES);
+            for(GlobalPointersVector<Node >::iterator ineighb=neigbours.begin(); ineighb!=neigbours.end(); ineighb++)
             {
                 array_1d<double,3> aux = ineighb->Coordinates();
                 aux -=  xc;

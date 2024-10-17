@@ -72,7 +72,7 @@ public:
 
     typedef Geometry<Point> GeometryType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Life Cycle

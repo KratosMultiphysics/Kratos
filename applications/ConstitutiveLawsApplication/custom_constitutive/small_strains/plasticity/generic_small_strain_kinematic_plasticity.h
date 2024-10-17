@@ -81,7 +81,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainKinematicPlasticity);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -430,7 +430,9 @@ protected:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const Vector& rPlasticStrain);
 
     ///@}
     ///@name Private  Access

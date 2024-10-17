@@ -6,8 +6,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -32,8 +32,17 @@ PointWithId::PointWithId(const PointWithId& rOther)
 
 bool PointWithId::operator<(const PointWithId& rOther) const
 {
-    if (Point::operator==(rOther)) return false;
-    return mDistance < rOther.mDistance;
+    return (!Point::operator==(rOther)) && (mDistance < rOther.mDistance);
+}
+
+bool PointWithId::operator==(const PointWithId& rOther) const
+{
+    return ( Point::operator==(rOther));
+}
+
+bool PointWithId::operator!=(const PointWithId& rOther) const
+{
+    return (!Point::operator==(rOther));
 }
 
 void PointWithId::save(Serializer &rSerializer) const

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -538,7 +538,7 @@ void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(
         << counters[2] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[2])
         << " %) local systems did not find a neighbor" << std::endl;
 
-    KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer.ElapsedSeconds() << " [s]" << std::endl;
+    KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer << std::endl;
 }
 
 }  // namespace Kratos.

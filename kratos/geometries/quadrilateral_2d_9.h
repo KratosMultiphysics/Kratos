@@ -14,7 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -437,7 +437,7 @@ public:
         KRATOS_WARNING("Quadrilateral2D9") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning zero instead)" << std::endl;
         return Area();
         // TODO: Replace in June 2023
-        // KRATOS_ERROR << "Quadrilateral2D9:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // KRATOS_ERROR << "Quadrilateral2D9:: Method not well defined. Replace with DomainSize() instead." << std::endl;
         // return 0.0;
     }
 
@@ -456,7 +456,7 @@ public:
     {
         return Area();
     }
-    
+
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -643,11 +643,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1221,6 +1226,8 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1243,6 +1250,8 @@ private:
                     GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
             }
         };
         return shape_functions_values;
@@ -1264,6 +1273,8 @@ private:
                 ( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
                 ( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
+                ( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
             }
         };
         return shape_functions_local_gradients;
@@ -1311,7 +1322,6 @@ const GeometryData Quadrilateral2D9<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(2, 2);
 
 }  // namespace Kratos.

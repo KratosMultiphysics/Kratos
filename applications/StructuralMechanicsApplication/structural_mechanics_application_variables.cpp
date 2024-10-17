@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -35,6 +35,10 @@ KRATOS_CREATE_VARIABLE(Matrix, MODAL_MASS_MATRIX)
 KRATOS_CREATE_VARIABLE(Matrix, MODAL_STIFFNESS_MATRIX)
 
 // Geometrical
+KRATOS_CREATE_VARIABLE(double, AXIAL_FORCE)
+KRATOS_CREATE_VARIABLE(double, SHEAR_FORCE)
+KRATOS_CREATE_VARIABLE(double, BENDING_MOMENT)
+KRATOS_CREATE_VARIABLE(double, INITIAL_GEOMETRIC_CURVATURE)
 KRATOS_CREATE_VARIABLE(double, AREA)
 KRATOS_CREATE_VARIABLE(double, IT)
 KRATOS_CREATE_VARIABLE(double, IY)
@@ -63,6 +67,11 @@ KRATOS_CREATE_VARIABLE(double, TORSIONAL_INERTIA)
 KRATOS_CREATE_VARIABLE(double, I22)
 KRATOS_CREATE_VARIABLE(double, I33)
 KRATOS_CREATE_VARIABLE(double, LUMPED_MASS_ROTATION_COEFFICIENT)
+KRATOS_CREATE_VARIABLE(Vector, BEAM_INITIAL_STRAIN_VECTOR)
+
+// semi rigid beam variables
+KRATOS_CREATE_VARIABLE(double, ROTATIONAL_STIFFNESS_AXIS_2)
+KRATOS_CREATE_VARIABLE(double, ROTATIONAL_STIFFNESS_AXIS_3)
 
 // Shell generalized variables
 KRATOS_CREATE_VARIABLE(bool, STENBERG_SHEAR_STABILIZATION_SUITABLE)

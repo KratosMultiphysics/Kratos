@@ -19,9 +19,7 @@
 #include "includes/kratos_parameters.h"
 #include "add_kratos_parameters_to_python.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 pybind11::list items(Parameters const& self)
 {
@@ -97,6 +95,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("IsInt", &Parameters::IsInt)
     .def("IsBool", &Parameters::IsBool)
     .def("IsString", &Parameters::IsString)
+    .def("IsStringArray", &Parameters::IsStringArray)
     .def("IsArray", &Parameters::IsArray)
     .def("IsVector", &Parameters::IsVector)
     .def("IsMatrix", &Parameters::IsMatrix)
@@ -145,6 +144,4 @@ void  AddKratosParametersToPython(pybind11::module& m)
     ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

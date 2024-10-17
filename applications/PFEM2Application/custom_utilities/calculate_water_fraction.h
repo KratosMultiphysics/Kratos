@@ -95,7 +95,7 @@ namespace Kratos
 					double Area;
 					BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 					array_1d<double, (TDim+1) > N;
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					Geometry<Node >& geom = ielem->GetGeometry();
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
 					//sum_areas+=area;
 					int negative_nodes=0;
@@ -378,7 +378,7 @@ namespace Kratos
 					if (ielem->Is(ACTIVE)) //elements can be inactive to add temporary walls. fractional velocity is integrated by parts so walls are seen as having zero velocity without doing anything
 					{
 						//double Area;
-						Geometry<Node<3> >& geom = ielem->GetGeometry();
+						Geometry<Node >& geom = ielem->GetGeometry();
 
 						array_1d<unsigned int, 4 > fixed_nodes; //unordered : i position in the array might not correspond to i node of the element
 						array_1d<bool, 4 > is_node_fixed; //i position belongs to i node of the element

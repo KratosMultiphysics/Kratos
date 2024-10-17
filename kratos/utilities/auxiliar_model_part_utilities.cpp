@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
 
 // System includes
-#include <unordered_set>
 
 // External includes
 
@@ -25,6 +24,81 @@
 
 namespace Kratos
 {
+void AuxiliarModelPartUtilities::AddElementWithNodes(Element::Pointer pNewElement)
+{
+    const auto& r_geom = pNewElement->GetGeometry();
+    std::vector<IndexType> list_of_nodes;
+    list_of_nodes.reserve(r_geom.size());
+    IndexType id;
+    for (IndexType i = 0; i < r_geom.size(); ++i) {
+        id = r_geom[i].Id();
+        if (!mrModelPart.HasNode(id)) {
+            list_of_nodes.push_back(id);
+        }
+    }
+    std::sort(list_of_nodes.begin(), list_of_nodes.end());
+    mrModelPart.AddNodes(list_of_nodes);
+    mrModelPart.AddElement(pNewElement);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AuxiliarModelPartUtilities::AddElementsWithNodes(const std::vector<IndexType>& rElementIds)
+{
+    KRATOS_TRY
+    mrModelPart.AddElements(rElementIds);
+    if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the root model part, the root model part already contains all the nodes
+        // Obtain from the root model part the corresponding list of nodes
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType>(p_root_model_part->Elements(), rElementIds);
+    } else {
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the nodes and elements as we are on the root model part, the root model part already contains all the nodes" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AuxiliarModelPartUtilities::AddConditionWithNodes(Condition::Pointer pNewCondition)
+{
+    const auto& r_geom = pNewCondition->GetGeometry();
+    std::vector<IndexType> list_of_nodes;
+    list_of_nodes.reserve(r_geom.size());
+    IndexType id;
+    for (IndexType i = 0; i < r_geom.size(); ++i) {
+        id = r_geom[i].Id();
+        if (!mrModelPart.HasNode(id)) {
+            list_of_nodes.push_back(id);
+        }
+    }
+    std::sort(list_of_nodes.begin(), list_of_nodes.end());
+    mrModelPart.AddNodes(list_of_nodes);
+    mrModelPart.AddCondition(pNewCondition);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AuxiliarModelPartUtilities::AddConditionsWithNodes(const std::vector<IndexType>& rConditionIds)
+{
+    KRATOS_TRY
+    mrModelPart.AddConditions(rConditionIds);
+    if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the top model part
+        ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType>(p_root_model_part->Conditions(), rConditionIds);
+    } else {
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the nodes and conditions as we are on the root model part, the root model part already contains all the nodes" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AuxiliarModelPartUtilities::CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt)
 {
     for (auto& r_old_sub_model_part : rModelPartToCopyFromIt.SubModelParts()) {
@@ -413,6 +487,96 @@ void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::unordered_map<IndexType, std::vector<IndexType>> AuxiliarModelPartUtilities::RetrieveElementsNeighbourElementsIds()
+{
+    // Initialize the container to store the IDs of neighboring elements for each element
+    std::unordered_map<IndexType, std::vector<IndexType>> elements_neighbours_elements_ids;
+
+    // Determine dimension
+    unsigned int dim = 0;
+    if (mrModelPart.NumberOfElements() > 0) {
+        dim = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    }
+
+    // Loop over each element in the model part
+    for (auto& r_elem : mrModelPart.Elements()) {
+        // Retrieve the neighboring elements for the current element
+        auto& r_neighbours = r_elem.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Check if the number of neighboring elements matches the expected dimension
+        KRATOS_ERROR_IF_NOT(r_neighbours.size() == dim) << "Condition " << r_elem.Id() << " has not correct size solution for NEIGHBOUR_ELEMENTS " << r_neighbours.size() << " vs " << dim << std::endl;
+
+        // Create a vector to store the IDs of neighboring elements
+        std::vector<IndexType> solution;
+        solution.reserve(dim);
+
+        // Loop over each dimension and store the ID of the neighboring element
+        for (unsigned int i_dim = 0; i_dim < dim; ++i_dim) {
+            auto p_neighbour = r_neighbours(i_dim);
+            if (p_neighbour.get()) {
+                solution.push_back(p_neighbour->Id());
+            }
+        }
+
+        // Shrink to fit
+        solution.shrink_to_fit();
+
+        // Insert the IDs of neighboring elements into the map with the ID of the current element as the key
+        elements_neighbours_elements_ids.insert({r_elem.Id(), solution});
+    }
+
+    // Return the map containing the IDs of neighboring elements for each element
+    return elements_neighbours_elements_ids;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::unordered_map<IndexType, std::vector<IndexType>> AuxiliarModelPartUtilities::RetrieveConditionsNeighbourConditionsIds()
+{
+    // Initialize the container to store the IDs of neighboring conditions for each condition
+    std::unordered_map<IndexType, std::vector<IndexType>> conditions_neighbours_conditions_ids;
+
+    // Determine dimension
+    unsigned int dim = 0;
+    if (mrModelPart.NumberOfConditions() > 0) {
+        dim = mrModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+    }
+
+    // Loop over each condition in the model part
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        // Retrieve the neighboring conditions for the current condition
+        auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
+
+        // Check if the number of neighboring conditions matches the expected dimension
+        KRATOS_ERROR_IF_NOT(r_neighbours.size() == dim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << dim << std::endl;
+
+        // Create a vector to store the IDs of neighboring conditions
+        std::vector<IndexType> solution;
+        solution.reserve(dim);
+
+        // Loop over each dimension and store the ID of the neighboring condition
+        for (unsigned int i_dim = 0; i_dim < dim; ++i_dim) {
+            auto p_neighbour = r_neighbours(i_dim);
+            if (p_neighbour.get()) {
+                solution.push_back(p_neighbour->Id());
+            }
+        }
+
+        // Shrink to fit
+        solution.shrink_to_fit();
+
+        // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
+        conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
+    }
+
+    // Return the map containing the IDs of neighboring conditions for each condition
+    return conditions_neighbours_conditions_ids;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const std::string& rNewModelPartName,
     Model* pModel
@@ -489,8 +653,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     });
 
     // First, before copy, we create a database of pointers of the geometries
-    PointerVector<Node<3>> points_geometry;
-    std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer> geometry_pointers_database;
+    PointerVector<Node> points_geometry;
+    std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer> geometry_pointers_database;
 
     // The database of elements
     const auto& r_reference_elements = mrModelPart.Elements();

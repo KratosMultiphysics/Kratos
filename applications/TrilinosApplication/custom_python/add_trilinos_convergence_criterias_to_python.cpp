@@ -36,19 +36,15 @@ namespace py = pybind11;
 
 void  AddConvergenceCriterias(pybind11::module& m)
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    //typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-
-    //typedef Epetra_FECrsMatrix FECrsMatrix;
-
+    using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
     //********************************************************************
     //********************************************************************
-    //convergence criteria base class
-    typedef ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosConvergenceCriteria;
+    // Convergence criteria base class
+    using TrilinosConvergenceCriteria = ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
 
-    typedef typename ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer TrilinosConvergenceCriteriaPointer;
+    using TrilinosConvergenceCriteriaPointer = typename ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer;
 
     py::class_< TrilinosConvergenceCriteria, TrilinosConvergenceCriteriaPointer > (m,"TrilinosConvergenceCriteria")
     .def(py::init<>())
@@ -66,13 +62,17 @@ void  AddConvergenceCriterias(pybind11::module& m)
     py::class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>(m,"TrilinosDisplacementCriteria")
-            .def(py::init< double, double >());
+            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >())
+            .def(py::init< Parameters >())
+            ;
 
     py::class_< TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
             (m,"TrilinosResidualCriteria")
-            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
+            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >())
+            .def(py::init< Parameters >())
+            ;
 
     py::class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
@@ -86,7 +86,7 @@ void  AddConvergenceCriterias(pybind11::module& m)
             (m,"TrilinosOrCriteria")
             .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
 
-    typedef typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
+    using ConvergenceVariableListType = typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::ConvergenceVariableListType;
     py::class_<
         TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,

@@ -87,7 +87,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
   struct dof_iterator_hash
   {
-    size_t operator()(const Node<3>::DofType::Pointer& it) const
+    size_t operator()(const Node::DofType::Pointer& it) const
     {
       std::size_t seed = 0;
       HashCombine(seed, it->Id());
@@ -98,7 +98,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
   struct dof_iterator_equal
   {
-    size_t operator()(const Node<3>::DofType::Pointer& it1, const Node<3>::DofType::Pointer& it2) const
+    size_t operator()(const Node::DofType::Pointer& it1, const Node::DofType::Pointer& it2) const
     {
       return (((it1->Id() == it2->Id() && (it1->GetVariable()).Key())==(it2->GetVariable()).Key()));
     }
@@ -486,9 +486,9 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
 #ifdef USE_GOOGLE_HASH
-    typedef google::dense_hash_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+    typedef google::dense_hash_set < Node::DofType::Pointer, dof_iterator_hash>  set_type;
 #else
-    typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+    typedef std::unordered_set < Node::DofType::Pointer, dof_iterator_hash>  set_type;
 #endif
 
     std::vector<set_type> dofs_aux_list(nthreads);
@@ -501,7 +501,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     for (int i = 0; i < static_cast<int>(nthreads); i++)
     {
 #ifdef USE_GOOGLE_HASH
-      dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
+      dofs_aux_list[i].set_empty_key(Node::DofType::Pointer());
 #else
       dofs_aux_list[i].reserve(nelements);
 #endif

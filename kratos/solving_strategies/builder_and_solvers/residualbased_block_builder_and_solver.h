@@ -31,6 +31,7 @@
 #include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
+#include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
@@ -121,7 +122,7 @@ public:
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
@@ -253,9 +254,9 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -328,7 +329,7 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
 
@@ -359,40 +360,40 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void SystemSolve(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-        }
-        else
-            TSparseSpace::SetToZero(Dx);
-
-        if(mT.size1() != 0) //if there are master-slave constraints
-        {
-            //recover solution of the original problem
-            TSystemVectorType Dxmodified = Dx;
-
-            TSparseSpace::Mult(mT, Dxmodified, Dx);
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
         }
 
-        //prints information about the current time
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        if(mT.size1() != 0) { // If there are master-slave constraints
+            // Recover solution of the original problem
+            TSystemVectorType Dxmodified = rDx;
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(mT, Dxmodified, rDx);
+        }
+
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -428,34 +429,34 @@ public:
     }
 
     /**
-      *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      * @param rModelPart The model part of the problem to solve
      */
     void InternalSystemSolveWithPhysics(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
         ModelPart& rModelPart
     )
     {
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
         else
             norm_b = 0.00;
 
         if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, rModelPart);
 
             //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
         } else {
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
@@ -496,7 +497,7 @@ public:
             Timer::Start("ApplyConstraints");
             ApplyConstraints(pScheme, rModelPart, A, b);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
@@ -509,7 +510,7 @@ public:
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
@@ -608,7 +609,7 @@ public:
             Timer::Start("ApplyConstraints");
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
             Timer::Stop("ApplyConstraints");
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -621,7 +622,7 @@ public:
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
     }
@@ -662,7 +663,7 @@ public:
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -700,9 +701,8 @@ public:
     }
 
     /**
-     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-     * and condition its Dofs.
-     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
+     * @brief Builds the list of the DofSets involved in the problem by calling the corresponding utility
+     * @details The list of dofs is stored inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -714,114 +714,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
-
-        //Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array = rModelPart.Elements();
-        const int number_of_elements = static_cast<int>(r_elements_array.size());
-
-        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
-
-        unsigned int nthreads = ParallelUtilities::GetNumThreads();
-
-        typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
-
-        /**
-         * Here we declare three sets.
-         * - The global set: Contains all the DoF of the system
-         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
-         */
-        set_type dof_global_set;
-        dof_global_set.reserve(number_of_elements*20);
-
-        #pragma omp parallel firstprivate(dof_list, second_dof_list)
-        {
-            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-            // We cleate the temporal set and we reserve some space on them
-            set_type dofs_tmp_set;
-            dofs_tmp_set.reserve(20000);
-
-            // Gets the array of elements from the modeler
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_elements; ++i) {
-                auto it_elem = r_elements_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
-
-            // Gets the array of conditions from the modeler
-            ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-            const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for  schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_conditions; ++i) {
-                auto it_cond = r_conditions_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
-
-            // Gets the array of constraints from the modeler
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_constraints; ++i) {
-                auto it_const = r_constraints_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-            }
-
-            // We merge all the sets in one thread
-            #pragma omp critical
-            {
-                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-            }
-        }
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-
-        DofsArrayType Doftemp;
-        BaseType::mDofSet = DofsArrayType();
-
-        Doftemp.reserve(dof_global_set.size());
-        for (auto it= dof_global_set.begin(); it!= dof_global_set.end(); it++)
-        {
-            Doftemp.push_back( *it );
-        }
-        Doftemp.Sort();
-
-        BaseType::mDofSet = Doftemp;
-
-        //Throws an exception if there are no Degrees Of Freedom involved in the analysis
-        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
-
-        BaseType::mDofSetIsInitialized = true;
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
-
-#ifdef KRATOS_DEBUG
-        // If reactions are to be calculated, we check if all the dofs have reactions defined
-        // This is tobe done only in debug mode
-        if (BaseType::GetCalculateReactionsFlag()) {
-            for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
-                    KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
-                        << "Node : "<<dof_iterator->Id()<< std::endl
-                        << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
-            }
-        }
-#endif
+        BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
 
         KRATOS_CATCH("");
     }
@@ -960,7 +853,7 @@ public:
             }
         });
 
-        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
         mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
         double* Avalues = rA.value_data().begin();
@@ -1059,13 +952,14 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
+            // Compute the scale factor value
+            mScaleFactor = TSparseSpace::GetScaleNorm(rModelPart.GetProcessInfo(), rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    rA(slave_equation_id, slave_equation_id) = max_diag;
+                    rA(slave_equation_id, slave_equation_id) = mScaleFactor;
                     rb[slave_equation_id] = 0.0;
                 }
             });
@@ -1154,6 +1048,26 @@ public:
         return mConstantVector;
     }
 
+    /**
+    * @brief Retrieves the current scale factor.
+    * This function returns the current scale factor value.
+    * @return Returns the current scale factor.
+    */
+    double GetScaleFactor()
+    {
+        return mScaleFactor;
+    }
+
+    /**
+    * @brief Sets the scale factor.
+    * This function sets a new value for the scale factor.
+    * @param ScaleFactor The new value for the scale factor.
+    */
+    void SetScaleFactor(const double ScaleFactor)
+    {
+        mScaleFactor = ScaleFactor;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1201,8 +1115,8 @@ protected:
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
     double mScaleFactor = 1.0;                        /// The manually set scale factor
 
-    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                                                   /// Some flags used internally
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                              /// Some flags used internally
 
     ///@}
     ///@name Protected Operators

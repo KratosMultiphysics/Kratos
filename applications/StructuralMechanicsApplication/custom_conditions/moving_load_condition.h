@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Aron Noordam
 //
@@ -135,6 +135,19 @@ public:
      */
     bool HasRotDof() const override;
 
+
+    /**
+     * \brief Initializes solution step. It determines wether the moving load reactions are to be calculated
+     * \param rCurrentProcessInfo current process info
+     */
+    void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
+
+    /**
+     * \brief Initializes non linear iteration. It calculates the displacement and the rotation at the location of the moving load
+     * \param rCurrentProcessInfo current process info
+     */
+    void InitializeNonLinearIteration(const ProcessInfo & rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -234,6 +247,20 @@ protected:
     void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
+    * \brief Calculates derivatives of exact shape functions for a local load in perpendicular direction
+    * \param rShapeFunctionsVector vector of exact shape functions
+    * \param LocalXCoord local x coordinate within condition element
+    */
+    void CalculateExactShearShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
+
+    /**
+     * \brief Calculates exact shape functions for a local moment around z-axis.
+     * \param rShapeFunctionsVector vector of exact shape functions
+     * \param LocalXCoord local x coordinate within condition element
+     */
+    void CalculateExactRotationalShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
+
+    /**
      * \brief Calculates rotation matrix 
      * \param rRotationMatrix rotation matrix for current condition element
      * \param rGeom condition element
@@ -241,8 +268,13 @@ protected:
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom);
 
 
-    Matrix CalculateGlobalMomentMatrix(const VectorType& RotationalShapeFunctionVector, array_1d<double, TDim> LocalMovingLoad) const;
-
+    /**
+     * \brief Calculates the global bending moment matrix
+     * \param rRotationalShapeFunctionVector shape functions vector for rotation
+     * \param rLocalMovingLoad array for the value if the local moving load
+     * \return global bending moment matrix
+     */
+    Matrix CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
 
     ///@}
     ///@name Protected  Access
@@ -271,17 +303,34 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    bool mIsMovingLoad = false;
 
 
     ///@}
     ///@name Private Operators
     ///@{
 
+    /**
+     * \brief Gets the nodal rotation vector
+     * \param rRotationsVector nodal rotation vector
+     * \param Step step from which the rotations needs to be retrieved
+     */
+    void GetRotationsVector(Vector& rRotationsVector, const int Step) const;
+
     ///@}
     ///@name Private Operations
     ///@{
 
+
+     /**
+     * \brief Calculates displacement vector at the location of the moving load
+     */
+    Vector CalculateLoadPointDisplacementVector();
+
+    /**
+    * \brief Calculates rotation vector at the location of the moving load
+    */
+    Vector CalculateLoadPointRotationVector();
 
     ///@}
     ///@name Private  Access
@@ -301,11 +350,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        rSerializer.save("mIsMovingLoad", mIsMovingLoad);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        rSerializer.load("mIsMovingLoad", mIsMovingLoad);
     }
 
     ///@}

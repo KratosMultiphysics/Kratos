@@ -564,7 +564,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
     if (mBassetForceType >= 3 && mNumberOfExponentials > 0){
 
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
-            Node<3>& node = iparticle->GetGeometry()[0];
+            Node& node = iparticle->GetGeometry()[0];
             if (node.IsNot(BLOCKED)){
                 DenseVector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
 
@@ -580,7 +580,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
     }
 
     for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
-        Node<3>& node = iparticle->GetGeometry()[0];
+        Node& node = iparticle->GetGeometry()[0];
         if (node.IsNot(BLOCKED)){
             DenseVector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);

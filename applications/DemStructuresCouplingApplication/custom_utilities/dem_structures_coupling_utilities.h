@@ -67,7 +67,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
     // Adding conditions
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
-        Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
+        Geometry< Node >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond;
         if (dimension == 2) {
             cond = Condition::Pointer(new RigidEdge2D(id, p_geometry, props));

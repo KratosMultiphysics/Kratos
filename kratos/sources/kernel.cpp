@@ -36,7 +36,11 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
     Initialize();
 }
 
-void Kernel::Initialize() {
+Kernel::~Kernel() {
+    GetApplicationsList().clear();
+}
+
+void Kernel::PrintInfo() {
     KRATOS_INFO("") << " |  /           |                  \n"
                     << " ' /   __| _` | __|  _ \\   __|    \n"
                     << " . \\  |   (   | |   (   |\\__ \\  \n"
@@ -45,6 +49,10 @@ void Kernel::Initialize() {
                     << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
 
     PrintParallelismSupportInfo();
+}
+
+void Kernel::Initialize() {
+    this->PrintInfo();
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
@@ -87,7 +95,7 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     KratosComponents<VariableData>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Geometries:" << std::endl;
-    KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    KratosComponents<Geometry<Node>>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);

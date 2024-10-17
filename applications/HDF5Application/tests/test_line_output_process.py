@@ -2,10 +2,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics import KratosUnittest as UnitTest
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # HDF5 imports
 from KratosMultiphysics.HDF5Application.line_output_process import Factory as LineOutputProcessFactory
-from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 # STD imports

@@ -22,6 +22,7 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "utilities/math_utils.h"
+#include "optimization_application_variables.h"
 
 namespace Kratos
 {
@@ -65,7 +66,7 @@ void HelmholtzBulkShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS_SHAPE))
-      << "COMPUTE_CONTROL_POINTS_SHAPE not defined in the ProcessInfo!" << std::endl;   
+      << "COMPUTE_CONTROL_POINTS_SHAPE not defined in the ProcessInfo!" << std::endl;
 
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
@@ -79,7 +80,7 @@ void HelmholtzBulkShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
 
-    // Resizing as needed the RHS 
+    // Resizing as needed the RHS
     if ( rRightHandSideVector.size() != mat_size )
         rRightHandSideVector.resize( mat_size, false );
 
@@ -112,8 +113,8 @@ void HelmholtzBulkShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     //apply drichlet BC
     Vector temp;
-    GetValuesVector(temp,0);    
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);    
+    GetValuesVector(temp,0);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
     KRATOS_CATCH("")
 }
@@ -168,8 +169,6 @@ void HelmholtzBulkShapeElement::Calculate(const Variable<double>& rVariable, dou
         CalculateBulkStiffnessMatrix(K,rCurrentProcessInfo);
 
         auto& r_geometry = this->GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
         const unsigned int number_of_points = r_geometry.size();
         Vector nodal_vals(number_of_points*3);
@@ -178,9 +177,9 @@ void HelmholtzBulkShapeElement::Calculate(const Variable<double>& rVariable, dou
             nodal_vals[3 * node_element + 0] = r_geometry[node_element].X0();
             nodal_vals[3 * node_element + 1] = r_geometry[node_element].Y0();
             nodal_vals[3 * node_element + 2] = r_geometry[node_element].Z0();
-        }    
+        }
 
-        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));    
+        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));
 
     }
 }
@@ -380,7 +379,7 @@ void HelmholtzBulkShapeElement::CalculateBulkStiffnessMatrix(
         const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
 
         noalias(rStiffnessMatrix) += prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
-        
+
     }
 
     KRATOS_CATCH("");

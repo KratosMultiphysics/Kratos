@@ -29,10 +29,10 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_H) # Intermediate field
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_V) # Intermediate field
-        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)          # This is used by the predictor in ABM scheme
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)   # This is used to assemble the RHS by the predictor and the dispersive fields
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_H)      # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DISPERSION_V)      # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)               # This is used by the predictor in ABM scheme
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)        # This is used to assemble the RHS by the predictor and the dispersive fields
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

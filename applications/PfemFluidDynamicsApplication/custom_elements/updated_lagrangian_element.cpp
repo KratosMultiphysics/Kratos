@@ -1105,8 +1105,7 @@ namespace Kratos
   template <unsigned int TDim>
   bool UpdatedLagrangianElement<TDim>::CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
                                                             const ProcessInfo &rCurrentProcessInfo,
-                                                            const ShapeFunctionDerivativesType &rDN_DX,
-                                                            unsigned int g)
+                                                            const ShapeFunctionDerivativesType &rDN_DX)
   {
 
     double theta = this->GetThetaMomentum();

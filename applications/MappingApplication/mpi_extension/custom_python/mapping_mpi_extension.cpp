@@ -26,8 +26,7 @@
 #include "factories/mapper_factory.h"
 #include "python/add_mapper_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosMappingMPIExtension,m)
 {
@@ -52,7 +51,6 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
     KRATOS_REGISTER_MAPPER(Projection3D2DMapper,  "projection_3D_2D");
 }
 
-}
 }
 
 #endif // KRATOS_PYTHON defined

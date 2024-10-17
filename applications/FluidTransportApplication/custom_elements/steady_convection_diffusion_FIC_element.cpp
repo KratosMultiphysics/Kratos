@@ -687,7 +687,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 {
     KRATOS_TRY
     // GeometryType& rGeom = this->GetGeometry();
-    const Geometry<Node<3> >& rGeom = this->GetGeometry();
+    const Geometry<Node >& rGeom = this->GetGeometry();
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
@@ -1174,7 +1174,7 @@ void SteadyConvectionDiffusionFICElement<3,8>::CalculateBoundaryLv(ElementVariab
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel,
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(ElementVariables& rVariables, const Geometry<Node >& rGeom, const double& NormVel,
                                                                             const ProcessInfo& CurrentProcessInfo, const PropertiesType& Prop)
 {
 

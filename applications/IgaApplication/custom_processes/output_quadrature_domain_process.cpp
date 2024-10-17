@@ -67,16 +67,16 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
         for (auto condition : r_model_part.Conditions()) {
             KRATOS_WATCH(condition.GetGeometry().NumberOfGeometryParts())
             if (condition.GetGeometry().NumberOfGeometryParts() > 1) {
-                const auto p_master = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node<3>>::Master);
-                const auto p_slave = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node<3>>::Slave);
+                const auto p_master = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node>::Master);
+                const auto p_slave = condition.GetGeometry().pGetGeometryPart(CouplingGeometry<Node>::Slave);
 
                 array_1d<double, 3> local_coordinates_on_master_patch = p_master->IntegrationPoints()[0];
                 p_master->GetGeometryParent(0).Calculate(PARAMETER_2D_COORDINATES, local_coordinates_on_master_patch);
                 array_1d<double, 3> local_coordinates_on_slave_patch = p_slave->IntegrationPoints()[0];
                 p_slave->GetGeometryParent(0).Calculate(PARAMETER_2D_COORDINATES, local_coordinates_on_slave_patch);
 
-                IndexType master_patch_id = p_master->GetGeometryParent(0).GetGeometryPart(Geometry<Node<3>>::BACKGROUND_GEOMETRY_INDEX).GetGeometryParent(0).Id();
-                IndexType slave_patch_id = p_slave->GetGeometryParent(0).GetGeometryPart(Geometry<Node<3>>::BACKGROUND_GEOMETRY_INDEX).GetGeometryParent(0).Id();
+                IndexType master_patch_id = p_master->GetGeometryParent(0).GetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX).GetGeometryParent(0).Id();
+                IndexType slave_patch_id = p_slave->GetGeometryParent(0).GetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX).GetGeometryParent(0).Id();
 
                 contents += '[' + std::to_string(condition.Id()) + ',' + std::to_string(master_patch_id) + ",[";
                 contents += std::to_string(local_coordinates_on_master_patch[0]) + ',' + std::to_string(local_coordinates_on_master_patch[1]) + "],";

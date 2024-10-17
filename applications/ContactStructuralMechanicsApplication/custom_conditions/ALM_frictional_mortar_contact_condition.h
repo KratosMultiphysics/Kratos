@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -30,12 +30,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -47,7 +46,7 @@ namespace Kratos
 
 ///@}
 ///@name Kratos Classes
-///@{ *
+///@{
 
 /**
  * @class AugmentedLagrangianMethodFrictionalMortarContactCondition
@@ -73,54 +72,79 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation, TNumNodesMaster>         BaseType;
+    /// Base type for the mortar contact condition
+    using BaseType = MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation, TNumNodesMaster>;
 
-    typedef Condition                                                                                             ConditionBaseType;
+    /// Base type for the condition
+    using ConditionBaseType = Condition;
 
-    typedef PairedCondition                                                                                 PairedConditionBaseType;
+    /// Base type for the paired condition
+    using PairedConditionBaseType = PairedCondition;
 
-    typedef typename BaseType::MortarConditionMatrices                                                      MortarConditionMatrices;
+    /// Type for the matrices used in the mortar contact condition
+    using MortarConditionMatrices = typename BaseType::MortarConditionMatrices;
 
-    typedef typename BaseType::GeneralVariables                                                                    GeneralVariables;
+    /// Type for the general variables used in the mortar contact condition
+    using GeneralVariables = typename BaseType::GeneralVariables;
 
-    typedef typename BaseType::IntegrationUtility                                                                IntegrationUtility;
+    /// Type for the integration utility used in the mortar contact condition
+    using IntegrationUtility = typename BaseType::IntegrationUtility;
 
-    typedef typename BaseType::DerivativesUtilitiesType                                                    DerivativesUtilitiesType;
+    /// Type for the derivatives utilities used in the mortar contact condition
+    using DerivativesUtilitiesType = typename BaseType::DerivativesUtilitiesType;
 
-    typedef typename BaseType::BelongType                                                                                BelongType;
+    /// Type for the belong type used in the mortar contact condition
+    using BelongType = typename BaseType::BelongType;
 
-    typedef typename BaseType::ConditionArrayListType                                                        ConditionArrayListType;
+    /// Type for the array list of conditions used in the mortar contact condition
+    using ConditionArrayListType = typename BaseType::ConditionArrayListType;
 
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                                  MortarBaseConditionMatrices;
+    /// Type for the matrices used in the mortar base condition
+    using MortarBaseConditionMatrices = MortarOperator<TNumNodes, TNumNodesMaster>;
 
-    typedef typename ConditionBaseType::VectorType                                                                       VectorType;
+    /// Type for the vector type used in the condition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                       MatrixType;
+    /// Type for the matrix type used in the condition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                         IndexType;
+    /// Type for the index type used in the condition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                   GeometryPointerType;
+    /// Pointer type for the geometry of the condition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                               NodesArrayType;
+    /// Type for the array of nodes used in the condition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                                                               PropertiesType;
+    /// Type for the properties of the condition
+    using PropertiesType = typename ConditionBaseType::PropertiesType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                               PropertiesPointerType;
+    /// Pointer type for the properties of the condition
+    using PropertiesPointerType = typename PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                   EquationIdVectorType;
+    /// Type for the vector of equation IDs of the condition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                               DofsVectorType;
+    /// Type for the vector of DOFs of the condition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef Line2D2<Point>                                                                                                 LineType;
+    /// Type for the line in 2D
+    using LineType = Line2D2<Point>;
 
-    typedef Triangle3D3<Point>                                                                                         TriangleType;
+    /// Type for the triangle in 3D
+    using TriangleType = Triangle3D3<Point>;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                   DecompositionType;
+    /// Type for the decomposition based on the dimension
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type; 
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                                           DerivativeDataType;
+    /// Type for the derivative data used in the frictional mortar contact condition
+    using DerivativeDataType = DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>;
 
+    /// The matrix size definition
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodesMaster);
 
+    /// If consider step slip
     static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
 
     ///@}

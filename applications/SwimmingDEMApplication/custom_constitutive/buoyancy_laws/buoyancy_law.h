@@ -16,7 +16,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) BuoyancyLaw : public Flags {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(BuoyancyLaw);
 
         BuoyancyLaw(){}
@@ -33,7 +33,7 @@ namespace Kratos {
 
         virtual std::string GetTypeOfLaw();
 
-        virtual void ComputeForce(Geometry<Node<3> >& r_geometry,
+        virtual void ComputeForce(Geometry<Node >& r_geometry,
                                   const double fluid_density,
                                   const double displaced_volume,
                                   const array_1d<double, 3>& body_force,

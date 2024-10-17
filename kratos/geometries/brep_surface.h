@@ -631,8 +631,7 @@ GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGe
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
 
 ///@}
 }// namespace Kratos.

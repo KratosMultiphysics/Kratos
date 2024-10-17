@@ -50,66 +50,68 @@ namespace Kratos
 {
 
   KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication() : KratosApplication("PfemFluidDynamicsApplication"),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mUpdatedLagrangianVImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mUpdatedLagrangianVImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mUpdatedLagrangianVImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mUpdatedLagrangianVImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mTwoStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mTwoStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mTwoStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mTwoStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mThreeStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mThreeStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mThreeStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mThreeStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10))))
+                                                                             mTwoStepUpdatedLagrangianVPImplicitElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mUpdatedLagrangianVImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mUpdatedLagrangianVImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mUpdatedLagrangianVImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mUpdatedLagrangianVImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mTwoStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mTwoStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mTwoStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mTwoStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10))))
   {
   }
 
@@ -128,8 +130,6 @@ namespace Kratos
     // KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
     // KRATOS_REGISTER_VARIABLE(NORMVELOCITY);
     KRATOS_REGISTER_VARIABLE(NO_MESH);
-    KRATOS_REGISTER_VARIABLE(FREESURFACE);
-    KRATOS_REGISTER_VARIABLE(PREVIOUS_FREESURFACE);
     KRATOS_REGISTER_VARIABLE(INITIAL_DELTA_TIME);
     KRATOS_REGISTER_VARIABLE(CURRENT_DELTA_TIME);
     KRATOS_REGISTER_VARIABLE(TIME_INTERVAL_CHANGED);
@@ -141,10 +141,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(NODAL_H_WALL);
 
     KRATOS_REGISTER_VARIABLE(MECHANICAL_DISSIPATION);
-
-    //Papanastasiou variables
-    KRATOS_REGISTER_VARIABLE(EULERIAN_INLET);
-    KRATOS_REGISTER_VARIABLE(LAGRANGIAN_INLET);
 
     // Papanastasiou variables
     KRATOS_REGISTER_VARIABLE(YIELDED);
@@ -196,11 +192,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
     KRATOS_REGISTER_VARIABLE(SOLID_NODAL_MEAN_MESH_SIZE);
     KRATOS_REGISTER_VARIABLE(SOLID_DENSITY);
-    KRATOS_REGISTER_VARIABLE(SOLID_NODAL_TAU);
     KRATOS_REGISTER_VARIABLE(SOLID_NODAL_FREESURFACE_AREA);
-    KRATOS_REGISTER_VARIABLE(SOLID_VOLUMETRIC_COEFFICIENT);
-    KRATOS_REGISTER_VARIABLE(SOLID_DEVIATORIC_COEFFICIENT);
-    KRATOS_REGISTER_VARIABLE(SOLID_INTERFACE_NODE);
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2D", mTwoStepUpdatedLagrangianVPImplicitElement2D);
@@ -227,6 +219,8 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidCutFemElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidCutFemElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement3D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidPspgElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidPspgElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidPspgElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3D);

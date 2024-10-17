@@ -94,7 +94,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+                                      const std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                       std::vector<array_1d<double,3>>& rOutput,
@@ -142,7 +144,6 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<double> mInitialGap;
-    std::vector<bool> mIsOpen;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -161,25 +162,22 @@ protected:
 
     void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
-    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+    void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     void CheckAndCalculateJointWidth(double& rJointWidth,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    double& rNormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
+                                    double& rNormalRelDisp,const double& InitialJointWidth,const unsigned int& GPoint);
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& weight, const double& detJ);
-
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
 
     void CalculateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
 

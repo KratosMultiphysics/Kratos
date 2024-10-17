@@ -31,6 +31,7 @@ set(KRATOS_WRAPPER_SOURCES_CORE
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosCSharpWrapperCore SOURCES "${KRATOS_WRAPPER_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## generate variables with the sources
@@ -39,7 +40,7 @@ set( KRATOS_WRAPPER_SOURCES_PYTHON_INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/csharp_wrapper_python_application.cpp
         )
 
-add_library(KratosCSharpWrapperCore SHARED ${KRATOS_WRAPPER_SOURCES_CORE} ${KRATOS_WRAPPER_TESTING_SOURCES})
+add_library(KratosCSharpWrapperCore SHARED ${KRATOS_WRAPPER_SOURCES_CORE})
 target_link_libraries(KratosCSharpWrapperCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosCSharpWrapperCore PROPERTIES COMPILE_DEFINITIONS "CSHARP_WRAPPER_APPLICATION=EXPORT,API")
 

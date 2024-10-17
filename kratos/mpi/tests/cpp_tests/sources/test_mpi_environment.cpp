@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
-//
 //
 
 // System includes
@@ -18,20 +17,18 @@
 
 // Project includes
 #include "includes/parallel_environment.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
-namespace Kratos {
+namespace Kratos::Testing {
 
-namespace Testing {
-
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIEnvironmentSetUp, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentSetUp, KratosMPICoreFastSuite)
 {
-    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("World"), true);
-    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("Serial"), true);
-    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("NotReallyACommunicator"), false);
+    KRATOS_EXPECT_EQ(ParallelEnvironment::HasDataCommunicator("World"), true);
+    KRATOS_EXPECT_EQ(ParallelEnvironment::HasDataCommunicator("Serial"), true);
+    KRATOS_EXPECT_EQ(ParallelEnvironment::HasDataCommunicator("NotReallyACommunicator"), false);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
 {
     int rank;
     int size;
@@ -44,18 +41,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreF
     DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
     DataCommunicator& r_serial = ParallelEnvironment::GetDataCommunicator("Serial");
 
-    KRATOS_CHECK_EQUAL(r_default_comm.IsDistributed(), true);
-    KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);
-    KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
+    KRATOS_EXPECT_EQ(r_default_comm.IsDistributed(), true);
+    KRATOS_EXPECT_EQ(r_world.IsDistributed(), true);
+    KRATOS_EXPECT_EQ(r_serial.IsDistributed(), false);
 
-    KRATOS_CHECK_EQUAL(r_default_comm.Rank(), rank);
-    KRATOS_CHECK_EQUAL(r_world.Rank(), rank);
-    KRATOS_CHECK_EQUAL(r_serial.Rank(), 0);
+    KRATOS_EXPECT_EQ(r_default_comm.Rank(), rank);
+    KRATOS_EXPECT_EQ(r_world.Rank(), rank);
+    KRATOS_EXPECT_EQ(r_serial.Rank(), 0);
 
-    KRATOS_CHECK_EQUAL(r_default_comm.Size(), size);
-    KRATOS_CHECK_EQUAL(r_world.Size(), size);
-    KRATOS_CHECK_EQUAL(r_serial.Size(), 1);
+    KRATOS_EXPECT_EQ(r_default_comm.Size(), size);
+    KRATOS_EXPECT_EQ(r_world.Size(), size);
+    KRATOS_EXPECT_EQ(r_serial.Size(), 1);
 }
 
-}
 }

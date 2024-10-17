@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
@@ -7036,7 +7036,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
             // Calculate kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
 
-            // Compute material reponse
+            // Compute material response
             CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
 
             // Calculate and save Von-Mises equivalent stress
@@ -7092,10 +7092,10 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
 
             // Call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
             } else {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
             }
 

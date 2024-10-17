@@ -52,7 +52,9 @@ Matrix& GenericSmallStrainIsotropicDamagePlaneStress<TConstLawIntegratorType>::C
     )
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 || rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-        ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rValue, rParameterValues);
+        const double E = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
+        const double NU = rParameterValues.GetMaterialProperties()[POISSON_RATIO];
+        ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rValue, E, NU);
         return rValue;
     } else {
         BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);

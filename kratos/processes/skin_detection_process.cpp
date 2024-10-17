@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -18,6 +18,8 @@
 #include "processes/skin_detection_process.h"
 #include "utilities/variable_utils.h"
 #include "includes/key_hash.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -68,7 +70,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     ) const
 {
-    // Auxiliar values
+    // Auxiliary values
     auto& r_elements_array = mrModelPart.Elements();
     const SizeType number_of_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
@@ -158,7 +160,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
 template<SizeType TDim>
 ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 {
-    // We create the auxiliar ModelPart
+    // We create the auxiliary ModelPart
     const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
@@ -185,28 +187,31 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     )
 {
-    // The auxiliar name of the condition
+    // The auxiliary name of the condition
     const std::string& r_name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && r_name_condition == "Condition") {
-        pre_name = "Surface";
-    } else if (TDim == 2 && r_name_condition == "Condition") {
-        pre_name = "Line";
+    if (r_name_condition == "Condition") {
+        if constexpr (TDim == 3) {
+            pre_name = "Surface";
+        } else if constexpr (TDim == 2) {
+            pre_name = "Line";
+        }
     }
     const std::string base_name = pre_name + r_name_condition;
 
     // The number of conditions
-    ConditionsArrayType& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
+    auto& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
     const auto it_cond_begin = r_condition_array.begin();
-    for(IndexType i = 0; i < r_condition_array.size(); ++i)
+    IndexPartition<IndexType>(r_condition_array.size()).for_each([&it_cond_begin](IndexType i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
 
     this->CreateConditions(mrModelPart, rAuxiliaryModelPart, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
-    // Adding to the auxiliar model part
+    // Adding to the auxiliary model part
     VectorIndexType indexes_skin;
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
     rAuxiliaryModelPart.AddNodes(indexes_skin);
@@ -214,12 +219,57 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
-    // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
+    // Verify that nodes are in the corresponding model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
+    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_data_communicator.IsDistributed()) {
+        // Wait until all the nodes are created
+        r_data_communicator.Barrier();
+
+        // First look into potential nodes to ensure
+        const int rank = r_data_communicator.Rank();
+        const int world_size = r_data_communicator.Size();
+        std::vector<std::vector<std::size_t>> nodes_to_ensure(world_size);
+        for (auto& r_node : r_nodes_array) {
+            const int partition_index = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
+            if (rank != partition_index) {
+                nodes_to_ensure[partition_index].push_back(r_node.Id());
+            }
+        }
+
+        // Now we ensure the nodes
+        int tag_send = 0;
+        int tag_recv = 0;
+        std::vector<std::size_t> nodes_to_bring;
+        for (int i = 0; i < world_size; ++i) {
+            if (i != rank) {
+                // Compute the tag hashing origin rank and destination rank
+                tag_send = 1000 * rank + i;
+                r_data_communicator.Send(nodes_to_ensure[i], i, tag_send);
+            } else {
+                for (int j = 0; j < world_size; ++j) {
+                    if (j != rank) {
+                        // Compute the tag hashing origin rank and destination rank
+                        tag_recv = 1000 * j + rank;
+                        std::vector<std::size_t> rec_nodes_to_ensure;
+                        r_data_communicator.Recv(rec_nodes_to_ensure, j, tag_recv);
+                        for (auto node_id : rec_nodes_to_ensure) {
+                            if (!rAuxiliaryModelPart.HasNode(node_id)) {
+                                nodes_to_bring.push_back(node_id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        rAuxiliaryModelPart.AddNodes(nodes_to_bring);
+    }
+
+    // Now we set the flag on the nodes. The list of nodes of the auxiliary model part
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 
-    // In case we are in MPI we syncronize the INTERFACE flag
-     mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
+    // In case we are in MPI we synchronize the INTERFACE flag
+    mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
 }
 
 /***********************************************************************************/
@@ -238,7 +288,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
     const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
-    // Create the auxiliar conditions
+    // Create the auxiliary conditions
     for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
@@ -277,64 +327,71 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
         // We build a database of indexes
         std::unordered_map<IndexType, std::unordered_set<IndexType>> conditions_nodes_ids_map;
 
-        for (auto& cond : rAuxiliaryModelPart.Conditions()) {
-            auto& geom = cond.GetGeometry();
+        for (auto& r_cond : rAuxiliaryModelPart.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry();
 
-            for (auto& r_node : geom) {
-                auto set = conditions_nodes_ids_map.find(r_node.Id());
-                if(set != conditions_nodes_ids_map.end()) {
-                    conditions_nodes_ids_map[r_node.Id()].insert(cond.Id());
+            for (auto& r_node : r_geom) {
+                auto it_set_found = conditions_nodes_ids_map.find(r_node.Id());
+                if(it_set_found != conditions_nodes_ids_map.end()) {
+                    conditions_nodes_ids_map[r_node.Id()].insert(r_cond.Id());
                 } else {
-                    std::unordered_set<IndexType> cond_index_ids ( {cond.Id()} );;
+                    std::unordered_set<IndexType> cond_index_ids ( {r_cond.Id()} );;
                     conditions_nodes_ids_map.insert({r_node.Id(), cond_index_ids});
                 }
             }
         }
 
-        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
-        for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp){
-            const std::string& model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
-            ModelPart& sub_model_part = root_model_part.GetSubModelPart(model_part_name);
+        ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
+        for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp) {
+            const std::string& r_model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
+            ModelPart& r_sub_model_part = r_root_model_part.GetSubModelPart(r_model_part_name);
 
-            std::vector<IndexType> conditions_ids;
+            // We iterate over the nodes of this model part
+            auto& r_sub_nodes_array = r_sub_model_part.Nodes();
+            const auto it_node_begin = r_sub_nodes_array.begin();
+            std::vector<std::vector<IndexType>> conditions_ids_aux = IndexPartition<IndexType>(r_sub_nodes_array.size()).for_each<AccumReduction<std::vector<IndexType>>>([&](IndexType i) {
+                auto it_node = it_node_begin + i;
 
-            #pragma omp parallel
-            {
                 // Creating a buffer for parallel vector fill
                 std::vector<IndexType> conditions_ids_buffer;
 
-                // We iterate over the nodes of this model part
-                auto& sub_nodes_array = sub_model_part.Nodes();
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(sub_nodes_array.size()); ++i) {
-                    auto it_node = sub_nodes_array.begin() + i;
-
-                    auto set = conditions_nodes_ids_map.find(it_node->Id());
-                    if(set != conditions_nodes_ids_map.end()) {
-                        for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
-                            auto& r_condition = mrModelPart.GetCondition(r_cond_id);
-                            auto& geom = r_condition.GetGeometry();
-                            bool has_nodes = true;
-                            for (auto& r_node : geom) {
-                                if (!sub_model_part.GetMesh().HasNode(r_node.Id())) {
-                                    has_nodes = false;
-                                    break;
-                                }
+                auto it_set_found = conditions_nodes_ids_map.find(it_node->Id());
+                if(it_set_found != conditions_nodes_ids_map.end()) {
+                    for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
+                        auto& r_condition = mrModelPart.GetCondition(r_cond_id);
+                        auto& r_geom = r_condition.GetGeometry();
+                        bool has_nodes = true;
+                        for (auto& r_node : r_geom) {
+                            if (!r_sub_model_part.GetMesh().HasNode(r_node.Id())) {
+                                has_nodes = false;
+                                break;
                             }
-                            // We append to the vector
-                            if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
                         }
+                        // We append to the vector
+                        if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
                     }
                 }
 
-                // Combine buffers together
-                #pragma omp critical
-                {
-                    std::move(conditions_ids_buffer.begin(),conditions_ids_buffer.end(),back_inserter(conditions_ids));
-                }
+                return conditions_ids_buffer;
+            });
+
+            // We flatten the vector
+            std::vector<IndexType> conditions_ids;
+
+            // Calculate total size needed for conditions_ids to avoid reallocations
+            const std::size_t total_size = block_for_each<SumReduction<std::size_t>>(conditions_ids_aux, [](const auto& r_vec) {
+                return r_vec.size();
+            });
+
+            // Reserve memory for conditions_ids
+            conditions_ids.reserve(total_size);
+
+            // Flatten the vector of vectors
+            for (const auto& r_vec : conditions_ids_aux) {
+                conditions_ids.insert(conditions_ids.end(), r_vec.begin(), r_vec.end());
             }
 
-            sub_model_part.AddConditions(conditions_ids);
+            r_sub_model_part.AddConditions(conditions_ids);
         }
     }
 }
@@ -371,7 +428,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
     HashMapVectorIntType& rInverseFaceMap
     )
 {
-    // First determine with the nodes in the MPI interface wich faces are potentially removable
+    // First determine with the nodes in the MPI interface which faces are potentially removable
     std::vector<VectorIndexType> faces_to_remove;
     bool to_remove;
     for (auto& r_map : rInverseFaceMap) {
@@ -386,11 +443,11 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         }
         if (to_remove) {
             faces_to_remove.push_back(r_vector_ids);
-        }            
+        }
     }
 
     /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
-    
+
     // First we determine the rank and the size of the world
     const auto& r_communicator = mrModelPart.GetCommunicator();
     const auto& r_data_communicator = r_communicator.GetDataCommunicator();

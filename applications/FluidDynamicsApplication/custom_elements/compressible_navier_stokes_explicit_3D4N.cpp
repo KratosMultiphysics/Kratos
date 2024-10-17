@@ -110,7 +110,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
 {
     // Get geometry data
     const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 
@@ -169,7 +169,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
 
     // Get geometry data
     const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
@@ -19,39 +19,37 @@
 // Project includes
 #include "includes/data_communicator.h"
 #include "includes/kratos_components.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
-namespace Kratos {
+namespace Kratos::Testing {
 
-namespace Testing {
-
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
-    KRATOS_CHECK_EQUAL(serial_communicator.Rank(), 0);
-    KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
+    KRATOS_EXPECT_EQ(serial_communicator.Rank(), 0);
+    KRATOS_EXPECT_EQ(serial_communicator.Size(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
-    KRATOS_CHECK_EQUAL(serial_communicator.IsDefinedOnThisRank(), true);
-    KRATOS_CHECK_EQUAL(serial_communicator.IsNullOnThisRank(), false);
-    KRATOS_CHECK_EQUAL(serial_communicator.IsDistributed(), false);
+    KRATOS_EXPECT_EQ(serial_communicator.IsDefinedOnThisRank(), true);
+    KRATOS_EXPECT_EQ(serial_communicator.IsNullOnThisRank(), false);
+    KRATOS_EXPECT_EQ(serial_communicator.IsDistributed(), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosCoreFastSuite)
 {
-    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
+    KRATOS_EXPECT_EQ(KratosComponents<DataCommunicator>::Has("Serial"), true);
     const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
-    KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
+    KRATOS_EXPECT_EQ(r_serial.IsDistributed(), false);
 }
 
 // Sum ////////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -63,11 +61,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosMPICoreFastSuite)
     int result = serial_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -79,11 +77,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosMPICoreFastSuite)
     double result = serial_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -100,12 +98,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 3; i++)
         {
-            KRATOS_CHECK_EQUAL(result[i], local[i]);
+            KRATOS_EXPECT_EQ(result[i], local[i]);
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -122,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -130,23 +128,23 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
     std::vector<int> returned_result = serial_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Sum(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Sum"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -163,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -171,16 +169,16 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
     std::vector<double> returned_result = serial_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Sum(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Sum"
     );
@@ -189,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
 
 // Min ////////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -201,11 +199,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosMPICoreFastSuite)
     int result = serial_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -217,11 +215,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosMPICoreFastSuite)
     double result = serial_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -238,12 +236,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 3; i++)
         {
-            KRATOS_CHECK_EQUAL(result[i], local[i]);
+            KRATOS_EXPECT_EQ(result[i], local[i]);
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -260,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -268,23 +266,23 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
     std::vector<int> returned_result = serial_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Min(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Min"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -301,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -309,16 +307,16 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
     std::vector<double> returned_result = serial_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Min(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Min"
     );
@@ -327,7 +325,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
 
 // Max ////////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -339,11 +337,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosMPICoreFastSuite)
     int result = serial_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -355,11 +353,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosMPICoreFastSuite)
     double result = serial_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, local);
+        KRATOS_EXPECT_EQ(result, local);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -376,12 +374,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 3; i++)
         {
-            KRATOS_CHECK_EQUAL(result[i], local[i]);
+            KRATOS_EXPECT_EQ(result[i], local[i]);
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -398,7 +396,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -406,23 +404,23 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
     std::vector<int> returned_result = serial_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Max(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Max"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -439,7 +437,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], local[i]);
+            KRATOS_EXPECT_EQ(output[i], local[i]);
         }
     }
 
@@ -447,16 +445,16 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuit
     std::vector<double> returned_result = serial_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+            KRATOS_EXPECT_EQ(returned_result[i], local[i]);
         }
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Max(local, wrong_size_global, root),
         "Input error in call to DataCommunicator::Max"
     );
@@ -465,25 +463,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuit
 
 // SumAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     int local = 1;
     int result = serial_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     double local = 2.0;
     double result = serial_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -494,11 +492,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosMPICoreFastSuite)
     array_1d<double,3> result = serial_communicator.SumAll(local);
     for (int i = 0; i < 3; i++)
     {
-        KRATOS_CHECK_EQUAL(result[i], local[i]);
+        KRATOS_EXPECT_EQ(result[i], local[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -509,27 +507,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosMPICoreFastSuit
     serial_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<int> returned_result = serial_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.SumAll(local, wrong_size_global),
         "Input error in call to DataCommunicator::SumAll"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -540,20 +538,20 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastS
     serial_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<double> returned_result = serial_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.SumAll(local, wrong_size_global),
         "Input error in call to DataCommunicator::SumAll"
     );
@@ -562,25 +560,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastS
 
 // MinAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     int local = 1;
     int result = serial_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     double local = 2.0;
     double result = serial_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -591,11 +589,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosMPICoreFastSuite)
     array_1d<double,3> result = serial_communicator.MinAll(local);
     for (int i = 0; i < 3; i++)
     {
-        KRATOS_CHECK_EQUAL(result[i], local[i]);
+        KRATOS_EXPECT_EQ(result[i], local[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -606,27 +604,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosMPICoreFastSuit
     serial_communicator.MinAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<int> returned_result = serial_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.MinAll(local, wrong_size_global),
         "Input error in call to DataCommunicator::MinAll"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -637,20 +635,20 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastS
     serial_communicator.MinAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<double> returned_result = serial_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.MinAll(local, wrong_size_global),
         "Input error in call to DataCommunicator::MinAll"
     );
@@ -659,25 +657,25 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastS
 
 // MaxAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     int local = 1;
     int result = serial_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     double local = 2.0;
     double result = serial_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -688,11 +686,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosMPICoreFastSuite)
     array_1d<double,3> result = serial_communicator.MaxAll(local);
     for (int i = 0; i < 3; i++)
     {
-        KRATOS_CHECK_EQUAL(result[i], local[i]);
+        KRATOS_EXPECT_EQ(result[i], local[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -703,19 +701,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosMPICoreFastSuit
     serial_communicator.MaxAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<int> returned_result = serial_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -726,39 +724,83 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosMPICoreFastS
     serial_communicator.MaxAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<double> returned_result = serial_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
+}
+
+// MinLocAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllInt, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    int local = 1;
+    auto result = serial_communicator.MinLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, local);
+    KRATOS_EXPECT_EQ(result.second, 0);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMinLocAllDouble, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    double local = 2.0;
+    auto result = serial_communicator.MinLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, local);
+    KRATOS_EXPECT_EQ(result.second, 0);
+}
+
+// MaxLocAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllInt, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    int local = 1;
+    auto result = serial_communicator.MaxLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, local);
+    KRATOS_EXPECT_EQ(result.second, 0);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorMaxLocAllDouble, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    double local = 2.0;
+    auto result = serial_communicator.MaxLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, local);
+    KRATOS_EXPECT_EQ(result.second, 0);
 }
 
 // ScanSum ////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     int local = 1;
     int result = serial_communicator.ScanSum(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     double local = 2.0;
     double result = serial_communicator.ScanSum(local);
-    KRATOS_CHECK_EQUAL(result, local);
+    KRATOS_EXPECT_EQ(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -769,27 +811,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSui
     serial_communicator.ScanSum(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<int> returned_result = serial_communicator.ScanSum(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.ScanSum(local, wrong_size_global),
         "Input error in call to DataCommunicator::ScanSum"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -800,20 +842,20 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFast
     serial_communicator.ScanSum(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], local[i]);
+        KRATOS_EXPECT_EQ(output[i], local[i]);
     }
 
     // return buffer version
     std::vector<double> returned_result = serial_communicator.ScanSum(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+        KRATOS_EXPECT_EQ(returned_result[i], local[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_global{-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.ScanSum(local, wrong_size_global),
         "Input error in call to DataCommunicator::ScanSum"
     );
@@ -822,7 +864,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFast
 
 // SendRecv ///////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -841,19 +883,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<int> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
         "Input error in call to DataCommunicator::SendRecv"
     );
@@ -864,19 +906,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
         send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
         recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -895,19 +937,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<double> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
         "Input error in call to DataCommunicator::SendRecv"
     );
@@ -918,19 +960,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
         send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
         recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -948,15 +990,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 
     // two-buffer version
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
-    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "Hello world!");
+    KRATOS_EXPECT_STREQ(recv_buffer.c_str(), "Hello world!");
 
     // return version
     std::string return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "Hello world!");
+    KRATOS_EXPECT_STREQ(recv_buffer.c_str(), "Hello world!");
 
     #ifdef KRATOS_DEBUG
     std::string wrong_size_recv("*");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
         "Input error in call to DataCommunicator::SendRecv"
     );
@@ -967,12 +1009,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
         send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
         recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -981,7 +1023,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 
 // Broadcast //////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -990,10 +1032,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
 
     int send = 1 + world_rank;
     serial_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send, 1 + world_rank);
+    KRATOS_EXPECT_EQ(send, 1 + world_rank);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1002,10 +1044,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosMPICoreFastSuit
 
     double send = 1.0 + world_rank;
     serial_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send, 1.0 + world_rank);
+    KRATOS_EXPECT_EQ(send, 1.0 + world_rank);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1014,11 +1056,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosMPICoreFastS
 
     std::vector<int> send = {world_rank, 1 + world_rank};
     serial_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send[0], world_rank);
-    KRATOS_CHECK_EQUAL(send[1], 1 + world_rank);
+    KRATOS_EXPECT_EQ(send[0], world_rank);
+    KRATOS_EXPECT_EQ(send[1], 1 + world_rank);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
     const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
@@ -1027,13 +1069,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosMPICoreFa
 
     std::vector<double> send = {1.0*world_rank, 1.0 + world_rank};
     serial_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send[0], world_rank);
-    KRATOS_CHECK_EQUAL(send[1], 1 + world_rank);
+    KRATOS_EXPECT_EQ(send[0], world_rank);
+    KRATOS_EXPECT_EQ(send[1], 1 + world_rank);
 }
 
 // Scatter ////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1046,15 +1088,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosMPICoreFastSui
     serial_communicator.Scatter(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<int> return_buffer = serial_communicator.Scatter(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1064,12 +1106,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosMPICoreFastSui
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Scatter(send_buffer, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Scatter(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1077,14 +1119,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosMPICoreFastSui
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatter(send_buffer, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Scatter"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1097,15 +1139,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFast
     serial_communicator.Scatter(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<double> return_buffer = serial_communicator.Scatter(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1115,12 +1157,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFast
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Scatter(send_buffer, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Scatter(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1128,7 +1170,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFast
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatter(send_buffer, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Scatter"
     );
@@ -1137,7 +1179,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFast
 
 // Scatterv ///////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1155,15 +1197,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosMPICoreFastSuite)
     serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer_single[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer_single[i]);
     }
 
     // return version
     std::vector<int> return_buffer = serial_communicator.Scatterv(send_buffer_multiple, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer_single.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer_single.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer_single[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer_single[i]);
     }
 
     // remote calls are not supported
@@ -1173,12 +1215,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosMPICoreFastSuite)
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Scatterv(send_buffer_multiple, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1186,24 +1228,24 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosMPICoreFastSuite)
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
     std::vector<int> wrong_counts = {2, 3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, wrong_counts, send_offsets, recv_buffer, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
     std::vector<int> wrong_offsets = {0, 1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, send_counts, wrong_offsets, recv_buffer, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1221,15 +1263,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
     serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer_single[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer_single[i]);
     }
 
     // return version
     std::vector<double> return_buffer = serial_communicator.Scatterv(send_buffer_multiple, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer_single.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer_single.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer_single[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer_single[i]);
     }
 
     // remote calls are not supported
@@ -1239,12 +1281,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Scatterv(send_buffer_multiple, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1252,17 +1294,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, send_counts, send_offsets, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
     std::vector<int> wrong_counts = {2, 3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, wrong_counts, send_offsets, recv_buffer, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
     std::vector<int> wrong_offsets = {0, 1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Scatterv(send_buffer_single, send_counts, wrong_offsets, recv_buffer, send_rank),
         "Input error in call to DataCommunicator::Scatterv"
     );
@@ -1271,7 +1313,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
 
 // Gather /////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1284,15 +1326,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
     serial_communicator.Gather(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<int> return_buffer = serial_communicator.Gather(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1302,12 +1344,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Gather(send_buffer, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Gather(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1315,14 +1357,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gather(send_buffer, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Gather"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1335,15 +1377,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
     serial_communicator.Gather(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<double> return_buffer = serial_communicator.Gather(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1353,12 +1395,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Gather(send_buffer, recv_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Gather(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1366,7 +1408,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gather(send_buffer, wrong_size_recv, send_rank),
         "Input error in call to DataCommunicator::Gather"
     );
@@ -1375,7 +1417,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
 
 // Gatherv ////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1392,16 +1434,16 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
     serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<std::vector<int>> return_buffer = serial_communicator.Gatherv(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
-    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), 1);
+    KRATOS_EXPECT_EQ(return_buffer[0].size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[0][i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1411,12 +1453,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Gatherv(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1424,24 +1466,24 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
     std::vector<int> wrong_counts = {2, 3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
     std::vector<int> wrong_offsets = {0, 1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1458,16 +1500,16 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
     serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<std::vector<double>> return_buffer = serial_communicator.Gatherv(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
-    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), 1);
+    KRATOS_EXPECT_EQ(return_buffer[0].size(), send_buffer.size());
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[0][i], send_buffer[i]);
     }
 
     // remote calls are not supported
@@ -1477,12 +1519,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
     if (world_size > 1) {
         send_rank = world_size - 1;
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             return_buffer = serial_communicator.Gatherv(send_buffer, send_rank),
             "Communication between different ranks is not possible with a serial DataCommunicator."
         );
@@ -1490,17 +1532,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
     std::vector<int> wrong_counts = {2, 3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
     std::vector<int> wrong_offsets = {0, 1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets, send_rank),
         "Input error in call to DataCommunicator::Gatherv"
     );
@@ -1509,7 +1551,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 
 // AllGather //////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1521,27 +1563,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosMPICoreFastSuite)
     serial_communicator.AllGather(send_buffer, recv_buffer);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return buffer version
     std::vector<int> return_buffer = serial_communicator.AllGather(send_buffer);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.AllGather(send_buffer, wrong_size_recv),
         "Input error in call to DataCommunicator::AllGather"
     );
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
@@ -1553,45 +1595,140 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuit
     serial_communicator.AllGather(send_buffer, recv_buffer);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
     }
 
     // return buffer version
     std::vector<double> return_buffer = serial_communicator.AllGather(send_buffer);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    KRATOS_EXPECT_EQ(return_buffer.size(), send_buffer.size());
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        KRATOS_EXPECT_EQ(return_buffer[i], send_buffer[i]);
     }
 
     #ifdef KRATOS_DEBUG
     std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         serial_communicator.AllGather(send_buffer, wrong_size_recv),
         "Input error in call to DataCommunicator::AllGather"
     );
     #endif
 }
 
+// AllGatherv ////////////////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<int> send_buffer = {1, 1};
+
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<int> recv_buffer = {-1, -1};
+
+    // two-buffer version
+    serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
+    }
+
+    // return version
+    std::vector<std::vector<int>> return_buffer = serial_communicator.AllGatherv(send_buffer);
+    KRATOS_EXPECT_EQ(return_buffer.size(), 1);
+    KRATOS_EXPECT_EQ(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_EXPECT_EQ(return_buffer[0][i], send_buffer[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1, -1, -1};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosCoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<double> send_buffer = {2.0, 2.0};
+
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<double> recv_buffer = {-1.0, -1.0};
+
+    // two-buffer version
+    serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_EXPECT_EQ(recv_buffer[i], send_buffer[i]);
+    }
+
+    // return version
+    std::vector<std::vector<double>> return_buffer = serial_communicator.AllGatherv(send_buffer);
+    KRATOS_EXPECT_EQ(return_buffer.size(), 1);
+    KRATOS_EXPECT_EQ(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_EXPECT_EQ(return_buffer[0][i], send_buffer[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    #endif
+}
+
 // Error broadcasting methods /////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosCoreFastSuite)
 {
     DataCommunicator serial_communicator;
 
     // The serial communicator does not throw,
     // since it does not know about "other ranks" to broadcast the error to.
     // All these functions need to do is to pass along the bool condition.
-    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(true, 0), true);
-    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(false, 0), false);
-    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfFalse(true, 0), true);
-    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfFalse(false, 0), false);
+    KRATOS_EXPECT_EQ(serial_communicator.BroadcastErrorIfTrue(true, 0), true);
+    KRATOS_EXPECT_EQ(serial_communicator.BroadcastErrorIfTrue(false, 0), false);
+    KRATOS_EXPECT_EQ(serial_communicator.BroadcastErrorIfFalse(true, 0), true);
+    KRATOS_EXPECT_EQ(serial_communicator.BroadcastErrorIfFalse(false, 0), false);
 
-    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfTrueOnAnyRank(true), true);
-    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfTrueOnAnyRank(false), false);
-    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfFalseOnAnyRank(true), true);
-    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfFalseOnAnyRank(false), false);
+    KRATOS_EXPECT_EQ(serial_communicator.ErrorIfTrueOnAnyRank(true), true);
+    KRATOS_EXPECT_EQ(serial_communicator.ErrorIfTrueOnAnyRank(false), false);
+    KRATOS_EXPECT_EQ(serial_communicator.ErrorIfFalseOnAnyRank(true), true);
+    KRATOS_EXPECT_EQ(serial_communicator.ErrorIfFalseOnAnyRank(false), false);
 }
 
-}
 }

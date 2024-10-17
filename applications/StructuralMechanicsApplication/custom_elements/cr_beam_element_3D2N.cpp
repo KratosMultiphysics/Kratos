@@ -3,13 +3,12 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors:    Klaus B. Sautter
 //
-//
-//
+
 // System includes
 
 // External includes
@@ -1100,21 +1099,31 @@ BoundedVector<double, CrBeamElement3D2N::msLocalSize>
 CrBeamElement3D2N::CalculateElementForces() const
 {
     KRATOS_TRY;
-    BoundedVector<double, msLocalSize> deformation_modes_total_v =
-        ZeroVector(msLocalSize);
+    BoundedVector<double, msLocalSize> deformation_modes_total_v = ZeroVector(msLocalSize);
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  
+    BoundedVector<double, 3> initial_strain_vector = ZeroVector(3);
+    double initial_unit_elongation = 0.0;
+    double initial_unit_rotation_2 = 0.0;
+    double initial_unit_rotation_3 = 0.0;
+
+    if (Has(BEAM_INITIAL_STRAIN_VECTOR)) {
+        initial_strain_vector = GetValue(BEAM_INITIAL_STRAIN_VECTOR);
+        initial_unit_elongation = initial_strain_vector[0];
+        initial_unit_rotation_2 = initial_strain_vector[1];
+        initial_unit_rotation_3 = initial_strain_vector[2];
+    }
 
     const Vector phi_s = CalculateSymmetricDeformationMode();
     const Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
-    deformation_modes_total_v[3] = l - L;
-    for (int i = 0; i < 3; ++i) {
-        deformation_modes_total_v[i] = phi_s[i];
-    }
-    for (int i = 0; i < 2; ++i) {
-        deformation_modes_total_v[i + 4] = phi_a[i + 1];
-    }
+    deformation_modes_total_v[0] = phi_s[0];
+    deformation_modes_total_v[1] = phi_s[1] - initial_unit_rotation_2 * L; // adding initial curvature contributions
+    deformation_modes_total_v[2] = phi_s[2] - initial_unit_rotation_3 * L; // adding initial curvature contributions
+    deformation_modes_total_v[3] = l - L - initial_unit_elongation * L; // adding initial strain contributions
+    deformation_modes_total_v[4] = phi_a[1];
+    deformation_modes_total_v[5] = phi_a[2];
 
     // calculate element forces
     BoundedVector<double, msLocalSize> element_forces_t =

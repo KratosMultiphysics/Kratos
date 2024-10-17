@@ -3,12 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
 #pragma once
@@ -124,7 +122,11 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+    using TrussElement3D2N::ReturnTangentModulus1D;
+
 private:
+    double CalculateStressFromLinearStrain(const ProcessInfo &rCurrentProcessInfo);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

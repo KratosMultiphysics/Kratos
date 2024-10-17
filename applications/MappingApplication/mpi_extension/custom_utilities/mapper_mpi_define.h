@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_MAPPER_MPI_DEFINE_H_INCLUDED)
-#define KRATOS_MAPPER_MPI_DEFINE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -34,5 +33,3 @@ namespace MPIMapperDefinitions {
 }  // namespace MPIMapperDefinitions.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_MPI_DEFINE_H_INCLUDED defined

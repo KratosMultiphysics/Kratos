@@ -26,6 +26,6 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalDEMIntegrationScheme::UpdateTemperature(Node<3>& i, const double delta_t, const double c) {}
+  void ThermalDEMIntegrationScheme::UpdateTemperature(Node& i, const double delta_t, const double c) {}
 
 } // namespace Kratos
