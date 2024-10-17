@@ -27,6 +27,7 @@
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
+#include "custom_processes/assign_nodal_elements_to_nodes_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
@@ -75,6 +76,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    py::class_<AssignNodalElementsToNodesProcess, AssignNodalElementsToNodesProcess::Pointer, Process>(m, "AssignNodalElementsToNodesProcess")
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         ;
