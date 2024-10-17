@@ -144,6 +144,10 @@ class PyRolAlgorithms(Algorithm):
             l = myVector(np.array([0.0]))
             self.problem.addConstraint(constraint.GetName(), constraint, l)
 
+        Kratos.Logger.PrintInfo(self.problem.checkDerivatives())
+        # Kratos.Logger.PrintInfo(self.problem.check())
+        raise RuntimeError(1)
+
     @time_decorator()
     def Finalize(self):
         self.__objective.Finalize()

@@ -76,13 +76,13 @@ class ExpressionVtuOutput:
 
         if parameters["save_output_files_in_folder"]:
             self.output_path = Path(parameters["output_path"])
-            if not self.model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-                kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
-            # now create the output path
-            Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
-        else:
-            self.output_path = Path(".")
+        #     if not self.model_part.ProcessInfo[Kratos.IS_RESTARTED]:
+        #         kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
+        #     self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+        #     # now create the output path
+        #     Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
+        # else:
+        #     self.output_path = Path(".")
 
         self.vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(model_part, parameters["is_initial_configuration"], parameters["writer_format"], parameters["precision"])
         self.dict_of_expression_data: 'dict[Any, dict[str, ExpressionData]]' = {}
@@ -97,6 +97,8 @@ class ExpressionVtuOutput:
             self.dict_of_expression_data[Kratos.Expression.ElementExpression] = {}
         elif communicator.GlobalNumberOfConditions() > 0:
             self.dict_of_expression_data[Kratos.Expression.ConditionExpression] = {}
+
+        Kratos.Logger.PrintInfo(f"Created expression vtu output for {self.model_part.FullName()}.")
 
     def AddExpressionData(self, expression_data: ExpressionData) -> bool:
         if expression_data.GetModelPart() == self.vtu_output.GetModelPart():
@@ -209,6 +211,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
 
     def _AddContainerExpression(self, expression_data: ExpressionData):
         found_vtu_output = False
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Adding expression data {expression_data.GetContainerExpressionName()} for {expression_data.GetModelPart().FullName()}.")
         for expression_vtu_output in self.list_of_expresson_vtu_outputs:
             if expression_vtu_output.AddExpressionData(expression_data):
                 found_vtu_output = True

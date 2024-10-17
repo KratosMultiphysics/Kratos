@@ -104,14 +104,16 @@ class StandardizedObjective(ResponseRoutine):
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
             if save_field:
-                # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
                     variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
                     for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                        variable_name_model_part = variable_name + f"({physical_gradient_expression.GetModelPart().FullName()})"
+                        if self.__unbuffered_data.HasValue(variable_name_model_part): del self.__unbuffered_data[variable_name_model_part]
+                        Kratos.Logger.PrintInfo(f"Saving gradient {variable_name_model_part}")
+                        Kratos.Logger.PrintInfo(f"Gradient expression: {physical_gradient_expression.GetModelPart().FullName()}")
                         # cloning is a cheap operation, it only moves underlying pointers
                         # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+                        self.__unbuffered_data[variable_name_model_part] = physical_gradient_expression.Clone()
 
                 # save the filtered gradients for post processing in unbuffered data container.
                 for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
