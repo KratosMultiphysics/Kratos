@@ -17,29 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
-    runs-on: windows-2022
-    env:
-      KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
-
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Test Matrix Market Small
-      shell: cmd
-      run: |
-        more "kratos/tests/test_files/sparse_matrix_files/small_A.mm"
-
-    - name: Test Matrix Market Large
-      shell: cmd
-      run: |
-        more "kratos/tests/test_files/sparse_matrix_files/A.mm"
-
-  # windows:
+  # diagnose:
   #   runs-on: windows-2022
   #   env:
   #     KRATOS_BUILD_TYPE: Custom
@@ -51,51 +29,73 @@ jobs:
   #     with:
   #       python-version: '3.10'
 
-  #   - name: CI configuration
-  #     shell: bash
-  #     run: python3 kratos/python_scripts/testing/ci_utilities.py
-
-  #   - name: Disable Defender
-  #     shell: pwsh
-  #     run: | 
-  #       Set-MpPreference -DisableRealtimeMonitoring $true
-
-  #   - name: Download boost
-  #     run: |
-  #       $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
-  #       (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-  #       7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-  #       7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
-
-  #   - name: Installing dependencies
+  #   - name: Test Matrix Market Small
   #     shell: cmd
   #     run: |
-  #       pip install numpy
-  #       pip install sympy
-  #       pip install scipy
-  #       pip install h5py
-  #       pip install parameterized
+  #       more "kratos/tests/test_files/sparse_matrix_files/small_A.mm"
 
-  #   - name: Build
+  #   - name: Test Matrix Market Large
   #     shell: cmd
   #     run: |
-  #       copy .\.github\workflows\configure.cmd
-  #       python kratos/python_scripts/testing/ci_utilities.py
-  #       configure.cmd
+  #       more "kratos/tests/test_files/sparse_matrix_files/A.mm"
 
-  #   - name: Test Matrix Market
-  #     shell: cmd
-  #     run: |
-  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-  #       python kratos/tests/test_sparse_matrix_multiplication.py
+  windows:
+    runs-on: windows-2022
+    env:
+      KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
-  #   - name: Running python tests
-  #     shell: cmd
-  #     run: |
-  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-  #       python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
+
+    - name: Disable Defender
+      shell: pwsh
+      run: | 
+        Set-MpPreference -DisableRealtimeMonitoring $true
+
+    - name: Download boost
+      run: |
+        $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
+        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+        pip install sympy
+        pip install scipy
+        pip install h5py
+        pip install parameterized
+
+    - name: Build
+      shell: cmd
+      run: |
+        copy .\.github\workflows\configure.cmd
+        python kratos/python_scripts/testing/ci_utilities.py
+        configure.cmd
+
+    - name: Test Matrix Market
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/tests/test_sparse_matrix_multiplication.py
+
+    - name: Running python tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
 
   # windows-core-without-unity:
   #   runs-on: windows-2022

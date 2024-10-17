@@ -71,7 +71,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     typedef typename CompressedMatrixType::value_type ValueType;
 
     // Open MM file for reading
-    FILE *f = fopen(FileName, "r");
+    FILE *f = fopen(FileName, "r, ccs=UTF-8");
 
     if (f == NULL)
     {
