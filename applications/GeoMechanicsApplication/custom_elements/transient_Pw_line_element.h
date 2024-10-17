@@ -25,6 +25,8 @@
 namespace Kratos
 {
 
+enum Contributions { Compressibility, Permeability };
+
 class CompressibilityInputProvider
 {
 public:
@@ -61,14 +63,13 @@ public:
         return mGetNodalValues(rVariable);
     }
 
-
 private:
-    std::function<const Properties&()>                           mGetElementProperties;
-    std::function<const std::vector<RetentionLaw::Pointer>&()>   mGetRetentionLaws;
-    std::function<const Matrix&()>                               mGetNContainer;
-    std::function<Vector()>                                      mGetIntegrationCoefficients;
-    std::function<const double()>                                mGetDtPressureCoefficient;
-    std::function<Vector(const Variable<double>&)>               mGetNodalValues;
+    std::function<const Properties&()>                         mGetElementProperties;
+    std::function<const std::vector<RetentionLaw::Pointer>&()> mGetRetentionLaws;
+    std::function<const Matrix&()>                             mGetNContainer;
+    std::function<Vector()>                                    mGetIntegrationCoefficients;
+    std::function<const double()>                              mGetDtPressureCoefficient;
+    std::function<Vector(const Variable<double>&)>             mGetNodalValues;
 };
 
 class PermeabilityInputProvider
@@ -76,7 +77,7 @@ class PermeabilityInputProvider
 public:
     PermeabilityInputProvider(std::function<const Properties&()> rElementProperties,
                               std::function<const std::vector<RetentionLaw::Pointer>&()> rRetentionLaws,
-                              std::function<Vector()>        rIntegrationCoefficients,
+                              std::function<Vector()> rIntegrationCoefficients,
                               std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure,
                               std::function<Geometry<Node>::ShapeFunctionsGradientsType()> rShapeFunctionGradients)
         : mGetElementProperties(rElementProperties),
@@ -329,8 +330,7 @@ public:
             return dN_dX_container;
         };
 
-        return PermeabilityInputProvider(get_properties, get_retention_law_vector,
-                                         get_integration_coefficients,
+        return PermeabilityInputProvider(get_properties, get_retention_law_vector, get_integration_coefficients,
                                          get_nodal_values_of_dt_water_pressure, get_shape_function_gradients);
     }
 
@@ -354,16 +354,17 @@ public:
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
         std::vector<std::unique_ptr<Calculator>> calculators;
-        const auto contributions = {"Permeability", "Compressibility"};
+        const auto                               contributions = {Permeability, Compressibility};
         for (const auto& contribution : contributions) {
-            if (contribution == "Permeability") {
-                auto calculator = std::make_unique<PermeabilityCalculator<TNumNodes>>(
-                    CreatePermeabilityInputProvider(rCurrentProcessInfo));
-                calculators.push_back(std::move(calculator));
-            } else if (contribution == "Compressibility") {
-                auto calculator = std::make_unique<CompressibilityCalculator<TNumNodes>>(
-                    CreateCompressibilityInputProvider(rCurrentProcessInfo));
-                calculators.push_back(std::move(calculator));
+            switch (contribution) {
+            case Permeability:
+                calculators.emplace_back(std::make_unique<PermeabilityCalculator<TNumNodes>>(
+                    CreatePermeabilityInputProvider(rCurrentProcessInfo)));
+                break;
+            case Compressibility:
+                calculators.emplace_back(std::make_unique<CompressibilityCalculator<TNumNodes>>(
+                    CreateCompressibilityInputProvider(rCurrentProcessInfo)));
+                break;
             }
         }
 
