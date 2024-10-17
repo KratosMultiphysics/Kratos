@@ -36,10 +36,10 @@ namespace Kratos
 ///@{
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -139,22 +139,19 @@ public:
     ///@{
 
     ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    using ConstitutiveLawType = ConstitutiveLaw;
 
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
     ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    using StressMeasureType = ConstitutiveLawType::StressMeasure;
 
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The base element type
-    typedef Element BaseType;
+    using BaseType = Element;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
@@ -274,22 +271,12 @@ public:
         return mThisIntegrationMethod;
     }
 
-    /**
-    * element can be integrated using the GP provided by the geometry or custom ones
-    * by default, the base element will use the standard integration provided by the geom
-    * @return bool to select if use/not use GPs given by the geometry
-    */
-    bool virtual UseGeometryIntegrationMethod() const
+    const virtual GeometryType::IntegrationPointsArrayType& IntegrationPoints() const 
     {
-        return true;
+        return GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     }
 
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
-    {
-        return GetGeometry().IntegrationPoints();
-    }
-
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    const virtual GeometryType::IntegrationPointsArrayType& IntegrationPoints(IntegrationMethod ThisMethod) const
     {
         return GetGeometry().IntegrationPoints(ThisMethod);
     }
@@ -298,7 +285,6 @@ public:
     {
         return GetGeometry().ShapeFunctionsValues(ThisMethod);
     }
-
 
     /**
      * @brief Sets on rValues the nodal displacements
