@@ -125,7 +125,6 @@ public:
     //@name Life Cycle
     //@{
 
-    //----------------------------------------------------------------------------------------
     /**
      * @brief Default constructor.
      */
@@ -283,13 +282,6 @@ public:
     void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
     void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector);
 
     /**
      * This can be used in order to reset all internal variables of the
