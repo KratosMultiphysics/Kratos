@@ -57,9 +57,6 @@
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
-#include "custom_constitutive/dam_joint_3D_law.hpp"
-#include "custom_constitutive/dam_joint_2D_law.hpp"
-
 namespace Kratos
 {
 
@@ -186,9 +183,6 @@ const ThermalSimoJuNonlocalDamagePlaneStress2DLaw mThermalSimoJuNonlocalDamagePl
 const ThermalModifiedMisesNonlocalDamage3DLaw mThermalModifiedMisesNonlocalDamage3DLaw;
 const ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw mThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw;
-
-const DamJoint3DLaw mDamJoint3DLaw;
-const DamJoint2DLaw mDamJoint2DLaw;
 
 // Assignment operator.
 KratosDamApplication& operator=(KratosDamApplication const& rOther);

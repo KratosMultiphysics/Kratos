@@ -1074,13 +1074,13 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem_E
     // Check.
     const auto& adjoint_model_part = current_model.GetModelPart("test_adjoint");
     const double adjoint_sensitivity = adjoint_model_part.Elements().front().GetValue(SCALAR_SENSITIVITY);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), 2.1808885528e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), -1.3753669361e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), -1.1404210281, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), 7.5552893007e-01, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), 1.8155023724e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), -1.0319132594e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), 2.1808885528e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), -1.3753669361e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), -1.1404210281, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), 7.5552893007e-01, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), 1.8155023724e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), -1.0319132594e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem_Conditions, KratosCoreFastSuite)
@@ -1091,13 +1091,13 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem_C
     // Check.
     const auto& adjoint_model_part = current_model.GetModelPart("test_adjoint");
     const double adjoint_sensitivity = adjoint_model_part.Elements().front().GetValue(SCALAR_SENSITIVITY);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X),2.2137828871194067e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X),2.4193476311095937e-04, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X),-1.1571526004795203e+00, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X),1.7328959169416527e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X),1.8457008899037744e-02, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X),1.4601280619724877e-03, 1e-6);
-    KRATOS_CHECK_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X),2.2137828871194067e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X),2.4193476311095937e-04, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X),-1.1571526004795203e+00, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X),1.7328959169416527e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X),1.8457008899037744e-02, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X),1.4601280619724877e-03, 1e-6);
+    KRATOS_EXPECT_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
 }
 
 }

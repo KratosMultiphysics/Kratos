@@ -41,13 +41,13 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTriangle, KratosCoreFastSui
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(h_ref, 1.0, tolerance);
-    KRATOS_CHECK_NEAR(met_inf, 1.0, tolerance);
-    KRATOS_CHECK_NEAR(met_sup, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(h_ref, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(met_inf, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(met_sup, 1.0, tolerance);
     BoundedMatrix<double,2,2> expected_metric_tensor;
     expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.0;
     expected_metric_tensor(1,0) = 0.0; expected_metric_tensor(1,1) = 1.0;
-    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
@@ -66,13 +66,13 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
 
     // Check results
     const double tolerance = 1.0e-5;
-    KRATOS_CHECK_NEAR(h_ref, 1.115360, tolerance);
-    KRATOS_CHECK_NEAR(met_inf, 0.5, tolerance);
-    KRATOS_CHECK_NEAR(met_sup, 1.5, tolerance);
+    KRATOS_EXPECT_NEAR(h_ref, 1.115360, tolerance);
+    KRATOS_EXPECT_NEAR(met_inf, 0.5, tolerance);
+    KRATOS_EXPECT_NEAR(met_sup, 1.5, tolerance);
     BoundedMatrix<double,2,2> expected_metric_tensor;
     expected_metric_tensor(0,0) = 1.244020; expected_metric_tensor(0,1) = 0.622008;
     expected_metric_tensor(1,0) = 0.622008; expected_metric_tensor(1,1) = 1.244020;
-    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreFastSuite)
@@ -92,14 +92,14 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreF
 
     // Check results
     const double tolerance = 1.0e-5;
-    KRATOS_CHECK_NEAR(h_ref, 1.0, tolerance);
-    KRATOS_CHECK_NEAR(met_inf, 1.0, tolerance);
-    KRATOS_CHECK_NEAR(met_sup, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(h_ref, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(met_inf, 1.0, tolerance);
+    KRATOS_EXPECT_NEAR(met_sup, 1.0, tolerance);
     BoundedMatrix<double,3,3> expected_metric_tensor;
     expected_metric_tensor(0,0) = 1.0; expected_metric_tensor(0,1) = 0.0; expected_metric_tensor(0,2) = 0.0;
     expected_metric_tensor(1,0) = 0.0; expected_metric_tensor(1,1) = 1.0; expected_metric_tensor(1,2) = 0.0;
     expected_metric_tensor(2,0) = 0.0; expected_metric_tensor(2,1) = 0.0; expected_metric_tensor(2,2) = 1.0;
-    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuite)
@@ -119,14 +119,14 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuit
 
     // Check results
     const double tolerance = 1.0e-5;
-    KRATOS_CHECK_NEAR(h_ref, 1.17851, tolerance);
-    KRATOS_CHECK_NEAR(met_inf, 0.5, tolerance);
-    KRATOS_CHECK_NEAR(met_sup, 2.0, tolerance);
+    KRATOS_EXPECT_NEAR(h_ref, 1.17851, tolerance);
+    KRATOS_EXPECT_NEAR(met_inf, 0.5, tolerance);
+    KRATOS_EXPECT_NEAR(met_sup, 2.0, tolerance);
     BoundedMatrix<double,3,3> expected_metric_tensor;
     expected_metric_tensor(0,0) = 1.38889; expected_metric_tensor(0,1) = 0.694444; expected_metric_tensor(0,2) = 0.694444;
     expected_metric_tensor(1,0) = 0.694444; expected_metric_tensor(1,1) = 1.38889; expected_metric_tensor(1,2) = 0.694444;
     expected_metric_tensor(2,0) = 0.694444; expected_metric_tensor(2,1) = 0.694444; expected_metric_tensor(2,2) = 1.38889;
-    KRATOS_CHECK_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(metric_tensor, expected_metric_tensor, tolerance);
 }
 
 } // namespace Testing

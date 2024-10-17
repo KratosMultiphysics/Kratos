@@ -49,7 +49,7 @@ public:
         TIteratorType Begin,
         TIteratorType End)
         : Expression(Begin != End ? (*Begin)->NumberOfEntities() : 0),
-        mSourceExpressions(Begin, End)
+          mSourceExpressions(Begin, End)
 
     {
         mStrides.resize(mSourceExpressions.size());
@@ -59,7 +59,7 @@ public:
         for (IndexType i = 0; i < mSourceExpressions.size(); ++i) {
             const auto& p_expression = mSourceExpressions[i];
 
-            KRATOS_ERROR_IF_NOT(p_expression->NumberOfEntities() == NumberOfEntities())
+            KRATOS_ERROR_IF_NOT(p_expression->NumberOfEntities() == this->NumberOfEntities())
                 << "Expression number of entities mismatch. [ required number of entities = "
                 << NumberOfEntities() << ", found number of entities = "
                 << p_expression->NumberOfEntities() << " ].\n"
@@ -71,6 +71,7 @@ public:
             mStrides[i] = local_stride;
         }
 
+        // Corner case: empty expression range provided
         KRATOS_ERROR_IF(this->GetItemComponentCount() == 0)
             << "No expressions were given.\n";
     }
@@ -109,7 +110,16 @@ public:
 
     const std::vector<IndexType> GetItemShape() const override
     {
-        return {mStrides.back()};
+        return mStrides.size() == 1 && mStrides.back() == 1 ? std::vector<IndexType> {} : std::vector<IndexType> {mStrides.back()};
+    }
+
+    IndexType GetMaxDepth() const override
+    {
+        IndexType max_depth = 0;
+        for (const auto& p_expression : mSourceExpressions) {
+            max_depth = std::max(max_depth, p_expression->GetMaxDepth());
+        }
+        return max_depth + 1;
     }
 
     std::string Info() const override

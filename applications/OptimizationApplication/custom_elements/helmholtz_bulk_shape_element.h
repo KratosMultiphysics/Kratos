@@ -52,7 +52,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class HelmholtzBulkShapeElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzBulkShapeElement
     : public Element
 {
 public:

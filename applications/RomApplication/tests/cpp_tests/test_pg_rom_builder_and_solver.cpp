@@ -216,16 +216,16 @@ KRATOS_TEST_CASE_IN_SUITE(PetrovGalerkinROMBuilderAndSolver, RomApplicationFastS
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
 
-    KRATOS_CHECK_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
-    KRATOS_CHECK_EQUAL(romBnS.GetEquationSystemSize(), 3);
+    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
+    KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
 
-    KRATOS_CHECK_NEAR(dq(0), 1.0 , 1e-8);
-    KRATOS_CHECK_NEAR(dq(1), 0.5 , 1e-8);
+    KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
+    KRATOS_EXPECT_NEAR(dq(1), 0.5 , 1e-8);
 
     // Testing free dofs
-    KRATOS_CHECK_EQUAL(dx.size(), 3);
-    KRATOS_CHECK_NEAR(dx(1), 1.5 , 1e-8);
-    KRATOS_CHECK_NEAR(dx(2), 2.0 , 1e-8);
+    KRATOS_EXPECT_EQ(dx.size(), 3);
+    KRATOS_EXPECT_NEAR(dx(1), 1.5 , 1e-8);
+    KRATOS_EXPECT_NEAR(dx(2), 2.0 , 1e-8);
 }
 
 }

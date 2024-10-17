@@ -22,7 +22,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -59,27 +58,35 @@ public:
     /// Counted pointer of PairedCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PairedCondition );
 
-    typedef Condition                                                           BaseType;
+    /// Basetype definition
+    using BaseType = Condition;
 
-    typedef Point                                                              PointType;
+    /// Point type definition
+    using PointType = Point;
 
-    typedef Node                                                             NodeType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
-    typedef Geometry<NodeType>                                              GeometryType;
+    /// Coupling geometry type definition
+    using CouplingGeometryType = CouplingGeometry<Node>;
 
-    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
+    /// Vector type definition
+    using VectorType = BaseType::VectorType;
 
-    typedef BaseType::VectorType                                              VectorType;
+    /// Matrix type definition
+    using MatrixType = BaseType::MatrixType;
 
-    typedef BaseType::MatrixType                                              MatrixType;
+    /// Index type definition
+    using IndexType = BaseType::IndexType;
 
-    typedef BaseType::IndexType                                                IndexType;
+    /// Geometry pointer type definition
+    using GeometryPointerType = BaseType::GeometryType::Pointer;
 
-    typedef BaseType::GeometryType::Pointer                          GeometryPointerType;
+    /// Nodes array type definition
+    using NodesArrayType = BaseType::NodesArrayType;
 
-    typedef BaseType::NodesArrayType                                      NodesArrayType;
-
-    typedef BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    /// Properties pointer type definition
+    using PropertiesPointerType = BaseType::PropertiesType::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -322,36 +329,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -386,17 +363,17 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Saves the PairedCondition object to a serializer.
+     * @param rSerializer the serializer to save to
+     */
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Loads the PairedCondition from a serializer.
+     * @param rSerializer the serializer to load from
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
 

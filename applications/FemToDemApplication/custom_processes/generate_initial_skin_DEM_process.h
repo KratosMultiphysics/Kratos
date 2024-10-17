@@ -19,7 +19,7 @@
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_utilities/create_and_destroy.h"
-#include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 
 namespace Kratos {
 

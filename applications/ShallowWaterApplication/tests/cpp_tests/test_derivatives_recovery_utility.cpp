@@ -142,7 +142,7 @@ void GradientRecoveryTest(
     block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
         array_1d<double,3> computed_gradient = rNode.FastGetSolutionStepValue(DISTANCE_GRADIENT);
         array_1d<double,3> exact_gradient = rDerivativeFunction(rNode);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(computed_gradient, exact_gradient, Tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(computed_gradient, exact_gradient, Tolerance)
     });
 }
 
@@ -171,7 +171,7 @@ void LaplacianRecoveryTest(
     block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
         array_1d<double,3> computed_laplacian = rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
         array_1d<double,3> exact_laplacian = rDerivativeFunction(rNode);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(computed_laplacian, exact_laplacian, Tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(computed_laplacian, exact_laplacian, Tolerance)
     });
 }
 

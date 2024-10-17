@@ -359,6 +359,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
+
+    /** @brief General information identifying this instance. */
+    std::string Info() const override;
+
+    /**
+     * @brief General information identifying this instance.
+     * @param rOstream The stream where the info will be printed.
+     */
+    void PrintInfo(std::ostream& rOStream) const override;
+
 protected:
 
     ///@name Protected static Member Variables

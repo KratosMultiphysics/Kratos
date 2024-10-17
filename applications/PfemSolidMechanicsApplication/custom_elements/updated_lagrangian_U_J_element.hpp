@@ -121,19 +121,9 @@ namespace Kratos
          /**
           * Set a double  Value on the Element Constitutive Law
           */
-         void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+         void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-         //GET:
-
-         /**
-          * Get on rVariable a double Value from the Element Constitutive Law
-          */
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
          //************* STARTING - ENDING  METHODS
 
@@ -141,23 +131,23 @@ namespace Kratos
           * Called to initialize the element.
           * Must be called before any calculation is done
           */
-         void Initialize() override;
+         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
          /*
           * Called at the beginning of each solution step
           */
 
-         void InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo) override;
+         void InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+         void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+         void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rValues the nodal displacements
@@ -177,7 +167,7 @@ namespace Kratos
          /**
           * Called at the end of eahc solution step
           */
-         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
          //************* COMPUTING  METHODS
 
@@ -187,7 +177,7 @@ namespace Kratos
           * @param rMassMatrix: the elemental mass matrix
           * @param rCurrentProcessInfo: the current process info instance
           */
-         void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+         void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * this is called during the assembling process in order
@@ -195,7 +185,7 @@ namespace Kratos
           * @param rDampingMatrix: the elemental damping matrix
           * @param rCurrentProcessInfo: the current process info instance
           */
-         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+         void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          //************************************************************************************
@@ -207,7 +197,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Calculate Element Kinematics
@@ -284,7 +274,7 @@ namespace Kratos
           * \f$ r^e \f$
           */
          void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-               ProcessInfo& rCurrentProcessInfo) override;
+               const ProcessInfo& rCurrentProcessInfo) override;
 
          ///@}
          ///@name Protected Operations

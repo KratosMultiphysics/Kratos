@@ -64,7 +64,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto2",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0,
@@ -78,7 +77,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto3",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0,
@@ -92,7 +90,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto4",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0,
@@ -106,7 +103,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto5",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0,

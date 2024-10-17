@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "includes/node.h"
 #include "includes/element.h"
@@ -57,7 +57,7 @@ void AssignRandomNodalData(Variable<array_1d<double,3>> const& rVariable, ModelP
 
 void AssignNodalData3(ModelPart& rModelPart)
 {
-    KRATOS_CHECK(rModelPart.NumberOfNodes() == 3);
+    KRATOS_EXPECT_TRUE(rModelPart.NumberOfNodes() == 3);
     std::vector<double> dx = {0.00946560399690433464, 0.00662748804282238015, 0.00659328835078053753};
     std::vector<double> dy = {0.00445411379289947958, -0.00237153525872378125, 0.00322058577500765331};
     std::vector<double> dz = {-0.00820947461981770196, 0.00638188396019644284, -0.00772847850915277159};
@@ -78,7 +78,7 @@ void AssignNodalData3(ModelPart& rModelPart)
 
 void AssignNodalData4(ModelPart& rModelPart)
 {
-    KRATOS_CHECK(rModelPart.NumberOfNodes() == 4);
+    KRATOS_EXPECT_TRUE(rModelPart.NumberOfNodes() == 4);
     std::vector<double> dx = {0.00946560399690433464, 0.00662748804282238015,
                               0.00659328835078053753, -0.00433392971520204368};
     std::vector<double> dy = {0.00445411379289947958, -0.00237153525872378125,
@@ -212,9 +212,9 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructu
     p_elem->CalculateLocalSystem(lhs, rhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
+            KRATOS_EXPECT_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
     for (std::size_t i = 0; i < 6; ++i)
-        KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
+        KRATOS_EXPECT_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
@@ -390,9 +390,9 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructu
     p_elem->CalculateLocalSystem(lhs, rhs, r_process_info);
     for (std::size_t i = 0; i < 12; ++i)
         for (std::size_t j = 0; j < 12; ++j)
-        KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
+        KRATOS_EXPECT_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
     for (std::size_t i = 0; i < 12; ++i)
-        KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
+        KRATOS_EXPECT_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechanicsFastSuite)
@@ -443,7 +443,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechani
     p_elem->CalculateMassMatrix(lhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
+            KRATOS_EXPECT_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMechanicsFastSuite)
@@ -494,7 +494,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMech
     p_elem->CalculateDampingMatrix(lhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
+            KRATOS_EXPECT_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMechanicsFastSuite)
@@ -502,7 +502,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D10N", test_model_part);
-    KRATOS_CHECK(test_model_part.NumberOfNodes() == 10);
+    KRATOS_EXPECT_TRUE(test_model_part.NumberOfNodes() == 10);
     std::vector<double> dx = {0.00946, 0.00662, 0.00659, 0.00618, 0.00530, 0.00851, 0.00445, -0.00237, 0.00322, 0.00202};
     std::vector<double> dy = {0.00445, -0.00237, 0.00322, 0.00872, -0.00506, 0.00505, 0.00946, 0.00662, 0.00659, 0.00354};
     std::vector<double> dz = {0.00603, -0.00535, 0.00328, 0.00542, 0.00732, 0.00515, 0.00113, -0.00258, 0.00577, 0.00836};
@@ -551,7 +551,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     for (std::size_t i = 0; i < weights.size(); ++i)
         rotated_element_strain_energy += weights[i] * strain_energies[i];
     // Check that strain energy didn't change.
-    KRATOS_CHECK_NEAR(rotated_element_strain_energy, element_strain_energy, 1e-7);
+    KRATOS_EXPECT_NEAR(rotated_element_strain_energy, element_strain_energy, 1e-7);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructuralMechanicsFastSuite)
@@ -603,7 +603,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
         }
     for (std::size_t i = 0; i < sensitivity_matrix.size1(); ++i)
         for (std::size_t j = 0; j < sensitivity_matrix.size2(); ++j)
-            KRATOS_CHECK_NEAR(sensitivity_matrix(i, j), semi_analytic_sensitivity_matrix(i,j), 1e-1);
+            KRATOS_EXPECT_NEAR(sensitivity_matrix(i, j), semi_analytic_sensitivity_matrix(i,j), 1e-1);
 }
 }
 }

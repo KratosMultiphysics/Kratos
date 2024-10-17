@@ -10,125 +10,78 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
+#include <filesystem>
 #include <string>
-#include <iostream>
-
-#include <fstream>
-#include <iterator>
-#include <algorithm>
 
 // Project includes
-#include "containers/model.h"
-#include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
+#include "test_utilities.h"
 
-bool compareFiles(const std::string &p1, const std::string &p2)
+namespace
 {
-    std::ifstream f1(p1, std::ifstream::binary | std::ifstream::ate);
-    std::ifstream f2(p2, std::ifstream::binary | std::ifstream::ate);
 
-    if (f1.fail() || f2.fail())
-    {
-        return false; // file problem
-    }
+using namespace Kratos;
+using namespace Kratos::Testing;
 
-    if (f1.tellg() != f2.tellg())
-    {
-        return false; // size mismatch
-    }
+const auto workingDirectory = std::filesystem::path{"."} / "applications" / "GeoMechanicsApplication" /
+                              "tests" / "test_head_extrapolation_custom_workflow_flow";
 
-    // seek back to beginning and use std::equal to compare contents
-    f1.seekg(0, std::ifstream::beg);
-    f2.seekg(0, std::ifstream::beg);
-    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-                      std::istreambuf_iterator<char>(),
-                      std::istreambuf_iterator<char>(f2.rdbuf()));
+int RunTestCase(int TestCaseNumber)
+{
+    const auto projectFile = std::string{"ProjectParameters_"} + std::to_string(TestCaseNumber) + ".json";
+
+    const KratosExecute::CriticalHeadInfo  critical_head_info(0, 0, 0);
+    const KratosExecute::CallBackFunctions call_back_functions(
+        &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    return KratosExecute().ExecuteFlowAnalysis(workingDirectory.generic_string(), projectFile,
+                                               critical_head_info, "", call_back_functions);
 }
 
-namespace Kratos
+void CompareResults(int TestCaseNumber)
 {
-    namespace Testing
-    {
-        KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsFastSuite)
-        {
-            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
-            auto projectFile = "ProjectParameters_1.json";
+    const auto original =
+        (workingDirectory / ("test_head_extrapolate_" + std::to_string(TestCaseNumber) + ".orig.res"))
+            .generic_string();
+    const auto result =
+        (workingDirectory / ("test_head_extrapolate_" + std::to_string(TestCaseNumber) + ".post.res"))
+            .generic_string();
 
-            auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
-
-            KRATOS_CHECK_EQUAL(status, 0);
-
-            // output_files
-            std::string original = (std::string) workingDirectory + "/test_head_extrapolate_1.orig.res";
-            std::string result = (std::string) workingDirectory + "/test_head_extrapolate_1.post.res";
-
-            KRATOS_CHECK(compareFiles(original, result))
-        }
-
-         KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_2, KratosGeoMechanicsFastSuite)
-        {
-            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
-            auto projectFile = "ProjectParameters_2.json";
-
-            auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
-
-            KRATOS_CHECK_EQUAL(status, 0);
-
-            // output_files
-            std::string original = (std::string) workingDirectory + "/test_head_extrapolate_2.orig.res";
-            std::string result = (std::string) workingDirectory + "/test_head_extrapolate_2.post.res";
-
-            KRATOS_CHECK(compareFiles(original, result))
-        }
-
-        KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsFastSuite)
-        {
-            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
-            auto projectFile = "ProjectParameters_3.json";
-
-            auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
-
-            KRATOS_CHECK_EQUAL(status, 0);
-
-            // output_files
-            std::string original = (std::string) workingDirectory + "/test_head_extrapolate_3.orig.res";
-            std::string result = (std::string) workingDirectory + "/test_head_extrapolate_3.post.res";
-
-            KRATOS_CHECK(compareFiles(original, result))
-        }
-
-        KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsFastSuite)
-        {
-            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_head_extrapolation_custom_workflow_flow";
-            auto projectFile = "ProjectParameters_4.json";
-
-            auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
-
-            KRATOS_CHECK_EQUAL(status, 0);
-
-            // output_files
-            std::string original = (std::string) workingDirectory + "/test_head_extrapolate_4.orig.res";
-            std::string result = (std::string) workingDirectory + "/test_head_extrapolate_4.post.res";
-
-            KRATOS_CHECK(compareFiles(original, result))
-        }
-    }
+    KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
+} // namespace
+
+namespace Kratos::Testing
+{
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsIntegrationSuite)
+{
+    constexpr auto test_case_number = 1;
+    KRATOS_EXPECT_EQ(RunTestCase(test_case_number), 0);
+    CompareResults(test_case_number);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_2, KratosGeoMechanicsIntegrationSuite)
+{
+    constexpr auto test_case_number = 2;
+    KRATOS_EXPECT_EQ(RunTestCase(test_case_number), 0);
+    CompareResults(test_case_number);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsIntegrationSuite)
+{
+    constexpr auto test_case_number = 3;
+    KRATOS_EXPECT_EQ(RunTestCase(test_case_number), 0);
+    CompareResults(test_case_number);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsIntegrationSuite)
+{
+    constexpr auto test_case_number = 4;
+    KRATOS_EXPECT_EQ(RunTestCase(test_case_number), 0);
+    CompareResults(test_case_number);
+}
+
+} // namespace Kratos::Testing

@@ -122,7 +122,11 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+    using TrussElement3D2N::ReturnTangentModulus1D;
+
 private:
+    double CalculateStressFromLinearStrain(const ProcessInfo &rCurrentProcessInfo);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

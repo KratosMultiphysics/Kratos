@@ -18,10 +18,10 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
 #include "custom_constitutive/small_strains/damage/d_plus_d_minus_damage_masonry_3d.h"
@@ -29,12 +29,8 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's
@@ -53,14 +49,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosConstitut
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(DAMAGE_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(DAMAGE_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
     Vector internal_variables_w(6);
     internal_variables_w[0] = 0.0;
     internal_variables_w[1] = 0.1;
@@ -71,13 +67,13 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosConstitut
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiveLawsFastSuite)
@@ -90,12 +86,12 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiv
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -150,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiv
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLawsFastSuite)
@@ -163,12 +159,12 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLaw
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -223,7 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLaw
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLawsFastSuite)
@@ -236,12 +232,12 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLaws
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -297,8 +293,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLaws
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

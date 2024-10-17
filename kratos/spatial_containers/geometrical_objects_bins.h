@@ -36,7 +36,7 @@ class GeometricalObject; // forward declaration, to be included in the cpp. This
  * @class GeometricalObjectsBins
  * @ingroup KratosCore
  * @brief A bins container for 3 dimensional GeometricalObject entities.
- * @details It provides efficent search in radius and search nearest methods.
+ * @details It provides efficient search in radius and search nearest methods.
  * All of the geometries should be given at construction time. After
  * constructing the bins the geometries cannot be modified. In case of
  * any modification, the bins should be reconstructed.
@@ -50,6 +50,12 @@ public:
 
     /// Pointer definition of GeometricalObjectsBins
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalObjectsBins);
+
+    /// The point type definition
+    using PointType = Point;
+
+    /// The type of geometrical object to be stored in the bins
+    using ObjectType = GeometricalObject;
 
     /// The type of geometrical object to be stored in the bins
     using CellType = std::vector<GeometricalObject*>;
@@ -68,17 +74,19 @@ public:
     template<typename TIteratorType>
     GeometricalObjectsBins(
         TIteratorType GeometricalObjectsBegin,
-        TIteratorType GeometricalObjectsEnd
+        TIteratorType GeometricalObjectsEnd,
+        const double Tolerance = 1e-12
         )
     {
+        mTolerance = Tolerance;
         const std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
         if (number_of_objects > 0){
             mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
             for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
                 mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
             }
+            mBoundingBox.Extend(Tolerance);
         }
-        mBoundingBox.Extend(Tolerance);
         CalculateCellSize(number_of_objects);
         mCells.resize(GetTotalNumberOfCells());
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -90,8 +98,10 @@ public:
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    GeometricalObjectsBins(TContainer& rGeometricalObjectsVector)
-        : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
+    GeometricalObjectsBins(
+        TContainer& rGeometricalObjectsVector,
+        const double Tolerance = 1e-12)
+        : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), Tolerance)
     {
     }
 
@@ -127,7 +137,7 @@ public:
      * @param K The index in z direction
      * @return The bounding box of the cell
      */
-    BoundingBox<Point> GetCellBoundingBox(
+    BoundingBox<PointType> GetCellBoundingBox(
         const std::size_t I,
         const std::size_t J,
         const std::size_t K
@@ -141,7 +151,7 @@ public:
      * @param rResults The results of the search
      */
     void SearchInRadius(
-        const Point& rPoint,
+        const PointType& rPoint,
         const double Radius,
         std::vector<ResultType>& rResults
         );
@@ -180,7 +190,7 @@ public:
      * @return ResultType The result of the search
      */
     ResultType SearchNearestInRadius(
-        const Point& rPoint,
+        const PointType& rPoint,
         const double Radius
         );
 
@@ -219,7 +229,7 @@ public:
      * @param rPoint The point to be checked
      * @return ResultType The result of the search
     */
-    ResultType SearchNearest(const Point& rPoint);
+    ResultType SearchNearest(const PointType& rPoint);
 
     /**
      * @brief This method takes a point and finds the nearest object to it (iterative version).
@@ -255,7 +265,7 @@ public:
      * @param rPoint The point to be checked
      * @return ResultType The result of the search
      */
-    ResultType SearchIsInside(const Point& rPoint);
+    ResultType SearchIsInside(const PointType& rPoint);
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -292,7 +302,7 @@ public:
      * @brief Getting the bins bounding box
      * @return The bounding box of the bins
      */
-    const BoundingBox<Point>& GetBoundingBox() const {
+    const BoundingBox<PointType>& GetBoundingBox() const {
         return mBoundingBox;
     }
 
@@ -360,27 +370,39 @@ protected:
     ///@{
 
     static constexpr unsigned int Dimension = 3;    /// The dimension of the problem
-    static constexpr double Tolerance = 1e-12;      /// The tolerance considered
 
     ///@}
     ///@name Protected Member Variables
     ///@{
 
-    BoundingBox<Point> mBoundingBox;                 /// The bounding box of the domain
+    BoundingBox<PointType> mBoundingBox;             /// The bounding box of the domain
     array_1d<std::size_t, Dimension> mNumberOfCells; /// The number of cells in each direction
-    array_1d<double, 3>  mCellSizes;                 /// The size of each cell in each direction
-    array_1d<double, 3>  mInverseOfCellSize;         /// The inverse of the size of each cell in each direction
+    array_1d<double, 3> mCellSizes;                  /// The size of each cell in each direction
+    array_1d<double, 3> mInverseOfCellSize;          /// The inverse of the size of each cell in each direction
     std::vector<CellType> mCells;                    /// The cells of the domain
-
+    double mTolerance;                               /// The tolerance considered
 
     ///@}
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes
+     * @param rCoords The coordinates of the point
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes considering a certain tolerance
+     * @param rCoords The coordinates of the point
+     * @param Tolerance The tolerance
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBoxWithTolerance(
+        const array_1d<double, 3>& rCoords,
+        const double Tolerance
+        );
 
     /**
      * @brief Calculate the cell sizes to be as equilateral as possible and tries to approximate (roughly) the given number of cells
@@ -410,7 +432,7 @@ protected:
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                     for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                         auto cell_bounding_box = GetCellBoundingBox(i,j,k);
-                        if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, Tolerance)){
+                        if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, mTolerance)){
                             GetCell(i,j,k).push_back(&(*i_geometrical_object));
                         }
                     }
@@ -447,7 +469,7 @@ private:
         if(rGeometry.empty())
             return;
 
-        BoundingBox<Point> bounding_box(rGeometry.begin(), rGeometry.end());
+        BoundingBox<PointType> bounding_box(rGeometry.begin(), rGeometry.end());
 
         for(unsigned int i = 0; i < 3; i++ ) {
             rMinPosition[i] = CalculatePosition( bounding_box.GetMinPoint()[i], i );
@@ -478,12 +500,12 @@ private:
     template<typename TGeometryType>
     static inline bool IsIntersected(
         TGeometryType& rGeometry,
-        const BoundingBox<Point>& rBox,
+        const BoundingBox<PointType>& rBox,
         const double ThisTolerance
         )
     {
-        Point low_point_tolerance;
-        Point high_point_tolerance;
+        PointType low_point_tolerance;
+        PointType high_point_tolerance;
 
         for(unsigned int i = 0; i<3; i++) {
             low_point_tolerance[i]  =  rBox.GetMinPoint()[i] - ThisTolerance;
@@ -492,21 +514,6 @@ private:
 
         return rGeometry.HasIntersection(low_point_tolerance,high_point_tolerance);
     }
-
-    /**
-     * @brief Searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
-     * @details This method takes a cell and a point and searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
-     * @param rCell The cell to be checked
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be considered
-     * @param rResults The results of the search
-     */
-    void SearchInRadiusInCell(
-        const CellType& rCell,
-        const Point& rPoint,
-        const double Radius,
-        std::unordered_set<GeometricalObject*>& rResults
-        );
 
     /**
      * @brief Searchs in objects in the given cell for the nearest one.
@@ -518,7 +525,7 @@ private:
      */
     void SearchNearestInCell(
         const CellType& rCell,
-        const Point& rPoint,
+        const PointType& rPoint,
         ResultType& rResult,
         const double MaxRadius
         );
@@ -532,7 +539,7 @@ private:
      */
     void SearchIsInsideInCell(
         const CellType& rCell,
-        const Point& rPoint,
+        const PointType& rPoint,
         ResultType& rResult
         );
 
@@ -561,10 +568,8 @@ private:
 }; // Class GeometricalObjectsBins
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -586,6 +591,7 @@ private:
 
 //     return rOStream;
 // }
+
 ///@}
 
 ///@} addtogroup block

@@ -14,9 +14,9 @@
 
 namespace flow_stubs
 {
-    void emptyProgress(double progress) {}
-    void emptyLog(char* log) {}
-    bool emptyCancel() {
-        return false;
-    }
-}
+void emptyProgress(double progress) {}
+
+void emptyLog(const char* log) {}
+
+bool emptyCancel() { return false; }
+} // namespace flow_stubs

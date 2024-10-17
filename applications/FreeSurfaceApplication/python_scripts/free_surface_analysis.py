@@ -37,15 +37,14 @@ class FreeSurfaceAnalysis(AnalysisStage):
             break
 
         for node in self.model.GetModelPart(model_part_name).Nodes:
-            # Initialize DENSITY
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, density)
-
-            # Initialize DISTANCE
+            # Initialize DISTANCE and DENSITY
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                 active_node_count += 1
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -small_value)
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, density)
             else:
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, small_value)
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
 
             # Make sure no node has null porosity and diameter
             if node.GetSolutionStepValue(KratosMultiphysics.POROSITY) == 0.0:

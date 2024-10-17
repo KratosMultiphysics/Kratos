@@ -2,7 +2,8 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
@@ -53,11 +54,12 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
         self.__execution_policy.Finalize()
 
     def Execute(self):
-        if self.__log_in_file:
-            with FileLogger(self.__log_file_name):
+        with TimeLogger(f"ExecutionPolicyDecorator::Executing {self.GetName()}", None, "Finished"):
+            if self.__log_in_file:
+                with FileLogger(self.__log_file_name):
+                    self.__ExecuteWithoutFileLogger()
+            else:
                 self.__ExecuteWithoutFileLogger()
-        else:
-            self.__ExecuteWithoutFileLogger()
 
     def __ExecuteWithoutFileLogger(self):
         CallOnAll(self.__list_of_pre_operations, Kratos.Operation.Execute)

@@ -60,7 +60,6 @@ public:
 //     typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
 //     typedef SearchType::ElementsContainerType                       ElementsContainerType;
     
-//     typedef SearchType::ElementType                                 ElementType;
 //     typedef ContainerType::value_type                               PointerType;
 //     typedef ContainerType::iterator                                 IteratorType;
 //     typedef ElementsContainerType::iterator                         ElementIteratorType;
@@ -84,7 +83,6 @@ public:
     typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
     typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
     
-    typedef SearchType::ElementType                                             ElementType;
     typedef ContainerType::value_type                                           PointerType;
     typedef ContainerType::iterator                                             IteratorType;
 //     typedef ElementsContainerType::iterator                                     ElementIteratorType;

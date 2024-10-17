@@ -1,9 +1,12 @@
+from typing import Optional
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
@@ -27,23 +30,22 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
-
         self.model = model
-        self.model_part: Kratos.ModelPart = None
         self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
-        if len(self.model_part_names) == 0:
-            raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
+        evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
+        if len(evaluated_model_part_names) == 0:
+            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction. [ response name = \"{self.GetName()}\"]")
 
-    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
+        self.model_part: Optional[Kratos.ModelPart] = None
+
+    def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE, Kratos.YOUNG_MODULUS, Kratos.THICKNESS, Kratos.POISSON_RATIO]
 
     def Initialize(self) -> None:
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-        _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
+        self.model_part = self.model_part_operation.GetModelPart()
 
     def Check(self) -> None:
         pass
@@ -51,21 +53,16 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
     def Finalize(self) -> None:
         pass
 
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if self.model_part is None:
-            raise RuntimeError("Please call LinearStrainEnergyResponseFunction::Initialize first.")
-        return self.model_part
-
-    def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-        return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
+        return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
-        self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().Execute()
+        self.primal_analysis_execution_policy_decorator.Execute()
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # first merge all the model parts
-        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
         # now get the intersected model parts
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)

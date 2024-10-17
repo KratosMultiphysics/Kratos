@@ -17,11 +17,11 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Integrator
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -47,12 +47,8 @@
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the associated damage Constitutive laws...
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
                           KratosConstitutiveLawsFastSuite)
@@ -66,9 +62,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     ModelPart &test_model_part = current_model.CreateModelPart("Main");
     MC cl = MC();
 
-    KRATOS_CHECK(cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(3);
     internal_variables_w[0] = 0.0;
@@ -77,9 +73,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     Vector internal_variables_r;
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 2., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
 }
 
 
@@ -100,12 +96,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosCons
 
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     stress_vector[0] = 5.40984e+06;
@@ -184,12 +180,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosCons
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(MCres, TestMC, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(DPres, TestDP, 0.001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Tres,  TestT,  0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Rres,  TestR,  0.001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosConstitutiveLawsFastSuite)
@@ -209,12 +205,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
 
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     stress_vector[0] = 5.40984e+06;
@@ -293,12 +289,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(MCres, TestMC, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(DPres, TestDP, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Tres,  TestT,  0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Rres,  TestR,  0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

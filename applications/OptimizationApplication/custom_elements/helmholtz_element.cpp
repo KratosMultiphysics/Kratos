@@ -447,19 +447,19 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
 }
 
 // template instantiations
-template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>>;
-template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>>;
 
-template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>>;
-template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>>;
 
-template class HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>>;
-template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>>;
 
-template class HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>>;
-template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>>;
 
-template class HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>>;
-template class HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>>;
 
 } // Namespace Kratos

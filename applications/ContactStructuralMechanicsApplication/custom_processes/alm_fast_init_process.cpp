@@ -46,7 +46,7 @@ void ALMFastInit::Execute()
 
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array, [&](Node& rNode) {
         const bool is_slave = rNode.IsDefined(SLAVE) ? rNode.Is(SLAVE) : true;
         if (is_slave) {
             // Weighted values
@@ -75,7 +75,7 @@ void ALMFastInit::Execute()
 
     if (is_frictional) {
         // We initialize the frictional coefficient. The evolution of the frictional coefficient it is supposed to be controled by a law
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             rNode.SetValue(FRICTION_COEFFICIENT, 0.0);
             rNode.SetValue(NODAL_AREA, 0.0);
         });
@@ -105,7 +105,7 @@ void ALMFastInit::Execute()
             });
         }
 
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             double& friction_coefficient = rNode.GetValue(FRICTION_COEFFICIENT);
             friction_coefficient /= rNode.GetValue(NODAL_AREA);
         });

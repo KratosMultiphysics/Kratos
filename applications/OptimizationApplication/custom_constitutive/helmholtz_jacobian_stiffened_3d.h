@@ -50,7 +50,7 @@ namespace Kratos
  * @details This class derives from the base constitutive law
  * @author Reza Najian Asl
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HelmholtzJacobianStiffened3D
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzJacobianStiffened3D
     : public ConstitutiveLaw
 {
 public:

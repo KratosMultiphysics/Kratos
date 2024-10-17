@@ -22,7 +22,7 @@
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
@@ -72,7 +72,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
 
@@ -83,27 +83,27 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFast
     // Test regular construction
     const MPICommunicator constructed_communicator = MPICommunicator(&r_model_part.GetNodalSolutionStepVariablesList(), r_world);
 
-    KRATOS_CHECK_EQUAL(constructed_communicator.IsDistributed(), true);
-    KRATOS_CHECK_EQUAL(constructed_communicator.MyPID(), r_world.Rank());
-    KRATOS_CHECK_EQUAL(constructed_communicator.TotalProcesses(), r_world.Size());
+    KRATOS_EXPECT_EQ(constructed_communicator.IsDistributed(), true);
+    KRATOS_EXPECT_EQ(constructed_communicator.MyPID(), r_world.Rank());
+    KRATOS_EXPECT_EQ(constructed_communicator.TotalProcesses(), r_world.Size());
 
     // Test creation with given DataCommunicator
     Communicator::Pointer p_created_communicator = constructed_communicator.Create(r_world);
 
-    KRATOS_CHECK_EQUAL(p_created_communicator->IsDistributed(), true);
-    KRATOS_CHECK_EQUAL(p_created_communicator->MyPID(), r_world.Rank());
-    KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());
+    KRATOS_EXPECT_EQ(p_created_communicator->IsDistributed(), true);
+    KRATOS_EXPECT_EQ(p_created_communicator->MyPID(), r_world.Rank());
+    KRATOS_EXPECT_EQ(p_created_communicator->TotalProcesses(), r_world.Size());
 
     // Test creation using reference's DataCommunicator
     p_created_communicator.reset();
     p_created_communicator = constructed_communicator.Create();
 
-    KRATOS_CHECK_EQUAL(p_created_communicator->IsDistributed(), true);
-    KRATOS_CHECK_EQUAL(p_created_communicator->MyPID(), r_world.Rank());
-    KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());
+    KRATOS_EXPECT_EQ(p_created_communicator->IsDistributed(), true);
+    KRATOS_EXPECT_EQ(p_created_communicator->MyPID(), r_world.Rank());
+    KRATOS_EXPECT_EQ(p_created_communicator->TotalProcesses(), r_world.Size());
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -119,7 +119,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICor
     // Single flag
     r_center.Set(STRUCTURE, (rank == size-1));
     r_model_part.GetCommunicator().SynchronizeOrNodalFlags(STRUCTURE);
-    KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), true);
+    KRATOS_EXPECT_EQ(r_center.Is(STRUCTURE), true);
 
     // Multiple flags
     const bool rank_is_even( (rank % 2) == 0 );
@@ -130,19 +130,19 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICor
 
     r_model_part.GetCommunicator().SynchronizeOrNodalFlags( INLET | OUTLET );
     if (size > 1) {
-        KRATOS_CHECK_EQUAL(r_center.Is(INLET), true);
-        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), true);
+        KRATOS_EXPECT_EQ(r_center.Is(INLET), true);
+        KRATOS_EXPECT_EQ(r_center.Is(OUTLET), true);
     }
     else {
         // if there is only one rank, no communication happens
-        KRATOS_CHECK_EQUAL(r_center.Is(INLET), rank_is_even);
-        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), rank_is_even);
+        KRATOS_EXPECT_EQ(r_center.Is(INLET), rank_is_even);
+        KRATOS_EXPECT_EQ(r_center.Is(OUTLET), rank_is_even);
     }
-    KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
+    KRATOS_EXPECT_EQ(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -159,7 +159,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICo
     r_center.Set(STRUCTURE, (rank == size-1));
     r_model_part.GetCommunicator().SynchronizeAndNodalFlags(STRUCTURE);
     if (size > 1) {
-        KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), false);
+        KRATOS_EXPECT_EQ(r_center.Is(STRUCTURE), false);
     }
 
     // Multiple flags
@@ -171,18 +171,18 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICo
 
     r_model_part.GetCommunicator().SynchronizeAndNodalFlags( INLET | OUTLET );
     if (size > 1) {
-        KRATOS_CHECK_EQUAL(r_center.Is(INLET), false);
-        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), false);
+        KRATOS_EXPECT_EQ(r_center.Is(INLET), false);
+        KRATOS_EXPECT_EQ(r_center.Is(OUTLET), false);
     }
     else {
         // if there is only one rank, no communication happens
-        KRATOS_CHECK_EQUAL(r_center.Is(INLET), rank_is_even);
-        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), rank_is_even);
+        KRATOS_EXPECT_EQ(r_center.Is(INLET), rank_is_even);
+        KRATOS_EXPECT_EQ(r_center.Is(OUTLET), rank_is_even);
     }
-    KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
+    KRATOS_EXPECT_EQ(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -207,14 +207,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, Krat
     {
         int owner_rank = i_node->FastGetSolutionStepValue(PARTITION_INDEX, 0);
         bool owner_is_even = ((owner_rank % 2) == 0);
-        KRATOS_CHECK_EQUAL(i_node->Is(INLET), owner_is_even);
-        KRATOS_CHECK_EQUAL(i_node->Is(OUTLET), owner_is_even);
-        KRATOS_CHECK_EQUAL(i_node->Is(PERIODIC), !owner_is_even);
-        KRATOS_CHECK_EQUAL(i_node->IsDefined(SLIP), false); // this one was never set
+        KRATOS_EXPECT_EQ(i_node->Is(INLET), owner_is_even);
+        KRATOS_EXPECT_EQ(i_node->Is(OUTLET), owner_is_even);
+        KRATOS_EXPECT_EQ(i_node->Is(PERIODIC), !owner_is_even);
+        KRATOS_EXPECT_EQ(i_node->IsDefined(SLIP), false); // this one was never set
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -260,65 +260,65 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAs
     r_comm.AssembleCurrentData(DOMAIN_SIZE);
     int expected_int_local = (size > 1) && (rank > 0) ? 2 : 1;
     int expected_int_ghost = (size > 1) && (rank != size - 1) ? 2 : 1;
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(DOMAIN_SIZE,0), size);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(DOMAIN_SIZE,0), expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(DOMAIN_SIZE,0), expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(DOMAIN_SIZE,0), size);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(DOMAIN_SIZE,0), expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(DOMAIN_SIZE,0), expected_int_ghost);
 
     r_comm.AssembleCurrentData(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*size);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*size);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), 2.0*expected_int_ghost);
 
     r_comm.AssembleCurrentData(VELOCITY);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*size);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*size);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(VELOCITY_X,0), 1.0*expected_int_ghost);
 
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*size);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*size);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(VELOCITY_Y,0), 2.0*expected_int_ghost);
 
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
 
     r_comm.AssembleCurrentData(CAUCHY_STRESS_VECTOR);
     const auto& r_assembled_center_vector = r_center.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector[1], 1.0*size);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector[1], 1.0*size);
 
     const auto& r_assembled_local_vector = r_local.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector[1], 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector[1], 1.0*expected_int_local);
 
     const auto& r_assembled_ghost_vector = r_ghost.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[1], 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector[1], 1.0*expected_int_ghost);
 
     r_comm.AssembleCurrentData(DEFORMATION_GRADIENT);
     const auto& r_assembled_center_matrix = r_center.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(2,0), 1.0*size);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix(2,0), 1.0*size);
 
     const auto& r_assembled_local_matrix = r_local.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(2,0), 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix(2,0), 1.0*expected_int_local);
 
     const auto& r_assembled_ghost_matrix = r_ghost.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix(2,0), 1.0*expected_int_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -357,59 +357,59 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     r_comm.SynchronizeVariable(DOMAIN_SIZE);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,0), 1);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,0), 1);
     }
 
     r_comm.SynchronizeVariable(TEMPERATURE);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,0), 2.0);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(TEMPERATURE,0), 2.0);
     }
 
     r_comm.SynchronizeVariable(IS_RESTARTED);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(IS_RESTARTED,0), true);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(IS_RESTARTED,0), true);
     }
 
     r_comm.SynchronizeVariable(VELOCITY);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,0), 1.0);
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,0), 2.0);
-        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_X,0), 1.0);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_Y,0), 2.0);
+        KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
     }
 
     r_comm.SynchronizeVariable(CAUCHY_STRESS_VECTOR);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         const auto& r_vector = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
-        KRATOS_CHECK_EQUAL(r_vector.size(), 2);
-        KRATOS_CHECK_EQUAL(r_vector[0], 0.0);
-        KRATOS_CHECK_EQUAL(r_vector[1], 1.0);
+        KRATOS_EXPECT_EQ(r_vector.size(), 2);
+        KRATOS_EXPECT_EQ(r_vector[0], 0.0);
+        KRATOS_EXPECT_EQ(r_vector[1], 1.0);
     }
 
     r_comm.SynchronizeVariable(DEFORMATION_GRADIENT);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         const auto& r_matrix = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
-        KRATOS_CHECK_EQUAL(r_matrix.size1(), 3);
-        KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
-        KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
-        KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+        KRATOS_EXPECT_EQ(r_matrix.size1(), 3);
+        KRATOS_EXPECT_EQ(r_matrix.size2(), 2);
+        KRATOS_EXPECT_EQ(r_matrix(0,0), 0.0);
+        KRATOS_EXPECT_EQ(r_matrix(2,1), 1.0);
     }
 
     r_comm.SynchronizeVariable(ORIENTATION);
     for (const auto& r_node : r_model_part.Nodes()) {
         const auto& r_quaternion = r_node.FastGetSolutionStepValue(ORIENTATION);
-        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
+        KRATOS_EXPECT_EQ(r_quaternion.X(), 1.0);
+        KRATOS_EXPECT_EQ(r_quaternion.Y(), 2.0);
+        KRATOS_EXPECT_EQ(r_quaternion.Z(), 3.0);
+        KRATOS_EXPECT_EQ(r_quaternion.W(), 4.0);
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -449,65 +449,65 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMP
     r_comm.AssembleNonHistoricalData(DOMAIN_SIZE);
     int expected_int_local = (size > 1) && rank != 0 ? 2 : 1;
     int expected_int_ghost = (size > 1) && rank != size - 1 ? 2 : 1;
-    KRATOS_CHECK_EQUAL(r_center.GetValue(DOMAIN_SIZE), size);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(DOMAIN_SIZE), expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(DOMAIN_SIZE), expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(DOMAIN_SIZE), size);
+    KRATOS_EXPECT_EQ( r_local.GetValue(DOMAIN_SIZE), expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(DOMAIN_SIZE), expected_int_ghost);
 
     r_comm.AssembleNonHistoricalData(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 2.0*size);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(TEMPERATURE), 2.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), 2.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(TEMPERATURE), 2.0*size);
+    KRATOS_EXPECT_EQ( r_local.GetValue(TEMPERATURE), 2.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(TEMPERATURE), 2.0*expected_int_ghost);
 
     r_comm.AssembleNonHistoricalData(VELOCITY);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(VELOCITY_X), 1.0*size);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(VELOCITY_X), 1.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(VELOCITY_X), 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(VELOCITY_X), 1.0*size);
+    KRATOS_EXPECT_EQ( r_local.GetValue(VELOCITY_X), 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(VELOCITY_X), 1.0*expected_int_ghost);
 
-    KRATOS_CHECK_EQUAL(r_center.GetValue(VELOCITY_Y), 2.0*size);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(VELOCITY_Y), 2.0*expected_int_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(VELOCITY_Y), 2.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(VELOCITY_Y), 2.0*size);
+    KRATOS_EXPECT_EQ( r_local.GetValue(VELOCITY_Y), 2.0*expected_int_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(VELOCITY_Y), 2.0*expected_int_ghost);
 
-    KRATOS_CHECK_EQUAL(r_center.GetValue(VELOCITY_Z), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(VELOCITY_Z), 0.0);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(VELOCITY_Z), 0.0);
+    KRATOS_EXPECT_EQ(r_center.GetValue(VELOCITY_Z), 0.0);
+    KRATOS_EXPECT_EQ( r_local.GetValue(VELOCITY_Z), 0.0);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(VELOCITY_Z), 0.0);
 
     r_comm.AssembleNonHistoricalData(CAUCHY_STRESS_VECTOR);
     const auto& r_assembled_center_vector = r_center.GetValue(CAUCHY_STRESS_VECTOR);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_vector[1], 1.0*size);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_center_vector[1], 1.0*size);
 
     const auto& r_assembled_local_vector = r_local.GetValue(CAUCHY_STRESS_VECTOR);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_vector[1], 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_local_vector[1], 1.0*expected_int_local);
 
     const auto& r_assembled_ghost_vector = r_ghost.GetValue(CAUCHY_STRESS_VECTOR);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector.size(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[1], 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector.size(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector[0], 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_vector[1], 1.0*expected_int_ghost);
 
     r_comm.AssembleNonHistoricalData(DEFORMATION_GRADIENT);
     const auto& r_assembled_center_matrix = r_center.GetValue(DEFORMATION_GRADIENT);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(2,0), 1.0*size);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_center_matrix(2,0), 1.0*size);
 
     const auto& r_assembled_local_matrix = r_local.GetValue(DEFORMATION_GRADIENT);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(2,0), 1.0*expected_int_local);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_local_matrix(2,0), 1.0*expected_int_local);
 
     const auto& r_assembled_ghost_matrix = r_ghost.GetValue(DEFORMATION_GRADIENT);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size1(), 3);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size2(), 2);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(0,0), 0.0);
-    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int_ghost);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix.size2(), 2);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix(0,0), 0.0);
+    KRATOS_EXPECT_EQ(r_assembled_ghost_matrix(2,0), 1.0*expected_int_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -539,59 +539,59 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
     r_comm.SynchronizeNonHistoricalVariable(DOMAIN_SIZE);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->GetValue(DOMAIN_SIZE), 1);
+        KRATOS_EXPECT_EQ(i_node->GetValue(DOMAIN_SIZE), 1);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(TEMPERATURE);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->GetValue(TEMPERATURE), 2.0);
+        KRATOS_EXPECT_EQ(i_node->GetValue(TEMPERATURE), 2.0);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(IS_RESTARTED);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->GetValue(IS_RESTARTED), true);
+        KRATOS_EXPECT_EQ(i_node->GetValue(IS_RESTARTED), true);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(VELOCITY);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
-        KRATOS_CHECK_EQUAL(i_node->GetValue(VELOCITY_X), 1.0);
-        KRATOS_CHECK_EQUAL(i_node->GetValue(VELOCITY_Y), 2.0);
-        KRATOS_CHECK_EQUAL(i_node->GetValue(VELOCITY_Z), 0.0);
+        KRATOS_EXPECT_EQ(i_node->GetValue(VELOCITY_X), 1.0);
+        KRATOS_EXPECT_EQ(i_node->GetValue(VELOCITY_Y), 2.0);
+        KRATOS_EXPECT_EQ(i_node->GetValue(VELOCITY_Z), 0.0);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(CAUCHY_STRESS_VECTOR);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         const auto& r_vector = i_node->GetValue(CAUCHY_STRESS_VECTOR);
-        KRATOS_CHECK_EQUAL(r_vector.size(), 2);
-        KRATOS_CHECK_EQUAL(r_vector[0], 0.0);
-        KRATOS_CHECK_EQUAL(r_vector[1], 1.0);
+        KRATOS_EXPECT_EQ(r_vector.size(), 2);
+        KRATOS_EXPECT_EQ(r_vector[0], 0.0);
+        KRATOS_EXPECT_EQ(r_vector[1], 1.0);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(DEFORMATION_GRADIENT);
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         const auto& r_matrix = i_node->GetValue(DEFORMATION_GRADIENT);
-        KRATOS_CHECK_EQUAL(r_matrix.size1(), 3);
-        KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
-        KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
-        KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+        KRATOS_EXPECT_EQ(r_matrix.size1(), 3);
+        KRATOS_EXPECT_EQ(r_matrix.size2(), 2);
+        KRATOS_EXPECT_EQ(r_matrix(0,0), 0.0);
+        KRATOS_EXPECT_EQ(r_matrix(2,1), 1.0);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(ORIENTATION);
     for (const auto& r_node : r_model_part.Nodes()) {
         const auto& r_quaternion = r_node.GetValue(ORIENTATION);
-        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
-        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
+        KRATOS_EXPECT_EQ(r_quaternion.X(), 1.0);
+        KRATOS_EXPECT_EQ(r_quaternion.Y(), 2.0);
+        KRATOS_EXPECT_EQ(r_quaternion.Z(), 3.0);
+        KRATOS_EXPECT_EQ(r_quaternion.W(), 4.0);
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMax, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMax, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -621,12 +621,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     const int expected_ghost = (rank + 1 < size) ? 10.0*(rank+1) : 10.0*(size-1);
 
     r_comm.SynchronizeCurrentDataToMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), 10.0*(size-1));
-    KRATOS_CHECK_EQUAL(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
-    KRATOS_CHECK_EQUAL(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), 10.0*(size-1));
+    KRATOS_EXPECT_EQ(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
+    KRATOS_EXPECT_EQ(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMax, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMax, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -655,12 +655,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMax,
     const int expected_ghost = (rank + 1 < size) ? 10.0*(rank+1) : 10.0*(size-1);
 
     r_comm.SynchronizeNonHistoricalDataToMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 10.0*(size-1));
-    KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
-    KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(TEMPERATURE), 10.0*(size-1));
+    KRATOS_EXPECT_EQ(r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_EXPECT_EQ(r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToAbsMax, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToAbsMax, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -690,12 +690,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     const int expected_ghost = (rank + 1 < size) ? - 10.0*(rank+1) : - 10.0*(size-1);
 
     r_comm.SynchronizeCurrentDataToAbsMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), -10.0*(size-1));
-    KRATOS_CHECK_EQUAL(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
-    KRATOS_CHECK_EQUAL(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), -10.0*(size-1));
+    KRATOS_EXPECT_EQ(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
+    KRATOS_EXPECT_EQ(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsMax, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsMax, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -724,12 +724,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsM
     const int expected_ghost = (rank + 1 < size) ? - 10.0*(rank+1) : - 10.0*(size-1);
 
     r_comm.SynchronizeNonHistoricalDataToAbsMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), -10.0*(size-1));
-    KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
-    KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(TEMPERATURE), -10.0*(size-1));
+    KRATOS_EXPECT_EQ(r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_EXPECT_EQ(r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -758,12 +758,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     int expected_ghost = 10.0*rank;
 
     r_comm.SynchronizeCurrentDataToMin(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMin, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -791,12 +791,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMin,
     int expected_ghost = 10.0*rank;
 
     r_comm.SynchronizeNonHistoricalDataToMin(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(TEMPERATURE), expected_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(TEMPERATURE), 0.0);
+    KRATOS_EXPECT_EQ( r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToAbsMin, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToAbsMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -825,12 +825,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     int expected_ghost = - 10.0*rank;
 
     r_comm.SynchronizeCurrentDataToAbsMin(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
-    KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
+    KRATOS_EXPECT_EQ( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
+    KRATOS_EXPECT_EQ( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsMin, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -858,12 +858,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsM
     int expected_ghost = - 10.0*rank;
 
     r_comm.SynchronizeNonHistoricalDataToAbsMin(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 0.0);
-    KRATOS_CHECK_EQUAL( r_local.GetValue(TEMPERATURE), expected_local);
-    KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), expected_ghost);
+    KRATOS_EXPECT_EQ(r_center.GetValue(TEMPERATURE), 0.0);
+    KRATOS_EXPECT_EQ( r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_EXPECT_EQ( r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -907,27 +907,27 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchr
     {
         for (unsigned int step = 0; step < 2; step++)
         {
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,step), 1);
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,step), 2.0);
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(IS_RESTARTED,step), true);
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,step), 1.0);
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,step), 2.0);
-            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,step), 0.0);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,step), 1);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(TEMPERATURE,step), 2.0);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(IS_RESTARTED,step), true);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_X,step), 1.0);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_Y,step), 2.0);
+            KRATOS_EXPECT_EQ(i_node->FastGetSolutionStepValue(VELOCITY_Z,step), 0.0);
             const auto& r_vector = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,step);
-            KRATOS_CHECK_EQUAL(r_vector.size(), 2);
-            KRATOS_CHECK_EQUAL(r_vector[0], 0.0);
-            KRATOS_CHECK_EQUAL(r_vector[1], 1.0);
+            KRATOS_EXPECT_EQ(r_vector.size(), 2);
+            KRATOS_EXPECT_EQ(r_vector[0], 0.0);
+            KRATOS_EXPECT_EQ(r_vector[1], 1.0);
             const auto& r_matrix = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT,step);
-            KRATOS_CHECK_EQUAL(r_matrix.size1(), 3);
-            KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
-            KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
-            KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+            KRATOS_EXPECT_EQ(r_matrix.size1(), 3);
+            KRATOS_EXPECT_EQ(r_matrix.size2(), 2);
+            KRATOS_EXPECT_EQ(r_matrix(0,0), 0.0);
+            KRATOS_EXPECT_EQ(r_matrix(2,1), 1.0);
         }
     }
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -968,13 +968,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMP
         auto& r_dofs = i_node->GetDofs();
         for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
         {
-            KRATOS_CHECK_NOT_EQUAL((*i_dof)->EquationId(), 0);
+            KRATOS_EXPECT_NE((*i_dof)->EquationId(), 0);
         }
     }
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -996,23 +996,23 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
             std::size_t interface_size = r_mpi_comm.InterfaceMeshes()[i].Nodes().size();
             std::size_t local_size = r_mpi_comm.LocalMeshes()[i].Nodes().size();
             std::size_t ghost_size = r_mpi_comm.GhostMeshes()[i].Nodes().size();
-            KRATOS_CHECK_GREATER(interface_size, 0);
-            KRATOS_CHECK_EQUAL(interface_size, local_size+ghost_size);
+            KRATOS_EXPECT_GT(interface_size, 0);
+            KRATOS_EXPECT_EQ(interface_size, local_size+ghost_size);
             int neighbor_index = neighbor;
             for (auto& node : r_mpi_comm.LocalMeshes()[i].Nodes())
             {
-                KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), local_index);
+                KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(PARTITION_INDEX,0), local_index);
             }
             for (auto& node : r_mpi_comm.GhostMeshes()[i].Nodes())
             {
-                KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), neighbor_index);
+                KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(PARTITION_INDEX,0), neighbor_index);
             }
         }
     }
 }
 
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -1025,8 +1025,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICor
 
     const unsigned int comm_size = r_mpi_comm.TotalProcesses();
 
-    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), comm_size+2);
-    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), comm_size);
+    KRATOS_EXPECT_EQ(r_mpi_comm.GlobalNumberOfNodes(), comm_size+2);
+    KRATOS_EXPECT_EQ(r_mpi_comm.GlobalNumberOfElements(), comm_size);
 }
 
 }

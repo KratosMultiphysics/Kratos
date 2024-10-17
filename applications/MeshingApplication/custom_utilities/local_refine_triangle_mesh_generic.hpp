@@ -218,9 +218,9 @@ public:
     {
         rAux.resize(6, false);
 
-        const std::size_t index_0 = rGeom[0].Id() - 1;
-        const std::size_t index_1 = rGeom[1].Id() - 1;
-        const std::size_t index_2 = rGeom[2].Id() - 1;
+        const std::size_t index_0 = mMapNodeIdToPos[rGeom[0].Id()];
+        const std::size_t index_1 = mMapNodeIdToPos[rGeom[1].Id()];
+        const std::size_t index_2 = mMapNodeIdToPos[rGeom[2].Id()];
 
         rAux[0] = rGeom[0].Id();
         rAux[1] = rGeom[1].Id();

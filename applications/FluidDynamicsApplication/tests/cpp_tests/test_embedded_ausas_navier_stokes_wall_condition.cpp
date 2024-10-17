@@ -17,15 +17,18 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "custom_elements/embedded_ausas_navier_stokes.h"
-#include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+
+// Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_elements/embedded_ausas_navier_stokes.h"
+#include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
+
 
 namespace Kratos
 {
@@ -137,12 +140,12 @@ namespace Kratos
             pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
             const double tolerance = 1e-10;
-            KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(1), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(2), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(3), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(4), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(5), 2.0 / 30.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(0), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(1), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(2), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(3), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(4), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(5), 2.0 / 30.0, tolerance);
         }
 
         // /** Checks the EmbeddedNavierStokes3D4N element.
@@ -256,18 +259,18 @@ namespace Kratos
             pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
             const double tolerance = 1e-7;
-            KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(1), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(2), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(3), 0.0034375, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(4), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(5), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(6), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(7), 0.0115625, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(8), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(9), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(10), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(condRHS(11), 0.0111458, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(0), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(1), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(2), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(3), 0.0034375, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(4), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(5), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(6), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(7), 0.0115625, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(8), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(9), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(10), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(condRHS(11), 0.0111458, tolerance);
         }
     } // namespace Testing
 } // namespace Kratos.
