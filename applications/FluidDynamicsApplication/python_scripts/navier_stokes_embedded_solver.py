@@ -435,7 +435,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def InitializeSolutionStep(self):
         # Compute the BDF coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-
         # If required, compute the nodal neighbours
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
             (self.find_nodal_neighbours_process).Execute()
