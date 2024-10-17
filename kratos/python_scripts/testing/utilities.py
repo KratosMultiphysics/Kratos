@@ -133,6 +133,9 @@ class Commander(object):
         # Print test header
         PrintTestHeader(test_suit_name)
 
+        process_stdout = None
+        process_stderr = None
+
         try:
             self.process = subprocess.Popen(command, cwd=working_dir, stdout=subprocess.PIPE)
         except OSError:

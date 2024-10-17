@@ -54,7 +54,7 @@ class TestGidIO(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
         return model_part
 
@@ -88,7 +88,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"all_active_out")
 
-        self.__Check("all_active_out.post.msh","auxiliar_files_for_python_unittest/reference_files/all_active_ref.ref")
+        self.__Check("all_active_out.post.msh","test_files/reference_files/all_active_ref.ref")
 
     def test_gid_io_deactivation(self):
         current_model = KratosMultiphysics.Model()
@@ -103,7 +103,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"deactivated_out")
 
-        self.__Check("deactivated_out.post.msh","auxiliar_files_for_python_unittest/reference_files/deactivated_ref.ref")
+        self.__Check("deactivated_out.post.msh","test_files/reference_files/deactivated_ref.ref")
 
     def test_gid_io_results(self):
         current_model = KratosMultiphysics.Model()
@@ -161,7 +161,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"results_out")
 
-        self.__Check("results_out.post.res","auxiliar_files_for_python_unittest/reference_files/results_out_ref.ref")
+        self.__Check("results_out.post.res","test_files/reference_files/results_out_ref.ref")
 
     def test_DoubleFreeError(self):
         current_model = KratosMultiphysics.Model()

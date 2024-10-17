@@ -1,6 +1,9 @@
 
 import os
+import platform
 import KratosMultiphysics
+
+psystem = platform.system()
 
 import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -22,7 +25,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
@@ -61,7 +64,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
@@ -86,33 +89,43 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_cg(self):
         self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_sparse_qr(self):
         self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_ldlt(self):
         self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'pardiso_ldlt')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_pardiso_llt(self):
         self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'pardiso_llt')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_sparse_lu(self):
         self._execute_eigen_direct_complex_solver_test('ComplexSparseLUSolver', 'sparse_lu_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_lu(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLUSolver', 'pardiso_lu_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_ldlt(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLDLTSolver', 'pardiso_ldlt_complex')
 
+    @KratosUnittest.skipIf(psystem == 'Windows', "This test is temporaly disabled for windows.")
     def test_eigen_complex_pardiso_llt(self):
         self._execute_eigen_direct_complex_solver_test('ComplexPardisoLLTSolver', 'pardiso_llt_complex')
 

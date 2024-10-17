@@ -25,11 +25,11 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_graph_output_ref_1.dat")
-        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_graph_output_ref_2.dat")
+        reference_file_name_1 = GetFilePath("test_files/point_output_process_ref_files/line_graph_output_ref_1.dat")
+        reference_file_name_2 = GetFilePath("test_files/point_output_process_ref_files/line_graph_output_ref_2.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [{

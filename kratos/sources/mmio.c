@@ -104,15 +104,22 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     char storage_scheme[MM_MAX_TOKEN_LENGTH];
     char *p;
 
+    printf("\tBegin\n");
 
     mm_clear_typecode(matcode);  
+
+    printf("\tClearTypeCode\n");
 
     if (fgets(line, MM_MAX_LINE_LENGTH, f) == NULL) 
         return MM_PREMATURE_EOF;
 
+    printf("\tScan: Line\n");
+
     if (sscanf(line, "%s %s %s %s %s", banner, mtx, crd, data_type, 
         storage_scheme) != 5)
         return MM_PREMATURE_EOF;
+
+    printf("\tScan: Header\n");
 
     for (p=mtx; *p!='\0'; *p=tolower(*p),p++);  /* convert to lower case */
     for (p=crd; *p!='\0'; *p=tolower(*p),p++);  
@@ -123,15 +130,20 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     if (strncmp(banner, MatrixMarketBanner, strlen(MatrixMarketBanner)) != 0)
         return MM_NO_HEADER;
 
+    printf("\tCheck: Banner\n");
+
     /* first field should be "mtx" */
     if (strcmp(mtx, MM_MTX_STR) != 0)
         return  MM_UNSUPPORTED_TYPE;
+
+    printf("\tCheck: Field\n");
+
     mm_set_matrix(matcode);
 
+    printf("\tSet: MatCode\n");
 
     /* second field describes whether this is a sparse matrix (in coordinate
             storgae) or a dense array */
-
 
     if (strcmp(crd, MM_SPARSE_STR) == 0)
         mm_set_sparse(matcode);
@@ -141,7 +153,8 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     else
         return MM_UNSUPPORTED_TYPE;
     
-
+    printf("\tSet: Type\n");
+    
     /* third field */
 
     if (strcmp(data_type, MM_REAL_STR) == 0)
@@ -158,6 +171,7 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     else
         return MM_UNSUPPORTED_TYPE;
     
+    printf("\tSet: Precision\n");
 
     /* fourth field */
 
@@ -174,7 +188,8 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
         mm_set_skew(matcode);
     else
         return MM_UNSUPPORTED_TYPE;
-        
+
+    printf("\tSet: Shape\n");
 
     return 0;
 }

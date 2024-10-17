@@ -9,7 +9,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 2
-        with KratosUnittest.WorkFolderScope("auxiliar_files_for_python_unittest/mdpa_files", __file__):
+        with KratosUnittest.WorkFolderScope("test_files/mdpa_files", __file__):
             ReadModelPart("model_part_operations", cls.model_part)
 
         cls.list_of_model_parts = [
@@ -22,7 +22,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        with KratosUnittest.WorkFolderScope("auxiliar_files_for_python_unittest/mdpa_files", __file__):
+        with KratosUnittest.WorkFolderScope("test_files/mdpa_files", __file__):
             # Clean up temporary files
             KratosUtils.DeleteFileIfExisting("model_part_operations.time")
 
