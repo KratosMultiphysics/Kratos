@@ -32,12 +32,12 @@ jobs:
     - name: Test Matrix Market Small
       shell: cmd
       run: |
-        more kratos/tests/test_files/sparse_matrix_files/small_A.mm
+        more "kratos/tests/test_files/sparse_matrix_files/small_A.mm"
 
     - name: Test Matrix Market Large
       shell: cmd
       run: |
-        more kratos/tests/test_files/sparse_matrix_files/A.mm
+        more "kratos/tests/test_files/sparse_matrix_files/A.mm"
 
   # windows:
   #   runs-on: windows-2022
