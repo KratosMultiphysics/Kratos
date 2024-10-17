@@ -27,6 +27,7 @@
 
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos {
@@ -43,9 +44,12 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
         ;
 
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
 
     // Constitutive laws variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TOTAL_OR_PLASTIC_STRAIN_SPACE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_PRESTRESSED)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FIBER_VOLUMETRIC_PARTICIPATION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SERIAL_PARALLEL_IMPOSED_STRAIN)

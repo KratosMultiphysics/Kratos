@@ -151,7 +151,6 @@ bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, cons
 }
 
 
-
 std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition)
 {
 
@@ -160,37 +159,36 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
     std::vector<Condition> sorted_conditions;
     std::vector<int> visited_indices;
     GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
-    std::set<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
+    std::vector<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
     bool is_cond_reversed = mIsCondReversedVector[0];
-    while (visited_indices.size() != unsorted_conditions_v.size()){
-        for (IndexType i =0; i< unsorted_conditions_v.size(); i++){
+    while (visited_indices.size() != unsorted_conditions_v.size()) {
+        for (IndexType i = 0; i < unsorted_conditions_v.size(); i++) {
             Condition& r_cond = unsorted_conditions_v[i];
             GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
 
 
             // check if current index is already added to sorted condition vector
-            if (!std::count(visited_indices.begin(), visited_indices.end(), i)){
+            if (!std::count(visited_indices.begin(), visited_indices.end(), i)) {
                 // check if geom has a shared node with previous geom
-                if (node_id_vector.find(r_geom.Points()[0].Id()) != node_id_vector.end() || node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
-                    if (sorted_conditions.size() == 0){
+                if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() || std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
+                    if (sorted_conditions.size() == 0) {
                         // check if both nodes of geom are equal to nodes in start element, only do this to add the first element in the sorted conditions vector
-                        if (node_id_vector.find(r_geom[0].Id()) != node_id_vector.end() && node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
+                        if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() && std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
                             node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                             sorted_conditions.push_back(r_cond);
                             visited_indices.push_back(i);
                         }
                     } else {
                         // sort nodes in condition, such that new node is connected to previous condition
-                        std::set<IndexType>::iterator prev_id;
-                        if (is_cond_reversed){
-                            prev_id = node_id_vector.begin();
+                        IndexType prev_id;
+                        if (is_cond_reversed) {
+                            prev_id = node_id_vector[0];
                         } else {
-                            prev_id = node_id_vector.end();
-                            --prev_id;
+                            prev_id = node_id_vector[1];
                         }
 
-                        if (*prev_id != r_geom.Points()[0].Id()){
+                        if (prev_id != r_geom.Points()[0].Id()) {
                             is_cond_reversed = true;
                             mIsCondReversedVector.push_back(is_cond_reversed);
                         } else {
@@ -205,13 +203,12 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
                     }
                 }
             }
-            
+
         }
     }
 
     return sorted_conditions;
 }
-
 
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {

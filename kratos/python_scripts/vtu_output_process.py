@@ -34,7 +34,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
         }""")
 
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:
         super().__init__()
 
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -70,13 +70,9 @@ class VtuOutputProcess(Kratos.OutputProcess):
         else:
             self.output_path = Path(".")
 
-        self.output_interval = parameters["output_interval"].GetDouble()
-        self.output_control = parameters["output_control_type"].GetString()
-        self.next_output = 0.0
-
         self.vtu_output_ios: 'list[Kratos.VtuOutput]' = []
 
-        self.__ScheduleNextOutput() # required here esp for restart
+        self.__controller = Kratos.OutputController(model, parameters)
 
     def ExecuteInitialize(self) -> None:
         # check and create all the vtu outputs
@@ -90,35 +86,15 @@ class VtuOutputProcess(Kratos.OutputProcess):
             self.__AddData(vtu_output_io)
 
     def PrintOutput(self) -> None:
-        if self.output_control == "time":
-            current_suffix = str(self.__GetTime())
-        else:
-            current_suffix = str(self.model_part.ProcessInfo[Kratos.STEP])
+        current_suffix = self.__controller.GetCurrentControlValue()
 
         for vtu_output in self.vtu_output_ios:
-            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_suffix)
+            vtu_output.PrintOutput(f"{self.output_path / vtu_output.GetModelPart().FullName()}_{current_suffix}")
 
-        self.__ScheduleNextOutput()
+        self.__controller.Update()
 
     def IsOutputStep(self) -> bool:
-        if self.output_control == "time":
-            return self.__GetTime() >= self.next_output
-        else:
-            return self.model_part.ProcessInfo[Kratos.STEP] >= self.next_output
-
-    def __ScheduleNextOutput(self) -> None:
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while self.next_output <= self.__GetTime():
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.model_part.ProcessInfo[Kratos.STEP]:
-                    self.next_output += self.output_interval
-
-    def __GetTime(self) -> float:
-        # remove rounding errors that mess with the comparison
-        # e.g. 1.99999999999999999 => 2.0
-        return float("{0:.12g}".format(self.model_part.ProcessInfo[Kratos.TIME]))
+        return self.__controller.Evaluate()
 
     def __AddData(self, vtu_output_io: Kratos.VtuOutput) -> None:
         for variable in self.nodal_solution_step_data_variables:

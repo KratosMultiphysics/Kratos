@@ -56,7 +56,8 @@ public:
         const PhysicalFieldVariableTypes& rPhysicalVariable,
         ModelPart& rGradientRequiredModelPart,
         ModelPart& rGradientComputedModelPart,
-        std::vector<ContainerExpressionType>& rListOfContainerExpressions);
+        std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+        const double PerturbationSize);
 
     ///@}
 private:
@@ -75,7 +76,8 @@ private:
 
     static void CalculateMassShapeGradient(
         ModelPart& rModelPart,
-        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable,
+        const double PerturbationSize);
 
     static void CalculateMassDensityGradient(
         ModelPart& rModelPart,

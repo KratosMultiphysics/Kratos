@@ -134,26 +134,26 @@ typedef Node NodeType;
 
         bool isConverged1 = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter, point, projected_point, curve);
 
-        KRATOS_CHECK_EQUAL(isConverged1, true);
+        KRATOS_EXPECT_EQ(isConverged1, true);
 
-        KRATOS_CHECK_NEAR(parameter[0], 0.099395977882318, TOLERANCE);
+        KRATOS_EXPECT_NEAR(parameter[0], 0.099395977882318, TOLERANCE);
 
         std::vector<double> projected_point1 = {-0.129744540301921, -0.044240249340891, 0.0};
 
-        KRATOS_CHECK_VECTOR_NEAR(projected_point, projected_point1, TOLERANCE);
+        KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point1, TOLERANCE);
 
         // Try projection with initial guess at u = -1.0
         parameter[0] = curve.DomainInterval().MinParameter();
 
         bool isConverged2 = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter, point, projected_point, curve);
 
-        KRATOS_CHECK_EQUAL(isConverged2, true);
+        KRATOS_EXPECT_EQ(isConverged2, true);
 
-        KRATOS_CHECK_NEAR(parameter[0], -0.788227217287371, TOLERANCE);
+        KRATOS_EXPECT_NEAR(parameter[0], -0.788227217287371, TOLERANCE);
 
         std::vector<double> projected_point2 = {-4.694701201131293, -3.571229085898834, 0.0};
 
-        KRATOS_CHECK_VECTOR_NEAR(projected_point, projected_point2, TOLERANCE);
+        KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point2, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceGeometryProjection3d, KratosCoreNurbsGeometriesFastSuite) {
@@ -183,10 +183,10 @@ typedef Node NodeType;
         bool isConverged1 = ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(parameter, point, projected_point, surface);
         
         // Check the solution
-        KRATOS_CHECK_EQUAL(isConverged1, true);
-        KRATOS_CHECK_NEAR(parameter[0], 0.397197796315686, TOLERANCE);
-        KRATOS_CHECK_NEAR(parameter[1], 0.5, TOLERANCE);
-        KRATOS_CHECK_VECTOR_NEAR(projected_point, projected_point_expected1, TOLERANCE);
+        KRATOS_EXPECT_EQ(isConverged1, true);
+        KRATOS_EXPECT_NEAR(parameter[0], 0.397197796315686, TOLERANCE);
+        KRATOS_EXPECT_NEAR(parameter[1], 0.5, TOLERANCE);
+        KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point_expected1, TOLERANCE);
 
         // Try projection of point (0.1, -0.005, 0.005) close to the singularity
         point[0] = 0.1;
@@ -201,10 +201,10 @@ typedef Node NodeType;
         bool isConverged2 = ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(parameter, point, projected_point, surface, 100, 1e-12);
 
         // Check the solution
-        KRATOS_CHECK_EQUAL(isConverged2, true);
-        KRATOS_CHECK_NEAR(parameter[0], 0.950782, TOLERANCE);
-        KRATOS_CHECK_NEAR(parameter[1], 0.500000, TOLERANCE);
-        KRATOS_CHECK_VECTOR_NEAR(projected_point, projected_point_expected2, TOLERANCE);
+        KRATOS_EXPECT_EQ(isConverged2, true);
+        KRATOS_EXPECT_NEAR(parameter[0], 0.950782, TOLERANCE);
+        KRATOS_EXPECT_NEAR(parameter[1], 0.500000, TOLERANCE);
+        KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point_expected2, TOLERANCE);
     }
 
 } // namespace Testing.

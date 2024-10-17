@@ -31,7 +31,7 @@
             "maximum_pressure_iterations" : 10,
             "velocity_tolerance"          : 1e-4,
             "pressure_tolerance"          : 1e-4,
-            "echo_level"                  : 1,
+            "echo_level"                  : 0,
             "velocity_linear_solver_settings" : {
                 "solver_type"         : "bicgstab",
                 "max_iteration"       : 200,

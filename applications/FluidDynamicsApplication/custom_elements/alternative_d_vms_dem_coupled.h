@@ -92,6 +92,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     constexpr static unsigned int Dim = DVMS<TElementData>::Dim;
     constexpr static unsigned int NumNodes = DVMS<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = DVMS<TElementData>::BlockSize;
@@ -215,6 +217,8 @@ protected:
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
 
     ///@}
     ///@name Protected Operators
@@ -242,15 +246,32 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(
+        MatrixType& rDampMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     // Implementation details of AlternativeDVMSDEMCoupled /////////////////////////////////////////
 
     void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void CalculateResistanceTensor(
+        const TElementData& rData);
+
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
+
+    void AddReactionStabilization(
+        TElementData& rData,
+        BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
+        VectorType& rLocalRHS);
+
 
     void AddViscousTerm(
         const TElementData& rData,
@@ -258,6 +279,14 @@ protected:
         VectorType& rRHS) override;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
+    void UpdateIntegrationPointDataSecondDerivatives(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
@@ -289,6 +318,23 @@ protected:
     void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Protected  Access

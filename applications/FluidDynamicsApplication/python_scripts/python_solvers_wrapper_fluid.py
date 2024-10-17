@@ -14,7 +14,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if solver_type == "monolithic" or solver_type == "Monolithic":
-            solver_module_name = "navier_stokes_solver_vmsmonolithic"
+            solver_module_name = "navier_stokes_monolithic_solver"
 
         elif solver_type == "monolithic_stokes" or solver_type == "MonolithicStokes":
             solver_module_name = "stokes_solver_monolithic"
@@ -35,7 +35,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "conjugate_heat_transfer_solver"
 
         elif solver_type == "two_fluids" or solver_type == "TwoFluids":
-            solver_module_name = "navier_stokes_two_fluids_solver"
+            solver_module_name = "navier_stokes_two_fluid_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
@@ -43,7 +43,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
         if solver_type == "monolithic" or solver_type == "Monolithic":
-            solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic"
+            solver_module_name = "trilinos_navier_stokes_monolithic_solver"
 
         elif solver_type == "fractional_step" or solver_type == "FractionalStep":
             solver_module_name = "trilinos_navier_stokes_solver_fractionalstep"

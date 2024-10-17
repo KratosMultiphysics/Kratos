@@ -105,6 +105,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, std::string, TYING_VARIABLE )                            // The variable name for the mesh tying
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, Element::Pointer, PARENT_ELEMENT )                       // The parent element considered in the mesh tying with static condensation
 
 /* Explicit simulation */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, MAX_GAP_THRESHOLD )                              // The gap considered as threshold to rescale penalty

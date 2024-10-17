@@ -4,12 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
-//
 //
 
 #pragma once
@@ -106,9 +105,16 @@ enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDE
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-
-/** Detail class definition.
+/**
+ * @class UblasSpace
+ * @ingroup KratosCore
+ * @brief A class template for handling data types, matrices, and vectors in a Ublas space.
+ * @details This class template is designed to work with different data types, matrix types, and vector types
+ * within a Ublas space. It provides typedefs and utilities for managing these types effectively.
+ * @tparam TDataType The data type used in the Ublas space.
+ * @tparam TMatrixType The matrix type used in the Ublas space.
+ * @tparam TVectorType The vector type used in the Ublas space.
+ * @author Riccardo Rossi
  */
 template<class TDataType, class TMatrixType, class TVectorType>
 class UblasSpace
@@ -120,21 +126,32 @@ public:
     /// Pointer definition of UblasSpace
     KRATOS_CLASS_POINTER_DEFINITION(UblasSpace);
 
-    typedef TDataType DataType;
+    /// The data type considered
+    using DataType = TDataType;
 
-    typedef TMatrixType MatrixType;
+    /// The matrix type considered
+    using MatrixType = TMatrixType;
 
-    typedef TVectorType VectorType;
+    /// The vector type considered
+    using VectorType = TVectorType;
 
-    typedef std::size_t IndexType;
+    /// The index type considered
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    /// The size type considered
+    using SizeType = std::size_t;
 
-    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+    /// The pointer to the matrix type
+    using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
 
-    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
-    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+    /// The pointer to the vector type
+    using VectorPointerType = typename Kratos::shared_ptr<TVectorType>;
+
+    /// The DoF updater type
+    using DofUpdaterType = DofUpdater<UblasSpace<TDataType, TMatrixType, TVectorType>>;
+
+    /// The pointer to the DoF updater type
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     ///@}
     ///@name Life Cycle
@@ -872,6 +889,22 @@ public:
     inline static constexpr bool IsDistributed()
     {
         return false;
+    }
+
+    /**
+     * @brief Returns a list of the fastest direct solvers.
+     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * @return A vector of strings containing the names of the fastest direct solvers.
+     */
+    inline static std::vector<std::string> FastestDirectSolverList()
+    {
+        std::vector<std::string> faster_direct_solvers({
+            "pardiso_lu",              // LinearSolversApplication (if compiled with Intel-support)
+            "pardiso_ldlt",            // LinearSolversApplication (if compiled with Intel-support)
+            "sparse_lu",               // LinearSolversApplication
+            "skyline_lu_factorization" // In Core, always available, but slow
+        });
+        return faster_direct_solvers;
     }
 
     //***********************************************************************

@@ -51,12 +51,12 @@ namespace Kratos {
 
             Element::Pointer p_clone_of_elem = p_elem->Clone(2, PointerVector<NodeType>{list_nodes});
 
-            KRATOS_CHECK_EQUAL(p_clone_of_elem->Id(), 2);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_elem->GetValue(DISTANCE), 12.1);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_elem->GetValue(VELOCITY_X), 32.4);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_elem->GetValue(VELOCITY_Y), 0.00);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_elem->GetValue(VELOCITY_Z), 0.00);
-            KRATOS_CHECK(p_clone_of_elem->Is(ACTIVE));
+            KRATOS_EXPECT_EQ(p_clone_of_elem->Id(), 2);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_elem->GetValue(DISTANCE), 12.1);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_elem->GetValue(VELOCITY_X), 32.4);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_elem->GetValue(VELOCITY_Y), 0.00);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_elem->GetValue(VELOCITY_Z), 0.00);
+            KRATOS_EXPECT_TRUE(p_clone_of_elem->Is(ACTIVE));
         }
     }  // namespace Testing.
 }  // namespace Kratos.

@@ -35,6 +35,7 @@
 #include "custom_processes/normal_check_process.h"
 #include "custom_processes/mpc_contact_search_process.h"
 #include "custom_processes/mpc_contact_search_wrapper_process.h"
+#include "custom_processes/assign_parent_element_conditions_process.h"
 
 namespace Kratos::Python
 {
@@ -203,6 +204,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<FindIntersectedGeometricalObjectsWithOBBContactSearchProcess, FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::Pointer, Process>(m,"FindIntersectedGeometricalObjectsWithOBBContactSearchProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    // AssignParentElementConditionsProcess
+    py::class_<AssignParentElementConditionsProcess, AssignParentElementConditionsProcess::Pointer, Process>(m,"AssignParentElementConditionsProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<Model&, Parameters>())
     ;
 }

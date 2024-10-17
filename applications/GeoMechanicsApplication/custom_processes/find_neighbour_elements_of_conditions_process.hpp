@@ -10,25 +10,18 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-#ifndef KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-#define KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
-// #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-    using hashmap = std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
+using hashmap =
+    std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
 
 ///@}
 ///@name Kratos Classes
@@ -40,8 +33,7 @@ namespace Kratos
  * @brief Finds list of elements attached to conditions.
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess
-    : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -51,14 +43,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the node type
-    typedef Node NodeType;
+    using NodeType = Node;
 
     // Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
-
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
     ///@name Life Cycle
@@ -68,28 +59,22 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
-            mrModelPart(rModelPart)
+    explicit FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
+        : Process(), mrModelPart(rModelPart)
     {
     }
 
-    /// Destructor.
-    ~FindNeighbourElementsOfConditionsProcess() override {}
+    FindNeighbourElementsOfConditionsProcess& operator=(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    FindNeighbourElementsOfConditionsProcess(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    ~FindNeighbourElementsOfConditionsProcess() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
-
     ///@}
     ///@name Operations
     ///@{
-
 
     /// Finds neighbour elements of conditions
     void Execute() override;
@@ -98,51 +83,28 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "FindNeighbourElementsOfConditionsProcess";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "FindNeighbourElementsOfConditionsProcess";
-    }
+    std::string Info() const override { return "FindNeighbourElementsOfConditionsProcess"; }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->PrintInfo(rOStream);
-    }
-
+    void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
-    hashmap::iterator FindFaceReorderingTetrahedra3D10(DenseVector<int> FaceIds, hashmap &FacesMap) const;
-    hashmap::iterator FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds, hashmap &FacesMap) const;
-    hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap &FacesMap) const;
-    hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap &FacesMap) const;
-
+    hashmap::iterator FindFaceReorderingTetrahedra3D10(DenseVector<int> FaceIds, hashmap& FacesMap) const;
+    hashmap::iterator FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds, hashmap& FacesMap) const;
+    hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap& FacesMap) const;
+    hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap& FacesMap) const;
 
     ///@}
     ///@name Member Variables
@@ -158,21 +120,11 @@ private:
 
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 
-    static void CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace,
-        PointerVector<Element>::iterator pItElem);
+    static void CheckForMultipleConditionsOnElement(hashmap&                         rFacesMap,
+                                                    hashmap::iterator&               rItFace,
+                                                    PointerVector<Element>::iterator pItElem);
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    FindNeighbourElementsOfConditionsProcess& operator=(FindNeighbourElementsOfConditionsProcess const& rOther);
-
-    /// Copy constructor.
-    FindNeighbourElementsOfConditionsProcess(FindNeighbourElementsOfConditionsProcess const& rOther);
-
-    ///@}
-
 }; // Class Process
 
 ///@}
@@ -184,14 +136,11 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  FindNeighbourElementsOfConditionsProcess& rThis);
+inline std::istream& operator>>(std::istream& rIStream, FindNeighbourElementsOfConditionsProcess& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const FindNeighbourElementsOfConditionsProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -199,9 +148,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
 } // namespace Kratos
-
-
-#endif // KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS

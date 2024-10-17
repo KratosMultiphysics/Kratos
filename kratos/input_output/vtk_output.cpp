@@ -899,27 +899,33 @@ void VtkOutput::WriteIntegrationScalarContainerVariable(
     const Variable<TVarType>& rVariable,
     std::ofstream& rFileStream) const
 {
-    rFileStream << rVariable.Name() << " 1 "
-                << rContainer.size() << "  float\n";
-
-    // Auxiliar values
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    // Auxiliary values
     auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
     const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
     const auto& r_integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
     const SizeType integration_points_number = r_integration_points.size();
 
-    double aux_value;
-    for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
-        aux_value = 0.0;
-        std::vector<TVarType> aux_result(integration_points_number);
-        r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
-        for (const double value : aux_result) {
-            aux_value += value;
+    // Just if number of GP is greater than 0
+    if (integration_points_number > 0) {
+        // Auxiliary values
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
+
+        // Write first line
+        rFileStream << rVariable.Name() << " 1 "
+                    << rContainer.size() << "  float\n";
+
+        double aux_value;
+        for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
+            aux_value = 0.0;
+            std::vector<TVarType> aux_result(integration_points_number);
+            r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
+            for (const double value : aux_result) {
+                aux_value += value;
+            }
+            aux_value /= static_cast<double>(integration_points_number);
+            WriteScalarDataToFile((float)aux_value, rFileStream);
+            if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
         }
-        aux_value /= static_cast<double>(integration_points_number);
-        WriteScalarDataToFile((float)aux_value, rFileStream);
-        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
 
@@ -964,6 +970,11 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     const auto& r_process_info = mrModelPart.GetProcessInfo();
     std::vector<TVarType> tmp_result;
     rContainer.begin()->CalculateOnIntegrationPoints(rVariable, tmp_result, r_process_info);
+    
+    // if no results, return
+    if (tmp_result.size() == 0) {
+        return;
+    }
     const int res_size = tmp_result[0].size();
 
     rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";

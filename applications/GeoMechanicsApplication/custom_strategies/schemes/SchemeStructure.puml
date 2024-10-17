@@ -1,0 +1,67 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Scheme
+class GeoMechanicsTimeIntegrationScheme
+{
+    - std::vector<FirstOrderScalarVariable> firstOrderScalarVariables;
+    - std::vector<SecondOrderVectorVariable> secondOrderVectorVariables;
+
+    virtual void UpdateVariablesDerivatives() = 0;
+    virtual void SetTimeFactors();
+}
+Scheme <|-- GeoMechanicsTimeIntegrationScheme
+
+class BackwardEulerScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void SetTimeFactors() override;
+}
+class BackwardEulerQuasistaticPwScheme
+class BackwardEulerQuasistaticUPwScheme
+class BackwardEulerQuasistaticTScheme
+
+GeoMechanicsTimeIntegrationScheme <|-- BackwardEulerScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticUPwScheme
+BackwardEulerScheme <|-- BackwardEulerQuasistaticTScheme
+
+class GeneralizedNewmarkScheme
+{
+    void SetTimeFactors() override;
+}
+class NewmarkQuasistaticPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
+class GeneralizedNewmarkTScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
+class NewmarkDynamicUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void CalculateSystemContributions() override;
+    void CalculateLHSContribution() override;
+    void CalculateRHSContribution() override;
+}
+class NewmarkQuasistaticDampedUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void CalculateSystemContributions() override;
+    void CalculateLHSContribution() override;
+    void CalculateRHSContribution() override;
+}
+class NewmarkQuasistaticUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
+
+GeoMechanicsTimeIntegrationScheme <|-- GeneralizedNewmarkScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticPwScheme
+GeneralizedNewmarkScheme <|-- GeneralizedNewmarkTScheme
+GeneralizedNewmarkScheme <|-- NewmarkDynamicUPwScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticDampedUPwScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticUPwScheme
+
+@enduml

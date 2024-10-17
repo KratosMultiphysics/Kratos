@@ -20,7 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_processes/normal_gap_process.h"
-#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/point_object.h"
 #include "custom_conditions/paired_condition.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
@@ -309,14 +309,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMainModelPart;                       /// The main model part
-    Parameters mThisParameters;                       /// The configuration parameters
-    CheckGap mCheckGap;                               /// If the gap is checked during the search
-    TypeSolution mTypeSolution;                       /// The solution type
-    std::string mConditionName;                       /// The name of the condition to be created
-    PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
+    ModelPart& mrMainModelPart;                            /// The main model part
+    Parameters mThisParameters;                            /// The configuration parameters
+    CheckGap mCheckGap;                                    /// If the gap is checked during the search
+    TypeSolution mTypeSolution;                            /// The solution type
+    PairedCondition const* mpReferenceCondition = nullptr; /// The prototype reference condition to be created
+    PointVector mPointListDestination;                     /// A list that contents the all the points (from nodes) from the modelpart
 
-    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
+    Properties::Pointer mpPairedProperties = nullptr;      /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators

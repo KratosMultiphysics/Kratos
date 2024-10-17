@@ -795,13 +795,18 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData(rOStream);
+        // Base Geometry class PrintData call
+        BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian(jacobian, PointType());
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /** Calculates the local gradients for all integration points for given integration method

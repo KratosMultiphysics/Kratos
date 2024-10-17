@@ -131,7 +131,7 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
                                                                 reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 

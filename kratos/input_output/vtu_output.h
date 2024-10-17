@@ -16,6 +16,7 @@
 #include <string>
 #include <variant>
 #include <unordered_map>
+#include <map>
 
 // External includes
 
@@ -214,24 +215,24 @@ private:
 
     bool mIsElementsConsidered; /// Flag indicating if elements are considered.
 
-    // TODO: In the future study to replace the std::unordered_map
+    // TODO: In the future study to replace the std::map
     // TODO: Study replace string, expensive, with hashes or keys
 
     std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
 
-    std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
+    std::map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
+    std::map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
+    std::map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
 
-    std::unordered_map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
+    std::map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
 
-    std::unordered_map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
+    std::map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
 
-    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
+    std::map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
 
-    std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
+    std::map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
     ///@}
     ///@name Private operations

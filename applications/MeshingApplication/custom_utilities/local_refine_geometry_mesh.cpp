@@ -32,6 +32,8 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
 {
     KRATOS_TRY;
 
+    KRATOS_ERROR_IF(mModelPart.IsSubModelPart()) << "modelpart must be root modelpart" << std::endl;
+
     KRATOS_ERROR_IF(RefineOnReference && !(mModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT))) << "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true" << std::endl;
 
     compressed_matrix<int> coord;                            // The matrix that stores all the index of the geometry
@@ -44,9 +46,10 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
     // Initial renumber of nodes and elements and finding refinement level
     // TODO: Using parallel utilities here
     mCurrentRefinementLevel=0;
-    std::size_t id = 1;
+    std::size_t pos = 0;
     for (auto it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); ++it) {
-        it->SetId(id++);
+        mMapNodeIdToPos[it->Id()] = pos++;
+        mMapPosToNodeId.push_back(it->Id());
         int node_refinement_level = 0;
         if (it->Has(REFINEMENT_LEVEL)) {
             node_refinement_level = it->GetValue(REFINEMENT_LEVEL);
@@ -59,15 +62,6 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
     }
     mCurrentRefinementLevel++;
 
-    IndexPartition<std::size_t>(mModelPart.NumberOfElements()).for_each([&](std::size_t i) {
-        auto it = mModelPart.ElementsBegin() + i;
-        it->SetId(i + 1);
-    });
-
-    IndexPartition<std::size_t>(mModelPart.NumberOfConditions()).for_each([&](std::size_t i) {
-        auto it = mModelPart.ConditionsBegin() + i;
-        it->SetId(i + 1);
-    });
 
     if (RefineOnReference) {
         block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
@@ -92,8 +86,6 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
 
     EraseOldConditionsAndCreateNew(mModelPart, coord);
 
-    RenumeringElementsAndNodes(mModelPart, new_elements);
-
     // Assigning refinement level to newly created nodes
     block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
         if(!rNode.Has(REFINEMENT_LEVEL)){
@@ -112,6 +104,9 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
 
     UpdateSubModelPartNodes(mModelPart);
 
+    mMapNodeIdToPos.clear();
+    mMapPosToNodeId.clear();
+
     KRATOS_CATCH("");
 }
 
@@ -129,13 +124,13 @@ void LocalRefineGeometryMesh::CSRRowMatrix(
     rCoord.resize(number_of_nodes, number_of_nodes, false);
 
     for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it) {
-        int index_i = it->Id() - 1; // WARNING: MESH MUST BE IN ORDER
+        int index_i = mMapNodeIdToPos[it->Id()]; 
         auto& r_neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
 
         std::vector<unsigned int> aux(r_neighb_nodes.size());
         unsigned int active = 0;
         for (auto inode = r_neighb_nodes.begin(); inode != r_neighb_nodes.end(); inode++) {
-            int index_j = inode->Id() - 1;
+            int index_j = mMapNodeIdToPos[inode->Id()];
             if (index_j > index_i) {
                 aux[active] = index_j;
                 active++;
@@ -180,8 +175,6 @@ void LocalRefineGeometryMesh::CreateListOfNewNodes(
 
     unsigned int number_of_new_nodes = 0;
 
-    NodesArrayType& pNodes = rModelPart.Nodes();
-
     typedef compressed_matrix<int>::iterator1 i1_t;
     typedef compressed_matrix<int>::iterator2 i2_t;
 
@@ -195,9 +188,9 @@ void LocalRefineGeometryMesh::CreateListOfNewNodes(
 
     // New ID of the nodes
     rListNewNodes.resize(number_of_new_nodes, false);
-    int total_node = pNodes.size();
+    const unsigned int highest_id = (rModelPart.NodesEnd() -1)->Id();
     for (unsigned int i = 0; i < number_of_new_nodes; i++) {
-        rListNewNodes[i] = total_node + i + 1;
+        rListNewNodes[i] = highest_id + i + 1;
     }
 
     // Setting edges -2 to the new id of the new node
@@ -207,8 +200,8 @@ void LocalRefineGeometryMesh::CreateListOfNewNodes(
         for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2) {
             if (rCoord(i2.index1(), i2.index2()) == -2) {
                 rCoord(i2.index1(), i2.index2()) = rListNewNodes[index];
-                rPositionNode[index][0] = i2.index1() + 1;
-                rPositionNode[index][1] = i2.index2() + 1;
+                rPositionNode[index][0] = mMapPosToNodeId[i2.index1()];
+                rPositionNode[index][1] = mMapPosToNodeId[i2.index2()];
                 index++;
             }
         }
@@ -354,36 +347,6 @@ void LocalRefineGeometryMesh::CalculateEdges(
 
     KRATOS_CATCH( "" );
 
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LocalRefineGeometryMesh::RenumeringElementsAndNodes(
-    ModelPart& rModelPart,
-    PointerVector< Element >& rNewElements
-    )
-{
-    KRATOS_TRY;
-
-    unsigned int id_node = 1;
-    unsigned int id_elem = 1;
-
-    for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
-        if (i->Id() != id_node) {
-            i->SetId(id_node);
-        }
-        id_node++;
-    }
-
-    for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it) {
-        if (it->Id() != id_elem) {
-            it->SetId(id_elem);
-        }
-        id_elem++;
-    }
-
-    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

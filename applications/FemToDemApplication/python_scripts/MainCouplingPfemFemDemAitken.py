@@ -76,6 +76,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
         self.FSI_aitken_utility.InitializeSolutionStep()
         solid_model_part = self.FEMDEM_Solution.FEM_Solution.main_model_part
+
         self.FSI_aitken_utility.InitializeInterfaceSubModelPart(solid_model_part)
         self.FSI_aitken_utility.ResetNodalValues(solid_model_part)
 

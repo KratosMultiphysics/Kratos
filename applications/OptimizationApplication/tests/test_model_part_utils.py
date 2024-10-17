@@ -6,9 +6,9 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
-class TestModelPartUtils(kratos_unittest.TestCase):
+class TestOptAppModelPartUtils(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
@@ -148,9 +148,9 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         for model_part in model_parts:
             self.__CheckModelPart(model_part)
 
-            all_node_ids.extend(TestModelPartUtils.__GetAllIds(model_part.Nodes, data_communicator))
-            all_condition_ids.extend(TestModelPartUtils.__GetAllIds(model_part.Conditions, data_communicator))
-            all_element_ids.extend(TestModelPartUtils.__GetAllIds(model_part.Elements, data_communicator))
+            all_node_ids.extend(TestOptAppModelPartUtils.__GetAllIds(model_part.Nodes, data_communicator))
+            all_condition_ids.extend(TestOptAppModelPartUtils.__GetAllIds(model_part.Conditions, data_communicator))
+            all_element_ids.extend(TestOptAppModelPartUtils.__GetAllIds(model_part.Elements, data_communicator))
 
         self.assertEqual(ref_node_ids, sorted(list(set(all_node_ids))))
         self.assertEqual(ref_condition_ids, sorted(list(set(all_condition_ids))))
@@ -158,24 +158,24 @@ class TestModelPartUtils(kratos_unittest.TestCase):
 
     def test_GetSensitivityModelPartForDirectSensitivitiesError(self):
         with self.assertRaises(RuntimeError):
-            Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+            Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, False, False, False, False)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodes(self):
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, True, False, False, False)
         self.__CheckModelParts(model_parts, [3, 4, 11, 12, 13, 16, 17, 18], [], [])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesConditions(self):
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, True, True, False, False)
         self.__CheckModelParts(model_parts, [3, 4, 11, 12, 13, 16, 17, 18], [11], [])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Conditions)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesConditionsElements(self):
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, True, True, True, False)
         self.__CheckModelParts(model_parts, [3, 4, 11, 12, 13, 16, 17, 18], [11], [5, 9, 10])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
@@ -183,7 +183,7 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesConditionsWithParents(self):
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, [self.model["test"]], True, True, False, True)
         self.__CheckModelParts(model_parts, [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25], [1, 2, 3, 4, 6, 9, 10, 11, 12, 13, 14, 15, 16], [])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
@@ -194,7 +194,7 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         if (communicator.GetDataCommunicator().IsDistributed() and communicator.TotalProcesses() == 3):
             self.skipTest("This is skipped until the bug in issue 10938 is fixed.")
 
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, [self.model["test"]], True, True, True, True)
 
         self.__CheckModelParts(model_parts, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25], [1, 2, 3, 4, 6, 9, 10, 11, 12, 13, 14, 15, 16], [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
@@ -204,7 +204,7 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckParentEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
 
     def test_GetSensitivityModelPartForDirectSensitivitiesNodesElementsWithParents(self):
-        model_parts: Kratos.ModelPart = KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        model_parts: Kratos.ModelPart = KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, [self.model["test"]], False, False, True, True)
         self.__CheckModelParts(model_parts, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25], [], [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
         self.__CheckCommonEntities(model_parts, self.examined_model_parts, lambda x: x.Nodes)
@@ -212,20 +212,20 @@ class TestModelPartUtils(kratos_unittest.TestCase):
         self.__CheckParentEntities(model_parts, self.examined_model_parts, lambda x: x.Elements)
 
     def test_ClearEntitiesOfModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(self):
-        KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, True, False, False, False)
 
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
 
-        KratosOA.ModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList([self.model["test"]])
+        KratosOA.OptAppModelPartUtils.RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList([self.model["test"]])
 
         self.assertFalse(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertFalse(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertFalse(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
 
-        KratosOA.ModelPartUtils.GetModelPartsWithCommonReferenceEntities(
+        KratosOA.OptAppModelPartUtils.GetModelPartsWithCommonReferenceEntities(
             self.examined_model_parts, self.reference_model_parts, True, False, False, False)
 
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
@@ -238,43 +238,71 @@ class TestModelPartUtilities(kratos_unittest.TestCase):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
 
-        cls.sub_model_part_list: 'list[Kratos.ModelPart]' = []
-        cls.sub_model_part_list.append(cls.model_part.CreateSubModelPart("sub_1"))
-        cls.sub_model_part_list.append(cls.model_part.CreateSubModelPart("sub_2"))
-        cls.sub_model_part_list.append(cls.model_part.CreateSubModelPart("sub_3"))
+        cls.sub_model_part_names_list: 'list[str]' = []
+        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_1").FullName())
+        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_2").FullName())
+        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_3").FullName())
+
+    def test_GetModelPartFullName(self):
+        dummy_names = ["test.sub_full_name_1", "test.sub_full_name_2", "test.sub_full_name_3", "test.sub_full_name_4"]
+        mp_operation_1 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t1", dummy_names, False)
+        self.assertEqual(mp_operation_1.GetModelPartFullName(), "test.full_name_t1")
+
+        random.shuffle(dummy_names)
+        mp_operation_2 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t2", dummy_names, False)
+        self.assertEqual(mp_operation_2.GetModelPartFullName(), "test.full_name_t1")
+
+        random.shuffle(dummy_names)
+        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t3", dummy_names, True)
+        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t3")
+
+        random.shuffle(dummy_names)
+        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t4", dummy_names, True)
+        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
+
+        random.shuffle(dummy_names)
+        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t5", dummy_names, True)
+        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
+
+        random.shuffle(dummy_names)
+        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t6", dummy_names, True)
+        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
+
+        random.shuffle(dummy_names)
+        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t6", dummy_names, True)
+        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t3")
 
     def test_UnionNoOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t1", [self.model_part], False)
+        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t1", [self.model_part.FullName()], False).GetModelPart()
         self.assertFalse(self.model_part.HasSubModelPart("t1"))
 
     def test_IntersectNoOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t2", [self.model_part], False)
+        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t2", [self.model_part.FullName()], False).GetModelPart()
         self.assertFalse(self.model_part.HasSubModelPart("t2"))
 
     def test_UnionOperation(self):
-        random.shuffle(self.sub_model_part_list)
-        model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t3", self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_names_list)
+        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t3", self.sub_model_part_names_list, False).GetModelPart()
         self.assertTrue(self.model_part.HasSubModelPart("t3"))
 
-        random.shuffle(self.sub_model_part_list)
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t4", self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_names_list)
+        model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t4", self.sub_model_part_names_list, False).GetModelPart()
         self.assertFalse(self.model_part.HasSubModelPart("t4"))
 
-        random.shuffle(self.sub_model_part_list)
-        self.assertEqual(model_part, ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t4", self.sub_model_part_list, False))
+        random.shuffle(self.sub_model_part_names_list)
+        self.assertEqual(model_part, ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t5", self.sub_model_part_names_list, False).GetModelPart())
 
     def test_IntersectNoOperation(self):
-        random.shuffle(self.sub_model_part_list)
-        model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t5", self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_names_list)
+        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t5", self.sub_model_part_names_list, False).GetModelPart()
         self.assertTrue(self.model_part.HasSubModelPart("t5"))
 
-        random.shuffle(self.sub_model_part_list)
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t6", self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_names_list)
+        model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t6", self.sub_model_part_names_list, False).GetModelPart()
         self.assertFalse(self.model_part.HasSubModelPart("t6"))
 
-        random.shuffle(self.sub_model_part_list)
-        self.assertEqual(model_part, ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t6", self.sub_model_part_list, False))
+        random.shuffle(self.sub_model_part_names_list)
+        self.assertEqual(model_part, ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t7", self.sub_model_part_names_list, False).GetModelPart())
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
