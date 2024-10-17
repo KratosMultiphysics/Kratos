@@ -128,7 +128,7 @@ void  AddModelerToPython(pybind11::module& m)
           py::arg("FirstNodeId") = 1,
           py::arg("FirstElementId") = 1,
           py::arg("FirstConditionId") = 1,
-          py::arg("AreaTolerance") = 2.5e-5,
+          py::arg("AreaTolerance") = 1.0e-4,
           "Clean up the problematic geometries (null area geometries) in the mesh.")
     ;
 }

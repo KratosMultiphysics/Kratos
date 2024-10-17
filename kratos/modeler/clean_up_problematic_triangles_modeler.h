@@ -141,7 +141,7 @@ public:
         const IndexType FirstNodeId = 1,
         const IndexType FirstElementId = 1,
         const IndexType FirstConditionId = 1,
-        const double AreaTolerance = 2.5e-5
+        const double AreaTolerance = 1.0e-4
         );
 
     ///@}
@@ -165,7 +165,7 @@ public:
             "first_node_id"      : 1,
             "first_element_id"   : 1,
             "first_condition_id" : 1,
-            "area_tolerance"     : 2.5e-5,
+            "area_tolerance"     : 1.0e-4,
             "echo_level"         : 0
         })");
         return default_parameters;
@@ -279,7 +279,7 @@ private:
         ModelPart& rThisModelPart,
         const IndexType FirstNodeId = 1,
         const IndexType FirstEntityId = 1,
-        const double AreaTolerance = 2.5e-5
+        const double AreaTolerance = 1.0e-4
         );
 
     ///@}
