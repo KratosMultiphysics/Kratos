@@ -159,8 +159,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //-----------------------------Get Piping Elements--------------------------------------
-
     std::vector<Element*> GetPipingElements()
     {
         ModelPart&            CurrentModelPart = this->GetModelPart();
@@ -449,8 +447,6 @@ private:
             }
         }
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 
