@@ -293,6 +293,7 @@ namespace Testing
         model_part.AddNodalSolutionStepVariable(VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
         model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN_PROJECTION);
+        model_part.AddNodalSolutionStepVariable(HEAT_FLUX);
 
         // Process info creation
         double delta_time = 0.1;
@@ -310,6 +311,8 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS,bdf_coefs);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetVolumeSourceVariable(HEAT_FLUX);
+
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
         // Geometry creation
@@ -344,6 +347,10 @@ namespace Testing
         p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE, 2) = 2;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE, 2) = 3;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE, 2) = 5;
+        p_element->GetGeometry()[0].FastGetSolutionStepValue(HEAT_FLUX, 0) =0.1;
+        p_element->GetGeometry()[1].FastGetSolutionStepValue(HEAT_FLUX, 1) =0.1;
+        p_element->GetGeometry()[2].FastGetSolutionStepValue(HEAT_FLUX, 2) = 0.1;
+
         p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
@@ -366,6 +373,7 @@ namespace Testing
         //     }
         // }
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
+        p_element->FinalizeSolutionStep (const_process_info);
         KRATOS_EXPECT_EQ(rhs.size(), 3);
         KRATOS_EXPECT_EQ(lhs.size1(), 3);
         KRATOS_EXPECT_EQ(lhs.size2(), 3);

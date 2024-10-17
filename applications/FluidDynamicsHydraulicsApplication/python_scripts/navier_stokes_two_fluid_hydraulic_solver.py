@@ -143,7 +143,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
-            # self.settings["levelset_convection_settings"].AddEmptyValue("levelset_volume_source_variable_name").SetString("HEAT_FLUX")
+            self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_volume_source_variable_name").SetString("HEAT_FLUX")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("convection_model_part_name").SetString("EulerianFMALEModelPart")
 
 
@@ -158,9 +158,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
         # Initialize the system volue to None
-        # current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] 
+        # current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         # print(current_dt)
-        bdf_vec = [1.5/0.01, -2.0/0.01, 0.5/0.01] 
+        bdf_vec = [1.5/0.01, -2.0/0.01, 0.5/0.01]
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
         print( self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.BDF_COEFFICIENTS))
 
@@ -181,6 +181,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.FRACTIONAL_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
@@ -247,12 +248,22 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
         # Non historical variable are initilized in order to avoid memory problems
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.HEAT_FLUX, self.main_model_part.Nodes)
+        if self.eulerian_fm_ale:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.FRACTIONAL_ACCELERATION, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.HEAT_FLUX, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.NODAL_AREA, self.main_model_part.Nodes)
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosCFD.FRACTIONAL_ACCELERATION, [0.1,0.1,0.1])
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
 
+        for node in self.main_model_part.Nodes:
+            if node.SolutionStepsDataHas(KratosMultiphysics.NODAL_AREA):
+                print(
+                    f"Nodal area for node {node.Id} is: {node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)}")
+            else:
+                print(f"Nodal area not initialized for node {node.Id}")
 
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
@@ -281,7 +292,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Perform the convection of the historical database (Eulerian FM-ALE)
         if current_time > 2 * delta_time:
             if self.eulerian_fm_ale:
-                print("ENTRA")     
+                print("ENTRA")
                 self.__PerformEulerianFmAleVelocity()
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
 
@@ -445,17 +456,22 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
         auxiliar_velocity_componentes = [KratosCFD.AUXILIAR_VECTOR_VELOCITY_X, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Y, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Z]
         mesh_var = [KratosMultiphysics.MESH_VELOCITY_X,KratosMultiphysics.MESH_VELOCITY_Y,KratosMultiphysics.MESH_VELOCITY_Z]
-        # a_n_var=[KratosMultiphysics.ACCELERATION_X,KratosMultiphysics.ACCELERATION_Y,KratosMultiphysics.ACCELERATION_Z]
+        a_n_var = [KratosCFD.FRACTIONAL_ACCELERATION_X,
+                   KratosCFD.FRACTIONAL_ACCELERATION_Y, KratosCFD.FRACTIONAL_ACCELERATION_Z]
+
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 1, 1)
-
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_gradient, self.main_model_part.Nodes)
 
         for i in range(domain_size):
 
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1,1)
-            # KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(a_n_var[i], self.eulerian_acceleration_var, self.main_model_part, self.main_model_part, 0,0)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 2,2)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(a_n_var[i], self.eulerian_acceleration_var, self.main_model_part, self.main_model_part, 0,0)
+            for node in self.main_model_part.Nodes:
+                print(node.GetSolutionStepValue( self.eulerian_acceleration_var))
+                print(node.GetSolutionStepValue(KratosCFD.FRACTIONAL_ACCELERATION_X))
 
             self._GetEulerianFmAleProcess().Execute()
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)
@@ -467,7 +483,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 velocity_history_corrected = node.GetSolutionStepValue(self.fm_ale_variable)
                 if node.Is(KratosMultiphysics.SLIP):
                     pass
-
                 elif not node.IsFixed(velocity_components):
                     node.SetSolutionStepValue(velocity_components, velocity_history_corrected)
                     node.SetSolutionStepValue(velocity_components, 1, velocity_history_corrected)

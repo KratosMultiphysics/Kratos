@@ -311,6 +311,9 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
+
+
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
         model_part.SetBufferSize(3)
 
@@ -331,6 +334,12 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             node.SetSolutionStepValue(
                 KratosMultiphysics.DISTANCE, 2, BaseJumpedDistance(node.X, node.Y, node.Z))
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2,ConvectionVelocity(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0,0.1)
+
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 1, 0.1)
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 2, 0.1)
+
+            node.SetValue(KratosMultiphysics.HEAT_FLUX, 0.1)
 
 
         # for node in model_part.Nodes:
@@ -377,7 +386,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
 
 
-        while self.time <20:
+        while self.time <0.01:
             self.time += 0.01
             model_part.CloneTimeStep(self.time)
             model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)

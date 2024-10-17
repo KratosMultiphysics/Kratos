@@ -433,6 +433,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double K_darcy = rData.DarcyTerm;
 
     const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
+    const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -471,7 +472,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
 
     const auto vconv = rData.Velocity - rData.Velocity_OldStep1;
-
+    const auto an = rData.Acceleration;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -513,6 +514,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
+    const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
@@ -563,6 +565,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
+    const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
@@ -616,6 +619,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
+    const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;
@@ -684,6 +688,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
+    const auto an = rData.Acceleration;
     const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vn;

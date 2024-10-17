@@ -86,7 +86,7 @@ private:
         , pUnknownVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetUnknownVariable()))
         , pGradientVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetGradientVariable()))
         , pConvectionVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetConvectionVariable()))
-        // , pVolumeSourceVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetVolumeSourceVariable()))
+        , pVolumeSourceVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetVolumeSourceVariable()))
 
 
         {}
@@ -97,7 +97,7 @@ private:
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetUnknownVariable(*pUnknownVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetGradientVariable(*pGradientVariable);
             (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetConvectionVariable(*pConvectionVariable);
-            // (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetVolumeSourceVariable(*pVolumeSourceVariable);
+            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetVolumeSourceVariable(*pVolumeSourceVariable);
         }
 
     private:
@@ -105,7 +105,7 @@ private:
         const Variable<double>* pUnknownVariable;
         const Variable<array_1d<double,3>>* pGradientVariable;
         const Variable<array_1d<double,3>>* pConvectionVariable;
-        // const Variable<double> *pVolumeSourceVariable;
+        const Variable<double> *pVolumeSourceVariable;
     };
 
     ///@}
@@ -205,6 +205,8 @@ public:
     {
 
         ComputeNodalArea();
+        block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode)
+                       { rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
     }
 
     void Execute() override
@@ -246,7 +248,7 @@ public:
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
-        // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
         // Save current level set value and current and previous step velocity values
         // If the nodal stabilization tau is to be used, it is also computed in here
@@ -268,7 +270,7 @@ public:
             }
         );
 
-        // block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0); });
+         NodalAccelerationProjection();
         mpSolvingStrategy->InitializeSolutionStep();
         // ComputeNodalArea();
         // if (mIsBDFElement)
@@ -276,6 +278,7 @@ public:
         //     NodalOSSProjection();
         // }
         mpSolvingStrategy->Predict();
+        block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
 
@@ -289,6 +292,7 @@ public:
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
             it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
+
         }
         );
 
@@ -311,7 +315,6 @@ public:
         mVelocity.clear();
         mVelocityOld.clear();
         mOldDistance.clear();
-
         mSigmaPlus.clear();
         mSigmaMinus.clear();
         mLimiter.clear();
@@ -327,12 +330,13 @@ public:
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_volume_source_variable_name": "HEAT_FLUX",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
             "BFECC_limiter_acuteness" : 2.0,
-            "element_type" : "levelset_convection_supg",
+            "element_type" : "levelset_convection_bdf",
             "element_settings" : {}
         })");
 
@@ -386,7 +390,7 @@ protected:
 
     const Variable<double>* mpLevelSetVar = nullptr;
 
-    // const Variable<double> *mpVolumeSourceVar = nullptr;
+    const Variable<double> *mpVolumeSourceVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
@@ -497,7 +501,7 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            // p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
+            p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
             if (mpLevelSetGradientVar)
             {
@@ -591,7 +595,6 @@ protected:
         if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
                 block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
         }
-
         if (mElementRequiresLimiter){
                 block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
         }
@@ -829,7 +832,13 @@ protected:
 
         });
     }
+    void NodalAccelerationProjection (){
 
+        block_for_each(mrBaseModelPart.Nodes(), [this](Node &rNode)
+                       {
+            double& sum_proj = rNode.FastGetSolutionStepValue(*mpVolumeSourceVar);
+            sum_proj /= rNode.GetValue(NODAL_AREA); });
+    }
     void ComputeNodalArea(){
         // Calculate the NODAL_AREA
         CalculateNodalAreaProcess<false> nodal_area_process(mrBaseModelPart);
@@ -910,7 +919,7 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        // mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
+        mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
 
         if (ThisParameters["convection_model_part_name"].GetString() == "")
         {
@@ -1059,7 +1068,7 @@ private:
         // Check that the level set and convection variables are in the nodal database
         VariableUtils().CheckVariableExists<Variable<double>>(*mpLevelSetVar, mrBaseModelPart.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
-        // VariableUtils().CheckVariableExists<Variable<double>>(*mpVolumeSourceVar, mrBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists<Variable<double>>(*mpVolumeSourceVar, mrBaseModelPart.Nodes());
         // Check the base model part element family (only simplex elements are supported)
         if constexpr (TDim == 2){
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<

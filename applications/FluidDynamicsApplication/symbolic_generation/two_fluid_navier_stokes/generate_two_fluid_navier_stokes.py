@@ -66,6 +66,7 @@ for dim in dim_vector:
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
     p = DefineVector('p',nnodes)                # Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
+    an = DefineMatrix('an', nnodes, dim)        #fractional acceleration
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
@@ -122,6 +123,7 @@ for dim in dim_vector:
         acceleration = (bdf0*v -bdf0*vn)
         v_gauss = v.transpose()*N
         f_gauss = f.transpose()*N
+        an_gauss = an.transpose()*N
     elif time_integration=="alpha_method":
         max_sprectral_radius=sympy.Symbol('max_spectral_radius', positive = True)
         acceleration_alpha_method=DefineMatrix('acceleration_alpha_method',nnodes,dim)
@@ -188,9 +190,10 @@ for dim in dim_vector:
     convective_term = (vconv_gauss.transpose()*grad_v)
 
     ## Galerkin Functional
-    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
+    rv_galerkin =rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
     if time_integration=="bdf2":
         rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
+        rv_galerkin -= rho*w_gauss.transpose()*an_gauss   #Adding fractional acceleration
 
     if (divide_by_rho):
         rv_galerkin += q_gauss*(volume_error_ratio - div_v[0,0])
@@ -203,6 +206,7 @@ for dim in dim_vector:
     vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
     if time_integration=="bdf2":
         vel_residual-= K_darcy*v_gauss
+        vel_residual -= an_gauss  # Adding fractional acceleration to the stabilization residual
 
     # Mass conservation residual
     if (divide_by_rho):

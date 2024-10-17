@@ -54,7 +54,7 @@ NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-
+NodalVectorData Acceleration;
 NodalScalarData Pressure;
 NodalScalarData Distance;
 NodalScalarData NodalDensity;
@@ -122,14 +122,15 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
+    this->FillFromHistoricalNodalData(Acceleration, FRACTIONAL_ACCELERATION, r_geometry);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-    
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
+
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
@@ -328,7 +329,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
         }
     }
     DynamicViscosity = dynamic_viscosity / navg;
-    
+
     if (SmagorinskyConstant > 0.0)
     {
         const double strain_rate_norm = ComputeStrainNorm();
