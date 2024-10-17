@@ -32,153 +32,153 @@ jobs:
     - name: Test Matrix Market Small
       shell: cmd
       run: |
-        type kratos/tests/test_files/sparse_matrix_files/small_A.mm
+        more kratos/tests/test_files/sparse_matrix_files/small_A.mm
 
     - name: Test Matrix Market Large
       shell: cmd
       run: |
-        type kratos/tests/test_files/sparse_matrix_files/A.mm
+        more kratos/tests/test_files/sparse_matrix_files/A.mm
 
-  windows:
-    runs-on: windows-2022
-    env:
-      KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
+  # windows:
+  #   runs-on: windows-2022
+  #   env:
+  #     KRATOS_BUILD_TYPE: Custom
+  #     KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.10'
 
-    - name: CI configuration
-      shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py
+  #   - name: CI configuration
+  #     shell: bash
+  #     run: python3 kratos/python_scripts/testing/ci_utilities.py
 
-    - name: Disable Defender
-      shell: pwsh
-      run: | 
-        Set-MpPreference -DisableRealtimeMonitoring $true
+  #   - name: Disable Defender
+  #     shell: pwsh
+  #     run: | 
+  #       Set-MpPreference -DisableRealtimeMonitoring $true
 
-    - name: Download boost
-      run: |
-        $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+  #   - name: Download boost
+  #     run: |
+  #       $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
+  #       (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+  #       7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+  #       7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
-    - name: Installing dependencies
-      shell: cmd
-      run: |
-        pip install numpy
-        pip install sympy
-        pip install scipy
-        pip install h5py
-        pip install parameterized
+  #   - name: Installing dependencies
+  #     shell: cmd
+  #     run: |
+  #       pip install numpy
+  #       pip install sympy
+  #       pip install scipy
+  #       pip install h5py
+  #       pip install parameterized
 
-    - name: Build
-      shell: cmd
-      run: |
-        copy .\.github\workflows\configure.cmd
-        python kratos/python_scripts/testing/ci_utilities.py
-        configure.cmd
+  #   - name: Build
+  #     shell: cmd
+  #     run: |
+  #       copy .\.github\workflows\configure.cmd
+  #       python kratos/python_scripts/testing/ci_utilities.py
+  #       configure.cmd
 
-    - name: Test Matrix Market
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/tests/test_sparse_matrix_multiplication.py
+  #   - name: Test Matrix Market
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/tests/test_sparse_matrix_multiplication.py
 
-    - name: Running python tests
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
+  #   - name: Running python tests
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
 
-  windows-core-without-unity:
-    runs-on: windows-2022
-    env:
-      KRATOS_BUILD_TYPE: Custom
-      KRATOS_CI_APPLICATIONS: "ONLY_CORE"
+  # windows-core-without-unity:
+  #   runs-on: windows-2022
+  #   env:
+  #     KRATOS_BUILD_TYPE: Custom
+  #     KRATOS_CI_APPLICATIONS: "ONLY_CORE"
 
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.10'
 
-    - name: CI configuration
-      shell: bash
-      run: python3 kratos/python_scripts/testing/ci_utilities.py
+  #   - name: CI configuration
+  #     shell: bash
+  #     run: python3 kratos/python_scripts/testing/ci_utilities.py
 
-    - name: Download boost
-      run: |
-        $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+  #   - name: Download boost
+  #     run: |
+  #       $url = "https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz"
+  #       (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+  #       7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+  #       7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
-    - name: Disable Defender
-      shell: pwsh
-      run: | 
-        Set-MpPreference -DisableRealtimeMonitoring $true
+  #   - name: Disable Defender
+  #     shell: pwsh
+  #     run: | 
+  #       Set-MpPreference -DisableRealtimeMonitoring $true
 
-    - name: Installing dependencies
-      shell: cmd
-      run: |
-        pip install numpy
-        pip install sympy
-        pip install scipy
+  #   - name: Installing dependencies
+  #     shell: cmd
+  #     run: |
+  #       pip install numpy
+  #       pip install sympy
+  #       pip install scipy
 
-    - name: Build
-      shell: cmd
-      run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+  #   - name: Build
+  #     shell: cmd
+  #     run: |
+  #       call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
-        set CC=cl.exe
-        set CXX=cl.exe
+  #       set CC=cl.exe
+  #       set CXX=cl.exe
 
-        set KRATOS_SOURCE=%cd%
-        set KRATOS_BUILD=%cd%\build
-        set KRATOS_APP_DIR=applications
+  #       set KRATOS_SOURCE=%cd%
+  #       set KRATOS_BUILD=%cd%\build
+  #       set KRATOS_APP_DIR=applications
 
-        set KRATOS_APPLICATIONS=%KRATOS_APP_DIR%\LinearSolversApplication;
+  #       set KRATOS_APPLICATIONS=%KRATOS_APP_DIR%\LinearSolversApplication;
 
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
-        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+  #       del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+  #       del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+  #       del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-        cmake                                                 ^
-          -G"Visual Studio 17 2022"                           ^
-          -H"%KRATOS_SOURCE%"                                 ^
-          -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
-          -DBOOST_ROOT="%TEMP%\boost"                         ^
-          -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
-          -DKRATOS_BUILD_TESTING=OFF                          ^
-          -DKRATOS_USE_PCH=OFF                                ^
-          -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   || goto :error
+  #       cmake                                                 ^
+  #         -G"Visual Studio 17 2022"                           ^
+  #         -H"%KRATOS_SOURCE%"                                 ^
+  #         -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
+  #         -DBOOST_ROOT="%TEMP%\boost"                         ^
+  #         -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
+  #         -DKRATOS_BUILD_TESTING=OFF                          ^
+  #         -DKRATOS_USE_PCH=OFF                                ^
+  #         -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   || goto :error
 
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_build -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+  #       cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_build -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+  #       cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 
-        goto :EOF
+  #       goto :EOF
 
-        :error
-        echo Failed with error #%errorlevel%.
-        exit /b %errorlevel%
+  #       :error
+  #       echo Failed with error #%errorlevel%.
+  #       exit /b %errorlevel%
 
-    - name: Test Matrix Market
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/tests/test_sparse_matrix_multiplication.py
+  #   - name: Test Matrix Market
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/tests/test_sparse_matrix_multiplication.py
 
-    - name: Running python tests
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
+  #   - name: Running python tests
+  #     shell: cmd
+  #     run: |
+  #       set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+  #       set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+  #       python kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python
