@@ -17,6 +17,28 @@ permissions:
   contents: read
 
 jobs:
+  diagnose:
+    runs-on: windows-2022
+    env:
+      KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Test Matrix Market Small
+      shell: cmd
+      run: |
+        type kratos/tests/test_files/sparse_matrix_files/small_A.mm
+
+    - name: Test Matrix Market Large
+      shell: cmd
+      run: |
+        type kratos/tests/test_files/sparse_matrix_files/A.mm
+
   windows:
     runs-on: windows-2022
     env:
