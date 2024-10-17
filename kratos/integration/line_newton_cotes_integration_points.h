@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined(KRATOS_LINE_NEWTON_COTES_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_LINE_NEWTON_COTES_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -27,15 +26,13 @@ class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints1);
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 3>;
 
     static SizeType IntegrationPointsNumber()
     {
@@ -65,15 +62,13 @@ class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints2);
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 5> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 5>;
 
     static SizeType IntegrationPointsNumber()
     {
@@ -107,15 +102,13 @@ class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints3);
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 7> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 7>;
 
     static SizeType IntegrationPointsNumber()
     {
@@ -149,15 +142,13 @@ class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints4);
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 9>;
 
     static SizeType IntegrationPointsNumber()
     {
@@ -193,15 +184,13 @@ class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints5);
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 11> IntegrationPointsArrayType;
-
-    typedef IntegrationPointType::PointType PointType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
 
     static SizeType IntegrationPointsNumber()
     {
@@ -235,38 +224,6 @@ public:
 
 }; // Class LineNewtonCotesIntegrationPoints5
 
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_NEWTON_COTES_INTEGRATION_POINTS_H_INCLUDED  defined
-
-
