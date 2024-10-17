@@ -84,25 +84,6 @@ void Model::DeleteModelPart( const std::string& rModelPartName  )
     KRATOS_CATCH("")
 }
 
-void Model::RenameModelPart( const std::string& OldName, const std::string& NewName )
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(this->HasModelPart(OldName)) << "The Old Name is not in model (as a root model part). Required old name was : " << OldName << std::endl;
-
-    KRATOS_ERROR_IF(this->HasModelPart(NewName)) << "The New Name is already existing in model. Proposed name was : " << NewName << std::endl;
-
-    mRootModelPartMap[OldName]->Name() = NewName; //change the name of the existing modelpart
-
-    CreateModelPart(NewName);
-
-    mRootModelPartMap[NewName].swap(mRootModelPartMap[OldName]);
-
-    mRootModelPartMap.erase(OldName);
-
-    KRATOS_CATCH("")
-}
-
 
 ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
 {
