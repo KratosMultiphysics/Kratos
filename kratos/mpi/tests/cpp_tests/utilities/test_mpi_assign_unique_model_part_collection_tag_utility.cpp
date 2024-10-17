@@ -82,11 +82,11 @@ namespace Kratos::Testing
         r_sub_modelpart_1.AddElement(r_model_part.pGetElement(1));
         r_sub_modelpart_2.AddElement(r_model_part.pGetElement(4));
 
-        AssignUniqueModelPartCollectionTagUtility collections_utility(r_model_part);
+        AssignUniqueModelPartCollectionTagUtility collections_utility;
 
         IndexIndexMapType nodes_tags, conds_tags, elems_tags;
         IndexStringMapType collections;
-        collections_utility.ComputeTags(nodes_tags, conds_tags, elems_tags, collections);
+        collections_utility.ComputeTags(r_model_part, nodes_tags, conds_tags, elems_tags, collections);
 
         const std::string filename = "mpi_test";
 
