@@ -60,7 +60,14 @@ public:
 
     typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef HarmonicAnalysisStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -84,6 +91,13 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Default constructor
+     */
+    explicit HarmonicAnalysisStrategy() : BaseType()
+    {
+    }
+
     /// Constructor.
     HarmonicAnalysisStrategy(
         ModelPart& rModelPart,
@@ -91,7 +105,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool UseMaterialDampingFlag = false
         )
-        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : BaseType(rModelPart)
     {
         KRATOS_TRY
 
@@ -99,21 +113,27 @@ public:
 
         mpBuilderAndSolver = pBuilderAndSolver;
 
-        // ensure initialization of system matrices in InitializeSolutionStep()
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        mUseMaterialDamping = UseMaterialDampingFlag;
 
-        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
-        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
-
-        this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
-
-        // default echo level (mute)
-        this->SetEchoLevel(0);
-
-        // default rebuild level (build only once)
-        this->SetRebuildLevel(0);
+        AuxiliarInitialization();
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit HarmonicAnalysisStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
     }
 
     /// Deleted copy constructor.
@@ -459,17 +479,22 @@ public:
 
         // if the preconditioner is saved between solves, it should be cleared here
         auto& p_builder_and_solver = this->pGetBuilderAndSolver();
-        p_builder_and_solver->GetLinearSystemSolver()->Clear();
+        if (p_builder_and_solver !=  nullptr)
+            p_builder_and_solver->GetLinearSystemSolver()->Clear();
 
         SparseSpaceType::Clear(mpForceVector);
         DenseSpaceType::Clear(mpModalMatrix);
 
         // re-setting internal flag to ensure that the dof sets are recalculated
-        p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+        if (p_builder_and_solver !=  nullptr) {
+            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
 
-        p_builder_and_solver->Clear();
+            p_builder_and_solver->Clear();
+        }
 
-        this->pGetScheme()->Clear();
+        if (this->pGetScheme() !=  nullptr) {
+            this->pGetScheme()->Clear();
+        }
 
         mInitializeWasPerformed = false;
         mUseMaterialDamping = false;
@@ -507,6 +532,38 @@ public:
 
         KRATOS_CATCH("")
     }
+    
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "harmonic_analysis_strategy",
+            "builder_and_solver_settings"   : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "harmonic_analysis_settings"    : {
+                "use_effective_material_damping" : false
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "harmonic_analysis_strategy";
+    }
 
     ///@}
     ///@name Access
@@ -538,6 +595,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mUseMaterialDamping = ThisParameters["harmonic_analysis_settings"]["use_effective_material_damping"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -560,9 +637,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     bool mInitializeWasPerformed = false;
 
@@ -578,7 +655,7 @@ private:
 
     bool mUseMaterialDamping;
 
-    vector< double > mMaterialDampingRatios;
+    Vector mMaterialDampingRatios;
 
     ///@}
     ///@name Private Operators
@@ -622,6 +699,25 @@ private:
                 }
             }
         }
+    }
+    
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // Set Eigensolver flags
+        // ensure initialization of system matrices in InitializeSolutionStep()
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+
+        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
+        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
+
+        // default echo level (mute)
+        this->SetEchoLevel(0);
+
+        // default rebuild level (build only once)
+        this->SetRebuildLevel(0);
     }
 
     ///@}
