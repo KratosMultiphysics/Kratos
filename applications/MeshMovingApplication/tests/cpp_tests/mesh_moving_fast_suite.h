@@ -12,11 +12,18 @@
 
 #pragma once
 
-#include "meshing_application.h"
+#include "mesh_moving_application.h"
 #include "testing/testing.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-class KratosMeshMovingFastSuite : public KratosCoreFastSuite {};
+class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {
+  public:
+    MeshMovingApplicationFastSuite();
+
+  private:
+    KratosMeshMovingApplication::Pointer mpMeshMovingApp;
+};
 
 } // namespace Kratos::Testing
