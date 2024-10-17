@@ -28,7 +28,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 /* Tree structures */
-#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/point_object.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos

@@ -1,0 +1,45 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    17 1.22474487139159 0.7071067811865478 0.0
+    19 1.0953353488403292 0.22414386804201353 0.0
+    21 0.9659258262890683 -0.25881904510252074 0.0
+    24 0.7417819582470554 0.836516303737808 0.0
+    26 0.6123724356957949 0.3535533905932742 0.0
+    28 0.48296291314453416 -0.12940952255126037 0.0
+    31 0.25881904510252074 0.9659258262890683 0.0
+    33 0.12940952255126037 0.48296291314453416 0.0
+    35 0.0 0.0 0.0
+End Nodes
+
+
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: Material domain Auto1
+        1          0    28    26    33    35 
+        2          0    21    19    26    28 
+        3          0    26    24    31    33 
+        4          0    19    17    24    26 
+End Elements
+
+Begin SubModelPart Parts_Material_domain_Material_domain_Auto1 // Group Material domain Auto1 // Subtree Parts_Material_domain
+    Begin SubModelPartNodes
+           17
+           19
+           21
+           24
+           26
+           28
+           31
+           33
+           35
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+    End SubModelPartElements
+End SubModelPart

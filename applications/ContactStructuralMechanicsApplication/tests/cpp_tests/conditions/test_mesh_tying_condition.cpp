@@ -15,12 +15,14 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
+#include "tests/test_utilities/test_laplacian_element.h"
+// #include "input_output/vtk_output.h"
+
+// Application includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_conditions/mesh_tying_mortar_condition.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_laplacian_element.h"
-// #include "input_output/vtk_output.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"

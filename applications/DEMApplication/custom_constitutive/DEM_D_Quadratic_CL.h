@@ -33,7 +33,7 @@ namespace Kratos{
 
         std::string GetTypeOfLaw() override;
 
-        virtual void Check(Properties::Pointer pProp) const override;
+        void Check(Properties::Pointer pProp) const override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -44,6 +44,8 @@ namespace Kratos{
         double CalculateNormalForce(const double indentation) override;
 
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
+
+        double GetTangentialStiffness() override;
 
     private:
 

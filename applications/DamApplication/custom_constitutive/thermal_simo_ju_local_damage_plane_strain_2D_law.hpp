@@ -16,9 +16,9 @@
 
 // Application includes
 #include "custom_constitutive/thermal_local_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
-#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
-#include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
+#include "custom_constitutive/continuum_laws/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/continuum_laws/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/continuum_laws/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos

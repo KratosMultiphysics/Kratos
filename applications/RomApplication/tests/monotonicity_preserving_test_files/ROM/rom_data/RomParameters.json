@@ -4,20 +4,16 @@
     "run_hrom": false,
     "projection_strategy": "galerkin",
     "assembling_strategy": "global",
-    "monotonicity_preserving": true,
     "rom_format": "numpy",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false,
-        "svd_truncation_tolerance": 1e-06
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 10,
-        "petrov_galerkin_number_of_rom_dofs": 0
+        "petrov_galerkin_number_of_rom_dofs": 0,
+        "rom_bns_settings":{
+            "monotonicity_preserving": true
+        }
     },
     "hrom_settings": {
         "hrom_format": "numpy"
