@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 
@@ -351,6 +352,44 @@ double GeometryUtils::PointDistanceToTriangle3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GeometryUtils::PointDistanceToTriangle3D(
+    const Point& rTrianglePoint1,
+    const Point& rTrianglePoint2,
+    const Point& rTrianglePoint3,
+    const Point& rTrianglePoint4,
+    const Point& rTrianglePoint5,
+    const Point& rTrianglePoint6,
+    const Point& rPoint
+    )
+{
+    std::array<double, 4> distances;
+    distances[0] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint1, rTrianglePoint4, rTrianglePoint6, rPoint);
+    distances[1] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint2, rTrianglePoint5, rPoint);
+    distances[2] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint6, rTrianglePoint5, rTrianglePoint3, rPoint);
+    distances[3] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint5, rTrianglePoint6, rPoint);
+    const auto min = std::min_element(distances.begin(), distances.end());
+    return *min;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToQuadrilateral3D(
+    const Point& rQuadrilateralPoint1,
+    const Point& rQuadrilateralPoint2,
+    const Point& rQuadrilateralPoint3,
+    const Point& rQuadrilateralPoint4,
+    const Point& rPoint
+    )
+{
+    const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint1, rQuadrilateralPoint2, rQuadrilateralPoint3, rPoint);
+    const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint3, rQuadrilateralPoint4, rQuadrilateralPoint1, rPoint);
+    return std::min(distance_1, distance_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TDataType>
 void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
     TDataType& rOutput,
@@ -452,6 +491,184 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod )
+{
+
+    const unsigned int integration_points_number = rGeometry.IntegrationPointsNumber( rIntegrationMethod );
+
+    if ( integration_points_number == 0 )
+            KRATOS_ERROR << "This integration method is not supported" << std::endl;
+
+    rResult.resize(integration_points_number, false);
+
+    //calculating the local gradients
+     DenseVector<Matrix> DN_DX;
+    rGeometry.ShapeFunctionsIntegrationPointsGradients( DN_DX, rIntegrationMethod );
+    for (IndexType i = 0; i < integration_points_number; i++) {
+        rResult[i].resize(rGeometry.PointsNumber(), false);
+        for (IndexType j = 0; j < rGeometry.PointsNumber(); j++)
+            rResult[i][j].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false);
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(DN_DX[i],rGeometry,rGeometry.IntegrationPoints( rIntegrationMethod )[i], rResult[i]);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+      const Matrix& DN_DX,
+      const GeometryType& rGeometry,
+      const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+      DenseVector<Matrix>& rResult)
+{
+    KRATOS_ERROR_IF_NOT(rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension())
+        << "\'ShapeFunctionsIntegrationPointsSecondDerivatives\' is not defined for current geometry type as second derivatives are only defined in the local space." << std::endl;
+
+    GeometryType::ShapeFunctionsSecondDerivativesType DDN_DDe;
+    rGeometry.ShapeFunctionsSecondDerivatives(DDN_DDe, rLocalIntegrationPointCoordinates);
+
+    Matrix A, Ainv;
+    double DetA;
+    Matrix J(rGeometry.WorkingSpaceDimension(),rGeometry.LocalSpaceDimension());
+    rGeometry.Jacobian(J,rLocalIntegrationPointCoordinates);
+
+    DenseVector<Matrix> aux(rGeometry.PointsNumber());
+    Vector rhs, result;
+    if (rGeometry.WorkingSpaceDimension() == 2){
+        rhs.resize(3, false);
+        result.resize(3, false);
+    }
+    else if (rGeometry.WorkingSpaceDimension() == 3){
+        rhs.resize(6, false);
+        result.resize(6, false);
+    }
+
+    for (IndexType i = 0; i < rGeometry.PointsNumber(); i++) {
+        aux[i].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false);
+    }
+
+    if (rGeometry.WorkingSpaceDimension() == 2){
+            A.resize(3,3,false);
+            Ainv.resize(3,3,false);
+
+            A(0,0) = J(0,0) * J(0,0);
+            A(0,1) = J(1,0) * J(1,0);
+            A(0,2) = 2.0 * J(0,0) * J(1,0);
+
+            A(1,0) = J(0,1) * J(0,1);
+            A(1,1) = J(1,1) * J(1,1);
+            A(1,2) = 2.0 * J(0,1) * J(1,1);
+
+            A(2,0) = J(0,0) * J(0,1);
+            A(2,1) = J(1,0) * J(1,1);
+            A(2,2) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+        }
+        else if (rGeometry.WorkingSpaceDimension() == 3){
+            A.resize(6,6,false);
+            Ainv.resize(6,6,false);
+
+            A(0,0) = J(0,0) * J(0,0);
+            A(0,1) = J(1,0) * J(1,0);
+            A(0,2) = J(2,0) * J(2,0);
+            A(0,3) = 2.0 * J(0,0) * J(1,0);
+            A(0,4) = 2.0 * J(1,0) * J(2,0);
+            A(0,5) = 2.0 * J(0,0) * J(2,0);
+
+            A(1,0) = J(0,1) * J(0,1);
+            A(1,1) = J(1,1) * J(1,1);
+            A(1,2) = J(2,1) * J(2,1);
+            A(1,3) = 2.0 * J(0,1) * J(1,1);
+            A(1,4) = 2.0 * J(1,1) * J(2,1);
+            A(1,5) = 2.0 * J(0,1) * J(2,1);
+
+            A(2,0) = J(0,2) * J(0,2);
+            A(2,1) = J(1,2) * J(1,2);
+            A(2,2) = J(2,2) * J(2,2);
+            A(2,3) = 2.0 * J(0,2) * J(1,2);
+            A(2,4) = 2.0 * J(1,2) * J(2,2);
+            A(2,5) = 2.0 * J(0,2) * J(2,2);
+
+            A(3,0) = J(0,0) * J(0,1);
+            A(3,1) = J(1,0) * J(1,1);
+            A(3,2) = J(2,0) * J(2,1);
+            A(3,3) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+            A(3,4) = J(1,0) * J(2,1) + J(1,1) * J(2,0);
+            A(3,5) = J(0,0) * J(2,1) + J(0,1) * J(2,0);
+
+            A(4,0) = J(0,1) * J(0,2);
+            A(4,1) = J(1,1) * J(1,2);
+            A(4,2) = J(2,1) * J(2,2);
+            A(4,3) = J(0,1) * J(1,2) + J(0,2) * J(1,1);
+            A(4,4) = J(1,1) * J(2,2) + J(1,2) * J(2,1);
+            A(4,5) = J(0,1) * J(2,2) + J(0,2) * J(2,1);
+
+            A(5,0) = J(0,0) * J(0,2);
+            A(5,1) = J(1,0) * J(1,2);
+            A(5,2) = J(2,0) * J(2,2);
+            A(5,3) = J(0,0) * J(1,2) + J(0,2) * J(1,0);
+            A(5,4) = J(1,0) * J(2,2) + J(1,2) * J(2,0);
+            A(5,5) = J(0,0) * J(2,2) + J(0,2) * J(2,0);
+
+        }
+        MathUtils<double>::InvertMatrix( A, Ainv, DetA );
+        DenseVector<Matrix> H(rGeometry.WorkingSpaceDimension());
+        for (unsigned int d = 0; d < rGeometry.WorkingSpaceDimension(); ++d)
+            H[d] = ZeroMatrix(rGeometry.LocalSpaceDimension(),rGeometry.LocalSpaceDimension());
+
+        for (IndexType p = 0; p < rGeometry.PointsNumber(); ++p) {
+            const array_1d<double, 3>& r_coordinates = rGeometry[p].Coordinates();
+            for (unsigned int d=0 ; d < rGeometry.WorkingSpaceDimension(); ++d){
+                for (unsigned int e=0 ; e < rGeometry.WorkingSpaceDimension(); ++e){
+                    for (unsigned int f=0 ; f < rGeometry.WorkingSpaceDimension(); ++f){
+                        H[d](e,f) += r_coordinates[d] * DDN_DDe[p](e,f);
+                    }
+                }
+            }
+        }
+        for (IndexType p = 0; p < rGeometry.PointsNumber(); ++p) {
+            if (rGeometry.WorkingSpaceDimension() == 2){
+                rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
+                rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
+                rhs[2] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
+            }
+            else if (rGeometry.WorkingSpaceDimension() == 3){
+                rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0) - DN_DX(p,2) * H[2](0,0);
+                rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1) - DN_DX(p,2) * H[2](0,0);
+                rhs[2] = DDN_DDe[p](2,2) - DN_DX(p,0) * H[0](2,2) - DN_DX(p,1) * H[1](2,2) - DN_DX(p,2) * H[2](2,2);
+                rhs[3] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1) - DN_DX(p,2) * H[2](0,1);
+                rhs[4] = DDN_DDe[p](1,2) - DN_DX(p,0) * H[0](1,2) - DN_DX(p,1) * H[1](1,2) - DN_DX(p,2) * H[2](1,2);
+                rhs[5] = DDN_DDe[p](0,2) - DN_DX(p,0) * H[0](0,2) - DN_DX(p,1) * H[1](0,2) - DN_DX(p,2) * H[2](0,2);
+            }
+
+            aux[p].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false );
+
+            noalias(result) = prod(Ainv, rhs);
+
+            aux[p](0,0) = result[0];
+            aux[p](1,1) = result[1];
+            if (rGeometry.WorkingSpaceDimension() == 2){
+                aux[p](0,1) = result[2];
+                aux[p](1,0) = result[2];
+            }
+            else if (rGeometry.WorkingSpaceDimension() == 3){
+                aux[p](2,2) = result[2];
+                aux[p](0,1) = result[3];
+                aux[p](1,0) = result[3];
+                aux[p](0,2) = result[5];
+                aux[p](2,0) = result[5];
+                aux[p](2,1) = result[4];
+                aux[p](1,2) = result[4];
+            }
+        }
+        noalias(rResult) = aux;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool GeometryUtils::ProjectedIsInside(
     const GeometryType& rGeometry,
     const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
@@ -490,5 +707,179 @@ template void KRATOS_API(KRATOS_CORE) GeometryUtils::EvaluateHistoricalVariableV
     const Variable<array_1d<double, 3>>&,
     const Vector&,
     const int);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometryUtils::TriangleBoxOverlap(
+    const Point& rBoxCenter,
+    const Point& rBoxHalfSize,
+    const Point& rVertex0,
+    const Point& rVertex1,
+    const Point& rVertex2
+    )
+{
+    double abs_ex, abs_ey, abs_ez, distance;
+    array_1d<double,3 > vert0, vert1, vert2;
+    array_1d<double,3 > edge0, edge1, edge2, normal;
+    std::pair<double, double> min_max;
+
+    // move everything so that the boxcenter is in (0,0,0)
+    noalias(vert0) = rVertex0 - rBoxCenter;
+    noalias(vert1) = rVertex1 - rBoxCenter;
+    noalias(vert2) = rVertex2 - rBoxCenter;
+
+    // compute triangle edges
+    noalias(edge0) = vert1 - vert0;
+    noalias(edge1) = vert2 - vert1;
+    noalias(edge2) = vert0 - vert2;
+
+    // Bullet 3:
+    // test the 9 tests first (this was faster)
+    abs_ex = std::abs(edge0[0]);
+    abs_ey = std::abs(edge0[1]);
+    abs_ez = std::abs(edge0[2]);
+    if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+    if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+    if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+
+    abs_ex = std::abs(edge1[0]);
+    abs_ey = std::abs(edge1[1]);
+    abs_ez = std::abs(edge1[2]);
+    if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+    if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+    if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+
+    abs_ex = std::abs(edge2[0]);
+    abs_ey = std::abs(edge2[1]);
+    abs_ez = std::abs(edge2[2]);
+    if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+    if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+    if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+
+    // Bullet 1:
+    //  first test overlap in the {x,y,z}-directions
+    //  find min, max of the triangle for each direction, and test for
+    //  overlap in that direction -- this is equivalent to testing a minimal
+    //  AABB around the triangle against the AABB
+
+    // test in X-direction
+    min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+    if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
+
+    // test in Y-direction
+    min_max = std::minmax({vert0[1], vert1[1], vert2[1]});
+    if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
+
+    // test in Z-direction
+    min_max = std::minmax({vert0[2], vert1[2], vert2[2]});
+    if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
+
+    // Bullet 2:
+    //  test if the box intersects the plane of the triangle
+    //  compute plane equation of triangle: normal*x+distance=0
+    MathUtils<double>::CrossProduct(normal, edge0, edge1);
+    distance = -inner_prod(normal, vert0);
+    if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
+
+    return true;  // box and triangle overlaps
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometryUtils::AxisTestX(
+    const double EdgeY,
+    const double EdgeZ,
+    const double AbsEdgeY,
+    const double AbsEdgeZ,
+    const array_1d<double,3>& rVertA,
+    const array_1d<double,3>& rVertC,
+    const Point& rBoxHalfSize
+    )
+{
+    double proj_a, proj_c, rad;
+    proj_a = EdgeY*rVertA[2] - EdgeZ*rVertA[1];
+    proj_c = EdgeY*rVertC[2] - EdgeZ*rVertC[1];
+    std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+    rad = AbsEdgeZ*rBoxHalfSize[1] + AbsEdgeY*rBoxHalfSize[2];
+
+    if(min_max.first>rad || min_max.second<-rad) return true;
+    else return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometryUtils::AxisTestY(
+    const double EdgeX,
+    const double EdgeY,
+    const double AbsEdgeX,
+    const double AbsEdgeZ,
+    const array_1d<double,3>& rVertA,
+    const array_1d<double,3>& rVertC,
+    const Point& rBoxHalfSize
+    )
+{
+    double proj_a, proj_c, rad;
+    proj_a = EdgeY*rVertA[0] - EdgeX*rVertA[2];
+    proj_c = EdgeY*rVertC[0] - EdgeX*rVertC[2];
+    std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+    rad = AbsEdgeZ*rBoxHalfSize[0] + AbsEdgeX*rBoxHalfSize[2];
+
+    if(min_max.first>rad || min_max.second<-rad) return true;
+    else return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometryUtils::AxisTestZ(
+    const double EdgeX,
+    const double EdgeY,
+    const double AbsEdgeX,
+    const double AbsEdgeY,
+    const array_1d<double,3>& rVertA,
+    const array_1d<double,3>& rVertC,
+    const Point& rBoxHalfSize
+    )
+{
+    double proj_a, proj_c, rad;
+    proj_a = EdgeX*rVertA[1] - EdgeY*rVertA[0];
+    proj_c = EdgeX*rVertC[1] - EdgeY*rVertC[0];
+    std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+    rad = AbsEdgeY*rBoxHalfSize[0] + AbsEdgeX*rBoxHalfSize[1];
+
+    if(min_max.first>rad || min_max.second<-rad) return true;
+    else return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometryUtils::PlaneBoxOverlap(
+    const array_1d<double,3>& rNormal,
+    const double Distance,
+    const array_1d<double,3>& rMaxBox
+    )
+{
+    array_1d<double,3> vmin, vmax;
+    for(int q = 0; q < 3; q++) {
+        if(rNormal[q] > 0.00) {
+            vmin[q] = -rMaxBox[q];
+            vmax[q] =  rMaxBox[q];
+        } else {
+            vmin[q] =  rMaxBox[q];
+            vmax[q] = -rMaxBox[q];
+        }
+    }
+    if(inner_prod(rNormal, vmin) + Distance >  0.0) return false;
+    if(inner_prod(rNormal, vmax) + Distance >= 0.0) return true;
+
+    return false;
+}
 
 } // namespace Kratos.

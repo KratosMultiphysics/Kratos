@@ -150,10 +150,11 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
-        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
-        check_normal_process.Execute()
+        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED] == 0:
+            normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+            normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+            check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
+            check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
@@ -310,8 +311,14 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         key -- The key to identify the current pair
         """
+        # Determine the geometry of the element
         self.__assume_master_slave(key)
-        return ""
+        # We compute the number of nodes of the conditions
+        number_nodes, number_nodes_master = self._compute_number_nodes()
+        if number_nodes != number_nodes_master:
+            return str(number_nodes_master) + "N"
+        else:
+            return ""
 
     def _get_problem_name(self):
         """ This method returns the problem name to be solved
@@ -714,10 +721,10 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class
         key -- The key to identify the current pair.
         """
-        detect_skin_parameters = KM.Parameters("""{"name_auxiliary_model_part": "Contact"}""")
+        detect_skin_parameters = KM.Parameters("""{"name_auxiliar_model_part": "Contact"}""")
         sub_search_model_part_name = "ContactSub" + key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
-        detect_skin_parameters["name_auxiliary_model_part"].SetString(sub_search_model_part_name)
+        detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
         if self.dimension == 2:
             detect_skin = KM.SkinDetectionProcess2D(model_part, detect_skin_parameters)
         else:

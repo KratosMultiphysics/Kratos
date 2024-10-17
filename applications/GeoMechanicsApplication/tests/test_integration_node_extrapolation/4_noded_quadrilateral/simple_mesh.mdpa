@@ -1,0 +1,51 @@
+Begin Properties 1
+End Properties
+
+Begin Nodes
+  1  1.0000000000  0.0000000000 0.0000000000
+  2  0.0000000000  0.0000000000 0.0000000000
+  3  0.0000000000 -2.0000000000 0.0000000000
+  4  1.0000000000 -2.0000000000 0.0000000000
+End Nodes
+
+Begin Elements SteadyStatePwElement2D4N
+  1  1  1 2 3 4
+End Elements
+
+Begin SubModelPart soil
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Body_Acceleration-auto-1
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Top
+  Begin SubModelPartNodes
+    1
+    2
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Base
+  Begin SubModelPartNodes
+    3
+    4
+  End SubModelPartNodes
+End SubModelPart

@@ -18,15 +18,13 @@ class TestComponentDataView(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return None
-        def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-            return None
-        def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+        def GetInfluencingModelPart(self) -> Kratos.ModelPart:
             return None
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, _: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+        def CalculateGradient(self, _: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
             return None
 
     @classmethod
@@ -49,5 +47,4 @@ class TestComponentDataView(kratos_unittest.TestCase):
         self.assertEqual(temp_response_data.GetUnBufferedData(), unbuffered_data)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

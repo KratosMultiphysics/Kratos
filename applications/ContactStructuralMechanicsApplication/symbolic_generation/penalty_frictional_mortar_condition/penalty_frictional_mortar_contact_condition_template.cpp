@@ -170,7 +170,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
             GeometryType& r_master_geometry = this->GetParentGeometry();
 
             for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
-                NodeType& r_master_node = r_master_geometry[i_master];
+                Node& r_master_node = r_master_geometry[i_master];
                 const IndexType index = TDim * i_master;
 
                 array_1d<double, 3>& r_force_residual = r_master_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -180,7 +180,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
                 }
             }
             for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-                NodeType& r_slave_node = r_slave_geometry[i_slave];
+                Node& r_slave_node = r_slave_geometry[i_slave];
                 const IndexType index = TDim * (TNumNodesMaster + i_slave);
 
                 array_1d<double, 3>& r_force_residual = r_slave_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -253,7 +253,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_master_geometry[i_master];
+        const Node& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -261,7 +261,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const Node& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -292,7 +292,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ){ // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_master_geometry[i_master];
+        const Node& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -300,7 +300,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const Node& r_slave_node = r_slave_geometry[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -324,7 +324,7 @@ int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariatio
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        const NodeType& r_node = r_slave_geometry[i];
+        const Node& r_node = r_slave_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_SLIP, r_node)
     }
 

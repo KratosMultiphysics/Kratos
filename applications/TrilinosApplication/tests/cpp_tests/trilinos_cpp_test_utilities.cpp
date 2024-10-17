@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "trilinos_cpp_test_utilities.h"
 
 namespace Kratos
@@ -211,7 +211,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
         value = rValues[counter];
         if (r_map.MyGID(index)) {
             const double ref_value = rb[0][r_map.LID(index)];
-            KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, NegligibleValueThreshold);
+            KRATOS_EXPECT_RELATIVE_NEAR(value, ref_value, NegligibleValueThreshold);
         }
     }
 }
@@ -297,7 +297,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
                 for (j = 0; j < numEntries; j++) {
                     const int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid == column) {
-                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], NegligibleValueThreshold)
+                        KRATOS_EXPECT_RELATIVE_NEAR(value, vals[j], NegligibleValueThreshold)
                         ++local_validated_values;
                         break;
                     }
@@ -311,7 +311,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
     const auto& r_comm = rA.Comm();
     int global_validated_values;
     r_comm.SumAll(&local_validated_values, &global_validated_values, 1);
-    KRATOS_CHECK_EQUAL(global_validated_values, static_cast<int>(rValues.size()));
+    KRATOS_EXPECT_EQ(global_validated_values, static_cast<int>(rValues.size()));
 }
 
 /***********************************************************************************/
@@ -330,9 +330,9 @@ void TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(
 
     // If print values
     if (PrintValues) {
-        std::cout << "\n        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
-        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
-        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
+        std::cout << "\n        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
+        std::cout << "        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
+        std::cout << "        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
     }
 
     std::vector<double> values;

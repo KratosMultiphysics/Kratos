@@ -4,7 +4,6 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
     if not parameters.Has("name"):
@@ -33,10 +32,11 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_settings = parameters["analysis_settings"]
 
         if analysis_module == "KratosMultiphysics":
-            analysis_module = GetClassModuleFromKratos(analysis_type)
+            analysis_full_module, analysis_type = GetClassModuleFromKratos(analysis_type)
+        else:
+            analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
 
         self.model_parts = []
-        analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
     def GetAnalysisModelPart(self):

@@ -30,6 +30,7 @@
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 #include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh_only_on_boundaries.hpp"
+#include "custom_utilities/gradual_variable_interpolation_utility.h"
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -137,6 +138,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LocalRefineTetrahedraMeshOnlyOnBoundaries")
     .def(py::init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTetrahedraMeshOnlyOnBoundaries::LocalRefineMesh)
+    ;
+
+    py::class_<GradualVariableInterpolationUtility, std::shared_ptr<GradualVariableInterpolationUtility>>(m, "GradualVariableInterpolationUtility")
+    .def("InitializeInterpolationAndConstraints", &GradualVariableInterpolationUtility::InitializeInterpolationAndConstraints)
+    .def("UpdateSolutionStepVariables", &GradualVariableInterpolationUtility::UpdateSolutionStepVariables)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL

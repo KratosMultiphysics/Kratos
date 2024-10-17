@@ -39,7 +39,7 @@ GeometricalObjectsBins::CellType& GeometricalObjectsBins::GetCell(
 /***********************************************************************************/
 /***********************************************************************************/
 
-BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
+BoundingBox<GeometricalObjectsBins::PointType> GeometricalObjectsBins::GetCellBoundingBox(
     const std::size_t I,
     const std::size_t J,
     const std::size_t K
@@ -49,7 +49,7 @@ BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
     KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
     KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
 
-    BoundingBox<Point> result;
+    BoundingBox<PointType> result;
 
     result.GetMinPoint()[0] = mBoundingBox.GetMinPoint()[0] + I * mCellSizes[0];
     result.GetMinPoint()[1] = mBoundingBox.GetMinPoint()[1] + J * mCellSizes[1];
@@ -66,40 +66,58 @@ BoundingBox<Point> GeometricalObjectsBins::GetCellBoundingBox(
 /***********************************************************************************/
 
 void GeometricalObjectsBins::SearchInRadius(
-    const Point& rPoint,
+    const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_set<GeometricalObject*> results;
+    // Initialize the candidates
+    std::unordered_set<GeometricalObject*> candidates;
 
+    // Initialize the position bounds
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
 
+    // Calculate the position bounds
     for(unsigned int i = 0; i < Dimension; i++ ) {
         min_position[i] = CalculatePosition(rPoint[i] - Radius, i);
         max_position[i] = CalculatePosition(rPoint[i] + Radius, i) + 1;
     }
-    for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-        for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
-            for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-                auto& r_cell = GetCell(i,j,k);
-                SearchInRadiusInCell(r_cell, rPoint, Radius, results);
+
+    // Loop over the cells and gather candidates
+    for(std::size_t k = min_position[2]; k < max_position[2]; k++) {
+        for(std::size_t j = min_position[1]; j < max_position[1]; j++) {
+            for(std::size_t i = min_position[0]; i < max_position[0]; i++) {
+                auto& r_cell = GetCell(i, j, k);
+                for(auto p_geometrical_object : r_cell) {
+                    candidates.insert(p_geometrical_object);
+                }
             }
         }
     }
 
+    // Loop over the candidates and filter by distance and fill the results
     rResults.clear();
-    for(auto p_object : results){
-        rResults.push_back(ResultType(p_object));
+    rResults.reserve(candidates.size());
+    for(auto& p_geometrical_object : candidates) {
+        auto& r_geometry = p_geometrical_object->GetGeometry();
+        const double distance = r_geometry.CalculateDistance(rPoint, mTolerance);
+        if((Radius + mTolerance) > distance) {
+            rResults.push_back(ResultType(p_geometrical_object));
+            rResults.back().SetDistance(distance);
+        }
     }
+
+    // NOTE: We avoid shrink_to_fit for performance potential issues
+    // // Shrink the results
+    // rResults.shrink_to_fit();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius(
-    const Point& rPoint,
+    const PointType& rPoint,
     const double Radius
     )
 {
@@ -111,7 +129,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
 
-    for(double current_radius = 0 ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
+    for(double current_radius = radius_increment ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
         current_radius = (current_radius > Radius) ? Radius : current_radius;
         for(unsigned int i = 0; i < Dimension; i++ ) {
             min_position[i] = CalculatePosition(rPoint[i] - current_radius, i);
@@ -122,14 +140,15 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
             for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                     auto& r_cell = GetCell(i,j,k);
-                    SearchNearestInCell(r_cell, rPoint, current_result, current_radius);
+                    SearchNearestInCell(r_cell, rPoint, current_result, Radius);
                 }
             }
         }
         bool all_cells_are_covered = (min_position[0] == 0) && (min_position[1] == 0) && (min_position[2] == 0);
         all_cells_are_covered &= (max_position[0] == mNumberOfCells[0] - 1) && (max_position[1] == mNumberOfCells[1] - 1) && (max_position[2] == mNumberOfCells[2] - 1);
 
-        if(all_cells_are_covered || current_result.IsObjectFound()){
+        const bool object_found_within_current_radius = current_result.IsObjectFound() && (current_result.GetDistance() < current_radius);
+        if (all_cells_are_covered || object_found_within_current_radius) {
             break;
         }
     }
@@ -139,7 +158,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const PointType& rPoint)
 {
     ResultType current_result;
 
@@ -152,7 +171,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const PointType& rPoint)
 {
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
@@ -171,30 +190,82 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool GeometricalObjectsBins::PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+{
+    // Get the bounding box points
+    const auto& r_max_point = mBoundingBox.GetMaxPoint();
+    const auto& r_min_point = mBoundingBox.GetMinPoint();
+
+    // The Bounding Box check
+    if (rCoords[0] < r_max_point[0] && rCoords[0] > r_min_point[0])           // check x-direction
+        if (rCoords[1] < r_max_point[1] && rCoords[1] > r_min_point[1])       // check y-direction
+            if (rCoords[2] < r_max_point[2] && rCoords[2] > r_min_point[2])   // check z-direction
+                return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
+    const array_1d<double, 3>& rCoords,
+    const double Tolerance
+    )
+{
+    // Get the bounding box points
+    auto max_point = mBoundingBox.GetMaxPoint();
+    auto min_point = mBoundingBox.GetMinPoint();
+
+    // Apply Tolerances (only in non zero BB cases)
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    if (norm_2(max_point) > epsilon && norm_2(min_point) > epsilon) {
+        for (unsigned int i=0; i<3; ++i) {
+            max_point[i] += Tolerance;
+            min_point[i] -= Tolerance;
+        }
+    }
+
+    // The Bounding Box check
+    if (rCoords[0] < max_point[0] && rCoords[0] > min_point[0])           // check x-direction
+        if (rCoords[1] < max_point[1] && rCoords[1] > min_point[1])       // check y-direction
+            if (rCoords[2] < max_point[2] && rCoords[2] > min_point[2])   // check z-direction
+                return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
 {
-    const std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
+    const std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
     std::array<double, Dimension> lengths;
-    double avarage_length = 0.0;
+    double average_length = 0.0;
     for (unsigned int i = 0; i < Dimension; i++) {
         lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
-        avarage_length += lengths[i];
+        average_length += lengths[i];
     }
-    avarage_length *= 0.33333333333333333333333333333333;
+    average_length *= 0.33333333333333333333333333333333;
 
-    if (avarage_length < std::numeric_limits<double>::epsilon()) {
+    if (average_length < std::numeric_limits<double>::epsilon()) {
         mNumberOfCells = ScalarVector(3, 1);
+        for (unsigned int i = 0; i < Dimension; i++) {
+            mNumberOfCells[i] = 0;
+            mCellSizes[i] = 0.0;
+            mInverseOfCellSize[i] = std::numeric_limits<double>::max();
+        }
         return;
     }
 
     for (unsigned int i = 0; i < Dimension; i++) {
-        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / avarage_length * avarage_number_of_cells) + 1;
-        if (mNumberOfCells[i] > 1)
+        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / average_length * average_number_of_cells) + 1;
+        if (mNumberOfCells[i] > 1) {
             mCellSizes[i] = lengths[i] / mNumberOfCells[i];
-        else
-            mCellSizes[i] = avarage_length;
+        } else {
+            mCellSizes[i] = average_length;
+        }
 
-        mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
+        mInverseOfCellSize[i] = 1.0 / mCellSizes[i];
     }
 
 }
@@ -219,29 +290,9 @@ std::size_t GeometricalObjectsBins::CalculatePosition(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBins::SearchInRadiusInCell(
-    const CellType& rCell,
-    const Point& rPoint,
-    const double Radius,
-    std::unordered_set<GeometricalObject*>& rResults
-    )
-{
-    double distance = 0.0;
-    for(auto p_geometrical_object : rCell){
-        auto& r_geometry = p_geometrical_object->GetGeometry();
-        distance = r_geometry.CalculateDistance(rPoint, Tolerance);
-        if((Radius + Tolerance) > distance){
-            rResults.insert(p_geometrical_object);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void GeometricalObjectsBins::SearchNearestInCell(
     const CellType& rCell,
-    const Point& rPoint,
+    const PointType& rPoint,
     ResultType& rResult,
     const double MaxRadius
     )
@@ -249,7 +300,7 @@ void GeometricalObjectsBins::SearchNearestInCell(
     double distance = 0.0;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        distance = r_geometry.CalculateDistance(rPoint, Tolerance);
+        distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
             rResult.Set(p_geometrical_object);
             rResult.SetDistance(distance);
@@ -262,14 +313,14 @@ void GeometricalObjectsBins::SearchNearestInCell(
 
 void GeometricalObjectsBins::SearchIsInsideInCell(
     const CellType& rCell,
-    const Point& rPoint,
+    const PointType& rPoint,
     ResultType& rResult
     )
 {
     array_1d<double, 3> point_local_coordinates;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        const bool is_inside = r_geometry.IsInside(rPoint,point_local_coordinates,Tolerance);
+        const bool is_inside = r_geometry.IsInside(rPoint,point_local_coordinates,mTolerance);
         if (is_inside) {
             rResult.Set(p_geometrical_object);
             rResult.SetDistance(0.0);

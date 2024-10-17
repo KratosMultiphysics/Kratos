@@ -47,10 +47,10 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 
     // Adding enums
     py::enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
-    .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
-    .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
-    .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
-    .value("NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE",NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE)
+    .value("NO_DERIVATIVES_COMPUTATION",NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION)
+    .value("ELEMENTAL_DERIVATIVES",NormalDerivativesComputation::ELEMENTAL_DERIVATIVES)
+    .value("NODAL_ELEMENTAL_DERIVATIVES",NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES)
+    .value("NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE",NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE)
     ;
 
     //Registering variables in python

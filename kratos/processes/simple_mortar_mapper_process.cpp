@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -16,8 +16,6 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
-
-/* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"

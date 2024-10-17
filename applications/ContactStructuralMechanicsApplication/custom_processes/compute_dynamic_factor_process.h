@@ -54,17 +54,14 @@ public:
     /// Pointer definition of ComputeDynamicFactorProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeDynamicFactorProcess);
 
-    /// Node type
-    typedef Node                                          NodeType;
-
     /// Geometry type
-    typedef Geometry<NodeType>                           GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Nodes array type
-    typedef ModelPart::NodesContainerType              NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// Conditions array type
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle

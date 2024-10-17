@@ -33,11 +33,11 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesPointIsInsideBoundingBox, KratosCoreFas
     const Point p_out_z(10.1, 1.0, -3.8);
     const Point p_in(10.0, -30.78, 3.7);
 
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
 
-    KRATOS_CHECK(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
 }
 
 double GetBBoxValue(const int Index, const double Factor, const double Offset)
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, Krat
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -70,10 +70,10 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, Krat
                                                        bboxes_with_tol);
 
     for (int i=0; i<num_entries; i+=2)
-        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) + tolerance), 1e-12);
+        KRATOS_EXPECT_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) + tolerance), 1e-12);
 
     for (int i=1; i<num_entries; i+=2)
-        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
+        KRATOS_EXPECT_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceCheckingNullBB, KratosCoreFastSuite)
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceChecki
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -95,8 +95,118 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceChecki
                                                        bboxes_with_tol);
     // Check that the bboxes are all zero
     for (int i=0; i<num_entries; ++i) {
-        KRATOS_CHECK_DOUBLE_EQUAL(bboxes_with_tol[i], 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(bboxes_with_tol[i], 0.0);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SynchronousPointSynchronization, KratosCoreFastSuite) 
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = DataCommunicator();
+
+    // MPI data communicator
+    const int rank = r_data_comm.Rank();
+    const int world_size = r_data_comm.Size();
+
+    // Define test data
+    double value = static_cast<double>(rank);
+    double value2 = 2 * value;
+    std::vector<Point> points({Point(value, value, value), Point(value2, value2, value2)});
+
+    // Call the function
+    std::vector<double> all_points_coordinates;
+    std::vector<long int> all_points_ids;
+    SearchUtilities::SynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, all_points_ids, r_data_comm);
+
+    // Check the results
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_ids.size()), 2 * world_size);
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        value = static_cast<double>(i_rank);
+        value2 = 2 * value;
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], i_rank * 2);
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], i_rank * 2 + 1);
+        for (int j = 0; j < 3; ++j) {
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SynchronousPointSynchronizationWithRadius, KratosCoreFastSuite) 
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = DataCommunicator();
+
+    // Data communicator
+    const int rank = r_data_comm.Rank();
+    const int world_size = r_data_comm.Size();
+
+    // Define test data
+    double value = static_cast<double>(rank);
+    double value2 = 2 * value;
+    std::vector<Point> points({Point(value, value, value), Point(value2, value2, value2)});
+    std::vector<double> local_radius = {value, value2};
+
+    // Call the function
+    std::vector<double> all_points_coordinates;
+    std::vector<long int> all_points_ids;
+    auto radius = SearchUtilities::SynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, all_points_ids, local_radius, r_data_comm);
+
+    // Check the results
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_ids.size()), 2 * world_size);
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        value = static_cast<double>(i_rank);
+        value2 = 2 * value;
+        KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2    ], value );
+        KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2 + 1], value2);
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], i_rank * 2);
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], i_rank * 2 + 1);
+        for (int j = 0; j < 3; ++j) {
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBox, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const BoundingBox<Point> box(min_point, max_point);
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside(1.5, 1.5, 1.5);
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBoxArray, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const std::array<double, 6> box = {max_point[0], min_point[0], max_point[1], min_point[1], max_point[2], min_point[2]};
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside(1.5, 1.5, 1.5);
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBoxWithTolerance, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const BoundingBox<Point> box(min_point, max_point);
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside_limit(1.0, 1.0, 1.0);
+    const Point point_outside(1.5, 1.5, 1.5);
+    const double tolerance = 0.6;
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside, tolerance));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside_limit, tolerance));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside, tolerance));
 }
 
 }  // namespace Kratos::Testing

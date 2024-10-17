@@ -253,7 +253,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 
@@ -269,7 +269,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Thermo-Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 

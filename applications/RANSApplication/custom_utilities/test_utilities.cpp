@@ -238,16 +238,16 @@ void CheckElementsAndConditions(
 }
 
 // template instantiations
-template void TestEquationIdVector<ModelPart::ElementsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestEquationIdVector<ModelPart::ElementsContainerType>(
     ModelPart&);
-template void TestEquationIdVector<ModelPart::ConditionsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestEquationIdVector<ModelPart::ConditionsContainerType>(
     ModelPart&);
 
-template void TestGetDofList<ModelPart::ElementsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestGetDofList<ModelPart::ElementsContainerType>(
     ModelPart&,
     const Variable<double>&);
 
-template void TestGetDofList<ModelPart::ConditionsContainerType>(
+template KRATOS_API(RANS_APPLICATION) void TestGetDofList<ModelPart::ConditionsContainerType>(
     ModelPart&,
     const Variable<double>&);
 

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED )
-#define  KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -36,14 +35,13 @@ namespace Kratos
 ///@{
 
     // General geometry type definitions
-    typedef Node                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -76,46 +74,36 @@ public:
     /// Pointer definition of SkinDetectionProcess
     KRATOS_CLASS_POINTER_DEFINITION(SkinDetectionProcess);
 
-    // Containers definition
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
-
-    // Containers iterators definition
-    typedef NodesArrayType::iterator                NodesIterarorType;
-    typedef ConditionsArrayType::iterator      ConditionsIteratorType;
-    typedef ElementsArrayType::iterator          ElementsIteratorType;
-
     // Weak pointers vectors types
-    typedef GlobalPointersVector<NodeType> NodePointerVector;
-    typedef GlobalPointersVector<Element> ElementPointerVector;
+    using NodePointerVector = GlobalPointersVector<Node>;
+    using ElementPointerVector = GlobalPointersVector<Element>;
 
     /// Definition of the vector indexes considered
-    typedef std::vector<IndexType> VectorIndexType;
+    using VectorIndexType = std::vector<IndexType>;
 
     /// Definition of the hasher considered
-    typedef VectorIndexHasher<VectorIndexType> VectorIndexHasherType;
+    using VectorIndexHasherType = VectorIndexHasher<VectorIndexType>;
 
     /// Definition of the key comparor considered
-    typedef VectorIndexComparor<VectorIndexType> VectorIndexComparorType;
+    using VectorIndexComparorType = VectorIndexComparor<VectorIndexType>;
 
     /// Define the set considered for element pointers
-    typedef std::unordered_set<VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashSetVectorIntType;
+    using HashSetVectorIntType = std::unordered_set<VectorIndexType, VectorIndexHasherType, VectorIndexComparorType>;
 
     /// Define the HashSetVectorIntTypeIteratorType iterator type
-    typedef HashSetVectorIntType::iterator HashSetVectorIntTypeIteratorType;
+    using HashSetVectorIntTypeIteratorType = HashSetVectorIntType::iterator;
 
     /// Define the map considered for face ids
-    typedef std::unordered_map<VectorIndexType, VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntType;
+    using HashMapVectorIntType = std::unordered_map<VectorIndexType, VectorIndexType, VectorIndexHasherType, VectorIndexComparorType>;
 
     /// Define the HashMapVectorIntTypeIteratorType iterator type
-    typedef HashMapVectorIntType::iterator HashMapVectorIntTypeIteratorType;
+    using HashMapVectorIntTypeIteratorType = HashMapVectorIntType::iterator;
 
     /// Define the map considered for properties ids
-    typedef std::unordered_map<VectorIndexType, IndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntIdsType;
+    using HashMapVectorIntIdsType = std::unordered_map<VectorIndexType, IndexType, VectorIndexHasherType, VectorIndexComparorType>;
 
     /// Define the HashMapVectorIntIdsType iterator type
-    typedef HashMapVectorIntIdsType::iterator HashMapVectorIntIdsTypeIteratorType;
+    using HashMapVectorIntIdsTypeIteratorType = HashMapVectorIntIdsType::iterator;
 
     ///@}
     ///@name Life Cycle
@@ -332,11 +320,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<SizeType TDim>
@@ -356,7 +342,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED  defined

@@ -1,0 +1,35 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Column",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
+              "YOUNG_MODULUS"            :  2000,
+              "POISSON_RATIO"            :  0.0,
+              "DENSITY_SOLID"            :  0,
+              "DENSITY_WATER"            :  0,
+              "POROSITY"                 :  0,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6,
+              "PERMEABILITY_XX"          :  4.5e-13,
+              "PERMEABILITY_YY"          :  4.5e-13,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  8.90e-7,
+              "THICKNESS"                :  1.0,
+              "BIOT_COEFFICIENT"         :  1.0,
+              "RETENTION_LAW"                    : "SaturatedBelowPhreaticLevelLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "RESIDUAL_SATURATION"              :  1e-10,
+              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
+              "VAN_GENUCHTEN_GN"                 :  1.377,
+              "VAN_GENUCHTEN_GL"                 :  1.25,
+              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+         },
+         "Tables": {}
+      }
+   }]
+}

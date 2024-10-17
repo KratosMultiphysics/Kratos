@@ -31,7 +31,7 @@ template<std::size_t TSize>
 void SetEqIdsOnNodes(GeometryType& rGeometry,
                      const std::array<int, TSize>& rExpEquationIds)
 {
-    KRATOS_CHECK_EQUAL(TSize, rGeometry.PointsNumber());
+    KRATOS_EXPECT_EQ(TSize, rGeometry.PointsNumber());
 
     std::size_t node_idx = 0;
     for (auto& r_node : rGeometry.Points()) {
@@ -57,18 +57,18 @@ void TestComputeProjection(const GeometryType& rGeometry,
 
     const bool is_full_projection = ProjectionUtilities::ComputeProjection(rGeometry, rPointToProject, LocalCoordTol, sf_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
 
-    KRATOS_CHECK_EQUAL(FullProjection, is_full_projection);
-    KRATOS_CHECK_EQUAL(ExpPairingIndex, pairing_index);
+    KRATOS_EXPECT_EQ(FullProjection, is_full_projection);
+    KRATOS_EXPECT_EQ(ExpPairingIndex, pairing_index);
 
     if (pairing_index != ProjectionUtilities::PairingIndex::Unspecified) {
-        KRATOS_CHECK_DOUBLE_EQUAL(ExpProjectionDistance, proj_dist);
+        KRATOS_EXPECT_DOUBLE_EQ(ExpProjectionDistance, proj_dist);
 
-        KRATOS_CHECK_EQUAL(rExpSFValues.size(), sf_values.size());
-        KRATOS_CHECK_EQUAL(rExpEquationIds.size(), rExpEquationIds.size());
+        KRATOS_EXPECT_EQ(rExpSFValues.size(), sf_values.size());
+        KRATOS_EXPECT_EQ(rExpEquationIds.size(), rExpEquationIds.size());
 
         for (std::size_t i=0; i<TSize; ++i) {
-            KRATOS_CHECK_NEAR(rExpSFValues[i], sf_values[i], 1E-13);
-            KRATOS_CHECK_EQUAL(rExpEquationIds[i], eq_ids[i]);
+            KRATOS_EXPECT_NEAR(rExpSFValues[i], sf_values[i], 1E-13);
+            KRATOS_EXPECT_EQ(rExpEquationIds[i], eq_ids[i]);
         }
     }
 }

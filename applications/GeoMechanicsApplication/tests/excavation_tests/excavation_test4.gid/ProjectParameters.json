@@ -11,7 +11,6 @@
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
-        "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "excavation_test4"
@@ -111,24 +110,6 @@
             "table":           [0,0,0]
         }
     },{
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
         "python_module": "apply_excavation_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyExcavationProcess",

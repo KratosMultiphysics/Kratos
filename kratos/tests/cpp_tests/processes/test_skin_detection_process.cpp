@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //                   Vicente Mataix Ferrandiz
@@ -18,12 +18,8 @@
 #include "includes/model_part.h"
 #include "processes/skin_detection_process.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-
-typedef Node NodeType;
 
 void CreateSimpleGeometry(ModelPart& rModelPart)
 {
@@ -62,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
     // We generate in several iterations to see if it crashes
     for (int i = 0; i < 2; i++) {
         skin_process.Execute();
-        KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 4);
+        KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 4);
     }
 
     // Now we remove one element
@@ -71,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
 
     // We execute again
     skin_process.Execute();
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
 }
 
 /**
@@ -100,7 +96,6 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess2, KratosCoreFastSuite)
 
     // We execute again
     skin_process.Execute();
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
 }
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

@@ -1,0 +1,45 @@
+{
+  "TIME": [
+    1.0
+  ],
+  "NODE_1": {
+    "LIQUID_PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "LIQUID_PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "LIQUID_PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_4": {
+    "LIQUID_PRESSURE": [
+      19622.042125422962
+    ]
+  },
+  "NODE_5": {
+    "LIQUID_PRESSURE": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "LIQUID_PRESSURE": [
+      19913.29312704039
+    ]
+  },
+  "NODE_7": {
+    "LIQUID_PRESSURE": [
+      19913.293127040382
+    ]
+  },
+  "NODE_8": {
+    "LIQUID_PRESSURE": [
+      19622.042125422962
+    ]
+  }
+}

@@ -48,17 +48,16 @@ namespace ActiveSetUtilities
     ///@{
 
     // Some geometrical definitions
-    typedef Node                                              NodeType;
-    typedef Point::CoordinatesArrayType              CoordinatesArrayType;
+    using CoordinatesArrayType = Point::CoordinatesArrayType;
 
     /// Definition of geometries
-    typedef Geometry<NodeType>                               GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Index type definition
-    typedef std::size_t                                         IndexType;
+    using IndexType = std::size_t;
 
     /// Size type definition
-    typedef std::size_t                                          SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name  Functions

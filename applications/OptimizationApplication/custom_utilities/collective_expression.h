@@ -70,6 +70,9 @@ public:
     // Copy consttructor
     CollectiveExpression(const CollectiveExpression& rOther);
 
+    /// Assignment operator
+    CollectiveExpression& operator=(const CollectiveExpression& rOther);
+
     // destructor
     ~CollectiveExpression() = default;
 
@@ -147,12 +150,6 @@ public:
     CollectiveExpression& operator/=(const CollectiveExpression& rOther);
 
     CollectiveExpression& operator/=(const double Value);
-
-    CollectiveExpression& Power(const CollectiveExpression& rOther);
-
-    CollectiveExpression& Power(const double Value);
-
-    CollectiveExpression& Scale(const CollectiveExpression& Value);
 
     ///@}
     ///@name Input and output

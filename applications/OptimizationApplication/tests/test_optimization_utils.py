@@ -10,6 +10,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.CreateSubModelPart("sub_1")
+        cls.model_part.CreateSubModelPart("sub_2")
+        cls.model_part.CreateSubModelPart("sub_3")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
 
@@ -55,6 +58,14 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.model_part.GetCondition(4).Properties[Kratos.DENSITY] = 1.0
         self.assertTrue(self.utils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Conditions, Kratos.DENSITY, self.model_part.GetCommunicator().GetDataCommunicator()))
 
+    def test_GetComponentWiseModelParts(self):
+        params = Kratos.Parameters("""{
+            "test.sub_1": [true, false],
+            "test.sub_2": [true, true]
+        }""")
+        values = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, params)
+        self.assertEqual(values[0], [self.model.GetModelPart("test.sub_1"), self.model.GetModelPart("test.sub_2")])
+        self.assertEqual(values[1], [self.model.GetModelPart("test.sub_2")])
+
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

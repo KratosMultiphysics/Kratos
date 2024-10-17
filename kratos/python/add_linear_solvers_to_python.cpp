@@ -11,11 +11,9 @@
 //
 //
 
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -42,10 +40,7 @@
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
     template <class TDataType>
     using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
@@ -244,6 +239,4 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

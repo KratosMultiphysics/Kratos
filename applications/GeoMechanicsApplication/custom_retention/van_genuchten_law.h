@@ -13,15 +13,15 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include "includes/define.h"
+#include <iostream>
+#include <string>
 
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
 #include "custom_retention/retention_law.h"
+#include "includes/serializer.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -35,8 +35,7 @@ namespace Kratos
  * @details This class derives from the base retention law
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) VanGenuchtenLaw
-    : public RetentionLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) VanGenuchtenLaw : public RetentionLaw
 {
 public:
     /// The base class RetentionLaw type definition
@@ -48,37 +47,31 @@ public:
     using SizeType = std::size_t;
 
     /// Counted pointer of VanGenuchtenLaw
-    KRATOS_CLASS_POINTER_DEFINITION( VanGenuchtenLaw );
-
-    VanGenuchtenLaw();
+    KRATOS_CLASS_POINTER_DEFINITION(VanGenuchtenLaw);
 
     RetentionLaw::Pointer Clone() const override;
 
-    VanGenuchtenLaw(const VanGenuchtenLaw& rOther);
-
-    ~VanGenuchtenLaw() override;
-
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues) override;
+                            const Vector&       rShapeFunctionsValues) override;
 
-    void Initialize(Parameters &rParameters) override;
+    void Initialize(Parameters& rParameters) override;
 
-    void InitializeSolutionStep(Parameters &rParameters) override;
+    void InitializeSolutionStep(Parameters& rParameters) override;
 
-    double CalculateSaturation(Parameters &rParameters) override;
+    double CalculateSaturation(Parameters& rParameters) const override;
 
-    double CalculateEffectiveSaturation(Parameters &rParameters) override;
+    double CalculateEffectiveSaturation(Parameters& rParameters) const override;
 
-    double CalculateDerivativeOfSaturation(Parameters &rParameters) override;
+    double CalculateDerivativeOfSaturation(Parameters& rParameters) const override;
 
-    double CalculateRelativePermeability(Parameters &rParameters) override;
+    double CalculateRelativePermeability(Parameters& rParameters) const override;
 
-    double CalculateBishopCoefficient(Parameters &rParameters) override;
+    double CalculateBishopCoefficient(Parameters& rParameters) const override;
 
-    void Finalize(Parameters &rParameters) override;
+    void Finalize(Parameters& rParameters) override;
 
-    void FinalizeSolutionStep(Parameters &rParameters) override;
+    void FinalizeSolutionStep(Parameters& rParameters) override;
 
     /**
      * @brief It calculates the value of a specified variable (double case)
@@ -88,9 +81,8 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
-
+                           const Variable<double>&   rThisVariable,
+                           double&                   rValue) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -100,21 +92,20 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      * @return 0 if OK, 1 otherwise
      */
-    int Check(const Properties& rMaterialProperties,
-              const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, RetentionLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RetentionLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, RetentionLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RetentionLaw)
     }
 
 }; // Class VanGenuchtenLaw
-}  // namespace Kratos.
+} // namespace Kratos.
