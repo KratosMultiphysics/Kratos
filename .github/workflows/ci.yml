@@ -61,6 +61,13 @@ jobs:
         python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
+    - name: Test Matrix Market
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/tests/test_sparse_matrix_multiplication.py
+
     - name: Running python tests
       shell: cmd
       run: |
@@ -139,6 +146,13 @@ jobs:
         :error
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
+
+    - name: Test Matrix Market
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/tests/test_sparse_matrix_multiplication.py
 
     - name: Running python tests
       shell: cmd

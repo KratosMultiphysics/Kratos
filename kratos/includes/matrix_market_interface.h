@@ -82,6 +82,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Process MM file header
     MM_typecode mm_code;
 
+    printf("Reading banner...\n");
+
     if (mm_read_banner(f, &mm_code) != 0)
     {
         printf("ReadMatrixMarketMatrix(): unable to read MatrixMarket banner.\n");
@@ -89,12 +91,16 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
         return false;
     }
 
+    printf("Testing valid...\n");
+
     if (!mm_is_valid(mm_code))
     {
         printf("ReadMatrixMarketMatrix(): invalid MatrixMarket banner.\n");
         fclose(f);
         return false;
     }
+
+    printf("Testing coordinate...\n");
 
     // Check for supported types of MM file
     if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
@@ -106,6 +112,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
 
     // Read MM dimensions and NNZ
     int size1, size2, nnz;
+
+    printf("Reading Matrix...\n");
 
     if (mm_read_mtx_crd_size(f, &size1, &size2, &nnz) != 0)
     {
@@ -119,6 +127,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     int *J = new int[nnz];
     ValueType *V = new ValueType[nnz];
 
+    printf("Testing correct...\n");
+
     // Check if matrix type matches MM file
     if (!IsCorrectType<ValueType>(mm_code))
     {
@@ -128,6 +138,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     }
 
     // Read MM file
+
+    printf("Testing pattern...\n");
 
     // Pattern file, only non-zero structure
     if (mm_is_pattern(mm_code))
@@ -171,6 +183,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
             I[i]--;
             J[i]--;
         }
+
+    printf("Closing file...\n");
 
     fclose(f);
 
