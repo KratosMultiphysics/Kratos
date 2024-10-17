@@ -1,3 +1,6 @@
+# Importing Python modules
+from importlib import import_module
+
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
@@ -40,6 +43,7 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        self.__AddProcessesVariables() # this adds the variables required by the processes
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -82,6 +86,7 @@ class AnalysisStage(object):
         self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
+        self.__AddProcessesDofs()
 
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -410,6 +415,96 @@ class AnalysisStage(object):
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
         self._list_of_output_processes.extend(deprecated_output_processes)
+
+    def __AddProcessesVariables(self):
+        variables_list = []
+        if self.project_parameters.Has("processes"): #TODO: Here we are assuming that output_processes cannot add variables. Decide this in KTC.
+            # Get the standard (not output) processes
+            processes_settings = self.project_parameters["processes"]
+
+            # Loop each list of processes (e.g., initial_conditions, boundary_conditions, etc.).
+            for _, processes_list in processes_settings.items():
+                for process in processes_list:
+                    # Get the process input settings
+                    # Note that we support both 'parameters' and 'Parameters' to keep processes backward compatibility
+                    if process.Has("parameters"):
+                        parameters = process["parameters"]
+                    elif process.Has("Parameters"):
+                        IssueDeprecationWarning("AnalysisStage", f"Found 'Parameters' in {process} definition. Use 'parameters' instead.")
+                        parameters = process["Parameters"]
+                    else:
+                        raise NameError(f"Provided item '{process}' is incomplete.'parameters' field must be defined for each item.")
+
+                    # Get the process class
+                    if process.Has("name"):
+                        # Check if current process is registered
+                        registry_entry = process["name"].GetString()
+                        if KratosMultiphysics.Registry.HasItem(registry_entry):
+                            # Get class from stored Python module
+                            if KratosMultiphysics.Registry.HasItem(f"{registry_entry}.ModuleName"):
+                                class_name = registry_entry.split(".")[-1]
+                                module_name = KratosMultiphysics.Registry[f"{registry_entry}.ModuleName"]
+                                module = import_module(module_name)
+
+                                # Check if the standard class name is available
+                                # Note that in here we assume that the registry last key matches the class name
+                                if hasattr(module, class_name):
+                                    class_attribute = getattr(module, class_name)
+                                else:
+                                    # If the registry key does not contain the class name we check for the 'ClassName' entry
+                                    if KratosMultiphysics.Registry.HasItem(f"{registry_entry}.ClassName"):
+                                        class_name = KratosMultiphysics.Registry[f"{registry_entry}.ClassName"]
+                                        KratosMultiphysics.Logger.PrintWarning(f"Trying to get item from non-standard 'ClassName' value {class_name}.")
+                                        class_attribute = getattr(module, class_name)
+                                    else:
+                                        err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
+                                        raise Exception(err_msg)
+                            else:
+                                raise Exception(f"Registry process '{registry_entry}' cannot be obtained.")
+
+                            # Call the static specifications method of the obtained class
+                            if hasattr(class_attribute, "GetSpecifications"):
+                                specifications = class_attribute.GetSpecifications(parameters)
+                                variables_list.extend(specifications["required_solution_step_data_variables"].GetStringArray())
+                        else:
+                            KratosMultiphysics.Logger.PrintWarning(f"Asking to retrieve the non-registered 'name' '{registry_entry}'.")
+                    else:
+                        # Alternative (old) retrieval from Python module
+                        if not process.Has("python_module"):
+                            raise NameError(f'"python_module" must be defined in your parameters. Check all your processes')
+
+                        python_module_name = process["python_module"].GetString() # python-script that contains the process
+                        if process.Has("kratos_module"): # for Kratos-processes
+                            # Get the class name from the Python module
+                            kratos_module_name = process["kratos_module"].GetString()
+                            if not kratos_module_name.startswith("KratosMultiphysics"):
+                                kratos_module_name = "KratosMultiphysics." + kratos_module_name
+                            module_name = kratos_module_name + "." + python_module_name
+                        else: # for user-defined processes
+                            module_name = import_module(python_module_name)
+
+                        # Obtain the class attribute
+                        # Note that in here we assume that the Python module name is the class name in snake case
+                        class_name = ''.join(word.title() for word in python_module_name.split('_'))
+                        module = import_module(module_name)
+                        class_attribute = getattr(module, class_name)
+
+                        # Call the static specifications method of the obtained class
+                        # Retrieve the required variables list from the specifications and append them to the list
+                        if hasattr(class_attribute, "GetSpecifications"):
+                            specifications = class_attribute.GetSpecifications(parameters)
+                            variables_list.extend(specifications["required_solution_step_data_variables"].GetStringArray())
+
+        # Make the list unique
+        variables_list = list(set(variables_list))
+
+        # Add the variables to the solver computing model part
+        for variable_name in variables_list:
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self._GetSolver().GetComputingModelPart().AddNodalSolutionStepVariable(variable)
+
+    def __AddProcessesDofs(self):
+        pass
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
