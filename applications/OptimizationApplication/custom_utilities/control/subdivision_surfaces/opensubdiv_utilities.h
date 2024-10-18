@@ -92,6 +92,7 @@ IndexType GetOSDIndexFromKratosID(IndexType KratosID, std::map<IndexType, IndexT
     for (auto it = rMap.begin(); it != rMap.end(); ++it)
         if (it->second == KratosID)
             return it->first;
+    KRATOS_ERROR << "GetOSDIndexFromKratosID could not find corresponding ID in map!";
 }
 
 OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
@@ -111,28 +112,36 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     std::map<IndexType, IndexType> Level0MapOsdVertToKratosNodeIds;
     std::map<IndexType, IndexType> Level0MapOsdFaceToKratosCondIds;
 
-    IndexType vert_index = 0;
-    for(auto node_it = rGrid.NodesBegin(); node_it != rGrid.NodesEnd(); ++node_it) {
-        Node& r_node = *node_it;
-        Level0MapOsdVertToKratosNodeIds[vert_index] = r_node.GetId();
-        vert_index += 1;
+    const auto nodes_begin = rGrid.NodesBegin();
+#pragma omp parallel for
+    for(IndexType vert_index = 0; vert_index < num_vertices; ++vert_index) {
+        auto node_it = nodes_begin + vert_index;
+#pragma omp critical
+        Level0MapOsdVertToKratosNodeIds[vert_index] = node_it->GetId();
     }
 
-    IndexType face_index = 0;
-    for(auto cond_it = rGrid.ConditionsBegin(); cond_it != rGrid.ConditionsEnd(); ++cond_it) {
-        Condition& r_condition = *cond_it;
-        Geometry<NodeType>& r_geom_i = r_condition.GetGeometry();
-        Level0MapOsdFaceToKratosCondIds[face_index] = r_condition.GetId();
+    const auto conds_begin = rGrid.ConditionsBegin();
+#pragma omp parallel for ordered
+    for(IndexType face_index = 0; face_index < num_faces; ++face_index) {
+        auto cond_it = conds_begin + face_index;
+        Geometry<NodeType>& r_geom_i = cond_it->GetGeometry();
         int num_vertices = r_geom_i.PointsNumber();
-        num_vertices_per_face[face_index] = num_vertices;
+        
         for (int j = 0; j < num_vertices; j++) {
             IndexType kratos_node_id = r_geom_i.GetPoint(j).GetId();
             IndexType osd_vert_idx = GetOSDIndexFromKratosID(kratos_node_id, Level0MapOsdVertToKratosNodeIds);
+            
+            #pragma omp ordered
             vertex_indices_per_face.push_back(osd_vert_idx);
         }
-        face_index += 1;
-        // ++index;
+        
+        #pragma omp critical
+        {
+            num_vertices_per_face[face_index] = num_vertices;
+            Level0MapOsdFaceToKratosCondIds[face_index] = cond_it->GetId();
+        }
     }
+    // KRATOS_ERROR << std::endl;
     // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner debug 1") << std::endl;
 
     rGlobalMapOsdVertToKratosNodeIds[0] = Level0MapOsdVertToKratosNodeIds;
