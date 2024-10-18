@@ -86,7 +86,12 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
     {
         // Compute the largest length of all geometries and the sum of lengths
         const double sum_length = block_for_each<SumReduction<double>>(r_entities, [](auto& rEntity) {
-            return rEntity.GetGeometry().Length();
+            const double length = rEntity.GetGeometry().Length();
+            if (length > 0.0) {
+                return length;
+            } else {
+                return 0.0;
+            }
         });
         average_length = sum_length / static_cast<double>(r_entities.size());
         ref_area = average_length * average_length * AreaTolerance;
