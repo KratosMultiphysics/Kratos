@@ -19,6 +19,8 @@
 
 /* External includes */
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "input_output/vtu_output.h"
+#include "includes/variables.h"
 
 // Application includes
 #include "mpm_application_variables.h"
@@ -170,6 +172,7 @@ public:
         bool is_converged = false;
 
         p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        GridModelPartAndi = p_scheme-> mGridModelPart;
         is_converged = this->mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "PreCriteria:"
@@ -239,21 +242,33 @@ public:
         KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3 && !is_converged) << "Starting Nonlinear iteration" << std::endl;
 
         // Iteration Loop
-        while (is_converged == false &&
-            iteration_number++ < this->mMaxIterationNumber)
+        while (is_converged == false && iteration_number++ < this->mMaxIterationNumber)
         {
             // Setting the number of iteration
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
             p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
             is_converged = this->mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
             // Call the linear system solver to find the correction rDx. It is not called if there is no system to solve
             if (SparseSpaceType::Size(rDx) != 0)
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
                 {
-                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
-
+                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 0) << "Iteration Number: " << iteration_number << std::endl;
+                    
+                    if (BaseType::GetModelPart().GetProcessInfo()[STEP] > 715){
+                        VtuOutput vtu_output(mGridModelPart);
+                        vtu_output.AddHistoricalVariable(DISPLACEMENT);
+                        vtu_output.AddHistoricalVariable(VELOCITY);
+                        vtu_output.AddHistoricalVariable(ACCELERATION);
+                        vtu_output.AddHistoricalVariable(NODAL_MASS);
+                        vtu_output.AddHistoricalVariable(DENSITY);
+                        // vtu_output.AddHistoricalVariable(VOLUME);
+                        vtu_output.AddHistoricalVariable(NODAL_MOMENTUM);
+                        vtu_output.AddHistoricalVariable(NODAL_INERTIA);
+                        std::stringstream file_name;
+                        file_name << "non_linear_output_0_" << mGridModelPart.GetProcessInfo()[STEP] << "_" << mGridModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+                        vtu_output.PrintOutput(file_name.str());
+                    }
                     if (this->GetKeepSystemConstantDuringIterations() == false)
                     {
                         TSparseSpace::SetToZero(rA);
@@ -262,6 +277,7 @@ public:
 
                         KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build and Solve" << std::endl;
                         p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+                        // KRATOS_WATCH(rA);
                     }
                     else
                     {
@@ -319,6 +335,9 @@ public:
 
 
             std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!!------------------------------------------------------------------------------------------ "<<"\n";
+            // TDataType ratio = BaseType::GetModelPart().GetProcessInfo()[CONVERGENCE_RATIO];
+            // const TDataType absolute_norm = BaseType::GetModelPart().GetProcessInfo()[RESIDUAL_NORM];
+            // std::cout << "Obtained ratio = " << ratio << "; Absolute norm = " << absolute_norm <<"\n";
         }
 
         return is_converged;

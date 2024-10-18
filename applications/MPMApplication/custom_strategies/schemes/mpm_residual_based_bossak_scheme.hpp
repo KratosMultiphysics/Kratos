@@ -29,6 +29,8 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "input_output/vtu_output.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -321,8 +323,21 @@ public:
         }
         }
 
-
-                                   }
+        // if (mGridModelPart.GetProcessInfo()[STEP] > 715){
+        //     VtuOutput vtu_output(mGridModelPart);
+        //     vtu_output.AddHistoricalVariable(DISPLACEMENT);
+        //     vtu_output.AddHistoricalVariable(VELOCITY);
+        //     vtu_output.AddHistoricalVariable(ACCELERATION);
+        //     vtu_output.AddHistoricalVariable(NODAL_MASS);
+        //     vtu_output.AddHistoricalVariable(DENSITY);
+        //     // vtu_output.AddHistoricalVariable(VOLUME);
+        //     vtu_output.AddHistoricalVariable(NODAL_MOMENTUM);
+        //     vtu_output.AddHistoricalVariable(NODAL_INERTIA);
+        //     std::stringstream file_name;
+        //     file_name << "non_linear_output_0_" << mGridModelPart.GetProcessInfo()[STEP] << "_" << mGridModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+        //     vtu_output.PrintOutput(file_name.str());
+        // }
+    }
 
     /**
      * @brief It initializes time step solution for MPM simulations.
