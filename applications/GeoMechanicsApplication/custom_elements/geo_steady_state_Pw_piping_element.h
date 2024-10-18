@@ -159,15 +159,6 @@ private:
             << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
     }
 
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
-
     void CheckForNonZeroZCoordinateIn2D() const
     {
         if constexpr (TDim == 2) {
@@ -208,6 +199,13 @@ private:
         return result;
     }
 
+    Matrix FillPermeabilityMatrix(double pipe_height) const
+    {
+        Matrix constitutive_matrix(1,1);
+        constitutive_matrix(0, 0) = std::pow(pipe_height, 3) / 12.0;
+        return constitutive_matrix;
+    }
+
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients) const
@@ -216,7 +214,7 @@ private:
         const auto&              r_properties              = GetProperties();
         const double             dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
 
-        BoundedMatrix<double, 1, 1> constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
+        auto constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -229,13 +227,6 @@ private:
                 RelativePermeability, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
-    }
-
-    BoundedMatrix<double, 1, 1> FillPermeabilityMatrix(double pipe_height)
-    {
-        BoundedMatrix<double, 1, 1> constitutive_matrix;
-        constitutive_matrix(0, 0) = std::pow(pipe_height, 3) / 12.0;
-        return constitutive_matrix;
     }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
@@ -294,8 +285,8 @@ private:
         }
         GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
 
-        const auto&                 r_properties = GetProperties();
-        BoundedMatrix<double, 1, 1> constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
+        const auto& r_properties        = GetProperties();
+        auto        constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
 
         RetentionLaw::Parameters RetentionParameters(GetProperties());
 
@@ -343,7 +334,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        rSerializer.load("RetentionLawVector", mRetentionLawVector);
+        //rSerializer.load("RetentionLawVector", mRetentionLawVector);
     }
 };
 
