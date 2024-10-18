@@ -87,8 +87,17 @@ struct VertexValue {
 
 
 
+IndexType GetOSDIndexFromKratosID(IndexType KratosID, std::map<IndexType, IndexType>& rMap)
+{
+    for (auto it = rMap.begin(); it != rMap.end(); ++it)
+        if (it->second == KratosID)
+            return it->first;
+}
+
 OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     ModelPart::MeshType& rGrid,
+    std::map<IndexType, std::map<IndexType, IndexType>>& rGlobalMapOsdVertToKratosNodeIds,
+    std::map<IndexType, std::map<IndexType, IndexType>>& rGlobalMapOsdFaceToKratosCondIds,
     const bool FixFreeEdges = false)
 {
     KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner") << std::endl;
@@ -99,20 +108,35 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     std::vector<int> vertex_indices_per_face;
     // fill num_vertices_per_face, vertex_indices_per_face
     // loop over conditions
-    IndexType index = 0;
-    for(auto cond_it = rGrid.ConditionsBegin(); cond_it != rGrid.ConditionsEnd(); cond_it++) {
+    std::map<IndexType, IndexType> Level0MapOsdVertToKratosNodeIds;
+    std::map<IndexType, IndexType> Level0MapOsdFaceToKratosCondIds;
+
+    IndexType vert_index = 0;
+    for(auto node_it = rGrid.NodesBegin(); node_it != rGrid.NodesEnd(); ++node_it) {
+        Node& r_node = *node_it;
+        Level0MapOsdVertToKratosNodeIds[vert_index] = r_node.GetId();
+        vert_index += 1;
+    }
+
+    IndexType face_index = 0;
+    for(auto cond_it = rGrid.ConditionsBegin(); cond_it != rGrid.ConditionsEnd(); ++cond_it) {
         Condition& r_condition = *cond_it;
-        Geometry<NodeType>& geom_i = r_condition.GetGeometry();
-        int num_vertices = r_condition.GetGeometry().PointsNumber();
-        num_vertices_per_face[index] = num_vertices;
+        Geometry<NodeType>& r_geom_i = r_condition.GetGeometry();
+        Level0MapOsdFaceToKratosCondIds[face_index] = r_condition.GetId();
+        int num_vertices = r_geom_i.PointsNumber();
+        num_vertices_per_face[face_index] = num_vertices;
         for (int j = 0; j < num_vertices; j++) {
-            vertex_indices_per_face.push_back(geom_i.GetPoint(j).GetId() - 1);
-            // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: vertex id ") << geom_i.GetPoint(j).GetId() - 1 << std::endl;
+            IndexType kratos_node_id = r_geom_i.GetPoint(j).GetId();
+            IndexType osd_vert_idx = GetOSDIndexFromKratosID(kratos_node_id, Level0MapOsdVertToKratosNodeIds);
+            vertex_indices_per_face.push_back(osd_vert_idx);
         }
-        index += 1;
+        face_index += 1;
         // ++index;
     }
     // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner debug 1") << std::endl;
+
+    rGlobalMapOsdVertToKratosNodeIds[0] = Level0MapOsdVertToKratosNodeIds;
+    rGlobalMapOsdFaceToKratosCondIds[0] = Level0MapOsdFaceToKratosCondIds;
 
     OpenSubdiv::Sdc::SchemeType type = OpenSubdiv::Sdc::SCHEME_CATMARK;
     OpenSubdiv::Sdc::Options options;
@@ -143,6 +167,8 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
 void RefineGeometry(
     ModelPart::MeshType& rGrid, 
     ModelPart& rOutput, 
+    std::map<IndexType, std::map<IndexType, IndexType>>& rGlobalMapOsdVertToKratosNodeIds,
+    std::map<IndexType, std::map<IndexType, IndexType>>& rGlobalMapOsdFaceToKratosCondIds,
     bool FixFreeEdges = false, 
     SizeType n_uniformRef = 1, 
     OpenSubdiv::Far::TopologyRefiner * refiner = nullptr
@@ -155,12 +181,13 @@ void RefineGeometry(
 
     if (!refiner) {
         /// generate opensubdiv refiner if not passed to function
-        refiner = GenerateOpenSubdivRefiner(rGrid, FixFreeEdges);
+        refiner = GenerateOpenSubdivRefiner(rGrid, rGlobalMapOsdVertToKratosNodeIds, rGlobalMapOsdFaceToKratosCondIds, FixFreeEdges);
     }
     else {
         // unrefine to enable subsequent refining 
         refiner->Unrefine();
     }
+
 
     OpenSubdiv::Far::TopologyRefiner::UniformOptions uniform_ref_options = OpenSubdiv::Far::TopologyRefiner::UniformOptions(n_uniformRef);
     // generate all topological data in last refinement, since it is not done by default to save storage space
@@ -198,6 +225,10 @@ void RefineGeometry(
     // return the current vertices and faces
     OpenSubdiv::Far::TopologyLevel const & refLastLevel = refiner->GetLevel(n_uniformRef);
     
+    // create maps for storing relation between Kratos and OSD
+    std::map<IndexType, IndexType> LevelMapOsdVertToKratosNodeIds;
+    std::map<IndexType, IndexType> LevelMapOsdFaceToKratosCondIds;
+    
     nverts = refLastLevel.GetNumVertices();
     
     // copy vertex information
@@ -213,8 +244,10 @@ void RefineGeometry(
         node_coord[0] = verts_coords[3*i + 0];
         node_coord[1] = verts_coords[3*i + 1];
         node_coord[2] = verts_coords[3*i + 2];
-        NodeTypePointer p_node = make_intrusive<Node>(i+1, node_coord);
+        IndexType kratos_node_id = i + 1;
+        NodeTypePointer p_node = make_intrusive<Node>(kratos_node_id, node_coord);
         p_new_nodes_container->push_back(p_node);
+        LevelMapOsdVertToKratosNodeIds[i] = kratos_node_id;
     }
 
     rOutput.SetNodes(p_new_nodes_container);
@@ -223,6 +256,7 @@ void RefineGeometry(
     // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: before creating conditions with subd data and adding them to rOutput ") << std::endl;
 
     SizeType nfaces = refLastLevel.GetNumFaces();
+    std::string condition_name = "SurfaceCondition3D4N";
     for(IndexType i = 0; i < nfaces; i++) {
         IndexType osd_face_index = i;
         IndexType kratos_face_index = osd_face_index + 1;
@@ -240,15 +274,19 @@ void RefineGeometry(
             // NodeTypePointer p_node = p_new_nodes_container->GetContainer().at(node_index);
             // node_array.push_back(p_node);
         }
-        std::string condition_name = "SurfaceCondition3D4N";
         Properties::Pointer p_property = rOutput.pGetProperties(0);
         // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: create condition with id and nodes") << node_indices << std::endl;
         rOutput.CreateNewCondition(condition_name, kratos_face_index, node_indices, p_property);
+        LevelMapOsdFaceToKratosCondIds[osd_face_index] = kratos_face_index;
         // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: created condition number ") << kratos_face_index << std::endl;
         auto cond = rOutput.GetCondition(kratos_face_index);
         auto geom = cond.GetGeometry();
         // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: new geom nodes ") << "[ " << geom[0].GetId()  << " , " << geom[1].GetId() << " , " << geom[2].GetId() << " , " << geom[3].GetId() << " ] " << std::endl;
     }
+
+    // store maps to corresponding level
+    rGlobalMapOsdVertToKratosNodeIds[n_uniformRef] = LevelMapOsdVertToKratosNodeIds;
+    rGlobalMapOsdFaceToKratosCondIds[n_uniformRef] = LevelMapOsdFaceToKratosCondIds;
 
     // for(auto node_it = rOutput.NodesBegin(); node_it != rOutput.NodesEnd(); ++node_it) {
     //     NodeType& r_node = *node_it;
@@ -284,7 +322,8 @@ void GetRegularPatches(
     */
     
     /// generate opensubdiv refiner
-    OpenSubdiv::Far::TopologyRefiner * refiner = GenerateOpenSubdivRefiner(rGrid, FixFreeEdges);
+    std::map<IndexType, std::map<IndexType, IndexType>> map_vert, map_face;
+    OpenSubdiv::Far::TopologyRefiner * refiner = GenerateOpenSubdivRefiner(rGrid, map_vert, map_face, FixFreeEdges);
 
     // get refiner
     refiner->RefineUniform(OpenSubdiv::Far::TopologyRefiner::UniformOptions(maxPatchLevel));
@@ -350,7 +389,7 @@ void GetRegularPatches(
         // ConditionType& r_condition = *cond_it;
         // IndexType r_condition_id = r_condition.GetId();
         // int face_id = r_condition_id - 1;
-        IndexType r_condition_id = face_id + 1; 
+        IndexType r_condition_id = face_id + 1;
         KRATOS_INFO("OPENSUBDIV_UTILS :: GetRegularPatches :: r_condition_id ") << r_condition_id << std::endl;
         KRATOS_INFO("OPENSUBDIV_UTILS :: GetRegularPatches :: face_id ") << face_id << std::endl;
         double u = 0.5;

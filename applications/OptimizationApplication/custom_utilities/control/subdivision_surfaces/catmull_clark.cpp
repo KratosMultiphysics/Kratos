@@ -108,6 +108,8 @@ std::vector<IndexType> ReorderIndicesToStartAtValue(const IndexType Value, Const
 void CreateFirstRingNeighbourhoodsOfNodes(
     ModelPart::MeshType& rInputMesh,
     std::map<IndexType, std::vector<IndexType>>& rOutputMap,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_verts,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_faces,
     OpenSubdiv::Far::TopologyRefiner* refiner = nullptr
     ) 
 {
@@ -129,7 +131,8 @@ void CreateFirstRingNeighbourhoodsOfNodes(
     SizeType ref_level = 0;
     // if refiner not passed, generate a new one based on rInputMesh
     if (!refiner) {
-        refiner = GenerateOpenSubdivRefiner(rInputMesh, false);
+        // std::map<IndexType, IndexType> map_verts, map_conds;
+        refiner = GenerateOpenSubdivRefiner(rInputMesh, r_global_map_verts, r_global_map_faces, false);
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: no refiner specified... creating new one") << std::endl;
     }
     else { 
@@ -147,29 +150,32 @@ void CreateFirstRingNeighbourhoodsOfNodes(
     SizeType num_nodes = rInputMesh.NumberOfNodes();
     KRATOS_ERROR_IF_NOT(num_nodes == num_vertices);
 
+    std::map<IndexType, IndexType> map_verts = r_global_map_verts[ref_level];
+    std::map<IndexType, IndexType> map_faces = r_global_map_faces[ref_level];
 
     // initializes the 1-ring node neighbourhoods for every node in the input mesh
     
     // loop over all nodes to find neighbourhood of every node
-    // #pragma omp for
+    IndexType vert_index = 0;
     for (auto node_it = rInputMesh.NodesBegin(); node_it != rInputMesh.NodesEnd(); ++node_it) {
         // find control node in mesh rInputMesh
         const NodeType& r_center_node = *node_it;
-        IndexType r_center_node_id = r_center_node.GetId();
-        IndexType osd_center_vertex_index = r_center_node_id - 1;
+        IndexType kratos_center_node_id = r_center_node.GetId();
+        IndexType osd_center_vert_idx = GetOSDIndexFromKratosID(kratos_center_node_id, map_verts);
+        // IndexType osd_center_vertex_index = r_center_node_id - 1;
         // skip free edge nodes since they need to be evaluated seperately
-        if (refLevel.IsVertexBoundary(osd_center_vertex_index)) {
-            rOutputMap[r_center_node_id] = {};
+        if (refLevel.IsVertexBoundary(osd_center_vert_idx)) {
+            rOutputMap[kratos_center_node_id] = {};
             continue;
         }
 
         std::vector<IndexType> temp_neighbourhood;
-        temp_neighbourhood.push_back(r_center_node_id);
-        ConstIndexArray face_indices = refLevel.GetVertexFaces(osd_center_vertex_index);
+        temp_neighbourhood.push_back(kratos_center_node_id);
+        ConstIndexArray face_indices = refLevel.GetVertexFaces(osd_center_vert_idx);
         
         // loop over every face that is adjacent to the vertex
         // (center_node and last index in temp_neighbourhood)
-        IndexType starting_osd_index = osd_center_vertex_index;
+        IndexType starting_osd_index = osd_center_vert_idx;
         IndexType face_loop_count = 0;
         // for (SizeType j = 0; j < r_elements.size(); j++) {
         for (auto f_idx_it = face_indices.begin(); f_idx_it != face_indices.end(); ++f_idx_it) {
@@ -182,21 +188,19 @@ void CreateFirstRingNeighbourhoodsOfNodes(
             // loop over the nodes of the element and identify if it has been added to the neighbourhood
             for(auto missing_it = reordered_verts_indices.begin()+1; missing_it != reordered_verts_indices.end(); ++missing_it) {
                 
-                IndexType kratos_index = *missing_it + 1;
-                bool is_present = (std::find(temp_neighbourhood.begin(), temp_neighbourhood.end(), kratos_index) != temp_neighbourhood.end());
+                IndexType kratos_node_idx = map_verts[*missing_it];
+                bool is_present = (std::find(temp_neighbourhood.begin(), temp_neighbourhood.end(), kratos_node_idx) != temp_neighbourhood.end());
 
                 if (is_present) {
                     break; // break out of loop, since necessary nodes from reordered_verts_indices are already present in neighbourhood
                 }
-                IndexType osd_idx = *missing_it;
-                IndexType kratos_node_idx = osd_idx + 1;
                 temp_neighbourhood.push_back(kratos_node_idx);
-                starting_osd_index = osd_idx;
+                starting_osd_index = *missing_it;
                 // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: debug 5 : *missing_it ") << *missing_it << std::endl;
             }
         }
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: temp_neighbourhood.size() ") << temp_neighbourhood.size() << std::endl;
-        rOutputMap[r_center_node_id] = temp_neighbourhood;
+        rOutputMap[kratos_center_node_id] = temp_neighbourhood;
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: rOutputMap[r_center_node_id] ") << rOutputMap[r_center_node_id] << std::endl;
     }
     // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: rOutputMap.size() ") << rOutputMap.size() << std::endl;
@@ -232,6 +236,7 @@ void CreateModelPartFor2RingPatch(
     // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: rPatchModelPart.NumberOfNodes()") << rPatchModelPart.NumberOfNodes() << std::endl;
 
     // create conditions
+    std::string condition_name = "SurfaceCondition3D4N";
     for (auto face_it = SecondRingFaces.begin(); face_it != SecondRingFaces.end(); ++face_it) {
         IndexType face_osd_index = *face_it;
         IndexType kratos_cond_index = face_osd_index + 1;
@@ -245,7 +250,6 @@ void CreateModelPartFor2RingPatch(
         }
         // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: node_indices") << node_indices << std::endl;
 
-        std::string condition_name = "SurfaceCondition3D4N";
         Properties::Pointer p_property = rPatchModelPart.pGetProperties(0);
         rPatchModelPart.CreateNewCondition(condition_name, kratos_cond_index, node_indices, p_property);
     }
@@ -259,13 +263,19 @@ bool GetSecondRingVerticesAndFaces(
     std::vector<IndexType>& SecondRingFaces     // contains osd ids
     )
 {
+    SecondRingVertices.clear();
+    SecondRingFaces.clear();
     KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces") << std::endl;
     // assuming only quadrilaterals, since at least 1 subdivision has been performed previously
     bool is_irregular_patch = false;
 
-    IndexType osd_face_id = KratosFaceId - 1;
+    std::map<IndexType, std::map<IndexType, IndexType>> map_vert_to_node, map_face_to_cond;
+    OpenSubdiv::Far::TopologyRefiner * refiner_for_geometry_description = GenerateOpenSubdivRefiner(rInputMesh, map_vert_to_node, map_face_to_cond, false);
     
-    OpenSubdiv::Far::TopologyRefiner * refiner_for_geometry_description = GenerateOpenSubdivRefiner(rInputMesh, false);
+    IndexType osd_face_id = GetOSDIndexFromKratosID(KratosFaceId, map_face_to_cond[0]);
+    KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: KratosFaceId") << KratosFaceId << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: osd_face_id") << osd_face_id << std::endl;
+
     // get local patch geometry around osd_face_id
     // std::vector<int> num_vertices_per_face;
     // std::vector<int> vertex_indices_per_face;
@@ -280,11 +290,18 @@ bool GetSecondRingVerticesAndFaces(
     // check if irregular
     for (IndexType vert_i = 0; vert_i < vert_indices_of_face.size(); ++vert_i) {
         if (!firstLevel.IsVertexValenceRegular(vert_indices_of_face[vert_i])) is_irregular_patch = true;
+        
+        ConstIndexArray faces_around_vert = firstLevel.GetVertexFaces(vert_indices_of_face[vert_i]);
+        for (IndexType face_j = 0; face_j < faces_around_vert.size(); ++face_j) {
+                IndexType face_index = faces_around_vert[face_j];
+                ConstIndexArray vertices_of_face_j = firstLevel.GetFaceVertices(face_index);
+                if (vertices_of_face_j.size() != 4) is_irregular_patch = true;
+        }
     }
 
     // create 2-ring neighbourhoods
     if (is_irregular_patch) {
-        // KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: irregular patch ...") << std::endl;
+        KRATOS_INFO("GetSecondRingVerticesAndFaces :: irregular patch ...") << std::endl;
 
         for (IndexType vert_i = 0; vert_i < vert_indices_of_face.size(); ++vert_i) {
             IndexType vert_index = vert_indices_of_face[vert_i];
@@ -311,6 +328,7 @@ bool GetSecondRingVerticesAndFaces(
         }
     }
     else {
+        KRATOS_INFO("GetSecondRingVerticesAndFaces :: regular patch ...") << std::endl;
         // prepare vector structure for regular patch
         SecondRingVertices.resize(16);
 
@@ -361,7 +379,8 @@ bool GetSecondRingVerticesAndFaces(
             // KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: SecondRingVertices ") << SecondRingVertices << std::endl;
         }
     }
-    // KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: Reached end of function") << std::endl;
+    KRATOS_INFO("SecondRingVertices") << SecondRingVertices << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: GetSecondRingVerticesAndFaces :: Reached end of function") << std::endl;
 
     return is_irregular_patch;
 }
@@ -431,7 +450,7 @@ bool IsProjectionInsideCondition(NodeType& rPoint, const array_1d<double, 3>& rU
     return is_inside;
 }
 
-std::vector<fcpw::Vector3i> TriangulateMesh(ModelPart::MeshType& rInputMesh, std::map<IndexType, IndexType>& MapTriaIndicesToConditions)
+std::vector<fcpw::Vector3i> TriangulateMesh(ModelPart::MeshType& rInputMesh, std::map<IndexType, IndexType>& MapTriaIndicesToConditions, std::map<IndexType, IndexType>& MapNodeIdsToIndices)
 {
     // KRATOS_INFO("CATMULL_CLARK :: FindNearestConditionOnMesh :: TriangulateMesh") << std::endl;
 
@@ -451,8 +470,8 @@ std::vector<fcpw::Vector3i> TriangulateMesh(ModelPart::MeshType& rInputMesh, std
 
             fcpw::Vector3i indices_1, indices_2;
 
-            indices_1 << geom[0].GetId() - 1, geom[1].GetId() - 1, geom[2].GetId() - 1;
-            indices_2 << geom[0].GetId() - 1, geom[2].GetId() - 1, geom[3].GetId() - 1;
+            indices_1 << MapNodeIdsToIndices[ geom[0].GetId() ], MapNodeIdsToIndices[ geom[1].GetId() ], MapNodeIdsToIndices[ geom[2].GetId() ];
+            indices_2 << MapNodeIdsToIndices[ geom[0].GetId() ], MapNodeIdsToIndices[ geom[2].GetId() ], MapNodeIdsToIndices[ geom[3].GetId() ];
 
             triangle_indices.push_back(indices_1);
             triangle_indices.push_back(indices_2);
@@ -477,15 +496,19 @@ IndexType FindNearestConditionOnMesh(NodeType& rFeNode, ModelPart::MeshType& rSe
     fcpw::Scene<3> scene;
 
     std::vector<fcpw::Vector3> mesh_nodes;
+    IndexType node_index = 0;
+    std::map<IndexType, IndexType> map_node_id_to_index;
     for (auto node_it = rSearchMesh.NodesBegin(); node_it != rSearchMesh.NodesEnd(); ++node_it) {
         NodeType& node = *node_it;
         fcpw::Vector3 new_node;
         new_node << node.Coordinates()[0], node.Coordinates()[1], node.Coordinates()[2];
         mesh_nodes.push_back(new_node);
+        map_node_id_to_index[node.GetId()] = node_index;
+        node_index += 1;
     }
 
     std::map<IndexType, IndexType> map_tria_index_to_condition_id;
-    const std::vector<fcpw::Vector3i>& triangle_indices = TriangulateMesh(rSearchMesh, map_tria_index_to_condition_id);
+    const std::vector<fcpw::Vector3i>& triangle_indices = TriangulateMesh(rSearchMesh, map_tria_index_to_condition_id, map_node_id_to_index);
 
     // load positions and indices of a single triangle mesh
     scene.setObjectCount(1);
@@ -506,6 +529,7 @@ IndexType FindNearestConditionOnMesh(NodeType& rFeNode, ModelPart::MeshType& rSe
     // access distance and closest point via interaction.d and interaction.p (resp.)
     if (found) {
         int fcpw_tria_index = interaction.primitiveIndex;
+        KRATOS_INFO("CATMULL_CLARK :: FindNearestConditionOnMesh :: Nearest Condition is ") << map_tria_index_to_condition_id[fcpw_tria_index] << std::endl;
         return map_tria_index_to_condition_id[fcpw_tria_index];
     }
     else KRATOS_ERROR << "FindNearestConditionOnMesh :: Could not determine nearest point on tria surface!" << std::endl;
@@ -568,7 +592,8 @@ IndexType NodeLiesInFace(NodeType& rFeNode, ModelPart::MeshType& rSearchMesh, Po
     // KRATOS_INFO("                                  with distance ") << distance << std::endl;
     // KRATOS_INFO("CATMULL_CLARK :: NodeLiesInFace : nearest control node coords ") << p_nearest_control_node->Coordinates() << std::endl;
 
-    OpenSubdiv::Far::TopologyRefiner * refiner = GenerateOpenSubdivRefiner(rSearchMesh, false);
+    std::map<IndexType, std::map<IndexType, IndexType>> map_vert_to_node, map_face_to_cond;
+    OpenSubdiv::Far::TopologyRefiner * refiner = GenerateOpenSubdivRefiner(rSearchMesh, map_vert_to_node, map_face_to_cond, false);
     OpenSubdiv::Far::TopologyLevel const & firstLevel = refiner->GetLevel(0);
     IndexType nearest_control_node_osd_index = p_nearest_control_node->GetId() - 1;
     ConstIndexArray vertex_faces = firstLevel.GetVertexFaces(nearest_control_node_osd_index);
@@ -792,6 +817,8 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
     ModelPart& rInputModelPart, 
     std::map<IndexType, Vector>& RefiningWeights,
     std::map<IndexType, Point>& rLimitIntersectionPointsMap,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_vert_to_node,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_face_to_cond,
     OpenSubdiv::Far::TopologyRefiner * refiner = nullptr
     )
 {
@@ -802,10 +829,10 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
     std::vector<IndexType> second_ring_vertices;    // contains osd ids
     std::vector<IndexType> second_ring_faces;       // contains osd ids
     bool patch_is_irregular = GetSecondRingVerticesAndFaces(KratosFaceId, rInputMesh, second_ring_vertices, second_ring_faces);
-    // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: second_ring_vertices ") << second_ring_vertices << std::endl;
-    // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: second_ring_faces ") << second_ring_faces << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: second_ring_vertices ") << second_ring_vertices << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: second_ring_faces ") << second_ring_faces << std::endl;
 
-    SizeType max_refining_depth = 5;
+    SizeType max_refining_depth = 4;
     SizeType current_refining_depth = 1;    // we start at first refinement of control polygon
     Model patch_model;
     Model refined_patch_model;
@@ -838,9 +865,9 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
 
         // CreateModelPartFor2RingPatch(rInputMesh, r_patch_mp, second_ring_vertices, second_ring_faces);   // for now we refine full geometry to get local refinement, can be improved by working on 2-ring patch only
         
-        RefineGeometry(rInputModelPart.GetMesh(), r_refined_patch_mp, false, current_refining_depth, refiner);
+        RefineGeometry(rInputModelPart.GetMesh(), r_refined_patch_mp, r_global_map_vert_to_node, r_global_map_face_to_cond, false, current_refining_depth, refiner);
         // RefineGeometry(r_patch_mp.GetMesh(), r_refined_patch_mp, false, current_refining_depth, refiner);
-        CreateFirstRingNeighbourhoodsOfNodes(r_refined_patch_mp.GetMesh(), first_ring_vert_map, refiner);
+        CreateFirstRingNeighbourhoodsOfNodes(r_refined_patch_mp.GetMesh(), first_ring_vert_map, r_global_map_vert_to_node, r_global_map_face_to_cond, refiner);
         // create modelpart whose nodes lie on the limit surface
         // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: DeepCopyModelPart of modelpart with name ") << r_refined_patch_mp.Name() << std::endl;
         ModelPart& r_refined_limit_mp = AuxiliarModelPartUtilities(r_refined_patch_mp).DeepCopyModelPart(r_refined_patch_mp.Name()+"_limit_"+std::to_string(current_refining_depth), &refined_limit_model);
@@ -867,10 +894,11 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
         KratosFaceId = FindNearestConditionOnMesh(rFeNode, r_refined_limit_mp.GetMesh());
         // rLimitIntersectionPointsMap[rFeNode.GetId()] = intersection_point;
         // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: New KratosFaceId in refined mesh ") << KratosFaceId << std::endl;
+        std::map<IndexType, IndexType> r_map_face_to_cond = r_global_map_face_to_cond[current_refining_depth];
 
         // create 2-ring vertex neighbourhoods around the face the fe-node lies in
         patch_is_irregular = GetSecondRingVerticesAndFaces(KratosFaceId, r_refined_patch_mp.GetMesh(), second_ring_vertices, second_ring_faces);
-        // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: New patch for KratosFaceId: patch_is_irregular ") << patch_is_irregular << std::endl;
+        KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: New patch for KratosFaceId: patch_is_irregular ") << patch_is_irregular << std::endl;
         if (!patch_is_irregular) {
             std::string filename = r_refined_patch_mp.Name() + std::to_string(rFeNode.GetId());
             OutputModelPartToVtk(r_refined_patch_mp, filename);
@@ -884,7 +912,7 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
             }
 
             // get weights from refining: meaning the influence of the base control points on the refined vertices of the regular patch
-            IndexType osd_face_index = KratosFaceId - 1;
+            IndexType osd_face_index = GetOSDIndexFromKratosID(KratosFaceId, r_map_face_to_cond);
 
             // if (!refiner) {
             //     refiner = GenerateOpenSubdivRefiner(r_patch_mp.GetMesh(), false);
@@ -897,7 +925,7 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
                 osd_face_index = lastRefLevel.GetFaceParentFace(osd_face_index);
             }
             // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: Parent osd_face_index on control polygon ") << osd_face_index << std::endl;
-            IndexType kratos_base_face_index = osd_face_index + 1;
+            IndexType kratos_base_face_index = r_map_face_to_cond[osd_face_index];
 
             std::vector<IndexType> base_second_ring_vertices;    // contains osd ids
             std::vector<IndexType> base_second_ring_faces;       // contains osd ids
@@ -940,6 +968,8 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
 void CreateFirstRingNeighbourhoodsOfConditions(
     ModelPart::MeshType& rInputMesh,
     std::map<IndexType, std::vector<IndexType>>& rOutputMap,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_verts,
+    std::map<IndexType, std::map<IndexType, IndexType>>& r_global_map_faces,
     OpenSubdiv::Far::TopologyRefiner * refiner = nullptr
     )
 {
@@ -961,14 +991,12 @@ void CreateFirstRingNeighbourhoodsOfConditions(
     */
     KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfConditions ") << std::endl;
 
-    // GetRegularPatches(rInputMesh, rFirstRingElementNeighbourhoods, false, 1);
-    // return ;
     SizeType ref_level = 0;
 
     // if no refiner passed, generate new one based on rInputMesh
     if (!refiner) {
         /// generate opensubdiv refiner
-        refiner = GenerateOpenSubdivRefiner(rInputMesh, false);
+        refiner = GenerateOpenSubdivRefiner(rInputMesh, r_global_map_verts, r_global_map_faces, false);
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfConditions :: creating new refiner ") << std::endl;
     }
     else {
@@ -987,9 +1015,13 @@ void CreateFirstRingNeighbourhoodsOfConditions(
     int regular_patches = 0;
     int irregular_patches = 0;
 
+    std::map<IndexType, IndexType> map_verts = r_global_map_verts[ref_level];
+    std::map<IndexType, IndexType> map_faces = r_global_map_faces[ref_level];
+
     for (IndexType face_i = 0; face_i < nfaces; ++face_i) {
         std::vector<IndexType> regular_patch_indices(16);
-        IndexType condition_index = face_i + 1;
+
+        IndexType condition_id = map_faces[face_i];
         bool irregular_patch = false;
         
         SizeType num_verts = refLevel.GetFaceVertices(face_i).size();
@@ -1009,7 +1041,7 @@ void CreateFirstRingNeighbourhoodsOfConditions(
         }
 
         if(irregular_patch) {
-            rOutputMap[condition_index] = {};
+            rOutputMap[condition_id] = {};
             irregular_patches += 1;
             continue;
         }
@@ -1029,55 +1061,49 @@ void CreateFirstRingNeighbourhoodsOfConditions(
                 regular_patch_indices[patch_indices[i]] = reordered_vert_indices[i];
             }
         }
-        rOutputMap[condition_index] = regular_patch_indices;
+        rOutputMap[condition_id] = regular_patch_indices;
         regular_patches += 1;
     }
+    KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfConditions reached end of function") << std::endl;
 }
 
 // not needed?
-double ComputeAreaOfTriangle(NodeTypePointer pNode0, NodeType& rNode1, NodeType& rNode2) 
-{
-    const array_1d<double, 3>& P = pNode0->Coordinates();
-    const array_1d<double, 3>& A = rNode1.Coordinates();
-    const array_1d<double, 3>& B = rNode2.Coordinates();
+// double ComputeAreaOfTriangle(NodeTypePointer pNode0, NodeType& rNode1, NodeType& rNode2) 
+// {
+//     const array_1d<double, 3>& P = pNode0->Coordinates();
+//     const array_1d<double, 3>& A = rNode1.Coordinates();
+//     const array_1d<double, 3>& B = rNode2.Coordinates();
 
-    const array_1d<double, 3> PA = A - P;
-    const array_1d<double, 3> PB = B - P;
+//     const array_1d<double, 3> PA = A - P;
+//     const array_1d<double, 3> PB = B - P;
 
-    array_1d<double, 3> cross_product;
-    MathUtils<double>::CrossProduct(cross_product, PA, PB);
-    double cp0 = cross_product[0];
-    double cp1 = cross_product[1];
-    double cp2 = cross_product[2];
+//     array_1d<double, 3> cross_product;
+//     MathUtils<double>::CrossProduct(cross_product, PA, PB);
+//     double cp0 = cross_product[0];
+//     double cp1 = cross_product[1];
+//     double cp2 = cross_product[2];
     
-    return 0.5 * sqrt(cp0*cp0 + cp1*cp1 + cp2*cp2);
-};
+//     return 0.5 * sqrt(cp0*cp0 + cp1*cp1 + cp2*cp2);
+// };
 
 // not needed?
-bool CheckIfRegularPatch(std::vector<IndexType> Patch, ModelPart::MeshType& rInputMesh) 
-{
-    bool is_regular = true;
-    OpenSubdiv::Far::TopologyRefiner* refiner = GenerateOpenSubdivRefiner(rInputMesh, false);
-    OpenSubdiv::Far::TopologyLevel const & firstLevel = refiner->GetLevel(0);
+// bool CheckIfRegularPatch(std::vector<IndexType> Patch, ModelPart::MeshType& rInputMesh) 
+// {
+//     bool is_regular = true;
+//     std::map<IndexType, std::map<IndexType, IndexType>> map_vert, map_face;
+//     OpenSubdiv::Far::TopologyRefiner* refiner = GenerateOpenSubdivRefiner(rInputMesh, map_vert, map_face, false);
+//     OpenSubdiv::Far::TopologyLevel const & firstLevel = refiner->GetLevel(0);
     
-    SizeType nverts = firstLevel.GetNumVertices();
-    for (IndexType i = 0; i < nverts; ++i) {
-        is_regular = firstLevel.IsVertexValenceRegular(i);
-    }
+//     SizeType nverts = firstLevel.GetNumVertices();
+//     for (IndexType i = 0; i < nverts; ++i) {
+//         is_regular = firstLevel.IsVertexValenceRegular(i);
+//     }
 
-    return is_regular;
-};
+//     return is_regular;
+// };
 
 // }   // namespace SDSUtils
 
-// void CatmullClarkSDS::RefineForQuadMesh(
-//     ModelPart& rSubdividedControlPointsModelPart,
-// )
-// {
-//     RefineGeometry(rSubdividedControlPointsModelPart.GetMesh(), )
-//     mRefiner->
-    
-// }
 
 void CatmullClarkSDS::CreateMappingMatrix(
     std::vector<double>& rOutputData,
@@ -1095,21 +1121,33 @@ void CatmullClarkSDS::CreateMappingMatrix(
     // Do one subdivision step to work only on quads, bcs for now the implementation is hardcoded for quads
     // ModelPart::MeshType r_first_subd_for_quads;
 
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: original number of Control Nodes ") << rControlPolygon.NumberOfNodes() << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: original number of Control Conds ") << rControlPolygon.NumberOfConditions() << std::endl;
+
+
     Model model;
     Model model_limit;
     ModelPart& r_first_subd_for_quads = model.CreateModelPart("first_subd", 3);
     r_first_subd_for_quads.CreateNewProperties(0);
 
+    // the maps store for every refinement level the relation between Kratos IDs and OSD indices
+    // structure is the following:
+    // map<level, map<KratosID, OSDIndex>>
+    std::map<IndexType, std::map<IndexType, IndexType>> global_map_osd_vert_to_kratos_node_ids;
+    std::map<IndexType, std::map<IndexType, IndexType>> global_map_osd_face_to_kratos_cond_ids;
     /// generate opensubdiv refiner
-    OpenSubdiv::Far::TopologyRefiner * refiner_main = GenerateOpenSubdivRefiner(rControlPolygon.GetMesh(), FixFreeEdges);
+    OpenSubdiv::Far::TopologyRefiner * refiner_main = GenerateOpenSubdivRefiner(rControlPolygon.GetMesh(), global_map_osd_vert_to_kratos_node_ids, global_map_osd_face_to_kratos_cond_ids, FixFreeEdges);
 
-    RefineGeometry(rControlPolygon.GetMesh(), r_first_subd_for_quads, FixFreeEdges, 1, refiner_main);
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: refiner_main->GetNumVerticesTotal() ") << refiner_main->GetNumVerticesTotal() << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: refiner_main->GetNumFacesTotal() ") << refiner_main->GetNumFacesTotal() << std::endl;
+
+    RefineGeometry(rControlPolygon.GetMesh(), r_first_subd_for_quads, global_map_osd_vert_to_kratos_node_ids, global_map_osd_face_to_kratos_cond_ids, FixFreeEdges, 1, refiner_main);
 
     // create first ring neighbourhood of nodes of control polygon
-    CreateFirstRingNeighbourhoodsOfNodes(r_first_subd_for_quads.GetMesh(), mFirstRingNodes, refiner_main);  // enables pushing the center node to the limit
+    CreateFirstRingNeighbourhoodsOfNodes(r_first_subd_for_quads.GetMesh(), mFirstRingNodes, global_map_osd_vert_to_kratos_node_ids, global_map_osd_face_to_kratos_cond_ids, refiner_main);  // enables pushing the center node to the limit
     // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: after mFirstRingNodes.size ") << mFirstRingNodes.size() << std::endl;
     // create first ring neighbourhood of elements of control polygon
-    CreateFirstRingNeighbourhoodsOfConditions(r_first_subd_for_quads.GetMesh(), mFirstRingFaces, refiner_main);
+    CreateFirstRingNeighbourhoodsOfConditions(r_first_subd_for_quads.GetMesh(), mFirstRingFaces, global_map_osd_vert_to_kratos_node_ids, global_map_osd_face_to_kratos_cond_ids, refiner_main);
     // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: mFirstRingFaces.size ") << mFirstRingFaces.size() << std::endl;
     
     // create modelpart whose nodes lie on the limit surface
@@ -1117,6 +1155,26 @@ void CatmullClarkSDS::CreateMappingMatrix(
     ModelPart& r_points_on_limit = AuxiliarModelPartUtilities(r_first_subd_for_quads).DeepCopyModelPart(r_first_subd_for_quads.Name()+"_limit", &model_limit);
 
     PushNodesToLimit(r_first_subd_for_quads, r_points_on_limit, mFirstRingNodes);
+
+    /// for debugging purposes start //
+    std::map<IndexType, std::vector<IndexType>> base_cp_first_ring_neighb;
+    std::map<IndexType, std::map<IndexType, IndexType>> vert_map, face_map;
+    CreateFirstRingNeighbourhoodsOfConditions(rControlPolygon.GetMesh(), base_cp_first_ring_neighb, vert_map, face_map);
+
+    // loop over all nodes and check their read ids
+    // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rControlPolygon Node IDs : ") << std::endl;
+    // IndexType index = 0;
+    // for(auto node_it = rControlPolygon.NodesBegin(); node_it != rControlPolygon.NodesEnd(); ++node_it) {
+    //     NodeType& r_node = *node_it;
+    //     IndexType r_node_id = r_node.GetId();
+    //     KRATOS_INFO("#") << index << " ~ " << r_node_id << " ";
+    //     index += 1;
+    // }
+    // KRATOS_INFO(".") << std::endl;
+    // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rControlPolygon Node IDs end") << std::endl;
+    // KRATOS_ERROR << "Error out for debug" << std::endl;
+    /// for debugging purposes end //
+
 
     // // initialize nearest node search
     // NodeVector control_nodes_on_limit;
@@ -1170,7 +1228,8 @@ void CatmullClarkSDS::CreateMappingMatrix(
                     patch_ids = mFirstRingFaces[kratos_face_id];
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: patch_ids.size() ") << patch_ids.size() << std::endl;
                     for (auto node_it = patch_ids.begin(); node_it != patch_ids.end(); ++node_it) {
-                        IndexType kratos_node_id = *node_it + 1;
+                        IndexType osd_vertex_index = *node_it;
+                        IndexType kratos_node_id = global_map_osd_vert_to_kratos_node_ids[1][osd_vertex_index];
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: *node_it ") << *node_it << std::endl;
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: kratos_node_id ") << kratos_node_id << std::endl;
                         patch.push_back(r_first_subd_for_quads.pGetNode(kratos_node_id));
@@ -1191,6 +1250,8 @@ void CatmullClarkSDS::CreateMappingMatrix(
                             rControlPolygon, 
                             refining_weights_map, 
                             limit_intersection_points_map, 
+                            global_map_osd_vert_to_kratos_node_ids, 
+                            global_map_osd_face_to_kratos_cond_ids,
                             refiner_main
                         );
                             // r_first_subd_for_quads, 
@@ -1201,17 +1262,26 @@ void CatmullClarkSDS::CreateMappingMatrix(
                     }
                     else {
                         // get refining weights
-                        IndexType osd_face_index = kratos_face_id - 1;
+                        IndexType osd_face_index = global_map_osd_vert_to_kratos_node_ids[1][kratos_face_id];
                         OpenSubdiv::Far::TopologyLevel const & lastRefLevel = refiner_main->GetLevel(1);
                         osd_face_index = lastRefLevel.GetFaceParentFace(osd_face_index);
                         IndexType kratos_base_face_index = osd_face_index + 1;
                         std::vector<IndexType> base_second_ring_vertices;    // contains osd ids
                         std::vector<IndexType> base_second_ring_faces;       // contains osd ids
-                        GetSecondRingVerticesAndFaces(kratos_base_face_index, rControlPolygon.GetMesh(), base_second_ring_vertices, base_second_ring_faces);
+                        bool test_irregular = GetSecondRingVerticesAndFaces(kratos_base_face_index, rControlPolygon.GetMesh(), base_second_ring_vertices, base_second_ring_faces);
+                        
+                        KRATOS_INFO("test_irregular") << test_irregular << std::endl;
+                        KRATOS_INFO("base_second_ring_vertices") << base_second_ring_vertices << std::endl;
+                        KRATOS_INFO("base_second_ring_faces") << base_second_ring_faces << std::endl;
+                        // KRATOS_INFO("global_map_osd_vert_to_kratos_node_ids[0]") << std::endl;
+                        // for (auto it = global_map_osd_vert_to_kratos_node_ids[0].begin(); it != global_map_osd_vert_to_kratos_node_ids[0].end(); ++it) {
+                        //     KRATOS_INFO(" / osd vert idx") << it->first << " kratos node id: " << it->second;
+                        // }
+
                         for(auto v_it = base_second_ring_vertices.begin(); v_it != base_second_ring_vertices.end(); ++v_it) {
                             Vector influence_weights_of_base_on_refined(16);
                             IndexType osd_v_id = *v_it;
-                            IndexType kratos_v_id = osd_v_id + 1;
+                            IndexType kratos_v_id = global_map_osd_vert_to_kratos_node_ids[0][osd_v_id];
                             
                             std::vector<double> weight_distr_of_cp_i = GetUnitWeightDistributionForNode(osd_v_id, refiner_main);
 
@@ -1318,13 +1388,13 @@ void CatmullClarkSDS::CreateMappingMatrix(
                 }
                 else {
                     for (auto ctrl_pt_it : refining_weights_map) {
-                        // KRATOS_INFO(" ") << ctrl_pt_it.first << " : " << ctrl_pt_it.second << std::endl;
+                        KRATOS_INFO(" ") << ctrl_pt_it.first << " : " << ctrl_pt_it.second << std::endl;
 
                         IndexType ctrl_node_id = ctrl_pt_it.first;
-                        // KRATOS_INFO(" row_index ") << row_index << std::endl;
-                        // KRATOS_INFO(" control_node_id ") << ctrl_node_id << std::endl;
-                        // KRATOS_INFO(" entry index = row_index + control_node_id-1 ") << row_index + ctrl_node_id-1 << std::endl;
-                        // KRATOS_INFO(" inner_prod(r_weights, ctrl_pt_it.second) ") << inner_prod(r_weights, ctrl_pt_it.second) << std::endl;
+                        KRATOS_INFO(" row_index ") << row_index << std::endl;
+                        KRATOS_INFO(" control_node_id ") << ctrl_node_id << std::endl;
+                        KRATOS_INFO(" entry index = row_index + control_node_id-1 ") << row_index + ctrl_node_id-1 << std::endl;
+                        KRATOS_INFO(" inner_prod(r_weights, ctrl_pt_it.second) ") << inner_prod(r_weights, ctrl_pt_it.second) << std::endl;
                         // output should have data structure: matrix dim = [num_fe_nodes x num_ctrl_nodes]
                         // thus every row takes num_ctrl_pts entries
                         // since we do outer loop over fe nodes, we need to set entries for the column here
