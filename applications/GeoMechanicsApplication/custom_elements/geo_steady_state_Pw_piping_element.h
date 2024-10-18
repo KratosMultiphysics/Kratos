@@ -24,31 +24,31 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SteadyStatePwPipingElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoSteadyStatePwPipingElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SteadyStatePwPipingElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoSteadyStatePwPipingElement);
 
-    explicit SteadyStatePwPipingElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit GeoSteadyStatePwPipingElement(IndexType NewId = 0) : Element(NewId) {}
 
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
     }
 
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<SteadyStatePwPipingElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<SteadyStatePwPipingElement>(NewId, pGeom, pProperties);
+        return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, pGeom, pProperties);
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override

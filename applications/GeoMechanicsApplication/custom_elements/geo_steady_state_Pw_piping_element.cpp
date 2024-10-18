@@ -15,6 +15,6 @@
 namespace Kratos
 {
 
-template class SteadyStatePwPipingElement<2, 2>;
+template class GeoSteadyStatePwPipingElement<2, 2>;
 
 } // Namespace Kratos
