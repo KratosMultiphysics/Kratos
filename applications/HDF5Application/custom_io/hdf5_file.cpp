@@ -63,7 +63,7 @@ namespace HDF5
 namespace Internals
 {
 
-bool IsPath(const std::string& rPath)
+KRATOS_API(HDF5_APPLICATION) bool IsPath(const std::string& rPath)
 {
     return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
 }
