@@ -67,14 +67,22 @@
                     "Structure.Parts_Shell_structure"
                 ],
                 "filter_settings": {
-                    "filter_type"  : "implicit_filter",
+                    "filter_type": "implicit_filter",
                     "filter_radius": 0.2
                 },
                 "output_all_fields": false,
                 "physical_thicknesses": [
                     0.1,
                     0.2
-                ]
+                ],
+                "thickness_projection_settings": {
+                    "type": "adaptive_sigmoidal_projection",
+                    "initial_value": 5,
+                    "max_value": 30,
+                    "increase_fac": 1.05,
+                    "update_period": 50,
+                    "penalty_factor": 1
+                }
             }
         }
     ],
@@ -122,7 +130,10 @@
                         "output_file_name": "summary.csv",
                         "write_kratos_version": false,
                         "write_time_stamp": false,
-                        "list_of_output_components": ["response_function.mass", "response_function.strain_energy"],
+                        "list_of_output_components": [
+                            "response_function.mass",
+                            "response_function.strain_energy"
+                        ],
                         "format_info": {
                             "int_length": 7,
                             "float_precision": 6,
