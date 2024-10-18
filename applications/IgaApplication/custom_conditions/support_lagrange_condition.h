@@ -31,7 +31,7 @@ namespace Kratos
     *
     *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
     */
-    class SupportLagrangeCondition
+    class KRATOS_API(IGA_APPLICATION) SupportLagrangeCondition
         : public Condition
     {
     public:
