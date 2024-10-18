@@ -12,7 +12,6 @@
 
 #pragma once
 
-#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -78,11 +77,10 @@ public:
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients);
+        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix);
 
         const auto fluid_body_vector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
-
-        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix);
         AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
 
         KRATOS_CATCH("")
@@ -116,8 +114,6 @@ public:
     }
 
 private:
-    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
-
     void CheckDomainSize() const
     {
         constexpr auto min_domain_size = 1.0e-15;
@@ -149,6 +145,7 @@ private:
         CheckProperty(DENSITY_WATER);
         CheckProperty(POROSITY);
         CheckProperty(DYNAMIC_VISCOSITY);
+        CheckProperty(PIPE_HEIGHT);
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
@@ -191,10 +188,10 @@ private:
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
-        // or remove use of CROSS_AREA here ( all governed by PIPE_HEIGHT
+        // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
+                           return rIntegrationPoint.Weight() * rDetJ;
                        });
         return result;
     }
@@ -220,11 +217,9 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            const double RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
-                RelativePermeability, rIntegrationCoefficients[integration_point_index]);
+                1.0, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
     }
@@ -242,33 +237,17 @@ private:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        if (const std::size_t number_integration_points =
-                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-            mRetentionLawVector.size() != number_integration_points) {
-            mRetentionLawVector.resize(number_integration_points);
-        }
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
-            mRetentionLawVector[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(),
-                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
-        }
+        // nothing to do?, no retention law
     }
 
     void InitializeSolutionStep(const ProcessInfo&) override
     {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (auto retention_law : mRetentionLawVector) {
-            retention_law->InitializeSolutionStep(RetentionParameters);
-        }
+        // nothing to do?, no retention law
     }
 
     void FinalizeSolutionStep(const ProcessInfo&) override
     {
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (auto retention_law : mRetentionLawVector) {
-            retention_law->FinalizeSolutionStep(RetentionParameters);
-        }
+        // nothing to do?, no retention law
     }
 
     array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,
@@ -308,10 +287,8 @@ private:
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
             const auto N         = Vector{row(rNContainer, integration_point_index)};
-            double     RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector +=
-                r_properties[DENSITY_WATER] * RelativePermeability *
+                r_properties[DENSITY_WATER] *
                 prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
                 rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
@@ -328,13 +305,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("RetentionlawVector", mRetentionLawVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        //rSerializer.load("RetentionLawVector", mRetentionLawVector);
     }
 };
 
