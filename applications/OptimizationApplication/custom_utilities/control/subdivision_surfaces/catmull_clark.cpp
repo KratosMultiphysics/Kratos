@@ -156,15 +156,18 @@ void CreateFirstRingNeighbourhoodsOfNodes(
     // initializes the 1-ring node neighbourhoods for every node in the input mesh
     
     // loop over all nodes to find neighbourhood of every node
-    IndexType vert_index = 0;
-    for (auto node_it = rInputMesh.NodesBegin(); node_it != rInputMesh.NodesEnd(); ++node_it) {
+    auto t1_v = high_resolution_clock::now();
+    const auto nodes_begin = rInputMesh.NodesBegin();
+#pragma omp parallel for
+    for (IndexType vert_index = 0; vert_index < num_vertices; ++vert_index) {
         // find control node in mesh rInputMesh
-        const NodeType& r_center_node = *node_it;
-        IndexType kratos_center_node_id = r_center_node.GetId();
+        auto node_it = nodes_begin + vert_index;
+        IndexType kratos_center_node_id = node_it->GetId();
         IndexType osd_center_vert_idx = GetOSDIndexFromKratosID(kratos_center_node_id, map_verts);
         // IndexType osd_center_vertex_index = r_center_node_id - 1;
         // skip free edge nodes since they need to be evaluated seperately
         if (refLevel.IsVertexBoundary(osd_center_vert_idx)) {
+            #pragma omp critical
             rOutputMap[kratos_center_node_id] = {};
             continue;
         }
@@ -200,9 +203,14 @@ void CreateFirstRingNeighbourhoodsOfNodes(
             }
         }
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: temp_neighbourhood.size() ") << temp_neighbourhood.size() << std::endl;
+        #pragma omp critical
         rOutputMap[kratos_center_node_id] = temp_neighbourhood;
         // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: rOutputMap[r_center_node_id] ") << rOutputMap[r_center_node_id] << std::endl;
     }
+    auto t2_v = high_resolution_clock::now();
+    KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: number of vertices ") << num_vertices << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: time needed for loop ") << duration_cast<seconds>(t2_v-t1_v).count() << std::endl;
+
     // KRATOS_INFO("CATMULL_CLARK :: CreateFirstRingNeighbourhoodsOfNodes :: rOutputMap.size() ") << rOutputMap.size() << std::endl;
     // for(const auto& elem : rOutputMap)
     // {
