@@ -56,6 +56,7 @@ add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/OptimizationApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"

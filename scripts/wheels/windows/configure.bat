@@ -46,6 +46,7 @@ CALL :add_app %KRATOS_APP_DIR%\RomApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShallowWaterApplication;
 CALL :add_app %KRATOS_APP_DIR%\OptimizationApplication;
 CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\SystemIdentificationApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
