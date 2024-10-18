@@ -144,7 +144,6 @@ private:
         // typical material parameters check, this should be in the check of the constitutive law.
         // possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
         CheckProperty(DENSITY_WATER);
-        CheckProperty(POROSITY);
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(PIPE_HEIGHT);
     }
