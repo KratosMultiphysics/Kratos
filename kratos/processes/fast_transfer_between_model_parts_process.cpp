@@ -280,8 +280,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
-                NodeType::Pointer p_new_node = it_node->Clone();
-                p_new_node->SetId(total_num_nodes + i + 1);
+                NodeType::Pointer p_new_node = it_node->Clone(total_num_nodes + i + 1);
                 nodes_buffer_vector.insert(nodes_buffer_vector.begin(), p_new_node);
             }
         }
@@ -384,8 +383,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
-                    NodeType::Pointer p_new_node = it_node->Clone();
-                    p_new_node->SetId(total_num_nodes + i + 1);
+                    NodeType::Pointer p_new_node = it_node->Clone(total_num_nodes + i + 1);
                     (nodes_buffer_vector).insert(nodes_buffer_vector.begin(), p_new_node);
                 }
             }
