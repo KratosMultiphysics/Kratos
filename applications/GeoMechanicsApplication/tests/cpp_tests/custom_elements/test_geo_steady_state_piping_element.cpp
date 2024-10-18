@@ -134,4 +134,28 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(eoSteadyStatePwPipingElementReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+
+    Model model;
+    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model, p_properties);
+
+    unsigned int i = 0;
+    for (const auto& node : element.GetGeometry()) {
+        ++i;
+        node.pGetDof(WATER_PRESSURE)->SetEquationId(i);
+    }
+
+    // Act
+    const auto                    dummy_process_info = ProcessInfo{};
+    Element::EquationIdVectorType equation_id_vector;
+    element.EquationIdVector(equation_id_vector, dummy_process_info);
+
+    // Assert
+    const std::vector<int> expected_ids = {1, 2};
+    KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
+}
+
 } // namespace Kratos::Testing
