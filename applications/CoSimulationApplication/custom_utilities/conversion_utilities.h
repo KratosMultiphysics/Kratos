@@ -59,10 +59,18 @@ public:
     ///@name Operations
     ///@{
 
+    template<class TDataType>
     static void ConvertElementalDataToNodalData(
         ModelPart& rModelPart,
-        const Variable<array_1d<double,3> >& rElementalVariable,
-        const Variable<array_1d<double,3> >& rNodalVariable );
+        const Variable<TDataType>& rElementalVariable,
+        const Variable<TDataType>& rNodalVariable );
+
+    template<class TDataType>
+    static void ConvertNodalDataToElementalData(
+        ModelPart& rModelPart,
+        const Variable<TDataType>& rElementalVariable,
+        const Variable<TDataType>& rNodalVariable );
+
 
     ///@}
 
