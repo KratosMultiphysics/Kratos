@@ -620,39 +620,52 @@ std::vector<double> GetLimitWeights(SizeType NeighbourhoodSize)
     // where the spectral analysis of the local subdivision matrix is used to 
     // determine the weights in the limit of every point in the neighbourhood.
     // This enables to compute every point on the limit, even irregular points.
-    if (NeighbourhoodSize == 7)
+    if (NeighbourhoodSize == 7)     // valence 3
         {
             return {0.375, 1.0/6.0, 1.0/24.0, 1.0/6.0, 1.0/24.0, 1.0/6.0, 1.0/24.0};
         }
-        else if (NeighbourhoodSize == 9)    // regular point for Catmull-Clark
+        else if (NeighbourhoodSize == 9)    // valence 4, regular point for Catmull-Clark
         {
             return {4.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/9.0, 1.0/36.0, 1.0/9.0, 1.0/36.0, 1.0/9.0, 1.0/36.0};
         }
-        else if (NeighbourhoodSize == 11)
+        else if (NeighbourhoodSize == 11)   //valence 5
         {
             return {0.5, 0.08, 0.02, 0.08, 0.02, 0.08, 0.02, 0.08, 0.02, 0.08, 0.02};
         }
-        else if (NeighbourhoodSize == 12)
+        else if (NeighbourhoodSize == 13)   // valence 6
         {
             return {6.0/11.0, 2.0/33.0, 5.0/333.0, 2.0/33.0, 5.0/333.0, 2.0/33.0, 
             5.0/333.0, 2.0/33.0, 5.0/333.0, 2.0/33.0, 5.0/333.0, 2.0/33.0, 5.0/333.0};
         }
-        else {
-            std::vector<double> vec;
-            vec.clear();
-            return vec;
+        else if (NeighbourhoodSize == 15)   // valence 7
+        {
+            return {7.0/12.0, 0.04761905, 0.01190476, 0.04761905, 0.01190476, 0.04761905, 0.01190476, 
+            0.04761905, 0.01190476, 0.04761905, 0.01190476, 0.04761905, 0.01190476, 0.04761905, 0.01190476};
+        }
+        else if (NeighbourhoodSize == 17)   // valence 8
+        {
+            return {0.61538462, 0.03846154, 0.00961538, 0.03846154, 0.00961538, 0.03846154, 0.00961538, 0.03846154, 0.00961538, 
+            0.03846154, 0.00961538, 0.03846154, 0.00961538, 0.03846154, 0.00961538, 0.03846154, 0.00961538};
+        }
+        else if (NeighbourhoodSize == 19)   // valence 9
+        {
+            return {0.64285714, 0.03174603, 0.00793651, 0.03174603, 0.00793651, 0.03174603, 0.00793651, 0.03174603, 0.00793651, 
+            0.03174603, 0.00793651, 0.03174603, 0.00793651, 0.03174603, 0.00793651, 0.03174603, 0.00793651, 0.03174603, 0.00793651};
+        }        
+        else { // NeighbourhoodSize > 19 not implemented
+            KRATOS_ERROR << "Neighbourhood size for pushing nodes to limit is too large (>19 with valence >9). Limit map is not implemented." << std::endl;
         }
 }
 
 void PushNodesToLimit(ModelPart& rInputModelPart, ModelPart& rOutputModelPart, std::map<IndexType, std::vector<IndexType>> rFirstRingNodeNeighbourhoods)
 {   
     KRATOS_INFO("CATMULL_CLARK :: PushNodesToLimit") << std::endl;
-    // #pragma omp parallel
-    // for (SizeType i = 0; i < rInputModelPart.NumberOfNodes(); ++i)
-    for (auto node_it = rInputModelPart.NodesBegin(); node_it != rInputModelPart.NodesEnd(); ++node_it)
+    const auto nodes_begin = rInputModelPart.NodesBegin();
+#pragma omp parallel for
+    for (IndexType node_idx = 0; node_idx < rInputModelPart.NumberOfNodes(); ++node_idx)
     {
-        const NodeType& r_node_i = *node_it;
-        IndexType node_id = r_node_i.GetId();
+        auto node_it = nodes_begin + node_idx;
+        IndexType node_id = node_it->GetId();
         // KRATOS_INFO("CATMULL_CLARK :: PushNodesToLimit :: Current Kratos node ID") << node_id << std::endl;
         // const CoordinatesArrayType& r_coords = r_node_i.Coordinates();
 
@@ -675,10 +688,6 @@ void PushNodesToLimit(ModelPart& rInputModelPart, ModelPart& rOutputModelPart, s
             coords[1] += weight * neighbourhood_coords[k].operator()(1);
             coords[2] += weight * neighbourhood_coords[k].operator()(2);
         }
-        if (limit_weights.size() == 0) {
-            rOutputModelPart.RemoveNode(node_id);
-        }
-        else {
             rOutputModelPart.GetNode(node_id).Coordinates()[0] = coords[0];
             rOutputModelPart.GetNode(node_id).Coordinates()[1] = coords[1];
             rOutputModelPart.GetNode(node_id).Coordinates()[2] = coords[2];
