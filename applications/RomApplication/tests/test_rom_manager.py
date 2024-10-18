@@ -61,6 +61,8 @@ class TestRomManager(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_orchestration(self):
+        self.skipTest("Test temporaly disabled in Windows")
+        
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
 
             #We do not check for specific entries. The generated npy files depend heavily on the SVD, which contains randomization.

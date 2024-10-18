@@ -30,7 +30,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
     def setUp(self):
         self.setModelPart()
-        self.workFolder = "auxiliar_files_for_python_unittest/gid_io"
+        self.workFolder = "test_files/gid_io"
 
     def tearDown(self):
         with WorkFolderScope(self.workFolder):

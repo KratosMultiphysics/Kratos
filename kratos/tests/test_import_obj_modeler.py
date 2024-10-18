@@ -15,7 +15,7 @@ class TestImportOBJModeler(KratosUnittest.TestCase):
         """
         self.model = KratosMultiphysics.Model()
         self.settings = KratosMultiphysics.Parameters('''{
-            "input_filename"  : "auxiliar_files_for_python_unittest/obj_files/cube.obj",
+            "input_filename"  : "test_files/obj_files/cube.obj",
             "model_part_name" : "Main"
         }''')
 

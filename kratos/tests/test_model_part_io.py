@@ -27,7 +27,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.time"))
 
     def test_model_part_io_read_model_part(self):
-        input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")
+        input_mdpa = GetFilePath("test_files/mdpa_files/test_model_part_io_read")
 
         with self.subTest("string"):
             self.execute_test_model_part_io_read_model_part(str(input_mdpa))
@@ -44,7 +44,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -223,7 +223,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_read"), KratosMultiphysics.IO.MESH_ONLY)
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -303,14 +303,14 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
 
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(model_part)
 
         import filecmp
-        value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
+        value = filecmp.cmp(GetFilePath("test_files/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertTrue(value)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
@@ -318,14 +318,14 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
 
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write_mesh_only.out"), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
         model_part_io.WriteModelPart(model_part)
 
         import filecmp
-        value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
+        value = filecmp.cmp(GetFilePath("test_files/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
         self.assertTrue(value)
 
     @KratosUnittest.expectedFailure
@@ -333,7 +333,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model =  KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/wrong_properties_input"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/wrong_properties_input"))
 
         #an error shall be thrown while reading the input since the format is not correct
         try:
@@ -357,7 +357,7 @@ class TestModelPartIOMPI(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions"), model_part)
+        ReadModelPart(GetFilePath("test_files/mdpa_files/coarse_sphere_with_conditions"), model_part)
 
         def GetScalar(entity_id):
             return entity_id**2

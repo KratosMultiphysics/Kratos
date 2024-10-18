@@ -169,7 +169,7 @@ class TestObjIO(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         # Read a model part from an OBJ file
-        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube.obj")
+        obj_name = GetFilePath("test_files/obj_files/cube.obj")
         ReadModelPartFromOBJ(self.model_part, obj_name)
 
         # # Debug
@@ -196,7 +196,7 @@ class TestObjIO(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         # Read a model part from an OBJ file
-        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube.obj")
+        obj_name = GetFilePath("test_files/obj_files/cube.obj")
         ReadModelPartFromOBJ(self.model_part, obj_name, True)
 
         # # Debug
@@ -223,7 +223,7 @@ class TestObjIO(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         # Read a model part from an OBJ file
-        obj_name = GetFilePath("auxiliar_files_for_python_unittest/obj_files/cube_degenerated.obj")
+        obj_name = GetFilePath("test_files/obj_files/cube_degenerated.obj")
         ReadModelPartFromOBJ(self.model_part, obj_name, True)
 
         # # Debug
@@ -243,7 +243,7 @@ class TestObjIO(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         # Create a sphere model part
-        mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
+        mdpa_name = GetFilePath("test_files/mdpa_files/coarse_sphere_skin")
         ReadModelPart(mdpa_name, self.model_part)
 
         # Compute normals

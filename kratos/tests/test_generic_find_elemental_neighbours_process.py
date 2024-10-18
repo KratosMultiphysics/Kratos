@@ -20,7 +20,7 @@ class TestGenericFindElementalNeighboursProcess(KratosUnittest.TestCase):
             self.comm.Barrier()
 
     def testGenericFindElementalNeighboursProcess(self):
-        self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files/"
+        self.work_folder = "test_files/mdpa_files/"
         self.file_name = "small_cube"
         model = self._ImportModelPart(GetFilePath(self.work_folder+ "/"+self.file_name)) #MdpaTriangleDummyModel()
         model_part = model["main"]

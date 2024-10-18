@@ -19,7 +19,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/two_dim_symmetrical_square")).ReadModelPart(model_part)
 
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
@@ -81,7 +81,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/three_dim_symmetrical_cube")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/three_dim_symmetrical_cube")).ReadModelPart(model_part)
 
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
@@ -142,7 +142,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DETERMINANT_F)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/two_dim_symmetrical_square")).ReadModelPart(model_part)
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [(node.X-0.5)**2,0,0] )
@@ -171,7 +171,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DETERMINANT_F)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/three_dim_symmetrical_cube")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/three_dim_symmetrical_cube")).ReadModelPart(model_part)
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [0,0,(node.Z-0.5)**2] )

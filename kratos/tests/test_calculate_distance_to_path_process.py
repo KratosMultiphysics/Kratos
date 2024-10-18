@@ -116,7 +116,7 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
         model_part_torus.ProcessInfo[KratosMultiphysics.STEP] = 0
         model_part_torus.CloneTimeStep(0.0)
         model_part_torus.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/torus3d")
+        input_mdpa = GetFilePath("test_files/mdpa_files/torus3d")
         model_part_io_torus = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io_torus.ReadModelPart(model_part_torus)
 
@@ -124,7 +124,7 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
         model_part_circle = self.current_model.CreateModelPart("Circle")
         model_part_circle.ProcessInfo[KratosMultiphysics.STEP] = 0
         model_part_circle.CloneTimeStep(0.0)
-        input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/circle1d")
+        input_mdpa = GetFilePath("test_files/mdpa_files/circle1d")
         model_part_io_circle = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io_circle.ReadModelPart(model_part_circle)
 

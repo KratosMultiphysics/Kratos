@@ -36,7 +36,7 @@ class TestEmbeddedSkinMapping(KratosUnittest.TestCase):
         skin_model_part = model.CreateModelPart("SkinModelPart")
         skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("test_files/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
 
         # Set a random field to be mapped from the skin model part to the (embedded) model part
         # Call the CalculateDistanceToSkinProcess()

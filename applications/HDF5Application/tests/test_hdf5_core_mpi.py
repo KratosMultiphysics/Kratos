@@ -18,7 +18,7 @@ def _SurrogateModelPart():
     # Get input model part path
     script_directory      = pathlib.Path(__file__).absolute().parent
     kratos_root_directory = script_directory.parent.parent.parent
-    test_input_directory  = kratos_root_directory / "kratos" / "tests" / "auxiliar_files_for_python_unittest"
+    test_input_directory  = kratos_root_directory / "kratos" / "tests" / "test_files"
     test_file_stem        = test_input_directory / "mdpa_files" / "test_processes"
     test_file_path        = pathlib.Path(str(test_file_stem) + ".mdpa")
 
