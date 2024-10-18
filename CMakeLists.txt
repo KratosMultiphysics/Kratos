@@ -1,8 +1,12 @@
+cmake_minimum_required (VERSION 3.14.0)
+
 project (KratosMultiphysics)
-cmake_minimum_required (VERSION 2.8.6)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
+
+# Defining the base source folder
+set(KRATOS_BASE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Setting some policies
 # No recursive dereferencing
@@ -15,20 +19,29 @@ if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
 
-# Find package based on <packagename>_ROOT variable
+# Find package based on <packagename>_ROOT variable (both policies are needed)
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
+
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif(POLICY CMP0144)
 
 # Lists
 if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
 
+# Timestamp for extracted files
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif(POLICY CMP0135)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 3)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 5)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -41,10 +54,7 @@ if(NOT DEFINED KRATOS_BINARY_DIR)
   set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
-if(NOT DEFINED INSTALL_RUNKRATOS)
-  message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
-  set(INSTALL_RUNKRATOS ON)
-endif(NOT DEFINED INSTALL_RUNKRATOS)
+option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -55,10 +65,18 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # Setting the libs folder for the shared objects built in kratos
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+if (APPLE)
+  cmake_policy(SET CMP0042 NEW)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+
+# If no pch policy disable by default
+option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
@@ -336,11 +354,38 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+include(KratosGTest)
+include(FetchContent)
 
 # Logger configuration
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
   add_definitions(-DKRATOS_COLORED_OUTPUT)
 endif(KRATOS_COLORED_OUTPUT MATCHES ON)
+
+# Testing
+if(KRATOS_BUILD_TESTING MATCHES ON)
+  # retrieve a copy of the current directory's `COMPILE_OPTIONS`
+  get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
+
+  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  add_compile_options(-w)
+
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  # GTest doc is wrong, this option should be used
+  set(BUILD_SHARED_LIBS ON)
+  set(CMAKE_INSTALL_LIBDIR "libs") # In Linux default dir is lib
+  set(CMAKE_INSTALL_BINDIR "libs") # In Win default dir is bin
+  FetchContent_MakeAvailable(googletest)
+  enable_testing()
+
+  # restore the current directory's old `COMPILE_OPTIONS`
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
+endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 ################### PYBIND11
 
@@ -486,16 +531,6 @@ if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
 
-# Follow the symbolic links for the python lib only if needed
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    foreach( library ${PYTHON_LIBRARIES})
-        get_filename_component(python_lib ${library} REALPATH)
-        set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${python_lib})
-    endforeach(library)
-
-    set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
-
 ##*****************************
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -533,7 +568,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
         endif(NOT DEFINED TETGEN_LIBRARIES)
     elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
         # Use TetGen from external source (download)
-        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+        set(TETGEN_EXT_PATH ${KRATOS_BASE_FOLDER}/external_libraries/tetgen)
 
         find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
         if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
@@ -571,7 +606,14 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
+  # supress anoying warnings from trilinos due to not having the same package name as the lib name.
+  if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
+  endif()
   find_package(TRILINOS QUIET)
+  if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 0 CACHE INTERNAL "No dev warnings")
+  endif()
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -608,7 +650,7 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -625,9 +667,25 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
     add_compile_definitions(KRATOS_ENABLE_PROFILING)
 endif()
 
-# include subdirectories
-add_subdirectory(external_libraries/gidpost)
-add_subdirectory(kratos)
+# Build exclusions and linking dirs.
+# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
+OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
+OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )
+
+if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON AND (${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON))
+  message(FATAL_ERROR "REMOVE_INSTALL_DIRECTORIES cannot be enabled with EXCLUDE_KRATOS_CORE or EXCLUDE_AUTOMATIC_DEPENDENCIES")
+endif()
+
+if(${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON)
+  link_directories( ${CMAKE_INSTALL_PREFIX}/libs )
+endif()
+
+# Compile Kratos Core
+if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  add_subdirectory(external_libraries/gidpost)
+  add_subdirectory(kratos)
+endif()
 
 # Configure kratos applications
 message(STATUS "Configuring applications (ENV):")
@@ -676,6 +734,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
+message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
@@ -687,16 +746,13 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
-# runkratos - compiles "runkratos and packages the python lib needed"
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    add_subdirectory(kratos/run_kratos)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
-
-# Clean the Module and libs install directories
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
+# # Clean the Module and libs install directories
+# if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
+#     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+#     install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+#     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
+#     install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
+# endif(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
 
 # Install core files for the KratosMultiphysics python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )

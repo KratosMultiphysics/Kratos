@@ -57,7 +57,7 @@ public:
     ///@{
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;

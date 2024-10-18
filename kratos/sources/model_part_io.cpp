@@ -62,7 +62,7 @@ ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Opti
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOutputFile(time_file_name.string());
 }
 
 /// Constructor with stream
@@ -81,7 +81,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
 
 /// Destructor.
 ModelPartIO::~ModelPartIO() {
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOutputFile();
 }
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)
@@ -183,7 +183,7 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
     for (auto i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; ++i_properties) {
         std::ostringstream aux_ostream;
         (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
-        i_properties->PrintData(aux_ostream);
+        i_properties->Data().PrintData(aux_ostream);
 
         aux_string = aux_ostream.str();
 
@@ -1123,9 +1123,9 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
         if(word == "End")
         {
             ReadWord(word);
-            if(number_of_nested_blocks == 0){
-                    if(CheckStatement(word , BlockName))
-                        break;
+            if(number_of_nested_blocks == 0) {
+                CheckStatement(word , BlockName);
+                break;
             } else {
                 number_of_nested_blocks--;
             }
@@ -1324,26 +1324,10 @@ void ModelPartIO::ReadTableBlock(ModelPart::TablesContainerType& rTables)
     std::string variable_name;
 
     ReadWord(variable_name);
-
-    //if(!KratosComponents<Variable<double> >::Has(variable_name))
-    //{
-    //    std::stringstream buffer;
-    //    buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
-    //    buffer << " [Line " << mNumberOfLines << " ]";
-    //    KRATOS_ERROR << buffer.str() << std::endl;
-
-    //}
+    temp_table.SetNameOfX(variable_name);
 
     ReadWord(variable_name);
-
-    //if(!KratosComponents<Variable<double> >::Has(variable_name))
-    //{
-    //    std::stringstream buffer;
-    //    buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
-    //    buffer << " [Line " << mNumberOfLines << " ]";
-    //    KRATOS_ERROR << buffer.str() << std::endl;
-
-    //}
+    temp_table.SetNameOfY(variable_name);
 
     while(!mpStream->eof())
     {
@@ -3440,6 +3424,8 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
             ReadSubModelPartElementsBlock(rMainModelPart, r_sub_model_part);
         } else if (word == "SubModelPartConditions") {
             ReadSubModelPartConditionsBlock(rMainModelPart, r_sub_model_part);
+        } else if (word == "SubModelPartGeometries") {
+            ReadSubModelPartGeometriesBlock(rMainModelPart, r_sub_model_part);
 //         TODO: Add the following blocks. Pooyan.
 //         } else if (word == "CommunicatorData") {
 //            ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
@@ -3633,6 +3619,31 @@ void  ModelPartIO::ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, Mo
     }
     std::sort(ordered_ids.begin(), ordered_ids.end());
     rSubModelPart.AddConditions(ordered_ids);
+
+    KRATOS_CATCH("")
+}
+
+void  ModelPartIO::ReadSubModelPartGeometriesBlock(
+    ModelPart& rMainModelPart,
+    ModelPart& rSubModelPart)
+{
+    KRATOS_TRY
+
+    SizeType geometry_id;
+    std::string word;
+    std::vector<SizeType> ordered_ids;
+
+    while (!mpStream->eof())
+    {
+        ReadWord(word); // Reading the geometry id or End
+        if (CheckEndBlock("SubModelPartGeometries", word))
+            break;
+
+        ExtractValue(word, geometry_id);
+        ordered_ids.push_back(geometry_id);
+    }
+    std::sort(ordered_ids.begin(), ordered_ids.end());
+    rSubModelPart.AddGeometries(ordered_ids);
 
     KRATOS_CATCH("")
 }
@@ -5018,7 +5029,7 @@ ModelPartIO& ModelPartIO::ReadWord(std::string& Word)
     Word.clear();
 
     char c = SkipWhiteSpaces();
-    while(!mpStream->eof() && !IsWhiteSpace(c))
+    while(!mpStream->eof() && !std::isspace(c))
     {
         Word += c;
         c = GetCharacter();
@@ -5041,7 +5052,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         if(c == 'E')
         {
             word.clear();
-            while(!mpStream->eof() && !IsWhiteSpace(c))
+            while(!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5064,7 +5075,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         else if (c == 'B')
         {
             word.clear();
-            while (!mpStream->eof() && !IsWhiteSpace(c))
+            while (!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5091,14 +5102,9 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
 char ModelPartIO::SkipWhiteSpaces()
 {
     char c = GetCharacter();
-    while(IsWhiteSpace(c))
+    while(std::isspace(c))
         c = GetCharacter();
     return c;
-}
-
-bool ModelPartIO::IsWhiteSpace(char C)
-{
-    return ((C == ' ') || (C == '\t') || (C == '\r') || (C == '\n'));
 }
 
 char ModelPartIO::GetCharacter() //Getting the next character skipping comments
@@ -5134,20 +5140,9 @@ char ModelPartIO::GetCharacter() //Getting the next character skipping comments
 
 }
 
-bool ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord)
+void ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord) const
 {
-    bool result = false;
-    if(rGivenWord != rStatement)
-    {
-        std::stringstream buffer;
-        buffer << "A \"" << rStatement << "\" statement was expected but the given statement was \"";
-        buffer <<  rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]";
-        KRATOS_ERROR << buffer.str() << std::endl;
-    }
-    else
-        result = true;
-
-    return result;
+    KRATOS_ERROR_IF(rGivenWord != rStatement )<< "A \"" << rStatement << "\" statement was expected but the given statement was \"" << rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]" << std::endl;
 }
 
 void ModelPartIO::ResetInput()

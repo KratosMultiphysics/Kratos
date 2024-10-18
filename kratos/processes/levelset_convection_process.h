@@ -592,10 +592,10 @@ protected:
         }
 
         if (mElementRequiresLimiter){
-                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
         }
         if(mElementTauNodal){
-                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(TAU, 0.0);});
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(TAU, 0.0);});
         }
     }
 
@@ -657,11 +657,11 @@ protected:
         const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -670,10 +670,10 @@ protected:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
             {
                 return global_pointer->Coordinates();
             }
@@ -691,7 +691,7 @@ protected:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -711,7 +711,7 @@ protected:
         );
 
         auto combined_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+            [&](GlobalPointer<Node> &global_pointer) -> std::pair<double, array_1d<double,3>> {
                 return std::make_pair(
                     global_pointer->FastGetSolutionStepValue(*mpLevelSetVar),
                     global_pointer->Coordinates());
@@ -728,7 +728,7 @@ protected:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -781,7 +781,7 @@ protected:
      */
     void ErrorCalculationAndCorrection()
     {
-        block_for_each(mpDistanceModelPart->Nodes(), [this](Node<3>& rNode){
+        block_for_each(mpDistanceModelPart->Nodes(), [this](Node& rNode){
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
             rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar);

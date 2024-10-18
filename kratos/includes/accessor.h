@@ -14,6 +14,8 @@
 
 # pragma once
 
+// System includes
+
 // External includes
 
 // Project includes
@@ -43,11 +45,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Node type definition
-    using NodeType = Node<3>;
-
     /// Geometry type definition
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     /// Pointer definition of Accessor
     KRATOS_CLASS_POINTER_DEFINITION(Accessor);
@@ -270,10 +269,10 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const
     {}
 
-    void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer)
     {}
 
 

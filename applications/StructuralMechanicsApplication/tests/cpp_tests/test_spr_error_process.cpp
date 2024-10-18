@@ -15,9 +15,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "includes/kratos_flags.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
@@ -27,7 +27,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
         /**
         * Checks the correct work of the SPR metric process
@@ -75,8 +75,8 @@ namespace Kratos
             SPRErrorProcess<2> spr_process = SPRErrorProcess<2>(this_model_part);
             spr_process.Execute();
 
-            KRATOS_CHECK_RELATIVE_NEAR(0.0229129, process_info[ERROR_OVERALL], 1.0e-5);
-            KRATOS_CHECK_RELATIVE_NEAR(0.141421, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
+            KRATOS_EXPECT_RELATIVE_NEAR(0.0229129, process_info[ERROR_OVERALL], 1.0e-5);
+            KRATOS_EXPECT_RELATIVE_NEAR(0.141421, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
         }
 
         /**
@@ -125,8 +125,8 @@ namespace Kratos
             SPRErrorProcess<3> spr_process = SPRErrorProcess<3>(this_model_part);
             spr_process.Execute();
 
-            KRATOS_CHECK_RELATIVE_NEAR(0.0494477, process_info[ERROR_OVERALL], 1.0e-5);
-            KRATOS_CHECK_RELATIVE_NEAR(0.244949, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
+            KRATOS_EXPECT_RELATIVE_NEAR(0.0494477, process_info[ERROR_OVERALL], 1.0e-5);
+            KRATOS_EXPECT_RELATIVE_NEAR(0.244949, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
         }
     } // namespace Testing
 }  // namespace Kratos.

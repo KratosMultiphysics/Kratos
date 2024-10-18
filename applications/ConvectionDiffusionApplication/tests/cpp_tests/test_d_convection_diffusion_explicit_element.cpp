@@ -20,62 +20,24 @@
 
 // Application includes
 #include "convection_diffusion_application.h"
+#include "../test_utilities/convection_diffusion_testing_utilities.h"
 
-
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-    void SetDConvectionDiffusionExplicitTestModelPart(ModelPart &rModelPart)
-    {
-        // Set buffer size
-        rModelPart.SetBufferSize(2);
-
-        // Set convection diffusion settings
-        ConvectionDiffusionSettings::Pointer p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_conv_dff_set->SetDensityVariable(DENSITY);
-        p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-        p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-        p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-        p_conv_dff_set->SetSurfaceSourceVariable(FACE_HEAT_FLUX);
-        p_conv_dff_set->SetProjectionVariable(PROJECTED_SCALAR1);
-        p_conv_dff_set->SetConvectionVariable(CONVECTION_VELOCITY);
-        p_conv_dff_set->SetMeshVelocityVariable(MESH_VELOCITY);
-        p_conv_dff_set->SetVelocityVariable(VELOCITY);
-        p_conv_dff_set->SetSpecificHeatVariable(SPECIFIC_HEAT);
-        p_conv_dff_set->SetReactionVariable(REACTION_FLUX);
-        rModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-
-        // Variables addition
-        rModelPart.AddNodalSolutionStepVariable(DENSITY);
-        rModelPart.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
-        rModelPart.AddNodalSolutionStepVariable(HEAT_FLUX);
-        rModelPart.AddNodalSolutionStepVariable(FACE_HEAT_FLUX);
-        rModelPart.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
-        rModelPart.AddNodalSolutionStepVariable(CONVECTION_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-        rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
-
-        // Create a fake properties container
-        auto p_elem_prop = rModelPart.CreateNewProperties(0);
-
-        // Fill the process info container
-        auto &r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(DELTA_TIME, 0.1);
-        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
-        r_process_info.SetValue(OSS_SWITCH, 1);
-        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
-    }
 
     KRATOS_TEST_CASE_IN_SUITE(DConvectionDiffusionExplicit2D3N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
+        r_process_info.SetValue(OSS_SWITCH, 1);
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -106,7 +68,7 @@ namespace Testing
         std::vector<double> expected_reaction({0.479508, -0.649573, 0.170065});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
         }
     }
 
@@ -115,7 +77,14 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
+        r_process_info.SetValue(OSS_SWITCH, 1);
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -146,7 +115,7 @@ namespace Testing
         std::vector<double> expected_projection({-0.5, 0.5, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
         }
     }
 
@@ -155,7 +124,14 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
+        r_process_info.SetValue(OSS_SWITCH, 1);
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -188,7 +164,7 @@ namespace Testing
         std::vector<double> expected_reaction({0.132518, -0.132518, 0.0, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
         }
     }
 
@@ -197,7 +173,14 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
+        r_process_info.SetValue(OSS_SWITCH, 1);
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -229,9 +212,8 @@ namespace Testing
         std::vector<double> expected_projection({-0.166667, 0.166667, 0.0, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
         }
     }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing.

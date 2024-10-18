@@ -55,6 +55,12 @@ public:
     /// Pointer definition of SpatialSearch
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearch);
 
+    /// The size type definition
+    using SizeType = std::size_t;
+
+    /// The index type definition
+    using IndexType = std::size_t;
+
     /// Defining dimension
     static constexpr std::size_t Dimension = 3;
 
@@ -64,32 +70,31 @@ public:
     /// Minimum level of the tree
     static constexpr std::size_t MIN_LEVEL = 2;
 
-    /// Common Defines
+    /// The point type
     using PointType = Point;
 
-    using ElementsContainerType = ModelPart::ElementsContainerType;
-    using ElementType = ModelPart::ElementType;
-    using ElementPointerType = ModelPart::ElementType::Pointer;
-    using ResultElementsContainerType = ElementsContainerType::ContainerType;
-    using VectorResultElementsContainerType = std::vector<ResultElementsContainerType>;
+    /// The node type
+    using NodeType = Node;
 
+    /// Nodes classes
     using NodesContainerType = ModelPart::NodesContainerType;
-    using NodeType = ModelPart::NodeType;
-    using NodePointerType = ModelPart::NodeType::Pointer;
     using ResultNodesContainerType = NodesContainerType::ContainerType;
     using VectorResultNodesContainerType = std::vector<ResultNodesContainerType>;
 
+    /// Elements classes
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ResultElementsContainerType = ElementsContainerType::ContainerType;
+    using VectorResultElementsContainerType = std::vector<ResultElementsContainerType>;
+
+    /// Conditions classes
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
-    using ConditionType = ModelPart::ConditionType;
-    using ConditionPointerType = ModelPart::ConditionType::Pointer;
     using ResultConditionsContainerType = ConditionsContainerType::ContainerType;
     using VectorResultConditionsContainerType = std::vector<ResultConditionsContainerType>;
 
+    /// Input/output types
     using RadiusArrayType = std::vector<double>;
     using DistanceType = std::vector<double>;
     using VectorDistanceType = std::vector<DistanceType>;
-
-    using ResultIteratorType = ElementsContainerType::ContainerType::iterator;
 
     ///@}
     ///@name Life Cycle
@@ -116,7 +121,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -130,14 +135,14 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusExclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -145,13 +150,13 @@ public:
 
     /**
     * @brief Search neighbours for every element in "StructureElements" excluding itself
-    * @param StructureElements   List of elements modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements modelpart against which the neighbours are searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
+        const ElementsContainerType& rStructureElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -159,15 +164,15 @@ public:
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -180,7 +185,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -194,14 +199,14 @@ public:
     /**
     * @brief Search neighbours for every element in "InputElements" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusInclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -209,13 +214,13 @@ public:
 
     /**
     * @brief Search neighbours for every element in "StructureElements" including itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
+        const ElementsContainerType& rStructureElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -223,15 +228,15 @@ public:
 
     /**
     * @brief Search neighbours for every element in "InputElements" including itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -244,7 +249,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusExclusive (
@@ -256,39 +261,39 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusExclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every element in "StructureElements" excluding itself
-    * @param StructureElements   List of nodes against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of nodes against which the neighbours are searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
+        const ElementsContainerType& rStructureElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults
         );
@@ -300,7 +305,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusInclusive (
@@ -312,39 +317,39 @@ public:
     /**
     * @brief Search neighbours for every element in "InputElements" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusInclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every element in "StructureElements" including itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
+        const ElementsContainerType& rStructureElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every element in "InputElements" including itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     */
     virtual void SearchElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
@@ -356,7 +361,7 @@ public:
     /**
     * @brief Search neighbours for every node in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
@@ -370,28 +375,28 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusExclusive (
         ModelPart& rModelPart,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     /**
-    * @brief Search neighbours for every node in "StructureNodes" excluding itself
-    * @param StructureNodes      Lis of nodes against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @brief Search neighbours for every node in "rStructureNodes" excluding itself
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
+        const NodesContainerType& rStructureNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -400,14 +405,14 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" excluding itself
     * @param rModelPart          List of nodes against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -420,7 +425,7 @@ public:
     /**
     * @brief Search neighbours for every node in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
@@ -434,28 +439,28 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusInclusive (
         ModelPart& rModelPart,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     /**
-    * @brief Search neighbours for every node in "StructureNodes" including itself
-    * @param StructureNodes      List of nodes against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @brief Search neighbours for every node in "rStructureNodes" including itself
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
+        const NodesContainerType& rStructureNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -463,20 +468,19 @@ public:
 
     /**
     * @brief Search neighbours for every node in "InputNodes" including itself
-    * @param StructureNodes      List of nodes against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     * @param rResultDistance     Array of distances for each result of each node
     */
     virtual void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
-
 
     //************************************************************************
     // Nodal Exclusive search without distance calculation
@@ -485,7 +489,7 @@ public:
     /**
     * @brief Search neighbours for every node in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusExclusive (
@@ -497,25 +501,25 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusExclusive (
         ModelPart& rModelPart,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
-    * @brief Search neighbours for every node in "StructureNodes" excluding itself
-    * @param StructureNodes      Lis of nodes against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @brief Search neighbours for every node in "rStructureNodes" excluding itself
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
+        const NodesContainerType& rStructureNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
@@ -523,13 +527,13 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" excluding itself
     * @param rModelPart          List of nodes against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusExclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
@@ -541,7 +545,7 @@ public:
     /**
     * @brief Search neighbours for every node in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusInclusive (
@@ -553,39 +557,39 @@ public:
     /**
     * @brief Search neighbours for every node in "InputNodes" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusInclusive (
         ModelPart& rModelPart,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
-    * @brief Search neighbours for every node in "StructureNodes" including itself
-    * @param StructureNodes      List of nodes against which the neighbours are searched
-    * @param Radius              List of search radius for every node
+    * @brief Search neighbours for every node in "rStructureNodes" including itself
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
+        const NodesContainerType& rStructureNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every node in "InputNodes" including itself
-    * @param StructureNodes      List of nodes against which the neighbours are searched
-    * @param InputNodes          List of nodes to be searched
-    * @param Radius              List of search radius for every node
+    * @param rStructureNodes     List of nodes against which the neighbours are searched
+    * @param rInputNodes         List of nodes to be searched
+    * @param rRadius             List of search radius for every node
     * @param rResults            Array of results for each node
     */
     virtual void SearchNodesInRadiusInclusive (
-        NodesContainerType const& StructureNodes,
-        NodesContainerType const& InputNodes,
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
@@ -597,7 +601,7 @@ public:
     /**
     * @brief Search neighbours for every Condition in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every Condition
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     * @param rResultDistance     Array of distances for each result of each Condition
     */
@@ -611,28 +615,28 @@ public:
     /**
     * @brief Search neighbours for every Condition in "InputConditions" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of Conditions to be searched
-    * @param Radius              List of search radius for every Condition
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     /**
-    * @brief Search neighbours for every Condition in "StructureConditions" excluding itself
-    * @param StructureConditions   List of Conditions modelpart against which the neighbours are searched
-    * @param Radius                List of search radius for every Condition
+    * @brief Search neighbours for every Condition in "rStructureConditions" excluding itself
+    * @param rStructureConditions  List of conditions modelpart against which the neighbours are searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     * @param rResultDistance       Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
+        const ConditionsContainerType& rStructureConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -640,15 +644,15 @@ public:
 
     /**
     * @brief Search neighbours for every Condition in "InputConditions" excluding itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param InputConditions       List of Conditions to be searched
-    * @param Radius                List of search radius for every Condition
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rInputConditions      List of conditions to be searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     * @param rResultDistance       Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -661,7 +665,7 @@ public:
     /**
     * @brief Search neighbours for every Condition in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every Condition
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     * @param rResultDistance     Array of distances for each result of each Condition
     */
@@ -675,28 +679,28 @@ public:
     /**
     * @brief Search neighbours for every Condition in "InputConditions" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of Conditions to be searched
-    * @param Radius              List of search radius for every Condition
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     * @param rResultDistance     Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
 
     /**
-    * @brief Search neighbours for every Condition in "StructureConditions" including itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param Radius                List of search radius for every Condition
+    * @brief Search neighbours for every Condition in "rStructureConditions" including itself
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     * @param rResultDistance       Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
+        const ConditionsContainerType& rStructureConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -704,15 +708,15 @@ public:
 
     /**
     * @brief Search neighbours for every Condition in "InputConditions" including itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param InputConditions       List of Conditions to be searched
-    * @param Radius                List of search radius for every Condition
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rInputConditions      List of conditions to be searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     * @param rResultDistance       Array of distances for each result of each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -725,7 +729,7 @@ public:
     /**
     * @brief Search neighbours for every Condition in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every Condition
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
@@ -737,39 +741,39 @@ public:
     /**
     * @brief Search neighbours for every Condition in "InputConditions" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of Conditions to be searched
-    * @param Radius              List of search radius for every Condition
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
         );
 
     /**
-    * @brief Search neighbours for every Condition in "StructureConditions" excluding itself
-    * @param StructureConditions   List of nodes against which the neighbours are searched
-    * @param Radius                List of search radius for every Condition
+    * @brief Search neighbours for every Condition in "rStructureConditions" excluding itself
+    * @param rStructureConditions  List of nodes against which the neighbours are searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
+        const ConditionsContainerType& rStructureConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every Condition in "InputConditions" excluding itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param InputConditions       List of Conditions to be searched
-    * @param Radius                List of search radius for every Condition
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rInputConditions      List of conditions to be searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
         );
@@ -781,7 +785,7 @@ public:
     /**
     * @brief Search neighbours for every Condition in "rModelpart" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every Condition
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
@@ -793,39 +797,39 @@ public:
     /**
     * @brief Search neighbours for every Condition in "InputConditions" including itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of Conditions to be searched
-    * @param Radius              List of search radius for every Condition
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every Condition
     * @param rResults            Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
-    * @brief Search neighbours for every Condition in "StructureConditions" including itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param Radius                List of search radius for every Condition
+    * @brief Search neighbours for every Condition in "rStructureConditions" including itself
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
+        const ConditionsContainerType& rStructureConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
 
     /**
     * @brief Search neighbours for every Condition in "InputConditions" including itself
-    * @param StructureConditions   List of Conditions against which the neighbours are searched
-    * @param InputConditions       List of Conditions to be searched
-    * @param Radius                List of search radius for every Condition
+    * @param rStructureConditions  List of conditions against which the neighbours are searched
+    * @param rInputConditions      List of conditions to be searched
+    * @param rRadius               List of search radius for every Condition
     * @param rResults              Array of results for each Condition
     */
     virtual void SearchConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureConditions,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultNodesContainerType& rResults
         );
@@ -837,7 +841,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -851,14 +855,14 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchConditionsOverElementsInRadiusExclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -866,15 +870,15 @@ public:
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputConditions     List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchConditionsOverElementsInRadiusExclusive (
-        ElementsContainerType const& StructureElements,
-        ConditionsContainerType const& InputConditions,
+        const ElementsContainerType& rStructureElements,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -887,7 +891,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -901,14 +905,14 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputConditions     List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchConditionsOverElementsInRadiusInclusive (
         ModelPart& rModelPart,
-        ConditionsContainerType const& InputConditions,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -916,15 +920,15 @@ public:
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputConditions     List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rStructureElements  List of elements against which the neighbours are searched
+    * @param rInputConditions    List of conditions to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchConditionsOverElementsInRadiusInclusive (
-        ElementsContainerType const& StructureElements,
-        ConditionsContainerType const& InputConditions,
+        const ElementsContainerType& rStructureElements,
+        const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -937,7 +941,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -951,14 +955,14 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsOverConditionsInRadiusExclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -966,15 +970,15 @@ public:
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
-    * @param rResults            Array of results for each element
-    * @param rResultDistance     Array of distances for each result of each element
+    * @param rStructureConditions List of conditions against which the neighbours are searched
+    * @param InputElements        List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults             Array of results for each element
+    * @param rResultDistance      Array of distances for each result of each element
     */
     virtual void SearchElementsOverConditionsInRadiusExclusive (
-        ConditionsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ConditionsContainerType& rStructureConditions,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -987,7 +991,7 @@ public:
     /**
     * @brief Search neighbours for every element in "rModelpart" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param Radius              List of search radius for every element
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
@@ -1001,14 +1005,14 @@ public:
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
+    * @param rInputElements      List of elements to be searched
+    * @param rRadius             List of search radius for every element
     * @param rResults            Array of results for each element
     * @param rResultDistance     Array of distances for each result of each element
     */
     virtual void SearchElementsOverConditionsInRadiusInclusive (
         ModelPart& rModelPart,
-        ElementsContainerType const& InputElements,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
@@ -1016,19 +1020,41 @@ public:
 
     /**
     * @brief Search neighbours for every element in "Inputelements" excluding itself
-    * @param StructureElements   List of elements against which the neighbours are searched
-    * @param InputElements       List of elements to be searched
-    * @param Radius              List of search radius for every element
-    * @param rResults            Array of results for each element
-    * @param rResultDistance     Array of distances for each result of each element
+    * @param rStructureConditions List of conditions against which the neighbours are searched
+    * @param InputElements        List of elements to be searched
+    * @param rRadius              List of search radius for every element
+    * @param rResults             Array of results for each element
+    * @param rResultDistance      Array of distances for each result of each element
     */
     virtual void SearchElementsOverConditionsInRadiusInclusive (
-        ConditionsContainerType const& StructureElements,
-        ElementsContainerType const& InputElements,
+        const ConditionsContainerType& rStructureConditions,
+        const ElementsContainerType& rInputElements,
         const RadiusArrayType& rRadius,
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
+
+    //************************************************************************
+    // Bounding box methods
+    //************************************************************************
+
+   /**
+     * @brief This method allows to initialize the local bounding box (for nodes)
+     * @param rStructureNodes The container of nodes
+     */
+    virtual void InitializeBoundingBox(const NodesContainerType& rStructureNodes);
+
+    /**
+     * @param rStructureElements The container of elements
+     * @brief This method allows to initialize the local bounding box (for elements)
+     */
+    virtual void InitializeBoundingBox(const ElementsContainerType& rStructureElements);
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for conditions)
+     * @param rStructureConditions The container of conditions
+     */
+    virtual void InitializeBoundingBox(const ConditionsContainerType& rStructureConditions);
 
     ///@}
     ///@name Access
@@ -1157,5 +1183,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}addtogroup block
 
 }  // namespace Kratos.
-
-

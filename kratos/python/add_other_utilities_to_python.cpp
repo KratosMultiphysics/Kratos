@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 #include <pybind11/stl.h>
 
@@ -69,9 +68,9 @@
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
+#include "utilities/model_part_utils.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
@@ -250,8 +249,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("Start", &Timer::Start)
         .def_static("Stop", &Timer::Stop)
         .def_static("GetTime", &Timer::GetTime)
-        .def_static("SetOuputFile", &Timer::SetOuputFile)
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("SetOutputFile", &Timer::SetOutputFile)
+        .def_static("CloseOutputFile", &Timer::CloseOutputFile)
+        .def_static("SetOuputFile", &Timer::SetOuputFile) // TODO: Remove this line eventually, it is a typo
+        .def_static("CloseOuputFile", &Timer::CloseOuputFile) // TODO: Remove this line eventually, it is a typo
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
@@ -387,6 +388,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("AddElementWithNodes", &AuxiliarModelPartUtilities::AddElementWithNodes)
+        .def("AddConditionWithNodes", &AuxiliarModelPartUtilities::AddConditionWithNodes)
         .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
@@ -413,11 +416,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
         .def("RemoveOrphanNodesFromSubModelParts", &Kratos::AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts)
+        .def("RetrieveElementsNeighbourElementsIds", &Kratos::AuxiliarModelPartUtilities::RetrieveElementsNeighbourElementsIds)
+        .def("RetrieveConditionsNeighbourConditionsIds", &Kratos::AuxiliarModelPartUtilities::RetrieveConditionsNeighbourConditionsIds)
         ;
 
     // Sparse matrix multiplication utility
     py::class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
-        .def(py::init<>())
         .def_static("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
         .def_static("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
         .def_static("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
@@ -548,6 +552,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
         .def("Finalize", &SensitivityBuilder::Finalize)
+        .def("SetResponseFunction", &SensitivityBuilder::SetResponseFunction, py::arg("new_response_function"))
         ;
 
     //Sensitivity utilities
@@ -670,6 +675,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
 
+    py::enum_<FillCommunicator::FillCommunicatorEchoLevel>(m, "FillCommunicatorEchoLevel")
+        .value("NO_PRINTING", FillCommunicator::FillCommunicatorEchoLevel::NO_PRINTING)
+        .value("INFO", FillCommunicator::FillCommunicatorEchoLevel::INFO)
+        .value("DEBUG_INFO", FillCommunicator::FillCommunicatorEchoLevel::DEBUG_INFO)
+        .export_values()
+        ;
+
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
         .def(py::init([](ModelPart& rModelPart){
             KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
@@ -678,7 +690,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
-    ;
+        .def("SetEchoLevel", &FillCommunicator::SetEchoLevel)
+        .def("GetEchoLevel", &FillCommunicator::GetEchoLevel)
+        .def("__str__", PrintObject<FillCommunicator>)
+        ;
 
     typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
     py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
@@ -695,7 +710,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
         ;
 
-    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Node,ModelPart::NodesContainerType>(
         m, "SubModelPartNodesBooleanOperationUtility");
 
     AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
@@ -806,13 +821,46 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
         .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"))
-        .def("Union", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartUnionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Substract", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartSubstractionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Intersect", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartIntersectionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Union", &ModelPartOperationUtilities::FillSubModelPart<ModelPartUnionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"))
+        .def("Substract", &ModelPartOperationUtilities::FillSubModelPart<ModelPartSubstractionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"))
+        .def("Intersect", &ModelPartOperationUtilities::FillSubModelPart<ModelPartIntersectionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"))
         .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
     ;
 
+    // m.def_submodule("TestsUtilities", "Auxiliary utilities for tests.")
+    //     .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
+    // ;
+
+    py::class_<ModelPartUtils>(m, "ModelPartUtils", "Auxiliary utilities for model parts.")
+        .def_static("FromConnectivityGenerateElements", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ElementsContainerType& rThisElements,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisElements, pProperties);
+            },
+            py::arg("entity_name"),
+            py::arg("entities_connectivities"),
+            py::arg("nodes"),
+            py::arg("elements"),
+            py::arg("properties")
+        )
+        .def_static("FromConnectivityGenerateConditions", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ConditionsContainerType& rThisConditions,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Condition>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisConditions, pProperties);
+            },
+            py::arg("entity_name"),
+            py::arg("entities_connectivities"),
+            py::arg("nodes"),
+            py::arg("conditions"),
+            py::arg("properties")
+        );
+    ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

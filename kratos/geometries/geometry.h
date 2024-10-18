@@ -231,10 +231,10 @@ public:
     }
 
     /// Standard Constructor with a geometry Id
-    Geometry(IndexType GeomertyId)
+    Geometry(IndexType GeometryId)
         : mpGeometryData(&GeometryDataInstance())
     {
-        SetId(GeomertyId);
+        SetId(GeometryId);
     }
 
     /// Standard Constructor with a Name
@@ -2103,7 +2103,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Edges( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdges instead)") virtual GeometriesArrayType Edges( void )
     {
         return this->GenerateEdges();
     }
@@ -2163,7 +2163,7 @@ public:
      * @see Edges
      * @see FacesNumber
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateFaces instead)") virtual GeometriesArrayType Faces( void )
     {
         const SizeType dimension = this->LocalSpaceDimension();
         if (dimension == 3) {
@@ -2676,7 +2676,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
+        KRATOS_ERROR << "Calling ProjectionPointGlobalToLocalSpace within geometry base class."
             << " Please check the definition within derived class. "
             << *this << std::endl;
     }
@@ -3842,40 +3842,21 @@ public:
 
         for (unsigned int i = 0; i < this->size(); ++i) {
             rOStream << "\tPoint " << i + 1 << "\t : ";
-            mPoints[i].PrintData(rOStream);
+            if (mPoints(i) != nullptr) {
+                mPoints[i].PrintData(rOStream);
+            } else {
+                rOStream << "point is empty (nullptr)." << std::endl;
+            }
             rOStream << std::endl;
         }
 
-        rOStream << "\tCenter\t : ";
-
-        Center().PrintData(rOStream);
+        if (AllPointsAreValid()) {
+            rOStream << "\tCenter\t : ";
+            Center().PrintData(rOStream);
+        }
 
         rOStream << std::endl;
         rOStream << std::endl;
-        // rOStream << "\tLength\t : " << Length() << std::endl;
-        // rOStream << "\tArea\t : " << Area() << std::endl;
-
-        // Charlie: Volume is not defined by every geometry (2D geometries),
-        // which can cause this call to generate a KRATOS_ERROR while trying
-        // to call the base class Volume() method.
-
-        // rOStream << "\tVolume\t : " << Volume() << std::endl;
-
-        // Charlie: Can this be deleted?
-
-        // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
-        //   rOStream << "    Point " << i+1 << "\t            : ";
-        //   mPoints[i].PrintData(rOStream);
-        //   rOStream << std::endl;
-        // }
-        //
-        // rOStream << "    Center\t            : ";
-        // Center().PrintData(rOStream);
-        // rOStream << std::endl;
-        // rOStream << std::endl;
-        // rOStream << "    Length                  : " << Length() << std::endl;
-        // rOStream << "    Area                    : " << Area() << std::endl;
-        // rOStream << "    Volume                  : " << Volume();
     }
 
 
@@ -4101,6 +4082,18 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
+
+    /**
+     * @brief Checks if the geometry points are valid
+     * Checks if the geometry points are valid from the pointer value
+     * Points are not valid when the pointer value is null
+     * @return true All points are valid
+     * @return false At least one point has nullptr value
+     */
+    bool AllPointsAreValid() const
+    {
+        return std::none_of(mPoints.ptr_begin(), mPoints.ptr_end(), [](const auto& pPoint){return pPoint == nullptr;});
+    }
 
     ///@}
     ///@name Protected LifeCycle

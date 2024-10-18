@@ -51,8 +51,8 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingProcess<TDim>)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", ApplyRayCastingProcess<TDim>)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", Process, ApplyRayCastingProcess, TDim)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", Process, ApplyRayCastingProcess, TDim)
 
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
@@ -156,7 +156,7 @@ public:
      * @param rNode reference to the node of interest
      * @return double raycasting distance value computed
      */
-    virtual double DistancePositionInSpace(const Node<3> &rNode);
+    virtual double DistancePositionInSpace(const Node &rNode);
 
     /**
      * @brief Get the ray intersecting objects and its distance

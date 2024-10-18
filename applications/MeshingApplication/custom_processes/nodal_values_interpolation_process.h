@@ -220,7 +220,7 @@ public:
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
     typedef Point                                                 PointType;
     typedef PointType::CoordinatesArrayType            CoordinatesArrayType;

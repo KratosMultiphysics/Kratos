@@ -18,13 +18,14 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/properties.h"
+#include "includes/table_accessor.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
+#include "tests/test_utilities/test_element.h"
+#include "tests/test_utilities/test_constitutive_law.h"
+#include "includes/serializer.h"
 
 namespace Kratos::Testing 
 {
-using NodeType = Node<3>;
 
 /**
 * Checks the correct work of the Has methods
@@ -37,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     p_prop->SetValue(YOUNG_MODULUS, 2.1e11);
 
     const double initial_E = ((*p_prop)[YOUNG_MODULUS]);
-    KRATOS_CHECK_NEAR(2.1e11, initial_E, 1.0e-8);
+    KRATOS_EXPECT_NEAR(2.1e11, initial_E, 1.0e-8);
 
     // custom accessor that returns 2.0
     class CustomAccessor
@@ -70,21 +71,117 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     auto p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
     auto p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
 
-    std::vector<NodeType::Pointer> geom(4);
+    std::vector<Node::Pointer> geom(4);
     geom[0] = p_node_1;
     geom[1] = p_node_2;
     geom[2] = p_node_3;
     geom[3] = p_node_4;
-    auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
+    auto pgeom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
 
     auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
 
     p_prop->SetAccessor(YOUNG_MODULUS, std::make_unique<CustomAccessor>());
+    KRATOS_EXPECT_TRUE(p_prop->HasAccessor(YOUNG_MODULUS))
 
     Vector N;
     const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);
-    KRATOS_CHECK_NEAR(2.1e11 * 2.0,  modified_E, 1.0e-8);
+    KRATOS_EXPECT_NEAR(2.1e11 * 2.0,  modified_E, 1.0e-8);
+
+    const auto& r_accessor = p_prop->GetAccessor(YOUNG_MODULUS);
+    const double modified_E_from_acc = r_accessor.GetValue(YOUNG_MODULUS, *p_prop, *pgeom, N, r_process_info);
+    KRATOS_EXPECT_NEAR(2.1e11 * 2.0, modified_E_from_acc, 1.0e-8);
 }
 
+/**
+* Checks the correct work of the TableAccessor
+*/
+KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
+{
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+
+        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+
+        std::vector<Node::Pointer> geom(4);
+        geom[0] = p_node_1;
+        geom[1] = p_node_2;
+        geom[2] = p_node_3;
+        geom[3] = p_node_4;
+
+        for (auto& r_node : r_model_part.Nodes()){
+            r_node.AddDof(TEMPERATURE);
+        }
+
+        auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+        Vector N = ZeroVector(4);
+        N[0] = 0.1;
+        N[0] = 0.2;
+        N[0] = 0.3;
+        N[0] = 0.4;
+
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop)[YOUNG_MODULUS]);
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+
+        p_node_1->GetSolutionStepValue(TEMPERATURE) = 25.0;
+        p_node_2->GetSolutionStepValue(TEMPERATURE) = 30.0;
+        p_node_3->GetSolutionStepValue(TEMPERATURE) = 35.0;
+        p_node_4->GetSolutionStepValue(TEMPERATURE) = 40.0;
+
+        Table<double> T_E_table;
+        T_E_table.PushBack(0.0,   2.0e6);
+        T_E_table.PushBack(25.0,  1.0e6);
+        T_E_table.PushBack(50.0,  0.5e6);
+        T_E_table.PushBack(200.0, 0.25e6);
+
+        p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, T_E_table);
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasTable(TEMPERATURE, YOUNG_MODULUS));
+
+        TableAccessor E_table_accessor = TableAccessor(TEMPERATURE, "node_historical");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, E_table_accessor.Clone());
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+
+        Table<double> T_NU_table;
+        T_NU_table.PushBack(0.0,   0.3);
+        T_NU_table.PushBack(25.0,  0.4);
+        T_NU_table.PushBack(50.0,  0.41);
+        T_NU_table.PushBack(200.0, 0.43);
+        p_elem_prop->SetTable(TEMPERATURE, POISSON_RATIO, T_NU_table);
+        TableAccessor nu_table_accessor = TableAccessor(TEMPERATURE); // using the default nodal_historical
+        p_elem_prop->SetAccessor(POISSON_RATIO, nu_table_accessor.Clone());
+
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(POISSON_RATIO));
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(0.34, (*p_elem_prop).GetValue(POISSON_RATIO, *p_geom, N, r_model_part.GetProcessInfo()));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
+{
+    StreamSerializer serializer;
+    TableAccessor table_accessor = TableAccessor(TEMPERATURE, "node_historical");
+
+    serializer.save("table_accessor_info", table_accessor);
+
+    TableAccessor table_accessor_loaded;
+
+    // Variable<double> *p_var_loaded;
+    serializer.load("table_accessor_info", table_accessor_loaded);
+
+    KRATOS_EXPECT_EQ(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
+}
 
 }  // namespace Kratos::Testing.

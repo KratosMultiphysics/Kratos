@@ -53,7 +53,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using GeometryType = Geometry<Node<3> >;
+    using GeometryType = Geometry<Node >;
 
     /// Pointer definition of StructuredMeshGeneratorProcess
     KRATOS_CLASS_POINTER_DEFINITION(StructuredMeshGeneratorProcess);
@@ -102,7 +102,10 @@ public:
     void Execute() override;
 
     int Check() override;
-
+    /**
+     * @brief This method keeps the legacy usage where only one int is supplied instead a 3 array for the mesh size
+     */
+    void ValidateTheDefaultParameters(Parameters TheParameters);
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
@@ -149,7 +152,7 @@ private:
     ///@{
 
     const GeometryType& mrGeometry;
-    std::size_t mNumberOfDivisions;
+    array_1d<std::size_t, 3> mNumberOfDivisions;
     std::size_t mStartNodeId;
     std::size_t mStartElementId;
     std::size_t mStartConditionId;

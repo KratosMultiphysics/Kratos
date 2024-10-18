@@ -11,7 +11,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_processes/set_cartesian_local_axes_process.h"
@@ -58,7 +58,7 @@ namespace Testing
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         local_axis_1[1] = 1.0;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementCartesian3D4N, KratosStructuralMechanicsFastSuite)
@@ -99,8 +99,8 @@ namespace Testing
         local_axis_2[2] = 1.0;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
         const array_1d<double, 3>& r_computed_local_axis_2 = p_element->GetValue(LOCAL_AXIS_2);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_2, local_axis_2);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_2, local_axis_2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementCylindrical2D3N, KratosStructuralMechanicsFastSuite)
@@ -141,7 +141,7 @@ namespace Testing
         local_axis_1[0] = number;
         local_axis_1[1] = number;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementCylindrical3D4N, KratosStructuralMechanicsFastSuite)
@@ -185,8 +185,8 @@ namespace Testing
         local_axis_2[2] = 1.0;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
         const array_1d<double, 3>& r_computed_local_axis_2 = p_element->GetValue(LOCAL_AXIS_2);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_2, local_axis_2);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_2, local_axis_2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementSpherical2D3N, KratosStructuralMechanicsFastSuite)
@@ -227,7 +227,7 @@ namespace Testing
         local_axis_1[0] = number;
         local_axis_1[1] = number;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementSpherical3D4N, KratosStructuralMechanicsFastSuite)
@@ -274,8 +274,8 @@ namespace Testing
         local_axis_2[1] = -number2;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
         const array_1d<double, 3>& r_computed_local_axis_2 = p_element->GetValue(LOCAL_AXIS_2);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
-        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_2, local_axis_2);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_1, local_axis_1);
+        KRATOS_EXPECT_VECTOR_EQ(r_computed_local_axis_2, local_axis_2);
     }
 }
 }

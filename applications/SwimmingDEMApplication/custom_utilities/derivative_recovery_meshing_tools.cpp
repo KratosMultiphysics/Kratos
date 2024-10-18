@@ -19,7 +19,7 @@ void DerivativeRecoveryMeshingTools<TDim>::FillUpEdgesModelPartFromSimplicesMode
 
     for (int i = 0; i < (int)r_tetra_model_part.NumberOfElements(); ++i){
         ElementIteratorType it_tetra = r_tetra_model_part.ElementsBegin() + i;
-        Geometry<Node<3> >& geom = it_tetra->GetGeometry();
+        Geometry<Node >& geom = it_tetra->GetGeometry();
 
         for (unsigned int i_a = 0; i_a < n_nodes_per_simplex - 1; ++i_a){
             int Id_a = geom[i_a].Id();

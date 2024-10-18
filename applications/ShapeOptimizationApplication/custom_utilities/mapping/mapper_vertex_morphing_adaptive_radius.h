@@ -47,7 +47,7 @@ public:
     using BaseType = TBaseVertexMorphingMapper;
 
     // Type definitions for better reading later
-    using NodeType = Node <3>;
+    using NodeType = Node;
 
     using ElementType = Element;
 

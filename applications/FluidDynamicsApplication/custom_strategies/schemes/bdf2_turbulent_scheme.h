@@ -775,7 +775,7 @@ protected:
         }
     }
 
-    void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+    void AssemblePeriodicContributionToProjections(Geometry< Node >& rGeometry)
     {
         unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
@@ -807,7 +807,7 @@ protected:
         }
     }
 
-    void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+    void CorrectContributionsOnPeriodicNode(Node& rNode)
     {
         //TODO: This needs to be done in another manner as soon as we start using non-historical NODAL_AREA
         if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.

@@ -56,7 +56,7 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 ///@}
@@ -219,7 +219,7 @@ class BuildModelPartBoundaryProcess
   }
 
 
-  void CheckMasterNode(int Id, const Node<3>::WeakPointer& old_nnode, const Node<3>::Pointer& new_nnode)
+  void CheckMasterNode(int Id, const Node::WeakPointer& old_nnode, const Node::Pointer& new_nnode)
   {
 
     if( mEchoLevel >= 1 ){
@@ -895,16 +895,16 @@ class BuildModelPartBoundaryProcess
 
             if( NumberNodesInFace == 2 ){
               if( dimension == 2 )
-                ConditionVertices = Kratos::make_shared< Line2D2< Node<3> > >(FaceNodes);
+                ConditionVertices = Kratos::make_shared< Line2D2< Node > >(FaceNodes);
               else
-                ConditionVertices = Kratos::make_shared< Line3D2< Node<3> > >(FaceNodes);
+                ConditionVertices = Kratos::make_shared< Line3D2< Node > >(FaceNodes);
 
             }
             else if ( NumberNodesInFace == 3 ){
               if( dimension == 2 )
-                ConditionVertices = Kratos::make_shared< Line2D3< Node<3> > >(FaceNodes);
+                ConditionVertices = Kratos::make_shared< Line2D3< Node > >(FaceNodes);
               else
-                ConditionVertices = Kratos::make_shared< Triangle3D3< Node<3> > >(FaceNodes);
+                ConditionVertices = Kratos::make_shared< Triangle3D3< Node > >(FaceNodes);
             }
 
             rConditionId +=1;

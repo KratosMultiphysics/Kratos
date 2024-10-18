@@ -226,7 +226,7 @@ namespace Kratos {
             ElementsArrayType::iterator elem_iterator_end = pElements.ptr_end();
 
             for (ElementsArrayType::iterator elem_iterator = elem_iterator_begin; elem_iterator != elem_iterator_end; ++elem_iterator) {
-                //Node<3>& node = elem_iterator->GetGeometry()[0];
+                //Node& node = elem_iterator->GetGeometry()[0];
                 array_1d<double, 3>& reaction_force = elem_iterator->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
                 //Y_coord = elem_iterator->GetGeometry()[0].Coordinates()[1];
                 Z_coord = elem_iterator->GetGeometry()[0].Coordinates()[2];

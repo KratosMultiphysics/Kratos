@@ -68,7 +68,7 @@ namespace Kratos
     void FiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -119,7 +119,7 @@ namespace Kratos
     void FiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)

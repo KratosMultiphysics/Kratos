@@ -24,6 +24,7 @@
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
 #include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
 #include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
@@ -603,6 +604,40 @@ public:
             MathUtils<double>::Norm3(p3-p7)) /12.0;
     }
 
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MaxEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double max_edge_length = 0.0;
+        for (const auto& r_edge: edges) {
+            max_edge_length = std::max(max_edge_length, r_edge.Length());
+        }
+        return max_edge_length;
+    }
+
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MinEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double min_edge_length = std::numeric_limits<double>::max();
+        for (const auto& r_edge: edges) {
+            min_edge_length = std::min(min_edge_length, r_edge.Length());
+        }
+        return min_edge_length;
+    }
+
     ///@}
     ///@name Face
     ///@{
@@ -1041,9 +1076,51 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
     /**
-     * Input and output
-     */
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Point to compute distance to
+        const Point point(rPointGlobalCoordinates);
+
+        // Check if point is inside
+        CoordinatesArrayType aux_coordinates;
+        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Compute distance to faces
+        std::array<double, 6> distances;
+        distances[0] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(3), this->GetPoint(2), this->GetPoint(1), this->GetPoint(0), point);
+        distances[1] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(5), this->GetPoint(4), point);
+        distances[2] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(2), this->GetPoint(6), this->GetPoint(5), this->GetPoint(1), point);
+        distances[3] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(7), this->GetPoint(6), this->GetPoint(2), this->GetPoint(3), point);
+        distances[4] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(7), this->GetPoint(3), this->GetPoint(0), this->GetPoint(4), point);
+        distances[5] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(4), this->GetPoint(5), this->GetPoint(6), this->GetPoint(7), point);
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /**
      * Turn back information as a string.
@@ -1080,11 +1157,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
 protected:

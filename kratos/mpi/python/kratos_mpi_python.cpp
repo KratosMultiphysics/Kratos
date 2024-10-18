@@ -25,6 +25,7 @@
 #include "add_mpi_debug_utilities_to_python.h"
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "includes/parallel_environment.h"
+#include "add_mpi_search_strategies_to_python.h"
 
 namespace Kratos::Python {
 
@@ -71,6 +72,7 @@ PYBIND11_MODULE(KratosMPI, m)
     AddMPIUtilitiesToPython(m);
     AddMPIDebugUtilitiesToPython(m);
     AddDistributedSparseMatricesToPython(m);
+    AddMPISearchStrategiesToPython(m);
 }
 
 }

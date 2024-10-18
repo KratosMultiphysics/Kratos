@@ -19,9 +19,9 @@
 namespace Kratos
 {
   KratosThermalDEMApplication::KratosThermalDEMApplication():KratosApplication("ThermalDEMApplication"),
-    mThermalSphericParticle            (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3>> (Element::GeometryType::PointsArrayType(1)))),
-    mThermalSphericContinuumParticle   (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSinteringSphericContinuumParticle (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
+    mThermalSphericParticle            (0, Element::GeometryType::Pointer(new Sphere3D1<Node> (Element::GeometryType::PointsArrayType(1)))),
+    mThermalSphericContinuumParticle   (0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
+    mSinteringSphericContinuumParticle (0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1))))
   {}
 
   void KratosThermalDEMApplication::Register()

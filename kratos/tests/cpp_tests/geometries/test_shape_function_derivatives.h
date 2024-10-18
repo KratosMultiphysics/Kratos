@@ -25,25 +25,25 @@
 
 namespace Kratos {
 namespace Testing {
-void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom);
+void TestShapeFunctionsLocalGradients(Geometry<Node> const& rGeom);
 
-void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom,
+void TestShapeFunctionsLocalGradients(Geometry<Node> const& rGeom,
                                       GeometryData::IntegrationMethod ThisMethod);
 
-void TestShapeFunctionsLocalGradients_IntegrationPointIndex(Geometry<Node<3>> const& rGeom);
+void TestShapeFunctionsLocalGradients_IntegrationPointIndex(Geometry<Node> const& rGeom);
 
 void TestShapeFunctionsLocalGradients_IntegrationPointIndex(
-    Geometry<Node<3>> const& rGeom, GeometryData::IntegrationMethod ThisMethod);
+    Geometry<Node> const& rGeom, GeometryData::IntegrationMethod ThisMethod);
 
 void TestShapeFunctionsLocalGradients_IntegrationPointIndex_ShapeFunctionIndex(
-    Geometry<Node<3>> const& rGeom, GeometryData::IntegrationMethod ThisMethod);
+    Geometry<Node> const& rGeom, GeometryData::IntegrationMethod ThisMethod);
 
-void TestShapeFunctionsLocalGradients_Point(Geometry<Node<3>> const& rGeom);
+void TestShapeFunctionsLocalGradients_Point(Geometry<Node> const& rGeom);
 
-void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom);
+void TestAllShapeFunctionsLocalGradients(Geometry<Node> const& rGeom);
 
-void TestShapeFunctionsLocalGradient(Geometry<Node<3>> const& rGeom,
-                                     Geometry<Node<3>>::IntegrationPointType Point,
+void TestShapeFunctionsLocalGradient(Geometry<Node> const& rGeom,
+                                     Geometry<Node>::IntegrationPointType Point,
                                      Matrix const& rLocalGradient);
 }
 }

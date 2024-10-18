@@ -58,6 +58,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/coupling_geometry.h"
 
 // Elements
 #include "elements/mesh_element.h"
@@ -75,6 +76,8 @@
 #include "modeler/cad_tessellation_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
+#include "modeler/connectivity_preserve_modeler.h"
+#include "modeler/voxel_mesh_generator_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -93,7 +96,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
     /// Pointer definition of KratosApplication
@@ -127,7 +130,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
-    virtual ~KratosApplication() {}
+    virtual ~KratosApplication()
+    {
+        // This must be commented until tests have been fixed.
+        DeregisterCommonComponents();
+        DeregisterApplication();
+    }
 
     ///@}
     ///@name Operations
@@ -139,6 +147,34 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
+
+    template<class TComponentsContainer>
+    void DeregisterComponent(std::string const & rComponentName);
+
+    /**
+     * @brief This method is used to unregister common components of the application.
+     * @details This method is used to unregister common components of the application.
+     * The list of unregistered components are the ones exposed in the common KratosComponents interface:
+     * - Geometries
+     * - Elements
+     * - Conditions
+     * - MasterSlaveConstraints
+     * - Modelers
+     * - ConstitutiveLaws
+     */
+    void DeregisterCommonComponents();
+
+    /**
+     * @brief This method is used to unregister specific application components.
+     * @details This method is used to unregister specific application components.
+     */
+    virtual void DeregisterApplication();
+
+    /**
+     * @brief This method is used to unregister mappers registered by the application..
+     * @details This method is used to unregister mappers registered by the application..
+     */
+    void DeregisterMappers();
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
@@ -213,7 +249,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
-    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+    KratosComponents<Geometry<Node>>::ComponentsContainerType& GetGeometries() {
         return *mpGeometries;
     }
 
@@ -245,7 +281,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         }
     }
 
-    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    void SetComponents(KratosComponents<Geometry<Node>>::ComponentsContainerType const& GeometryComponents)
     {
         mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
     }
@@ -328,7 +364,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
         rOStream << "Geometries:" << std::endl;
 
-        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+        KratosComponents<Geometry<Node>>().PrintData(rOStream);
 
         rOStream << "Elements:" << std::endl;
 
@@ -392,6 +428,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Quadrilateral3D4<NodeType> mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
     const Quadrilateral3D8<NodeType> mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Quadrilateral3D9<NodeType> mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Coupling
+    const CouplingGeometry<NodeType> mCouplingGeometry = CouplingGeometry<NodeType>();
     //Tetrahedra:
     const Tetrahedra3D4<NodeType> mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
     const Tetrahedra3D10<NodeType> mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));
@@ -406,37 +444,41 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometries:
-    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node,2,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node,3,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node,3,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node,3>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
     // Generic condition
     const MeshCondition mGenericCondition;
+
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
+
     // Line conditions
     const MeshCondition mLineCondition2D2N;
     const MeshCondition mLineCondition2D3N;
     const MeshCondition mLineCondition3D2N;
     const MeshCondition mLineCondition3D3N;
+
     // Surface conditions
     const MeshCondition mSurfaceCondition3D3N;
     const MeshCondition mSurfaceCondition3D6N;
     const MeshCondition mSurfaceCondition3D4N;
     const MeshCondition mSurfaceCondition3D8N;
     const MeshCondition mSurfaceCondition3D9N;
-    //prisms
+
+    // Prisms conditions
     const MeshCondition mPrismCondition2D4N;
     const MeshCondition mPrismCondition3D6N;
 
@@ -453,17 +495,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General elements must be defined
     const MeshElement mGenericElement;
 
-    const MeshElement mElement2D1N;
-    const MeshElement mElement2D2N;
+    // 2D elements
+    const MeshElement mElement2D1N; // NOTE: This would be duplicated mPointElement2D1N
+    const MeshElement mElement2D2N; // NOTE: This would be duplicated mLineElement2D2N
     const MeshElement mElement2D3N;
     const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
     const MeshElement mElement2D8N;
     const MeshElement mElement2D9N;
 
-    const MeshElement mElement3D1N;
-    const MeshElement mElement3D2N;
-    const MeshElement mElement3D3N;
+    // 3D elements
+    const MeshElement mElement3D1N; // NOTE: This would be duplicated mPointElement3D1N
+    const MeshElement mElement3D2N; // NOTE: This would be duplicated mLineElement3D2N
+    const MeshElement mElement3D3N; // NOTE: This would be duplicated mSurfaceElement3D3N
     const MeshElement mElement3D4N;
     const MeshElement mElement3D5N;
     const MeshElement mElement3D6N;
@@ -474,12 +518,33 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D20N;
     const MeshElement mElement3D27N;
 
+    // For sake of consistency and in order to define missing geometries for elements
+    // Point elements
+    const MeshElement mPointElement2D1N;
+    const MeshElement mPointElement3D1N;
+
+    // Line elements
+    const MeshElement mLineElement2D2N;
+    const MeshElement mLineElement2D3N;
+    const MeshElement mLineElement3D2N;
+    const MeshElement mLineElement3D3N;
+
+    // Surface elements
+    const MeshElement mSurfaceElement3D3N;
+    const MeshElement mSurfaceElement3D6N;
+    const MeshElement mSurfaceElement3D4N;
+    const MeshElement mSurfaceElement3D8N;
+    const MeshElement mSurfaceElement3D9N;
+
+    // Distance calculation elements
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
+    // Edge based gradient recovery elements
     const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
     const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
 
+    // Level set convection elements
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
     const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;
@@ -493,6 +558,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 #endif
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
     const CombineModelPartModeler mCombineModelPartModeler;
+    const ConnectivityPreserveModeler mConnectivityPreserveModeler;
+    const VoxelMeshGeneratorModeler mVoxelMeshGeneratorModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
@@ -520,7 +587,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
 
-    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
+    KratosComponents<Geometry<Node>>::ComponentsContainerType* mpGeometries;
 
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 

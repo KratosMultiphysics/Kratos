@@ -21,36 +21,25 @@
 
 namespace Kratos
 {
-//-------------------------------------------------------------------------------------------------
-SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw()
-    : RetentionLaw()
-{
-}
+SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw() : RetentionLaw() {}
 
-//-------------------------------------------------------------------------------------------------
 SaturatedBelowPhreaticLevelLaw::SaturatedBelowPhreaticLevelLaw(const SaturatedBelowPhreaticLevelLaw& rOther)
     : RetentionLaw(rOther)
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 RetentionLaw::Pointer SaturatedBelowPhreaticLevelLaw::Clone() const
 {
     return Kratos::make_shared<SaturatedBelowPhreaticLevelLaw>(*this);
 }
 
-//-------------------------------------------------------------------------------------------------
-SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw()
-{
-}
+SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw() {}
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedBelowPhreaticLevelLaw::
-    CalculateSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters& rParameters) const
 {
     KRATOS_TRY
 
-    const double &p = rParameters.GetFluidPressure();
+    const double& p = rParameters.GetFluidPressure();
 
     if (p < 0.0) {
         return rParameters.GetMaterialProperties()[SATURATED_SATURATION];
@@ -61,9 +50,7 @@ double SaturatedBelowPhreaticLevelLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedBelowPhreaticLevelLaw::
-    CalculateEffectiveSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters& rParameters) const
 {
     KRATOS_TRY
 
@@ -72,20 +59,16 @@ double SaturatedBelowPhreaticLevelLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedBelowPhreaticLevelLaw::
-    CalculateDerivativeOfSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameters& rParameters) const
 {
     return 0.0;
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedBelowPhreaticLevelLaw::
-    CalculateRelativePermeability(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters& rParameters) const
 {
     KRATOS_TRY
 
-    const double &p = rParameters.GetFluidPressure();
+    const double& p = rParameters.GetFluidPressure();
 
     if (p < 0.0) {
         return 1.0;
@@ -96,9 +79,7 @@ double SaturatedBelowPhreaticLevelLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-double SaturatedBelowPhreaticLevelLaw::
-    CalculateBishopCoefficient(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters& rParameters) const
 {
     KRATOS_TRY
 
@@ -107,10 +88,9 @@ double SaturatedBelowPhreaticLevelLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>& rThisVariable,
-                                        double& rValue)
+                                                       const Variable<double>&   rThisVariable,
+                                                       double&                   rValue)
 {
     if (rThisVariable == DEGREE_OF_SATURATION) {
         rValue = this->CalculateSaturation(rParameterValues);
@@ -132,67 +112,54 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters&
     return rValue;
 }
 
-//------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
-//-------------------------------------------------------------------------------------------------
-void SaturatedBelowPhreaticLevelLaw::
-    InitializeMaterial(const Properties& rMaterialProperties,
-                       const GeometryType& rElementGeometry,
-                       const Vector& rShapeFunctionsValues)
+void SaturatedBelowPhreaticLevelLaw::InitializeMaterial(const Properties&   rMaterialProperties,
+                                                        const GeometryType& rElementGeometry,
+                                                        const Vector&       rShapeFunctionsValues)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedBelowPhreaticLevelLaw::
-    Initialize(Parameters &rParameters)
+void SaturatedBelowPhreaticLevelLaw::Initialize(Parameters& rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedBelowPhreaticLevelLaw::
-    InitializeSolutionStep(Parameters &rParameters)
+void SaturatedBelowPhreaticLevelLaw::InitializeSolutionStep(Parameters& rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedBelowPhreaticLevelLaw::
-    Finalize(Parameters &rParameters)
+void SaturatedBelowPhreaticLevelLaw::Finalize(Parameters& rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-void SaturatedBelowPhreaticLevelLaw::
-    FinalizeSolutionStep(Parameters &rParameters)
+void SaturatedBelowPhreaticLevelLaw::FinalizeSolutionStep(Parameters& rParameters)
 {
     // nothing is needed
 }
 
-//-------------------------------------------------------------------------------------------------
-int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
-                           const ProcessInfo& rCurrentProcessInfo)
+int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
-                        << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
+        << "SATURATED_SATURATION is not available in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0)
-                    << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
+        << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(RESIDUAL_SATURATION))
-                        << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
+        << "RESIDUAL_SATURATION is not available in material parameters" << std::endl;
     KRATOS_DEBUG_ERROR_IF_NOT(rMaterialProperties[RESIDUAL_SATURATION] > 0.0)
-                            << "RESIDUAL_SATURATION must be greater than 0 " << std::endl;
+        << "RESIDUAL_SATURATION must be greater than 0 " << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] > 1.0)
-                    << "RESIDUAL_SATURATION cannot be greater than 1.0 " << std::endl;
+        << "RESIDUAL_SATURATION cannot be greater than 1.0 " << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
-                    << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
+        << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
-                        << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
+        << "MINIMUM_RELATIVE_PERMEABILITY is not available in material parameters" << std::endl;
     KRATOS_ERROR_IF_NOT((rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
-                        << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
+        << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
     return 0;
 }

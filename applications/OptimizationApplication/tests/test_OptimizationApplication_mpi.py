@@ -12,6 +12,7 @@ import test_model_part_utils
 import test_container_expression_utils
 import test_container_expression
 import test_collective_expressions
+import process_tests.test_optimization_problem_ascii_output_process
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -31,12 +32,14 @@ def AssembleTestSuites():
     smallMPISuite = suites['mpi_small']
 
     # adding custom process tests
-    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
+
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_ascii_output_process.TestOptimizationProblemAsciiOutputProcess]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
@@ -50,5 +53,4 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())

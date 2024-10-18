@@ -908,9 +908,9 @@ public:
                 for( int j=i+1; j<n; j++ )
                 {
                     double theta = 0.0;
-                    if( MathUtilsType::Abs( A(i,j) ) >= zero_tolerance )
+                    if( std::abs( A(i,j) ) >= zero_tolerance )
                     {
-                        if( MathUtilsType::Abs( A(i,i)-A(j,j) ) > 0.0 )
+                        if( std::abs( A(i,i)-A(j,j) ) > 0.0 )
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
@@ -936,9 +936,9 @@ public:
             {
                 for( unsigned int j=0; j<A.size2(); j++ )
                 {
-                    sTot += MathUtilsType::Abs(A(i,j));
+                    sTot += std::abs(A(i,j));
                 }
-                sDiag+= MathUtilsType::Abs(A(i,i));
+                sDiag+= std::abs(A(i,i));
             }
             error=(sTot-sDiag)/sDiag;
         }

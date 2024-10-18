@@ -14,13 +14,13 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
 // Application includes
 #include "custom_utilities/fluid_element_data.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -39,9 +39,9 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
+        const Geometry<Node >& r_geometry = rElement.GetGeometry();
         for (unsigned int i = 0; i < 3; i++) {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
+            KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
         }
 
         return 0;
@@ -61,9 +61,9 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
+        const Geometry<Node >& r_geometry = rElement.GetGeometry();
         for (unsigned int i = 0; i < 3; i++) {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
+            KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
         }
 
         return 0;
@@ -150,10 +150,10 @@ void FluidElementDataTestCompleteModelPart(
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     for (unsigned int i = 0; i < 3; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.Id();
         r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Id() + 5.0;
     }
@@ -169,7 +169,7 @@ void FluidElementDataTestCompleteModelPart(
         rModelPart.CloneTimeStep(i * DeltaTime);
 
         for (unsigned int j = 0; j < 3; j++) {
-            Node<3>& r_node = r_geometry[j];
+            Node& r_node = r_geometry[j];
             r_node.FastGetSolutionStepValue(PRESSURE) += float(i);
             r_node.FastGetSolutionStepValue(VELOCITY_Y) = r_node.Id() + i;
         }
@@ -193,30 +193,30 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
     const ProcessInfo& r_process_info = full_model_part.GetProcessInfo();
 
     nodal_scalar_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure[0], 11.0);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure[1], 21.0);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure[2], 31.0);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure_OldStep1[0], 10.0);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure_OldStep1[1], 20.0);
-    KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure_OldStep1[2], 30.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure[0], 11.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure[1], 21.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure[2], 31.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure_OldStep1[0], 10.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure_OldStep1[1], 20.0);
+    KRATOS_EXPECT_EQ(nodal_scalar_data.Pressure_OldStep1[2], 30.0);
 
     nodal_vector_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity(0,1), 2.0);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity(1,1), 3.0);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity(2,1), 4.0);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity_OldStep1(0,0), 6.0);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity_OldStep1(1,0), 7.0);
-    KRATOS_CHECK_EQUAL(nodal_vector_data.Velocity_OldStep1(2,0), 8.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity(0,1), 2.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity(1,1), 3.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity(2,1), 4.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity_OldStep1(0,0), 6.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity_OldStep1(1,0), 7.0);
+    KRATOS_EXPECT_EQ(nodal_vector_data.Velocity_OldStep1(2,0), 8.0);
 
     element_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(element_data.CSmagorinsky, r_element.GetValue(C_SMAGORINSKY));
+    KRATOS_EXPECT_EQ(element_data.CSmagorinsky, r_element.GetValue(C_SMAGORINSKY));
 
     properties_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(properties_data.KinematicViscosity, r_element.GetProperties().GetValue(KINEMATIC_VISCOSITY));
+    KRATOS_EXPECT_EQ(properties_data.KinematicViscosity, r_element.GetProperties().GetValue(KINEMATIC_VISCOSITY));
 
     process_info_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(process_info_data.UseOSS, r_process_info.GetValue(OSS_SWITCH));
-    KRATOS_CHECK_EQUAL(process_info_data.DeltaTime, r_process_info.GetValue(DELTA_TIME));
+    KRATOS_EXPECT_EQ(process_info_data.UseOSS, r_process_info.GetValue(OSS_SWITCH));
+    KRATOS_EXPECT_EQ(process_info_data.DeltaTime, r_process_info.GetValue(DELTA_TIME));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSuite) {
@@ -231,34 +231,34 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
 
     // historical data container should not work with variables not added to model part
     int out;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         out = TestNodalScalarData::Check(r_element, r_process_info),
         "Missing PRESSURE variable in solution step data for node 1.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
     out = TestNodalVectorData::Check(r_element, r_process_info),
         "Missing VELOCITY variable in solution step data for node 1.");
 
     // Other containers can work with non-initialized variables, but should return 0
     out = TestElementData::Check(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(out,0);
+    KRATOS_EXPECT_EQ(out,0);
     out = TestPropertiesData::Check(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(out,0);
+    KRATOS_EXPECT_EQ(out,0);
     out = TestProcessInfoData::Check(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(out,0);
+    KRATOS_EXPECT_EQ(out,0);
 
     TestElementData element_data;
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
 
     element_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(element_data.CSmagorinsky, 0.0);
+    KRATOS_EXPECT_EQ(element_data.CSmagorinsky, 0.0);
 
     properties_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(properties_data.KinematicViscosity, 0.0);
+    KRATOS_EXPECT_EQ(properties_data.KinematicViscosity, 0.0);
 
     process_info_data.Initialize(r_element,r_process_info);
-    KRATOS_CHECK_EQUAL(process_info_data.UseOSS, 0.0);
-    KRATOS_CHECK_EQUAL(process_info_data.DeltaTime, 0.0);
+    KRATOS_EXPECT_EQ(process_info_data.UseOSS, 0.0);
+    KRATOS_EXPECT_EQ(process_info_data.DeltaTime, 0.0);
 }
 
 }  // namespace Testing

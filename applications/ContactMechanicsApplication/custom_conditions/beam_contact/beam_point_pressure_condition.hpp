@@ -57,7 +57,7 @@ public:
 
     ///Tensor order 1 definition
     typedef Vector                              VectorType;
-    typedef Node<3>::Pointer              PointPointerType;
+    typedef Node::Pointer              PointPointerType;
 
     std::vector<PointPointerType> mNodesList;
     array_1d<double, 3 > mForce;

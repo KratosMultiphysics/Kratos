@@ -122,20 +122,20 @@ namespace Kratos
             reference_b[3] = 60.0;
             reference_b[4] = -60.0;
 
-            KRATOS_CHECK_NEAR(rA(1,0), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(0,1), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(2,0), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(0,2), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(3,4), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(4,3), 0.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(4,0), -1.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(0,4), -1.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(0,0), 4.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(1,1), 2.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(2,2), 3.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(3,3), 4.0, 1e-10);
-            KRATOS_CHECK_NEAR(rA(4,4), 4.0, 1e-10);
-            KRATOS_CHECK_VECTOR_NEAR(rB, reference_b, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(1,0), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(0,1), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(2,0), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(0,2), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(3,4), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(4,3), 0.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(4,0), -1.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(0,4), -1.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(0,0), 4.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(1,1), 2.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(2,2), 3.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(3,3), 4.0, 1e-10);
+            KRATOS_EXPECT_NEAR(rA(4,4), 4.0, 1e-10);
+            KRATOS_EXPECT_VECTOR_NEAR(rB, reference_b, 1e-10);
 
         }
     } // namespace Testing

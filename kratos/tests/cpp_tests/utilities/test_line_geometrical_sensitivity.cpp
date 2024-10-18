@@ -15,7 +15,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/triangle_3d_3.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/line_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 #include "testing/testing.h"
@@ -135,7 +135,7 @@ void CheckIntegrationPointWeightSensitivity(
             line_sensitivity.CalculateSensitivity(deriv, result);
             double obtained_sensitivity = result * integration_points[g].Weight();
 
-            KRATOS_CHECK_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
+            KRATOS_EXPECT_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
 
             // undo perturbation for next step
             r_geometry[deriv.NodeIndex].Coordinates()[deriv.Direction] -= Perturbation;

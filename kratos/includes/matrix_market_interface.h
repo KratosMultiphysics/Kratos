@@ -4,26 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-
-
-
-
-
-
-
-
-
-
-#if !defined(KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED )
-#define  KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <stdio.h>
@@ -588,5 +575,3 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 }
 
 } // namespace Kratos
-
-#endif // KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED  defined

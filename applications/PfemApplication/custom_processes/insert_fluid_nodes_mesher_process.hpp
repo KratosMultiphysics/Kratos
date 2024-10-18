@@ -103,7 +103,7 @@ class InsertFluidNodesMesherProcess
     {
       std::vector<array_1d<double,3> >         NewPositions(ElementsToRefine);
       std::vector<array_1d< unsigned int,4 > > NodeIdsToInterpolate(ElementsToRefine);
-      std::vector<Node<3>::DofsContainerType > NewDofs(ElementsToRefine);
+      std::vector<Node::DofsContainerType > NewDofs(ElementsToRefine);
       std::vector<double >                     LargestVolumes(ElementsToRefine);
       std::fill(LargestVolumes.begin(), LargestVolumes.end(), -1 );
 
@@ -231,7 +231,7 @@ class InsertFluidNodesMesherProcess
 
   }
 
-		void CopyDofs(Node<3>::DofsContainerType const& From, Node<3>::DofsContainerType& To){
+		void CopyDofs(Node::DofsContainerType const& From, Node::DofsContainerType& To){
 			for(auto& p_dof : From){
 				To.push_back(Kratos::unique_ptr<Dof<double>>(new Dof<double>(*p_dof)));
 			}
@@ -244,7 +244,7 @@ class InsertFluidNodesMesherProcess
 			     std::vector<array_1d<double,3> >& rNewPositions,
 			     std::vector<double >& rLargestVolumes,
 			     std::vector<array_1d< unsigned int,4 > >& rNodeIdsToInterpolate,
-			     std::vector<Node<3>::DofsContainerType >& rNewDofs,
+			     std::vector<Node::DofsContainerType >& rNewDofs,
 			     unsigned int& rNodesToRefine,
 			     const unsigned int& rElementsToRefine)
   {
@@ -438,7 +438,7 @@ class InsertFluidNodesMesherProcess
 			     std::vector<array_1d<double,3> >& rNewPositions,
 			     std::vector<double >& rLargestVolumes,
 			     std::vector<array_1d< unsigned int,4 > >& rNodeIdsToInterpolate,
-			     std::vector<Node<3>::DofsContainerType >& rNewDofs,
+			     std::vector<Node::DofsContainerType >& rNewDofs,
 			     unsigned int& rNodesToRefine,
 			     const unsigned int& rElementsToRefine)
   {
@@ -649,14 +649,14 @@ class InsertFluidNodesMesherProcess
 
   void CreateAndAddNewNodes(std::vector<array_1d<double,3> >& rNewPositions,
 			    std::vector<array_1d< unsigned int,4 > >& rNodeIdsToInterpolate,
-			    std::vector<Node<3>::DofsContainerType >& rNewDofs,
+			    std::vector<Node::DofsContainerType >& rNewDofs,
 			    const unsigned int& rElementsToRefine)
   {
     KRATOS_TRY
 
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    std::vector<Node<3>::Pointer > list_of_new_nodes;
+    std::vector<Node::Pointer > list_of_new_nodes;
     const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( mrModelPart.GetParentModelPart() );
     const unsigned int NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
@@ -680,7 +680,7 @@ class InsertFluidNodesMesherProcess
         z=rNewPositions[nn][2];
 
       //create a new node
-      Node<3>::Pointer pnode = mrModelPart.CreateNewNode(Id,x,y,z);
+      Node::Pointer pnode = mrModelPart.CreateNewNode(Id,x,y,z);
       ++Id;
 
       //to control the inserted nodes
@@ -703,22 +703,22 @@ class InsertFluidNodesMesherProcess
       //set buffer size
       pnode->SetBufferSize(mrModelPart.GetBufferSize());
 
-      Node<3>::DofsContainerType& Reference_dofs = rNewDofs[nn];
+      Node::DofsContainerType& Reference_dofs = rNewDofs[nn];
 
       //generating the dofs
-      // for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
+      // for(Node::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
       // {
-      //   Node<3>::DofType& rDof = **iii;
-      //   Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+      //   Node::DofType& rDof = **iii;
+      //   Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
       //   //(p_new_dof)->FreeDof();
       // }
 
-      Geometry<Node<3> >::PointsArrayType  PointsArray;
+      Geometry<Node >::PointsArrayType  PointsArray;
       PointsArray.push_back( mrModelPart.pGetNode(rNodeIdsToInterpolate[nn][0]) );
       PointsArray.push_back( mrModelPart.pGetNode(rNodeIdsToInterpolate[nn][1]) );
 
-      Geometry<Node<3> > LineGeometry( PointsArray );
+      Geometry<Node > LineGeometry( PointsArray );
 
       std::vector<double> ShapeFunctionsN(2);
       std::fill( ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 0.0 );
@@ -739,7 +739,7 @@ class InsertFluidNodesMesherProcess
 
     //set the coordinates to the original value
     const array_1d<double,3> ZeroNormal(3,0.0);
-    for(std::vector<Node<3>::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); ++it)
+    for(std::vector<Node::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); ++it)
     {
       const array_1d<double,3>& displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
       (*it)->X0() = (*it)->X() - displacement[0];

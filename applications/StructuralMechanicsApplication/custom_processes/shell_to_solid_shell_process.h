@@ -68,7 +68,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     /// Geometric type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     /// The definition of the containers

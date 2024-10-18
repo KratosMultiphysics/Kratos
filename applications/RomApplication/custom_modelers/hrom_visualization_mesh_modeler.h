@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using SizeType = std::size_t;
 

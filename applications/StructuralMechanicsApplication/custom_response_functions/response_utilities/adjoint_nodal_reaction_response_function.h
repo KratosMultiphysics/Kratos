@@ -54,7 +54,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer;
+    typedef Node::Pointer PointTypePointer;
     typedef matrix_column< Matrix > MatrixColumnType;
     typedef matrix_row< Matrix > MatrixRowType;
 
@@ -199,8 +199,8 @@ private:
     std::string mTracedDisplacementLabel;
     std::string mTracedReactionLabel;
     PointTypePointer  mpTracedNode;
-    GlobalPointersVector<Element> mpNeighborElements;
-    GlobalPointersVector<Condition> mpNeighborConditions;
+    GlobalPointersVector<Element> mpNeighbourElements;
+    GlobalPointersVector<Condition> mpNeighbourConditions;
     bool mAdjustAdjointDisplacement = false;
 
     ///@}

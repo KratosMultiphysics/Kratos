@@ -27,12 +27,12 @@
 #include "includes/define_python.h"
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
-#include "custom_python/add_custom_controls_to_python.h"
 #include "custom_python/add_custom_responses_to_python.h"
-#include "custom_python/add_custom_optimization_algorithm_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_filters_to_python.h"
+#include "custom_python/add_custom_control_utilities_to_python.h"
 
 // ==============================================================================
 
@@ -50,13 +50,15 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         ;
 
     AddCustomResponsesToPython(m);
-    AddCustomControlsToPython(m);
-    AddCustomOptimizationAlgorithmToPython(m);
-    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
+    AddCustomFiltersToPython(m);
 
     auto response_utils = m.def_submodule("ResponseUtils");
     AddCustomResponseUtilitiesToPython(response_utils);
+
+    auto control_utils = m.def_submodule("ControlUtils");
+    AddCustomControlUtilitiesToPython(control_utils);
 
     //registering variables in python
 
@@ -118,7 +120,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     //max overhang angle
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_MAX_OVERHANG_ANGLE_D_X);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_MAX_OVERHANG_ANGLE_D_CX);    
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_MAX_OVERHANG_ANGLE_D_CX);
 
     //max_stress
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_STRESS_D_X);
@@ -163,6 +165,17 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VARS_SHAPE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_SOURCE_SHAPE);
 
+     // For helholtz solvers
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTE_HELMHOLTZ_INVERSE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_INTEGRATED_FIELD );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SCALAR );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SCALAR_SOURCE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_RADIUS );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_SOLVERS_USING_NODES);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VECTOR);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VECTOR_SOURCE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_STRAIN_ENERGY );
+
     // for thickness optimization
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_VAR_THICKNESS );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SOURCE_THICKNESS );
@@ -177,6 +190,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     //adjoint RHS
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_RHS);
 
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CROSS_AREA);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DENSITY_SENSITIVITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THICKNESS_SENSITIVITY);

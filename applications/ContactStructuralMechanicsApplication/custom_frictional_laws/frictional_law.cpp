@@ -21,7 +21,7 @@
 namespace Kratos
 {
 double FrictionalLaw::GetFrictionCoefficient(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -42,7 +42,7 @@ double FrictionalLaw::GetFrictionCoefficient(
 /***********************************************************************************/
 
 double FrictionalLaw::GetThresholdValue(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )

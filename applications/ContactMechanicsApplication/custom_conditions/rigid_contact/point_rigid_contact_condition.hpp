@@ -58,7 +58,7 @@ public:
     ///Tensor order 1 definition
     //typedef BoundedVector<double, 3>                PointType;
     typedef array_1d<double, 3>                           PointType;
-    typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
     ///@{

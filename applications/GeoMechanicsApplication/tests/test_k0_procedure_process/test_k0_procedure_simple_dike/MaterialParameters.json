@@ -1,0 +1,69 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.sand",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "SmallStrainUMAT2DPlaneStrainLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
+              "DENSITY_SOLID"            :  2650,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.395,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+	      "K0_MAIN_DIRECTION"        :  1,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "UDSM_NAME"                :  "../../MohrCoulombUMAT.dll",
+              "IS_FORTRAN_UDSM"          :  true,
+              "NUMBER_OF_UMAT_PARAMETERS":  6,
+	      "INDEX_OF_UMAT_PHI_PARAMETER": 4,
+              "UMAT_PARAMETERS"          :  [30000000,
+                                             0.2,
+                                             1000.0,
+                                             30,
+                                             0.0,
+                                             1000],
+              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
+              "STATE_VARIABLES"         :  [0.0]
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.dike",
+      "properties_id":           2,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "SmallStrainUMAT2DPlaneStrainLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
+              "DENSITY_SOLID"            :  2650,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.395,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "UDSM_NAME"                :  "../../MohrCoulombUMAT.dll",
+              "IS_FORTRAN_UDSM"          :  true,
+              "NUMBER_OF_UMAT_PARAMETERS":  6,
+              "UMAT_PARAMETERS"          :  [10000000,
+                                             0.2,
+                                             5000,
+                                             20,
+                                             0.0,
+                                             1000],
+              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
+              "STATE_VARIABLES"         :  [0.0]
+         },
+         "Tables": {}
+      }
+   }]
+}

@@ -114,7 +114,7 @@ public:
 
     typedef PointerVectorSet<DofType> DofsArrayType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
@@ -1091,7 +1091,7 @@ public:
 
     /// Creates new element with a nodes list.
     ElementType::Pointer CreateNewElement(std::string ElementName,
-        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        IndexType Id, Geometry< Node >::PointsArrayType pElementNodes,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /// Creates new element with pointer to geometry.
@@ -1283,7 +1283,7 @@ public:
 
     /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
-            IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            IndexType Id, Geometry< Node >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /// Creates new condition with pointer to geometry.
@@ -1534,8 +1534,13 @@ public:
                 aux_root.push_back( it.operator->() );
                 aux.push_back( it.operator->() );
             } else { // If it does exist verify it is the same geometry
-                if(&(*it_found) != &(*it)) { // Check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new geometry with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+                if (GeometryType::HasSameGeometryType(*it, *it_found)) { // Check the geometry type and connectivities
+                    for (IndexType i_pt = 0; i_pt < it->PointsNumber(); ++i_pt) {
+                        KRATOS_ERROR_IF((*it)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << it->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+                    }
+                    aux.push_back( it_found.operator->() ); // If the Id, type and connectivities are the same add the existing geometry
+                } else if(&(*it_found) != &(*it)) { // Check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
                 } else {
                     aux.push_back( it.operator->() );
                 }

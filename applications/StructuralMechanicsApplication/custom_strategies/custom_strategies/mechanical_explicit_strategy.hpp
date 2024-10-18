@@ -72,7 +72,7 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     /// DoF types definition
-    typedef typename Node<3>::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     /// Counted pointer of MechanicalExplicitStrategy
@@ -514,9 +514,9 @@ private:
             const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
 
             // Construct loop lambda depending on whether nodes have rot_z
-            std::function<void(Node<3>&)> loop_base, loop;
+            std::function<void(Node&)> loop_base, loop;
 
-            loop_base = [&disppos](Node<3>& rNode){
+            loop_base = [&disppos](Node& rNode){
                 const auto force_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
@@ -534,7 +534,7 @@ private:
             };
 
             if (has_dof_for_rot_z) {
-                loop = [&rotppos, &loop_base](Node<3>& rNode){
+                loop = [&rotppos, &loop_base](Node& rNode){
                     loop_base(rNode);
                     const auto moment_residual = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
                     if (rNode.GetDof(ROTATION_X, rotppos).IsFixed()) {

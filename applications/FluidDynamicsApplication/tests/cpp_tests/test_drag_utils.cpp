@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -27,6 +26,7 @@
 #include "custom_utilities/drag_utilities.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -176,9 +176,9 @@ namespace Kratos {
             array_1d<double, 3> drag_force = drag_utilities.CalculateBodyFittedDrag(model_part.GetSubModelPart("DragModelPart"));
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], 15.0, 1e-6);
-            KRATOS_CHECK_NEAR(drag_force[1], 30.0, 1e-6);
-            KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(drag_force[0], 15.0, 1e-6);
+            KRATOS_EXPECT_NEAR(drag_force[1], 30.0, 1e-6);
+            KRATOS_EXPECT_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
 
 	    /**
@@ -204,9 +204,9 @@ namespace Kratos {
             array_1d<double, 3> drag_force = drag_utilities.CalculateEmbeddedDrag(model_part);
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], 6.72, 1e-2);
-            KRATOS_CHECK_NEAR(drag_force[1], 0.8325, 1e-4);
-            KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(drag_force[0], 6.72, 1e-2);
+            KRATOS_EXPECT_NEAR(drag_force[1], 0.8325, 1e-4);
+            KRATOS_EXPECT_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
 
 	    /**
@@ -232,9 +232,9 @@ namespace Kratos {
             array_1d<double, 3> drag_force_center = drag_utilities.CalculateEmbeddedDragCenter(model_part);
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force_center[0], 0.25, 1e-2);
-            KRATOS_CHECK_NEAR(drag_force_center[1], 0.5, 1e-4);
-            KRATOS_CHECK_NEAR(drag_force_center[2], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(drag_force_center[0], 0.25, 1e-2);
+            KRATOS_EXPECT_NEAR(drag_force_center[1], 0.5, 1e-4);
+            KRATOS_EXPECT_NEAR(drag_force_center[2], 0.0, 1e-6);
 	    }
 
 

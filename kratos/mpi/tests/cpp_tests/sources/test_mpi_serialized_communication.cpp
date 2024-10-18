@@ -19,11 +19,11 @@
 #include "containers/model.h"
 #include "includes/data_communicator.h"
 #include "includes/model_part.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -44,13 +44,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
 
     for (auto& node: recv_node_container)
     {
-        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
-        KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
-        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+        KRATOS_EXPECT_EQ(node.Id(), (unsigned int)send_rank);
+        KRATOS_EXPECT_EQ(node.Z(), 0.1*send_rank);
+        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -81,14 +81,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
 
         for (auto& node: model_part.Nodes())
         {
-            KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
-            KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
-            KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+            KRATOS_EXPECT_EQ(node.Id(), (unsigned int)send_rank);
+            KRATOS_EXPECT_EQ(node.Z(), 0.1*send_rank);
+            KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
         }
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
@@ -112,9 +112,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, Kr
 
     for (auto& node: model_part.Nodes())
     {
-        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)source_rank);
-        KRATOS_CHECK_EQUAL(node.Z(), 0.1*source_rank);
-        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
+        KRATOS_EXPECT_EQ(node.Id(), (unsigned int)source_rank);
+        KRATOS_EXPECT_EQ(node.Z(), 0.1*source_rank);
+        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
     }
 }
 

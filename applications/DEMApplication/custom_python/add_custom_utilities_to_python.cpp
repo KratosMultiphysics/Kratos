@@ -25,6 +25,7 @@
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/fast_filling_creator.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h"
@@ -90,7 +91,7 @@ Element::Pointer CreateSphericParticle1(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element) {
@@ -101,7 +102,7 @@ Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -111,7 +112,7 @@ Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_des
 
 Element::Pointer CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -158,6 +159,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<AnalyticWatcher::Pointer>())
         .def(py::init<AnalyticWatcher::Pointer, const Parameters&>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
+        .def("UpdateSurroundingBoundingBox", &ParticleCreatorDestructor::UpdateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
@@ -184,6 +186,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("MarkContactElementsForErasingContinuum", &ParticleCreatorDestructor::MarkContactElementsForErasingContinuum)
         .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
         .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
@@ -201,6 +204,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
         .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
         .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
+        ;
+
+    py::class_<Fast_Filling_Creator, Fast_Filling_Creator::Pointer>(m, "Fast_Filling_Creator")
+        .def(py::init<const int>())
+        .def(py::init<Parameters&, const int>())
+        .def("GetRandomParticleRadius", &Fast_Filling_Creator::GetRandomParticleRadius, py::arg("creator_destructor"))
+        .def("CheckHasIndentationOrNot", &Fast_Filling_Creator::CheckHasIndentationOrNot)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
@@ -227,6 +237,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
+        .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;

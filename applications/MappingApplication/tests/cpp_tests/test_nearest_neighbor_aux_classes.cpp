@@ -23,7 +23,7 @@ namespace Kratos::Testing {
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -38,16 +38,16 @@ KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicati
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords_1, source_local_sys_idx, source_rank);
     const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords_1, source_local_sys_idx, 0));
 
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info.GetLocalSystemIndex(), source_local_sys_idx);
+    KRATOS_EXPECT_EQ(nearest_neighbor_info.GetLocalSystemIndex(), source_local_sys_idx);
 
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info.GetSourceRank(), source_rank);
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info_2->GetSourceRank(), 0); // Testing against default
+    KRATOS_EXPECT_EQ(nearest_neighbor_info.GetSourceRank(), source_rank);
+    KRATOS_EXPECT_EQ(nearest_neighbor_info_2->GetSourceRank(), 0); // Testing against default
 
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetIsApproximation());
+    KRATOS_EXPECT_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_FALSE(nearest_neighbor_info.GetIsApproximation());
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(nearest_neighbor_info.Coordinates()[i], coords_1[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(nearest_neighbor_info.Coordinates()[i], coords_1[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
@@ -65,8 +65,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_BasicTests, KratosMapping
     // Test if the "Create" function returns the correct object
     const auto& r_arg_1 = *nearest_neighbor_info_1;
     const auto& r_arg_2 = *nearest_neighbor_info_2;
-    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(r_arg_1));
-    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(r_arg_2));
+    KRATOS_EXPECT_EQ(typeid(nearest_neighbor_info), typeid(r_arg_1));
+    KRATOS_EXPECT_EQ(typeid(nearest_neighbor_info), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMappingApplicationSerialTestSuite)
@@ -100,18 +100,18 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
     nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
     nearest_neighbor_info.ProcessSearchResult(*interface_node_3);
 
-    KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(nearest_neighbor_info.GetLocalSearchWasSuccessful());
     // this function should never return true for this class!
     // It already works with nodes, which could be approximations for other mappers
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetIsApproximation());
+    KRATOS_EXPECT_FALSE(nearest_neighbor_info.GetIsApproximation());
 
     std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, KratosMappingApplicationSerialTestSuite)
@@ -138,20 +138,20 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     // We compute the real distance bcs this would also be computed by the search
     const double dist_2 = coords.Distance(*interface_node_2);
 
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
+    KRATOS_EXPECT_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
 
     nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
     nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
 
-    KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(nearest_neighbor_info.GetLocalSearchWasSuccessful());
 
     std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_SameDistanceFound, KratosMappingApplicationSerialTestSuite)
@@ -177,24 +177,24 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_SameDistanceFound, Kratos
     // We compute the real distance bcs this would also be computed by the search
     const double dist_1 = coords.Distance(*interface_node_1);
     const double dist_2 = coords.Distance(*interface_node_2);
-    KRATOS_CHECK_DOUBLE_EQUAL(dist_1, dist_2);
+    KRATOS_EXPECT_DOUBLE_EQ(dist_1, dist_2);
 
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
+    KRATOS_EXPECT_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
 
     nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
     nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
 
-    KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+    KRATOS_EXPECT_TRUE(nearest_neighbor_info.GetLocalSearchWasSuccessful());
 
     std::vector<int> found_id(2);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK(found_id[0] == expected_id_found_1 || found_id[0] == expected_id_found_2);
-    KRATOS_CHECK(found_id[1] == expected_id_found_1 || found_id[1] == expected_id_found_2);
+    KRATOS_EXPECT_TRUE(found_id[0] == expected_id_found_1 || found_id[0] == expected_id_found_2);
+    KRATOS_EXPECT_TRUE(found_id[1] == expected_id_found_1 || found_id[1] == expected_id_found_2);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_1);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
@@ -232,15 +232,15 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     NearestNeighborInterfaceInfo nearest_neighbor_info_new;
     serializer.load("nearest_neighbor_interface_info", nearest_neighbor_info_new);
 
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info_new.GetLocalSystemIndex(), source_local_sys_idx);
+    KRATOS_EXPECT_EQ(nearest_neighbor_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
     std::vector<int> found_id(1);
     nearest_neighbor_info_new.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info_new.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
@@ -254,9 +254,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
     for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(local_sys.Coordinates()[i], coords_1[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(local_sys.Coordinates()[i], coords_1[i]);
 
-    KRATOS_CHECK_IS_FALSE(local_sys.HasInterfaceInfo());
+    KRATOS_EXPECT_FALSE(local_sys.HasInterfaceInfo());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
@@ -275,18 +275,18 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
 
     local_sys.EquationIdVectors(origin_ids, destination_ids);
 
-    KRATOS_CHECK_EQUAL(origin_ids.size(), 0);
-    KRATOS_CHECK_EQUAL(destination_ids.size(), 0);
+    KRATOS_EXPECT_EQ(origin_ids.size(), 0);
+    KRATOS_EXPECT_EQ(destination_ids.size(), 0);
 
     local_sys.CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 0);
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), 0);
-    KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
-    KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size1(), 0);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size2(), 0);
+    KRATOS_EXPECT_EQ(origin_ids2.size(), 0);
+    KRATOS_EXPECT_EQ(destination_ids2.size(), 0);
 
     std::stringstream str_steam;
     local_sys.PairingInfo(str_steam, 4);
-    KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
+    KRATOS_EXPECT_EQ(str_steam.str(),
         "NearestNeighborLocalSystem based on Node #8 at Coordinates 1 | 2.5 | -5");
 }
 
@@ -329,18 +329,18 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
 
     local_sys.EquationIdVectors(origin_ids, destination_ids);
 
-    KRATOS_CHECK_EQUAL(origin_ids.size(), 1);
-    KRATOS_CHECK_EQUAL(destination_ids.size(), 1);
+    KRATOS_EXPECT_EQ(origin_ids.size(), 1);
+    KRATOS_EXPECT_EQ(destination_ids.size(), 1);
 
     local_sys.CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 1);
-    KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), 1);
-    KRATOS_CHECK_EQUAL(origin_ids2.size(), 1);
-    KRATOS_CHECK_EQUAL(destination_ids2.size(), 1);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size1(), 1);
+    KRATOS_EXPECT_EQ(local_mapping_matrix.size2(), 1);
+    KRATOS_EXPECT_EQ(origin_ids2.size(), 1);
+    KRATOS_EXPECT_EQ(destination_ids2.size(), 1);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(local_mapping_matrix(0,0), 1.0);
-    KRATOS_CHECK_EQUAL(origin_ids2[0], expected_id_found);
-    KRATOS_CHECK_EQUAL(destination_ids2[0], dest_id);
+    KRATOS_EXPECT_DOUBLE_EQ(local_mapping_matrix(0,0), 1.0);
+    KRATOS_EXPECT_EQ(origin_ids2[0], expected_id_found);
+    KRATOS_EXPECT_EQ(destination_ids2[0], dest_id);
 }
 
 }  // namespace Kratos::Testing

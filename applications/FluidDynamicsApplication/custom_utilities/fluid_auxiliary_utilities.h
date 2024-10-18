@@ -11,8 +11,7 @@
 //                   Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_AUXILIARY_UTILITIES_H)
-#define KRATOS_FLUID_AUXILIARY_UTILITIES_H
+#pragma once
 
 // System includes
 
@@ -44,7 +43,7 @@ public:
 
     using IndexType = std::size_t;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using GeometryType = Geometry<NodeType>;
 
@@ -61,7 +60,19 @@ public:
      * @return true The element is split
      * @return false The element is not split
      */
-    static inline bool IsSplit(const Vector& rElementDistancesVector);
+    static inline bool IsSplit(const Vector& rElementDistancesVector)
+    {
+        std::size_t n_pos(0);
+        std::size_t n_neg(0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+            else
+                n_neg++;
+        }
+        return (n_pos > 0 && n_neg > 0) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is positive
@@ -70,7 +81,16 @@ public:
      * @return true The element is positive
      * @return false The element is not positive
      */
-    static inline bool IsPositive(const Vector &rElementDistancesVector);
+    static inline bool IsPositive(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_pos (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+        }
+        return (n_pos == pts_number) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is negative
@@ -79,7 +99,16 @@ public:
      * @return true The element is negative
      * @return false The element is not negative
      */
-    static inline bool IsNegative(const Vector &rElementDistancesVector);
+    static inline bool IsNegative(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_neg (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] < 0.0)
+                n_neg++;
+        }
+        return n_neg == pts_number;
+    }
 
     /**
      * @brief Calculate the fluid volume
@@ -181,14 +210,33 @@ public:
      * @param rVolumeModelPart is the destination domain on which EMBEDDED_VELOCITY will be calculated
      * @param rSkinModelPart is the skin of the object from which the velocity will be taken
      * @param SearchRadius is the radius which will be used in searching the neighbours. It needs to be sufficiently large otherwise the method will fail in the calculation of the RBF basis
-     * NOTE: historical variable VELOCITY is assumed to be present on the nodes of the rSkinModelPArt 
+     * NOTE: historical variable VELOCITY is assumed to be present on the nodes of the rSkinModelPArt
      * NOTE: non historical variable EMBEDDED_VELOCITY is assumed to be present in rVolumeModelPart prior to calling the function
      */
     static void MapVelocityFromSkinToVolumeRBF(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
-        const double SearchRadius
-        );
+        const double SearchRadius);
+
+    /**
+     * @brief Find the maximum edge length
+     * This function finds and returns the maximum edge length in the given model part from the nodal neighbours
+     * @param rModelPart The model part to find the maximum edge length
+     * @param CalculateNodalNeighbours Indicates if the nodal neighbours calculation is required (true by default)
+     * @return double The maximum edge length
+     */
+    static double FindMaximumEdgeLength(
+        ModelPart& rModelPart,
+        const bool CalculateNodalNeighbours = true);
+
+    /**
+     * @brief Postprocess the midpoint nodes pressure in P2P1 elements
+     * This function takes the edges' midpoint nodes in P2P1 elements and postprocess the pressure, which
+     * is assumed to be stored in PRESSURE historical variable, from the edges' endpoint values.
+     * Note that the nodal flag VISITED is used to mark the nodes which pressure has been already set.
+     * @param rModelPart The model part to which the pressure is to be postprocessed
+     */
+    static void PostprocessP2P1ContinuousPressure(ModelPart& rModelPart);
 
     ///@}
 private:
@@ -260,10 +308,33 @@ private:
         std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
 
+    /**
+     * @brief Auxilary function to postprocess one P2P1 edge pressure
+     * This function postprocesses the PRESSURE in a P2P1 element edge midpoint.
+     * Once the pressure value is set, the node is marked as VISITED.
+     * @param rGeometry Reference to current element geometry
+     * @param PostNodeLocalId Local id of the node to which the pressure is to be set
+     * @param EdgeNodeLocalIdI Local id of the i-node of the edge to which previous node belongs
+     * @param EdgeNodeLocalIdJ Local id of the j-node of the edge to which previous node belongs
+     */
+    static void PostprocessP2P1NodePressure(
+        GeometryType& rGeometry,
+        const std::size_t PostNodeLocalId,
+        const std::size_t EdgeNodeLocalIdI,
+        const std::size_t EdgeNodeLocalIdJ)
+    {
+        if (rGeometry[PostNodeLocalId].IsNot(VISITED)) {
+            rGeometry[PostNodeLocalId].SetLock();
+            const double p_i = rGeometry[EdgeNodeLocalIdI].FastGetSolutionStepValue(PRESSURE);
+            const double p_j = rGeometry[EdgeNodeLocalIdJ].FastGetSolutionStepValue(PRESSURE);
+            rGeometry[PostNodeLocalId].FastGetSolutionStepValue(PRESSURE) = 0.5 * (p_i + p_j);
+            rGeometry[PostNodeLocalId].Set(VISITED, true);
+            rGeometry[PostNodeLocalId].UnSetLock();
+        }
+    }
+
 };
 
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_AUXILIARY_UTILITIES_H

@@ -22,9 +22,12 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "testing/testing.h"
+#include "includes/cfd_variables.h"
 #include "input_output/logger.h"
+
+// Application includes
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -165,8 +168,8 @@ void SetDofValues(
 
 void SetViscosities(
     ModelPart& rModelPart,
-    const double DynamicViscosity, 
-    const double BulkViscosity, 
+    const double DynamicViscosity,
+    const double BulkViscosity,
     const double Conductivity)
 {
     for (auto &r_node : rModelPart.Nodes())
@@ -196,7 +199,7 @@ std::vector<double> Assemble(ModelPart& rModelPart, const bool debug_prints = fa
 
     for(auto& r_cond: rModelPart.Conditions()) { r_cond.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
     for(auto& r_elem: rModelPart.Elements())   { r_elem.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
-    
+
     // Assembling DOF vector
     std::vector<double> values;
     std::size_t ndofs = rModelPart.NumberOfNodes() == 0 ? 0 : rModelPart.NumberOfNodes() * rModelPart.NodesBegin()->GetDofs().size();
@@ -248,13 +251,13 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTra
 
     // Check obtained RHS values
     const std::vector<double> reference(12, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
- * 
+ *
  * N-S equations say that given the following conditions:
  *  - V = 0
  *  - ∇ e_total = 0
@@ -282,14 +285,14 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
 
     // Check obtained RHS values
     const std::vector<double> reference(12, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
- * 
+ *
  * RIGID BODY ROTATION
  * N-S equations say that given the following conditions:
  *  - ∇ρ = 0
@@ -305,7 +308,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
  *          /   |   \
  *         1 ------- 2
  *              |
- * 
+ *
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
@@ -317,7 +320,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRot
 
     // Moving nodes
     constexpr double area = 27.051997;
-    
+
     constexpr double angle = Globals::Pi / 6.0;
     const double cos30 = std::cos(angle);
     const double sin30 = std::sin(angle);
@@ -352,7 +355,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRot
     // hence conservation is not fulfilled at the nodes but must be at the element level.
     const auto rhs_totals = SumNodalContributions(r_model_part);
     const std::vector<double> reference(4, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs_totals, reference, 1e-4);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs_totals, reference, 1e-4);
 }
 
 

@@ -28,7 +28,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
@@ -159,27 +159,27 @@ namespace Testing {
         surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check get functions
-        KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
+        KRATOS_EXPECT_EQ(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
         auto p_nurbs_volume = surface_in_volume.pGetGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX );
         auto p_surface = surface_in_volume.pGetSurface();
 
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 
         // Check dimension
-        KRATOS_CHECK_EQUAL( p_nurbs_volume->LocalSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL( p_surface->LocalSpaceDimension(), 2);
-        KRATOS_CHECK_EQUAL( surface_in_volume.LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( p_nurbs_volume->LocalSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ( p_surface->LocalSpaceDimension(), 2);
+        KRATOS_EXPECT_EQ( surface_in_volume.LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( surface_in_volume.WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].WorkingSpaceDimension(), 3 );
 
         // Check geometrical information
         double global_area_triangle =  surface_in_volume.Area();
-        KRATOS_CHECK_NEAR( global_area_triangle, 0.5, 1e-10);
+        KRATOS_EXPECT_NEAR( global_area_triangle, 0.5, 1e-10);
 
         CoordinatesArrayType test_point; // Center in Dimension Space
         test_point[0] = 1.0/3.0;
@@ -189,28 +189,28 @@ namespace Testing {
         CoordinatesArrayType global_coord;
         global_coord = surface_in_volume.GlobalCoordinates(global_coord, test_point);
         std::vector<double> global_center_ref = {1.0/3.0, 2.0/3.0, 0.0};
-        KRATOS_CHECK_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
-        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
 
         std::vector<double> normal_ref = {0, 0, 1};
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
-        KRATOS_CHECK_VECTOR_NEAR(quad_geometries[0].Normal( 0, integration_method), normal_ref, 1e-10 );
+        KRATOS_EXPECT_VECTOR_NEAR(quad_geometries[0].Normal( 0, integration_method), normal_ref, 1e-10 );
 
         // Check integration
         double global_area_triangle_ref = 0.5;
-        KRATOS_CHECK_NEAR( surface_in_volume.DeterminantOfJacobian(test_point), 2.0*global_area_triangle_ref, 1e-10);
+        KRATOS_EXPECT_NEAR( surface_in_volume.DeterminantOfJacobian(test_point), 2.0*global_area_triangle_ref, 1e-10);
         auto integration_points = quad_geometries[0].IntegrationPoints();
-        KRATOS_CHECK_EQUAL(integration_points.size(), 1);
+        KRATOS_EXPECT_EQ(integration_points.size(), 1);
         double weight = integration_points[0].Weight();
-        KRATOS_CHECK_VECTOR_NEAR(integration_points[0].Coordinates(), test_point, 1e-10);
-        KRATOS_CHECK_NEAR( weight, 0.5, 1e-10);
-        KRATOS_CHECK_NEAR( quad_geometries[0].DeterminantOfJacobian(0, integration_method )*weight, 0.5, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(integration_points[0].Coordinates(), test_point, 1e-10);
+        KRATOS_EXPECT_NEAR( weight, 0.5, 1e-10);
+        KRATOS_EXPECT_NEAR( quad_geometries[0].DeterminantOfJacobian(0, integration_method )*weight, 0.5, 1e-10);
 
         // Check kratos geometry families
         const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
         const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
-        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_family_qp);
-        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryType(), geometry_type_qp);
+        KRATOS_EXPECT_EQ(quad_geometries[0].GetGeometryFamily(), geometry_family_qp);
+        KRATOS_EXPECT_EQ(quad_geometries[0].GetGeometryType(), geometry_type_qp);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SurfaceInVolumeGeometryQuadInCubeTest, KratosCoreNurbsGeometriesFastSuite)
@@ -237,21 +237,21 @@ namespace Testing {
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 
         // Check get functions
-        KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
+        KRATOS_EXPECT_EQ(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
         auto p_nurbs_volume = surface_in_volume.pGetGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX );
         auto p_surface = surface_in_volume.pGetSurface();
 
         // Check dimensions
-        KRATOS_CHECK_EQUAL( p_nurbs_volume->LocalSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL( p_surface->LocalSpaceDimension(), 2);
-        KRATOS_CHECK_EQUAL( surface_in_volume.LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( p_nurbs_volume->LocalSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ( p_surface->LocalSpaceDimension(), 2);
+        KRATOS_EXPECT_EQ( surface_in_volume.LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( surface_in_volume.WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].WorkingSpaceDimension(), 3 );
 
         // Check geometrical information
         CoordinatesArrayType test_point; // Center in Dimension Space
@@ -260,34 +260,34 @@ namespace Testing {
         test_point[2] = 0.0;
 
         double global_area_triangle =  surface_in_volume.Area();
-        KRATOS_CHECK_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
+        KRATOS_EXPECT_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
 
         CoordinatesArrayType global_coord;
         global_coord = surface_in_volume.GlobalCoordinates(global_coord, test_point);
         std::vector<double> global_center_ref = {0.5, 0.5, 1.0};
-        KRATOS_CHECK_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
-        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
 
         std::vector<double> normal_ref = {0.5, -0.5, 0};
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
-        KRATOS_CHECK_VECTOR_NEAR(quad_geometries[0].Normal( 0, integration_method), normal_ref, 1e-10 );
+        KRATOS_EXPECT_VECTOR_NEAR(quad_geometries[0].Normal( 0, integration_method), normal_ref, 1e-10 );
 
         // Check integration
-        KRATOS_CHECK_EQUAL( quad_geometries.size(), 4);
+        KRATOS_EXPECT_EQ( quad_geometries.size(), 4);
         global_area_triangle = 0.0;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             global_area_triangle += quad_geometries[i].DeterminantOfJacobian(0, integration_method ) *
                 quad_geometries[i].IntegrationPoints()[0].Weight();
         }
 
-        KRATOS_CHECK_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
+        KRATOS_EXPECT_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
 
         // Check kratos geometry families
         const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
         const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);
+            KRATOS_EXPECT_EQ(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
+            KRATOS_EXPECT_EQ(quad_geometries[i].GetGeometryType(), geometry_type_qp);
         }
     }
 
@@ -344,11 +344,11 @@ namespace Testing {
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 
         // Check Get functions
-        KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
+        KRATOS_EXPECT_EQ(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
         auto p_nurbs_volume = surface_in_volume.pGetGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX );
         auto p_surface = surface_in_volume.pGetSurface();
 
@@ -363,26 +363,26 @@ namespace Testing {
         local_tangents_ref(2,1) = 0.69007042020704;
 
         quad_geometries[0].Calculate( LOCAL_TANGENT_MATRIX, local_tangents);
-        KRATOS_CHECK_EQUAL(local_tangents.size1(), 3);
-        KRATOS_CHECK_EQUAL(local_tangents.size2(), 2);
-        KRATOS_CHECK_MATRIX_NEAR( local_tangents, local_tangents_ref, 1e-10);
+        KRATOS_EXPECT_EQ(local_tangents.size1(), 3);
+        KRATOS_EXPECT_EQ(local_tangents.size2(), 2);
+        KRATOS_EXPECT_MATRIX_NEAR( local_tangents, local_tangents_ref, 1e-10);
 
         // Check dimensions
-        KRATOS_CHECK_EQUAL( p_nurbs_volume->LocalSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL( p_surface->LocalSpaceDimension(), 2);
-        KRATOS_CHECK_EQUAL( surface_in_volume.LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( p_nurbs_volume->LocalSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ( p_surface->LocalSpaceDimension(), 2);
+        KRATOS_EXPECT_EQ( surface_in_volume.LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].LocalSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( surface_in_volume.WorkingSpaceDimension(), 3 );
+        KRATOS_EXPECT_EQ( quad_geometries[0].WorkingSpaceDimension(), 3 );
 
         // Check geometrical information
         auto center = surface_in_volume.Center();
-        KRATOS_CHECK_VECTOR_NEAR( center, center_ref, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR( center, center_ref, 1e-10);
         double global_area_triangle = surface_in_volume.Area();
-        KRATOS_CHECK_NEAR(global_area_triangle, area_ref, 1e-10);
+        KRATOS_EXPECT_NEAR(global_area_triangle, area_ref, 1e-10);
 
         // Check integration
-        KRATOS_CHECK_EQUAL( quad_geometries.size(), 9);
+        KRATOS_EXPECT_EQ( quad_geometries.size(), 9);
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
         global_area_triangle = 0.0;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
@@ -390,20 +390,20 @@ namespace Testing {
                 quad_geometries[i].IntegrationPoints()[0].Weight();
             auto normal = quad_geometries[i].Normal( 0, integration_method);
             auto normal_ref = p_quad_global_space->Normal( quad_geometries[i].IntegrationPoints()[0].Coordinates() );
-            KRATOS_CHECK_VECTOR_NEAR( normal, normal_ref, 1e-10);
+            KRATOS_EXPECT_VECTOR_NEAR( normal, normal_ref, 1e-10);
 
             double det_J_quad = quad_geometries[i].DeterminantOfJacobian(0, integration_method );
             double det_J = surface_in_volume.DeterminantOfJacobian( quad_geometries[i].IntegrationPoints()[0].Coordinates() );
-            KRATOS_CHECK_NEAR(det_J_quad, det_J, 1e-10);
+            KRATOS_EXPECT_NEAR(det_J_quad, det_J, 1e-10);
         }
-        KRATOS_CHECK_NEAR( global_area_triangle, area_ref, 1e-10);
+        KRATOS_EXPECT_NEAR( global_area_triangle, area_ref, 1e-10);
 
         // Check kratos geometry families
         const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
         const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);
+            KRATOS_EXPECT_EQ(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
+            KRATOS_EXPECT_EQ(quad_geometries[i].GetGeometryType(), geometry_type_qp);
         }
     }
 } // End namespace Testsing
