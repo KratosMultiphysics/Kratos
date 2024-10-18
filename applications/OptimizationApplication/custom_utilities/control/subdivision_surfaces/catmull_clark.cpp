@@ -218,52 +218,6 @@ void CreateFirstRingNeighbourhoodsOfNodes(
     // }
 };
 
-void CreateModelPartFor2RingPatch(
-    ModelPart::MeshType& rInputMesh, 
-    ModelPart& rPatchModelPart, 
-    std::vector<IndexType> SecondRingVerts, // contains osd ids
-    std::vector<IndexType> SecondRingFaces  // contains osd ids
-    ) 
-{
-    // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch") << std::endl;
-
-    // create nodes
-    NodesContainerType::Pointer p_new_nodes_container = make_shared<NodesContainerType>();
-    for (auto vert_it = SecondRingVerts.begin(); vert_it != SecondRingVerts.end(); ++vert_it) {
-        IndexType vertex_osd_index = *vert_it;
-        IndexType kratos_node_index = vertex_osd_index + 1;
-        std::vector<double> node_coord(3);
-        node_coord[0] = rInputMesh.GetNode(kratos_node_index).Coordinates()[0];
-        node_coord[1] = rInputMesh.GetNode(kratos_node_index).Coordinates()[1];
-        node_coord[2] = rInputMesh.GetNode(kratos_node_index).Coordinates()[2];
-        NodeTypePointer p_node = make_intrusive<Node>(kratos_node_index, node_coord);
-        // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: kratos_node_index") << kratos_node_index << std::endl;
-        p_new_nodes_container->push_back(p_node);
-    }
-    rPatchModelPart.SetNodes(p_new_nodes_container);
-    // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: rPatchModelPart.NumberOfNodes()") << rPatchModelPart.NumberOfNodes() << std::endl;
-
-    // create conditions
-    std::string condition_name = "SurfaceCondition3D4N";
-    for (auto face_it = SecondRingFaces.begin(); face_it != SecondRingFaces.end(); ++face_it) {
-        IndexType face_osd_index = *face_it;
-        IndexType kratos_cond_index = face_osd_index + 1;
-        // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: kratos_cond_index") << kratos_cond_index << std::endl;
-        ConditionType& cond = rInputMesh.GetCondition(kratos_cond_index);
-        SizeType number_of_nodes = cond.GetGeometry().size();
-        // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: number_of_nodes") << number_of_nodes << std::endl;
-        std::vector<IndexType> node_indices(number_of_nodes);
-        for (int i = 0; i < number_of_nodes; ++i) {
-            node_indices[i] = cond.GetGeometry()[i].GetId();
-        }
-        // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: node_indices") << node_indices << std::endl;
-
-        Properties::Pointer p_property = rPatchModelPart.pGetProperties(0);
-        rPatchModelPart.CreateNewCondition(condition_name, kratos_cond_index, node_indices, p_property);
-    }
-    // KRATOS_INFO("CATMULL_CLARK :: CreateModelPartFor2RingPatch :: rPatchModelPart.NumberOfConditions()") << rPatchModelPart.NumberOfConditions() << std::endl;
-}
-
 bool GetSecondRingVerticesAndFaces(
     IndexType KratosFaceId, 
     ModelPart::MeshType& rInputMesh,
@@ -870,8 +824,6 @@ std::vector<NodeTypePointer> CreateRegularPatchForFeNode(
         // auto geom = rInputMesh.GetCondition(KratosFaceId).GetGeometry();
         // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: geom ") << geom << std::endl;
         // KRATOS_INFO("CATMULL_CLARK :: CreateRegularPatchForFeNode :: geom IDs ") << "[ " << geom[0].GetId()  << " , " << geom[1].GetId() << " , " << geom[2].GetId() << " , " << geom[3].GetId() << " ] " << std::endl;
-
-        // CreateModelPartFor2RingPatch(rInputMesh, r_patch_mp, second_ring_vertices, second_ring_faces);   // for now we refine full geometry to get local refinement, can be improved by working on 2-ring patch only
         
         RefineGeometry(rInputModelPart.GetMesh(), r_refined_patch_mp, r_global_map_vert_to_node, r_global_map_face_to_cond, false, current_refining_depth, refiner);
         // RefineGeometry(r_patch_mp.GetMesh(), r_refined_patch_mp, false, current_refining_depth, refiner);
