@@ -1,0 +1,35 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
+              "YOUNG_MODULUS"            :  5e7,
+              "POISSON_RATIO"            :  0.3,
+              "DENSITY_SOLID"            :  2700,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  6730769231,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "THICKNESS"                :  1.0,
+              "BIOT_COEFFICIENT"         :  1.0,  
+              "RETENTION_LAW"                    : "SaturatedBelowPhreaticLevelLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "RESIDUAL_SATURATION"              :  1e-10,
+              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
+              "VAN_GENUCHTEN_GN"                 :  1.377,
+              "VAN_GENUCHTEN_GL"                 :  1.25,
+              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+         },
+         "Tables": {}
+      }
+   }]
+}
