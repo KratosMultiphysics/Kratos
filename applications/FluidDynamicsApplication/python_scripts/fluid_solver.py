@@ -64,6 +64,17 @@ class FluidSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        # Base class validation
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        if not self.settings.Has("builder_and_solver_settings"):
+            self.settings.AddEmptyValue("builder_and_solver_settings")
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
+
     def AddVariables(self):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
@@ -376,7 +387,17 @@ class FluidSolver(PythonSolver):
                 linear_solver,
                 KratosCFD.PATCH_INDEX)
         else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+                bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+                if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
+                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+                else:
+                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
+            else:
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                else:
+                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     def _CreateSolutionStrategy(self):
