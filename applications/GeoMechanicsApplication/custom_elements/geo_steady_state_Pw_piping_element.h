@@ -118,7 +118,8 @@ private:
     {
         constexpr auto min_domain_size = 1.0e-15;
         KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
+            << "DomainSize (" << GetGeometry().DomainSize() << ") is smaller than "
+            << min_domain_size << " for element " << Id() << std::endl;
     }
 
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
@@ -151,9 +152,10 @@ private:
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
+            << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
+            << rVariable.Name() << "(" << GetProperties()[rVariable]
+            << ") has an invalid value at element " << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
@@ -198,7 +200,7 @@ private:
 
     Matrix FillPermeabilityMatrix(double pipe_height) const
     {
-        Matrix constitutive_matrix(1,1);
+        Matrix constitutive_matrix(1, 1);
         constitutive_matrix(0, 0) = std::pow(pipe_height, 3) / 12.0;
         return constitutive_matrix;
     }
@@ -218,8 +220,8 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-                rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
-                1.0, rIntegrationCoefficients[integration_point_index]);
+                rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse,
+                constitutive_matrix, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
     }
