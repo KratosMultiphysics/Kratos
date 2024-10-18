@@ -8,15 +8,16 @@ summary:
 
 ## Introduction
 
-In the first tutorial you have successfully used Kratos to solve a few simple problems. The GiD preprocessor was used to create the input files for Kratos. There are three different types of files that compose a Kratos case:
+In the first tutorial you have successfully installed Kratos and confirmed it was working, but in order to run a real simulation you will need some files that define your problem. There are three different types of files that compose a Kratos case:
 * `.py`: A python script to run Kratos
 * `.json`: Contains settings for Kratos
 * `.mdpa`: Contains the model part information
 
-These files where created by the GUI and used to directly start the simulation. In this tutorial we will have a closer look at the input files and their content. Also we will use Kratos without GUI but directly from the command line.
-This is a first step in order to customize the input files for Kratos to special use cases as it will be done in the following tutorials and the more flexible usage of Kratos beyond the GUI.
+These files are usually created by a GUI (GiD, Salome, Flowgraph) and used to directly start the simulation. In this tutorial we will have a closer look at the input files and their content. Also we will use Kratos without GUI but directly from the command line.
 
-You can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO).**
+For this tutorias, you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO).**
+
+This is a first step in order to customize the input files for Kratos to special use cases as it will be done in the following tutorials and the more flexible usage of Kratos beyond the GUI.
 
 ## The Kratos python script
 The main file of a Kratos simulation is a python script. It is responsible to load the required Kratos applications and to call the main Kratos functionalities as desired by the user. 
@@ -48,32 +49,6 @@ kratos MainKratos.py
 _Pro Tip: If you built Kratos yourself and set the paths properly as explained in the **Building Kratos** section of the Wiki, you can directly use python to execute your script._
 
 The output of this analysis is written in two formats. The GiD post file ends with `.post.bin` and can be drag and droppen into GiD. Additionally VTK files are written to the VTK_Output folder. 
-
-### Exercise
-In order to show that the python script for Kratos indeed is just a simple python script, create a file named e.g. `my_python_script.py`. Import the Kratos core module and additionaly write some simple python commands.
-
-```python
-import math
-import KratosMultiphysics
-
-a = 3
-b = 4
-c = math.sqrt(3**2 + 4**2)
-print("-- Custom Code: c=", c, " --")
-```
-
-If you execute this script as described above you should see the following output in the terminal:
-```
- |  /           |
- ' /   __| _` | __|  _ \   __|
- . \  |   (   | |   (   |\__ \
-_|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 7.0.0
--- Custom Code: c= 5.0  --
-KRATOS TERMINATED CORRECTLY
-```
-The python script is a powerful tool to customize a Kratos simulation, as you will see in the next tutorials.
-
 
 ## The project parameters file
 The settings for a Kratos simulation are stored in a `.json` file. JSON is an open-standard format that uses human-readable text to transmit data objects consisting of attribute–value pairs. Kratos uses a thin wrapper arround this syntax, the `Parameters` object. This section is a short version of a more detailed [description about the JSON syntax](How-to-write-a-JSON-configuration-file) and a [tutorial on how to read and use it](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters).
