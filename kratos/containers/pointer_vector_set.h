@@ -1066,51 +1066,52 @@ private:
             return;
         }
 
-        if (empty()) {
-            mData.reserve(std::distance(first, last));
+        if (empty() || (KeyOf(end() - 1) < KeyOf(GetReference(first)))) {
+            mData.reserve(mData.size() + std::distance(first, last));
             for (auto it = first; it != last; ++it) {
                 mData.push_back(TPointerType(&GetReference(it)));
             }
         } else {
-            // first find the largest range
-            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(GetReference(last-1)), CompareKey());
+            // rather than using insert which always needs to move, we push_back to a new container,
+            // and then swap the underlying data.
+            TContainerType aux_container;
+            aux_container.reserve(mData.size() + std::distance(first, last));
 
-            // then find the compact sub range
-            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(first)), CompareKey());
-            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(last-1)), CompareKey());
+            auto existing_data_it = mData.begin();
+            auto new_data_it = first;
 
-            if (lower_bound_first == lower_bound_last &&
-                lower_bound_first == upper_bound_first &&
-                lower_bound_first == upper_bound_last)
-            {
-                // all 4 bounds are equal, hence this can be inserted without checking further
-                mData.reserve(mData.size() + std::distance(first, last));
-                if (lower_bound_first == mData.end()) {
-                    for (auto it = first; it != last; ++it) {
-                        mData.push_back(TPointerType(&GetReference(it)));
-                    }
+            while (existing_data_it != mData.end() && new_data_it != last) {
+                const auto existing_key = KeyOf(GetReference(existing_data_it));
+                const auto new_key = KeyOf(GetReference(new_data_it));
+                if (existing_key == new_key) {
+                    // adds the existing item and ignore the new item to keep consistent with the std::set::insert
+                    aux_container.push_back(TPointerType(&GetReference(existing_data_it)));
+                    ++existing_data_it;
+                    ++new_data_it;
+                } else if (existing_key < new_key) {
+                    // existing key comes before the new key
+                    aux_container.push_back(TPointerType(&GetReference(existing_data_it)));
+                    ++existing_data_it;
                 } else {
-                    // now if the capacity of the new mData is larger than the existing
-                    // capacity, then the current lower_bound_first is invalidated.
-                    // hence needs to find it again.
-                    const auto new_lower_bound = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-                    auto current_pos = new_lower_bound - 1;
-                    for (auto it = first; it != last; ++it) {
-                        current_pos = mData.insert(current_pos + 1, TPointerType(&GetReference(it)));
-                    }
-                }
-            } else {
-                auto p_current_itr = mData.begin();
-                // now add the new elements
-                for (auto it = first; it != last; ++it) {
-                    // find the lower bound element.
-                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(GetReference(it)), CompareKey());
-                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(GetReference(it)))(*p_current_itr)) {
-                        p_current_itr = mData.insert(p_current_itr, TPointerType(&GetReference(it)));
-                    }
+                    // existing key comes after the new key
+                    aux_container.push_back(TPointerType(&GetReference(new_data_it)));
+                    ++new_data_it;
                 }
             }
+
+            // now add the left overs. At this moment, either both existing_data_it and new_data_it
+            // reached the end, or one of them reached the end. In either case, we can safely add the remaining items
+            // using the push back.
+            for (; new_data_it != last; ++new_data_it) {
+                aux_container.push_back(TPointerType(&GetReference(new_data_it)));
+            }
+
+            for (; existing_data_it != mData.end(); ++existing_data_it) {
+                aux_container.push_back(TPointerType(&GetReference(existing_data_it)));
+            }
+
+            // now do the swap
+            mData.swap(aux_container);
         }
 
         // TODO: To be removed once push back is removed.
