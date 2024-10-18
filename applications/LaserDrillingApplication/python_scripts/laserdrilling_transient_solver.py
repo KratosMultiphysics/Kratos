@@ -182,12 +182,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.print_hole_geometry_files = self.project_parameters["problem_data"]["print_hole_geometry_files"].GetBool()
 
-        # if self.compute_vaporisation:
-        #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
-        # else:
-        #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_no_evap.txt"
-
-        #self.R_far = self.spot_diameter * 0.5
         self.cp = self.material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = self.material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = self.material_settings['Variables']['DENSITY'].GetDouble()
@@ -222,6 +216,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.refractive_index_n = 1.5
         else:
             self.refractive_index_n = self.material_settings['Variables']['REFRACTIVE_INDEX'].GetDouble()
+
+        if not self.project_parameters["problem_data"].Has("consider_material_refraction"):
+            self.consider_material_refraction = False
+        else:
+            self.consider_material_refraction = self.project_parameters["problem_data"]["consider_material_refraction"].GetBool()
 
         if self.material_settings['compute_optical_penetration_depth_using_refractive_index'].GetBool():
             self.ComputeOpticalPenetrationDepth()
@@ -354,28 +353,25 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         for node in self.main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
             #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+
         self.IdentifyInitialSurfaceNodes()
 
-        initial_system_energy = self.MonitorEnergy()
-
+        #initial_system_energy = self.MonitorEnergy()
         #self.RemoveElementsByAblation()
-
-        computed_energy_after_ablation = self.MonitorEnergy()
-
+        #computed_energy_after_ablation = self.MonitorEnergy()
         #self.AdjustTemperatureFieldAfterAblation()
-
-        residual_heat = self.evaporation_energy_fraction * self.Q
+        #residual_heat = self.evaporation_energy_fraction * self.Q
 
         self.ResidualHeatStage()
 
-        system_energy_after_residual_heat = self.MonitorEnergy()
-        '''print("\nPulse_number:", self.pulse_number)
+        '''system_energy_after_residual_heat = self.MonitorEnergy()
+        print("\nPulse_number:", self.pulse_number)
         print("Initial system energy:", initial_system_energy)
         print("\nComputed energy after laser:", computed_energy_after_ablation)
         print("\nResidual_heat:", residual_heat)
-        print("System energy after residual heat:", system_energy_after_residual_heat)'''
+        print("System energy after residual heat:", system_energy_after_residual_heat)
         difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_ablation
-        #print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
+        print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")'''
 
         if self.print_hdf5_and_gnuplot_files:
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)

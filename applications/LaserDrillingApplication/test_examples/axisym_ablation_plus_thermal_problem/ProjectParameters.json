@@ -5,7 +5,7 @@
         "parallel_type" : "OpenMP",
         "time_step"     : 5e-6,
         "start_time"    : 0.0,
-        "end_time"      : 5e-6,
+        "end_time"      : 10e-6,
         "echo_level"    : 0,
         "energy"        : 25e-6,
         "vaporisation_temperature" : 1000.0,
@@ -18,7 +18,8 @@
         "reference_T_after_laser" : 0.0,
         "focus_Z_offset" : 0.4,
         "Rayleigh_length": 0.409,
-        "beam_waist_diameter": 0.0179
+        "beam_waist_diameter": 0.0179,
+        "consider_material_refraction": false
     },
     "solver_settings"  : {
         "solver_type"                        : "laserdrilling_transient_solver_ablation_plus_thermal",
