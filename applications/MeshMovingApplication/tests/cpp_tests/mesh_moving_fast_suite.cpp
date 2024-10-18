@@ -10,25 +10,17 @@
 //  Main authors:    Richard Faasse
 //
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 // Project includes
-#include "testing/testing.h"
-#include "mesh_moving_application.h"
+#include "tests/cpp_tests/mesh_moving_fast_suite.h"
 
-int main(int argc, char* argv[]) 
+namespace Kratos::Testing 
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("MeshMovingApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosMeshMovingApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+MeshMovingApplicationFastSuite::MeshMovingApplicationFastSuite()
+    : KratosCoreFastSuite() 
+{
+    mpMeshMovingApp = std::make_shared<KratosMeshMovingApplication>();
+    this->ImportApplicationIntoKernel(mpMeshMovingApp);
 }
+
+} // namespace Kratos::Testing
