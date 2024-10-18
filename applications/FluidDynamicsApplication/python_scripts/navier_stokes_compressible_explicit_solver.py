@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
@@ -99,13 +98,16 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("::[NavierStokesCompressibleExplicitSolver]:: ","Explicit compressible fluid solver variables added correctly")
 
     def AddDofs(self):
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
-        if domain_size == 3:
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
+        dofs_with_reactions_list = []
+        dofs_with_reactions_list.append(["DENSITY","REACTION_DENSITY"])
+        dofs_with_reactions_list.append(["MOMENTUM_X","REACTION_X"])
+        dofs_with_reactions_list.append(["MOMENTUM_Y","REACTION_Y"])
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_with_reactions_list.append(["MOMENTUM_Z","REACTION_Z"])
+        dofs_with_reactions_list.append(["TOTAL_ENERGY","REACTION_ENERGY"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
@@ -125,37 +127,50 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
     def _create_solution_strategy(self):
         self.computing_model_part = self.GetComputingModelPart()
         strategy_settings = KratosMultiphysics.Parameters('''{}''')
-        strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
+        strategy_settings.AddEmptyValue("rebuild_level").SetInt(1 if self.settings["reform_dofs_at_each_step"].GetBool() else 0)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 
-        rk_parameter = self.settings["time_scheme"].GetString()
+        requested_strategy = self.settings["time_scheme"].GetString()
 
-        rk_startegies = {
-            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
-            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+        available_strategies = {
+            "RK3-TVD"       : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4,
+            "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler,
+            "bfecc" :         KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyBFECC
         }
 
-        if rk_parameter in rk_startegies:
-            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+        if requested_strategy in available_strategies:
+            strat = available_strategies[requested_strategy](self.computing_model_part, strategy_settings)
+            self.settings["shock_capturing_settings"] = strategy_settings["shock_capturing_settings"]
+            return strat
 
-        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
-        for key in rk_startegies:
+        err_msg = "Time scheme of type '{}' not available. Try any of\n".format(requested_strategy)
+        for key in available_strategies:
             err_msg = err_msg + " - {}\n".format(key)
         raise RuntimeError(err_msg)
+
+    @classmethod
+    def _OverrideBoolParameterWithWarning(cls, parent, child, value):
+        if parent.Has(child) and parent[child].GetBool() != value:
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(child, value))
+        else:
+            parent.AddEmptyValue(child)
+        parent[child].SetBool(True)
 
     def _CreateEstimateDtUtility(self):
         """This method overloads FluidSolver in order to enforce:
         ```
         self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
+        self.settings["time_stepping"]["nodal_density_formulation"] == True
+        self.settings["time_stepping"]["consider_artificial_diffusion"] == SHOCK_CAPTURING_SWITCH
         ```
         """
-        if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
-            KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
-        else:
-            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_compressibility_in_CFL", True)
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "nodal_density_formulation", True)
 
-        self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
+        sc_enabled = self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH]
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_artificial_diffusion", sc_enabled)
 
         estimate_dt_utility = KratosFluid.EstimateDtUtility(
                 self.GetComputingModelPart(),

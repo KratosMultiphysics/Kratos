@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "processes/apply_ray_casting_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
@@ -45,14 +46,19 @@ public:
     /// Pointer definition of CalculateDistanceToSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateDistanceToSkinProcess);
 
-    //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
-    using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
-    using CellType = OctreeBinaryCell<ConfigurationType>;
-    using OctreeType = OctreeBinary<CellType>;
-    using CellNodeDataType = ConfigurationType::cell_node_data_type;
+    // //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
+    // using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
+    // using CellType = OctreeBinaryCell<ConfigurationType>;
+    // using OctreeType = OctreeBinary<CellType>;
+    // using CellNodeDataType = ConfigurationType::cell_node_data_type;
 
-    typedef Element::GeometryType IntersectionGeometryType;
-    typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+    using NodeType = ModelPart::NodeType;
+
+    /// Types from the ApplyRayCastingProcess
+    using IntersectionGeometryType = typename ApplyRayCastingProcess<TDim>::IntersectionGeometryType;
+    using IntersectionsContainerType = typename ApplyRayCastingProcess<TDim>::IntersectionsContainerType;
+    using NodeScalarGetFunctionType = typename ApplyRayCastingProcess<TDim>::NodeScalarGetFunctionType;
+
 
     ///@}
     ///@name Life Cycle
@@ -84,6 +90,20 @@ public:
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
         const double RayCastingRelativeTolerance);
+
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * using a parameter object.
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute
+     * the distance to as conditions
+     * @param rParameters User-defined parameters to construct the
+     * class
+     */
+    CalculateDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        Parameters rParameters);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -143,7 +163,7 @@ public:
      * @return double the nodal distance of the node of interest
      */
     double CalculateDistanceToNode(
-        Node<3> &rNode,
+        Node &rNode,
         PointerVector<GeometricalObject> &rIntersectedObjects,
         const double Epsilon);
 
@@ -160,7 +180,7 @@ public:
      * current elemental (discontinuous) value in the node. At the end, the minimum
      * elemental distance value between the neighbour elements is saved at each node.
      */
-    virtual void CalculateNodalDistances();
+    virtual void CalculateNodalDistances(NodeScalarGetFunctionType& rGetDistanceFunction);
 
     /**
      * @brief Compute the raycasting distances and checks inside/outside
@@ -168,6 +188,11 @@ public:
      * continuous distance field by means of the raycasting procedure.
      */
     virtual void CalculateRayDistances();
+
+    /**
+     * @brief Obtain the default parameters to construct the class.
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -192,7 +217,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mRayCastingRelativeTolerance = 1.0e-8;
+    Parameters mSettings;
+
+    double mRayCastingRelativeTolerance = 1.0e-8;
+
+    const Variable<double>* mpDistanceVariable = &DISTANCE;
 
     ///@}
     ///@name Private Operators

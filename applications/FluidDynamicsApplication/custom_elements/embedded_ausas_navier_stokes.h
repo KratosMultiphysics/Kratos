@@ -518,7 +518,7 @@ protected:
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
-            if (TNumNodes == 4) {
+            if constexpr (TNumNodes == 4) {
                 p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
             } else {
                 p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
@@ -1238,7 +1238,7 @@ protected:
 
         rVoigtNormProjMatrix.clear();
 
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
             rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
             rVoigtNormProjMatrix(0,5) = rUnitNormal(2);

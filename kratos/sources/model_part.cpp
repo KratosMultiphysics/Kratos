@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <sstream>
 
 // External includes
 
@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
@@ -48,7 +49,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 {
     KRATOS_ERROR_IF(NewName.empty()) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    KRATOS_ERROR_IF_NOT(NewName.find(".") == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
+    KRATOS_ERROR_IF_NOT(NewName.find('.') == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
 
     mName = NewName;
     MeshType mesh;
@@ -81,6 +82,7 @@ void ModelPart::Clear()
 
     // Clear meshes list
     mMeshes.clear();
+    mMeshes.emplace_back(Kratos::make_shared<MeshType>());
 
     // Clear geometries
     mGeometries.Clear();
@@ -684,7 +686,7 @@ ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
+const ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -730,7 +732,7 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType& ModelPart::GetProperties(
+const ModelPart::PropertiesType& ModelPart::GetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -982,7 +984,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         return p_new_element;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodes;
+    Geometry< Node >::PointsArrayType pElementNodes;
 
     for (unsigned int i = 0; i < ElementNodeIds.size(); i++)
     {
@@ -996,7 +998,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 /** Inserts an element in the mesh with ThisIndex.
 */
 ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
-        ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        ModelPart::IndexType Id, Geometry< Node >::PointsArrayType pElementNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1227,45 +1229,53 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
     KRATOS_CATCH("");
 }
 
-/** Inserts an master-slave constraint in the current mesh.
- */
+/// @brief Construct a new @ref MasterSlaveConstraint and insert it into the specified @ref Mesh.
+/// @note The constraint is created by the root @ref ModelPart and inserted into the root mesh as well.
+/// @throws if a constraint with the same ID already exists in the target mesh.
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    ModelPart::DofsVectorType& rMasterDofsVector,
-                                                                                    ModelPart::DofsVectorType& rSlaveDofsVector,
-                                                                                    const ModelPart::MatrixType& RelationMatrix,
-                                                                                    const ModelPart::VectorType& ConstantVector,
-                                                                                    IndexType ThisIndex)
+                                                                                        IndexType Id,
+                                                                                        ModelPart::DofsVectorType& rMasterDofsVector,
+                                                                                        ModelPart::DofsVectorType& rSlaveDofsVector,
+                                                                                        const ModelPart::MatrixType& RelationMatrix,
+                                                                                        const ModelPart::VectorType& ConstantVector,
+                                                                                        IndexType ThisIndex)
 {
 
     KRATOS_TRY
-    if (IsSubModelPart())
-    {
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterDofsVector,
-                                                                                                                    rSlaveDofsVector,
-                                                                                                                    RelationMatrix,
-                                                                                                                    ConstantVector,
-                                                                                                                    ThisIndex);
-        GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
+    MeshType& r_mesh = GetMesh(ThisIndex);
+    ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint;
 
-        return p_new_constraint;
+    if (IsSubModelPart()) {
+        // Defer constraint construction to the root model part
+        p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(
+            ConstraintName,
+            Id,
+            rMasterDofsVector,
+            rSlaveDofsVector,
+            RelationMatrix,
+            ConstantVector,
+            ThisIndex);
+
+        // Add the constraint
+        if (&r_mesh != &mpParentModelPart->GetMesh(ThisIndex)) {
+            KRATOS_ERROR_IF_NOT(r_mesh.AddMasterSlaveConstraint(p_new_constraint))
+                << "trying to insert a master-slave constraint with ID "
+                << Id << " but a constraint with the same ID already exists\n";
+        }
+    } else /*IsSubModelPart*/ {
+        // Construct the new constraint
+        ModelPart::MasterSlaveConstraintType const& r_registered_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
+        p_new_constraint = r_registered_constraint.Create(
+            Id,
+            rMasterDofsVector,
+            rSlaveDofsVector,
+            RelationMatrix,
+            ConstantVector);
+
+        KRATOS_ERROR_IF_NOT(r_mesh.AddMasterSlaveConstraint(p_new_constraint))
+            << "trying to insert a master-slave constraint with ID "
+            << Id << " but a constraint with the same ID already exists\n";
     }
-
-    auto existing_constraint_iterator = GetMesh(ThisIndex).MasterSlaveConstraints().find(Id);
-    KRATOS_ERROR_IF(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
-        << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-    //create the new element
-    ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-    ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterDofsVector,
-                                                                                        rSlaveDofsVector,
-                                                                                        RelationMatrix,
-                                                                                        ConstantVector);
-
-    GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-    GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
 
     return p_new_constraint;
     KRATOS_CATCH("")
@@ -1282,45 +1292,55 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex)
 {
+    KRATOS_ERROR_IF_NOT(rMasterNode.HasDofFor(rMasterVariable))
+        << "master node " << rMasterNode.Id() << " has no variable " << rMasterVariable.Name() << "\n";
+
+    KRATOS_ERROR_IF_NOT(rSlaveNode.HasDofFor(rSlaveVariable))
+        << "slave node " << rSlaveNode.Id() << " has no variable " << rSlaveVariable.Name() << "\n";
 
     KRATOS_TRY
-    if (rMasterNode.HasDofFor(rMasterVariable) && rSlaveNode.HasDofFor(rSlaveVariable) )
-    {
-        if (IsSubModelPart())
-        {
-                ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
-                                                                                                                            rMasterVariable,
-                                                                                                                            rSlaveNode,
-                                                                                                                            rSlaveVariable,
-                                                                                                                            Weight,
-                                                                                                                            Constant,
-                                                                                                                            ThisIndex);
 
-                GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-                GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-                return p_new_constraint;
+    ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint;
+    MeshType& r_mesh = this->GetMesh(ThisIndex);
+
+    if (IsSubModelPart()) {
+        // Defer constraint construction to the root model part
+        p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(
+            ConstraintName,
+            Id,
+            rMasterNode,
+            rMasterVariable,
+            rSlaveNode,
+            rSlaveVariable,
+            Weight,
+            Constant,
+            ThisIndex);
+
+        // Insert the constraint
+        if (&r_mesh != &mpParentModelPart->GetMesh(ThisIndex)) {
+            KRATOS_ERROR_IF_NOT(r_mesh.AddMasterSlaveConstraint(p_new_constraint))
+                << "trying to insert a master-slave constraint with ID "
+                << Id << " but a constraint with the same ID already exists\n";
         }
-
-        KRATOS_ERROR_IF(GetMesh(ThisIndex).HasMasterSlaveConstraint(Id))
-            << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-            //create the new element
+    } else { /*IsSubModelPart*/
+        // Construct the new constraint
         ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
-                                                                                                rMasterVariable,
-                                                                                                rSlaveNode,
-                                                                                                rSlaveVariable,
-                                                                                                Weight,
-                                                                                                Constant);
+        p_new_constraint = r_clone_constraint.Create(
+            Id,
+            rMasterNode,
+            rMasterVariable,
+            rSlaveNode,
+            rSlaveVariable,
+            Weight,
+            Constant);
 
-        GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-        return p_new_constraint;
-    } else
-    {
-        KRATOS_ERROR << "Master or Slave node does not have requested DOF " <<std::endl;
+        // Insert the constraint
+        KRATOS_ERROR_IF_NOT(r_mesh.AddMasterSlaveConstraint(p_new_constraint))
+            << "trying to insert a master-slave constraint with ID "
+            << Id << " but a constraint with the same ID already exists\n";
     }
+
+    return p_new_constraint;
 
     KRATOS_CATCH("")
 
@@ -1494,7 +1514,14 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
+
+    if (IsSubModelPart()) {
+        ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, ConditionNodeIds, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddCondition(p_new_condition);
+        return p_new_condition;
+    }
+
+    Geometry< Node >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
     {
@@ -1508,7 +1535,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
 /** Inserts a condition in the mesh with ThisIndex.
 */
 ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
-        ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+        ModelPart::IndexType Id, Geometry< Node >::PointsArrayType pConditionNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1781,15 +1808,33 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         return p_new_geometry;
     }
 
-    KRATOS_ERROR_IF(this->HasGeometry(GeometryId)) << "Trying to construct an geometry with ID: " << GeometryId << ". A geometry with the same Id exists already." << std::endl;
+    // Check if the geometry already exists
+    if (this->HasGeometry(GeometryId)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(GeometryId);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << GeometryId << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == &(pGeometryNodes[i]))
+                << "Attempting to add a new geometry with Id: " << GeometryId << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+        }
+
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(GeometryId, pGeometryNodes);
 
-    //add the new geometry
+    // Add the new geometry
     this->AddGeometry(p_geometry);
 
+    // Return the new geometry
     return p_geometry;
 
     KRATOS_CATCH("")
@@ -1809,15 +1854,33 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         return p_new_geometry;
     }
 
-    KRATOS_ERROR_IF(this->HasGeometry(GeometryId)) << "Trying to construct an geometry with ID: " << GeometryId << ". A geometry with the same Id exists already." << std::endl;
+    // Check if the geometry already exists
+    if (this->HasGeometry(GeometryId)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(GeometryId);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << GeometryId << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == ((*pGeometry)(i)).get())
+                << "Attempting to add a new geometry with Id: " << GeometryId << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+        }
+
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(GeometryId, *pGeometry);
 
-    //add the new geometry
+    // Add the new geometry
     this->AddGeometry(p_geometry);
 
+    // Return the new geometry
     return p_geometry;
 
     KRATOS_CATCH("")
@@ -1851,13 +1914,30 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 {
     KRATOS_TRY
 
-        if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes);
-            this->AddGeometry(p_new_geometry);
-            return p_new_geometry;
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    // Check if the geometry already exists
+    if (this->HasGeometry(rGeometryIdentifierName)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(rGeometryIdentifierName);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << rGeometryIdentifierName << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == &(pGeometryNodes[i]))
+                << "Attempting to add a new geometry with Id: " << rGeometryIdentifierName << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
         }
 
-    KRATOS_ERROR_IF(this->HasGeometry(rGeometryIdentifierName)) << "Trying to construct an geometry with name: " << rGeometryIdentifierName << ". A geometry with the same name exists already." << std::endl;
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
@@ -1879,13 +1959,30 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 {
     KRATOS_TRY
 
-        if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry);
-            this->AddGeometry(p_new_geometry);
-            return p_new_geometry;
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    // Check if the geometry already exists
+    if (this->HasGeometry(rGeometryIdentifierName)) {
+        // Get the existing geometry with the same Id
+        const auto p_existing_geom = this->pGetGeometry(rGeometryIdentifierName);
+
+        // Check if the existing geometry has the same type
+        KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
+            << "Attempting to add geometry with Id: " << rGeometryIdentifierName << ". A different geometry with the same Id already exists." << std::endl;
+
+        // Check if the connectivities (nodes) of the existing geometry match that of the new
+        for (IndexType i = 0; i < p_existing_geom->PointsNumber(); ++i) {
+            KRATOS_ERROR_IF_NOT((p_existing_geom->operator()(i)).get() == ((*pGeometry)(i)).get())
+                << "Attempting to add a new geometry with Id: " << rGeometryIdentifierName << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
         }
 
-    KRATOS_ERROR_IF(this->HasGeometry(rGeometryIdentifierName)) << "Trying to construct an geometry with name: " << rGeometryIdentifierName << ". A geometry with the same name exists already." << std::endl;
+        // Return the existing geometry
+        return p_existing_geom;
+    }
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
@@ -1995,50 +2092,114 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 ///@name Sub Model Parts
 ///@{
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    // Here a warning would be enough. To be disscussed. Pooyan.
-    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
-        << "There is an already existing sub model part with name \"" << NewSubModelPartName
-        << "\" in model part: \"" << Name() << "\"" << std::endl;
+    const auto delim_pos = NewSubModelPartName.find('.');
+    const std::string& sub_model_part_name = NewSubModelPartName.substr(0, delim_pos);
 
-    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
-    p_model_part->SetParentModelPart(this);
-    p_model_part->mBufferSize = this->mBufferSize;
-    p_model_part->mpProcessInfo = this->mpProcessInfo;
-    mSubModelParts.insert(p_model_part);
-    return *p_model_part;
+    if (delim_pos == std::string::npos) {
+        KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+            << "There is an already existing sub model part with name \"" << NewSubModelPartName
+            << "\" in model part: \"" << FullName() << "\"" << std::endl;
+
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+        Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
+        p_model_part->SetParentModelPart(this);
+        p_model_part->mBufferSize = this->mBufferSize;
+        p_model_part->mpProcessInfo = this->mpProcessInfo;
+        mSubModelParts.insert(p_model_part);
+        return *p_model_part;
+    } else {
+        ModelPart *p;
+        SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+        if (i == mSubModelParts.end()) {
+            p = &CreateSubModelPart(sub_model_part_name);
+        } else {
+            p = &(*i);
+        }
+        return p->CreateSubModelPart(NewSubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return *i;
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        ErrorNonExistingSubModelPart(sub_model_part_name);
+    }
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
+}
+
+const ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName) const
+{
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& r_sub_model_part_name = SubModelPartName.substr(0, delim_pos);
+
+    const auto i = mSubModelParts.find(r_sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        ErrorNonExistingSubModelPart(r_sub_model_part_name);
+    }
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return (i.base()->second).get();
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        ErrorNonExistingSubModelPart(sub_model_part_name);
+    }
+
+    if (delim_pos == std::string::npos) {
+        return  (i.base()->second).get();
+    } else {
+        return i->pGetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 /** Remove a sub modelpart with given name.
 */
 void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
-    // finding the sub model part
-    SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
+    const auto delim_pos = ThisSubModelPartName.find('.');
+    const std::string& sub_model_part_name = ThisSubModelPartName.substr(0, delim_pos);
 
-    if (i_sub_model_part == mSubModelParts.end())
-        return; // TODO: send a warning here. Pooyan.
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (delim_pos == std::string::npos) {
+        if (i == mSubModelParts.end()) {
+            std::stringstream warning_msg;
+            warning_msg << "Trying to remove sub model part with name \"" << ThisSubModelPartName
+                    << "\" in model part \"" << FullName() << "\" which does not exist.\n"
+                    << "The the following sub model parts are available:";
+            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+                warning_msg << "\n\t" "\"" << r_avail_smp_name << "\"";
+            }
+            KRATOS_WARNING("ModelPart") << warning_msg.str() << std::endl;
+        } else {
+            mSubModelParts.erase(ThisSubModelPartName);
+        }
+    } else {
+        if (i == mSubModelParts.end()) {
+            ErrorNonExistingSubModelPart(sub_model_part_name);
+        }
 
-    // now erase the pointer from the list
-    mSubModelParts.erase(ThisSubModelPartName);
+        return i->RemoveSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 /** Remove given sub model part.
@@ -2075,12 +2236,25 @@ const ModelPart& ModelPart::GetParentModelPart() const
 
 bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
 {
-    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    const auto delim_pos = ThisSubModelPartName.find('.');
+    const std::string& sub_model_part_name = ThisSubModelPartName.substr(0, delim_pos);
+
+    auto i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        return false;
+    } else {
+        if (delim_pos != std::string::npos) {
+            return i->HasSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
+        } else {
+            return true;
+        }
+    }
 }
 
-std::vector<std::string> ModelPart::GetSubModelPartNames()
+std::vector<std::string> ModelPart::GetSubModelPartNames() const
 {
     std::vector<std::string> SubModelPartsNames;
+    SubModelPartsNames.reserve(NumberOfSubModelParts());
 
     for(auto& r_sub_model_part : mSubModelParts) {
         SubModelPartsNames.push_back(r_sub_model_part.Name());
@@ -2122,27 +2296,30 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 }
 
 /// run input validation
-int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ModelPart::Check() const
 {
     KRATOS_TRY
-    int err = 0;
-    for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
-    {
-        const auto& r_elem = *elem_iterator;
-        err = r_elem.Check(rCurrentProcessInfo);
-    }
-    for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
-    {
-        const auto& r_cond = *condition_iterator;
-        err = r_cond.Check(rCurrentProcessInfo);
-    }
-    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
-            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
-    {
-        const auto& r_constraint = *constraint_iterator;
-        err = r_constraint.Check(rCurrentProcessInfo);
-    }
-    return err;
+
+    const ProcessInfo& r_current_process_info = this->GetProcessInfo();
+
+    // Checks for all of the elements
+    block_for_each(this->Elements(), [&r_current_process_info](const Element& rElement){
+        rElement.Check(r_current_process_info);
+    });
+
+    // Checks for all of the conditions
+    block_for_each(this->Conditions(), [&r_current_process_info](const Condition& rCondition){
+        rCondition.Check(r_current_process_info);
+    });
+
+    // Checks for all of the constraints
+    block_for_each(this->MasterSlaveConstraints(), [&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+        rConstraint.Check(r_current_process_info);
+    });
+
+    return 0;
+
+
     KRATOS_CATCH("");
 }
 
@@ -2301,6 +2478,19 @@ void ModelPart::load(Serializer& rSerializer)
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->SetParentModelPart(this);
+}
+
+
+void ModelPart::ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const
+{
+    std::stringstream err_msg;
+    err_msg << "There is no sub model part with name \"" << rSubModelPartName
+            << "\" in model part \"" << FullName() << "\"\n"
+            << "The following sub model parts are available:";
+    for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+        err_msg << "\n\t" << "\""<<r_avail_smp_name << "\"";
+    }
+    KRATOS_ERROR << err_msg.str() << std::endl;
 }
 
 }  // namespace Kratos.

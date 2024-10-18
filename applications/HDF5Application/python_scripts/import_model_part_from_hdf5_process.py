@@ -54,7 +54,7 @@ def Factory(settings, Model):
 
 
 def InitializationFromHDF5ProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model)
+    return core.Factory(core_settings, Model, KratosMultiphysics.Process)
 
 
 def CreateCoreSettings(user_settings, model):

@@ -36,15 +36,26 @@ const Variable<double>& EpsilonUBasedWallConditionData::GetScalarVariable()
 }
 
 void EpsilonUBasedWallConditionData::Check(
-    const GeometryType& rGeometry,
+    const Condition& rCondition,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    const int number_of_nodes = rGeometry.PointsNumber();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        const auto& r_node = rGeometry[i_node];
+    const auto& r_geometry = rCondition.GetGeometry();
+    const auto& r_properties = rCondition.GetProperties();
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
+        << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
+        << "VON_KARMAN is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
+        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
+        << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(WALL_SMOOTHNESS_BETA))
+        << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
+        << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
+    for (const auto& r_node: r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);

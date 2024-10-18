@@ -1,6 +1,7 @@
 // Project includes
 #include "DEM_beam_constitutive_law.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "dem_contact.h"
 
 namespace Kratos {
 
@@ -292,6 +293,50 @@ namespace Kratos {
         ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal       * LocalRelVel[2];
         ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential_0 * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential_1 * LocalRelVel[1];
+
+        KRATOS_CATCH("")
+    }
+
+    void DEMBeamConstitutiveLaw::CalculateMoments(SphericContinuumParticle* element, 
+                    SphericContinuumParticle* neighbor, 
+                    double equiv_young, 
+                    double distance, 
+                    double calculation_area,
+                    double LocalCoordSystem[3][3], 
+                    double ElasticLocalRotationalMoment[3], 
+                    double ViscoLocalRotationalMoment[3], 
+                    double equiv_poisson, 
+                    double indentation, 
+                    double normalLocalContactForce,
+                    double GlobalContactForce[3],
+                    double LocalCoordSystem_2[3],
+                    const int i_neighbor_count) 
+    {
+        KRATOS_TRY
+
+        int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
+        //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
+
+        if (failure_type == 0) {
+                ComputeParticleRotationalMoments(element, 
+                                        neighbor, 
+                                        equiv_young, 
+                                        distance, 
+                                        calculation_area,
+                                        LocalCoordSystem, 
+                                        ElasticLocalRotationalMoment, 
+                                        ViscoLocalRotationalMoment, 
+                                        equiv_poisson, 
+                                        indentation);
+        }              
+
+        DemContact::ComputeParticleContactMoments(normalLocalContactForce,
+                                                GlobalContactForce,
+                                                LocalCoordSystem_2,
+                                                element,
+                                                neighbor,
+                                                indentation,
+                                                i_neighbor_count);
 
         KRATOS_CATCH("")
     }

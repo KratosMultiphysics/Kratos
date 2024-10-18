@@ -645,33 +645,6 @@ public:
         return( rResult );
     }
 
-    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod,
-        Matrix &ShapeFunctionsIntegrationPointsValues) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
     /** Turn back information as a string.
 
     @return String contains information about this geometry.
@@ -704,11 +677,16 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     ///@}
@@ -798,7 +776,7 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 2 );
 
@@ -815,7 +793,7 @@ private:
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         ShapeFunctionsGradientsType DN_De( IntegrationPoints.size() );
 
         for ( unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++ )
@@ -949,8 +927,7 @@ const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension LineGaussLobatto3D2<TPointType>::msGeometryDimension(
-    3, 3, 1);
+const GeometryDimension LineGaussLobatto3D2<TPointType>::msGeometryDimension(3, 1);
 
 }  // namespace Kratos.
 

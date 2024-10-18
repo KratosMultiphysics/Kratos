@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_MODEL_H_INCLUDED )
-#define  KRATOS_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -63,7 +62,7 @@ public:
     ///@{
 
     /// Definition of the index type
-    typedef ModelPart::IndexType IndexType;
+    using IndexType = ModelPart::IndexType;
 
     /// Pointer definition of Model
     KRATOS_CLASS_POINTER_DEFINITION(Model);
@@ -104,14 +103,14 @@ public:
      * @param ModelPartName The name of the new model part to be created
      * @param NewBufferSize The size of the buffer of the new model part created
      */
-    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
+    ModelPart& CreateModelPart( const std::string& ModelPartName, IndexType NewBufferSize=1 );
 
     /**
      * @brief This method deletes a modelpart with a given name
      * @details Raises a warning in case the model part does not exists
      * @param ModelPartName The name of the model part to be removed
      */
-    void DeleteModelPart( const std::string ModelPartName );
+    void DeleteModelPart( const std::string& ModelPartName );
 
     /**
      * @brief This method renames a modelpart with a given name
@@ -119,7 +118,7 @@ public:
      * @param OldName The name of the model part to be renamed
      * @param NewName The new name for the model part to be renamed
      */
-    void RenameModelPart( const std::string OldName, const std::string NewName );
+    void RenameModelPart( const std::string& OldName, const std::string& NewName );
 
     /**
      * @brief This method returns a model part given a certain name
@@ -156,11 +155,23 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the data value container of the model
+     * @details This method is used to access the data value container of the model.
+     * @return The data value container of the model
+     */
+    DataValueContainer& GetDataValueContainer();
+
+    /**
+     * @brief This method returns the data value container of the model
+     * @details This method is used to access the data value container of the model.
+     * @return The data value container of the model
+     */
+    const DataValueContainer& GetDataValueContainer() const;
 
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -175,23 +186,18 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const;
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
@@ -201,39 +207,36 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
+    /// The map containing the list of model parts
+    std::map<std::string, std::unique_ptr<ModelPart>> mRootModelPartMap;
+
+    /// The data value container of the model
+    DataValueContainer mDataValueContainer;
 
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -254,15 +257,20 @@ private:
      */
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    void CreateRootModelPart(const std::string& ModelPartName, ModelPart::IndexType NewBufferSize);
+
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -273,7 +281,6 @@ private:
 
     /// Copy constructor.
 //       Model(Model const& rOther);
-
 
     ///@}
     ///@name Serialization
@@ -293,11 +300,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -318,5 +323,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_H_INCLUDED  defined

@@ -132,10 +132,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWa
     rLeftHandSideMatrix.clear();
     rRightHandSideVector.clear();
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{this->GetGeometry()};
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 

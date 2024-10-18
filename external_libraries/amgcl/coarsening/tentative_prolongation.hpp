@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -126,6 +126,7 @@ std::shared_ptr<Matrix> tentative_prolongation(
         )
 {
     typedef typename backend::value_type<Matrix>::type value_type;
+    typedef typename backend::col_type<Matrix>::type col_type;
 
     auto P = std::make_shared<Matrix>();
 
@@ -190,7 +191,7 @@ std::shared_ptr<Matrix> tentative_prolongation(
                         Bnew[i * nullspace.cols * nullspace.cols + kk] = qr.R(ii,jj);
 
                 for(ptrdiff_t j = aggr_beg, ii = 0; j < aggr_end; ++j, ++ii) {
-                    ptrdiff_t  *c = &P->col[P->ptr[order[j]]];
+                    col_type   *c = &P->col[P->ptr[order[j]]];
                     value_type *v = &P->val[P->ptr[order[j]]];
 
                     for(int jj = 0; jj < nullspace.cols; ++jj) {

@@ -5,7 +5,7 @@ message("**** configuring KratosShallowWaterApplication ****")
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
-file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
+file(GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
@@ -16,28 +16,31 @@ file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_friction_laws/*.cpp
 )
 
+## set the wave_element first due to explicit template specialization
+list(REMOVE_ITEM KRATOS_SHALLOW_WATER_APPLICATION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/wave_element.cpp)
+list(INSERT KRATOS_SHALLOW_WATER_APPLICATION_SOURCES 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/wave_element.cpp)
+
 ## define python interface sources
-file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
+file(GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## define shallow water test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file( GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
-    )
+    file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosShallowWaterCore SOURCES "${KRATOS_SHALLOW_WATER_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## ShallowWaterApplication core library (C++ parts)
-add_library( KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES} ${KRATOS_SHALLOW_WATER_TESTING})
-target_link_libraries( KratosShallowWaterCore PUBLIC KratosCore)
-set_target_properties( KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API")
+add_library(KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES})
+target_link_libraries(KratosShallowWaterCore PUBLIC KratosCore)
+set_target_properties(KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API")
 
 ## define library Kratos which defines the basic python interface
-pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore)
-set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "")
+pybind11_add_module(KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosShallowWaterApplication PRIVATE KratosShallowWaterCore)
+set_target_properties(KratosShallowWaterApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

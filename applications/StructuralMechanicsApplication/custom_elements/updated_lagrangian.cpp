@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -211,6 +211,7 @@ void UpdatedLagrangian::CalculateAll(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -230,7 +231,7 @@ void UpdatedLagrangian::CalculateAll(
         if ( rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false );
 
-        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( mat_size ); //resetting RHS
     }
 
     // Reading integration points
@@ -263,8 +264,8 @@ void UpdatedLagrangian::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
-        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+        // Compute material response
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = this->GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -317,8 +318,7 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     if (strain_size == 4) {
         BoundedMatrix<double, 2, 2> DF2x2 = DF;
         DF.resize(3, 3, false);
-        for (unsigned i = 0; i < 2; ++i)
-        {
+        for (unsigned i = 0; i < 2; ++i) {
             for (unsigned j = 0; j < 2; ++j)
                 DF(i, j) = DF2x2(i, j);
             DF(i, 2) = DF(2, i) = 0.0;

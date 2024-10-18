@@ -21,9 +21,12 @@ class TestDEMPiecewiseInletAnalysis(dem_analysis.DEMAnalysisStage):
     def Error(values, values_ref, interval_widths):
         return 0.5 * sum(abs((values_ref - values)) * interval_widths)
 
-    @classmethod
-    def GetMainPath(self):
+    @staticmethod
+    def StaticGetMainPath():
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "random_variable_based_inlet_tests_files")
+
+    def GetMainPath(self):
+        return self.StaticGetMainPath()
 
     def __init__(self, model, DEM_parameters):
         self.tolerance = 0.05
@@ -172,7 +175,7 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletAnalysis):
 class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
     def setUp(self):
         self.parameters_file_name = 'PiecewiseLinearProjectParametersDEM.json'
-        self.path = TestDEMPiecewiseInletAnalysis.GetMainPath()
+        self.path = TestDEMPiecewiseInletAnalysis.StaticGetMainPath()
         self.analysis = TestDEMPiecewiseInletAnalysis
 
     def test_piecewise_linear_inlet(self):
@@ -190,7 +193,7 @@ class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
 class TestDiscreteDEMInlet(TestPieceWiseLinearDEMInlet):
     def setUp(self):
         self.parameters_file_name = 'DiscreteProjectParametersDEM.json'
-        self.path = TestDEMDiscreteInletAnalysis.GetMainPath()
+        self.path = TestDEMDiscreteInletAnalysis.StaticGetMainPath()
         self.analysis = TestDEMDiscreteInletAnalysis
 
 

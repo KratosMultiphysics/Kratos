@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -29,11 +29,14 @@ typedef std::size_t SizeType;
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
+    mNumSearchResults++;
 }
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
-    SaveSearchResult(rInterfaceObject, true);
+    if (mOptions.UseApproximation) {
+        SaveSearchResult(rInterfaceObject, true);
+    }
 }
 
 void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterfaceObject,
@@ -50,7 +53,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
 
     ProjectionUtilities::PairingIndex pairing_index;
 
-    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mLocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
+    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mOptions.LocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
 
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
@@ -150,15 +153,29 @@ void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int Ec
 
     rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {
-        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        rOStream << " at Coordinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
     }
 }
 
 void NearestElementLocalSystem::SetPairingStatusForPrinting()
 {
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
-        }
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
+    }
+}
+
+bool NearestElementLocalSystem::IsDoneSearching() const
+{
+    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true;};
+
+    std::size_t sum_search_results = 0;
+
+    for (const auto& rp_info : mInterfaceInfos) {
+        const NearestElementInterfaceInfo& r_info = static_cast<const NearestElementInterfaceInfo&>(*rp_info);
+        sum_search_results += r_info.GetNumSearchResults();
+    }
+
+    return sum_search_results > 20;
 }
 
 }  // namespace Kratos.

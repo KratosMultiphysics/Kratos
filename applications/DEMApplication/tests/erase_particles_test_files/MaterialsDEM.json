@@ -20,7 +20,8 @@
             "FRICTION_DECAY"                         : 500,
             "COEFFICIENT_OF_RESTITUTION"             : 0.2,
             "ROLLING_FRICTION"                       : 0.01,
-            "ROLLING_FRICTION_WITH_WALLS"            : 0.01
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table" : [["SpheresPart.DEMParts_DEM","DEM-DefaultMaterial"],["DEMInletPart.Inlet_inlet","DEM-DefaultMaterial"]]

@@ -158,7 +158,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
             }
         }""")
 
-        props = self.root_model_part.GetProperties(0, 0)
+        props = self.root_model_part.GetProperties(0)
 
         num_local_nodes = self.root_model_part.NumberOfNodes()
         scan_sum_num_nodes = KM.Testing.GetDefaultDataCommunicator().ScanSum(num_local_nodes)

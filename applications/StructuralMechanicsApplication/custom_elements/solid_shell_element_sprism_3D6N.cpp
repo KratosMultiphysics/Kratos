@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -2210,7 +2210,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
         const double cosa = std::cos(ThisAngle);
         const double sina = std::sin(ThisAngle);
         // Rotate local system ThisOrthogonalBase.Vxi-ThisOrthogonalBase.Veta to best fit L1-L2
-        ThisOrthogonalBase.Vzeta = ThisOrthogonalBase.Vxi; // Reusing as auxiliar value
+        ThisOrthogonalBase.Vzeta = ThisOrthogonalBase.Vxi; // Reusing as auxiliary value
         ThisOrthogonalBase.Vxi =   cosa * ThisOrthogonalBase.Vxi + sina * ThisOrthogonalBase.Veta;
         ThisOrthogonalBase.Veta = - sina * ThisOrthogonalBase.Vzeta  + cosa * ThisOrthogonalBase.Veta;
     }
@@ -2383,7 +2383,7 @@ void SolidShellElementSprism3D6N::CalculateJacobian(
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 6; ++i)
@@ -2521,7 +2521,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     BoundedMatrix<double, 4, 2 > local_derivative_patch;
     ComputeLocalDerivativesQuadratic(local_derivative_patch,NodeGauss);
 
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 4 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 3; ++i) {
@@ -2628,13 +2628,13 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
     else if (Part == GeometricLevel::UPPER)
         local_coordinates[2] =   1.0;
 
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
     for (IndexType i = 0; i < 6; ++i)
         for (IndexType j = 0; j < 3; ++j)
             nodes_coord_aux(j, i) = NodesCoord(i, j);
 
-    /* Auxiliar components to calculate the Jacobian and his inverse */
+    /* Auxiliary components to calculate the Jacobian and his inverse */
     BoundedMatrix<double, 3, 3 > J, Jinv;
 
     if (Part == GeometricLevel::CENTER) {
@@ -2687,7 +2687,7 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
     const GeometricLevel Part
     )
 {
-    /* Auxiliar operators */
+    /* Auxiliary operators */
     const IndexType index = Part == GeometricLevel::UPPER ? 3 : 0;
     BoundedMatrix<double, 3, 3 > nodes_coord_aux;
     BoundedMatrix<double, 3, 2 > in_plane_cartesian_derivatives_gauss_aux;
@@ -2774,7 +2774,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
     }
 
     /* Calculate de componets of Cauchy tensor */
-    // In plane auxiliar components
+    // In plane auxiliary components
     array_1d<double, 3 > aux_deformation_gradient_F1, aux_deformation_gradient_F2;
 
     for (IndexType i = 0; i < 3; ++i) {
@@ -2798,7 +2798,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
     )
 {
     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
 
@@ -2808,28 +2808,28 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
             // Gauss 1
             ii = i;
             jj = j;
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, j));
 
             // Gauss 2
             ii = (i ==  3) ? 4 : i;
             jj = (j ==  3) ? 4 : j;
 
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, j));
 
             // Gauss 3
             ii = (i ==  3) ? 5 : i;
             jj = (j ==  3) ? 5 : j;
 
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, j));
         }
     }
 
@@ -2864,7 +2864,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     )
 {
     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
@@ -2885,9 +2885,9 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     for (IndexType i = 0; i < 6; ++i) {
         IndexType base = i * 3;
         for (IndexType j = 0; j < 3; ++j) {
-            aux_b_shear(0, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 0](i, 0) * rTransverseGradientIsoParametric.Ft[j];
-            aux_b_shear(1, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 1](i, 0) * rTransverseGradientIsoParametric.Fxi[j];
-            aux_b_shear(2, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 2](i, 0) * rTransverseGradientIsoParametric.Feta[j];
+            aux_b_shear(0, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 0](i, 0) * rTransverseGradientIsoParametric.Ft[j];
+            aux_b_shear(1, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 1](i, 0) * rTransverseGradientIsoParametric.Fxi[j];
+            aux_b_shear(2, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 2](i, 0) * rTransverseGradientIsoParametric.Feta[j];
         }
     }
 
@@ -2929,7 +2929,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
     )
 {
 //     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
@@ -2949,15 +2949,15 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 
 //    for (IndexType i = 0; i < 3; ++i) { // For each DOF
 //        /* First assembling */
-//        Kgeometricshear(i + index + 3, i + index + 3) -= q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](1 + delta, 0);
-//        Kgeometricshear(i + index + 6, i + index + 6) += q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](2 + delta, 0);
+//        Kgeometricshear(i + index + 3, i + index + 3) -= q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](1 + delta, 0);
+//        Kgeometricshear(i + index + 6, i + index + 6) += q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](2 + delta, 0);
 
 //        /* Second assembling */
-//        Kgeometricshear(i + index, i + index)         += q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](0 + delta, 0);
-//        Kgeometricshear(i + index + 6, i + index + 6) -= q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](2 + delta, 0);
+//        Kgeometricshear(i + index, i + index)         += q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](0 + delta, 0);
+//        Kgeometricshear(i + index + 6, i + index + 6) -= q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](2 + delta, 0);
 //        /* Third assembling */
-//        Kgeometricshear(i + index, i + index)         -= q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](0 + delta, 0);
-//        Kgeometricshear(i + index + 3, i + index + 3) += q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](1 + delta, 0);
+//        Kgeometricshear(i + index, i + index)         -= q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](0 + delta, 0);
+//        Kgeometricshear(i + index + 3, i + index + 3) += q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](1 + delta, 0);
 //    }
 
     array_1d<double, 3 > n1; // Side node with + contribution (previous DOF position)
@@ -3005,11 +3005,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
         IndexType l = 0; // Initializes DOF associated to N_3
         for (IndexType i = 0; i < 6; ++i) { //  For each node
             if (k == 0)
-                value = (-Q1 + Q2) *  rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](i, 0);
+                value = (-Q1 + Q2) *  rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](i, 0);
             else if (k == 1)
-                value = -(Q1 + 2.0 * Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](i, 0);
+                value = -(Q1 + 2.0 * Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](i, 0);
             else if (k == 2)
-                value = (2.0 * Q1 + Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](i, 0);
+                value = (2.0 * Q1 + Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](i, 0);
 
             for (IndexType j = 0; j < 3; ++j) { // For each DOF (diagonal only)
                 Kgeometricshear(n1[k] + j, l + j) += value;
@@ -3232,7 +3232,7 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     // Calculate EAS residual
     rEAS.mRHSAlpha += IntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
-    // Auxiliar values
+    // Auxiliary values
     BoundedMatrix<double, 1, 36 > B3;
     BoundedMatrix<double, 1,  6 > D3;
 
@@ -3474,7 +3474,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuug(
 
     /* The stress is already integrated, we just calculate it once */
 
-    /* Auxiliar stiffness matrix */
+    /* Auxiliary stiffness matrix */
     BoundedMatrix<double, 36, 36 > K = ZeroMatrix(36, 36); // Stiffness matrix
 
     /* COMPUTATION OF GEOMETRIC STIFFNESS MATRIX */

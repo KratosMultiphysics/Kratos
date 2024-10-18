@@ -14,6 +14,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
+#include "data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -21,6 +22,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
@@ -114,7 +116,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -149,7 +151,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -181,7 +183,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -388,7 +390,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
 
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        const Node<3>& rNode = r_geometry[i];
+        const Node& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
 
         // Check that required dofs exist
@@ -920,11 +922,17 @@ template class FluidElement< QSVMSData<3,8> >;
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
 
+template class FluidElement< AxisymmetricNavierStokesData<2,3> >;
+template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
+
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
+template class FluidElement< QSVMSDEMCoupledData<2,6> >;
+template class FluidElement< QSVMSDEMCoupledData<2,9> >;
 template class FluidElement< QSVMSDEMCoupledData<3,8> >;
+template class FluidElement< QSVMSDEMCoupledData<3,27> >;
 
 template class FluidElement< FICData<2,3> >;
 template class FluidElement< FICData<3,4> >;
@@ -938,6 +946,8 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
+template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

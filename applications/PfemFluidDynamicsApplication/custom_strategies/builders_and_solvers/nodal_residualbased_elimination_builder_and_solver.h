@@ -102,7 +102,7 @@ namespace Kratos
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -111,14 +111,14 @@ namespace Kratos
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     typedef Vector VectorType;
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /** Constructor.
-       */
+     */
     NodalResidualBasedEliminationBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
@@ -127,7 +127,7 @@ namespace Kratos
     }
 
     /** Destructor.
-       */
+     */
     ~NodalResidualBasedEliminationBuilderAndSolver() override
     {
     }
@@ -149,25 +149,8 @@ namespace Kratos
         double nodalVolume)
     {
 
+      deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
       density = itNode->FastGetSolutionStepValue(DENSITY);
-      deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-
-      double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-      if (yieldShear > 0)
-      {
-        double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-        double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        double exponent = -adaptiveExponent * equivalentStrainRate;
-        if (equivalentStrainRate != 0)
-        {
-          deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-        }
-        if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-        {
-          // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-          deviatoricCoeff = adaptiveExponent * yieldShear;
-        }
-      }
 
       volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
 
@@ -189,13 +172,11 @@ namespace Kratos
 
       KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-      /* std::cout<<"Building LHS and RHS of Momentum Equation Nodally"<<std::endl; */
-
-      //contributions to the system
+      // contributions to the system
       LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
       LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-      //vector containing the localization in the system of the different terms
+      // vector containing the localization in the system of the different terms
       Element::EquationIdVectorType EquationId;
       const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -242,10 +223,10 @@ namespace Kratos
           const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
 
           if (LHS_Contribution.size1() != localSize)
-            LHS_Contribution.resize(localSize, localSize, false); //false says not to preserve existing storage!!
+            LHS_Contribution.resize(localSize, localSize, false); // false says not to preserve existing storage!!
 
           if (RHS_Contribution.size() != localSize)
-            RHS_Contribution.resize(localSize, false); //false says not to preserve existing storage!!
+            RHS_Contribution.resize(localSize, false); // false says not to preserve existing storage!!
 
           if (EquationId.size() != localSize)
             EquationId.resize(localSize, false);
@@ -336,7 +317,6 @@ namespace Kratos
                 EquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
               }
             }
-            /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
           }
           else if (dimension == 3)
           {
@@ -435,11 +415,11 @@ namespace Kratos
     }
 
     /**
-       * @brief This is a call to the linear system solver
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+     * @brief This is a call to the linear system solver
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
     void SystemSolve(
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
@@ -455,7 +435,7 @@ namespace Kratos
 
       if (norm_b != 0.00)
       {
-        //do solve
+        // do solve
         BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
       }
       else
@@ -468,12 +448,12 @@ namespace Kratos
     }
 
     /**
-       *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       * @param rModelPart The model part of the problem to solve
-       */
+     *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
     void SystemSolveWithPhysics(
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
@@ -490,11 +470,11 @@ namespace Kratos
 
       if (norm_b != 0.00)
       {
-        //provide physical data as needed
+        // provide physical data as needed
         if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
           BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
-        //do solve
+        // do solve
         BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
       }
       else
@@ -510,15 +490,15 @@ namespace Kratos
     }
 
     /**
-       * @brief Function to perform the building and solving phase at the same time.
-       * @details It is ideally the fastest and safer function to use when it is possible to solve
-       * just after building
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+     * @brief Function to perform the building and solving phase at the same time.
+     * @details It is ideally the fastest and safer function to use when it is possible to solve
+     * just after building
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -529,13 +509,7 @@ namespace Kratos
       KRATOS_TRY
 
       Timer::Start("Build");
-
-      // boost::timer m_build_time;
-
       BuildFluidNodally(pScheme, rModelPart, A, b);
-
-      // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
-
       Timer::Stop("Build");
 
       //         ApplyPointLoads(pScheme,rModelPart,b);
@@ -546,16 +520,7 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      // const double start_solve = OpenMPUtils::GetCurrentTime();
-      // Timer::Start("Solve");
-
-      /* boost::timer m_solve_time; */
       SystemSolveWithPhysics(A, Dx, b, rModelPart);
-      /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
-
-      // Timer::Stop("Solve");
-      // const double stop_solve = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -564,13 +529,13 @@ namespace Kratos
     }
 
     /**
-       * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-       * and condition its Dofs.
-       * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
-       * way the matrix and RHS are built
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       */
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+     * and condition its Dofs.
+     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart) override
@@ -579,7 +544,7 @@ namespace Kratos
 
       KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Setting up the dofs" << std::endl;
 
-      //Gets the array of elements from the modeler
+      // Gets the array of elements from the modeler
       ElementsArrayType &pElements = rModelPart.Elements();
       const int nelements = static_cast<int>(pElements.size());
 
@@ -588,12 +553,6 @@ namespace Kratos
       const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
       unsigned int nthreads = ParallelUtilities::GetNumThreads();
-
-      //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-      //         typedef std::unordered_set < NodeType::DofType::Pointer,
-      //             DofPointerHasher,
-      //             DofPointerComparor,
-      //             allocator_type    >  set_type;
 
 #ifdef USE_GOOGLE_HASH
       typedef google::dense_hash_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
@@ -610,7 +569,6 @@ namespace Kratos
 #ifdef USE_GOOGLE_HASH
         dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
 #else
-        //             dofs_aux_list[i] = set_type( allocators[i]);
         dofs_aux_list[i].reserve(nelements);
 #endif
       }
@@ -639,21 +597,11 @@ namespace Kratos
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
 
-      //here we do a reduction in a tree so to have everything on thread 0
+      // here we do a reduction in a tree so to have everything on thread 0
       unsigned int old_max = nthreads;
       unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
       while (new_max >= 1 && new_max != old_max)
       {
-        //          //just for debugging
-        //          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-        //          for (int i = 0; i < new_max; i++)
-        //          {
-        //             if (i + new_max < old_max)
-        //             {
-        //                std::cout << i << " - " << i + new_max << std::endl;
-        //             }
-        //          }
-        //          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(new_max); i++)
@@ -720,9 +668,9 @@ namespace Kratos
     }
 
     /**
-       * @brief Organises the dofset in order to speed up the building phase
-       * @param rModelPart The model part of the problem to solve
-       */
+     * @brief Organises the dofset in order to speed up the building phase
+     * @param rModelPart The model part of the problem to solve
+     */
     void SetUpSystem(
         ModelPart &rModelPart) override
     {
@@ -759,22 +707,22 @@ namespace Kratos
 
       //  boost::timer m_contruct_matrix;
 
-      if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
         pA.swap(pNewA);
       }
-      if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
         pDx.swap(pNewDx);
       }
-      if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
         pb.swap(pNewb);
       }
-      if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (BaseType::mpReactionsVector == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
         BaseType::mpReactionsVector.swap(pNewReactionsVector);
@@ -784,8 +732,8 @@ namespace Kratos
       TSystemVectorType &Dx = *pDx;
       TSystemVectorType &b = *pb;
 
-      //resizing the system vectors and matrix
-      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
+      // resizing the system vectors and matrix
+      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
       {
         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
         ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -805,7 +753,7 @@ namespace Kratos
       if (b.size() != BaseType::mEquationSystemSize)
         b.resize(BaseType::mEquationSystemSize, false);
 
-      //if needed resize the vector for the calculation of reactions
+      // if needed resize the vector for the calculation of reactions
       if (BaseType::mCalculateReactionsFlag == true)
       {
         unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
@@ -821,16 +769,16 @@ namespace Kratos
     //**************************************************************************
 
     /**
-       * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-       * unexpensive depending on the implementation choosen and on how the System Matrix is built.
-       * @details For explanation of how it works for a particular implementation the user
-       * should refer to the particular Builder And Solver choosen
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
+     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * @details For explanation of how it works for a particular implementation the user
+     * should refer to the particular Builder And Solver choosen
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -841,8 +789,8 @@ namespace Kratos
     }
 
     /**
-       * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
-       */
+     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+     */
     void Clear() override
     {
       this->mDofSet = DofsArrayType();
@@ -857,12 +805,12 @@ namespace Kratos
     }
 
     /**
-       * @brief This function is designed to be called once to perform all the checks needed
-       * on the input provided. Checks can be "expensive" as the function is designed
-       * to catch user's errors.
-       * @param rModelPart The model part of the problem to solve
-       * @return 0 all ok
-       */
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part of the problem to solve
+     * @return 0 all ok
+     */
     int Check(ModelPart &rModelPart) override
     {
       KRATOS_TRY
@@ -937,7 +885,7 @@ namespace Kratos
           omp_unset_lock(&lock_array[i_global]);
 #endif
         }
-        //note that assembly on fixed rows is not performed here
+        // note that assembly on fixed rows is not performed here
       }
     }
 
@@ -948,13 +896,13 @@ namespace Kratos
         ModelPart &rModelPart)
     {
 
-    //filling with zero the matrix (creating the structure)
-    Timer::Start("MatrixStructure");
+      // filling with zero the matrix (creating the structure)
+      Timer::Start("MatrixStructure");
 
-    ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+      ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    // Getting the array of the conditions
-    const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+      // Getting the array of the conditions
+      const int nconditions = static_cast<int>(rModelPart.Conditions().size());
       ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
       const std::size_t equation_size = BaseType::mEquationSystemSize;
@@ -1063,7 +1011,7 @@ namespace Kratos
         }
       }
 
-      //count the row sizes
+      // count the row sizes
       unsigned int nnz = 0;
       for (unsigned int i = 0; i < indices.size(); i++)
         nnz += indices[i].size();
@@ -1074,7 +1022,7 @@ namespace Kratos
       std::size_t *Arow_indices = A.index1_data().begin();
       std::size_t *Acol_indices = A.index2_data().begin();
 
-      //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+      // filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
       Arow_indices[0] = 0;
       for (int i = 0; i < static_cast<int>(A.size1()); i++)
         Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
@@ -1181,7 +1129,7 @@ namespace Kratos
         {
           const unsigned int i_global = EquationId[i_local];
 
-          if (i_global < BaseType::mEquationSystemSize) //free dof
+          if (i_global < BaseType::mEquationSystemSize) // free dof
           {
             // ASSEMBLING THE SYSTEM VECTOR
             double &b_value = b[i_global];
@@ -1199,7 +1147,7 @@ namespace Kratos
         {
           const unsigned int i_global = EquationId[i_local];
 
-          if (i_global < BaseType::mEquationSystemSize) //free dof
+          if (i_global < BaseType::mEquationSystemSize) // free dof
           {
             // ASSEMBLING THE SYSTEM VECTOR
             double &b_value = b[i_global];
@@ -1208,7 +1156,7 @@ namespace Kratos
 #pragma omp atomic
             b_value += rhs_value;
           }
-          else //fixed dof
+          else // fixed dof
           {
             double &b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
             const double &rhs_value = RHS_Contribution[i_local];

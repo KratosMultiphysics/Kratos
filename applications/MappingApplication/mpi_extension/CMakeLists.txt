@@ -6,23 +6,34 @@ include_directories(
   ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
+file(
+  GLOB_RECURSE
+  KRATOS_MAPPING_MPI_EXTENSION_CORE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+)
 
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
+## define test sources (cpp tests)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	file(GLOB KRATOS_MAPPING_MPI_EXTENSION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests/*.cpp)
+  kratos_add_gtests(TARGET KratosMappingMPICore SOURCES "${KRATOS_MAPPING_MPI_EXTENSION_TESTING_SOURCES}" USE_MPI)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 file(
   GLOB_RECURSE
   KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
+
+add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_MPI_EXTENSION_CORE_SOURCES})
+target_include_directories(KratosMappingMPICore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
+target_link_libraries(KratosMappingMPICore PUBLIC KratosMPICore KratosCore KratosMappingCore KratosTrilinosCore ${MPI_LIBRARIES} ${TRILINOS_LIBRARIES} )
+set_target_properties(KratosMappingMPICore PROPERTIES COMPILE_DEFINITIONS "MAPPING_MPI_APPLICATION=EXPORT,API")
 
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingMPICore )
 set_target_properties( KratosMappingMPIExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -41,8 +52,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMappingMPIExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingMPICore" PARENT_SCOPE)
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingMPIExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
+install(TARGETS KratosMappingMPICore DESTINATION libs )
 install(TARGETS KratosMappingMPIExtension DESTINATION libs )
 
 ###############################################################################

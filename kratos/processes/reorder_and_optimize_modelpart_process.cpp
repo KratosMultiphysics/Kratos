@@ -60,13 +60,13 @@ namespace Kratos
 
         //make a parallel clone of all the nodes
         IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
-            Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
+            Node::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
             pnode = pnode->Clone();
         });
 
         IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
             Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + Index);
-            Geometry<Node<3>>::PointsArrayType tmp;
+            Geometry<Node>::PointsArrayType tmp;
             const auto& geom = pelem->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
@@ -74,14 +74,14 @@ namespace Kratos
 
             auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
 
-            paux->Data() = pelem->Data();
+            paux->GetData() = pelem->GetData();
 
             pelem = paux;
         });
 
         IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
             Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + Index);
-            Geometry<Node<3>>::PointsArrayType tmp;
+            Geometry<Node>::PointsArrayType tmp;
             const auto& geom = pcond->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
@@ -89,7 +89,7 @@ namespace Kratos
 
             auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
 
-            paux->Data() = pcond->Data();
+            paux->GetData() = pcond->GetData();
 
             pcond = paux;
         });
@@ -144,7 +144,7 @@ namespace Kratos
         {
             //make a parallel clone of all the nodes
             IndexPartition<std::size_t>(subpart.Nodes().size()).for_each([&](std::size_t Index){
-                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
+                Node::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
                 pnode = mrModelPart.Nodes()(pnode->Id());
             });
             subpart.Nodes().Sort();
@@ -189,15 +189,6 @@ namespace Kratos
                     for(unsigned int l=0; l<geom.size(); ++l)
                         graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
-
-
-            unsigned int nnz = 0; //number of nonzeros in the graph
-            for(unsigned int i=0; i<n; ++i)
-            {
-                //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
-                nnz += graph[i].size();
-            }
-
 
             CompressedMatrix graph_csr(n,n);
             for(unsigned int i=0; i<n; ++i)

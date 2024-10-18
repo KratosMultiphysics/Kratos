@@ -4,14 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
 // System includes
+#include <stack>
+#include <algorithm>
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
@@ -19,6 +21,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 
 namespace Kratos
@@ -209,12 +212,94 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
+nlohmann::json Parameters::ReadFile(const std::filesystem::path& rFileName)
+{
+    std::ifstream new_file;
+    new_file.open(rFileName, std::ios::in);
+
+    std::stringstream strStream;
+    strStream << new_file.rdbuf();
+    std::string input_json = strStream.str();
+    return nlohmann::json::parse(input_json);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
+
+    // A stack containing the current sequence of included JSONs
+    std::vector<std::filesystem::path> include_sequence;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", include_sequence);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence)
+{
+    std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
+
+    if (rJson.is_object()) {
+        s.push({&rJson,rJson.begin()});
+    }
+
+    while(!s.empty()) {
+        std::pair<nlohmann::json*,nlohmann::json::iterator> pJson_it = s.top();
+        s.pop();
+
+        nlohmann::json* act_pJson= pJson_it.first;
+        nlohmann::json::iterator act_it = pJson_it.second;
+
+        while(act_it != act_pJson->end()) {
+
+            if(act_it.value().is_object()) {
+                s.emplace(&act_it.value(), act_it.value().begin());
+            } else if (act_it.value().is_array()) {
+                for (auto it : act_it.value().items()) {
+                    SolveIncludes(it.value(), rFileName, rIncludeSequence);
+                }
+            } else if (act_it.key() == "@include_json") {
+                // Check whether the included file exists
+                const std::string included_file_path_string = *act_it;
+                const std::filesystem::path included_file_path = FilesystemExtensions::ResolveSymlinks(std::filesystem::path(included_file_path_string));
+                KRATOS_ERROR_IF_NOT(std::filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
+
+                nlohmann::json included_json= ReadFile(included_file_path);
+
+                // Check for cycles and push to the include sequence
+                auto it_cycle = std::find(rIncludeSequence.begin(), rIncludeSequence.end(), included_file_path);
+                if (it_cycle != rIncludeSequence.end()) {
+                    std::stringstream message_stream;
+                    message_stream << "Include cycle in json files: ";
+                    for (; it_cycle != rIncludeSequence.end(); ++it_cycle) {
+                        message_stream << *it_cycle << " => ";
+                    }
+                    message_stream << included_file_path << " => ...";
+                    KRATOS_ERROR << message_stream.str();
+                }
+                rIncludeSequence.push_back(included_file_path);
+
+                // Resolve links in the included json
+                SolveIncludes(included_json, included_file_path, rIncludeSequence);
+                rIncludeSequence.pop_back();
+
+                // Remove the @include entry
+                act_it = act_pJson->erase(act_it);
+
+                // Add the new entries due to the new included file
+                act_pJson->insert(included_json.begin(), included_json.end());
+                continue;
+            }
+            ++act_it;
+        }
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -223,6 +308,12 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
+
+    // A stack containing the current sequence of included JSONs
+    std::vector<std::filesystem::path> include_sequence;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", include_sequence);
 }
 
 /***********************************************************************************/
@@ -303,7 +394,7 @@ Parameters& Parameters::operator=(Parameters&& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters Parameters::Clone()
+Parameters Parameters::Clone() const
 {
     //TODO: make a clone
     //TODO: find a better way to make the copy
@@ -396,6 +487,20 @@ bool Parameters::RemoveValue(const std::string& rEntry)
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool Parameters::RemoveValues(const std::vector<std::string>& rEntries)
+{
+    for (const auto& r_entry : rEntries) {
+        if (!this->Has(r_entry)) return false;
+    }
+    for (const auto& r_entry : rEntries) {
+        this->RemoveValue(r_entry);
+    }
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::json_iteration_proxy Parameters::items() noexcept
 {
     return mpValue->items();
@@ -471,6 +576,24 @@ bool Parameters::IsString() const
 bool Parameters::IsArray() const
 {
     return mpValue->is_array();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::IsStringArray() const
+{
+    if (!mpValue->is_array()) {
+        return false;
+    } else {
+        const auto& r_array = (*mpValue);
+        for (IndexType i = 0; i < mpValue->size(); ++i) {
+            if (!r_array[i].is_string()) {
+                return false;
+            }
+        }
+        return true; // All entries are strings or Vector is empty
+    }
 }
 
 /***********************************************************************************/
@@ -569,7 +692,7 @@ std::string Parameters::GetString() const
 
 std::vector<std::string> Parameters::GetStringArray() const
 {
-    KRATOS_ERROR_IF_NOT(this->IsArray()) << "Argument must be an array" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->IsStringArray()) << "Argument must be a string array" << std::endl;
     std::vector<std::string> result(this->size());
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -629,6 +752,38 @@ Matrix Parameters::GetMatrix() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+#define KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(TYPE, TYPE_NAME)                                \
+    template <> bool Parameters::Is<TYPE>() const {return this->Is ## TYPE_NAME();}              \
+    template <> TYPE Parameters::Get<TYPE>() const {return this->Get ## TYPE_NAME();}            \
+    template <> void Parameters::Set<TYPE>(const TYPE& rValue) {this->Set ## TYPE_NAME(rValue);}
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(double, Double)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(int, Int)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(bool, Bool)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::string, String)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::vector<std::string>, StringArray)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Vector, Vector)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Matrix, Matrix)
+
+#undef KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS
+
+// Is, Get, and Set for subparameters
+
+template <>
+bool Parameters::Is<Parameters>() const
+{
+    return this->IsSubParameter();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::SetDouble(const double Value)
 {
     *mpValue=Value;
@@ -656,6 +811,21 @@ void Parameters::SetBool(const bool Value)
 void Parameters::SetString(const std::string& rValue)
 {
     *mpValue=rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::SetStringArray(const std::vector<std::string>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        (*mpValue)[i] = rValue[i];
+    }
 }
 
 /***********************************************************************************/
@@ -749,6 +919,19 @@ void Parameters::AddString(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::AddStringArray(
+    const std::string& rEntry,
+    const std::vector<std::string>& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetStringArray(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::AddVector(
     const std::string& rEntry,
     const Vector& rValue
@@ -770,21 +953,6 @@ void Parameters::AddMatrix(
     Parameters aux_parameters(R"({"value": []})");
     aux_parameters["value"].SetMatrix(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::SetStringArray(const std::vector<std::string>& rValue)
-{
-    const SizeType size = rValue.size();
-
-    nlohmann::json j_array(0.0, size);
-    (*mpValue) = j_array;
-
-    for (IndexType i = 0; i < size; ++i) {
-        (*mpValue)[i] = rValue[i];
-    }
 }
 
 /***********************************************************************************/
@@ -983,6 +1151,27 @@ void Parameters::Append(const Parameters& rValue)
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
     nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString(), nullptr, true, true));
     mpValue->push_back(j_object);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::CopyValuesFromExistingParameters(
+    const Parameters OriginParameters,
+    const std::vector<std::string>& rListParametersToCopy
+    )
+{
+    for (const auto& r_value_name : rListParametersToCopy) {
+        if (OriginParameters.Has(r_value_name)) {
+            if (this->Has(r_value_name)) {
+                KRATOS_ERROR << r_value_name << " already defined in destination (check keyword is not duplicated in the list) Parameters:\n\n" << this->PrettyPrintJsonString() << std::endl;
+            } else {
+                this->AddValue(r_value_name, OriginParameters[r_value_name]);
+            }
+        } else {
+            KRATOS_ERROR << r_value_name << " not defined in origin Parameters:\n\n" << OriginParameters.PrettyPrintJsonString() << std::endl;
+        }
+    }
 }
 
 /***********************************************************************************/

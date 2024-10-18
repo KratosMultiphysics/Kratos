@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -26,10 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -62,7 +59,7 @@ void SerializerPrint(Serializer& rSerializer)
 void  AddSerializerToPython(pybind11::module& m)
 {
 
-    py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
+    auto serializer_py_interface = py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
     .def(py::init([](const std::string& FileName) {
                     KRATOS_WARNING("DEPRECATION") << "Please use FileSerializer(FileName) instead of Serializer(FileName)" << std::endl;
                     return std::make_shared<FileSerializer>(FileName);
@@ -78,14 +75,25 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("Load",SerializerLoad<ModelPart>)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
+
     .def("Load",SerializerLoad<Parameters>)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Parameters>)
     .def("Save",SerializerSave<Parameters>)
+
     .def("Load",SerializerLoad<Model>)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
+
+    .def("Load",SerializerLoad<Flags>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Flags>)
+    .def("Save",SerializerSave<Flags>)
+
+    .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)
     ;
+
+    serializer_py_interface.attr("MPI") = Serializer::MPI;
+    serializer_py_interface.attr("SHALLOW_GLOBAL_POINTERS_SERIALIZATION") = Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION;
 
     py::class_<FileSerializer, FileSerializer::Pointer, Serializer >(m,"FileSerializer")
     .def(py::init<std::string const&>())
@@ -133,7 +141,5 @@ void  AddSerializerToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

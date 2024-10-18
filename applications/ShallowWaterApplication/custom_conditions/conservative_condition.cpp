@@ -18,11 +18,24 @@
 
 // Project includes
 #include "conservative_condition.h"
+#include "includes/kratos_flags.h"
 #include "includes/checks.h"
 #include "shallow_water_application_variables.h"
 
 namespace Kratos
 {
+
+template<std::size_t TNumNodes>
+const Parameters ConservativeCondition<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["MOMENTUM","VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["MOMENTUM_X","MOMENTUM_Y","HEIGHT"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
 
 template<std::size_t TNumNodes>
 const Variable<double>& ConservativeCondition<TNumNodes>::GetUnknownComponent(int Index) const
@@ -55,43 +68,48 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     const array_1d<double,TNumNodes>& rN)
 {
     const double h = inner_prod(rData.nodal_h, rN);
-    const double c2 = rData.gravity * h;
-    const array_1d<double,3> v = WaveConditionType::VectorProduct(rData.nodal_v, rN);
+    const double z = inner_prod(rData.nodal_z, rN);
+    const array_1d<double,3> v = BaseType::VectorProduct(rData.nodal_v, rN);
+    const bool is_supercritical = (norm_2(v) >= std::sqrt(rData.gravity*h));
+    auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 
     rData.height = h;
     rData.velocity = v;
 
-    rData.A1(0,0) = 2*v[0];
-    rData.A1(0,1) = 0;
-    rData.A1(0,2) = -v[0]*v[0] + c2;
-    rData.A1(1,0) = v[1];
-    rData.A1(1,1) = v[0];
-    rData.A1(1,2) = -v[0]*v[1];
-    rData.A1(2,0) = 1;
-    rData.A1(2,1) = 0;
-    rData.A1(2,2) = 0;
+    if (this->Is(SLIP)) {
+        rData.v_neumann = 0.0;
+        rData.h_dirichlet = h;
+    }
+    else if (this->Is(INLET)) {
+        rData.v_neumann = inner_prod(rData.normal, this->GetValue(VELOCITY));
+        rData.h_dirichlet = (is_supercritical) ? this->GetValue(HEIGHT) : h;
+    }
+    else if (this->Is(OUTLET)) {
+        rData.v_neumann = inner_prod(rData.normal, v);
+        rData.h_dirichlet = (is_supercritical) ? h : this->GetValue(HEIGHT);
+    }
+    else {
+        rData.v_neumann = inner_prod(rData.normal, v);
+        rData.h_dirichlet = h;
+    }
 
-    rData.A2(0,0) = v[1];
-    rData.A2(0,1) = v[0];
-    rData.A2(0,2) = -v[0]*v[1];
-    rData.A2(1,0) = 0;
-    rData.A2(1,1) = 2*v[1];
-    rData.A2(1,2) = -v[1]*v[1] + c2;
-    rData.A2(2,0) = 0;
-    rData.A2(2,1) = 1;
-    rData.A2(2,2) = 0;
+    /// Boundary traces
+    const double vel_trace = rData.v_neumann * h;
+    double press_trace = rData.gravity * std::pow(rData.h_dirichlet + z, 2);
 
-    rData.b1[0] = c2;
-    rData.b1[1] = 0;
-    rData.b1[2] = 0;
+    /// Convective flux
+    array_1d<double,3> conv_flux = v;
+    conv_flux[2] = 1;
+    conv_flux *= vel_trace;
 
-    rData.b2[0] = 0;
-    rData.b2[1] = c2;
-    rData.b2[2] = 0;
+    /// Pressure flux
+    array_1d<double,3> press_flux = rData.normal;
+    press_flux[2] = 0.0;
+    press_flux *= press_trace;
 
-    auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    /// Assembly of the flux
+    rData.flux = conv_flux + press_flux;
 }
 
 template class ConservativeCondition<2>;

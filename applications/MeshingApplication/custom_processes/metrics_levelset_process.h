@@ -62,7 +62,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLevelSetSolMetricProcess);
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
 
     /// Containers definition
     typedef ModelPart::NodesContainerType                        NodesArrayType;
@@ -202,19 +202,19 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                            /// The model part to compute
-    const Variable<array_1d<double,3>> mVariableGradient; /// The gradient variable
-    std::string mRatioReferenceVariable = "DISTANCE";     /// Variable used to compute the anisotropic ratio
-    std::string mSizeReferenceVariable = "DISTANCE";      /// Variable used to compute the element size
-    double mMinSize;                                      /// The minimal size of the elements
-    double mMaxSize;                                      /// The maximal size of the elements
-    bool mEnforceCurrent;                                 /// With this we choose if we inforce the current nodal size (NODAL_H)
-    double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
-    double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
-    Table<double> mSizeDistributionTable;                 /// Table containing the [DISTANCE, SIZE] for the piecewise linear interpolation
-    Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
-    Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
+    ModelPart& mThisModelPart;                             /// The model part to compute
+    const Variable<array_1d<double,3>>& mVariableGradient; /// The gradient variable
+    std::string mRatioReferenceVariable = "DISTANCE";      /// Variable used to compute the anisotropic ratio
+    std::string mSizeReferenceVariable = "DISTANCE";       /// Variable used to compute the element size
+    double mMinSize;                                       /// The minimal size of the elements
+    double mMaxSize;                                       /// The maximal size of the elements
+    bool mEnforceCurrent;                                  /// With this we choose if we inforce the current nodal size (NODAL_H)
+    double mAnisotropicRatio;                              /// The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                                    /// The boundary layer limit Distance for the anisotropic ratio
+    double mSizeBoundLayer;                                /// The boundary layer limit Distance for the element size
+    Table<double> mSizeDistributionTable;                  /// Table containing the [DISTANCE, SIZE] for the piecewise linear interpolation
+    Interpolation mInterpolation;                          /// The interpolation type for the anisotropic ratio
+    Interpolation mSizeInterpolation;                      /// The interpolation type for the element size
 
     ///@}
     ///@name Private Operators

@@ -20,7 +20,14 @@ with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
 for module in conf["included_modules"]:
-    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
+    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module)
+    dst = os.path.join("KratosMultiphysics", module)
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    try:
+        shutil.copytree(src, dst)
+    except Exception as e:
+        print("Warning copying {}: {}".format(src,e))
 
 for binary in conf["included_binaries"]:
     for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
@@ -31,6 +38,31 @@ if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
     f.close()
+
+package_classifiers = [
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Physics",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Natural Language :: English",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "Intended Audience :: Developers",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console"
+    ]
+
+if "licence" not in conf.keys():
+    package_classifiers.append("License :: OSI Approved :: BSD License")
+else:
+    package_classifiers.append(conf["licence"])
 
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
@@ -51,31 +83,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=replaceKeywords(conf["dependencies"]),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: C++",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Physics",
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "License :: OSI Approved :: BSD License",
-        "Natural Language :: English",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Other Audience",
-        "Intended Audience :: Developers",
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console"
-    ],
+    classifiers=package_classifiers,
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.5',
+    python_requires='>=3.8',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )

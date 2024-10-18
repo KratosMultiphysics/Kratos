@@ -194,7 +194,7 @@ template <>
 void FractionalStepKBasedWallCondition<2, 2>::CalculateNormal(
     array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
 
     An[0] = r_geometry[1].Y() - r_geometry[0].Y();
     An[1] = -(r_geometry[1].X() - r_geometry[0].X());
@@ -205,7 +205,7 @@ template <>
 void FractionalStepKBasedWallCondition<3, 3>::CalculateNormal(
     array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
 
     array_1d<double, 3> v1, v2;
     v1[0] = r_geometry[1].X() - r_geometry[0].X();

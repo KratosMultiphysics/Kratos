@@ -12,78 +12,65 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_SURFACE_NORMAL_LOAD_3D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_SURFACE_NORMAL_LOAD_3D_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
+#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "includes/serializer.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
 
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public SurfaceLoad3DDiffOrderCondition
 {
-
 public:
-
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceNormalLoad3DDiffOrderCondition );
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceNormalLoad3DDiffOrderCondition);
 
     // Default constructor
     SurfaceNormalLoad3DDiffOrderCondition();
-    
+
     // Constructor 1
-    SurfaceNormalLoad3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    
+    SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+
     // Constructor 2
-    SurfaceNormalLoad3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceNormalLoad3DDiffOrderCondition(IndexType               NewId,
+                                          GeometryType::Pointer   pGeometry,
+                                          PropertiesType::Pointer pProperties);
 
-    // Destructor
-    ~SurfaceNormalLoad3DDiffOrderCondition() override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-
     // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight) override;
+    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+                                           const GeometryType::JacobiansType& JContainer,
+                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
     }
-    
+
 }; // class SurfaceNormalLoad3DDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_SURFACE_NORMAL_LOAD_3D_DIFF_ORDER_CONDITION_H_INCLUDED defined 

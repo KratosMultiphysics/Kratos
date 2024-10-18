@@ -700,8 +700,7 @@ GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
-    1, 3, 2);
+const GeometryDimension BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);
 
 ///@}
 }// namespace Kratos.

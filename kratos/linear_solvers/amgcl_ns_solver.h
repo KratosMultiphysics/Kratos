@@ -28,6 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_components.h"
 #include "linear_solvers/iterative_solver.h"
 
 #include <boost/property_tree/json_parser.hpp>
@@ -118,6 +119,8 @@ public:
         //kratos specific settings
         mTol = rParameters["inner_settings"]["solver"]["tol"].GetDouble();
         mVerbosity=rParameters["verbosity"].GetInt();
+        const std::string pressure_var_name = rParameters["schur_variable"].GetString();
+        mpPressureVar = &KratosComponents<Variable<double>>::Get(pressure_var_name);
         mndof = 1; 
 
         //pass settings to amgcl
@@ -408,7 +411,7 @@ public:
             const unsigned int eq_id = it->EquationId();
             if( eq_id < rA.size1() )
             {
-                mp[eq_id]  = (it->GetVariable().Key() == PRESSURE);
+                mp[eq_id]  = (it->GetVariable().Key() == *mpPressureVar);
             }
         }
 
@@ -419,6 +422,7 @@ private:
 
     double mTol;
     int mVerbosity;
+    const Variable<double>* mpPressureVar = nullptr;
     int mndof;
     std::vector< char > mp;
 

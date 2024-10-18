@@ -1,0 +1,85 @@
+FROM ubuntu:jammy
+
+ENV HOME /root
+
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get -y install --no-install-recommends \
+        gnupg2 \
+        software-properties-common \
+        wget && \
+    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -P/tmp && \
+    apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
+    rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
+    echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list && \
+    add-apt-repository ppa:git-core/ppa && \
+    apt-get -y update && \
+    apt-get install -y --no-install-recommends \
+        sudo \
+        build-essential \
+        g++-12 \
+        gfortran-12 \
+        clang-14 \
+        libomp-dev \
+        cmake \
+        gfortran \
+        git \
+        intel-oneapi-compiler-dpcpp-cpp \
+        intel-oneapi-mkl-devel \
+        libboost-dev \
+        libhdf5-dev \
+        libhdf5-openmpi-dev \
+        libmetis-dev \
+        libopenmpi-dev \
+        libscotch-dev \
+        libtrilinos-amesos-dev \
+        libtrilinos-amesos2-dev \
+        libtrilinos-aztecoo-dev \
+        libtrilinos-epetra-dev \
+        libtrilinos-epetraext-dev \
+        libtrilinos-ifpack-dev \
+        libtrilinos-ml-dev \
+        libtrilinos-teuchos-dev \
+        libtrilinos-tpetra-dev \
+        libtrilinos-kokkos-dev \
+        libtrilinos-kokkos-kernels-dev \
+        libtrilinos-shylu-dev \
+        libmedc-dev \
+        openmpi-bin \
+        python3-dev \
+        python3-h5py \
+        python3-pip && \
+    python3 -m pip install --upgrade pip && \
+    pip3 install \
+        numpy \
+        scipy \
+        sympy \
+        parameterized && \
+    # install MMG 5.5
+    git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
+    mkdir /tmp/mmg_5_5_1/build && \
+    mkdir -p /external_libraries/mmg/mmg_5_5_1 && \
+    cd /tmp/mmg_5_5_1/build && \
+    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
+    make -j2 install && \
+    cd / && \
+    # install PARMMG
+    git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
+    mkdir /tmp/ParMmg_5ffc6ad/build && \
+    mkdir -p /external_libraries/ParMmg_5ffc6ad && \
+    cd /tmp/ParMmg_5ffc6ad/build && git checkout 5ffc6ada4afb1af50a43e1fa6f4c409cff2ea25c && \
+    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_5ffc6ad" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
+    make -j2 install && \
+    rm -r /tmp/mmg_5_5_1 && \
+    rm -r /tmp/ParMmg_5ffc6ad && \
+    cd / && \
+    # remove some now unnecessary packages
+    apt-get -y remove \
+        gnupg2 \
+        software-properties-common \
+        wget && \
+    apt-get -y autoremove && \
+    apt-get clean
+
+CMD [ "/bin/bash" ]
+
+WORKDIR $HOME

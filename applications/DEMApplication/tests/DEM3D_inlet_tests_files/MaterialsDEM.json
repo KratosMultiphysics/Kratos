@@ -26,7 +26,9 @@
             "FRICTION_DECAY": 500,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.01,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat1", "mat2"],
@@ -45,7 +47,9 @@
             "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM",
             "CONTACT_INTERNAL_FRICC": 0.4,
             "CONTACT_TAU_ZERO": 300000.0,
-            "ROTATIONAL_MOMENT_COEFFICIENT": 0.0
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.0,
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table":[

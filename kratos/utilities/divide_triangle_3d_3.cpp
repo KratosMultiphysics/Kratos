@@ -21,29 +21,36 @@
 namespace Kratos
 {
 
-DivideTriangle3D3::DivideTriangle3D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
-    DivideTriangle2D3(rInputGeometry, rNodalDistances) {};
+template<class TPointType>
+DivideTriangle3D3<TPointType>::DivideTriangle3D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
+    DivideTriangle2D3<TPointType>(rInputGeometry, rNodalDistances) {};
 
-DivideTriangle3D3::~DivideTriangle3D3() {};
+template<class TPointType>
+DivideTriangle3D3<TPointType>::~DivideTriangle3D3() {};
 
-DivideTriangle3D3::IndexedPointGeometryPointerType DivideTriangle3D3::GenerateAuxiliaryPartitionTriangle(
+template<class TPointType>
+typename DivideTriangle3D3<TPointType>::IndexedPointGeometryPointerType DivideTriangle3D3<TPointType>::GenerateAuxiliaryPartitionTriangle(
     const int I0,
     const int I1,
     const int I2)
 {
     return Kratos::make_shared<IndexedPointTriangleType>(
-        mAuxPointsContainer(I0),
-        mAuxPointsContainer(I1),
-        mAuxPointsContainer(I2));
+        this->mAuxPointsContainer(I0),
+        this->mAuxPointsContainer(I1),
+        this->mAuxPointsContainer(I2));
 }
 
-DivideTriangle3D3::IndexedPointGeometryPointerType DivideTriangle3D3::GenerateIntersectionLine(
+template<class TPointType>
+typename DivideTriangle3D3<TPointType>::IndexedPointGeometryPointerType DivideTriangle3D3<TPointType>::GenerateIntersectionLine(
     const int I0,
     const int I1)
 {
     return Kratos::make_shared<IndexedPointLineType>(
-        mAuxPointsContainer(I0),
-        mAuxPointsContainer(I1));
+        this->mAuxPointsContainer(I0),
+        this->mAuxPointsContainer(I1));
 }
+
+template class DivideTriangle3D3<Node>;
+template class DivideTriangle3D3<IndexedPoint>;
 
 };

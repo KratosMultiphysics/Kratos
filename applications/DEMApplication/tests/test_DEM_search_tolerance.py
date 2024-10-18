@@ -52,7 +52,6 @@ class DEM3D_SearchToleranceMain(KratosMultiphysics.DEMApplication.DEM_analysis_s
                     y_vel_ref = -0.5929799879392164
                     self.assertAlmostEqual(y_vel, y_vel_ref, delta=tol)
 
-
     def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
@@ -83,7 +82,7 @@ class DEM3D_SearchTolerance1(DEM3D_SearchToleranceMain):
                     self.assertAlmostEqual(y_vel, y_vel_ref, delta=tol)
 
 class DEM3D_SearchTolerance2(DEM3D_SearchToleranceMain):
-
+    
     def FinalizeSolutionStep(self):
         KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage.FinalizeSolutionStep(self)
         for node in self.spheres_model_part.Nodes:

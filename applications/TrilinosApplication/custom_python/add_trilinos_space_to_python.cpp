@@ -1,22 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
 
 //Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
@@ -29,9 +29,7 @@
 // Teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -315,6 +313,8 @@ void  AddBasicOperations(pybind11::module& m)
     .def("SetValue", SetValue)
     //.def("GetValue", GetValue) //deliberately commented out. Only works for local Ids
     .def("GatherValues", GatherValues)
+    .def_static("IsDistributed", &TrilinosSparseSpaceType::IsDistributed)
+    .def_static("FastestDirectSolverList", &TrilinosSparseSpaceType::FastestDirectSolverList)
     ;
 
     m.def("CreateCommunicator", CreateCommunicator);
@@ -337,8 +337,6 @@ void  AddBasicOperations(pybind11::module& m)
 }
 
 
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

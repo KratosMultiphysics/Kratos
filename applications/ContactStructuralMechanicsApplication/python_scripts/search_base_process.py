@@ -38,7 +38,6 @@ class SearchBaseProcess(KM.Process):
         default_parameters = KM.Parameters("""
         {
             "help"                        : "This class is a base class used to perform the search for contact and mesh tying. This class constructs the model parts containing the conditions. The class creates search utilities to be used to create the pairs",
-            "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "search_model_part"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -151,10 +150,11 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
-        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
-        check_normal_process.Execute()
+        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED] == 0:
+            normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+            normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+            check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
+            check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
@@ -281,7 +281,7 @@ class SearchBaseProcess(KM.Process):
         pass
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -311,8 +311,14 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         key -- The key to identify the current pair
         """
+        # Determine the geometry of the element
         self.__assume_master_slave(key)
-        return ""
+        # We compute the number of nodes of the conditions
+        number_nodes, number_nodes_master = self._compute_number_nodes()
+        if number_nodes != number_nodes_master:
+            return str(number_nodes_master) + "N"
+        else:
+            return ""
 
     def _get_problem_name(self):
         """ This method returns the problem name to be solved
@@ -445,17 +451,12 @@ class SearchBaseProcess(KM.Process):
 
         # Create main parameters
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
-        search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
-        search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
-        search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
+        
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
-        search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
-        search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
-        search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
-        search_parameters.AddValue("static_check_movement", self.settings["search_parameters"]["static_check_movement"])
-        search_parameters.AddValue("consider_gap_threshold", self.settings["search_parameters"]["consider_gap_threshold"])
-        search_parameters.AddValue("normal_orientation_threshold", self.settings["search_parameters"]["normal_orientation_threshold"])
-        search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
+        
+        parameter_list = ["simple_search", "type_search", "check_gap", "bucket_size", "search_factor", "dynamic_search", "static_check_movement", "consider_gap_threshold", "normal_orientation_threshold", "debug_mode"]
+        search_parameters.CopyValuesFromExistingParameters(self.settings["search_parameters"], parameter_list)
+
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)
@@ -487,11 +488,7 @@ class SearchBaseProcess(KM.Process):
                 sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
             KM.AuxiliarModelPartUtilities(sub_search_model_part).RecursiveEnsureModelPartOwnsProperties(True)
             if sub_search_model_part.RecursivelyHasProperties(100 + int(key)):
-                if sub_search_model_part.HasProperties(100 + int(key)):
-                    return sub_search_model_part.GetProperties(100 + int(key))
-                else:
-                    for prop in sub_search_model_part.GetRootModelPart().Properties:
-                        if prop.Id == 100 + int(key): return prop
+                return sub_search_model_part.GetProperties(100 + int(key))
             else:
                 return sub_search_model_part.CreateNewProperties(100 + int(key))
 
@@ -690,7 +687,7 @@ class SearchBaseProcess(KM.Process):
 
         id_prop = self.settings["search_property_ids"][key].GetInt()
         if id_prop != 0:
-            sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
+            sub_search_model_part.AddProperties(self.main_model_part.GetProperties(id_prop))
         else:
             sub_prop = self._get_properties_pair(key)
             if partial_model_part.NumberOfConditions() == 0:

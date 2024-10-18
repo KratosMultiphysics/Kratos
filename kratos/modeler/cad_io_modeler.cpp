@@ -4,13 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
 
 // Project includes
 #include "cad_io_modeler.h"
+#include "input_output/cad_json_input.h"
+#include "input_output/cad_json_output.h"
 
 
 namespace Kratos
@@ -33,7 +35,7 @@ namespace Kratos
 
         KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Importing Cad Model from: " << DataFileName << std::endl;
 
-        CadJsonInput<Node<3>, Point>(
+        CadJsonInput<Node, Point>(
             DataFileName, mEchoLevel).ReadModelPart(cad_model_part);
     }
 

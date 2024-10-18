@@ -1,7 +1,7 @@
 param([System.String]$cotire="OFF")
 
-$pythons = "39"
-$env:kratos_version = "9.0.0"
+$pythons = "38", "39", "310", "311", "312"
+$env:kratos_version = "9.5.0"
 
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
@@ -34,7 +34,6 @@ function build_core_wheel ($pythonLocation, $prefixLocation) {
 
     cp $prefixLocation\KratosMultiphysics\*         "$($wheelRoot)\KratosMultiphysics"
     cp $kratosRoot\kratos\KratosMultiphysics.json   "$($wheelRoot)\wheel.json"
-    cp $kratosRoot\scripts\wheels\__init__.py       "$($wheelRoot)\KratosMultiphysics\__init__.py"
 
     cd $wheelRoot
 
@@ -64,10 +63,10 @@ function build_core ($pythonLocation, $prefixLocation) {
 
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
 
-    Write-Host "Debuging: begin cmd.exe call"
+    Write-Host "Debugging: begin cmd.exe call"
     
     cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation) $($numcores)"
-    cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64 /p:CL_MPCount=6
+    cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64 /p:CL_MPCount=24 /m:1
 }
 
 function build_interface ($pythonLocation, $pythonPath) {
@@ -80,14 +79,14 @@ function build_interface ($pythonLocation, $pythonPath) {
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64 /p:CL_MPCount=24 /m:1
 }
 
-# Core can be build independently of the python version.
+# Core can be built independently of the python version.
 # Install path should be useless here.
 Write-Host "Starting core build"
-build_core "$($env:pythonRoot)\39\python.exe" ${KRATOS_ROOT}/bin/core
+# build_core "$($env:pythonRoot)\39\python.exe" ${KRATOS_ROOT}/bin/core
 Write-Host "Finished core build"
 
 foreach ($python in $pythons){
-    Write-Host "Begining build for python $($python)"
+    Write-Host "Beginning build for python $($python)"
     $env:python = $python
 
     cd $kratosRoot

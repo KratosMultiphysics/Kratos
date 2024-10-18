@@ -3,15 +3,19 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS )
-#define  KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS
+#pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "processes/process.h"
 
 namespace Kratos
@@ -49,6 +53,11 @@ public:
      * right after reading the model and the groups
      */
     void ExecuteInitialize() override;
+
+    /**
+     * @brief This function is designed for being called at the beginning each time step
+     */
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -106,5 +115,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
-#endif /* KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS defined */

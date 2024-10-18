@@ -17,6 +17,7 @@
 /applications/ConstitutiveLawsApplication/             @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
 /applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
+/applications/FluidDynamicsBiomedicalApplication/      @KratosMultiphysics/biomedical
 /applications/ConvectionDiffusionApplication           @KratosMultiphysics/fluid-maintainers
 /applications/MappingApplication/                      @KratosMultiphysics/cosimulation
 /applications/CoSimulationApplication/                 @KratosMultiphysics/cosimulation
@@ -28,5 +29,7 @@
 /applications/ChimeraApplication/                      @KratosMultiphysics/chimera
 /applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
 /applications/HDF5Application/                         @KratosMultiphysics/hdf5-application
-/applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification 
-/applications/ParticleMechanicsApplication/            @KratosMultiphysics/mpm
+/applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification
+/applications/MPMApplication/                          @KratosMultiphysics/mpm
+/applications/RomApplication/                          @KratosMultiphysics/rom
+/applications/GeoMechanicsApplication/.................@KratosMultiphysics/geomechanics

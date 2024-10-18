@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "containers/pointer_vector.h"
 #include "includes/node.h"
 
@@ -123,8 +124,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -141,12 +142,12 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
-            (it_origin++ )->FastGetSolutionStepValue(rOriginVariable) = 
+            (it_origin++ )->FastGetSolutionStepValue(rOriginVariable) =
                 (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
 
         }
@@ -161,8 +162,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -181,14 +182,14 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
-            noalias((it_origin++ )->FastGetSolutionStepValue(rOriginVariable)) = 
+            noalias((it_origin++ )->FastGetSolutionStepValue(rOriginVariable)) =
                  (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
-                
+
 
         }
 
@@ -238,9 +239,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointerVector< Node<3> > mOriginNodes;
+    PointerVector< Node > mOriginNodes;
 
-    PointerVector< Node<3> > mDestinationNodes;
+    PointerVector< Node > mDestinationNodes;
 
 
     ///@}
@@ -330,6 +331,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SHARED_POINTS_MAPPER_H_INCLUDED  defined 
+#endif // KRATOS_SHARED_POINTS_MAPPER_H_INCLUDED  defined
 
 

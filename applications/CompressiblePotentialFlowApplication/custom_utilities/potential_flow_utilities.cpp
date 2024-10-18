@@ -269,10 +269,7 @@ double ComputeVelocityMagnitude(
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     data.potentials = GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
@@ -282,10 +279,7 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -297,10 +291,7 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -1024,10 +1015,9 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 {
     const int wake = rElement.GetValue(WAKE);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
@@ -1067,6 +1057,104 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 }
 
 template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        if (rElement.GetGeometry()[i].GetValue(KUTTA))
+        {
+            if (wake==0)  {
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                }
+            } else {
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
+                }
+            }
+        }
+    }
+}
+
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+    BoundedMatrix<double, NumNodes, NumNodes>  n_matrix = outer_prod(n_angle, n_angle);
+
+    if (wake == 0) {
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+        BoundedVector<double, NumNodes> velvector = prod(n_matrix,  velocity);
+        BoundedVector<double, NumNodes> rhs_penalty = -penalty*data.vol*free_stream_density*prod(data.DN_DX,  velvector);
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            if (rElement.GetGeometry()[i].GetValue(KUTTA)) {
+                rRightHandSideVector(i) += rhs_penalty(i);
+            }
+        }
+
+    }
+    else {
+        array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+        array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+        for (unsigned int i = 0; i < Dim; i++){
+            upper_velocity[i] += free_stream_velocity[i];
+            lower_velocity[i] += free_stream_velocity[i];
+        }
+        const BoundedVector<double, NumNodes> upper_velocity_vector = prod(n_matrix,  upper_velocity);
+        const BoundedVector<double, NumNodes> lower_velocity_vector = prod(n_matrix,  lower_velocity);
+
+        const BoundedVector<double, NumNodes> upper_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, upper_velocity_vector);
+        const BoundedVector<double, NumNodes> lower_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, lower_velocity_vector);
+
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            if (rElement.GetGeometry()[i].GetValue(KUTTA))
+            {
+                rRightHandSideVector(i) += upper_rhs(i);
+                rRightHandSideVector(i + NumNodes) += lower_rhs(i);
+            }
+        }
+    }
+}
+
+
+template <int Dim, int NumNodes>
 void AddPotentialGradientStabilizationTerm(
         Element& rElement,
         Matrix& rLeftHandSideMatrix,
@@ -1094,10 +1182,10 @@ void AddPotentialGradientStabilizationTerm(
                     const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                     const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                     Vector detJ0;
-                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
-
-                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                    
+                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data{r_geometry};
                     neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+
                     r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
                     const int is_neighbour_wake = r_elem.GetValue(WAKE);
@@ -1146,8 +1234,7 @@ void AddPotentialGradientStabilizationTerm(
     }
     averaged_nodal_gradient = averaged_nodal_gradient/number_of_positive_nodes;
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
 
     auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
     auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
@@ -1161,106 +1248,110 @@ void AddPotentialGradientStabilizationTerm(
 // Template instantiation
 
 // 2D
-template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
-template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
-template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
-template BoundedVector<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
-template BoundedVector<double, 3> GetPotentialOnLowerWakeElement<2, 3>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 3> GetPotentialOnLowerWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
-template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& rElement);
-template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
-template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
-template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
-template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template array_1d<double, 2> ComputePerturbedVelocityLowerElement<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
-template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalSpeedofSoundSquared<2, 3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeSquaredSpeedofSoundFactor<2, 3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactor<2,3>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template size_t ComputeUpwindFactorCase<2, 3>(array_1d<double, 3>& rUpwindFactorOptions);
-template double ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
-template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
-template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
-template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 2> ComputePerturbedVelocityLowerElement<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedofSoundSquared<2, 3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeSquaredSpeedofSoundFactor<2, 3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactor<2,3>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) size_t ComputeUpwindFactorCase<2, 3>(array_1d<double, 3>& rUpwindFactorOptions);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 // 3D
-template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
-template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
-template BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(
     const Element& rElement, const array_1d<double, 4>& rDistances);
-template BoundedVector<double, 4> GetPotentialOnUpperWakeElement<3, 4>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 4> GetPotentialOnUpperWakeElement<3, 4>(
     const Element& rElement, const array_1d<double, 4>& rDistances);
-template BoundedVector<double, 4> GetPotentialOnLowerWakeElement<3, 4>(
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 4> GetPotentialOnLowerWakeElement<3, 4>(
     const Element& rElement, const array_1d<double, 4>& rDistances);
-template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& rElement);
-template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
-template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
-template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
-template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template array_1d<double, 3> ComputePerturbedVelocityLowerElement<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
-template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalSpeedofSoundSquared<3, 4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeSquaredSpeedofSoundFactor<3, 4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactor<3, 4>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template size_t ComputeUpwindFactorCase<3, 4>(array_1d<double, 3>& rUpwindFactorOptions);
-template double ComputeUpwindFactorDerivativeWRTMachSquared<3,4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
-template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
-template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
-template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
-template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
-template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
-template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
-template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, 3> ComputePerturbedVelocityLowerElement<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedofSoundSquared<3, 4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeSquaredSpeedofSoundFactor<3, 4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactor<3, 4>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) size_t ComputeUpwindFactorCase<3, 4>(array_1d<double, 3>& rUpwindFactorOptions);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTMachSquared<3,4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void  CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationRHS<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationRHS<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
 } // namespace PotentialFlow
 } // namespace Kratos

@@ -15,7 +15,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y update && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        ccache \
         clang \
         libomp-10-dev \
         cmake \
@@ -46,21 +45,11 @@ RUN apt-get update -y && apt-get upgrade -y && \
         python3-dev \
         python3-h5py \
         python3-pip && \
-    /usr/sbin/update-ccache-symlinks && \
-    echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     python3 -m pip install --upgrade pip && \
     pip3 install \
         numpy \
-        scipy && \
-    # install MMG 5.4
-    git clone -b 'v5.4.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_4_1 && \
-    mkdir /tmp/mmg_5_4_1/build && \
-    mkdir -p /external_libraries/mmg/mmg_5_4_1 && \
-    cd /tmp/mmg_5_4_1/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_4_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
-    make -j2 install && \
-    rm -r /tmp/mmg_5_4_1 && \
-    cd / && \
+        scipy \
+        sympy && \
     # install MMG 5.5
     git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
     mkdir /tmp/mmg_5_5_1/build && \

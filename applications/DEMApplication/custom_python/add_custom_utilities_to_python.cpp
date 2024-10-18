@@ -25,6 +25,7 @@
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/fast_filling_creator.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h"
@@ -36,6 +37,7 @@
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/parallel_bond_utilities.h"
 
 
 namespace Kratos {
@@ -89,7 +91,7 @@ Element::Pointer CreateSphericParticle1(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element) {
@@ -100,7 +102,7 @@ Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -110,7 +112,7 @@ Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_des
 
 Element::Pointer CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -157,7 +159,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<AnalyticWatcher::Pointer>())
         .def(py::init<AnalyticWatcher::Pointer, const Parameters&>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
-        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
+        .def("UpdateSurroundingBoundingBox", &ParticleCreatorDestructor::UpdateSurroundingBoundingBox)
+        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>)
+        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
         .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
         .def("MarkParticlesForErasingGivenCylinder", &ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder)
@@ -167,7 +171,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
-        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox)
+        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>)
+        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>)
         .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
         .def("FindMaxNodeIdInModelPart", &ParticleCreatorDestructor::FindMaxNodeIdInModelPart)
         .def("FindMaxElementIdInModelPart", &ParticleCreatorDestructor::FindMaxElementIdInModelPart)
@@ -180,6 +185,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
+        .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("MarkContactElementsForErasingContinuum", &ParticleCreatorDestructor::MarkContactElementsForErasingContinuum)
+        .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
+        .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
@@ -195,6 +204,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
         .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
         .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
+        ;
+
+    py::class_<Fast_Filling_Creator, Fast_Filling_Creator::Pointer>(m, "Fast_Filling_Creator")
+        .def(py::init<const int>())
+        .def(py::init<Parameters&, const int>())
+        .def("GetRandomParticleRadius", &Fast_Filling_Creator::GetRandomParticleRadius, py::arg("creator_destructor"))
+        .def("CheckHasIndentationOrNot", &Fast_Filling_Creator::CheckHasIndentationOrNot)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
@@ -216,10 +232,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateElasticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateElasticEnergy)
         .def("CalculateInelasticFrictionalEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticFrictionalEnergy)
         .def("CalculateInelasticViscodampingEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticViscodampingEnergy)
+        .def("CalculateInelasticRollingResistanceEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticRollingResistanceEnergy)
         .def("CalculateGravitationalPotentialEnergy", &SphericElementGlobalPhysicsCalculator::CalculateGravitationalPotentialEnergy)
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
+        .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
@@ -255,7 +273,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
 
-
     py::class_<std::list<int>>(m, "IntList")
         .def(py::init<>())
         //.def("clear", &std::list<int>::clear)
@@ -275,7 +292,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //return make_iterator(v.begin(), v.end());
         //}
         ;
-
 
     py::class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
         .def(py::init<ModelPart& >())
@@ -303,6 +319,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
         .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
         .def("MarkToEraseParticlesOutsideRadius", &PreUtilities::MarkToEraseParticlesOutsideRadius)
+        .def("MarkToEraseParticlesOutsideBoundary", &PreUtilities::MarkToEraseParticlesOutsideBoundary)
+        .def("MarkToEraseParticlesOutsideRadiusForGettingCylinder", &PreUtilities::MarkToEraseParticlesOutsideRadiusForGettingCylinder)
         .def("ApplyConcentricForceOnParticles", &PreUtilities::ApplyConcentricForceOnParticles)
         .def("ResetSkinParticles", &PreUtilities::ResetSkinParticles)
         .def("SetSkinParticlesInnerCircularBoundary", &PreUtilities::SetSkinParticlesInnerCircularBoundary)
@@ -322,6 +340,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
         .def("ComputePoisson2D", &PostUtilities::ComputePoisson2D)
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
+        ;
+
+    py::class_<ParallelBondUtilities, ParallelBondUtilities::Pointer>(m, "ParallelBondUtilities")
+        .def(py::init<>())
+        .def("SetCurrentIndentationAsAReferenceInParallelBonds", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBonds)
+        .def("SetCurrentIndentationAsAReferenceInParallelBondsForPBM", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBondsForPBM)
         ;
 
     py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
@@ -400,11 +424,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
-
     }
-
-
-
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
 {

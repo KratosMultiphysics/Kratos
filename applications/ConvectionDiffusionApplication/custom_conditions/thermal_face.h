@@ -97,11 +97,11 @@ public:
 
     ThermalFace(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry< Node >::Pointer pGeometry);
 
     ThermalFace(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.
@@ -142,7 +142,7 @@ public:
         DofsVectorType& ConditionalDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
@@ -195,6 +195,20 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Calculates and sets the integration weight
+     * This function calculates the integration point weight and saves it in the provided condition data container
+     * @param IntegrationPointIndex Index of current integration point
+     * @param rIntegrationPoints Vector containing the integration points
+     * @param rJacobianDeterminantsVector Vector containing the determinants of the Jacobian
+     * @param rConditionData Condition data structure storing the integration weight
+     */
+    virtual void SetIntegrationWeight(
+        const IndexType IntegrationPointIndex,
+        const typename GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+        const Vector& rJacobianDeterminantsVector,
+        ConditionDataStruct& rData);
 
     void AddIntegrationPointRHSContribution(
         VectorType& rRightHandSideVector,

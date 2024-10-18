@@ -299,7 +299,7 @@ bool LinearElasticOrthotropic3DLaw::CheckParameters(Parameters& rValues)
 
 int LinearElasticOrthotropic3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if(YOUNG_MODULUS_X.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_X))

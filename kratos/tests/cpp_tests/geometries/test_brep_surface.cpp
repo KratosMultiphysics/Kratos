@@ -27,7 +27,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateReferenceNodeSurfaceHalfCirclePointer() {
         Geometry<NodeType>::PointsArrayType points;
@@ -171,14 +171,13 @@ namespace Testing {
             p_surface, outer_loops, inner_loops);
 
         //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(brep_surface.Dimension(), 2);
-        KRATOS_CHECK_EQUAL(brep_surface.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(brep_surface.LocalSpaceDimension(), 2);
+        KRATOS_EXPECT_EQ(brep_surface.WorkingSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ(brep_surface.LocalSpaceDimension(), 2);
 
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
-        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(brep_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(brep_surface.GetGeometryType(), geometry_type);
         //array_1d<double, 3> coords(3, 0.0);
         //coords[0] = 1.0;
         //Vector N;

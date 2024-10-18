@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 
-#if !defined (KRATOS_PYRAMID_3D_13_H_INCLUDED)
-#define KRATOS_PYRAMID_3D_13_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath> // std::abs for double
@@ -21,8 +20,8 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+#include "utilities/integration_utilities.h"
 #include "integration/pyramid_gauss_legendre_integration_points.h"
-
 
 namespace Kratos {
 
@@ -231,6 +230,16 @@ public:
     {
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Pyramid;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Pyramid3D13;
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -271,6 +280,40 @@ public:
     }
 
     ///@}
+    ///@name Create Methods
+    ///@{
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Pyramid3D13( NewGeometryId, rThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Pyramid3D13( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
@@ -300,27 +343,33 @@ public:
         return 5;
     }
 
-    /** This method calculate and return volume of this
-     geometry. For one and two dimensional geometry it returns
-    zero and for three dimensional it gives volume of geometry.
-
-    @return double value contains volume.
-    @see Length()
-    @see Area()
-    @see DomainSize()
-    */
+    /**
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-        double vol = 0.00;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
+    }
 
-        for (std::size_t i=0; i<integration_points.size(); ++i) {
-            vol += temp[i] * integration_points[i].Weight();
-        }
-
-        return vol;
+    /**
+     * This method calculate and return length, area or volume of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double DomainSize() const override
+    {
+        return Volume();
     }
 
     /**
@@ -827,9 +876,6 @@ GeometryData Pyramid3D13<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Pyramid3D13<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Pyramid3D13<TPointType>::msGeometryDimension(3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PYRAMID_3D_13_H_INCLUDED defined

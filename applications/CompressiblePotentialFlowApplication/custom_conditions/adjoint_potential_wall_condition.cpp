@@ -55,7 +55,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::Initialize(const ProcessIn
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpPrimalCondition->Data() = this->Data();
+    mpPrimalCondition->GetData() = this->GetData();
     mpPrimalCondition->Set(Flags(*this));
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }

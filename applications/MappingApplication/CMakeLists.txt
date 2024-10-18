@@ -20,12 +20,13 @@ file( GLOB KRATOS_MAPPING_APPLICATION_CORE
 ## define test sources (cpp tests)
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosMappingCore SOURCES "${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Mapping python interface sources
 file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE} ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES})
+add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE})
 target_link_libraries(KratosMappingCore PUBLIC KratosCore )
 set_target_properties(KratosMappingCore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
@@ -81,10 +82,10 @@ install(TARGETS KratosMappingCore DESTINATION libs )
 install(TARGETS KratosMappingApplication DESTINATION libs )
 
 ## If MPI is used, then enable the MPIExtension
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling mpi extension for MappingApplication")
   add_subdirectory(mpi_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingCore" PARENT_SCOPE)

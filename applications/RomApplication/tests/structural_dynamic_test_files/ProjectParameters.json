@@ -17,10 +17,10 @@
         "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Structure_Dynamic_2D"
+            "input_filename" : "../Structure_Dynamic_2D"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "../StructuralMaterials.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.05

@@ -11,29 +11,28 @@ def Factory(settings, Model):
 
 class WaveGeneratorProcess(KM.Process):
 
-    __formulation = {
-        "primitive_variables" : SW.Formulation.PrimitiveVariables,
-        "conserved_variables" : SW.Formulation.ConservativeVariables
-    }
-
-
     @staticmethod
     def GetDefaultParameters():
-        """The wave specifications can be in the project parameters or in the process info."""
+        """Default parameters for wave generator process.
 
-        return KM.Parameters("""
-        {
+        A zero value in the wave specifications will be ignored.
+        The direction can be specified with a vector or the 'normal' keyword. If the direction is missing,
+        it will be taken as the normal to the boundary.
+        """
+        return KM.Parameters("""{
             "model_part_name"          : "model_part",
-            "formulation"              : "primitive_variables",
             "interval"                 : [0.0, "End"],
             "direction"                : [0.0, 0.0, 0.0],
             "normal_positive_outwards" : true,
             "smooth_time"              : 0.0,
             "wave_specifications"      : {
-                "wave_theory"          : "boussinesq"
+                "wave_theory"               : "boussinesq",
+                "period"                    : 0.0,
+                "wavelength"                : 0.0,
+                "amplitude"                 : 0.0,
+                "get_depth_from_model_part" : true
             }
-        }
-        """)
+        }""")
 
 
     def __init__(self, model, settings ):
@@ -57,8 +56,15 @@ class WaveGeneratorProcess(KM.Process):
         # Get the custom settings
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.interval = KM.IntervalUtility(self.settings)
-        self.formulation = self.__formulation[self.settings["formulation"].GetString()]
-        self.fix_dofs = True
+        variables_names_list = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.model_part)
+        self.variables_to_fix = []
+        self.compute_momentum = False
+        for variable_name in variables_names_list:
+            if variable_name.startswith("VELOCITY") or variable_name.startswith("MOMENTUM"):
+                variable = KM.KratosGlobals.GetVariable(variable_name)
+                self.variables_to_fix.append(variable)
+            if variable_name.startswith("MOMENTUM"):
+                self.compute_momentum = True
 
 
     def ExecuteInitialize(self):
@@ -66,45 +72,39 @@ class WaveGeneratorProcess(KM.Process):
 
         # Check the direction
         if self.direction_by_normal:
-            normal = self._CalculateUnitNormal()
+            direction = self._CalculateUnitNormal()
             if self.settings["normal_positive_outwards"].GetBool():
-                normal *= -1
-            self.settings["direction"].SetVector(normal)
+                direction *= -1
+            self.settings["direction"].SetVector(direction)
 
         # Setup the wave theory
         wave_settings = self.settings["wave_specifications"]
-        process_info = self.model_part.ProcessInfo
-        wave_theory = WaveTheoryFactory(self.model_part, wave_settings, process_info)
+        wave_theory = WaveTheoryFactory(self.model_part, wave_settings)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
-        velocity_parameters.AddEmptyValue("amplitude").SetDouble(wave_theory.horizontal_velocity)
-        velocity_parameters.AddEmptyValue("wavelength").SetDouble(wave_theory.wavelength)
-        velocity_parameters.AddEmptyValue("period").SetDouble(wave_theory.period)
-        velocity_parameters.AddEmptyValue("phase").SetDouble(0.0)
-        velocity_parameters.AddEmptyValue("shift").SetDouble(0.0)
-        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
+        velocity_parameters.AddDouble("amplitude", wave_theory.horizontal_velocity)
+        velocity_parameters.AddDouble("wavelength", wave_theory.wavelength)
+        velocity_parameters.AddDouble("period", wave_theory.period)
+        velocity_parameters.AddValue("phase", self.settings["wave_specifications"]["t_shift"])
+        velocity_parameters.AddValue("shift", self.settings["wave_specifications"]["x_shift"])
         velocity_parameters.AddValue("direction", self.settings["direction"])
-
+        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
+        velocity_parameters.AddValue("smooth_time_centers", self.settings["interval"])
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
 
-    def ExecuteBeforeSolutionLoop(self):
-        self.ExecuteInitializeSolutionStep()
+    def Check(self):
+        self.velocity_process.Check()
 
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
             self.velocity_process.ExecuteInitializeSolutionStep()
-            if self.formulation == SW.Formulation.ConservativeVariables:
+            if self.compute_momentum:
                 SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
-            if self.fix_dofs:
-                if self.formulation == SW.Formulation.PrimitiveVariables:
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_Y, True, self.model_part.Nodes)
-                if self.formulation == SW.Formulation.ConservativeVariables:
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
+            for variable in self.variables_to_fix:
+                KM.VariableUtils().ApplyFixity(variable, True, self.model_part.Nodes)
 
 
     def _IsInInterval(self):

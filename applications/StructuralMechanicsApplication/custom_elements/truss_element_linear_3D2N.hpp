@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_TRUSS_ELEMENT_LINEAR_3D2N_H_INCLUDED )
-#define  KRATOS_TRUSS_ELEMENT_LINEAR_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -125,7 +122,11 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+    using TrussElement3D2N::ReturnTangentModulus1D;
+
 private:
+    double CalculateStressFromLinearStrain(const ProcessInfo &rCurrentProcessInfo);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
@@ -134,6 +135,3 @@ private:
 
 
 }
-
-
-#endif

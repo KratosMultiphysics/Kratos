@@ -12,9 +12,7 @@
 //                   Zhiming Guo
 //
 
-#if !defined(KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED)
-#define  KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -23,6 +21,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -32,7 +31,7 @@ namespace Kratos
  * This class uses a linear polynomial basis and an exponential kernel to calculate
  * the shape function values and gradients in a given point using a Moving Least-Squares minimization
  */
-class MLSShapeFunctionsUtility
+class KRATOS_API(KRATOS_CORE) MLSShapeFunctionsUtility
 {
 
 public:
@@ -64,15 +63,83 @@ public:
 
     /**
      * @brief Evaluates the linear polynomial basis
-     * This method evaluates the linear polynommial basis in one point
-     * @tparam TDim Dimension (2 in 2D and 3 in 3D)
+     * This method evaluates the 2D linear polynommial basis in one point
      * @param rX Coordinates where the basis is evaluated
-     * @param rBasis Linear polynomial basis values
+     * @param rBasis 2D linear polynomial basis values
      */
-    template<std::size_t TDim>
-    static void EvaluateLinearPolynomialBasis(
+    static void EvaluatePolynomialBasis(
         const array_1d<double,3>& rX,
-        array_1d<double,TDim+1>& rBasis);
+        array_1d<double, 3>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis
+     * This method evaluates the 3D linear polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D linear polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 4>& rBasis);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis
+     * This method evaluates the 2D quadratic polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D linear polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 6>& rBasis);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis
+     * This method evaluates the 3D quadratic polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D quadratic polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 10>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis derivatives
+     * This method evaluates the 2D linear polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D linear polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 2, 3>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the linear polynomial basis derivatives
+     * This method evaluates the 3D linear polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D linear polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 3, 4>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis derivatives
+     * This method evaluates the 2D quadratic polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D quadratic polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 2, 6>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis derivatives
+     * This method evaluates the 3D quadratic polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D quadratic polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 3, 10>& rBasisDerivatives);
 
     /**
      * @brief Calculates the MLS shape function values
@@ -84,7 +151,7 @@ public:
      * @param h Kernel radius
      * @param rN Shape functions container
      */
-    template<std::size_t TDim>
+    template<std::size_t TDim, std::size_t TOrder>
     static void CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
@@ -102,7 +169,7 @@ public:
      * @param rN Shape functions container
      * @param rDNDX Shape functions gradients container
      */
-    template<std::size_t TDim>
+    template<std::size_t TDim, std::size_t TOrder>
     static void CalculateShapeFunctionsAndGradients(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
@@ -112,5 +179,3 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED  defined

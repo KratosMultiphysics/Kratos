@@ -17,9 +17,35 @@
 // Project includes
 #include "linear_master_slave_constraint.h"
 #include "utilities/atomic_utilities.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
+
+LinearMasterSlaveConstraint::LinearMasterSlaveConstraint(
+    IndexType Id,
+    NodeType& rMasterNode,
+    const VariableType& rMasterVariable,
+    NodeType& rSlaveNode,
+    const VariableType& rSlaveVariable,
+    const double Weight,
+    const double Constant
+    ) : MasterSlaveConstraint(Id)
+{
+    // Resizing the memeber variables
+    mRelationMatrix.resize(1,1,false);
+    mConstantVector.resize(1,false);
+
+    // Obtaining the dofs from the variables
+    mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
+    mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));
+
+    mRelationMatrix(0,0) = Weight;
+    mConstantVector(0) = Constant;
+
+    // Setting the slave flag on the node
+    rSlaveNode.Set(SLAVE);
+}
 
 void LinearMasterSlaveConstraint::EquationIdVector(
     EquationIdVectorType& rSlaveEquationIds,

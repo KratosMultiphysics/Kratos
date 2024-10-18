@@ -13,9 +13,6 @@
 // System includes
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX
-#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
-#endif                                    // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -38,6 +35,7 @@
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
+#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_bfecc.h"
 
 // adjoint schemes
 #include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
@@ -87,6 +85,22 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>::Pointer,
         ExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyForwardEuler")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyBFECC")
     .def(py::init<ModelPart&, bool, int>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());

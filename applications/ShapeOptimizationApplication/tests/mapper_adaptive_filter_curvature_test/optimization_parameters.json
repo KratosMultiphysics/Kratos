@@ -1,0 +1,52 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "hyperbolic_paraboloid",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "hyperbolic_paraboloid_8NQuad_h0.5"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "no_objective",
+            "type"       : "minimization",
+            "analyzer"   : "external",
+            "project_gradient_on_surface_normals" : false
+    }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                           : "vertex_morphing",
+            "filter" : {
+                "matrix_free_filtering"      : true,
+                "filter_function_type"       : "linear",
+                "filter_radius"              : "adaptive",
+                "max_nodes_in_filter_radius" : 1000000,
+                "adaptive_filter_settings"   : {
+                    "minimum_filter_radius": 1.0,
+                    "filter_radius_smoothing_iterations": 5,
+                    "radius_function": "linear",
+                    "curvature_limit": 0.01,
+                    "radius_function_parameter": 1.0
+                }
+            }
+        },
+        "optimization_algorithm" : {
+            "name": "steepest_descent",
+            "max_iterations": 1,
+            "relative_tolerance": 1e-2,
+            "line_search": {
+                "line_search_type": "manual_stepping",
+                "normalize_search_direction": true,
+                "step_size": 0.5
+            }
+        },
+        "output" : {
+            "design_output_mode"      : "none"
+        }
+    }
+}

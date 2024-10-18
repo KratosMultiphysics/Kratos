@@ -26,6 +26,27 @@
 
 namespace Kratos
 {
+
+void NodalInterpolationFunctions::GetListNonHistoricalVariables(
+    const ModelPart& rModelPart,
+    std::unordered_set<std::string>& rVariableList
+    )
+{
+    // We iterate over the model part
+    for (auto& r_node : rModelPart.Nodes()) {
+        const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            auto& r_data = r_node.GetData();
+            for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
+                rVariableList.insert((it_data->first)->Name());
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TDim>
 NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
     ModelPart& rOriginMainModelPart,
@@ -55,8 +76,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     const SizeType num_nodes = r_nodes_array.size();
     const auto it_node_begin = r_nodes_array.begin();
 
-    if (mThisParameters["interpolate_non_historical"].GetBool())
-        GetListNonHistoricalVariables();
+    if (mThisParameters["interpolate_non_historical"].GetBool()) {
+        NodalInterpolationFunctions::GetListNonHistoricalVariables(mrOriginMainModelPart, mListVariables);
+    }
 
     // We check if we extrapolate values
     const bool extrapolate_values = mThisParameters["extrapolate_contour_values"].GetBool();
@@ -128,24 +150,6 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
         const std::size_t number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
         KRATOS_ERROR_IF(original_number_of_conditions != number_of_conditions) << "The number of conditions have changed " << number_of_conditions << " vs " << original_number_of_conditions <<  std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim>
-void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
-{
-    // We iterate over the model part
-    for (auto& r_node : mrOriginMainModelPart.Nodes()) {
-        const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            auto& r_data = r_node.Data();
-            for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
-                mListVariables.insert((it_data->first)->Name());
-            }
-        }
     }
 }
 
@@ -278,7 +282,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
     KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
 
     // We extrapolate the nodes that cannot been found
-    for (auto p_node : rToExtrapolateNodes) {
+    for (const auto& p_node : rToExtrapolateNodes) {
         // Initialize values
         PointVector points_found(allocation_size);
 

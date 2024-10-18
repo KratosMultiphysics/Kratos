@@ -1,29 +1,16 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-
-
-
-
-
-
-
-
-
-
-#if !defined(KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED )
-#define  KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <stdio.h>
@@ -46,12 +33,17 @@ namespace Kratos
 {
 
 // Type checks
-inline bool IsCorrectType(MM_typecode& mm_code, const double& value)
+template<typename T>
+constexpr bool IsCorrectType(MM_typecode& mm_code);
+
+template<>
+constexpr inline bool IsCorrectType<double>(MM_typecode& mm_code)
 {
     return mm_is_real(mm_code);
 }
 
-inline bool IsCorrectType(MM_typecode& mm_code, const std::complex<double>& value)
+template<>
+constexpr inline bool IsCorrectType<std::complex<double>>(MM_typecode& mm_code)
 {
     return mm_is_complex(mm_code);
 }
@@ -105,7 +97,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Check for supported types of MM file
     if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
     {
-        printf("ReadMatrixMarketMatrix(): unspported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+        printf("ReadMatrixMarketMatrix(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
         fclose(f);
         return false;
     }
@@ -126,7 +118,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     ValueType *V = new ValueType[nnz];
 
     // Check if matrix type matches MM file
-    if (!IsCorrectType(mm_code, V[0]))
+    if (!IsCorrectType<ValueType>(mm_code))
     {
         printf("ReadMatrixMarketMatrix(): MatrixMarket type, \"%s\" does not match provided matrix type.\n",  mm_typecode_to_str(mm_code));
         fclose(f);
@@ -446,7 +438,7 @@ inline bool ReadMatrixMarketVectorEntry(FILE *f, std::complex<double>& entry)
 template <typename VectorType> inline bool ReadMatrixMarketVector(const char *FileName, VectorType &V)
 {
     typedef typename VectorType::value_type ValueType;
-    
+
     // Open MM file for reading
     FILE *f = fopen(FileName, "r");
 
@@ -503,7 +495,7 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     ValueType T;
 
     // Check if vector type matches MM file
-    if (!IsCorrectType(mm_code, T))
+    if (!IsCorrectType<ValueType>(mm_code))
     {
         printf("ReadMatrixMarketVector(): MatrixMarket type, \"%s\" does not match provided vector type.\n",  mm_typecode_to_str(mm_code));
         fclose(f);
@@ -583,5 +575,3 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 }
 
 } // namespace Kratos
-
-#endif // KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED  defined

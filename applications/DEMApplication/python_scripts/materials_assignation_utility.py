@@ -17,7 +17,7 @@ class MaterialsAssignationUtility:
         list_of_materials = materials_parameters["materials"]
         list_of_material_relations = materials_parameters["material_relations"]
 
-        for material in list_of_materials:
+        for material in list_of_materials.values():
             material_id = material["material_id"].GetInt()
             if self.spheres_model_part.HasProperties(material_id):
                 self.spheres_model_part.RemoveProperties(material_id)
@@ -26,8 +26,9 @@ class MaterialsAssignationUtility:
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
             properties = material["Variables"]
             self.read_materials_utility.AssignVariablesToProperty(material, properties_of_model_part_with_this_id)
+            self.read_materials_utility.AssignTablesToProperty(material, properties_of_model_part_with_this_id)
 
-            for material_relation in list_of_material_relations:
+            for material_relation in list_of_material_relations.values():
                 subprops = None
                 material_ids_list = material_relation["material_ids_list"].GetVector()
                 if material_id == material_ids_list[0]:
@@ -52,7 +53,7 @@ class MaterialsAssignationUtility:
         list_of_materials = materials_parameters["materials"]
         material_assignation_table = materials_parameters["material_assignation_table"]
 
-        for pair in material_assignation_table:
+        for pair in material_assignation_table.values():
             submodelpart_name_in_assignation_table = pair[0].GetString()
             submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
             if submodelpart.Has(PROPERTIES_ID):
@@ -61,7 +62,7 @@ class MaterialsAssignationUtility:
                 if smp.Has(PROPERTIES_ID):
                     raise Exception("Error with SubModelpart "+ smp.Name + " . ModelParts or SubModelParts with a pre-assigned variable PROPERTIES_ID may cause a bad assignation of materials. ")
 
-        for pair in material_assignation_table:
+        for pair in material_assignation_table.values():
             submodelpart_name_in_assignation_table = pair[0].GetString()
             submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
 

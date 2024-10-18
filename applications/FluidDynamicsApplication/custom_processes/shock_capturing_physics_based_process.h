@@ -21,6 +21,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -66,7 +67,7 @@ public:
     typedef Process BaseType;
 
     /// Type for the metric calculation function
-    typedef std::function<std::tuple<double, double, Matrix>(Geometry<Node<3>> &rGeometry)> ElementMetricFunctionType;
+    typedef std::function<std::tuple<double, double, Matrix>(Geometry<Node> &rGeometry)> ElementMetricFunctionType;
 
     /// Type for the 2D (linear triangle) TLS geometry data
     struct ShockCapturingTLSContainer2D3N
@@ -139,7 +140,7 @@ public:
 
     void ExecuteInitialize() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteInitializeSolutionStep() override;
 
     int Check() override;
 
@@ -195,6 +196,10 @@ private:
     bool mShearSensor;
     bool mThermalSensor;
     bool mThermallyCoupledFormulation;
+    double mArtBulkViscosityConstant = 0.0;
+    double mFarFieldPrandtlNumber = 0.0;
+    double mArtConductivityConstant = 0.0;
+    double mArtDynViscosityConstant = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -267,29 +272,30 @@ private:
 
         // Set auxiliary constants
         const double k = 1.0; // Polynomial order of the numerical simulation
-        const double eps = 1.0e-7; // Small constant to avoid division by 0
+        const double eps = std::numeric_limits<double>::epsilon(); // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        double midpoint_rho, midpoint_tot_ener;
+        double midpoint_rho, formulation_midpoint_temp;
         auto& r_midpoint_v = rShockCapturingTLS.MidpointVelocity;
         if (mThermallyCoupledFormulation) {
             // Get required midpoint values
             double midpoint_temp;
             FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
-            // If the formulation is thermally coupled, the total energy is the summation of the thermal and kinetic ones
-            midpoint_tot_ener = midpoint_rho * (c_v * midpoint_temp + 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v));
+            // If the formulation is thermally coupled, the temperature for the stagnation temperature is the midpoint value
+            formulation_midpoint_temp = midpoint_temp;
         } else {
             // Get required midpoint values
             double midpoint_p;
             FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
-            // If the formulation is not energy coupled, the total energy equals the kinetic energy plus the potential one
-            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v) + midpoint_p;
+            // If the formulation is not energy coupled, the temperature for the stagnation temperature it's calculated by the state equation with the midpoint values
+            formulation_midpoint_temp = midpoint_p / (midpoint_rho * (gamma - 1.0) * c_v);
         }
 
         // Calculate common values
         const double v_norm_pow = SquaredArrayNorm(r_midpoint_v);
-        const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
-        const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * stagnation_temp * (2.0 / (gamma + 1.0))); // Critical speed of sound
+        const double stagnation_temp = formulation_midpoint_temp + 0.5 * inner_prod(r_midpoint_v,r_midpoint_v)/(gamma * c_v);
+        const double critical_temp = stagnation_temp * (2.0 / (gamma + 1.0));
+        const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * critical_temp); // Critical speed of sound
         const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
 
         // Shock sensor values
@@ -316,13 +322,11 @@ private:
             const double s_beta_0 = 0.01;
             const double s_beta_max = 2.0 / std::sqrt(std::pow(gamma, 2) - 1.0);
             const double s_beta = s_omega * s_w;
-            // const double s_beta_hat = LimitingFunction(s_beta, s_beta_0, s_beta_max);
             const double s_beta_hat = SmoothedLimitingFunction(s_beta, s_beta_0, s_beta_max);
             rElement.GetValue(SHOCK_SENSOR) = s_beta_hat;
 
             // Calculate elemental artificial bulk viscosity
-            const double k_beta = 1.5;
-            const double elem_b_star = (k_beta * h_beta / k) * ref_mom_norm * s_beta_hat;
+            const double elem_b_star = (mArtBulkViscosityConstant * h_beta / k) * ref_mom_norm * s_beta_hat;
             rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
 
             // Calculate elemental artificial conductivity (dilatancy)
@@ -331,8 +335,13 @@ private:
                 const double Pr_beta_min = 0.9;
                 const double alpha_pr_beta = 2.0;
                 const double mach_threshold = 3.0;
-                const double Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
-                const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
+                double ArtPrandtlNumber_beta;
+                if (mFarFieldPrandtlNumber < std::numeric_limits<double>::epsilon()) {
+                    ArtPrandtlNumber_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
+                } else {
+                    ArtPrandtlNumber_beta = mFarFieldPrandtlNumber;
+                }
+                const double elem_k1_star = (gamma * c_v / ArtPrandtlNumber_beta) * elem_b_star;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
             }
         }
@@ -360,8 +369,7 @@ private:
                 rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
                 // Calculate elemental artificial conductivity (thermal sensor)
-                const double k_kappa = 1.0;
-                const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
+                const double elem_k2_star = (gamma * c_v) * (mArtConductivityConstant * h_kappa / k) * ref_mom_norm * s_kappa_hat;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k2_star;
             }
 
@@ -389,13 +397,11 @@ private:
                 const double s_mu_0 = 1.0;
                 const double s_mu_max = 2.0;
                 const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
-                // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
                 const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
                 rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
                 // Calculate elemental artificial dynamic viscosity
-                const double k_mu = 1.0;
-                const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
+                const double elem_mu_star = (mArtDynViscosityConstant * h_mu / k) * ref_mom_norm * s_mu_hat;
                 rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
             }
         }
@@ -492,7 +498,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShockSensorValues(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         double& rMachNumber,
@@ -513,7 +519,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateTemperatureGradients(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
@@ -533,7 +539,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShearSensorValues(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,

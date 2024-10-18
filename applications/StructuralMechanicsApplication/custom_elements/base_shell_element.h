@@ -1,18 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
-#if !defined(KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED)
-#define KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -154,8 +152,12 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                      std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
@@ -371,5 +373,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED  defined

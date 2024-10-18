@@ -1,11 +1,6 @@
 import os
 import types
-
-try:
-    import numpy as np
-    numpy_available = True
-except:
-    numpy_available = False
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -20,19 +15,17 @@ class TestFluidRom(KratosUnittest.TestCase):
     def setUp(self):
         self.relative_tolerance = 1.0e-12
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testFluidRom2D(self):
-        self.work_folder = "fluid_dynamics_test_files"
-        parameters_filename = "ProjectParameters.json"
-        expected_output_filename = "ExpectedOutput.npy"
+        self.work_folder = "fluid_dynamics_test_files/ROM/"
+        parameters_filename = "../ProjectParameters.json"
+        expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Set up simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Patch the RomAnalysis class to save the selected time steps results
             def Initialize(cls):

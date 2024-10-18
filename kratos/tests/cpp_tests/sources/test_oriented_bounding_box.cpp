@@ -13,8 +13,8 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/oriented_bounding_box.h"
-#include "includes/checks.h"
+#include "geometries/oriented_bounding_box.h"
+#include "includes/expect.h"
 #include "geometries/point.h"
 #include "utilities/intersection_utilities.h"
 
@@ -117,7 +117,7 @@ namespace Kratos {
 
         bool has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
 
         // Moving up tyhe second OBBHasIntersection2D
         second_center[1] = 0.5;
@@ -168,7 +168,7 @@ namespace Kratos {
 
         has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
     }
 
     /**
@@ -281,7 +281,7 @@ namespace Kratos {
 
         bool has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
     }
 
     /**
@@ -384,7 +384,7 @@ namespace Kratos {
 
         bool has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
 
         // Moving up tyhe second OBB
         second_center[1] = 0.5;
@@ -435,7 +435,7 @@ namespace Kratos {
 
         has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
     }
 
     /**
@@ -533,7 +533,7 @@ namespace Kratos {
 
         bool has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
 
         // Moving up tyhe second OBB
         second_center[1] = 0.5;
@@ -584,7 +584,7 @@ namespace Kratos {
 
         has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
     }
 
     /**
@@ -687,7 +687,7 @@ namespace Kratos {
 
         bool has_intersection = first_obb.HasIntersection(second_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
 
         array_1d<double, 3> third_center;
         third_center[0] = 0.97685;
@@ -731,7 +731,7 @@ namespace Kratos {
 
         has_intersection = first_obb.HasIntersection(third_obb);
 
-        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        KRATOS_EXPECT_EQ(has_intersection_reference, has_intersection);
     }
 
     }

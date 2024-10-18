@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborators:   Vicente Mataix Ferrandiz
@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/variable_utils.h"
 #include "processes/calculate_nodal_area_process.h"
@@ -24,18 +25,60 @@ namespace Kratos
 {
 
 template<bool THistorical>
+CalculateNodalAreaProcess<THistorical>::CalculateNodalAreaProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : mrModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
+{
+    KRATOS_TRY
+
+    // We check the parameters
+    const Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // We get the domain size
+    mDomainSize = ThisParameters["domain_size"].GetInt();
+
+    // In case is not provided we will take from the model part
+    CheckDomainSize();
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+CalculateNodalAreaProcess<THistorical>::CalculateNodalAreaProcess(
+    ModelPart& rModelPart,
+    const SizeType DomainSize
+    ): mrModelPart(rModelPart),
+       mDomainSize(DomainSize)
+{
+    KRATOS_TRY
+
+    // In case is not provided we will take from the model part
+    CheckDomainSize();
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
 void CalculateNodalAreaProcess<THistorical>::Execute()
 {
     KRATOS_TRY
 
     // Check if variables are available
     KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "No nodes in the model part" << std::endl;
-    if (THistorical) {
+    if constexpr (THistorical) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_AREA )) << "Variable NODAL_AREA not in the model part!" << std::endl;
     }
 
     // Set to zero the nodal area
-    if (THistorical) {
+    if constexpr (THistorical) {
         VariableUtils().SetVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
     } else {
         VariableUtils().SetNonHistoricalVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
@@ -86,7 +129,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     });
 
     // Synchronize data
-    if (THistorical) {
+    if constexpr (THistorical) {
         mrModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
     } else {
         mrModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
@@ -98,8 +141,34 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<bool THistorical>
+const Parameters CalculateNodalAreaProcess<THistorical>::GetDefaultParameters() const
+{
+    return Parameters(R"(
+    {
+        "model_part_name" : "PLEASE_DEFINE_A_MODEL_PART_NAME",
+        "domain_size" : 0
+    })" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+void CalculateNodalAreaProcess<THistorical>::CheckDomainSize()
+{
+    // We get the domain size
+    if (mDomainSize == 0) {
+        KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo" << std::endl;
+        mDomainSize = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
-double& CalculateNodalAreaProcess<true>::GetAreaValue(NodeType& rNode)
+double& CalculateNodalAreaProcess<true>::GetAreaValue(Node& rNode)
 {
     return rNode.FastGetSolutionStepValue(NODAL_AREA);
 }
@@ -108,7 +177,7 @@ double& CalculateNodalAreaProcess<true>::GetAreaValue(NodeType& rNode)
 /***********************************************************************************/
 
 template<>
-double& CalculateNodalAreaProcess<false>::GetAreaValue(NodeType& rNode)
+double& CalculateNodalAreaProcess<false>::GetAreaValue(Node& rNode)
 {
     return rNode.GetValue(NODAL_AREA);
 }

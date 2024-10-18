@@ -14,7 +14,6 @@ def GetFilePath(fileName):
 
 class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
 
@@ -25,54 +24,62 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         super().FinalizeSolutionStep()
         tolerance = 1e-3
         if self.time > 0.099999 and self.time < 0.100001:
-            for node in self.spheres_model_part.Nodes:
-                velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
-                angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
-                if node.Id == 1:
-                    expected_value = 0.000955
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = -0.980986
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = -0.000312
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
-                    expected_value = -0.001194
-                    self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 0.000716
-                    self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value = 0.000718
-                    self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
-                if node.Id == 2:
-                    expected_value = 0.048
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = -0.986
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = 0.043
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
-                    expected_value = 0.587
-                    self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 0.006
-                    self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value = 0.084
-                    self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
+            node = self.spheres_model_part.GetNode(1)
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
+            expected_value = 0.000955
+            self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+            expected_value = -0.980986
+            self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+            expected_value = -0.000312
+            self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+            expected_value = -0.001194
+            self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
+            expected_value = 0.000716
+            self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
+            expected_value = 0.000718
+            self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
+
+            self.check_mark_1 = True
+
+            node = self.spheres_model_part.GetNode(2)
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
+            expected_value = 0.048
+            self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+            expected_value = -0.986
+            self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+            expected_value = 0.043
+            self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+            expected_value = 0.587
+            self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
+            expected_value = 0.006
+            self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
+            expected_value = 0.084
+            self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
 
         if self.time > 0.299999 and self.time < 0.300001:
-            for node in self.rigid_face_model_part.Nodes:
-                velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
-                angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
-                if node.Id == 4:
-                    expected_value = -85.265
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 157.177
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = 32.412
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
-                if node.Id == 13:
-                    expected_value = 6309.350
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 37395.854
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = -13433.566
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+            node = self.rigid_face_model_part.GetNode(4)
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
+            expected_value = -85.265
+            self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+            expected_value = 157.177
+            self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+            expected_value = 32.412
+            self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+
+            node = self.rigid_face_model_part.GetNode(13)
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
+            expected_value = 6309.350
+            self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+            expected_value = 37395.854
+            self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+            expected_value = -13433.566
+            self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+
+            self.check_mark_2 = True
 
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
         self.assertAlmostEqual(velocity[component], expected_value, delta=tolerance)
@@ -81,6 +88,8 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
 
     def Finalize(self):
+        self.assertTrue(self.check_mark_1)
+        self.assertTrue(self.check_mark_2)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
@@ -89,7 +98,6 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_ForcesAndMoments(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

@@ -230,12 +230,6 @@ public:
 
         mUseBlockMatricesIfPossible = ThisParameters["use_block_matrices_if_possible"].GetBool();
 
-        if(mProvideCoordinates && mUseBlockMatricesIfPossible) {
-            KRATOS_WARNING("AMGCL Linear Solver") << "Sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
-            mUseBlockMatricesIfPossible = false;
-            ThisParameters["use_block_matrices_if_possible"].SetBool(false);
-        }
-
         mUseGPGPU = ThisParameters["use_gpgpu"].GetBool();
     }
 
@@ -356,15 +350,19 @@ public:
 
         // Use rigid body modes or set block size
         int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize : 1;
+        std::vector<double> B;
         if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
-            std::vector<double> B;
             int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
                     boost::make_iterator_range(
                         &mCoordinates[0][0],
                         &mCoordinates[0][0] + TSparseSpaceType::Size1(rA)),
                     B);
 
-            static_block_size = 1;
+            if (static_block_size != 1 && static_block_size != 3) {
+                KRATOS_WARNING("AMGCL Linear Solver") << "Can only combine block matrices with coordinates in 3D. Falling back to scalar matrices" << std::endl;
+                static_block_size = 1;
+            }
+
             mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
             mAMGCLParameters.put("precond.coarsening.aggr.block_size", 1);
             mAMGCLParameters.put("precond.coarsening.nullspace.cols",  nmodes);

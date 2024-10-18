@@ -18,9 +18,10 @@ file(GLOB_RECURSE KRATOS_MESH_MOVING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURREN
 ## define mesh moving test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_MESH_MOVING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  kratos_add_gtests(TARGET KratosMeshMovingCore SOURCES "${KRATOS_MESH_MOVING_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosMeshMovingCore SHARED ${KRATOS_MESH_MOVING_APPLICATION_CORE} ${KRATOS_MESH_MOVING_TESTING_SOURCES})
+add_library(KratosMeshMovingCore SHARED ${KRATOS_MESH_MOVING_APPLICATION_CORE})
 target_link_libraries(KratosMeshMovingCore PUBLIC KratosCore)
 set_target_properties(KratosMeshMovingCore PROPERTIES COMPILE_DEFINITIONS "MESH_MOVING_APPLICATION=EXPORT,API")
 
@@ -70,10 +71,10 @@ install(TARGETS KratosMeshMovingCore DESTINATION libs )
 install(TARGETS KratosMeshMovingApplication DESTINATION libs )
 
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosMeshMovingApplication")
   add_subdirectory(trilinos_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshMovingCore" PARENT_SCOPE)

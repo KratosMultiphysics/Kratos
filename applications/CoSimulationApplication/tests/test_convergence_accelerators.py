@@ -65,7 +65,7 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         with patch('KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper.CreateConvergenceAccelerator') as p:
             p.return_value = conv_acc_mock
-            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
+            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper.interface_data_dict, KM.Testing.GetDefaultDataCommunicator())
 
         conv_acc_wrapper.InitializeSolutionStep()
 
@@ -111,7 +111,7 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         with patch('KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper.CreateConvergenceAccelerator') as p:
             p.return_value = conv_acc_mock
-            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
+            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper.interface_data_dict, KM.Testing.GetDefaultDataCommunicator())
 
         exp_inp = self.interface_data.GetData()
 

@@ -41,8 +41,18 @@ public:
     ///@name Type Definitions
     ///@{
 
+    //TODO: delete after deprecated constructor are removed.
+    /// Nodal databases auxiliary enum
+    enum class DistanceDatabase {
+        NodeHistorical,
+        NodeNonHistorical
+    };
+
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
+
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", Process, ApplyRayCastingProcess, TDim)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", Process, ApplyRayCastingProcess, TDim)
 
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
@@ -52,6 +62,10 @@ public:
 
     typedef Element::GeometryType IntersectionGeometryType;
     typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+
+    using NodeType = ModelPart::NodeType;
+    using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode, const Variable<double>& rDistanceVariable)>;
+    using ApplyNodalFunctorType = std::function<void(NodeType&, const double)>;
 
     ///@}
     ///@name Life Cycle
@@ -67,7 +81,8 @@ public:
      */
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
-        ModelPart& rSkinPart);
+        ModelPart& rSkinPart,
+        Parameters ThisParameters = Parameters());
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
@@ -77,6 +92,7 @@ public:
      * the distance to as conditions
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
@@ -90,7 +106,22 @@ public:
      */
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double RelativeTolerance);
+        Parameters ThisParameters = Parameters());
+
+	/**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
+     * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
+     * @param rDistanceDatabase enum value specifying the database from which the distance variable is retrieved (see DistanceDatabase)
+     */
+    KRATOS_DEPRECATED_MESSAGE("Deprecated constructor, please use the one with Parameters.")
+    ApplyRayCastingProcess(
+        FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
+        const double RelativeTolerance,
+        const Variable<double>* pDistanceVariable,
+        const DistanceDatabase& rDistanceDatabase);
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
@@ -99,8 +130,11 @@ public:
     ///@name Deleted
     ///@{
 
-    /// Default constructor.
-    ApplyRayCastingProcess() = delete;;
+    /// Default constructor, needed for registry
+    ApplyRayCastingProcess()
+    {
+        mIsSearchStructureAllocated = false; //used in dtor
+    }
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -112,6 +146,8 @@ public:
     ///@name Operations
     ///@{
 
+    const Parameters GetDefaultParameters() const override;
+
     /**
      * @brief Computes the raycasting distance for a node
      * This method computes the raycasting distance for a given node. It casts a ray
@@ -120,7 +156,7 @@ public:
      * @param rNode reference to the node of interest
      * @return double raycasting distance value computed
      */
-    virtual double DistancePositionInSpace(const Node<3> &rNode);
+    virtual double DistancePositionInSpace(const Node &rNode);
 
     /**
      * @brief Get the ray intersecting objects and its distance
@@ -177,7 +213,7 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -186,12 +222,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mEpsilon = 1.0e-12;
-    double mExtraRayOffset = 1.0e-8;
-    double mRelativeTolerance = 1.0e-12;
+    Parameters mSettings;
+    double mEpsilon;
+    double mExtraRayOffset;
+    double mRelativeTolerance;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharacteristicLength = 1.0;
+    double mCharacteristicLength;
+    const Variable<double>* mpDistanceVariable = nullptr;
+    NodeScalarGetFunctionType mDistanceGetterFunctor;
+
 
     ///@}
     ///@name Private Operators
@@ -261,6 +301,17 @@ private:
      */
     void SetRayCastingTolerances();
 
+    /**
+     * @brief This method returns the function to get the distance from a node
+     */
+    NodeScalarGetFunctionType CreateDistanceGetterFunctor() const;
+
+    /**
+     * @brief This method returns the function that will be applied to nodes
+     * depending on ray distance
+     */
+    virtual ApplyNodalFunctorType CreateApplyNodalFunction() const;
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -274,6 +325,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
 
 
     ///@}

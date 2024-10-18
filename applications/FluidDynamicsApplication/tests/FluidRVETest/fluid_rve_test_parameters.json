@@ -1,0 +1,68 @@
+{
+    "problem_data": {
+        "problem_name": "fluid_rve_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 0.2
+    },
+    "rve_settings": {
+        "boundary_mp_name": "TO_BE_SET_IN_TEST",
+        "averaging_mp_name": "FluidModelPart",
+        "fix_pressure": true,
+        "jump_XX": 0,
+        "jump_XY": 1e-6,
+        "jump_YY": 0,
+        "jump_XZ": 1e-6,
+        "jump_ZZ": 0,
+        "jump_YZ": 1e-6
+    },
+    "solver_settings": {
+        "model_part_name": "FluidModelPart",
+        "domain_size": "TO_BE_SET_IN_TEST",
+        "solver_type": "Monolithic",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "TO_BE_SET_IN_TEST"
+        },
+        "material_import_settings": {
+            "materials_filename": "TO_BE_SET_IN_TEST"
+        },
+        "echo_level": 0,
+        "compute_reactions": false,
+        "maximum_iterations": 10,
+        "relative_velocity_tolerance": 0.001,
+        "absolute_velocity_tolerance": 1e-5,
+        "relative_pressure_tolerance": 0.001,
+        "absolute_pressure_tolerance": 1e-5,
+        "volume_model_part_name": "FluidModelPart",
+        "skin_parts": ["TO_BE_SET_IN_TEST"],
+        "no_skin_parts": [],
+        "time_scheme": "bossak",
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 0.1
+        },
+        "formulation": {
+            "element_type": "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 1.0
+        },
+        "reform_dofs_at_each_step": false
+    },
+    "processes": {
+        "initial_conditions_process_list": [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "model_part_name": "FluidModelPart",
+                "variable_name": "VELOCITY",
+                "constrained": [false, false, false],
+                "value": [0, 0, null],
+                "interval": [0.0, 0.0]
+            }
+        }],
+        "json_check_process_list": []
+    },
+    "output_processes": {}
+}

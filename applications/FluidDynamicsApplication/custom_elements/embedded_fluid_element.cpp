@@ -280,11 +280,7 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a Cut-FEM type (a.k.a. embedded) for a continuous (nodal-based) levelset representation.
-            Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution.
-            Also note that two wall behaviors of the implicit surface can be modelled. If SLIP flag is true, a Navier-Slip boundary condition is imposed using the Nitsche's method.
-            If the SLIP flag is false, a standard no-slip (pure stick) boundary condition is enforced using a modified Nitsche method.
-            The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
+            "This element implements a Cut-FEM type (a.k.a. embedded) for a continuous (nodal-based) levelset representation. Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution. Also note that two wall behaviors of the implicit surface can be modelled. If SLIP flag is true, a Navier-Slip boundary condition is imposed using the Nitsche's method. If the SLIP flag is false, a standard no-slip (pure stick) boundary condition is enforced using a modified Nitsche method. The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
     })");
 
     if (Dim == 2) {
@@ -440,11 +436,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
                     const unsigned int row = i * BlockSize + m;
                     for (unsigned int n = 0; n < Dim; ++n){
                         const unsigned int col = j * BlockSize + n;
-                        #ifdef KRATOS_USE_AMATRIX
-                        double lhs_ij = pen_coef*weight*aux_N[i]*aux_unit_normal(m)*aux_unit_normal(n)*aux_N[j];
-                        #else
                         double lhs_ij = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
-                        #endif
                         rLHS(row, col) += lhs_ij;
                         rRHS(row) -= lhs_ij*values(col);
                     }
@@ -491,11 +483,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N[i]*aux_unit_normal(comp);
-                #else
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
-                #endif
             }
         }
 
@@ -503,11 +491,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
 
@@ -573,11 +557,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
         BoundedMatrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
@@ -661,11 +641,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
 
@@ -913,20 +889,12 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 
         for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; i_out++) {
             const unsigned int i_out_nodeid = rData.NegativeIndices[i_out];
-            #ifdef KRATOS_USE_AMATRIX
-            aux_out(i_out) = aux_cut[i_out_nodeid];
-            #else
             aux_out(i_out) = aux_cut(i_out_nodeid);
-            #endif
         }
 
         for (unsigned int i_int = 0; i_int < rData.NumPositiveNodes; ++i_int) {
             const unsigned int i_int_nodeid = rData.PositiveIndices[i_int];
-            #ifdef KRATOS_USE_AMATRIX
-            aux_int(i_int) = aux_cut[i_int_nodeid];
-            #else
             aux_int(i_int) = aux_cut(i_int_nodeid);
-            #endif
         }
 
         M_gamma += weight*outer_prod(aux_out,aux_out);

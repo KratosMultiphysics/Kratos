@@ -34,12 +34,12 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
 {
     Model model;
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -80,24 +80,75 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
     std::vector<double> velocity70 = {0.0, 0.0, 0.0};
     std::vector<double> velocity80 = {0.0, 0.0, 0.0};
 
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY), velocity1, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(10).FastGetSolutionStepValue(VELOCITY), velocity10, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(20).FastGetSolutionStepValue(VELOCITY), velocity20, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(30).FastGetSolutionStepValue(VELOCITY), velocity30, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(40).FastGetSolutionStepValue(VELOCITY), velocity40, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(50).FastGetSolutionStepValue(VELOCITY), velocity50, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(60).FastGetSolutionStepValue(VELOCITY), velocity60, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(70).FastGetSolutionStepValue(VELOCITY), velocity70, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(80).FastGetSolutionStepValue(VELOCITY), velocity80, tolerance)
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesHydrostaticForce, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions"        : 8,
+        "element_name"               : "WaveElement2D3N",
+        "condition_name"             : "WaveCondition",
+        "elements_properties_id"     : 0,
+        "conditions_properties_id"   : 0,
+        "create_skin_sub_model_part" : true
+    })");
+
+    ModelPart& r_model_part = model.CreateModelPart("model_part");
+    r_model_part.AddNodalSolutionStepVariable(HEIGHT);
+
+    StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info[GRAVITY_Z] = 9.81;
+
+    auto& r_properties = r_model_part.GetProperties(0);
+    r_properties[DENSITY] = 1000;
+
+    auto h = [] (const NodeType& rNode) {return 1.0 + 0.1*rNode.X() + 0.2*rNode.Y();};
+    block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(HEIGHT) = h(rNode);
+    });
+
+    const auto vertical_force = ShallowWaterUtilities().ComputeHydrostaticForces(
+        r_model_part.Elements(), r_process_info);
+    const auto horizontal_force = ShallowWaterUtilities().ComputeHydrostaticForces(
+        r_model_part.Conditions(), r_process_info);
+
+    const std::vector<double> ref_vertical_force = {0.0, 0.0, -11281.5};
+    const std::vector<double> ref_horizontal_force = {1128.15, 2256.3, 0.0};
+
+    const double tolerance = 1e-10;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(vertical_force, ref_vertical_force, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(horizontal_force, ref_horizontal_force, tolerance)
 }
 
 } // namespace Testing

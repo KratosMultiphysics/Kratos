@@ -23,13 +23,26 @@
 namespace CoSimIO {
 namespace Internals {
 
+void AddFilePermissions(const fs::path& rPath)
+{
+    CO_SIM_IO_TRY
+
+    fs::permissions(rPath,
+        fs::perms::owner_read  | fs::perms::owner_write |
+        fs::perms::group_read  | fs::perms::group_write |
+        fs::perms::others_read | fs::perms::others_write,
+        fs::perm_options::add);
+
+    CO_SIM_IO_CATCH
+}
+
 Communication::Communication(
     const Info& I_Settings,
     std::shared_ptr<DataCommunicator> I_DataComm)
     : mpDataComm(I_DataComm),
       mMyName(I_Settings.Get<std::string>("my_name")),
       mConnectTo(I_Settings.Get<std::string>("connect_to")),
-      mUseAuxFileForFileAvailability(I_Settings.Get<bool>("use_aux_file_for_file_availability", false)),
+      mAlwaysUseSerializer(I_Settings.Get<bool>("always_use_serializer", false)),
       mWorkingDirectory(I_Settings.Get<std::string>("working_directory", fs::relative(fs::current_path()).string())),
       mEchoLevel(I_Settings.Get<int>("echo_level", 0)),
       mPrintTiming(I_Settings.Get<bool>("print_timing", false))
@@ -47,6 +60,10 @@ Communication::Communication(
     mConnectionName = Utilities::CreateConnectionName(mMyName, mConnectTo);
 
     CO_SIM_IO_ERROR_IF_NOT(fs::exists(mWorkingDirectory)) << "The working directory " << mWorkingDirectory << " does not exist!" << std::endl;
+
+    if (I_Settings.Has("serializer_trace_type")) {
+        mSerializerTraceType = Serializer::StringToTraceType(I_Settings.Get<std::string>("serializer_trace_type"));
+    }
 
     mCommInFolder = I_Settings.Get<bool>("use_folder_for_communication", true);
     mCommFolder = GetWorkingDirectory();
@@ -71,6 +88,8 @@ Info Communication::Connect(const Info& I_Info)
     CO_SIM_IO_ERROR_IF(mIsConnected) << "A connection was already established!" << std::endl;
 
     BaseConnectDetail(I_Info);
+
+    PrepareConnection(I_Info);
 
     HandShake(I_Info);
 
@@ -130,13 +149,14 @@ void Communication::BaseConnectDetail(const Info& I_Info)
         // delete and recreate directory to remove potential leftovers
         std::error_code ec;
         fs::remove_all(mCommFolder, ec);
-        CO_SIM_IO_INFO_IF("CoSimIO", ec) << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", ec) << "Warning, communication directory (" << mCommFolder << ") could not be deleted!\nError code: " << ec.message() << std::endl;
         if (!fs::exists(mCommFolder)) {
             fs::create_directory(mCommFolder);
+            AddFilePermissions(mCommFolder); // otherwise the process with lower rights cannot delete files in it
         }
     }
 
-    SynchronizeAll();
+    SynchronizeAll("conn");
 
     CO_SIM_IO_CATCH
 }
@@ -145,25 +165,124 @@ void Communication::BaseDisconnectDetail(const Info& I_Info)
 {
     CO_SIM_IO_TRY
 
-    SynchronizeAll();
+    SynchronizeAll("disconn");
 
     if (mCommInFolder && GetIsPrimaryConnection() && mpDataComm->Rank() == 0) {
         // delete directory to remove potential leftovers
         std::error_code ec;
         fs::remove_all(mCommFolder, ec);
         if (ec) {
-            CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+            CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ") could not be deleted!\nError code: " << ec.message() << std::endl;
         }
     }
 
     CO_SIM_IO_CATCH
 }
 
-fs::path Communication::GetTempFileName(const fs::path& rPath) const
+Info Communication::ImportInfoImpl(const Info& I_Info)
 {
     CO_SIM_IO_TRY
 
-    if (!mUseAuxFileForFileAvailability) {
+    Info imported_info;
+    Info rec_info = ReceiveObjectWithStreamSerializer(I_Info, imported_info);
+    imported_info.Set<double>("elapsed_time", rec_info.Get<double>("elapsed_time"));
+    imported_info.Set<double>("elapsed_time_ipc", rec_info.Get<double>("elapsed_time_ipc"));
+    imported_info.Set<double>("elapsed_time_serializer", rec_info.Get<double>("elapsed_time_serializer"));
+    imported_info.Set<std::size_t>("memory_usage_ipc", rec_info.Get<std::size_t>("memory_usage_ipc"));
+    return imported_info;
+
+    CO_SIM_IO_CATCH
+}
+
+Info Communication::ExportInfoImpl(const Info& I_Info)
+{
+    CO_SIM_IO_TRY
+
+    return SendObjectWithStreamSerializer(I_Info, I_Info);
+
+    CO_SIM_IO_CATCH
+}
+
+Info Communication::ImportDataImpl(
+    const Info& I_Info,
+    Internals::DataContainer<double>& rData)
+{
+    CO_SIM_IO_TRY
+
+    if (mAlwaysUseSerializer) {
+        return ReceiveObjectWithStreamSerializer(I_Info, rData);
+    } else {
+        Info info;
+        const double elapsed_time = ReceiveDataContainer(I_Info, rData);
+        info.Set<double>("elapsed_time", elapsed_time);
+        info.Set<std::size_t>("memory_usage_ipc", rData.size()*sizeof(double));
+        return info;
+    }
+
+    CO_SIM_IO_CATCH
+}
+
+Info Communication::ExportDataImpl(
+    const Info& I_Info,
+    const Internals::DataContainer<double>& rData)
+{
+    CO_SIM_IO_TRY
+
+    if (mAlwaysUseSerializer) {
+        return SendObjectWithStreamSerializer(I_Info, rData);
+    } else {
+        Info info;
+        const double elapsed_time = SendDataContainer(I_Info, rData);
+        info.Set<double>("elapsed_time", elapsed_time);
+        info.Set<std::size_t>("memory_usage_ipc", rData.size()*sizeof(double));
+        return info;
+    }
+
+    CO_SIM_IO_CATCH
+}
+
+Info Communication::ImportMeshImpl(
+    const Info& I_Info,
+    ModelPart& O_ModelPart)
+{
+    CO_SIM_IO_TRY
+
+    return ReceiveObjectWithStreamSerializer(I_Info, O_ModelPart);
+
+    CO_SIM_IO_CATCH
+}
+
+Info Communication::ExportMeshImpl(
+    const Info& I_Info,
+    const ModelPart& I_ModelPart)
+{
+    CO_SIM_IO_TRY
+
+    return SendObjectWithStreamSerializer(I_Info, I_ModelPart);
+
+    CO_SIM_IO_CATCH
+}
+
+void Communication::CheckConnection(const Info& I_Info)
+{
+    CO_SIM_IO_ERROR_IF_NOT(mIsConnected) << "No active connection exists!" << std::endl;
+    CO_SIM_IO_ERROR_IF_NOT(I_Info.Has("identifier")) << "\"identifier\" must be specified!" << std::endl;
+    Utilities::CheckEntry(I_Info.Get<std::string>("identifier"), "identifier");
+}
+
+void Communication::PostChecks(const Info& I_Info)
+{
+    CO_SIM_IO_ERROR_IF_NOT(I_Info.Has("elapsed_time")) << "\"elapsed_time\" must be specified!" << std::endl;
+    CO_SIM_IO_ERROR_IF_NOT(I_Info.Has("memory_usage_ipc")) << "\"memory_usage_ipc\" must be specified!" << std::endl;
+}
+
+fs::path Communication::GetTmpFileName(
+    const fs::path& rPath,
+    const bool UseAuxFileForFileAvailability) const
+{
+    CO_SIM_IO_TRY
+
+    if (!UseAuxFileForFileAvailability) {
         if (mCommInFolder) {
             return rPath.string().insert(mCommFolder.string().length()+1, ".");
         } else {
@@ -204,52 +323,60 @@ fs::path Communication::GetFileName(const fs::path& rPath, const int Rank, const
     CO_SIM_IO_CATCH
 }
 
-void Communication::WaitForPath(const fs::path& rPath) const
+void Communication::WaitForPath(
+    const fs::path& rPath,
+    const bool UseAuxFileForFileAvailability,
+    const int PrintEchoLevel) const
 {
     CO_SIM_IO_TRY
 
-    CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << std::endl;
-    if (!mUseAuxFileForFileAvailability) {
+    CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>=PrintEchoLevel) << "Waiting for: " << rPath << std::endl;
+    if (!UseAuxFileForFileAvailability) {
         Utilities::WaitUntilPathExists(rPath);
     } else {
         fs::path avail_file = fs::path(rPath.string()+".avail");
         Utilities::WaitUntilPathExists(avail_file);
 
         // once the file exists it means that the real file was written, hence it can be removed
-        std::error_code ec;
-        fs::remove(avail_file, ec);
-        CO_SIM_IO_ERROR_IF(ec) << avail_file << " could not be removed!\nError code: " << ec.message() << std::endl;
+        RemovePath(avail_file);
     }
-    CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found: " << rPath << std::endl;
+    CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>=PrintEchoLevel) << "Found: " << rPath << std::endl;
 
     CO_SIM_IO_CATCH
 }
 
-void Communication::WaitUntilFileIsRemoved(const fs::path& rPath) const
+void Communication::WaitUntilFileIsRemoved(
+    const fs::path& rPath,
+    const int PrintEchoLevel) const
 {
     CO_SIM_IO_TRY
 
     std::error_code ec;
     if (fs::exists(rPath, ec)) { // only issue the wating message if the file exists initially
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << " to be removed" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>=PrintEchoLevel) << "Waiting for: " << rPath << " to be removed" << std::endl;
         while(fs::exists(rPath, ec)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
+            std::this_thread::sleep_for(std::chrono::microseconds(10)); // wait 0.001s before next check
         }
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << rPath << " was removed" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>=PrintEchoLevel) << rPath << " was removed" << std::endl;
     }
 
     CO_SIM_IO_CATCH
 }
 
-void Communication::MakeFileVisible(const fs::path& rPath) const
+void Communication::MakeFileVisible(
+    const fs::path& rPath,
+    const bool UseAuxFileForFileAvailability) const
 {
     CO_SIM_IO_TRY
 
-    if (!mUseAuxFileForFileAvailability) {
+    if (!UseAuxFileForFileAvailability) {
+        const fs::path tmp_file_name = GetTmpFileName(rPath, UseAuxFileForFileAvailability);
+        AddFilePermissions(tmp_file_name);
         std::error_code ec;
-        fs::rename(GetTempFileName(rPath), rPath, ec);
+        fs::rename(tmp_file_name, rPath, ec);
         CO_SIM_IO_ERROR_IF(ec) << rPath << " could not be made visible!\nError code: " << ec.message() << std::endl;
     } else {
+        AddFilePermissions(rPath);
         std::ofstream avail_file;
         avail_file.open(rPath.string() + ".avail");
         avail_file.close();
@@ -276,7 +403,7 @@ void Communication::RemovePath(const fs::path& rPath) const
     CO_SIM_IO_CATCH
 }
 
-void Communication::SynchronizeAll() const
+void Communication::SynchronizeAll(const std::string& rTag) const
 {
     CO_SIM_IO_TRY
 
@@ -285,31 +412,31 @@ void Communication::SynchronizeAll() const
 
     // then synchronize among the partners
     if (mpDataComm->Rank() == 0) {
-        const fs::path file_name_primary(GetFileName("CoSimIO_primary_" + GetConnectionName(), "sync"));
-        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_" + GetConnectionName(), "sync"));
+        const fs::path file_name_primary(GetFileName("CoSimIO_primary_" + GetConnectionName() + "_" + rTag, "sync"));
+        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_" + GetConnectionName() + "_" + rTag, "sync"));
 
         if (GetIsPrimaryConnection()) {
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.open(GetTmpFileName(file_name_primary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_primary);
 
-            WaitForPath(file_name_secondary);
+            WaitForPath(file_name_secondary, true, 2);
             RemovePath(file_name_secondary);
 
-            WaitUntilFileIsRemoved(file_name_primary);
+            WaitUntilFileIsRemoved(file_name_primary, 2);
         } else {
-            WaitForPath(file_name_primary);
+            WaitForPath(file_name_primary, true, 2);
             RemovePath(file_name_primary);
 
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.open(GetTmpFileName(file_name_secondary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_secondary);
 
-            WaitUntilFileIsRemoved(file_name_secondary);
+            WaitUntilFileIsRemoved(file_name_secondary, 2);
         }
     }
 
@@ -331,8 +458,12 @@ Info Communication::GetMyInfo() const
     my_info.Set<std::string>("communication_format", GetCommunicationName());
     my_info.Set<std::string>("operating_system", GetOsName());
 
-    my_info.Set<bool>("is_distributed", GetDataCommunicator().IsDistributed());
     my_info.Set<int>("num_processes",   GetDataCommunicator().Size());
+
+    my_info.Set<bool>("is_big_endian", Utilities::IsBigEndian());
+
+    my_info.Set<bool>("always_use_serializer", mAlwaysUseSerializer);
+    my_info.Set<std::string>("serializer_trace_type", Serializer::TraceTypeToString(mSerializerTraceType));
 
     my_info.Set<Info>("communication_settings", GetCommunicationSettings());
 
@@ -351,20 +482,20 @@ void Communication::HandShake(const Info& I_Info)
             const fs::path& rMyFileName, const fs::path& rOtherFileName){
 
             // first export my info
-            WaitUntilFileIsRemoved(rMyFileName); // in case of leftovers
+            WaitUntilFileIsRemoved(rMyFileName,1); // in case of leftovers
 
             { // necessary as FileSerializer releases resources on destruction!
-                FileSerializer serializer_save(GetTempFileName(rMyFileName).string());
+                FileSerializer serializer_save(GetTmpFileName(rMyFileName).string(), mSerializerTraceType);
                 serializer_save.save("info", GetMyInfo());
             }
 
             MakeFileVisible(rMyFileName);
 
             // now get the info from the other
-            WaitForPath(rOtherFileName);
+            WaitForPath(rOtherFileName, true, 1);
 
             { // necessary as FileSerializer releases resources on destruction!
-                FileSerializer serializer_load(rOtherFileName.string());
+                FileSerializer serializer_load(rOtherFileName.string(), mSerializerTraceType);
                 serializer_load.load("info", mPartnerInfo);
             }
 
@@ -387,6 +518,14 @@ void Communication::HandShake(const Info& I_Info)
 
         CO_SIM_IO_ERROR_IF(GetDataCommunicator().Size() != mPartnerInfo.Get<int>("num_processes")) << "Mismatch in num_processes!\nMy num_processes: " << GetDataCommunicator().Size() << "\nPartner num_processes: " << mPartnerInfo.Get<int>("num_processes") << std::endl;
 
+        CO_SIM_IO_ERROR_IF(mAlwaysUseSerializer != mPartnerInfo.Get<bool>("always_use_serializer")) << std::boolalpha << "Mismatch in always_use_serializer!\nMy always_use_serializer: " << mAlwaysUseSerializer << "\nPartner always_use_serializer: " << mPartnerInfo.Get<bool>("always_use_serializer") << std::noboolalpha << std::endl;
+
+        CO_SIM_IO_ERROR_IF(Serializer::TraceTypeToString(mSerializerTraceType) != mPartnerInfo.Get<std::string>("serializer_trace_type")) << "Mismatch in serializer_trace_type!\nMy serializer_trace_type: " << Serializer::TraceTypeToString(mSerializerTraceType) << "\nPartner serializer_trace_type: " << mPartnerInfo.Get<std::string>("serializer_trace_type") << std::endl;
+
+        auto print_endianness = [](const bool IsBigEndian){return IsBigEndian ? "big endian" : "small endian";};
+
+        CO_SIM_IO_INFO_IF("CoSimIO", Utilities::IsBigEndian() != mPartnerInfo.Get<bool>("is_big_endian")) << "WARNING: Parnters have different endianness, check results carefully! It is recommended to use serialized ascii communication.\n    My endianness:      " << print_endianness(Utilities::IsBigEndian()) << "\n    Partner endianness: " << print_endianness(mPartnerInfo.Get<bool>("is_big_endian")) << std::endl;
+
         // more things can be done in derived class if necessary
         DerivedHandShake();
     }
@@ -395,6 +534,16 @@ void Communication::HandShake(const Info& I_Info)
     mpDataComm->Broadcast(mPartnerInfo, 0);
 
     CO_SIM_IO_CATCH
+}
+
+void Communication::PrintElapsedTime(
+    const Info& I_Info,
+    const Info& O_Info,
+    const std::string& rLabel)
+{
+    const std::string identifier =I_Info.Get<std::string>("identifier");
+    const double dur = O_Info.Get<double>("elapsed_time");
+    CO_SIM_IO_INFO_IF("CoSimIO-Timing", GetPrintTiming() && GetDataCommunicator().Rank()==0) << rLabel << " \"" << identifier << "\" took " << dur << " [s]" << std::endl;
 }
 
 } // namespace Internals

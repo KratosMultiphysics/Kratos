@@ -42,7 +42,7 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVe
 using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
 using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::ShapeDerivativesType;
 using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRowType;
-typedef Geometry<Node<3>> GeometryType;
+typedef Geometry<Node> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
 ///@}
@@ -111,7 +111,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
@@ -180,7 +180,7 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
@@ -225,7 +225,7 @@ void CalculateAirMaterialResponse() {
     FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(mu, c_mat);
     this->C = c_mat;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         const double trace = strain[0] + strain[1];
         const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -235,7 +235,7 @@ void CalculateAirMaterialResponse() {
         stress[2] = c2 * strain[2];
     }
 
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
         const double trace = strain[0] + strain[1] + strain[2];
         const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -256,7 +256,7 @@ void ComputeStrain()
 
     // Compute strain (B*v)
     // 3D strain computation
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
         this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
         this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
@@ -266,7 +266,7 @@ void ComputeStrain()
         this->StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
     }
     // 2D strain computation
-    else if (TDim == 2)
+    else if constexpr (TDim == 2)
     {
         this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
         this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
@@ -278,13 +278,13 @@ double ComputeStrainNorm()
 {
     double strain_rate_norm;
     Vector& S = this->StrainRate;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
         strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + 2.*S[2] * S[2] +
             S[3] * S[3] + S[4] * S[4] + S[5] * S[5]);
     }
 
-    else if (TDim == 2)
+    else if constexpr (TDim == 2)
     {
         strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + S[2] * S[2]);
     }

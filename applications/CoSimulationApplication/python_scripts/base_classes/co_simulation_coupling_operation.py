@@ -9,11 +9,12 @@ class CoSimulationCouplingOperation:
     This class can be used to customize the behavior of the CoSimulation,
     by providing a large interface and access to the solvers/models
     """
-    def __init__(self, settings, parent_coupled_solver_process_info):
+    def __init__(self, settings, parent_coupled_solver_process_info, parent_coupled_solver_data_communicator):
         SettingsTypeCheck(settings)
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
         self.process_info = parent_coupled_solver_process_info
+        self.data_communicator = parent_coupled_solver_data_communicator
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def Initialize(self):

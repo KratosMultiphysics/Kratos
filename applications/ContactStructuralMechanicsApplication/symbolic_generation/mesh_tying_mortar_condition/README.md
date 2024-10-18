@@ -1,4 +1,8 @@
-# Mesh-tying condition
+# Mesh-tying condition (LEGACY FILES)
+
+## LEGACY NOTE:
+
+Here only the generation files are preserved. AD has been removed from MeshTying and now is manually constructed for more generality.
 
 ## ELEMENT DESCRIPTION:
 Current directory contains the documentation for the symbolic derivation of the _"mesh_tying"_ condition. This element includes a formulation of a mesh tying condition using mortar formulation.
@@ -6,7 +10,7 @@ Current directory contains the documentation for the symbolic derivation of the 
 ## SYMBOLIC GENERATOR SETTINGS:
 * Nothing to add
 
-## INSTRUCTIONS
+## INSTRUCTIONS:
 Run:
 ~~~py
 python generate_mesh_tying_mortar_condition.py

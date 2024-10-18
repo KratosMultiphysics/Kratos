@@ -83,23 +83,24 @@
         {
             "particle":
             {
-                "type" : "solver_wrappers.kratos.particle_mechanics_wrapper",
+                "type" : "solver_wrappers.kratos.mpm_dirichlet_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "mpm_fem_beam/ProjectParametersMPM"
+                    "input_file"  : "mpm_fem_beam/ProjectParametersMPM",
+                    "interface_model_part_name": "MPM_Material.INTERFACE_coupling_to_fem"
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "MPM_Coupling_Interface",
+                        "model_part_name"   : "MPM_Coupling_Dirichlet_Interface",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "MPM_Coupling_Interface",
+                        "model_part_name"   : "MPM_Coupling_Dirichlet_Interface",
                         "dimension" : 2,
                         "variable_name" : "CONTACT_FORCE"
                     },
                     "normals" : {
-                        "model_part_name"   : "MPM_Coupling_Interface",
+                        "model_part_name"   : "MPM_Coupling_Dirichlet_Interface",
                         "dimension" : 2,
                         "variable_name" : "NORMAL"
                     }

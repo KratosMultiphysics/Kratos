@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -121,13 +121,8 @@ void AxisymSmallDisplacement::ComputeEquivalentF(
 {
     rF(0,0) = 1.0 + rStrainVector[0];
     rF(0,1) = 0.5 * rStrainVector[3];
-    rF(0,2) = 0.0;
     rF(1,0) = 0.5 * rStrainVector[3];
     rF(1,1) = 1.0 + rStrainVector[1];
-    rF(1,2) = 0.0;
-    rF(2,0) = 0.0;
-    rF(2,1) = 0.0;
-    rF(2,2) = 1.0 + rStrainVector[2];
 }
 
 //************************************************************************************

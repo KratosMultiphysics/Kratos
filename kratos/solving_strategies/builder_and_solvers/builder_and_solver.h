@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_BUILDER_AND_SOLVER )
-#define  KRATOS_BUILDER_AND_SOLVER
+#pragma once
 
 /* System includes */
 #include <set>
@@ -105,10 +104,6 @@ public:
 
     /// Definition of the DoF array type
     typedef ModelPart::DofsArrayType DofsArrayType;
-
-    /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIterator;
-    typedef typename DofsArrayType::const_iterator DofConstantIterator;
 
     /// The containers of the entities
     typedef ModelPart::NodesContainerType NodesArrayType;
@@ -264,7 +259,7 @@ public:
     }
 
     /**
-     * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
+     * @brief Function to perform the building of the LHS, depending on the implementation chosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
@@ -340,7 +335,7 @@ public:
     /**
      * @brief This is a call to the linear system solver
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void SystemSolve(
@@ -357,7 +352,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void BuildAndSolve(
@@ -375,7 +370,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
      */
@@ -399,7 +394,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void BuildRHSAndSolve(
@@ -413,12 +408,12 @@ public:
     }
 
     /**
-     * @brief It applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
-     * @details For explanation of how it works for a particular implementation the user should refer to the particular Builder And Solver choosen
+     * @brief It applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation chosen and on how the System Matrix is built.
+     * @details For explanation of how it works for a particular implementation the user should refer to the particular Builder And Solver chosen
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void ApplyDirichletConditions(
@@ -436,7 +431,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      */
     virtual void ApplyDirichletConditions_LHS(
         typename TSchemeType::Pointer pScheme,
@@ -495,7 +490,7 @@ public:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      */
@@ -515,6 +510,14 @@ public:
     }
 
     /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    virtual const DofsArrayType& GetDofSet() const
+    {
+        return mDofSet;
+    }
+
+    /**
      * @brief It organises the dofset in order to speed up the building phase
      * @param rModelPart The model part to compute
      */
@@ -527,7 +530,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param pA The pointer to LHS matrix of the system of equations
-     * @param pDx The pointer to  vector of unkowns
+     * @param pDx The pointer to  vector of unknowns
      * @param pb The pointer to  RHS vector of the system of equations
      */
     virtual void ResizeAndInitializeVectors(
@@ -541,10 +544,10 @@ public:
     }
 
     /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
+     * @brief It applies certain operations at the system of equations at the beginning of the solution step
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void InitializeSolutionStep(
@@ -560,7 +563,7 @@ public:
      * @brief It applies certain operations at the system of equations at the end of the solution step
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void FinalizeSolutionStep(
@@ -577,7 +580,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void CalculateReactions(
@@ -654,9 +657,9 @@ public:
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      * - 4: Print of stiffness matrix, b to Matrix Market
      */
     void SetEchoLevel(int Level)
@@ -671,6 +674,24 @@ public:
     int GetEchoLevel() const
     {
         return mEchoLevel;
+    }
+
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    virtual typename TSparseSpace::MatrixType& GetConstraintRelationMatrix()
+    {
+        KRATOS_ERROR << "GetConstraintRelationMatrix is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    virtual typename TSparseSpace::VectorType& GetConstraintConstantVector()
+    {
+        KRATOS_ERROR << "GetConstraintConstantVector is not implemented in base BuilderAndSolver" << std::endl;
     }
 
     ///@}
@@ -817,5 +838,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_BUILDER_AND_SOLVER  defined */

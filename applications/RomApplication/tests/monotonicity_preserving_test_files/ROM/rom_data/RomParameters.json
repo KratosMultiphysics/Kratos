@@ -1,0 +1,23 @@
+{
+    "rom_manager": false,
+    "train_hrom": false,
+    "run_hrom": false,
+    "projection_strategy": "galerkin",
+    "assembling_strategy": "global",
+    "rom_format": "numpy",
+    "rom_settings": {
+        "nodal_unknowns": [
+            "TEMPERATURE"
+        ],
+        "number_of_rom_dofs": 10,
+        "petrov_galerkin_number_of_rom_dofs": 0,
+        "rom_bns_settings":{
+            "monotonicity_preserving": true
+        }
+    },
+    "hrom_settings": {
+        "hrom_format": "numpy"
+    },
+    "nodal_modes": {},
+    "elements_and_weights": {}
+}

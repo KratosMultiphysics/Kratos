@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 #Activate it to import in the gdb path:
 #import sys
@@ -38,7 +37,7 @@ def SetParallelSize(num_threads):
 def GetParallelSize():
     parallel = KratosMultiphysics.OpenMPUtils()
     return parallel.GetNumThreads()
-    
+
 #### SET NUMBER OF THREADS ####
 
 # Import system python
@@ -102,8 +101,8 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 solver.AddVariables()
 
 # Add PfemSolidMechanicsApplication Variables
-import pfem_solid_variables  
-pfem_solid_variables.AddVariables(main_model_part) 
+import pfem_solid_variables
+pfem_solid_variables.AddVariables(main_model_part)
 
 # Read model_part (note: the buffer_size is set here) (restart is read here)
 solver.ImportModelPart()
@@ -148,7 +147,7 @@ if(ProjectParameters.Has("problem_process_list")):
     list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
 if(ProjectParameters.Has("output_process_list")):
     list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-            
+
 #print list of constructed processes
 if(echo_level>1):
     for process in list_of_processes:
@@ -229,20 +228,20 @@ while(time < end_time):
     # current time parameters
     # main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = delta_time
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-    
+
     time = time + delta_time
     step = step + 1
-    
-    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
-    main_model_part.CloneTimeStep(time) 
 
-    
+    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    main_model_part.CloneTimeStep(time)
+
+
     print(" [STEP:",step," TIME:",time,"]")
 
     # processes to be executed at the begining of the solution step
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
-      
+
     gid_output.ExecuteInitializeSolutionStep()
 
     # solve time step
@@ -257,7 +256,7 @@ while(time < end_time):
     #solver.FinalizeSolutionStep()
 
     solver.Solve()
-    
+
     StopTimeMeasuring(clock_time,"Solving", False);
 
     gid_output.ExecuteFinalizeSolutionStep()
@@ -266,10 +265,10 @@ while(time < end_time):
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 
-    # processes to be executed before witting the output      
+    # processes to be executed before witting the output
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-     
+
     # write output results GiD: (frequency writing is controlled internally)
     if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
@@ -302,7 +301,7 @@ print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfp - t0p),"seconds] (%.2
 
 print(timer.ctime())
 
-# to create a benchmark: add standard benchmark files and decomment next two lines 
+# to create a benchmark: add standard benchmark files and decomment next two lines
 # rename the file to: run_test.py
 #from run_test_benchmark_results import *
 #WriteBenchmarkResults(model_part)

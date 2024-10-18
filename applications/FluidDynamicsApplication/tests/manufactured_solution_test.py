@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import Python modules
 import math
@@ -110,8 +109,8 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 plt.savefig('l2_norm_convergence.png')
 
             # Check obtained solution
-            expected_velocity_errors = [0.01620828837402704, 0.005181479513472467, 0.0012944061647766365, 0.0003215070966125507, 8.577306473469384e-05]
-            expected_pressure_errors = [43.89258161784579, 5.237699459045566, 0.9428016719803961, 0.24671881227746087, 0.09607645760134441]
+            expected_velocity_errors = [0.01643481958966908, 0.005204955488530167, 0.0012999179543480084, 0.00032256195905792814, 8.10703392914639e-05]
+            expected_pressure_errors = [43.06199157424943, 5.148928686713362, 0.8967766183823074, 0.1959182315919925, 0.04022621431384829]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])

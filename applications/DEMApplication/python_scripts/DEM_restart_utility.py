@@ -23,8 +23,7 @@ class DEMRestartUtility(RestartUtility):
             "load_restart_files_from_folder" : true,
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
-            "save_restart_files_in_folder"   : true,
-            "set_mpi_communicator"           : true
+            "save_restart_files_in_folder"   : true
         }
         """)
 
@@ -32,7 +31,7 @@ class DEMRestartUtility(RestartUtility):
         self.file_names = []
         self.restart_utilities = dict()
         self.model_parts = dict()
-        for name in settings["input_filenames"]:
+        for name in settings["input_filenames"].values():
             self.file_names.append(name.GetString())
             settings_copy = settings.Clone()
             settings_copy.AddValue("input_filename", name)

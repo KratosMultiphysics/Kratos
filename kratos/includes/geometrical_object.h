@@ -4,16 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//
 
-#if !defined(KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED )
-#define  KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <atomic>
@@ -25,6 +23,7 @@
 #include "includes/node.h"
 #include "containers/flags.h"
 #include "geometries/geometry.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {
@@ -55,7 +54,7 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject : public IndexedObject, public Flags
+class KRATOS_API(KRATOS_CORE) GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -65,7 +64,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry type definition
     typedef Geometry<NodeType> GeometryType;
@@ -204,7 +203,13 @@ public:
     /**
      * Access Data:
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
+    {
+        return pGetGeometry()->GetData();
+    }
+
+    DataValueContainer& GetData()
     {
         return pGetGeometry()->GetData();
     }
@@ -234,7 +239,7 @@ public:
         const TVariableType& rThisVariable,
         typename TVariableType::Type const& rValue)
     {
-        Data().SetValue(rThisVariable, rValue);
+        GetData().SetValue(rThisVariable, rValue);
     }
 
     /**
@@ -243,7 +248,7 @@ public:
     template<class TVariableType> typename TVariableType::Type& GetValue(
         const TVariableType& rThisVariable)
     {
-        return Data().GetValue(rThisVariable);
+        return GetData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetValue(
@@ -255,6 +260,12 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if the GeometricalObject is active
+     * @return True by default, otherwise depending on the ACTIVE flag
+     */
+    bool IsActive() const;
 
     /**
      * @brief Checks if two GeometricalObject have the same type
@@ -488,7 +499,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED  defined
 
 

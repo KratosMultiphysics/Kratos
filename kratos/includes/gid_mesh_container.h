@@ -49,13 +49,13 @@ public:
     GidMeshContainer ( GeometryData::KratosGeometryType geometryType,
                        GiD_ElementType elementType, const char* mesh_title )
         :mGeometryType (geometryType), mGidElementType (elementType), mMeshTitle (mesh_title) {}
-    bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement ( const ModelPart::ElementConstantIterator pElemIt )
     {
         KRATOS_TRY
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshElements.push_back ( * (pElemIt.base() ) );
-            Geometry<Node<3> >&geom = pElemIt->GetGeometry();
+            Geometry<Node >&geom = pElemIt->GetGeometry();
             for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
@@ -66,13 +66,13 @@ public:
             return false;
         KRATOS_CATCH ("")
     }
-    bool AddCondition (const ModelPart::ConditionsContainerType::iterator pCondIt)
+    bool AddCondition (const ModelPart::ConditionConstantIterator pCondIt)
     {
         KRATOS_TRY
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshConditions.push_back ( * (pCondIt.base() ) );
-            Geometry<Node<3> >&geom = pCondIt->GetGeometry();
+            Geometry<Node >&geom = pCondIt->GetGeometry();
             for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
@@ -106,11 +106,7 @@ public:
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
-                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Element #"
-                    << (it)->Id() << " does not have Properties and hence cannot "
-                    << "be used with the GiD-Output" << std::endl;
-
-                int prop_id = (it)->GetProperties().Id();
+                const int prop_id = it->HasProperties() ? it->GetProperties().Id() : 0;
                 if (max_id < prop_id) max_id = prop_id;
             }
             if (max_id > 10000)
@@ -122,7 +118,7 @@ public:
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
-                int prop_id = (it)->GetProperties().Id();
+                const int prop_id = it->HasProperties() ? (it)->GetProperties().Id() : 0;
                 elements_per_layer[prop_id] += 1;
             }
             //std::cout << "start printing elements" <<std::endl;
@@ -130,7 +126,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropiate name
+                    //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
@@ -178,14 +174,11 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [1].Id();
                             nodes_id[2] = (it)->GetGeometry() [2].Id();
                         }
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
+                        const unsigned int elem_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
+                        nodes_id[ (it)->GetGeometry().size()]= elem_layer + 1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
-                            if ((it)->GetProperties().Id()==current_layer)
+                        if (it->IsActive())
+                            if (elem_layer == current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
 
                     }
@@ -203,7 +196,7 @@ public:
             for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
-                int prop_id = (it)->GetProperties().Id();
+                const int prop_id = it->HasProperties() ? (it)->GetProperties().Id() : 0;
                 if (max_id < prop_id) max_id = prop_id;
             }
             if (max_id > 10000)
@@ -213,11 +206,7 @@ public:
             for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
-                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Condition #"
-                    << (it)->Id() << " does not have Properties and hence cannot "
-                    << "be used with the GiD-Output" << std::endl;
-
-                int prop_id = (it)->GetProperties().Id();
+                const int prop_id = it->HasProperties() ? it->GetProperties().Id() : 0;
                 conditions_per_layer[prop_id] += 1;
             }
             //std::cout << "start printing conditions" <<std::endl;
@@ -284,14 +273,11 @@ public:
                             nodes_id[18] = (it)->GetGeometry() [14].Id();
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
+                        const unsigned int cond_layer = it->HasProperties() ? it->GetProperties().Id() : 0;
+                        nodes_id[(it)->GetGeometry().size()]= cond_layer + 1;
 
-                        bool element_is_active = true;
-                        if ((it)->IsDefined(ACTIVE))
-                            element_is_active = (it)->Is(ACTIVE);
-
-                        if (element_is_active)
-                            if ((it)->GetProperties().Id()==current_layer)
+                        if (it->IsActive())
+                            if (cond_layer == current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                     }
                     delete [] nodes_id;

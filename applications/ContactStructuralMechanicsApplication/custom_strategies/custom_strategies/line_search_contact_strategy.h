@@ -4,37 +4,34 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINE_SEARCH_CONTACT_STRATEGY)
-#define KRATOS_LINE_SEARCH_CONTACT_STRATEGY
+#pragma once
 
-/* System Includes */
+// System includes
 
-/* External Includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
 
-// Convergence criterias
+/* Convergence criterias */
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-// Default builder and solver
+/* Default builder and solver */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
-// TODO: Extend the descriptions
 
 namespace Kratos
 {
@@ -58,10 +55,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief  Short class definition.
-This class
-*/
-
+/**
+ * @class LineSearchContactStrategy
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief A strategy for solving contact problems using a line search method.
+ * @details This class is a specialization of the `LineSearchStrategy` class for contact problems. It implements a line search method for solving the contact problem, which involves finding the minimum of a scalar function along a search direction. The search direction is determined by the contact forces, and the scalar function is the norm of the residual vector.
+ * The class is templated on the sparse and dense linear algebra spaces, as well as the linear solver used to solve the linear system. It inherits from the `LineSearchStrategy` class and adds functionality specific to contact problems.
+ * @tparam TSparseSpace The sparse linear algebra space.
+ * @tparam TDenseSpace The dense linear algebra space.
+ * @tparam TLinearSolver The linear solver used to solve the linear system.
+ * @author Vicente Mataix Ferrandiz
+ */
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -70,48 +74,68 @@ class LineSearchContactStrategy :
     public LineSearchStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
-
-    /** Counted pointer of ClassName */
+    /// Pointer definition of LineSearchContactStrategy
     KRATOS_CLASS_POINTER_DEFINITION( LineSearchContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                          SolvingStrategyType;
+    /// The base convergence criteria class definition
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>      StrategyBaseType;
+    /// The solving strategy type
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> NRBaseType;
+    /// The base type for the strategy
+    using StrategyBaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
+    /// The base type for the Newton-Raphson strategy
+    using NRBaseType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef LineSearchContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>           ClassType;
+    /// The base type for the line search strategy
+    using BaseType = LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
+    /// The current class type
+    using ClassType = LineSearchContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef typename BaseType::TDataType                                                  TDataType;
+    /// The type of the builder and solver
+    using TBuilderAndSolverType = typename BaseType::TBuilderAndSolverType;
 
-    typedef TSparseSpace                                                            SparseSpaceType;
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::TSchemeType                                              TSchemeType;
+    /// The sparse space used
+    using SparseSpaceType = TSparseSpace;
 
-    typedef typename BaseType::DofsArrayType                                          DofsArrayType;
+    /// The scheme type
+    using TSchemeType = typename BaseType::TSchemeType;
 
-    typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
+    /// The array type for degrees of freedom
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::LocalSystemVectorType                          LocalSystemVectorType;
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType                          LocalSystemMatrixType;
+    /// The local system vector type
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::TSystemMatrixPointerType                    TSystemMatrixPointerType;
+    /// The local system matrix type
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorPointerType                    TSystemVectorPointerType;
+    /// Pointer type for the system matrix
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
 
-    typedef ModelPart::NodesContainerType                                            NodesArrayType;
+    /// Pointer type for the system vector
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
-    typedef ModelPart::ConditionsContainerType                                  ConditionsArrayType;
+    /// Array type for nodes
+    using NodesArrayType = typename ModelPart::NodesContainerType;
 
-    typedef std::size_t                                                                   IndexType;
+    /// Array type for conditions
+    using ConditionsArrayType = typename ModelPart::ConditionsContainerType;
+
+    /// Index type definition
+    using IndexType = std::size_t;
 
     /**
      * @brief Default constructor
@@ -392,7 +416,7 @@ protected:
     {
         // Now we iterate over all the nodes
         NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
@@ -422,7 +446,7 @@ protected:
     {
         // Now we iterate over all the nodes
         NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
@@ -555,5 +579,3 @@ private:
 ///@{
 ///@}
 }  // namespace Kratos
-
-#endif /* KRATOS_LINE_SEARCH_CONTACT_STRATEGY */

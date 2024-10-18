@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 // External includes
 
@@ -131,8 +131,8 @@ public:
     typedef std::size_t SizeType;
 
     //defintions for spatial search
-    typedef Node<3>                                     PointType;
-    typedef Node<3>::Pointer                            PointTypePointer;
+    typedef Node                                     PointType;
+    typedef Node::Pointer                            PointTypePointer;
     typedef std::vector<PointType::Pointer>             PointVector;
     typedef std::vector<PointType::Pointer>::iterator   PointIterator;
     typedef std::vector<double>                         DistanceVector;
@@ -217,7 +217,7 @@ public:
     /// Generate a set of conditions linking each node in the periodic boundary to its image on the other side.
     /**
       * @param MovementRef If TReference == array_1d<double,3>, MovementRef is assumed to be the transaltion
-      * vector between the two sides of the periodic boundary. If TReference == Node<3>, MovementRef is assumed
+      * vector between the two sides of the periodic boundary. If TReference == Node, MovementRef is assumed
       * to be the center of symmetry for node pairs.
       * @param pProperties Pointer to the properties that will be assigned to new conditions. Note that PeriodicConditon
       * objects need to have a value for PERIODIC_VARIABLES in their properties.
@@ -242,7 +242,7 @@ public:
 
         // Create a geometry for new conditions
         ModelPart::ConditionsContainerType& rConditions = mrModelPart.Conditions();
-        Geometry< Node<3> >::PointsArrayType ConditionNodes(2);
+        Geometry< Node >::PointsArrayType ConditionNodes(2);
 
         // Get Id for new conditions
         IndexType Id;
@@ -430,12 +430,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    void MoveNode( const Node<3>& rInNode, Node<3>& rOutNode, const array_1d<double,3>& rTranslation) const
+    void MoveNode( const Node& rInNode, Node& rOutNode, const array_1d<double,3>& rTranslation) const
     {
         rOutNode.Coordinates() = rInNode.Coordinates() + rTranslation;
     }
 
-    void MoveNode( const Node<3>& rInNode, Node<3>& rOutNode, const Node<3>& rCentreNode )
+    void MoveNode( const Node& rInNode, Node& rOutNode, const Node& rCentreNode )
     {
         rOutNode.Coordinates() = rInNode.Coordinates() + 2.0 * ( rCentreNode.Coordinates() - rInNode.Coordinates() );
     }

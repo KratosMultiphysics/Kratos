@@ -20,16 +20,6 @@
 #include "Particle_Contact_Element.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
-
 namespace Kratos
 {
     class KRATOS_API(DEM_APPLICATION) SphericContinuumParticle : public SphericParticle
@@ -104,8 +94,8 @@ namespace Kratos
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
-        virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
-                                                double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
+        virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3],
+                                                double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps, double calculation_area);
 
 
         virtual void FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
@@ -144,6 +134,7 @@ namespace Kratos
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         double mLocalRadiusAmplificationFactor = 1.0;
+        //double mLocalJointNormal[3];
 
     protected:
 
@@ -151,17 +142,10 @@ namespace Kratos
 
         void Initialize(const ProcessInfo& r_process_info) override;
         virtual double GetInitialDeltaWithFEM(int index) override;
-        virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+        virtual void ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer &,
                                                 const ProcessInfo& r_process_info,
                                                 array_1d<double, 3>& rElasticForce,
-                                                array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance) override;
-
-        virtual void ComputeRollingResistance(double& RollingResistance,
-                                            const double& NormalLocalContactForce,
-                                            const double& equiv_rolling_friction_coeff,
-                                            const unsigned int i) override;
-
+                                                array_1d<double, 3>& rContactForce) override;
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,

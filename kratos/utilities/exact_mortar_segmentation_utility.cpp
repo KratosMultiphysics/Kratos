@@ -1086,7 +1086,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
         // Solution save:
         const array_1d<double, 3>& coordinates_gp = integration_points_slave[GP].Coordinates();
         rCustomSolution(GP, 0) = coordinates_gp[0];
-        if (TDim == 2)
+        if constexpr (TDim == 2)
             rCustomSolution(GP, 1) = integration_points_slave[GP].Weight();
         else {
             rCustomSolution(GP, 1) = coordinates_gp[1];
@@ -1159,7 +1159,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
     const std::string IOConsidered
     )
 {
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         Model& current_model = rMainModelPart.GetModel();
         ModelPart& aux_model_part = current_model.CreateModelPart("exact_mortar_aux_model_part");
 

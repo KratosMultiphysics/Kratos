@@ -1,10 +1,10 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 # Import applications
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver as NavierMonolithic
 
 # Import base class file
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver
@@ -115,9 +115,8 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithicDEM(model, custom_settings)
 
-class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesSolverMonolithic):
+class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesMonolithicSolver):
 
-    @classmethod
     def GetDefaultParameters(cls):
 
         ##settings string in json format
@@ -147,6 +146,8 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
+            "fluid_manufactured"         : false,
+            "relax_alpha"                : 1.0,
             "linear_solver_settings"        : {
                 "solver_type" : "amgcl"
             },
@@ -184,11 +185,14 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         """
         self._validate_settings_in_baseclass=True
         self.dimension = custom_settings["domain_size"].GetInt()
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
 
         # Set up the auxiliary class with the formulation settings
         self._SetFormulation()
+        self.alpha = custom_settings["relax_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(SDEM.RELAXATION_ALPHA, self.alpha)
+        self.is_manufactured = custom_settings["fluid_manufactured"].GetBool()
+        self.main_model_part.ProcessInfo.SetValue(SDEM.MANUFACTURED, self.is_manufactured)
 
         super(NavierStokesSolverMonolithicDEM,self)._SetTimeSchemeBufferSize()
 

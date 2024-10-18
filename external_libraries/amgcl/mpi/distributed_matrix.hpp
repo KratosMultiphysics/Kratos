@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -204,8 +204,13 @@ class comm_pattern {
         }
 
         void move_to_backend(const backend_params &bprm = backend_params()) {
-            x_rem  = Backend::create_vector(recv.count(), bprm);
-            gather = std::make_shared<Gather>(loc_cols, send.col, bprm);
+            if (!x_rem) {
+                x_rem  = Backend::create_vector(recv.count(), bprm);
+            }
+
+            if (!gather) {
+                gather = std::make_shared<Gather>(loc_cols, send.col, bprm);
+            }
         }
 
         int domain(ptrdiff_t col) const {
@@ -486,26 +491,39 @@ class distributed_matrix {
             A_loc = a;
         }
 
-        void move_to_backend(const backend_params &bprm = backend_params()) {
+        void move_to_backend(const backend_params &bprm = backend_params(), bool keep_src = false) {
             AMGCL_TIC("move to backend");
             if (!A_loc) {
                 A_loc = Backend::copy_matrix(a_loc, bprm);
             }
 
             if (!A_rem && a_rem && a_rem->nnz > 0) {
+                std::vector<ptrdiff_t> backup;
+                if (keep_src) {
+                    backup.assign(a_rem->col, a_rem->col + a_rem->nnz);
+                }
+
                 C->renumber(a_rem->nnz, a_rem->col);
                 A_rem = Backend::copy_matrix(a_rem, bprm);
+
+                if (keep_src) {
+                    std::copy(backup.begin(), backup.end(), a_rem->col);
+                }
             }
 
             C->move_to_backend(bprm);
 
-            a_loc.reset();
-            a_rem.reset();
+            if (!keep_src) {
+                a_loc.reset();
+                a_rem.reset();
+            }
             AMGCL_TOC("move to backend");
         }
 
         template <class A, class VecX, class B, class VecY>
         void mul(A alpha, const VecX &x, B beta, VecY &y) const {
+            const auto one = math::identity<scalar_type>();
+
             C->start_exchange(x);
 
             // Compute local part of the product.
@@ -515,18 +533,20 @@ class distributed_matrix {
             C->finish_exchange();
 
             if (C->needs_remote())
-                backend::spmv(alpha, *A_rem, *C->x_rem, 1, y);
+                backend::spmv(alpha, *A_rem, *C->x_rem, one, y);
         }
 
         template <class Vec1, class Vec2, class Vec3>
         void residual(const Vec1 &f, const Vec2 &x, Vec3 &r) const {
+            const auto one = math::identity<scalar_type>();
+
             C->start_exchange(x);
             backend::residual(f, *A_loc, x, r);
 
             C->finish_exchange();
 
             if (C->needs_remote())
-                backend::spmv(-1, *A_rem, *C->x_rem, 1, r);
+                backend::spmv(-one, *A_rem, *C->x_rem, one, r);
         }
 
     private:

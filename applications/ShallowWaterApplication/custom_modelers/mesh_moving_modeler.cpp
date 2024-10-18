@@ -78,7 +78,9 @@ void MeshMovingModeler::SetupModelPart()
     }
 
     // Properties
-    moving_model_part.SetProperties(fixed_model_part.pProperties());
+    for (auto& r_prop : fixed_model_part.rProperties()) {
+        moving_model_part.AddProperties(Kratos::make_shared<Properties>(r_prop));
+    }
 
     // Elements: we need to clone the geometry with the new nodes
     ModelPart::ElementsContainerType aux_array_with_element_pointers;
@@ -91,6 +93,8 @@ void MeshMovingModeler::SetupModelPart()
                 new_elem_nodes.push_back(moving_model_part.pGetNode(r_node.Id()));
             }
             auto new_elem = r_elem.Clone(r_elem.Id(), new_elem_nodes);
+            auto new_property = moving_model_part.pGetProperties(r_elem.GetProperties().Id());
+            new_elem->SetProperties(new_property);
             aux_array_with_element_pointers.push_back(new_elem);
         }
     }
@@ -107,6 +111,8 @@ void MeshMovingModeler::SetupModelPart()
                 new_cond_nodes.push_back(moving_model_part.pGetNode(r_node.Id()));
             }
             auto new_cond = r_cond.Clone(r_cond.Id(), new_cond_nodes);
+            auto new_property = moving_model_part.pGetProperties(r_cond.GetProperties().Id());
+            new_cond->SetProperties(new_property);
             aux_array_with_condition_pointers.push_back(new_cond);
         }
     }
@@ -154,6 +160,7 @@ void MeshMovingModeler::SetupModelPart()
     ShallowWaterUtilities().OffsetIds(moving_model_part.Nodes(), fixed_model_part.Nodes().size());
     ShallowWaterUtilities().OffsetIds(moving_model_part.Elements(), fixed_model_part.Elements().size());
     ShallowWaterUtilities().OffsetIds(moving_model_part.Conditions(), fixed_model_part.Conditions().size());
+    ShallowWaterUtilities().OffsetIds(moving_model_part.rProperties(), fixed_model_part.rProperties().size());
 }
 
 const Parameters MeshMovingModeler::GetDefaultParameters() const

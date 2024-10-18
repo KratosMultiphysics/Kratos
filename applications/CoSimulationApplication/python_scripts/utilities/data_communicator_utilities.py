@@ -19,13 +19,13 @@ def CreateDataCommunicatorWithNProcesses(settings):
 
     defaults = KM.Parameters("""{
         "num_processes" : 0,
-        "name" : ""
+        "data_communicator_name" : ""
     }""")
 
     settings.ValidateAndAssignDefaults(defaults)
 
     num_processes = settings["num_processes"].GetInt()
-    name = settings["name"].GetString()
+    name = settings["data_communicator_name"].GetString()
 
     world_data_comm = KM.ParallelEnvironment.GetDataCommunicator("World")
 

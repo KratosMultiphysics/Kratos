@@ -48,6 +48,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * Shock Capturing Process for compressible navier stokes. Source:
+ * 
+ * 2011. Guermond, Pasquetti, Popov. Entropy viscosity method for nonlinear conservation laws
+ * Journal of Computational Physics. Volume 230, Issue 11, 20 May 2011, Pages 4248-4267
+ * 
+ */
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingEntropyViscosityProcess : public Process
 {
 public:
@@ -167,8 +174,6 @@ public:
 
     void ExecuteInitializeSolutionStep() override;
 
-    void ExecuteFinalizeSolutionStep() override;
-
     int Check() override;
 
     const Parameters GetDefaultParameters() const override;
@@ -250,9 +255,9 @@ private:
     void DistributeVariablesToNodes(
         Element& rElement,
         const double ArtificialDynamicViscosity,
-        const double ArtificialBulkViscosity,
+        const double ArtificialMassDiffusivity,
         const double ArtificialConductivity,
-        const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
+        const std::function<double(Geometry<Node>*)>& rGeometrySize) const;
 
     static double ComputeEntropy(
         const double Density, 
@@ -282,7 +287,8 @@ private:
     static InfNormData ComputeElementalInfNormData(
         const Element& rElement,
         const double DeltaTime,
-        const double HeatCapacityRatio);
+        const double HeatCapacityRatio,
+        const double SpecificHeatCV);
 
     /**
      * @brief Buidls the TotalDerivativeUtil objects that will be used to compute inf norms
@@ -293,7 +299,8 @@ private:
     static std::tuple<TotalDerivativeUtil, TotalDerivativeUtil, Vector> BuildTotalDerivativeUtils(
         const Element& rElement,
         const double DeltaTime,
-        const double HeatCapacityRatio);
+        const double HeatCapacityRatio,
+        const double SpecificHeatCV);
 
     /**
      * @brief Computes entropy max value of residual, density and total velocity over all gauss points.

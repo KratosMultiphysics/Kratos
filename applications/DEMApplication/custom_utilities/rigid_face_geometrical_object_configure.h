@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
   ///@name Kratos Globals
   ///@{
 
@@ -78,8 +78,6 @@ public:
     //typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
     typedef typename ElementsContainerType::ContainerType ContainerType;
 
-
-    typedef SearchType::ElementType                                             ElementType;
     typedef ContainerType::value_type                                           PointerType;
     typedef ContainerType::iterator                                             IteratorType;
 
@@ -89,11 +87,6 @@ public:
 
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-
-    typedef ContactPair<PointerType>                                ContactPairType;
-    typedef std::vector<ContactPairType>                            ContainerContactType;
-    typedef ContainerContactType::iterator                          IteratorContactType;
-    typedef ContainerContactType::value_type                        PointerContactType;
 
     ///@}
     ///@name Life Cycle
@@ -462,8 +455,9 @@ public:
 
        double distance_point_to_plane   = 0.0;
        unsigned int current_edge_index  = 0;
+       bool inside = false;
        ContactExists = GeometryFunctions::FacetCheck(FE_Geom, DE_Geom[0].Coordinates(), Radius, local_coord_system,
-                                                     distance_point_to_plane, Weight, current_edge_index);
+                                                     distance_point_to_plane, Weight, current_edge_index, inside);
        if (ContactExists == true) {
          ContactType = 1;
          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_plane, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
@@ -474,41 +468,50 @@ public:
 
        //The check should avoid the edges which yielded a OUTSIDE value in the inside-outside check. i.e. we will check from the current edge to the last.
 
-       ///Particle-edge contact and Particle-point
-       if ( (ContactExists == false) && (distance_point_to_plane < Radius ) ) {
+       if (!ContactExists) {
 
-          bool local_contact_exists = false;
-          for (unsigned int e = current_edge_index; e < FE_size; e++ ) {
-            double eta = 0.5; // dummy initialize
-            double distance_point_to_edge = 2.0 * Radius; //dummy big initialization
+         ///Particle-edge contact and Particle-point
+         if (distance_point_to_plane < Radius) {
+           bool local_contact_exists = false;
+           for (unsigned int e = current_edge_index; e < FE_size; e++) {
+             double eta = 0.5; // dummy initialize
+             double distance_point_to_edge = 2.0 * Radius; //dummy big initialization
 
-            local_contact_exists = GeometryFunctions::EdgeCheck( FE_Geom[e], FE_Geom[(e+1)%FE_size],  DE_Geom[0].Coordinates(), Radius, local_coord_system,
-                                                          distance_point_to_edge, eta);
-            if (local_contact_exists) {
-                //save data
-                ContactType           = 2;
-                Weight[e]             = 1-eta;
-                Weight[(e+1)%FE_size] = eta; //the rest remain 0 (valid for triangles and quadrilateral)
-                if(FE_size > 4){KRATOS_WATCH("WEIGHTS ALONG EDGE CANT BE CALCULATED WITH SUKUMAR FORMULAE")}
-                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
-                continue; //skip vertex check
-            }
-            if ( (local_contact_exists == false) && (distance_point_to_edge < Radius ) ) {
-              unsigned int vertex_to_check = -1;
-              if(eta<0.0) {vertex_to_check = e;}
-              else if(eta>1.0){ vertex_to_check = (e+1)%FE_size;}
-              else {continue;}
-              double distance_point_to_vertex = 0.0;
-              local_contact_exists = GeometryFunctions::VertexCheck(FE_Geom[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
+             local_contact_exists = GeometryFunctions::EdgeCheck(FE_Geom[e], FE_Geom[(e + 1) % FE_size], DE_Geom[0].Coordinates(), Radius, local_coord_system,
+               distance_point_to_edge, eta);
+             if (local_contact_exists) {
+               //save data
+               ContactType = 2;
+               Weight[e] = 1 - eta;
+               Weight[(e + 1) % FE_size] = eta; //the rest remain 0 (valid for triangles and quadrilateral)
+               if (FE_size > 4) { KRATOS_WATCH("WEIGHTS ALONG EDGE CANT BE CALCULATED WITH SUKUMAR FORMULAE") }
+               ContactExists = DistanceHierarchy(rObj_1, rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
+               continue; //skip vertex check
+             }
+             if ((local_contact_exists == false) && (distance_point_to_edge < Radius)) {
+               unsigned int vertex_to_check = -1;
+               if (eta < 0.0) { vertex_to_check = e; }
+               else if (eta > 1.0) { vertex_to_check = (e + 1) % FE_size; }
+               else { continue; }
+               double distance_point_to_vertex = 0.0;
+               local_contact_exists = GeometryFunctions::VertexCheck(FE_Geom[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
 
-              if(local_contact_exists) {
-                ContactType             = 3;
-                Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
-                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
-              }
-            } // (ContactExists == false) && (distance_point_to_edge < Radius )
-          }//for every edge
-       }//no plane contact found
+               if (local_contact_exists) {
+                 ContactType = 3;
+                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
+                 ContactExists = DistanceHierarchy(rObj_1, rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
+               }
+             } // (ContactExists == false) && (distance_point_to_edge < Radius )
+           }//for every edge
+         }
+
+         // Add to non contact list the faces intersected by the normal direction between the particle and the FE
+         else {
+           if (inside)
+             rObj_1->mNeighbourNonContactRigidFaces.push_back(rObj_2);
+         }
+       }
+
        return;
     } //DoubleHierarchyMethod3D
 
@@ -560,20 +563,27 @@ public:
           return;
       }
 
-      if ( (ContactExists == false) && (distance_point_to_edge < Radius ) ) {
-        unsigned int vertex_to_check = -1;
-        if(eta<0.0){ vertex_to_check = 0;}
-        else if(eta>1.0){ vertex_to_check = 1;}
-        double distance_point_to_vertex = 0.0;
-        ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
+      if (ContactExists == false) {
+        if (distance_point_to_edge < Radius) {
+          unsigned int vertex_to_check = -1;
+          if      (eta < 0.0) { vertex_to_check = 0; }
+          else if (eta > 1.0) { vertex_to_check = 1; }
+          double distance_point_to_vertex = 0.0;
+          ContactExists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
 
-        if(ContactExists) {
-          ContactType             = 3;
-          Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
-          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
-          return;
+          if (ContactExists) {
+            ContactType = 3;
+            Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
+            ContactExists = DistanceHierarchy(rObj_1, rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
+            return;
+          }
         }
-      } // (ContactExists == false) && (distance_point_to_edge < Radius )
+        else { // noncontact rigid face (distance_point_to_edge >= Radius)
+          if ((eta >= 0.0) && (eta <= 1.0))
+            rObj_1->mNeighbourNonContactRigidFaces.push_back(rObj_2);
+        }
+      }
+
       return;
     }//DoubleHierarchyMethod2D
 

@@ -24,7 +24,6 @@ class make_block_solver {
         typedef typename backend_type::params              backend_params;
         typedef typename backend_type::vector              vector;
         typedef typename math::scalar_of<value_type>::type scalar_type;
-        typedef typename math::rhs_of<value_type>::type    rhs_type;
 
         typedef typename make_solver<Precond, IterativeSolver>::params params;
 
@@ -42,14 +41,8 @@ class make_block_solver {
         std::tuple<size_t, scalar_type> operator()(
                 const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec1>::type>::type>::type fs;
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec2>::type>::type>::type xs;
-
-            typedef typename math::replace_scalar<rhs_type, fs>::type f_type;
-            typedef typename math::replace_scalar<rhs_type, xs>::type x_type;
-
-            auto F = backend::reinterpret<const f_type>(rhs);
-            auto X = backend::reinterpret<x_type>(x);
+            auto F = backend::reinterpret_as_rhs<value_type>(rhs);
+            auto X = backend::reinterpret_as_rhs<value_type>(x);
 
             return (*S)(A, F, X);
         }
@@ -57,14 +50,8 @@ class make_block_solver {
         template <class Vec1, class Vec2>
         std::tuple<size_t, scalar_type>
         operator()(const Vec1 &rhs, Vec2 &&x) const {
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec1>::type>::type>::type fs;
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec2>::type>::type>::type xs;
-
-            typedef typename math::replace_scalar<rhs_type, fs>::type f_type;
-            typedef typename math::replace_scalar<rhs_type, xs>::type x_type;
-
-            auto F = backend::reinterpret<const f_type>(rhs);
-            auto X = backend::reinterpret<x_type>(x);
+            auto F = backend::reinterpret_as_rhs<value_type>(rhs);
+            auto X = backend::reinterpret_as_rhs<value_type>(x);
 
             return (*S)(F, X);
         }

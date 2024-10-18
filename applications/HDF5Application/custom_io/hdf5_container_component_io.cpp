@@ -3,14 +3,21 @@
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
 #include "custom_utilities/registered_component_lookup.h"
+#include "custom_utilities/vertex.h"
 #include "includes/communicator.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+// Local aliases
+using Vertex = Detail::Vertex;
+using VertexContainerType = Detail::VertexContainerType;
+
 namespace
 {
 template <typename TContainerItemType, typename TDataType>
@@ -288,6 +295,24 @@ class ReadNodeComponent
 {
 };
 
+template <class TComponent>
+class WriteVertexComponent
+    : public ContainerItemComponentIO<Vertex>::WriteComponentFunctor<TComponent, void>
+{
+};
+
+// Reading into a Vertex is not (yet) supported
+template <class TComponent>
+class ReadVertexComponent
+{
+public:
+    template <class ...TArguments>
+    void operator()(TArguments&&... rArguments)
+    {
+        KRATOS_ERROR << "Reading Vertex data from HDF5 is not implemented";
+    }
+};
+
 void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
                                 ElementsContainerType const& rElements)
 {
@@ -320,6 +345,20 @@ void GetContainerItemReferences(std::vector<NodeType*>& rLocalNodes,
     GetLocalNodes(rNodes, rLocalNodes);
 }
 
+void GetContainerItemReferences(std::vector<Vertex*>& rLocalVertices,
+                                const VertexContainerType& rVertices)
+{
+    rLocalVertices.resize(rVertices.size());
+
+    IndexPartition<std::size_t>(rVertices.size()).for_each([&rVertices,&rLocalVertices](std::size_t i_vertex){
+        // Why is this even allowed in PointerVectorSet?
+        // The const qualifier from rElements is just discarded
+        // without warning when copying to rLocalElements! If this is
+        // intentional, a comment should explain why it is necessary.
+        rLocalVertices[i_vertex] = &*(rVertices.begin() + i_vertex);
+    });
+}
+
 } // unnamed namespace
 
 template <typename TContainerType, typename TContainerItemType, typename... TComponents>
@@ -335,17 +374,17 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
             "list_of_variables": []
         })");
 
-    Settings.ValidateAndAssignDefaults(default_params);
+    Settings.AddMissingParameters(default_params);
 
     mComponentPath = Settings["prefix"].GetString() + rComponentPath;
+    mComponentNames = Settings["list_of_variables"].GetStringArray();
 
-    const std::size_t num_components = Settings["list_of_variables"].size();
-
-    if (mComponentNames.size() != num_components)
-        mComponentNames.resize(num_components);
-
-    for (std::size_t i = 0; i < num_components; ++i)
-        mComponentNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
+    // Sort component names to make sure they're in the same order on each rank.
+    // The basic assumption is that the set of components is identical on every
+    // rank, but they may not be in the same order (which would lead to ranks
+    // trying to write different variables at the same time, resulting in
+    // a deadlock), hence the sorting.
+    std::sort(mComponentNames.begin(), mComponentNames.end());
 
     KRATOS_CATCH("");
 }
@@ -504,6 +543,54 @@ void ContainerComponentIO<NodesContainerType,
     RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                               Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
         .Execute<ReadNodeComponent>(args...);
+}
+
+template <>
+template <class ...TArguments>
+void ContainerComponentIO<VertexContainerType, Vertex, Flags>::WriteRegisteredComponent(
+    const std::string& rComponentName, TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteVertexComponent>(rArguments...);
+}
+
+template <>
+template <class ...TArguments>
+void ContainerComponentIO<VertexContainerType,
+                          Vertex,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
+                                                                              TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<WriteVertexComponent>(rArguments...);
+}
+
+template <>
+template <typename... TArguments>
+void ContainerComponentIO<VertexContainerType, Vertex, Flags>::ReadRegisteredComponent(
+    const std::string& rComponentName, TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadVertexComponent>(rArguments...);
+}
+
+template <>
+template <typename... TArguments>
+void ContainerComponentIO<VertexContainerType,
+                          Vertex,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
+                                                                             TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<ReadVertexComponent>(rArguments...);
 }
 
 template <typename TContainerType, typename TContainerItemType, typename... TComponents>
@@ -761,6 +848,13 @@ template class ContainerComponentIO<ConditionsContainerType,
 template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
 template class ContainerComponentIO<NodesContainerType,
                                     NodeType,
+                                    Variable<array_1d<double, 3>>,
+                                    Variable<double>,
+                                    Variable<int>,
+                                    Variable<Vector<double>>,
+                                    Variable<Matrix<double>>>;
+template class ContainerComponentIO<VertexContainerType,
+                                    Vertex,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
                                     Variable<int>,

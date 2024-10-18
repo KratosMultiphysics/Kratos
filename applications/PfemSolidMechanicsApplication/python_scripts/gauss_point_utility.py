@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPFEMSolid
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
@@ -36,13 +35,13 @@ class GaussPointUtility(KratosMultiphysics.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
-        
+
         time = self._GetStepTime()
-        
+
         SomeProcessInfo = KratosMultiphysics.ProcessInfo()
 
         elems = self.model_part.GetElements(0)
-        for elem in elems: 
+        for elem in elems:
             cauchy_vector = elem.CalculateOnIntegrationPoints( KratosMultiphysics.CAUCHY_STRESS_TENSOR, SomeProcessInfo)
             epsi_vector = elem.CalculateOnIntegrationPoints( KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, SomeProcessInfo)
             break

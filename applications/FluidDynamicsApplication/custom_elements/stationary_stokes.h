@@ -100,7 +100,7 @@ public:
     typedef Kratos::Matrix ShapeDerivativesType;
 
     /// Type for geometry calls
-    typedef Kratos::Geometry< Node<3> > GeometryType;
+    typedef Kratos::Geometry< Node > GeometryType;
 
     ///@}
     ///@name Life Cycle

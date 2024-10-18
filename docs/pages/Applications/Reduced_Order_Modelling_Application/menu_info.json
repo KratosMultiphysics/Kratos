@@ -1,0 +1,12 @@
+{
+    "side_bar_name": "rom_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "ROM Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "ROM_Tutorial_with_RomManager"
+    ]
+}

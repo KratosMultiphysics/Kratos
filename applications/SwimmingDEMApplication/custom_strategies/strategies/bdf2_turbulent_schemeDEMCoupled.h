@@ -139,8 +139,158 @@ public:
     {
         ProcessInfo CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
+        this->SetTimeCoefficients(rModelPart.GetProcessInfo());
+
+        // Base function initializes elements and conditions
+        BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
+
+        // Recalculate mesh velocity (to account for variable time step)
+        const double tol = 1.0e-12;
+        const double Dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double OldDt = rModelPart.GetProcessInfo().GetPreviousSolutionStepInfo(1)[DELTA_TIME];
+        if(std::abs(Dt - OldDt) > tol) {
+            const int n_nodes = rModelPart.NumberOfNodes();
+            const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+
+#pragma omp parallel for
+            for(int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                auto& rMeshVel = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                const auto& rDisp0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                const auto& rDisp1 = it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                const auto& rDisp2 = it_node->FastGetSolutionStepValue(DISPLACEMENT,2);
+                rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
+            }
+        }
         this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+    }
+
+    void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        //calculate the BDF coefficients
+        double OldDt;
+        double Dt = rCurrentProcessInfo[DELTA_TIME];
+        double step = rCurrentProcessInfo[STEP];
+        // Initialization of the previous delta time at the beginning of the simulation (when using adaptive delta time)
+        if (rCurrentProcessInfo[MANUFACTURED] && step < 2){
+            OldDt = rCurrentProcessInfo[DELTA_TIME];
+        }
+        else {
+            OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        }
+
+        double Rho = OldDt / Dt;
+        double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+
+        Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        BDFcoeffs.resize(3, false);
+
+        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+        BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+
+        KRATOS_CATCH("");
+    }
+
+    void FullProjection(ModelPart& rModelPart)
+    {
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        // Initialize containers
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto ind = rModelPart.NodesBegin() + i_node;
+            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = zero_vect; // "x"
+            ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
+            ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
+        }
+
+        // Newton-Raphson parameters
+        const double RelTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-4 * rModelPart.NumberOfNodes();
+        const double AbsTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-6 * rModelPart.NumberOfNodes();
+        const unsigned int MaxIter = 100;
+
+        // iteration variables
+        unsigned int iter = 0;
+        array_1d<double,3> dMomProj = zero_vect;
+        double dMassProj = 0.0;
+
+        double RelMomErr = 1000.0 * RelTol;
+        double RelMassErr = 1000.0 * RelTol;
+        double AbsMomErr = 1000.0 * AbsTol;
+        double AbsMassErr = 1000.0 * AbsTol;
+
+        while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
+        {
+            // Reinitialize RHS
+#pragma omp parallel for firstprivate(zero_vect)
+            for (int i_node = 0; i_node < n_nodes; ++i_node)
+            {
+                auto ind = rModelPart.NodesBegin() + i_node;
+                noalias(ind->GetValue(ADVPROJ)) = zero_vect; // "b"
+                ind->GetValue(DIVPROJ) = 0.0; // "b"
+                ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
+            }
+
+            // Reinitialize errors
+            RelMomErr = 0.0;
+            RelMassErr = 0.0;
+            AbsMomErr = 0.0;
+            AbsMassErr = 0.0;
+
+            // Compute new values
+            array_1d<double, 3 > output;
+#pragma omp parallel for private(output)
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                auto it_elem = rModelPart.ElementsBegin() + i_elem;
+                it_elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
+            }
+
+            rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+            rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+
+            // Update iteration variables
+#pragma omp parallel for
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto ind = rModelPart.NodesBegin() + i_node;
+                const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
+                dMomProj = ind->GetValue(ADVPROJ) / Area;
+                dMassProj = ind->GetValue(DIVPROJ) / Area;
+
+                RelMomErr += std::sqrt(std::pow(dMomProj[0],2) + std::pow(dMomProj[1],2) + std::pow(dMomProj[2],2));
+                RelMassErr += std::fabs(dMassProj);
+
+                auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
+                double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
+                rMomRHS += dMomProj;
+                rMassRHS += dMassProj;
+
+                AbsMomErr += std::sqrt(std::pow(rMomRHS[0],2) + std::pow(rMomRHS[1],2) + std::pow(rMomRHS[2],2));
+                AbsMassErr += std::fabs(rMassRHS);
+            }
+
+            if(AbsMomErr > 1e-10)
+                RelMomErr /= AbsMomErr;
+            else // If residual is close to zero, force absolute convergence to avoid division by zero errors
+                RelMomErr = 1000.0;
+
+            if(AbsMassErr > 1e-10)
+                RelMassErr /= AbsMassErr;
+            else
+                RelMassErr = 1000.0;
+
+            iter++;
+        }
+
+        KRATOS_INFO("BDF2TurbulentSchemeDEMCoupled") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void InitializeNonLinIteration(
@@ -158,8 +308,8 @@ public:
         //if orthogonal subscales are computed
         if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
         {
-            this->LumpedProjection(rModelPart);
-            //this->FullProjection(rModelPart);
+            //this->LumpedProjection(rModelPart);
+            this->FullProjection(rModelPart);
         }
 
         KRATOS_CATCH("")
@@ -182,12 +332,20 @@ public:
     {
         BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::SetTimeCoefficients(r_current_process_info);
         const Vector& BDFcoefs = r_current_process_info[BDF_COEFFICIENTS];
+        double step = r_current_process_info[STEP];
 
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_model_part.Nodes(), [&](Node& rNode)
         {
-            const double fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
-            const double fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
+            double& fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
+            double& fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+            double& fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
+
+            // This condition is needed to avoid large time variation of the porosity at the beginning of the simulation that can induce fluid instabilities
+            if (step <= 2){
+                fluid_fraction_2 = fluid_fraction_0;
+                fluid_fraction_1 = fluid_fraction_0;
+            }
+
             rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = BDFcoefs[0] * fluid_fraction_0 + BDFcoefs[1] * fluid_fraction_1 + BDFcoefs[2] * fluid_fraction_2;
 
             rNode.GetSolutionStepValue(FLUID_FRACTION_OLD_2) = rNode.GetSolutionStepValue(FLUID_FRACTION_OLD);

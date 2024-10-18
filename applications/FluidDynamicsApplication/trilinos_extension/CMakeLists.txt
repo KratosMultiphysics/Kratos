@@ -6,13 +6,6 @@ include_directories(
   ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
-
 file(
   GLOB_RECURSE
   KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
@@ -22,7 +15,8 @@ file(
 ## Python module
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+target_include_directories(KratosFluidDynamicsTrilinosExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
+target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -40,6 +34,9 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsTrilinosExtension" PARENT_SCOPE)
 
 ###############################################################################
 ## installing the resulting libraries

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -204,6 +204,28 @@ class preconditioner {
                     break;
                 default:
                     break;
+            }
+        }
+
+        template <class Matrix>
+        void rebuild(
+                const Matrix &A,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            switch (_class) {
+                case precond_class::amg:
+                    {
+                        typedef
+                            amgcl::amg<Backend, runtime::coarsening::wrapper, runtime::relaxation::wrapper>
+                            Precond;
+
+                        static_cast<Precond*>(handle)->rebuild(A, bprm);
+                    }
+                    break;
+                default:
+                    std::cerr << "rebuild is a noop unless the preconditioner is AMG" << std::endl;
+                    return;
             }
         }
 

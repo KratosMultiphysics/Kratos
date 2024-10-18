@@ -60,7 +60,7 @@ public:
   typedef GeometryData::IntegrationMethod IntegrationMethod;
 
   ///NodeType
-  typedef Node < 3 > NodeType;
+  typedef Node NodeType;
   ///Geometry Type
   typedef Geometry<NodeType> GeometryType;
   ///Element Type
@@ -76,7 +76,7 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
-  typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -420,7 +420,7 @@ public:
    * Returns the currently selected integration method
    * @return current integration method selected
    */
-  IntegrationMethod GetIntegrationMethod() override;
+  IntegrationMethod GetIntegrationMethod() const override;
 
   /**
    * Sets on rConditionalDofList the degrees of freedom of the considered element geometry

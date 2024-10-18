@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -235,7 +235,7 @@ void InterfaceCommunicator::InitializeSearchIteration(const MapperInterfaceInfoU
 
     IndexType local_sys_idx = 0;
     for (const auto& r_local_sys : mrMapperLocalSystems) {
-        if (!r_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) { // Only the local_systems that have not received an InterfaceInfo create a new one
+        if (!r_local_sys->IsDoneSearching()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
             r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0)); // dummy-rank of 0
         }
@@ -387,8 +387,8 @@ void InterfaceCommunicator::ConductLocalSearch()
 
     KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!" << std::endl;
 
-    int sum_num_results = 0;
-    int sum_num_searched_objects = 0;
+    std::size_t sum_num_results = 0;
+    std::size_t sum_num_searched_objects = 0;
 
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
 
@@ -449,8 +449,8 @@ void InterfaceCommunicator::ConductLocalSearch()
     if (mEchoLevel > 0) {
         const auto& r_data_comm = mrModelPartOrigin.GetCommunicator().GetDataCommunicator();
         if (r_data_comm.IsDefinedOnThisRank()) {
-            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
-            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+            sum_num_results = r_data_comm.Sum(static_cast<double>(sum_num_results), 0);
+            sum_num_searched_objects = r_data_comm.Sum(static_cast<double>(sum_num_searched_objects), 0);
         }
 
         const double avg_num_results = std::round(sum_num_results / static_cast<double>(sum_num_searched_objects));
@@ -483,7 +483,7 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     // this partition doesn't have a part of the interface!
 
     for (const auto& local_sys : mrMapperLocalSystems) {
-        if (!local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
+        if (!local_sys->IsDoneSearching()) {
             all_neighbors_found = 1;
             break;
         }
@@ -506,30 +506,39 @@ void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(
 {
     if (rComm.GetDataCommunicator().IsNullOnThisRank()) { return; }
 
-    using TwoReduction = CombinedReduction<SumReduction<int>, SumReduction<int>>;
-    int approximations, no_neighbor;
-    std::tie(approximations, no_neighbor) = block_for_each<TwoReduction>(mrMapperLocalSystems,
+    array_1d<double, 3> counters = block_for_each<SumReduction<array_1d<double, 3>>>(mrMapperLocalSystems,
         [](const MapperLocalSystemPointer& rpLocalSys){
+            array_1d<double, 3> loc_counter;
+            loc_counter[0] = rpLocalSys->IsDoneSearching();
+
             if (rpLocalSys->HasInterfaceInfoThatIsNotAnApproximation()) {
-                return std::make_tuple(0,0);
+                loc_counter[1] = 0;
+                loc_counter[2] = 0;
             } else if (rpLocalSys->HasInterfaceInfo()) {
-                return std::make_tuple(1,0);
+                loc_counter[1] = 1;
+                loc_counter[2] = 0;
+            } else {
+                loc_counter[1] = 0;
+                loc_counter[2] = 1;
             }
-            return std::make_tuple(0,1);
+
+            return loc_counter;
     });
-    approximations = rComm.GetDataCommunicator().SumAll(approximations);
-    no_neighbor = rComm.GetDataCommunicator().SumAll(no_neighbor);
-    const int global_num_nodes = rComm.GlobalNumberOfNodes();
+
+    counters = rComm.GetDataCommunicator().Sum(counters, 0);
+    const double global_num_loc_sys = rComm.GetDataCommunicator().Sum(static_cast<double>(mrMapperLocalSystems.size()), 0);
+
+    const array_1d<double, 3> counters_proc = counters * 100 / global_num_loc_sys;
 
     KRATOS_INFO("Mapper search") << "current status:\n    "
-        << approximations << " / " << global_num_nodes << " ("
-        << std::round((approximations/static_cast<double>(global_num_nodes))*100)
+        << counters[0] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[0])
+        << " %) local systems are done searching\n    "
+        << counters[1] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[1])
         << " %) local systems found only an approximation\n    "
-        << no_neighbor << " / " << global_num_nodes << " ("
-        << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100)
+        << counters[2] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[2])
         << " %) local systems did not find a neighbor" << std::endl;
 
-    KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer.ElapsedSeconds() << " [s]" << std::endl;
+    KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer << std::endl;
 }
 
 }  // namespace Kratos.

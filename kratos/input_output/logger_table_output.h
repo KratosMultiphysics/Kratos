@@ -131,7 +131,7 @@ private:
 
   void WriteHashLine();
   void WriteTableLine();
-  std::string Centered(int width, const std::string str);
+  std::string Centered(int width, const std::string& str);
   void StripLabels(std::string& inLabel, std::string& outGlobalLabel, std::string& outColumnLabel);
 
   ///@}

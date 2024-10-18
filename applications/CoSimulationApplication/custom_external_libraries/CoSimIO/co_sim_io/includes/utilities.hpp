@@ -42,6 +42,9 @@ static void CheckStream(const TStream& rStream, const TPath& rPath)
 
 double CO_SIM_IO_API ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime);
 
+// returns if the current system is big endian
+bool CO_SIM_IO_API IsBigEndian();
+
 int CO_SIM_IO_API GetNumberOfNodesForElementType(const ElementType I_ElementType);
 
 std::string CO_SIM_IO_API GetElementName(const ElementType I_ElementType);

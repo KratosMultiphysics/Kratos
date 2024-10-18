@@ -19,8 +19,6 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ice_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/bonding_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Particle_Contact_Element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
@@ -39,6 +37,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
@@ -63,6 +62,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CamClay_CL.cpp
@@ -70,10 +70,11 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_confined_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_classic_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_confined_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_sintering_continuum_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Bentonite_Colloid_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
@@ -82,10 +83,18 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_d_linear_custom_constants_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Conical_damage_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Quadratic_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_void_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fabric_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_smooth_joint_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_for_membrane_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fast_filling_creator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
@@ -104,6 +113,9 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/discrete_random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_constant_torque.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_viscous_torque.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_bounded.cpp
 
 )
 

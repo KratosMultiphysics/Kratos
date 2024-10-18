@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 #import KratosMultiphysics
 
 #import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
@@ -29,7 +28,7 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self.parameters.SetMaterialProperties( self.properties )
 
         NumberIncrements = 10
-        
+
         self.strain_vector = self.parameters.GetStrainVector()
         delta_strain = 0.0*self.strain_vector
         delta_strain[0] = 0.01
@@ -43,7 +42,7 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self.assertAlmostEqual(DeviatoricQ, UndrainedShearStrength,places=4)
 
     def _compute_strain_driven_problem(self, delta_strain, nIncr):
-    
+
         self.parameters.SetDeformationGradientF(self.F)
         self.parameters.SetDeterminantF(self.detF)
         self.strain_vector = self.parameters.GetStrainVector()

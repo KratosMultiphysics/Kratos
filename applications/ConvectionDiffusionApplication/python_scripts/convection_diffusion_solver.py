@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -31,6 +29,7 @@ else:
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics import auxiliary_solver_utilities
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSolver(model, custom_settings)
@@ -153,7 +152,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : []
+            "auxiliary_variables_list" : [],
+            "assign_neighbour_elements_to_conditions" : true
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -254,43 +254,47 @@ class ConvectionDiffusionSolver(PythonSolver):
         if _CheckIsDistributed():
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
+        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
 
     def AddDofs(self):
-        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
-
-        # Add standard scalar DOF
-        if settings.IsDefinedReactionVariable():
-            KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
-        else:
-            KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
-
-        # Add gradient of the unknown DOF for mixed problems
+        # Set DOFs and reaction variables list from Kratos parameters settings
+        dofs_with_reactions_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
+        dof_var_name = conv_diff_vars["unknown_variable"].GetString()
+        reaction_var_name = conv_diff_vars["reaction_variable"].GetString()
+        dofs_with_reactions_list.append([dof_var_name,reaction_var_name])
         if self.settings["gradient_dofs"].GetBool():
-            gradient_variable = settings.GetGradientVariable()
-            gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_X")
-            gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Y")
-            if settings.IsDefinedReactionGradientVariable():
-                reaction_gradient_variable = settings.GetReactionGradientVariable()
-                reaction_gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_X")
-                reaction_gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, reaction_gradient_variable_x, self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, reaction_gradient_variable_y, self.main_model_part)
-                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-                    reaction_gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Z")
-                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, reaction_gradient_variable_z, self.main_model_part)
-            else:
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, self.main_model_part)
-                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, self.main_model_part)
+            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
+            grad_react_var_name = conv_diff_vars["reaction_gradient_variable"].GetString()
+            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            for comp in comp_list:
+                dofs_with_reactions_list.append([grad_dof_var_name+comp,grad_react_var_name+comp])
+
+        # Add the DOFs and reaction list to each node
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
+
+    def GetDofsList(self):
+        """This function creates and returns a list with the DOFs defined in the Kratos parameters settings
+        Note that element GetSpecifications method cannot be used in this case as DOF variables are a priori unknown
+        """
+
+        dofs_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
+        dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
+        if self.settings["gradient_dofs"].GetBool():
+            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
+            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            for comp in comp_list:
+                dofs_list.append(grad_dof_var_name + comp)
+
+        return dofs_list
 
     def ImportModelPart(self):
         """This function imports the ModelPart"""
@@ -304,6 +308,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
+        assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -312,10 +317,16 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
+            tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+            if assign_neighbour_elements:
+                flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            else:
+                flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            tmoc(self.main_model_part,throw_errors, flags).Execute()
 
             self._set_and_fill_buffer()
 
@@ -522,41 +533,37 @@ class ConvectionDiffusionSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _get_element_condition_replace_settings(self):
+        ## Get and check domain size
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in [2,3]:
+            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
+
+        ## Validate the replace settings
+        default_replace_settings = self.GetDefaultParameters()["element_replace_settings"]
+        self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
         ## Elements
-        num_nodes_elements = 0
-        if (len(self.main_model_part.Elements) > 0):
-            for elem in self.main_model_part.Elements:
-                num_nodes_elements = len(elem.GetNodes())
-                break
-
-        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
-
+        ## Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion"]
+        if element_name in element_list:
+            num_nodes_elements = 0
+            if (len(self.main_model_part.Elements) > 0):
+                for elem in self.main_model_part.Elements:
+                    num_nodes_elements = len(elem.GetNodes())
+                    break
 
-        if domain_size not in (2,3):
-            raise Exception("DOMAIN_SIZE not set")
+            num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+            if not num_nodes_elements:
+                num_nodes_elements = domain_size + 1
 
-        if element_name == "EulerianConvDiff":
-            if domain_size == 2:
-                if num_nodes_elements == 3:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
-            else:
-                if num_nodes_elements == 4:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
-            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            name_string = f"{element_name}{domain_size}D{num_nodes_elements}N"
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
         ## Conditions
-        num_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(self.main_model_part.Conditions))
-
-        if num_conditions > 0:
+        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+        condition_list = ["FluxCondition","ThermalFace","AxisymmetricThermalFace","LineCondition","SurfaceCondition"]
+        if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):
                 for cond in self.main_model_part.Conditions:
@@ -564,13 +571,11 @@ class ConvectionDiffusionSolver(PythonSolver):
                     break
 
             num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+            if not num_nodes_conditions:
+                num_nodes_conditions = domain_size
 
-            condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-            if condition_name in ("FluxCondition","ThermalFace","Condition"):
-                name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
-                self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
-        else:
-            self.settings["element_replace_settings"]["condition_name"].SetString("")
+            name_string = f"{condition_name}{domain_size}D{num_nodes_conditions}N"
+            self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
 
         return self.settings["element_replace_settings"]
 
@@ -720,6 +725,12 @@ class ConvectionDiffusionSolver(PythonSolver):
             raise Exception(err_msg)
 
     def _ConvectionDiffusionVariablesCheck(self, custom_settings):
+        """This checks the user provided set of variables.
+        If there are no custom \'convection_diffusion_variables\', the default ones are taken.
+        If these are defined by the user, it checks one by one the provided values. If one is missing, it is taken form the defaults.
+        Note that this ensures that all the historical nodal variables to be used are defined in \'convection_diffusion_settings\' at construction time.
+        """
+
         default_settings = self.GetDefaultParameters()
         default_conv_diff_variables = default_settings["convection_diffusion_variables"]
         if not custom_settings.Has("convection_diffusion_variables"):

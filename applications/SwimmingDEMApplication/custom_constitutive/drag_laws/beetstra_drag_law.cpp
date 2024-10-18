@@ -39,7 +39,7 @@ namespace Kratos {
         }
 
         double drag_coeff;
-        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
+        Geometry<Node >& r_geometry = p_particle->GetGeometry();
         double eps = r_geometry[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
 
         if (eps > 0.999){

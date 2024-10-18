@@ -1,0 +1,66 @@
+{
+    "problem_data"         : {
+        "echo_level"           : 0,
+        "start_time"           : 0.0,
+        "end_time"             : 1.0,
+        "parallel_type"        : "OpenMP"
+    },
+    "solver_settings"      : {
+        "solver_type"              : "testing.empty_solver_for_testing",
+        "model_part_name"          : "model_part",
+        "echo_level"               : 0,
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "formulation_variables"    : "boussinesq",
+        "model_import_settings"    : {
+            "input_type"               : "mdpa",
+            "input_filename"           : "model_part"
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : false,
+            "time_step"                : 1.0
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list"   : [],
+        "boundary_conditions_process_list"  : [],
+        "topography_process_list"           : [],
+        "benchmark_process_list"            : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.benchmarks",
+            "python_module"   : "solitary_wave_benchmark",
+            "Parameters"      : {
+                "model_part_name"    : "model_part",
+                "benchmark_settings" : {
+                    "boundary_model_part_name"  : "model_part.Condition1",
+                    "wave_specifications"       : {
+                        "wave_theory"               : "boussinesq",
+                        "get_depth_from_model_part" : false,
+                        "depth"                     : 1.0,
+                        "amplitude"                 : 0.1,
+                        "x_shift"                   : 0.0,
+                        "t_shift"                   : 0.0
+                    }
+                }
+            }
+        }],
+        "check_process_list" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "model_part",
+                "check_variables"  : ["FREE_SURFACE_ELEVATION","VELOCITY"],
+                "input_file_name"  : "solitary_wave_benchmark_reference.json",
+                "time_frequency"   : 0.9,
+                "tolerance"        : 1e-12
+            }
+            // "kratos_module"   : "KratosMultiphysics",
+            // "python_module"   : "json_output_process",
+            // "Parameters"      : {
+            //     "model_part_name"  : "model_part",
+            //     "output_variables" : ["FREE_SURFACE_ELEVATION","VELOCITY"],
+            //     "output_file_name" : "solitary_wave_benchmark_reference.json",
+            //     "time_frequency"   : 0.9
+            // }
+        }]
+    }
+}

@@ -91,7 +91,7 @@ void CreatePropertiesAndElements(ModelPart* pModelPart,
     r_prop[VOLUME_ACCELERATION] = ZeroVector(3);
     r_prop[VOLUME_ACCELERATION](1) = 100.0;
     // Create elements
-    PointerVector<Node<3>> nodes;
+    PointerVector<Node> nodes;
     for (std::size_t i = 0; i < rElementPrototype.GetGeometry().size(); ++i)
     {
         nodes.push_back(pModelPart->pGetNode(i+1));

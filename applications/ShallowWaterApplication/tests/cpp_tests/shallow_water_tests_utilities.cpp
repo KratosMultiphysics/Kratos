@@ -43,6 +43,7 @@ void ShallowWaterTestsUtilities::AddVariables(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(MOMENTUM);
     rModelPart.AddNodalSolutionStepVariable(HEIGHT);
+    rModelPart.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     rModelPart.AddNodalSolutionStepVariable(TOPOGRAPHY);
     rModelPart.AddNodalSolutionStepVariable(RAIN);
     rModelPart.AddNodalSolutionStepVariable(MANNING);

@@ -5,38 +5,48 @@ message("**** configuring KratosGeoMechanicsApplication ****")
 # PYBIND11
 include(pybind11Tools)
 
+add_compile_definitions(_USE_MATH_DEFINES)
+
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/LinearSolversApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/GeoMechanicsApplication )
 
 ## GeoMechanics Core sources
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_geomechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_retention/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp
 )
 
 ## GeoMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    kratos_add_gtests(TARGET KratosGeoMechanicsCore SOURCES "${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## GeoMechanics python interface sources
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
+add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE})
+target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
+
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
@@ -49,6 +59,13 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosGeoMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
     set_target_properties(KratosGeoMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
+# Add version info to DLL's
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/version.rc @ONLY)
+    target_sources(KratosGeoMechanicsCore PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+    target_sources(KratosGeoMechanicsApplication PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -66,6 +83,8 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_element.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_FIC_element.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_truss_element_base.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cable_element_base.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Install python files

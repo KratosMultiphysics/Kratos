@@ -7,7 +7,7 @@
 Kratos CoSimulationApplication
 ~~~
 
-[![CI](https://github.com/KratosMultiphysics/CoSimIO/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/KratosMultiphysics/CoSimIO/actions/workflows/ci.yml)
+<!--- [![CI](https://github.com/KratosMultiphysics/CoSimIO/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/KratosMultiphysics/CoSimIO/actions/workflows/ci.yml)-->
 # CoSimIO
 
 The _CoSimIO_ is a small library for interprocess communication in CoSimulation contexts. It is designed for exchanging data between different solvers or other software-tools. For performing coupled simulations it is used in combination with the [_CoSimulationApplication_](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/CoSimulationApplication).\
@@ -16,6 +16,8 @@ It is implemented as a _detached interface_. This means that it follows the inte
 The implementation is defined in [co_sim_io](https://github.com/KratosMultiphysics/CoSimIO/blob/master/co_sim_io)
 
 Documentation and tutorials can be found [here](https://kratosmultiphysics.github.io/CoSimIO/)
+
+Different methods for interprocess communication are available, their documentation can be found [here](https://kratosmultiphysics.github.io/CoSimIO/communication)
 
 The tests are contained in [tests](https://github.com/KratosMultiphysics/CoSimIO/blob/master/tests)
 
@@ -49,3 +51,10 @@ The _CoSimIO_ supports pure sequential and mpi-parallel executions. Shared memor
 
 ## Memory Management
 Coupling requires frequent exchange of data. Therefore the _CoSimIO_ uses the memory provided by the including solvers/software-tools directly, without copying it to an auxiliar data structure.
+
+## Special Thanks To
+- [Boost](http://www.boost.org/) for the `intrusive_ptr`
+- [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
+- [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
+- [asio](https://think-async.com/Asio/) for socket based interprocess communication
+- [doctest](https://github.com/onqtam/doctest) C++ testing framework for the unit tests

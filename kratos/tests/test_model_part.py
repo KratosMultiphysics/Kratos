@@ -1,9 +1,15 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-import sys
-
 class TestModelPart(KratosUnittest.TestCase):
+    """
+    This class defines a set of unit tests for the ModelParts. ModelParts are hierarchical structures within the Kratos simulation framework that allow for organizing and managing various aspects of a computational model, such as nodes, elements, conditions, constraints, and subdomains.
+
+    The tests within this class cover a range of ModelPart-related operations, including the creation of ModelParts, retrieval of parent and root ModelParts, the creation and removal of sub-model parts, and verification of ModelPart hierarchy and structure.
+
+    By running these tests, it is possible to ensure that the ModelPart management features in KratosMultiphysics are functioning as expected, facilitating the setup and manipulation of complex computational models for various engineering and scientific simulations.
+    """
+
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
 
@@ -302,7 +308,6 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
-        self.assertEqual(model_part.GetProperties(0)[1].Id, 1)
         self.assertEqual(len(model_part.Properties), 1)
 
         model_part.AddProperties(KratosMultiphysics.Properties(2000))
@@ -393,6 +398,48 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.HasProperties("1.3.2"), True)
         self.assertEqual(model_part.HasProperties("1.2.3"), False)
         self.assertEqual(model_part.HasProperties("3.1.1"), False)
+
+    def test_model_part_flag(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.Set(KratosMultiphysics.ACTIVE)
+        self.assertTrue(model_part.Is(KratosMultiphysics.ACTIVE))
+        self.assertFalse(model_part.Is(KratosMultiphysics.BOUNDARY))
+
+    def test_model_part_datavaluecontainer(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertTrue(model_part.Has(KratosMultiphysics.DENSITY))
+        self.assertFalse(model_part.Has(KratosMultiphysics.TEMPERATURE))
+        self.assertEqual(model_part.GetValue(KratosMultiphysics.DENSITY), 1.2)
+
+    def test_model_part_properties_container(self):
+        current_model = KratosMultiphysics.Model()
+        model_part_1 = current_model.CreateModelPart("Main")
+        model_part_2 = current_model.CreateModelPart("Destination")
+        model_part_3 = current_model.CreateModelPart("Other")
+
+        prop_3 = model_part_1.CreateNewProperties(3)
+        prop_3.SetValue(KratosMultiphysics.DENSITY, 1.05)
+
+        model_part_2.Properties = model_part_1.Properties
+        self.assertEqual(model_part_2.NumberOfProperties(), 1)
+        self.assertEqual(model_part_2.GetProperties(3).Id, 3)
+        self.assertEqual(model_part_2.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.05)
+
+        model_part_3.SetProperties(model_part_1.Properties)
+        self.assertEqual(model_part_3.NumberOfProperties(), 1)
+        self.assertEqual(model_part_3.GetProperties(3).Id, 3)
+        self.assertEqual(model_part_3.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.05)
+
+        model_part_3.CreateNewProperties(5)
+        model_part_3.GetProperties(3).SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertEqual(model_part_1.NumberOfProperties(), 2)
+        self.assertEqual(model_part_1.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+        self.assertEqual(model_part_2.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+        self.assertEqual(model_part_3.GetProperties(3).GetValue(KratosMultiphysics.DENSITY), 1.2)
+
 
     def test_model_part_elements(self):
         current_model = KratosMultiphysics.Model()
@@ -871,6 +918,8 @@ class TestModelPart(KratosUnittest.TestCase):
 
         c1 = KratosMultiphysics.MasterSlaveConstraint(10)
         model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+        self.assertTrue(model_part.HasMasterSlaveConstraint(1))
+        self.assertFalse(model_part.HasMasterSlaveConstraint(2))
 
         model_part.AddMasterSlaveConstraint(c1)
 
@@ -886,6 +935,8 @@ class TestModelPart(KratosUnittest.TestCase):
         subsub1 = sub1.CreateSubModelPart("subsub1")
 
         ss1 = subsub1.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+        self.assertTrue(model_part.HasMasterSlaveConstraint(1))
+        self.assertTrue(model_part.HasMasterSlaveConstraint(2))
 
         self.assertTrue(ss1 in subsub1.MasterSlaveConstraints)
         self.assertTrue(ss1 in sub1.MasterSlaveConstraints)
@@ -954,4 +1005,5 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(0), 4)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

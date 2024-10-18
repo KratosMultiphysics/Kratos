@@ -11,28 +11,20 @@
 //                   Pablo Becker
 //
 
-
 #if !defined(KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED )
 #define  KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "containers/variable.h"
 #include "includes/define.h"
-#include "includes/kratos_components.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -54,14 +46,14 @@ namespace Kratos
 ///@{
 
 /// Convection diffusion settings. This class contains information to be used by the convection diffusion solver, all the variables that will be needed by the solver.
-/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large ammount of variables.
- * For those cases, variables that are not defined will be set to either zero or one (depending on the varible)
- * For this purpouse, there are flags to ask wether a varible has been defined or not. For each variable, there are three main functions.
- * SetVaribleforXuse: we assing the varible for this use. When doing that we also set the flag that now this variable has been defined.
+/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large amount of variables.
+ * For those cases, variables that are not defined will be set to either zero or one (depending on the variable)
+ * For this purpose, there are flags to ask whether a variable has been defined or not. For each variable, there are three main functions.
+ * SetVariableforXuse: we assign the variable for this use. When doing that we also set the flag that now this variable has been defined.
  * GetVariableforXuse: we return the variable for this use.
- * IsDefinedVariableforXuse: tells wether that variable has been defined or not.
+ * IsDefinedVariableforXuse: tells whether that variable has been defined or not.
 */
-class ConvectionDiffusionSettings
+class KRATOS_API(KRATOS_CORE) ConvectionDiffusionSettings
 {
 public:
     ///@name Type Definitions
@@ -75,23 +67,8 @@ public:
     ///@{
 
     /// Default constructor.
-    ConvectionDiffusionSettings()
-    {
-        mis_defined_DensityVar=false;
-        mis_defined_DiffusionVar=false;
-		mis_defined_UnknownVar=false;
-		mis_defined_VolumeSourceVar=false;
-		mis_defined_SurfaceSourceVar=false;
-		mis_defined_ProjectionVar=false;
-		mis_defined_ConvectionVar=false;
-		mis_defined_GradientVar = false;
-		mis_defined_MeshVelocityVar=false;
-		mis_defined_TransferCoefficientVar=false;
-		mis_defined_VelocityVar=false;
-		mis_defined_SpecificHeatVar=false;
-        mis_defined_ReactionVar=false;
-        mIsDefinedReactionGradientVar=false;
-    };
+    ConvectionDiffusionSettings() = default;
+
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
         mpDiffusionVar(rOther.mpDiffusionVar),
@@ -135,13 +112,13 @@ public:
         mpDensityVar = &rvar;
         mis_defined_DensityVar=true;
     }
-    const Variable<double>& GetDensityVariable()
+    const Variable<double>& GetDensityVariable() const
     {
         return *mpDensityVar;
     }
-    bool IsDefinedDensityVariable()
+    bool IsDefinedDensityVariable() const
     {
-		return mis_defined_DensityVar;
+		return mpDensityVar != nullptr;
 	}
 
     void SetDiffusionVariable(const Variable<double>& rvar)
@@ -149,13 +126,13 @@ public:
         mpDiffusionVar = &rvar;
 		mis_defined_DiffusionVar=true;
     }
-    const Variable<double>& GetDiffusionVariable()
+    const Variable<double>& GetDiffusionVariable() const
     {
         return *mpDiffusionVar;
     }
-    bool IsDefinedDiffusionVariable()
+    bool IsDefinedDiffusionVariable() const
     {
-		return mis_defined_DiffusionVar;
+		return mpDiffusionVar != nullptr;
 	}
 
     void SetUnknownVariable(const Variable<double>& rvar)
@@ -163,13 +140,13 @@ public:
         mpUnknownVar = &rvar;
 		mis_defined_UnknownVar=true;
     }
-    const Variable<double>& GetUnknownVariable()
+    const Variable<double>& GetUnknownVariable() const
     {
         return *mpUnknownVar;
     }
-    bool IsDefinedUnknownVariable()
+    bool IsDefinedUnknownVariable() const
     {
-		return mis_defined_UnknownVar;
+		return mpUnknownVar != nullptr;
 	}
 
     void SetVolumeSourceVariable(const Variable<double>& rvar)
@@ -177,13 +154,13 @@ public:
         mpVolumeSourceVar = &rvar;
 		mis_defined_VolumeSourceVar=true;
     }
-    const Variable<double>& GetVolumeSourceVariable()
+    const Variable<double>& GetVolumeSourceVariable() const
     {
         return *mpVolumeSourceVar;
     }
-    bool IsDefinedVolumeSourceVariable()
+    bool IsDefinedVolumeSourceVariable() const
     {
-		return mis_defined_VolumeSourceVar;
+		return mpVolumeSourceVar != nullptr;
 	}
 
     void SetSurfaceSourceVariable(const Variable<double>& rvar)
@@ -191,13 +168,13 @@ public:
         mpSurfaceSourceVar = &rvar;
 		mis_defined_SurfaceSourceVar=true;
     }
-    const Variable<double>& GetSurfaceSourceVariable()
+    const Variable<double>& GetSurfaceSourceVariable() const
     {
         return *mpSurfaceSourceVar;
     }
-    bool IsDefinedSurfaceSourceVariable()
+    bool IsDefinedSurfaceSourceVariable() const
     {
-		return mis_defined_SurfaceSourceVar;
+		return mpSurfaceSourceVar != nullptr;
 	}
 
     void SetProjectionVariable(const Variable<double>& rvar)
@@ -205,13 +182,13 @@ public:
         mpProjectionVar = &rvar;
 		mis_defined_ProjectionVar=true;
     }
-    const Variable<double>& GetProjectionVariable()
+    const Variable<double>& GetProjectionVariable() const
     {
         return *mpProjectionVar;
     }
-    bool IsDefinedProjectionVariable()
+    bool IsDefinedProjectionVariable() const
     {
-		return mis_defined_ProjectionVar;
+		return mpProjectionVar != nullptr;
 	}
 
     void SetConvectionVariable(const Variable<array_1d<double,3> >& rvar)
@@ -219,13 +196,13 @@ public:
         mpConvectionVar = &rvar;
 		mis_defined_ConvectionVar=true;
     }
-    const Variable<array_1d<double,3> >& GetConvectionVariable()
+    const Variable<array_1d<double,3> >& GetConvectionVariable() const
     {
         return *mpConvectionVar;
     }
-    bool IsDefinedConvectionVariable()
+    bool IsDefinedConvectionVariable() const
     {
-		return mis_defined_ConvectionVar;
+		return mpConvectionVar != nullptr;
 	}
 
     void SetGradientVariable(const Variable<array_1d<double,3> >& rvar)
@@ -239,7 +216,7 @@ public:
     }
     bool IsDefinedGradientVariable() const
     {
-        return mis_defined_GradientVar;
+        return mpGradientVar != nullptr;
     }
 
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
@@ -247,13 +224,13 @@ public:
         mpMeshVelocityVar = &rvar;
 		mis_defined_MeshVelocityVar=true;
     }
-    const Variable<array_1d<double,3> >& GetMeshVelocityVariable()
+    const Variable<array_1d<double,3> >& GetMeshVelocityVariable() const
     {
         return *mpMeshVelocityVar;
     }
-    bool IsDefinedMeshVelocityVariable()
+    bool IsDefinedMeshVelocityVariable() const
     {
-		return mis_defined_MeshVelocityVar;
+		return mpMeshVelocityVar != nullptr;
 	}
 
     void SetTransferCoefficientVariable(const Variable<double>& rvar)
@@ -261,13 +238,13 @@ public:
         mpTransferCoefficientVar = &rvar;
 		mis_defined_TransferCoefficientVar=true;
     }
-    const Variable<double>& GetTransferCoefficientVariable()
+    const Variable<double>& GetTransferCoefficientVariable() const
     {
         return *mpTransferCoefficientVar;
     }
-    bool IsDefinedTransferCoefficientVariable()
+    bool IsDefinedTransferCoefficientVariable() const
     {
-		return mis_defined_TransferCoefficientVar;
+		return mpTransferCoefficientVar != nullptr;
 	}
 
     void SetVelocityVariable(const Variable<array_1d<double,3> >& rvar)
@@ -275,13 +252,13 @@ public:
         mpVelocityVar = &rvar;
 		mis_defined_VelocityVar=true;
     }
-    const Variable<array_1d<double,3> >& GetVelocityVariable()
+    const Variable<array_1d<double,3> >& GetVelocityVariable() const
     {
         return *mpVelocityVar;
     }
-    bool IsDefinedVelocityVariable()
+    bool IsDefinedVelocityVariable() const
     {
-		return mis_defined_VelocityVar;
+		return mpVelocityVar != nullptr;
 	}
 
     void SetSpecificHeatVariable(const Variable<double>& rvar)
@@ -289,13 +266,13 @@ public:
         mpSpecificHeatVar = &rvar;
 		mis_defined_SpecificHeatVar=true;
     }
-    const Variable<double>& GetSpecificHeatVariable()
+    const Variable<double>& GetSpecificHeatVariable() const
     {
         return *mpSpecificHeatVar;
     }
-    bool IsDefinedSpecificHeatVariable()
+    bool IsDefinedSpecificHeatVariable() const
     {
-		return mis_defined_SpecificHeatVar;
+		return mpSpecificHeatVar != nullptr;
 	}
 
     void SetReactionVariable(const Variable<double>& rvar)
@@ -303,13 +280,13 @@ public:
         mpReactionVar = &rvar;
 		mis_defined_ReactionVar=true;
     }
-    const Variable<double>& GetReactionVariable()
+    const Variable<double>& GetReactionVariable() const
     {
         return *mpReactionVar;
     }
-    bool IsDefinedReactionVariable()
+    bool IsDefinedReactionVariable() const
     {
-		return mis_defined_ReactionVar;
+		return mpReactionVar != nullptr;
 	}
 
     void SetReactionGradientVariable(const Variable<array_1d<double,3>>& rVar)
@@ -317,15 +294,13 @@ public:
         mpReactionGradientVar = &rVar;
 		mIsDefinedReactionGradientVar=true;
     }
-
-    const Variable<array_1d<double,3>>& GetReactionGradientVariable()
+    const Variable<array_1d<double,3>>& GetReactionGradientVariable() const
     {
         return *mpReactionGradientVar;
     }
-
-    bool IsDefinedReactionGradientVariable()
+    bool IsDefinedReactionGradientVariable() const
     {
-		return mIsDefinedReactionGradientVar;
+		return mpReactionGradientVar != nullptr;
 	}
 
     ///@}
@@ -494,161 +469,9 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        // Save the is defined bool flag for each variable
-        rSerializer.save("mis_defined_DensityVar",mis_defined_DensityVar);
-        rSerializer.save("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
-        rSerializer.save("mis_defined_UnknownVar",mis_defined_UnknownVar);
-        rSerializer.save("mis_defined_VolumeSourceVar",mis_defined_VolumeSourceVar);
-        rSerializer.save("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
-        rSerializer.save("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
-        rSerializer.save("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
-        rSerializer.save("mis_defined_GradientVar",mis_defined_GradientVar);
-        rSerializer.save("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
-        rSerializer.save("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
-        rSerializer.save("mis_defined_VelocityVar",mis_defined_VelocityVar);
-        rSerializer.save("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
-        rSerializer.save("mis_defined_ReactionVar",mis_defined_ReactionVar);
-        rSerializer.save("mIsDefinedReactionGradientVar", mIsDefinedReactionGradientVar);
+    virtual void save(Serializer& rSerializer) const;
 
-        // Save the variable names
-        // Note that the variable class save method only saves the name of the variables
-        if (mpDensityVar != nullptr && mis_defined_DensityVar) {
-            rSerializer.save("DensityVarName",mpDensityVar);
-        }
-        if (mpDiffusionVar != nullptr && mis_defined_DiffusionVar) {
-            rSerializer.save("DiffusionVarName",mpDiffusionVar);
-        }
-        if (mpUnknownVar != nullptr && mis_defined_UnknownVar) {
-            rSerializer.save("UnknownVarName",mpUnknownVar);
-        }
-        if (mpVolumeSourceVar != nullptr && mis_defined_VolumeSourceVar) {
-            rSerializer.save("VolumeSourceVarName",mpVolumeSourceVar);
-        }
-        if (mpSurfaceSourceVar != nullptr && mis_defined_SurfaceSourceVar) {
-            rSerializer.save("SurfaceSourceVarName",mpSurfaceSourceVar);
-        }
-        if (mpProjectionVar != nullptr && mis_defined_ProjectionVar) {
-            rSerializer.save("ProjectionVarName",mpProjectionVar);
-        }
-        if (mpConvectionVar != nullptr && mis_defined_ConvectionVar) {
-            rSerializer.save("ConvectionVarName",mpConvectionVar);
-        }
-        if (mpGradientVar != nullptr && mis_defined_GradientVar) {
-            rSerializer.save("GradientVarName",mpGradientVar);
-        }
-        if (mpMeshVelocityVar != nullptr && mis_defined_MeshVelocityVar) {
-            rSerializer.save("MeshVelocityVarName",mpMeshVelocityVar);
-        }
-        if (mpTransferCoefficientVar != nullptr && mis_defined_TransferCoefficientVar) {
-            rSerializer.save("TransferCoefficientVarName",mpTransferCoefficientVar);
-        }
-        if (mpVelocityVar != nullptr && mis_defined_VelocityVar) {
-            rSerializer.save("VelocityVarName",mpVelocityVar);
-        }
-        if (mpSpecificHeatVar != nullptr && mis_defined_SpecificHeatVar) {
-            rSerializer.save("SpecificHeatVarName",mpSpecificHeatVar);
-        }
-        if (mpReactionVar != nullptr && mis_defined_ReactionVar) {
-            rSerializer.save("ReactionVarName",mpReactionVar);
-        }
-        if (mpReactionGradientVar != nullptr && mIsDefinedReactionGradientVar) {
-            rSerializer.save("ReactionGradientVarName",mpReactionGradientVar);
-        }
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        // Load the is defined bool flags for each variable
-        rSerializer.load("mis_defined_DensityVar",mis_defined_DensityVar);
-        rSerializer.load("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
-        rSerializer.load("mis_defined_UnknownVar",mis_defined_UnknownVar);
-        rSerializer.load("mis_defined_VolumeSourceVar",mis_defined_VolumeSourceVar);
-        rSerializer.load("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
-        rSerializer.load("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
-        rSerializer.load("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
-        rSerializer.load("mis_defined_GradientVar",mis_defined_GradientVar);
-        rSerializer.load("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
-        rSerializer.load("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
-        rSerializer.load("mis_defined_VelocityVar",mis_defined_VelocityVar);
-        rSerializer.load("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
-        rSerializer.load("mis_defined_ReactionVar",mis_defined_ReactionVar);
-        rSerializer.load("mIsDefinedReactionGradientVar", mIsDefinedReactionGradientVar);
-
-        // If the variables are defined, load their name
-        // Note that only the name has been saved to retrieve the already existent variable from the KratosComponents
-        if(mis_defined_DensityVar) {
-            std::string density_var_name;
-            rSerializer.load("DensityVarName", density_var_name);
-            mpDensityVar = &(KratosComponents<Variable<double>>::Get(density_var_name));
-        }
-        if(mis_defined_DiffusionVar) {
-            std::string diffusion_var_name;
-            rSerializer.load("DiffusionVarName", diffusion_var_name);
-            mpDiffusionVar = &(KratosComponents<Variable<double>>::Get(diffusion_var_name));
-        }
-        if(mis_defined_UnknownVar) {
-            std::string unknown_var_name;
-            rSerializer.load("UnknownVarName", unknown_var_name);
-            mpUnknownVar = &(KratosComponents<Variable<double>>::Get(unknown_var_name));
-        }
-        if(mis_defined_VolumeSourceVar) {
-            std::string volume_source_var_name;
-            rSerializer.load("VolumeSourceVarName", volume_source_var_name);
-            mpVolumeSourceVar = &(KratosComponents<Variable<double>>::Get(volume_source_var_name));
-        }
-        if(mis_defined_SurfaceSourceVar) {
-            std::string surface_source_var_name;
-            rSerializer.load("SurfaceSourceVarName", surface_source_var_name);
-            mpSurfaceSourceVar = &(KratosComponents<Variable<double>>::Get(surface_source_var_name));
-        }
-        if(mis_defined_ProjectionVar) {
-            std::string projection_var_name;
-            rSerializer.load("ProjectionVarName", projection_var_name);
-            mpProjectionVar = &(KratosComponents<Variable<double>>::Get(projection_var_name));
-        }
-        if(mis_defined_ConvectionVar) {
-            std::string convection_var_name;
-            rSerializer.load("ConvectionVarName", convection_var_name);
-            mpConvectionVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(convection_var_name));
-        }
-        if(mis_defined_GradientVar) {
-            std::string gradient_var_name;
-            rSerializer.load("GradientVarName", gradient_var_name);
-            mpGradientVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(gradient_var_name));
-        }
-        if(mis_defined_MeshVelocityVar) {
-            std::string mesh_velocity_var;
-            rSerializer.load("MeshVelocityVarName", mesh_velocity_var);
-            mpMeshVelocityVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(mesh_velocity_var));
-        }
-        if(mis_defined_TransferCoefficientVar) {
-            std::string transfer_coefficient_var_name;
-            rSerializer.load("TransferCoefficientVarName", transfer_coefficient_var_name);
-            mpTransferCoefficientVar = &(KratosComponents<Variable<double>>::Get(transfer_coefficient_var_name));
-        }
-        if(mis_defined_VelocityVar) {
-            std::string velocity_var_name;
-            rSerializer.load("VelocityVarName", velocity_var_name);
-            mpVelocityVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(velocity_var_name));
-        }
-        if(mis_defined_SpecificHeatVar) {
-            std::string specific_heat_var_name;
-            rSerializer.load("SpecificHeatVarName", specific_heat_var_name);
-            mpSpecificHeatVar = &(KratosComponents<Variable<double>>::Get(specific_heat_var_name));
-        }
-        if(mis_defined_ReactionVar) {
-            std::string reaction_var_name;
-            rSerializer.load("ReactionVarName", reaction_var_name);
-            mpReactionVar = &(KratosComponents<Variable<double>>::Get(reaction_var_name));
-        }
-        if(mIsDefinedReactionGradientVar) {
-            std::string reaction_gradient_var_name;
-            rSerializer.load("ReactionGradientVarName", reaction_gradient_var_name);
-            mpReactionGradientVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(reaction_gradient_var_name));
-        }
-    }
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Operations

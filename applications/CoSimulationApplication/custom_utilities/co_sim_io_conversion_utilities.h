@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos
 {
@@ -43,6 +44,8 @@ public:
 
     /// Pointer definition of CoSimIOConversionUtilities
     KRATOS_CLASS_POINTER_DEFINITION(CoSimIOConversionUtilities);
+
+    using DataLocation = Globals::DataLocation;
 
     ///@}
     ///@name Life Cycle
@@ -69,6 +72,20 @@ public:
     static void KratosModelPartToCoSimIOModelPart(
         const Kratos::ModelPart& rKratosModelPart,
         CoSimIO::ModelPart& rCoSimIOModelPart);
+
+    template<typename TDataType>
+    static void GetData(
+        Kratos::ModelPart& rModelPart,
+        std::vector<double>& rData,
+        const Variable<TDataType>& rVariable,
+        const DataLocation DataLoc);
+
+    template<typename TDataType>
+    static void SetData(
+        Kratos::ModelPart& rModelPart,
+        const std::vector<double>& rData,
+        const Variable<TDataType>& rVariable,
+        const DataLocation DataLoc);
 
     static CoSimIO::Info InfoFromParameters(const Parameters rSettings);
 

@@ -104,6 +104,21 @@ namespace Kratos {
                                            double equiv_visco_damp_coeff_normal,
                                            double equiv_visco_damp_coeff_tangential_0,
                                            double equiv_visco_damp_coeff_tangential_1);
+                                
+        virtual void CalculateMoments(SphericContinuumParticle* element, 
+                                      SphericContinuumParticle* neighbor, 
+                                      double equiv_young, 
+                                      double distance, 
+                                      double calculation_area,
+                                      double LocalCoordSystem[3][3], 
+                                      double ElasticLocalRotationalMoment[3], 
+                                      double ViscoLocalRotationalMoment[3], 
+                                      double equiv_poisson, 
+                                      double indentation,
+                                      double normalLocalContactForce,
+                                      double GlobalContactForce[3],
+                                      double LocalCoordSystem_2[3],
+                                      const int i_neighbor_count);
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,

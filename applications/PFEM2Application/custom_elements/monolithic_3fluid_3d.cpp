@@ -856,7 +856,7 @@ namespace Kratos
 		const unsigned int TNumNodes = TDim+1;
 		const unsigned int LocalSize = TNumNodes*(TDim+1);
 
-		Geometry<Node<3> >& geom = this->GetGeometry();
+		Geometry<Node >& geom = this->GetGeometry();
 		BoundedMatrix<double, TNumNodes, TDim > DN_DX;
 		array_1d<double, TNumNodes > N;
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);

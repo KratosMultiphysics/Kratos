@@ -29,14 +29,7 @@ public:
         const Info& I_Settings,
         std::shared_ptr<DataCommunicator> I_DataComm);
 
-    ~PipeCommunication() override
-    {
-        if (GetIsConnected()) {
-            CO_SIM_IO_INFO("CoSimIO") << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
-            Info tmp;
-            Disconnect(tmp);
-        }
-    }
+    ~PipeCommunication() override;
 
 private:
 class BidirectionalPipe
@@ -45,28 +38,70 @@ public:
     BidirectionalPipe(
         const fs::path& rPipeDir,
         const fs::path& rBasePipeName,
-        const bool IsPrimary);
+        const bool IsPrimary,
+        const int BufferSize,
+        const int EchoLevel);
 
-    void Write(const std::string& rData);
-
-    void Read(std::string& rData);
-
-    template<class TObjectType>
-    void Send(const TObjectType& rObject)
+    template<typename TDataType>
+    double Write(const TDataType& rData, const std::size_t SizeDataType)
     {
-        StreamSerializer serializer;
-        serializer.save("object", rObject);
+        CO_SIM_IO_TRY
 
-        Write(serializer.GetStringRepresentation());
+        #ifndef CO_SIM_IO_COMPILED_IN_WINDOWS
+        const std::size_t data_size = rData.size();
+        std::size_t written_size=0;
+        SendSize(data_size); // serves also as synchronization for time measurement
+
+        const auto start_time(std::chrono::steady_clock::now());
+        const std::size_t buffer_size = mBufferSize/SizeDataType;
+
+        while(written_size<data_size) {
+            const std::size_t data_left_to_write = data_size - written_size;
+            const std::size_t current_buffer_size = data_left_to_write > buffer_size ? buffer_size : data_left_to_write;
+
+            const ssize_t bytes_written = write(mPipeHandleWrite, &rData[written_size], current_buffer_size*SizeDataType);
+            CO_SIM_IO_ERROR_IF(bytes_written < 0) << "Error in writing to Pipe!" << std::endl;
+
+            written_size += current_buffer_size;
+        }
+        return Utilities::ElapsedSeconds(start_time);
+        #else
+        return 0.0;
+
+        #endif
+
+        CO_SIM_IO_CATCH
     }
 
-    template<class TObjectType>
-    void Receive(TObjectType& rObject)
+    template<typename TDataType>
+    double Read(TDataType& rData, const std::size_t SizeDataType)
     {
-        std::string buffer;
-        Read(buffer);
-        StreamSerializer serializer(buffer);
-        serializer.load("object", rObject);
+        CO_SIM_IO_TRY
+
+        #ifndef CO_SIM_IO_COMPILED_IN_WINDOWS
+        std::size_t received_size = ReceiveSize(); // serves also as synchronization for time measurement
+        std::size_t read_size=0;
+
+        const auto start_time(std::chrono::steady_clock::now());
+        rData.resize(received_size);
+        const std::size_t buffer_size = mBufferSize/SizeDataType;
+
+        while(read_size<received_size) {
+            const std::size_t data_left_to_read = received_size - read_size;
+            const std::size_t current_buffer_size = data_left_to_read > buffer_size ? buffer_size : data_left_to_read;
+
+            const ssize_t bytes_written = read(mPipeHandleRead, &rData[read_size], current_buffer_size*SizeDataType);
+            CO_SIM_IO_ERROR_IF(bytes_written < 0) << "Error in reading from Pipe!" << std::endl;
+
+            read_size += current_buffer_size;
+        }
+        return Utilities::ElapsedSeconds(start_time);
+        #else
+        return 0.0;
+
+        #endif
+
+        CO_SIM_IO_CATCH
     }
 
     void Close();
@@ -79,10 +114,14 @@ private:
     fs::path mPipeNameWrite;
     fs::path mPipeNameRead;
 
+    std::size_t mBufferSize;
+
     void SendSize(const std::uint64_t Size);
 
     std::uint64_t ReceiveSize();
 };
+
+    const std::size_t mBufferSize;
 
     std::shared_ptr<BidirectionalPipe> mpPipe;
 
@@ -92,27 +131,25 @@ private:
 
     Info DisconnectDetail(const Info& I_Info) override;
 
-    Info ImportInfoImpl(const Info& I_Info) override;
-
-    Info ExportInfoImpl(const Info& I_Info) override;
-
-    Info ImportDataImpl(
+    double SendString(
         const Info& I_Info,
-        Internals::DataContainer<double>& rData) override;
+        const std::string& rData) override;
 
-    Info ExportDataImpl(
+    double ReceiveString(
+        const Info& I_Info,
+        std::string& rData) override;
+
+    double SendDataContainer(
         const Info& I_Info,
         const Internals::DataContainer<double>& rData) override;
 
-    Info ImportMeshImpl(
+    double ReceiveDataContainer(
         const Info& I_Info,
-        ModelPart& O_ModelPart) override;
+        Internals::DataContainer<double>& rData) override;
 
-    Info ExportMeshImpl(
-        const Info& I_Info,
-        const ModelPart& I_ModelPart) override;
+    void DerivedHandShake() const override;
 
-    void DerivedHandShake() override;
+    Info GetCommunicationSettings() const override;
 };
 
 } // namespace Internals

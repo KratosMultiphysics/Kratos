@@ -24,10 +24,10 @@
 #include "includes/io.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
+#include "includes/parallel_environment.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
-#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 #include "custom_io/hdf5_element_data_value_io.h"
@@ -40,13 +40,34 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
+#include "custom_io/hdf5_vertex_container_io.h"
 #ifdef KRATOS_USING_MPI
-#include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
 #endif
 
 namespace Kratos {
 namespace Python {
+
+
+
+class VertexContainerIOTrampoline : public HDF5::VertexContainerIO
+{
+public:
+    using HDF5::VertexContainerIO::VertexContainerIO;
+
+    void Write(const HDF5::Detail::VertexContainerType& rVertices) override
+    {
+        using ReturnType = void;
+        using BaseType = HDF5::VertexContainerIO;
+        PYBIND11_OVERRIDE_PURE(
+            ReturnType,
+            BaseType,
+            Write,
+            rVertices);
+    }
+}; // class VertexContainerIOTrampoline
+
+
 
 void AddCustomIOToPython(pybind11::module& m)
 {
@@ -56,6 +77,11 @@ void AddCustomIOToPython(pybind11::module& m)
     m.def("ReadDataValueContainer", &HDF5::Internals::ReadDataValueContainer, "");
 
     py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
+        .def(py::init([](Parameters Settings) {
+            KRATOS_WARNING("HDF5File") << "Using deprecated constructor. Please use constructor with DataCommunicator.";
+            return Kratos::make_shared<HDF5::File>(ParallelEnvironment::GetDefaultDataCommunicator(), Settings);
+        }))
+        .def(py::init<const DataCommunicator&, Parameters>())
         .def("HasPath",&HDF5::File::HasPath)
         .def("IsGroup",&HDF5::File::IsGroup)
         .def("IsDataSet",&HDF5::File::IsDataSet)
@@ -65,12 +91,9 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("HasIntDataType",&HDF5::File::HasIntDataType)
         .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
         .def("Flush",&HDF5::File::Flush)
+        .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
-        ;
-
-    py::class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
-        .def(py::init<Parameters&>())
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
@@ -146,11 +169,22 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
         ;
 
-#ifdef KRATOS_USING_MPI
-    py::class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
-        .def(py::init<Parameters&>())
+    py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer, VertexContainerIOTrampoline>(m, "VertexContainerIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerIO::Write)
         ;
 
+    py::class_<HDF5::VertexContainerCoordinateIO, HDF5::VertexContainerCoordinateIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerCoordinateIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerCoordinateIO::Write)
+        ;
+
+    py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerVariableIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerVariableIO::Write)
+        ;
+
+#ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
         (m,"HDF5PartitionedModelPartIO")
         .def(py::init<HDF5::File::Pointer, std::string const&>())

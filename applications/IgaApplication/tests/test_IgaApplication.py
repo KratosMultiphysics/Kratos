@@ -1,7 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
-import run_cpp_unit_tests
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
@@ -117,12 +116,17 @@ def AssembleTestSuites():
         MembraneSinglePatchFourPointSailImplicitDynamic,
         # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
-        TShell5pHierarchicLinearScordelisTest,
-        TShell5pHierarchicNonLinearThickBeamTest
         ]))
 
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+    ]))
+
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

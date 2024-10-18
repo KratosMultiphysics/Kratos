@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -37,6 +37,8 @@
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
+#include "geometries/pyramid_3d_5.h"
+#include "geometries/pyramid_3d_13.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -48,23 +50,20 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
+    using NodeType = Node;
+    using NodeContainerType = PointerVector<NodeType>;
+    using GeometryType = Geometry<NodeType>;
+    using PointsArrayType = typename GeometryType::PointsArrayType;
+    using IntegrationPointsArrayType = typename GeometryType::IntegrationPointsArrayType;
+    using GeometriesArrayType = typename GeometryType::GeometriesArrayType;
+    using CoordinatesArrayType = typename Point::CoordinatesArrayType;
 
-namespace Python
-{
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
-    typedef PointerVector<NodeType> NodeContainerType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::PointsArrayType PointsArrayType;
-    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
-    typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
-
-    const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
-    PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
+    const PointerVector< Node >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
+    PointerVector< Node >& GetPoints( GeometryType& geom ) { return geom.Points(); }
 
     // Id utilities
     void SetId1(
@@ -115,7 +114,7 @@ void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer pNodeType;
     typedef Geometry<NodeType > GeometryType;
 
@@ -136,12 +135,15 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Dimension access
     .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
-    .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize", &GeometryType::DomainSize)
     .def("EdgesNumber", &GeometryType::EdgesNumber)
     .def("PointsNumber", &GeometryType::PointsNumber)
     .def("PointsNumberInDirection", &GeometryType::PointsNumberInDirection)
     .def("PolynomialDegree", &GeometryType::PolynomialDegree)
+    // Geometry data
+    .def("GetDefaultIntegrationMethod", &GeometryType::GetDefaultIntegrationMethod)
+    .def("GetGeometryFamily", &GeometryType::GetGeometryFamily)
+    .def("GetGeometryType", &GeometryType::GetGeometryType)
     // Geometry Parts
     .def("GetGeometryPart", [](GeometryType& self, IndexType Index)
         { return(self.GetGeometryPart(Index)); })
@@ -231,6 +233,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Calculate", Calculate<array_1d<double, 6>>)
     .def("Calculate", Calculate<Vector>)
     .def("Calculate", Calculate<Matrix>)
+    // Info
+    .def("Info",&GeometryType::Info)
     // Print
     .def("__str__", PrintObject<GeometryType>)
     // Access to nodes
@@ -273,6 +277,10 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<Tetrahedra3D4<NodeType>, Tetrahedra3D4<NodeType>::Pointer,  GeometryType  >(m,"Tetrahedra3D4").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
     py::class_<Tetrahedra3D10<NodeType>, Tetrahedra3D10<NodeType>::Pointer,  GeometryType  >(m,"Tetrahedra3D10").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Pyramid3D5<NodeType>, Pyramid3D5<NodeType>::Pointer,  GeometryType  >(m,"Pyramid3D5").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Pyramid3D13<NodeType>, Pyramid3D13<NodeType>::Pointer,  GeometryType  >(m,"Pyramid3D13").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
     py::class_<Prism3D6<NodeType>, Prism3D6<NodeType>::Pointer,  GeometryType  >(m,"Prism3D6").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
@@ -356,6 +364,4 @@ void  AddGeometriesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

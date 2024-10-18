@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -48,7 +47,7 @@ class PfemFluidThreeStepSolver(BaseSolver.PfemFluidSolver):
             "compute_contact_forces": false,
             "block_builder": false,
             "component_wise": false,
-            "predictor_corrector": true,       
+            "predictor_corrector": true,
             "time_order": 2,
             "maximum_velocity_iterations": 1,
             "maximum_pressure_iterations": 7,
@@ -112,13 +111,16 @@ class PfemFluidThreeStepSolver(BaseSolver.PfemFluidSolver):
                                                                 self.settings["time_order"].GetInt(),
                                                                 self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
-        echo_level = self.settings["echo_level"].GetInt()
 
         # Set echo_level
+        echo_level = self.settings["echo_level"].GetInt()
         self.fluid_solver.SetEchoLevel(echo_level)
 
+        # Self initialize strategy
+        self.fluid_solver.Initialize()
+
         # Check if everything is assigned correctly
-        self.fluid_solver.Check()
+        self.fluid_solver.Check() #TODO: This must be done in the Check function
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)

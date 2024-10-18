@@ -61,7 +61,7 @@ public:
      @return Maximum number of OpenMP threads that will be used in
      parallel regions.
      */
-    static inline KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") int GetNumThreads()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static inline int GetNumThreads()
     {
         return ParallelUtilities::GetNumThreads();
     }
@@ -83,7 +83,7 @@ public:
     /**
      @return Number of processors available to the device.
      */
-    static KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") int GetNumberOfProcessors()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static int GetNumberOfProcessors()
     {
         return ParallelUtilities::GetNumProcs();
     }
@@ -134,7 +134,7 @@ public:
      (scalar or parallel) timer class.
      @return Current time
      */
-    static KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"utilities/builtin_timer.h\" instead") double GetCurrentTime()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"utilities/builtin_timer.h\" instead") static double GetCurrentTime()
     {
 #ifndef _OPENMP
         return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
@@ -154,6 +154,7 @@ public:
      @param Partitions This object will contain the begin and end positions
      for each thread.
      */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static inline void DivideInPartitions(
         const int NumTerms,
         const int NumThreads,
@@ -174,6 +175,7 @@ public:
       * @param rEnd Iterator pointing to the end position for the current thread in rVector.
       */
     template< class TVector >
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static void PartitionedIterators(TVector& rVector,
                                      typename TVector::iterator& rBegin,
                                      typename TVector::iterator& rEnd)
@@ -204,7 +206,7 @@ public:
      that values greater than the environment variable OMP_NUM_THREADS
      will be ignored.
      */
-    static inline KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") void SetNumThreads(int NumThreads = 1)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static inline void SetNumThreads(int NumThreads = 1)
     {
         ParallelUtilities::SetNumThreads(NumThreads);
     }
@@ -262,6 +264,7 @@ public:
     }
 
     template<class T>
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, T& partitions)
     {
         partitions.resize(number_of_threads+1);

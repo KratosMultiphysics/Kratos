@@ -67,7 +67,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(TO_COPY);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 
@@ -169,7 +169,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    const Parameters GetDefaultParameters() const;
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
 

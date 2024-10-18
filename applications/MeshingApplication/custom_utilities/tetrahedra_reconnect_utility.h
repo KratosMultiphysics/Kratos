@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -143,7 +143,7 @@ public:
 
         for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
         {
-            Geometry< Node<3> >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
             if (geom.size() != 4)
             {
                 std::cout << "Invalid element size" <<  el_it->Id();
@@ -240,10 +240,10 @@ public:
         {
 
             TTetra* t = (TTetra*)(m->elements->elementAt(i));
-            Node<3>::Pointer v0 = mrModelPart.pGetNode(t->vertexes[0]->getID());
-            Node<3>::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->getID());
-            Node<3>::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->getID());
-            Node<3>::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->getID());
+            Node::Pointer v0 = mrModelPart.pGetNode(t->vertexes[0]->getID());
+            Node::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->getID());
+            Node::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->getID());
+            Node::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->getID());
             if ((v0.get() == nullptr) || (v1.get()==nullptr) || (v2.get() == nullptr) || (v3.get() == nullptr))
             
             {
@@ -252,7 +252,7 @@ public:
                 messageShown = true;
                 continue ;
             }
-            Tetrahedra3D4<Node<3> > geom(
+            Tetrahedra3D4<Node > geom(
                 v0,v1,v2,v3
             );
 
@@ -266,7 +266,7 @@ public:
         if (removeFreeVertexes )
         {
             std::cout << "Removing free vertexes " << "\n";
-            (NodeEraseProcess(mrModelPart)).Execute();
+            (EntitiesEraseProcess<Node>(mrModelPart)).Execute();
         }
         if (debugMode) std::cout << "-----------------Generation Finished OK-------------------" << "\n";
 
@@ -356,13 +356,13 @@ public:
         if (m->vertexes->Count()>(int)n_points_before_refinement)
         {
             //defintions for spatial search
-//             typedef Node < 3 > PointType;
-//             typedef Node < 3 > ::Pointer PointTypePointer;
+//             typedef Node PointType;
+//             typedef Node ::Pointer PointTypePointer;
             array_1d<double, 4 > N;
             const int max_results = 10000;
             BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
 
-            Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
+            Node::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
 
             int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
             std::cout <<"...Adding Nodes :"<<  m->vertexes->Count() -  n_points_before_refinement<<"\n";
@@ -376,7 +376,7 @@ public:
                 double y= (float)(v->fPos.y);
                 double z= (float)(v->fPos.z);
 
-                Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
+                Node::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
                 //putting the new node also in an auxiliary list
                 //KRATOS_WATCH("adding nodes to list")
@@ -384,10 +384,10 @@ public:
 
                 //std::cout << "new node id = " << pnode->Id() << std::endl;
                 //generating the dofs
-                for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                for (Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType &rDof = **iii;
-                    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                    Node::DofType &rDof = **iii;
+                    Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
                 }
@@ -400,7 +400,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry<Node<3> >& geom = pelement->GetGeometry();
+                    Geometry<Node >& geom = pelement->GetGeometry();
 
                     Interpolate( geom, N, step_data_size, pnode);
                 }
@@ -438,10 +438,10 @@ public:
             if ( it4 == rModelPart.Nodes().end() )
                 KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
-            Node<3>::Pointer pn1 =  *it1.base();
-            Node<3>::Pointer pn2 =  *it2.base();
-            Node<3>::Pointer pn3 =  *it3.base();
-            Node<3>::Pointer pn4 =  *it4.base();
+            Node::Pointer pn1 =  *it1.base();
+            Node::Pointer pn2 =  *it2.base();
+            Node::Pointer pn3 =  *it3.base();
+            Node::Pointer pn4 =  *it4.base();
 
             t->vertexes[0]->expectedSize = (pn1)->FastGetSolutionStepValue(NODAL_H);
             t->vertexes[1]->expectedSize = (pn2)->FastGetSolutionStepValue(NODAL_H);
@@ -461,9 +461,9 @@ public:
     }
     //////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////
-    void Interpolate( Geometry<Node<3> >& geom, const array_1d<double,4>& N,
+    void Interpolate( Geometry<Node >& geom, const array_1d<double,4>& N,
                       unsigned int step_data_size,
-                      Node<3>::Pointer pnode)
+                      Node::Pointer pnode)
     {
         unsigned int buffer_size = pnode->GetBufferSize();
 

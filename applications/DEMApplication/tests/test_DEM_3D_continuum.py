@@ -17,10 +17,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
 
     def Initialize(self):
         super().Initialize()
-        for node in self.spheres_model_part.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
 
@@ -31,16 +28,16 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def CheckValues(self, x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential):
         tol = 1.0e-8
         # DEM reference values
-        x_vel_ref = 0.028907825348927448
-        z_vel_ref = -0.8757276957864403
-        x_force_ref = -26919.437972831598
-        z_force_ref = 1970950.3578554934
+        x_vel_ref = 0.02677117811730761
+        z_vel_ref = -0.8785947012104277
+        x_force_ref = -28004.11984689704
+        z_force_ref = 1976786.9183720595
 
         #FEM reference values
-        dem_pressure_ref = 21566.85065708402
-        z_elastic_ref = -273575.41245014494
-        shear_ref = 362.391011482587
-        x_tangential_ref = 6039.850191376444
+        dem_pressure_ref = 21615.368565335117
+        z_elastic_ref = -274076.08804810344
+        shear_ref = 368.8978792516498
+        x_tangential_ref = 6148.297987527496
 
         self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
         self.assertAlmostEqual(z_vel, z_vel_ref, delta=tol)
@@ -52,19 +49,17 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.assertAlmostEqual(x_tangential, x_tangential_ref, delta=tol)
 
     def Finalize(self):
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 1:
-                x_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                z_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                x_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_X)
-                z_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Z)
+        node = self.spheres_model_part.GetNode(1)
+        x_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+        z_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+        x_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_X)
+        z_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Z)
 
-        for node in self.rigid_face_model_part.Nodes:
-            if node.Id == 5:
-                dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
-                z_elastic = node.GetSolutionStepValue(DEM.ELASTIC_FORCES)[2]
-                shear= node.GetSolutionStepValue(DEM.SHEAR_STRESS)
-                x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
+        node = self.rigid_face_model_part.GetNode(5)
+        dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+        z_elastic = node.GetSolutionStepValue(DEM.ELASTIC_FORCES)[2]
+        shear= node.GetSolutionStepValue(DEM.SHEAR_STRESS)
+        x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
@@ -101,11 +96,12 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         for node in self.spheres_model_part.Nodes:
             node.SetSolutionStepValue(DEM.COHESIVE_GROUP, 1)
 
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 2:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
-            if node.Id == 1:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
+        node = self.spheres_model_part.GetNode(2)
+        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
+
+        node = self.spheres_model_part.GetNode(1)
+        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
+
 
         self.rigid_face_model_part.CreateNewNode(3, -5, 5, -1.008)
         self.rigid_face_model_part.CreateNewNode(4, 5, 5, -1.008)
@@ -122,7 +118,6 @@ class TestDEM3DContinuum(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM3D_continuum(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

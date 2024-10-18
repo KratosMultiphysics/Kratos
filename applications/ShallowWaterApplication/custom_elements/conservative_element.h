@@ -56,7 +56,7 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
@@ -152,6 +152,16 @@ public:
     }
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -179,12 +189,15 @@ protected:
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
+
+    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
     void CalculateArtificialDamping(

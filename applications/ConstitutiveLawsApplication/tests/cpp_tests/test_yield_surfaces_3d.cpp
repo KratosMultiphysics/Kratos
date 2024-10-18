@@ -17,25 +17,25 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 
 // Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Yields
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
-// Plastic Potentials
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
-namespace Kratos
+// Plastic Potentials
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node<3> NodeType;
+
+typedef Node NodeType;
 typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> MC;
 typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> VM;
 typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> DP;
@@ -107,12 +107,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosConstitutiveLawsFas
     SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, aux_param);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.001e6);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001e6);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.001e6);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001e6);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001e6);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 0.01);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.001e6);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001e6);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.001e6);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001e6);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 0.01);
 }
 
 /**
@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSu
 
     // Analytical solutions of the yield surfaces derivatives
     std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
-    MCres = {0.109261, 2.07822, 10.6714, 2.6863, 11.8748, 2.62528};
+    MCres = {-0.102799,1.27795,7.82485,2.40467,8.84815,1.84099};
     VMres = {-0.316228, -0.316228, 0.632456, 0.948683, 0.948683, 0.0};
     DPres = {0.197647,0.197647,1.85929,1.66165,1.66165,0};
     Tres = {-0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077};
@@ -150,10 +150,10 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSu
 
     // Check the results!
     for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
+        KRATOS_EXPECT_NEAR(Tres[comp], TestT[comp], 1.0e-3);
     }
 }
 
@@ -189,12 +189,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosConstitut
     SJ::GetInitialUniaxialThreshold(aux_param, TestSJ);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001e6);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001e6);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.0001e6);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001e6);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001e6);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.0001e6);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001e6);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001e6);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001e6);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 1.0e-3);
 }
 
 /**
@@ -230,12 +230,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosConstitutiv
     SJ::CalculateDamageParameter(aux_param, TestSJ, characteristic_length);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.001);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.1);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.001);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.001);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.001);
-    KRATOS_CHECK_NEAR(SJres, TestSJ, 0.1e8);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.001);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.1);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.001);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.001);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.001);
+    KRATOS_EXPECT_NEAR(SJres, TestSJ, 0.1e8);
 }
 
 /**
@@ -272,11 +272,11 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosConsti
     T::CalculateDamageParameter(aux_param, TestT, characteristic_length);
 
     // Check the results!
-    KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001);
-    KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001);
-    KRATOS_CHECK_NEAR(DPres, TestDP, 0.0001);
-    KRATOS_CHECK_NEAR(Rres, TestR, 0.0001);
-    KRATOS_CHECK_NEAR(Tres, TestT, 0.0001);
+    KRATOS_EXPECT_NEAR(MCres, TestMC, 0.0001);
+    KRATOS_EXPECT_NEAR(VMres, TestVM, 0.0001);
+    KRATOS_EXPECT_NEAR(DPres, TestDP, 0.0001);
+    KRATOS_EXPECT_NEAR(Rres, TestR, 0.0001);
+    KRATOS_EXPECT_NEAR(Tres, TestT, 0.0001);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

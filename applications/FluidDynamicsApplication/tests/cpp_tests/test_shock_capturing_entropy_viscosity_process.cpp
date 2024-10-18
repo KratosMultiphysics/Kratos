@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/gid_io.h"
 #include "includes/model_part.h"
@@ -27,6 +26,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_processes/shock_capturing_entropy_viscosity_process.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -46,11 +46,11 @@ namespace ShockCapturingEntropyViscosityTesting{
         rNewModelPart.SetBufferSize(2);
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, -1.0, -1.0,  0.0);
-        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, -1.0,  1.00,  0.0);
-        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3,  1.0,  1.00,  0.0);
-        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4,  1.0, -1.0,  0.0);
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, -1.0, -1.0,  0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, -1.0,  1.00,  0.0);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3,  1.0,  1.00,  0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4,  1.0, -1.0,  0.0);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"(
         {
@@ -149,10 +149,10 @@ namespace ShockCapturingEntropyViscosityTesting{
         constexpr double tolerance = 1.0e-8;
         const auto& r_test_node = r_model_part.GetNode(5100); // Arbitrary choice
 
-        KRATOS_CHECK_NEAR(r_test_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.0000467293, tolerance);
-        KRATOS_CHECK_NEAR(r_test_node.GetValue(ARTIFICIAL_CONDUCTIVITY),     0.0005555568, tolerance);
-        KRATOS_CHECK_NEAR(r_test_node.GetValue(ARTIFICIAL_BULK_VISCOSITY),   0.0022222273, tolerance);
-        KRATOS_CHECK_NEAR(r_test_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY),0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_test_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.0000467293, tolerance);
+        KRATOS_EXPECT_NEAR(r_test_node.GetValue(ARTIFICIAL_CONDUCTIVITY),     0.0005555568, tolerance);
+        KRATOS_EXPECT_NEAR(r_test_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY),   0.0022222273, tolerance);
+        KRATOS_EXPECT_NEAR(r_test_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.0, tolerance);
     }
 
     /**
@@ -187,18 +187,18 @@ namespace ShockCapturingEntropyViscosityTesting{
         const auto& r_shock_node = r_model_part.GetNode(4156);
         const auto& r_still_node = r_model_part.GetNode(5166);
 
-        KRATOS_CHECK_NEAR(r_shock_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.1055655994, tolerance);
-        KRATOS_CHECK_NEAR(r_still_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_shock_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.1055655994, tolerance);
+        KRATOS_EXPECT_NEAR(r_still_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY), 0.0, tolerance);
 
-        KRATOS_CHECK_NEAR(r_shock_node.GetValue(ARTIFICIAL_CONDUCTIVITY), 0.4417240025, tolerance);
-        KRATOS_CHECK_NEAR(r_still_node.GetValue(ARTIFICIAL_CONDUCTIVITY), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_shock_node.GetValue(ARTIFICIAL_CONDUCTIVITY), 0.4417240025, tolerance);
+        KRATOS_EXPECT_NEAR(r_still_node.GetValue(ARTIFICIAL_CONDUCTIVITY), 0.0, tolerance);
 
-        KRATOS_CHECK_NEAR(r_shock_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), 1.7668960100, tolerance);
-        KRATOS_CHECK_NEAR(r_still_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_shock_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 1.7668960100, tolerance);
+        KRATOS_EXPECT_NEAR(r_still_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 0.0, tolerance);
 
         // This process does not add dynamic viscosity
-        KRATOS_CHECK_NEAR(r_shock_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_still_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_shock_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_still_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.0, tolerance);
     }
 
 } // namespace Testing

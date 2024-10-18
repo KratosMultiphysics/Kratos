@@ -1,9 +1,5 @@
-from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-import KratosMultiphysics
-
 import numpy as np
-import json
+from KratosMultiphysics import Logger
 
 try:
     from matplotlib import pyplot as plt
@@ -12,98 +8,158 @@ except ImportError as e:
     missing_matplotlib = True
 
 
-class EmpiricalCubatureMethod(ElementSelectionStrategy):
+class EmpiricalCubatureMethod():
     """
     This class selects a subset of elements and corresponding positive weights necessary for the construction of a hyper-reduced order model
     Reference: Hernandez 2020. "A multiscale method for periodic structures using domain decomposition and ECM-hyperreduction"
     """
 
-
-    """
-    Constructor setting up the parameters for the Element Selection Strategy
-        ECM_tolerance: approximation tolerance for the element selection algorithm
-        SVD_tolerance: approximation tolerance for the singular value decomposition of the ResidualSnapshots matrix
-        Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
-        Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
-        Plotting: whether to plot the error evolution of the element selection algorithm
-    """
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
-        super().__init__()
+    def __init__(
+        self,
+        ECM_tolerance = 0,
+        Filter_tolerance = 0,
+        Plotting = False,
+        MaximumNumberUnsuccesfulIterations = 100
+    ):
+        """
+        Constructor setting up the parameters for the Element Selection Strategy
+            ECM_tolerance: approximation tolerance for the element selection algorithm
+            Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
+            Plotting: whether to plot the error evolution of the element selection algorithm
+        """
         self.ECM_tolerance = ECM_tolerance
-        self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
-        self.Take_into_account_singular_values = Take_into_account_singular_values
         self.Plotting = Plotting
+        self.MaximumNumberUnsuccesfulIterations = MaximumNumberUnsuccesfulIterations
 
+    def SetUp(
+        self,
+        ResidualsBasis,
+        InitialCandidatesSet = None,
+        constrain_sum_of_weights=True,
+        constrain_conditions = False,
+        number_of_conditions = 0
+    ):
+        """
+        Method for setting up the element selection
+        input:  - ResidualsBasis: numpy array containing a basis to the residuals projected
+                - constrain_sum_of_weights: enable the user to constrain weights to be the sum of the number of entities.
+                - constrain_conditions: enable the user to enforce weights to consider conditions (for specific boundary conditions).
+        """
+        self.W = np.ones(np.shape(ResidualsBasis)[0])
+        self.G = ResidualsBasis.T
+        self.y = InitialCandidatesSet
+        self.add_constrain_count = None
+        total_number_of_entities = np.shape(self.G)[1]
+        elements_constraint = np.ones(total_number_of_entities)
+        conditions_begin = total_number_of_entities - number_of_conditions
+        elements_constraint[conditions_begin:] = 0
 
+        if constrain_sum_of_weights and not constrain_conditions:
+            """
+            -This is necessary in case the sum of the columns of self.G equals the 0 vector,to avoid the trivial solution
+            -It is enforcing that the sum of the weights equals the number of columns in self.G (total number of elements)
+            """
+            projection_of_constant_vector_elements = elements_constraint - self.G.T@( self.G @ elements_constraint)
+            projection_of_constant_vector_elements/= np.linalg.norm(projection_of_constant_vector_elements)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_elements] )
+            self.add_constrain_count = -1
+        elif constrain_sum_of_weights and constrain_conditions:#Only for models which contains conditions
+            projection_of_constant_vector_elements = elements_constraint - self.G.T@( self.G @ elements_constraint)
+            projection_of_constant_vector_elements/= np.linalg.norm(projection_of_constant_vector_elements)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_elements] )
+            # # # # # # # # #
+            conditions_constraint = np.ones(total_number_of_entities)
+            conditions_constraint[:conditions_begin] = 0
+            projection_of_constant_vector_conditions = conditions_constraint - self.G.T@( self.G @ conditions_constraint)
+            projection_of_constant_vector_conditions/= np.linalg.norm(projection_of_constant_vector_conditions)
+            self.G = np.vstack([ self.G , projection_of_constant_vector_conditions ] )
+            self.add_constrain_count = -2
+        self.b = self.G @ self.W
+        self.UnsuccesfulIterations = 0
 
-    """
-    Method for setting up the element selection
-    input:  ResidualSnapshots: numpy array containing the matrix of residuals projected onto a basis
-            OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
-            ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
-    """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
-        super().SetUp()
-        self.ModelPartName = ModelPartName
-        self.OriginalNumberOfElements = OriginalNumberOfElements
-        u , s  = self._ObtainBasis(ResidualSnapshots)
-
-        self.W = np.ones(np.shape(u)[0])
-        if self.Take_into_account_singular_values == True:
-            G = u*s
-            G = G.T
-            G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
-            b = G @ self.W
-            bEXACT = b
-        else:
-            G = u.T
-            b = G @ self.W
-            bEXACT = b * s
-            self.SingularValues = s
-
-        self.b = b
-        self.G = G
-        self.ExactNorm = np.linalg.norm(bEXACT)
-
-    """
-    Method performing calculations required before launching the Calculate method
-    """
     def Initialize(self):
-        super().Initialize()
-        self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
+        """
+        Method performing calculations required before launching the Calculate method
+        """
+        self.GnormNOONE = np.linalg.norm(self.G[:self.add_constrain_count,:], axis = 0)
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
-        self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
-        if self.Filter_tolerance > 0:
-            TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
-            self.y = np.delete(self.y,rmvpin)
+
+        if self.y is None:
+            self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
+
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(self.GnormNOONE[self.y] < TOL_REMOVE)
+                #self.y_complement = self.y[rmvpin]
+                self.y = np.delete(self.y,rmvpin)
+        else:
+            self.y_complement = np.arange(0, M, 1)  # Initialize complement with all points
+            self.y_complement = np.delete(self.y_complement, self.y)  # Remove candidates from complement
+
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB  # Compute removal tolerance
+
+                # Filter out low-norm columns from complement
+                rmvpin_complement = np.where(self.GnormNOONE[self.y_complement] < TOL_REMOVE)
+                self.y_complement = np.delete(self.y_complement, rmvpin_complement)
+
+                # Filter out low-norm columns from candidates
+                rmvpin = np.where(self.GnormNOONE[self.y] < TOL_REMOVE)
+                removed_count = np.size(rmvpin)
+                self.y = np.delete(self.y, rmvpin)
+
+                # Warning if some candidates were removed
+                if removed_count > 0:
+                    Logger.PrintWarning("EmpiricalCubatureMethod", f"Some of the candidates were removed ({removed_count} removed). To include all candidates (with 0 weights in the HROM model part) for visualization and projection, consider using 'include_elements_model_parts_list' and 'include_conditions_model_parts_list' in the 'hrom_settings'.")
+
+                # Warning if all candidates were removed
+                if np.size(self.y) == 0:
+                    Logger.PrintWarning("EmpiricalCubatureMethod", "All candidates were removed because they have no contribution to the residual. To include them all (with 0 weights in the HROM model part) for visualization and projection, use 'include_elements_model_parts_list' and 'include_conditions_model_parts_list' in the 'hrom_settings'.")
+                    self.y = self.y_complement  # Set candidates to complement
+
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
-        self.r = self.b # residual vector
+        self.r = self.b.copy() # residual vector
         self.m = len(self.b) # Default number of points
         self.nerror = np.linalg.norm(self.r)/normB
         self.nerrorACTUAL = self.nerror
 
+    def Run(self):
+        self.Initialize()
+        self.Calculate()
 
+    def expand_candidates_with_complement(self):
+        self.y = np.r_[self.y,self.y_complement]
+        print('expanding set to include the complement...')
+        ExpandedSetFlag = True
+        return ExpandedSetFlag
 
-    """
-    Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
-    """
     def Calculate(self):
-        super().Calculate()
-
+        """
+        Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
+        """
+        MaximumLengthZ = 0
+        ExpandedSetFlag = False
         k = 1 # number of iterations
-        while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
+        self.success = True
+        while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and np.size(self.y) != 0:
+
+            if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag and hasattr(self, 'y_complement'):
+                ExpandedSetFlag = self.expand_candidates_with_complement()
 
             #Step 1. Compute new point
-            ObjFun = self.G[:,self.y].T @ self.r.T
-            ObjFun = ObjFun.T / self.Gnorm[self.y]
-            indSORT = np.argmax(ObjFun)
-            i = self.y[indSORT]
+            if np.size(self.y)==1:
+                #candidate set consists of a single element
+                indSORT = 0
+                i = int(self.y)
+            else:
+                ObjFun = self.G[:,self.y].T @ self.r.T
+                ObjFun = ObjFun.T #/ self.GnormNOONE[self.y]
+                indSORT = np.argmax(ObjFun)
+                i = self.y[indSORT]
             if k==1:
                 alpha = np.linalg.lstsq(self.G[:, [i]], self.b)[0]
                 H = 1/(self.G[:,i] @ self.G[:,i].T)
@@ -115,7 +171,17 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 self.z = i
             else:
                 self.z = np.r_[self.z,i]
-            self.y = np.delete(self.y,indSORT)
+
+            #self.y = np.delete(self.y,indSORT)
+            if np.size(self.y)==1:
+                if hasattr(self, 'y_complement'):
+                    self.expand_candidates_with_complement()
+                    self.y = np.delete(self.y,indSORT)
+                else:
+                    self.success = False
+                    break
+            else:
+                self.y = np.delete(self.y,indSORT)
 
             # Step 4. Find possible negative weights
             if any(alpha < 0):
@@ -127,19 +193,19 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 alpha = H @ (self.G[:, self.z].T @ self.b)
                 alpha = alpha.reshape(len(alpha),1)
 
+            if np.size(self.z) > MaximumLengthZ :
+                self.UnsuccesfulIterations = 0
+            else:
+                self.UnsuccesfulIterations += 1
+
             #Step 6 Update the residual
-            if len(alpha)==1:
-                self.r = self.b - (self.G[:,self.z] * alpha)
+            if np.size(alpha)==1:
+                self.r = self.b.reshape(-1,1) - (self.G[:,self.z] * alpha).reshape(-1,1)
+                self.r = np.squeeze(self.r)
             else:
                 Aux = self.G[:,self.z] @ alpha
                 self.r = np.squeeze(self.b - Aux.T)
             self.nerror = np.linalg.norm(self.r) / np.linalg.norm(self.b)  # Relative error (using r and b)
-
-            if self.Take_into_account_singular_values == False:
-                self.nerrorACTUAL = self.SingularValues * self.r
-                self.nerrorACTUAL = np.linalg.norm(self.nerrorACTUAL / self.ExactNorm )
-
-
             self.nerrorACTUAL = self.nerror
 
             # STEP 7
@@ -153,9 +219,19 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 ERROR_GLO = np.c_[ ERROR_GLO , self.nerrorACTUAL]
                 NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
+            MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
-        self.w = alpha.T * np.sqrt(self.W[self.z])
+            if k-MaximumLengthZ>1000 and ExpandedSetFlag:
+                """
+                this means using the initial candidate set, it was impossible to obtain a set of positive weights.
+                Try again without constraints!!!
+                TODO: incorporate this into greater workflow
+                """
+                self.success = False
+                break
+
+        self.w = alpha.T * np.sqrt(self.W[self.z]) #TODO FIXME cope with weights vectors different from 1
 
         print(f'Total number of iterations = {k}')
 
@@ -166,17 +242,16 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             plt.ylabel('Error %')
             plt.show()
 
-
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
     def _UpdateWeightsInverse(self, A,Aast,a,xold):
+        """
+        Method for the quick update of weights (self.w), whenever a negative weight is found
+        """
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
         s = np.dot(a.T, a) - np.dot(c.T, d)
         aux1 = np.hstack([Aast + np.outer(d, d) / s, -d / s])
         if np.shape(-d.T / s)[1]==1:
+            s = s.reshape(1,-1)
             aux2 = np.squeeze(np.hstack([-d.T / s, 1 / s]))
         else:
             aux2 = np.hstack([np.squeeze(-d.T / s), 1 / s])
@@ -185,24 +260,20 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         x = np.vstack([(xold - d * v), v])
         return Bast, x
 
-
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
     def _MultiUpdateInverseHermitian(self, invH, neg_indexes):
+        """
+        Method for the quick update of weights (self.w), whenever a negative weight is found
+        """
         neg_indexes = np.sort(neg_indexes)
         for i in range(np.size(neg_indexes)):
             neg_index = neg_indexes[i] - i
             invH = self._UpdateInverseHermitian(invH, neg_index)
         return invH
 
-
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
     def _UpdateInverseHermitian(self, invH, neg_index):
+        """
+        Method for the quick update of weights (self.w), whenever a negative weight is found
+        """
         if neg_index == np.shape(invH)[1]:
             aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
             invH_new = invH[:-1, :-1] - aux
@@ -214,116 +285,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
 
 
-    """
-    Method calculating the singular value decomposition of the ResidualSnapshots matrix
-    input:  ResidualSnapshots: numpy array containing a matrix of residuals projected onto a basis
-    output: u: numpy array containing the matrix of left singular vectors
-            s: numpy array containing the matrix of singular values
-    """
-    def _ObtainBasis(self,ResidualSnapshots):
-        ### Building the Snapshot matrix ####
-        for i in range (len(ResidualSnapshots)):
-            if i == 0:
-                SnapshotMatrix = ResidualSnapshots[i]
-            else:
-                SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
-        ### Taking the SVD ###  (randomized and truncated here)
-        u,s,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, self.SVD_tolerance)
-        return u, s
 
 
 
-    """
-    Method to write a json file containing the selected elements and corresponding weights
-    """
-    def WriteSelectedElements(self):
-        w = np.squeeze(self.w)
-        ### Saving Elements and conditions
-        ElementsAndWeights = {}
-        ElementsAndWeights["Elements"] = {}
-        ElementsAndWeights["Conditions"] = {}
-        #Only one element found !
-        if type(self.z)==np.int64 or type(self.z)==np.int32:
-            if self.z <= self.OriginalNumberOfElements-1:
-                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
-            else:
-                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
-        #Many elements found
-        else:
-            for j in range (0,len(self.z)):
-                if self.z[j] <= self.OriginalNumberOfElements-1:
-                    ElementsAndWeights["Elements"][int(self.z[j])] = (float(w[j]))
-                else:
-                    ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
-
-        with open('ElementsAndWeights.json', 'w') as f:
-            json.dump(ElementsAndWeights,f, indent=2)
-        print('\n\n Elements and conditions selected have been saved in a json file\n\n')
-        self._CreateHyperReducedModelPart()
-
-
-
-    """
-    Method to create an mdpa file containing the selected elements and the skin
-    """
-    def _CreateHyperReducedModelPart(self):
-        current_model = KratosMultiphysics.Model()
-        computing_model_part = current_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(self.ModelPartName)
-        model_part_io.ReadModelPart(computing_model_part)
-        hyper_reduced_model_part_help =   current_model.CreateModelPart("Helping")
-
-        with open('ElementsAndWeights.json') as f:
-            HR_data = json.load(f)
-            for key in HR_data["Elements"].keys():
-                for node in computing_model_part.GetElement(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
-            for key in HR_data["Conditions"].keys():
-                for node in computing_model_part.GetCondition(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
-
-        # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
-        HROM_Model_Part =  current_model.CreateModelPart("HROM_Model_Part")
-
-        # Building the COMPUTE_HROM submodel part
-        hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
-
-        # TODO implement the hyper-reduced model part creation in C++
-        with open('ElementsAndWeights.json') as f:
-            HR_data = json.load(f)
-            for originalSubmodelpart in computing_model_part.SubModelParts:
-                hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
-                print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
-                print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
-                print(f'originalSubmodelpart.Conditions {len(originalSubmodelpart.Conditions)}')
-                for originalNode in originalSubmodelpart.Nodes:
-                    if originalNode in hyper_reduced_model_part_help.Nodes:
-                        hyperReducedSubmodelpart.AddNode(originalNode,0)
-                ## More eficient way to implement this is possible
-                for originalElement in originalSubmodelpart.Elements:
-                    for key in HR_data["Elements"].keys():
-                        if originalElement.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddElement(originalElement,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
-                for originalCondition in originalSubmodelpart.Conditions:
-                    for key in HR_data["Conditions"].keys():
-                        if originalCondition.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddCondition(originalCondition,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
-
-
-        # Building the VISUALIZE_HROM submodel part
-        print('Adding skin for visualization...')
-        hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-        for condition in computing_model_part.Conditions:
-            for node in condition.GetNodes():
-                hyper_reduced_model_part2.AddNode(node, 0)
-            hyper_reduced_model_part2.AddCondition(condition, 0)
-        for node in computing_model_part.Nodes:
-            hyper_reduced_model_part2.AddNode(node, 0)
-
-        ## Creating the mdpa file using ModelPartIO object
-        print('About to print ...')
-        KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
-        print('\nHyper_Reduced_Model_Part.mdpa created!\n')
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")

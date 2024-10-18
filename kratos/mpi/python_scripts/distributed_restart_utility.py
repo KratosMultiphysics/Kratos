@@ -17,8 +17,14 @@ class DistributedRestartUtility(RestartUtility):
         super().__init__(model_part, settings)
 
         self.set_mpi_communicator = settings["set_mpi_communicator"].GetBool()
-        # the mpi-comm is not set yet, maybe change this once the communicator can be splitted
-        self.rank = KratosMultiphysics.DataCommunicator.GetDefault().Rank()
+
+        data_comm_name = settings["data_communicator_name"].GetString()
+        if data_comm_name != "":
+            self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(data_comm_name)
+        else:
+            self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+
+        self.rank = self.comm.Rank()
 
     #### Protected functions ####
 
@@ -30,7 +36,7 @@ class DistributedRestartUtility(RestartUtility):
 
     def _ExecuteAfterLoad(self):
         if self.set_mpi_communicator:
-            KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
+            KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(), self.comm).Execute()
 
     def _GetFileNamePattern( self ):
         """Return the pattern of flags in the file name for FileNameDataCollector."""
@@ -45,3 +51,15 @@ class DistributedRestartUtility(RestartUtility):
     def _UpdateRestartFilesMap(self, restart_files_map, step_id, file_name_data):
         if (self.rank == file_name_data.GetRank()):
             restart_files_map[step_id] = file_name_data.GetFileName()
+
+    def _GetSerializerFlags(self):
+        return KratosMultiphysics.Serializer.MPI | KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "set_mpi_communicator"   : true,
+            "data_communicator_name" : ""
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        return this_defaults

@@ -37,19 +37,19 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
-            "mesh_id"                     : 0,
-            "model_part_name"             : "Structure",
-            "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
-            "interval"                    : [0.0,"End"],
-            "variable_name"               : "DISPLACEMENT",
-            "zero_tolerance_factor"       : 1.0,
-            "integration_order"           : 2,
-            "consider_tessellation"       : false,
-            "normal_check_proportion"     : 0.1,
-            "search_parameters" : {
+            "help"                         : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
+            "model_part_name"              : "Structure",
+            "mesh_tying_model_part"        : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "mesh_tying_property_ids"      : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "interval"                     : [0.0,"End"],
+            "variable_name"                : "DISPLACEMENT",
+            "consider_static_condensation" : false,
+            "zero_tolerance_factor"        : 1.0,
+            "integration_order"            : 2,
+            "consider_tessellation"        : true,
+            "normal_check_proportion"      : 0.1,
+            "search_parameters"            : {
                 "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
@@ -59,13 +59,18 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 "database_step_update"        : 999999999,
                 "debug_mode"                  : false,
                 "check_gap"                   : "check_mapping",
-                "octree_search_parameters" : {
+                "octree_search_parameters"    : {
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
+            },
+            "scale_factor_parameters"      : {
+                "manual_scale_factor"         : false,
+                "stiffness_factor"            : 1.0,
+                "scale_factor"                : 1.0e0
             }
         }
         """)
@@ -76,17 +81,10 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # We transfer the parameters to the base class
         base_process_settings = KM.Parameters("""{}""")
-        base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
-        base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
         base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
-        base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
-        base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
-        base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
-        base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
-        base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
-        base_process_settings.AddValue("normal_check_proportion", self.mesh_tying_settings["normal_check_proportion"])
-        base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
+        parameter_list = ["model_part_name", "assume_master_slave", "interval", "zero_tolerance_factor", "integration_order", "consider_tessellation", "normal_check_proportion", "search_parameters"]
+        base_process_settings.CopyValuesFromExistingParameters(self.mesh_tying_settings, parameter_list)
 
         # Construct the base process.
         super().__init__(Model, base_process_settings)
@@ -104,6 +102,9 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 raise Exception("Variable " + self.variable_name + " not compatible")
         else:
             raise Exception("Variable " + self.variable_name + " not registered")
+        
+        # If we consider static condensation
+        self.consider_static_condensation = self.mesh_tying_settings["consider_static_condensation"].GetBool()
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -114,6 +115,23 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super().ExecuteInitialize()
+
+        # Scale factor settings
+        if self.mesh_tying_settings["scale_factor_parameters"]["manual_scale_factor"].GetBool():
+            self.scale_factor = self.mesh_tying_settings["scale_factor_parameters"]["scale_factor"].GetDouble()
+        else:
+            scale_factor_var_parameters = KM.Parameters("""{
+                "compute_penalty"      : false
+            }""")
+            scale_factor_var_parameters.AddValue("stiffness_factor", self.mesh_tying_settings["scale_factor_parameters"]["stiffness_factor"])
+            self.scale_factor_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, scale_factor_var_parameters)
+            self.scale_factor_process.Execute()
+
+        # If we consider static condensation
+        if self.consider_static_condensation:
+            computing_contact_model_part = self.main_model_part.GetSubModelPart("ComputingContact")
+            self.assign_elements_conditions_process = CSMA.AssignParentElementConditionsProcess(computing_contact_model_part, self.main_model_part)
+            self.assign_elements_conditions_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -132,6 +150,10 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         """
         # We call to the base process
         super().ExecuteInitializeSolutionStep()
+
+        # If we consider static condensation
+        if self.consider_static_condensation:
+            self.assign_elements_conditions_process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -179,25 +201,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # We define the condition name to be used
         return "MeshTyingMortar"
 
-    def _get_final_string(self, key = "0"):
-        """ This method returns the final string of the condition name
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        key -- The key to identify the current pair
-        """
-        # Determine the geometry of the element
-        super()._get_final_string(key)
-        number_nodes, number_nodes_master = self._compute_number_nodes_elements()
-        geometry_element = self.__type_element(number_nodes)
-        geometry_element_master = self.__type_element(number_nodes_master)
-        # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super()._compute_number_nodes()
-        if number_nodes != number_nodes_master:
-            return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
-        else:
-            return geometry_element
-
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
 
@@ -226,49 +229,3 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # Setting the conditions
         KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self._get_process_model_part().Conditions)
-
-    def _compute_number_nodes_elements(self):
-        """ This method computes the  number of nodes per element
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        # We compute the number of nodes of the geometry
-        if self.predefined_master_slave and self.dimension == 3:
-            slave_defined = False
-            master_defined = False
-            for elem in self.main_model_part.Elements:
-                nodes = elem.GetNodes()
-                for node in nodes:
-                    if node.Is(KM.SLAVE):
-                        number_nodes = len(elem.GetNodes())
-                        slave_defined = True
-                    if node.Is(KM.MASTER):
-                        number_nodes_master = len(elem.GetNodes())
-                        master_defined = True
-                if slave_defined and master_defined:
-                    break
-        else:
-            number_nodes = len(self.main_model_part.Elements[1].GetNodes())
-            number_nodes_master = number_nodes
-
-        return number_nodes, number_nodes_master
-
-    def __type_element(self, number_nodes):
-        """ This method computes the type of element considered
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        number_nodes -- The number of nodes of the element
-        """
-
-        if self.dimension == 2:
-            if number_nodes == 3:
-                return "Triangle"
-            elif number_nodes == 4:
-                return "Quadrilateral"
-        else:
-            if number_nodes == 4:
-                return "Tetrahedron"
-            elif number_nodes == 8:
-                return "Hexahedron"

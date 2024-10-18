@@ -76,11 +76,11 @@ public:
 
     /**
      * Type definitions
-     * NOTE: geometries are assumed to be of type Node<3> for all problems
+     * NOTE: geometries are assumed to be of type Node for all problems
      */
     typedef ProcessInfo ProcessInfoType;
     typedef std::size_t SizeType;
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     typedef Vector StrainVectorType;
     typedef Vector StressVectorType;
@@ -143,14 +143,14 @@ public:
      * its variables will be used to check constitutive law and element compatibility
 
      * @param mOptions        flags  with the current constitutive law characteristics
-     * @param mStrainSize     double with the strain vector size
+     * @param mStrainSize     SizeType with the strain vector size
      * @param mStrainMeasures vector with the strain measures accepted by the constitutive law
 
      */
 
       Flags                mOptions;
-      double               mStrainSize;
-      double               mSpaceDimension;
+      SizeType             mStrainSize;
+      SizeType             mSpaceDimension;
       std::vector< StrainMeasure > mStrainMeasures;
 
       /**
@@ -168,18 +168,18 @@ public:
       }
 
       // Set variables
-      void SetOptions       (const Flags&  rOptions)      {mOptions=rOptions;};
-      void SetStrainSize    (const double StrainSize)     {mStrainSize=StrainSize;};
-      void SetSpaceDimension(const double SpaceDimension) {mSpaceDimension=SpaceDimension;};
-      void SetStrainMeasure (const StrainMeasure Measure) {mStrainMeasures.push_back(Measure);};
+      void SetOptions        (const Flags&  rOptions)        {mOptions=rOptions;};
+      void SetStrainSize     (const SizeType StrainSize)     {mStrainSize=StrainSize;};
+      void SetSpaceDimension (const SizeType SpaceDimension) {mSpaceDimension=SpaceDimension;};
+      void SetStrainMeasure  (const StrainMeasure Measure)   {mStrainMeasures.push_back(Measure);};
 
       void SetStrainMeasures (const std::vector<StrainMeasure> MeasuresVector) {mStrainMeasures = MeasuresVector;};
 
       // Get variables
       const Flags& GetOptions () {return mOptions;};
 
-      const double& GetStrainSize() {return mStrainSize;};
-      const double& GetSpaceDimension() {return mSpaceDimension;};
+      const SizeType& GetStrainSize()     {return mStrainSize;};
+      const SizeType& GetSpaceDimension() {return mSpaceDimension;};
       std::vector<StrainMeasure>& GetStrainMeasures() {return mStrainMeasures;};
     };
 
@@ -206,7 +206,7 @@ public:
 
      * GEOMETRIC PARAMETERS:
      * @param mpShapeFunctionsValues pointer to the shape functions values in the current integration point (input data)
-     * @param mpShapeFunctionsDerivatives pointer to the shape functions derivaties values in the current integration point (input data)
+     * @param mpShapeFunctionsDerivatives pointer to the shape functions derivatives values in the current integration point (input data)
      * @param mpElementGeometry pointer to the element's geometry (input data)
 
      * MATERIAL PROPERTIES:
@@ -354,7 +354,7 @@ public:
 
 
       /**
-       *Check deformation gradient, strains ans stresses assigned
+       *Check deformation gradient, strains and stresses assigned
        */
 
       bool CheckMechanicalVariables ()
@@ -1356,7 +1356,7 @@ public:
 
 
     /**
-     * @brief This method is used to check that tow Constitutive Laws are the same type (references)
+     * @brief This method is used to check that two Constitutive Laws are the same type (references)
      * @param rLHS The first argument
      * @param rRHS The second argument
      */
@@ -1365,7 +1365,7 @@ public:
     }
 
     /**
-     * @brief This method is used to check that tow Constitutive Laws are the same type (pointers)
+     * @brief This method is used to check that two Constitutive Laws are the same type (pointers)
      * @param rLHS The first argument
      * @param rRHS The second argument
      */

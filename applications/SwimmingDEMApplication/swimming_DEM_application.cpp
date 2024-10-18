@@ -41,6 +41,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_BODY_FORCE)
+KRATOS_CREATE_VARIABLE(double, RELAXATION_ALPHA)
 KRATOS_CREATE_VARIABLE(double, EXACT_PRESSURE)
 KRATOS_CREATE_VARIABLE(double, SCALAR_ERROR)
 KRATOS_CREATE_VARIABLE(double, ERROR_X)
@@ -51,6 +52,7 @@ KRATOS_CREATE_VARIABLE(double, FLUID_FRACTION_OLD_2)
 KRATOS_CREATE_VARIABLE(double, GENTLE_INITIATION_COUPLING_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, PERMEABILITY_1_DAY)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
+KRATOS_CREATE_VARIABLE(bool, MANUFACTURED)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_BUOYANCY_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
@@ -70,32 +72,32 @@ KRATOS_CREATE_VARIABLE(SteadyViscousTorqueLaw::Pointer, SDEM_STEADY_VISCOUS_TORQ
 
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   KratosApplication("SwimmingDEMApplication"),
-  mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeMaterialDerivativeSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeMaterialDerivativeSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeComponentGradientSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeComponentGradientSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeGradientPouliot20122DEdge(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-  mComputeGradientPouliot20123DEdge(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-  mComputeGradientPouliot20122D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeGradientPouliot20123D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeVelocityLaplacianComponentSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeVelocityLaplacianComponentSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeVelocityLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeVelocityLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
-  mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
-  mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
-  mComputeLaplacianSimplexCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
-  mRigidShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-  mSphericSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  mSwimmingNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  mSwimmingAnalyticParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
+  mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeMaterialDerivativeSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeMaterialDerivativeSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeComponentGradientSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeComponentGradientSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeGradientPouliot20122DEdge(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+  mComputeGradientPouliot20123DEdge(0, Element::GeometryType::Pointer(new Line3D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+  mComputeGradientPouliot20122D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeGradientPouliot20123D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeVelocityLaplacianComponentSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeVelocityLaplacianComponentSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeVelocityLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeVelocityLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node >( Element::GeometryType::PointsArrayType(2)))),
+  mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType(3)))),
+  mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node >( Element::GeometryType::PointsArrayType(2)))),
+  mComputeLaplacianSimplexCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType(3)))),
+  mRigidShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+  mSphericSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
+  mSwimmingNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
+  mSwimmingAnalyticParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosSwimmingDEMApplication::Register()
@@ -108,6 +110,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_BODY_FORCE)
+  KRATOS_REGISTER_VARIABLE(RELAXATION_ALPHA)
   KRATOS_REGISTER_VARIABLE(EXACT_PRESSURE)
   KRATOS_REGISTER_VARIABLE(SCALAR_ERROR)
   KRATOS_REGISTER_VARIABLE(ERROR_X)
@@ -133,6 +136,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(MANUFACTURED)
 
   /* Define In Global variables.cpp */
 

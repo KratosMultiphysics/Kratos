@@ -70,8 +70,13 @@ Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Point
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<double>& rVariable,
-    double& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
 void QSVMS<TElementData>::Calculate(
@@ -80,16 +85,28 @@ void QSVMS<TElementData>::Calculate(
     // Lumped projection terms
     if (rVariable == ADVPROJ) {
         this->CalculateProjections(rCurrentProcessInfo);
+    } else {
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 template <class TElementData>
-void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMS<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -819,9 +836,12 @@ template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
 template class QSVMS< QSVMSDEMCoupledData<2,3> >;
+template class QSVMS< QSVMSDEMCoupledData<2,6> >;
 template class QSVMS< QSVMSDEMCoupledData<3,4> >;
 
 template class QSVMS< QSVMSDEMCoupledData<2,4> >;
+template class QSVMS< QSVMSDEMCoupledData<2,9> >;
 template class QSVMS< QSVMSDEMCoupledData<3,8> >;
+template class QSVMS< QSVMSDEMCoupledData<3,27> >;
 
 } // namespace Kratos

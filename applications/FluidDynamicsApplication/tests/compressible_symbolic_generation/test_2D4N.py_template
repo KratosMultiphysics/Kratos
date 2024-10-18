@@ -1,0 +1,247 @@
+import KratosMultiphysics
+import math
+
+class _ElementData:
+    "Struct containing data mimicking CompressibleNavierStokesExplicit::ElementDataStruct."
+    def __init__(self, dim, num_nodes):
+        block_size = dim + 2
+
+        self.U = self._ZeroMatrix(num_nodes, block_size)
+        self.dUdt = self._ZeroMatrix(num_nodes, block_size)
+
+        self.m_ext = self._ZeroVector(num_nodes)
+        self.r_ext = self._ZeroVector(num_nodes)
+        self.f_ext = self._ZeroMatrix(num_nodes, dim)
+
+        self.alpha_sc_nodes = self._ZeroVector(num_nodes)
+        self.beta_sc_nodes = self._ZeroVector(num_nodes)
+        self.lamb_sc_nodes = self._ZeroVector(num_nodes)
+        self.mu_sc_nodes = self._ZeroVector(num_nodes)
+        self.alpha = 0.0
+        self.beta = 0.0
+        self.lambda_ = 0.0
+        self.mu = 0.0
+        self.h = 0.0
+        self.gamma = 0.0
+        self.c_v = 0.0
+        self.ResProj = self._ZeroMatrix(num_nodes, block_size)
+
+    @classmethod
+    def _ZeroMatrix(cls, rows, cols):
+        m = KratosMultiphysics.Matrix(rows, cols)
+        for r in range(rows):
+            for c in range(cols):
+                m[r,c] = 0.0
+        return m
+
+    @classmethod
+    def _ZeroVector(cls, rows):
+        v = KratosMultiphysics.Vector(rows)
+        for r in range(rows):
+            v[r] = 0.0
+        return v
+
+class SubTestSuite:
+    num_nodes = 4
+    dim = 2
+    block_size = dim + 2
+
+    @classmethod
+    def __ShapeFunctions(cls, x, y):
+        N = KratosMultiphysics.Vector(cls.num_nodes)
+        N[0] = (1-x)*(1-y)/4
+        N[1] = (1+x)*(1-y)/4
+        N[2] = (1+x)*(1+y)/4
+        N[3] = (1-x)*(1+y)/4
+
+        DN_DX = KratosMultiphysics.Matrix(cls.num_nodes, cls.block_size)
+        DN_DX[0,0] = -(1-y)/4
+        DN_DX[0,1] = -(1-x)/4
+        DN_DX[1,0] =  (1-y)/4
+        DN_DX[1,1] = -(1+x)/4
+        DN_DX[2,0] =  (1+y)/4
+        DN_DX[2,1] =  (1+x)/4
+        DN_DX[3,0] = -(1+y)/4
+        DN_DX[3,1] =  (1-x)/4
+
+        return N, DN_DX
+
+    @classmethod
+    def __FillVector(cls, rows, value):
+        v = KratosMultiphysics.Vector(rows)
+        for r in range(rows):
+            v[r] = value
+        return v
+
+    def __init__(self):
+        xi = -math.sqrt(3)/3
+        eta = math.sqrt(3)/3
+        self.N, self.DN_DX = self.__ShapeFunctions(xi, eta)
+
+        # Filling data
+        rho_0 = 1.16927
+        rho_1 = 1.46426
+
+        mom = 467.707
+
+        et_0 = 346854
+        et_1 = 422234
+
+        self.data = _ElementData(self.dim, self.num_nodes)
+
+        self.data.U[0,0] = rho_0
+        self.data.U[1,0] = rho_1
+        self.data.U[2,0] = rho_1
+        self.data.U[3,0] = rho_0
+
+        self.data.U[0,1] = mom
+        self.data.U[1,1] = mom
+        self.data.U[2,1] = mom
+        self.data.U[3,1] = mom
+
+        self.data.U[0,3] = et_0
+        self.data.U[1,3] = et_1
+        self.data.U[2,3] = et_1
+        self.data.U[3,3] = et_0
+
+        self.data.alpha_sc_nodes = self.__FillVector(self.num_nodes, 1.5e-4)
+        self.data.beta_sc_nodes = self.__FillVector(self.num_nodes, 2.8e-5)
+        self.data.lamb_sc_nodes = self.__FillVector(self.num_nodes, 1.3e-7)
+        self.data.mu_sc_nodes = self.__FillVector(self.num_nodes, 2.3e-6)
+
+        self.data.alpha = 0
+        self.data.beta = 1.13e-4
+        self.data.lambda_ = 6.84e-6
+        self.data.mu = 1.26e-4
+
+        self.data.gamma = 1.4
+        self.data.c_v = 722.14
+        self.data.h = 2.0
+
+    def test_substitute_rho_proj_2D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rho_proj_gauss = KratosMultiphysics.Vector(self.num_nodes)
+
+        #substitute_rho_proj_2D:
+        //substitute_rho_proj_2D
+
+        expected = KratosMultiphysics.Vector(self.num_nodes)
+        expected[0] = 0
+        expected[1] = 0
+        expected[2] = 0
+        expected[3] = 0
+
+        return (rho_proj_gauss, expected)
+
+
+    def test_substitute_mom_proj_2D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        mom_proj_gauss = KratosMultiphysics.Vector(self.dim * self.num_nodes)
+
+        #substitute_mom_proj_2D:
+        //substitute_mom_proj_2D
+
+        expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
+        expected[0] = 323.41193368440514178
+        expected[1] = -9.8639477702076238232e-13
+        expected[2] = 86.657966453324164036
+        expected[3] = -2.6430368392099063291e-13
+        expected[4] = 323.41193368440514178
+        expected[5] = -9.8639477702076238232e-13
+        expected[6] = 1206.9897682842961331
+        expected[7] = -3.6812754241620587954e-12
+
+        return (mom_proj_gauss, expected)
+
+    def test_substitute_tot_ener_proj_2D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        tot_ener_proj_gauss = KratosMultiphysics.Vector(self.num_nodes)
+
+        #substitute_tot_ener_proj_2D:
+        //substitute_tot_ener_proj_2D
+
+        expected = KratosMultiphysics.Vector(self.num_nodes)
+        expected[0] = -28449.159438906241121
+        expected[1] = -7622.9292969991793143
+        expected[2] = -28449.159438906241121
+        expected[3] = -106173.70845862576971
+
+        return (tot_ener_proj_gauss, expected)
+
+
+    def test_substitute_rhs_2D_OSS(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rhs_gauss = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+
+        stab_c1 = 12
+        stab_c2 = 2
+        stab_c3 = 1
+
+        #substitute_rhs_2D_OSS:
+        //substitute_rhs_2D_OSS
+
+        expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+        expected[0] = -0.27983535927973562929
+        expected[1] = 131.11110392555048065
+        expected[2] = 195.386026326388901
+        expected[3] = -97816.487139542135992
+        expected[4] = 0.27983535927973962609
+        expected[5] = 238.23440538623225393
+        expected[6] = 52.353527966481571809
+        expected[7] = 72815.815767064399552
+        expected[8] = 1.0443597785862750449
+        expected[9] = 889.10290501237784611
+        expected[10] = -52.353527966484271872
+        expected[11] = 271752.32403725769836
+        expected[12] = -1.0443597785862790417
+        expected[13] = 489.31330128659192269
+        expected[14] = -195.38602632639174317
+        expected[15] = -365056.09982268471504
+
+        return (rhs_gauss, expected)
+
+    def test_substitute_rhs_2D_ASGS(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rhs_gauss = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+
+        stab_c1 = 12
+        stab_c2 = 2
+        stab_c3 = 1
+
+        #substitute_rhs_2D_ASGS:
+        //substitute_rhs_2D_ASGS
+
+        expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+        expected[0] = -0.27983535927973562929
+        expected[1] = 131.11110392555048065
+        expected[2] = 195.386026326388901
+        expected[3] = -97816.487139542135992
+        expected[4] = 0.27983535927973962609
+        expected[5] = 238.23440538623225393
+        expected[6] = 52.353527966481571809
+        expected[7] = 72815.815767064399552
+        expected[8] = 1.0443597785862750449
+        expected[9] = 889.10290501237784611
+        expected[10] = -52.353527966484271872
+        expected[11] = 271752.32403725769836
+        expected[12] = -1.0443597785862790417
+        expected[13] = 489.31330128659192269
+        expected[14] = -195.38602632639174317
+        expected[15] = -365056.09982268471504
+
+        return (rhs_gauss, expected)

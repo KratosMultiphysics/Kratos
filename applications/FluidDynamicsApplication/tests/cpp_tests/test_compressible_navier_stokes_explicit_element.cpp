@@ -17,10 +17,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 #include "containers/model.h"
+
+// Application includes
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 
 namespace Kratos {
@@ -169,8 +172,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
         RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
     }
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
+
 
 /**
  * @brief Test the 3D explicit compressible Navier-Stokes element RHS
@@ -233,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS3D4N, FluidDynamics
         RHS_expl[i_node * 5 + 3] = it_node->FastGetSolutionStepValue(REACTION_Z);
         RHS_expl[i_node * 5 + 4] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
     }
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-5);
 }
 
 } // Namespace Testing

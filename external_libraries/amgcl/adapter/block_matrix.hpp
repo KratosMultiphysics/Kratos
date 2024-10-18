@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ THE SOFTWARE.
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/interface.hpp>
 
 namespace amgcl {
 namespace adapter {
@@ -78,9 +80,9 @@ struct block_matrix_adapter {
         col_type cur_col;
         val_type cur_val;
 
-        row_iterator(const Matrix &A, col_type row)
-            : base(reinterpret_cast<Base*>(buf.data())), done(true)
+        row_iterator(const Matrix &A, col_type row) : done(true)
         {
+            base = reinterpret_cast<Base*>(buf.data());
             for(int i = 0; i < BlockSize; ++i) {
                 new (base + i) Base(backend::row_begin(A, row * BlockSize + i));
 
@@ -167,10 +169,72 @@ block_matrix_adapter<Matrix, BlockType> block_matrix(const Matrix &A) {
     return block_matrix_adapter<Matrix, BlockType>(A);
 }
 
+template <class Matrix>
+std::shared_ptr<
+    backend::crs<
+        typename math::element_of<
+            typename backend::value_type<Matrix>::type
+            >::type,
+        typename backend::col_type<Matrix>::type,
+        typename backend::ptr_type<Matrix>::type
+        >
+    >
+unblock_matrix(const Matrix &B) {
+    typedef typename backend::value_type<Matrix>::type Block;
+    typedef typename math::element_of<Block>::type Scalar;
+    typedef typename backend::col_type<Matrix>::type Col;
+    typedef typename backend::ptr_type<Matrix>::type Ptr;
+
+    const int brows = math::static_rows<Block>::value;
+    const int bcols = math::static_cols<Block>::value;
+
+    static_assert(brows > 1 || bcols > 1, "Can not unblock scalar matrix!");
+
+    auto A = std::make_shared<backend::crs<Scalar, Col, Ptr>>();
+
+    A->set_size(backend::rows(B) * brows, backend::cols(B) * bcols);
+    A->ptr[0] = 0;
+
+    const ptrdiff_t nb = backend::rows(B);
+
+#pragma omp for
+    for (ptrdiff_t ib = 0; ib < nb; ++ib) {
+        auto w = backend::row_nonzeros(B, ib);
+        for (ptrdiff_t i = 0, ia = ib * brows; i < brows; ++i, ++ia) {
+            A->ptr[ia + 1] = w * bcols;
+        }
+    }
+
+    A->scan_row_sizes();
+    A->set_nonzeros();
+
+#pragma omp for
+    for (ptrdiff_t ib = 0; ib < nb; ++ib) {
+        for(auto b = backend::row_begin(B, ib); b; ++b) {
+            auto c = b.col();
+            auto v = b.value();
+
+            for (ptrdiff_t i = 0, ia = ib * brows; i < brows; ++i, ++ia) {
+                auto row_head = A->ptr[ia];
+                for(int j = 0; j < bcols; ++j) {
+                    A->col[row_head] = c * bcols + j;
+                    A->val[row_head] = v(i,j);
+                    ++row_head;
+                }
+                A->ptr[ia] = row_head;
+            }
+        }
+    }
+
+    std::rotate(A->ptr, A->ptr + A->nrows, A->ptr + A->nrows + 1);
+    A->ptr[0] = 0;
+
+    return A;
+}
+
 } // namespace adapter
 
 namespace backend {
-
 namespace detail {
 
 template <class Matrix, class BlockType>

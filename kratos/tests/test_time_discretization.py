@@ -25,21 +25,15 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
         for dt in reversed(delta_times):
             model_part.CloneTimeStep(model_part.ProcessInfo[KM.TIME] + dt) # filling the time-step-info
 
-        exp_size = len(exp_results)
-
         coeffs = bdf.ComputeBDFCoefficients(*delta_times)
 
-        self.assertEqual(len(coeffs), exp_size)
-        for coeff, exp_coeff in zip(coeffs, exp_results):
-            self.assertAlmostEqual(coeff, exp_coeff)
+        self.assertVectorAlmostEqual(coeffs, exp_results)
 
-        self.assertEqual(KM.TimeDiscretization.GetMinimumBufferSize(bdf), exp_size)
+        self.assertEqual(KM.TimeDiscretization.GetMinimumBufferSize(bdf), len(exp_results))
 
         # test with passing a ProcessInfo
         coeffs = bdf.ComputeBDFCoefficients(model_part.ProcessInfo)
-        self.assertEqual(len(coeffs), exp_size)
-        for coeff, exp_coeff in zip(coeffs, exp_results):
-            self.assertAlmostEqual(coeff, exp_coeff)
+        self.assertVectorAlmostEqual(coeffs, exp_results)
 
     def test_generic_BDF(self):
         delta_time = 0.11

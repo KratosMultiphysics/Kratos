@@ -103,7 +103,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod()
+  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod() const
   {
     return mThisIntegrationMethod;
   }
@@ -1674,7 +1674,7 @@ namespace Kratos
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	const Node<3> &rNode = this->GetGeometry()[i];
+	const Node &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 
 	// Nodal dofs

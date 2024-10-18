@@ -71,8 +71,6 @@
 "PostNonDimensionalVolumeWear"     : false,
 "PostNodalArea"                    : false,
 "PostStressStrainOption"           : false,
-"PostTemperature"                  : false,
-"PostHeatFlux"                     : false,
 "PostSkinSphere"                   : false,
 "PostPoissonRatio"                 : false,
 "PostRHS"                          : false,

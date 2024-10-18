@@ -7,7 +7,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
-from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import auxiliary_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
@@ -43,7 +43,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
 
         scheme_type = self.settings["scheme_type"].GetString()
         if "bdf" in scheme_type or scheme_type == "backward_euler":
-            return max(base_min_buffer_size, auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)+1)
+            return max(base_min_buffer_size, auxiliary_methods_solvers.GetBDFIntegrationOrder(scheme_type)+1)
         else:
             return base_min_buffer_size
 
@@ -77,19 +77,30 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
         process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
+        # Check that OSS are supported by current scheme
+        oss_available_schemes = ("newmark","bossak")
+        if self.settings["use_orthogonal_subscales"].GetBool():
+            if not scheme_type in oss_available_schemes:
+                err_msg = f"'{scheme_type}' scheme does not support OSS. Please switch 'use_orthogonal_subscales' off."
+                raise Exception(err_msg)
+
         # Setting the time integration schemes
-        if(scheme_type == "newmark"):
-            damp_factor_m = 0.0
-            newmark_beta = self.settings["newmark_beta"].GetDouble()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
-        elif(scheme_type == "bossak"):
-            damp_factor_m = self.settings["damp_factor_m"].GetDouble()
-            newmark_beta = self.settings["newmark_beta"].GetDouble()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
+        if scheme_type in ("newmark", "bossak"):
+            scheme_settings = KratosMultiphysics.Parameters("""{
+                "damp_factor_m" : 0.0,
+                "newmark_beta" : 0.0,
+                "projection_variables_list" : []
+            }""")
+            scheme_settings["damp_factor_m"].SetDouble(0.0 if scheme_type == "newmark" else self.settings["damp_factor_m"].GetDouble())
+            scheme_settings["newmark_beta"].SetDouble(self.settings["newmark_beta"].GetDouble())
+            if self.settings["use_orthogonal_subscales"].GetBool():
+                if self.settings["volumetric_strain_dofs"].GetBool():
+                    scheme_settings["projection_variables_list"].SetStringArray(["VOLUMETRIC_STRAIN_PROJECTION","DISPLACEMENT_PROJECTION"])
+            mechanical_scheme = StructuralMechanicsApplication.StructuralMechanicsBossakScheme(scheme_settings)
         elif(scheme_type == "pseudo_static"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
-            order = auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)
+            order = auxiliary_methods_solvers.GetBDFIntegrationOrder(scheme_type)
             # In case of rotation dof we declare the dynamic variables
             if self.settings["rotation_dofs"].GetBool():
                 bdf_parameters = KratosMultiphysics.Parameters(""" {

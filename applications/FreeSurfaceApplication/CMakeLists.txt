@@ -9,12 +9,10 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 set( KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/edgebased_gid_io.cpp
 )
 
 set( KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/free_surface_python_application.cpp
 )

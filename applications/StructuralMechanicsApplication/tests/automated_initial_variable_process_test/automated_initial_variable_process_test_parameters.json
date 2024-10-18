@@ -1,0 +1,155 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "automated_initial_variable_process_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 1,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "automated_initial_variable_process_test/automated_initial_variable_process_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "automated_initial_variable_process_test/automated_initial_variable_process_test_materials.json"
+        },
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "rotation_dofs"                   : false,
+        "volumetric_strain_dofs"          : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [{
+            "python_module" : "set_automated_initial_variable_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "process_name"  : "SetAutomatedInitialVariableProcess",
+            "Parameters"    : {
+                "help"                     : "This automates the application of initial strain/stress variables using csv tables",
+                "model_part_name"          : "Structure.GENERIC_Layer1",
+                "variable_name"            : "INITIAL_STRESS_VECTOR",
+                "hole_generatrix_axis"     : [0.0,0.0,1.0],
+                "hole_generatrix_point"    : [0.0,0.0,0.0],
+                "hole_radius_offset"       : 0.0005,
+                "initial_variable_table"     : {
+                            "name"             : "csv_table",
+                            "filename"         : "automated_initial_variable_process_test/input_tables/Layer1_StressComp1.csv",
+                            "delimiter"        : ",",
+                            "skiprows"         : 1,
+                            "first_column_id"  : 0,
+                            "second_column_id" : 1,
+                            "na_replace"       : 0.0
+                }
+            }
+        },{
+            "python_module" : "set_cylindrical_local_axes_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "process_name"  : "SetCylindricalLocalAxesProcess",
+            "Parameters"    : {
+                "model_part_name"      : "Structure.GENERIC_Layer1",
+               "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
+               "cylindrical_generatrix_point"  : [0.0,0.0,0.0],
+               "update_at_each_step"           : false
+            }
+        },{
+            "python_module" : "set_initial_state_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "set_initial_state_process",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Structure.GENERIC_Layer1",
+                    "dimension"       : 3,
+                    "imposed_stress"  : [0.0,0.0,0.0,0.0,0.0,0.0],
+                    "interval"        : [0.0, 1e30]
+            }
+        },{
+            "python_module" : "set_automated_initial_variable_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "process_name"  : "SetAutomatedInitialVariableProcess",
+            "Parameters"    : {
+                "help"                     : "This automates the application of initial strain/stress variables using csv tables",
+                "model_part_name"          : "Structure.GENERIC_Layer2",
+                "variable_name"            : "INITIAL_STRESS_VECTOR",
+                "hole_generatrix_axis"     : [0.0,0.0,1.0],
+                "hole_generatrix_point"    : [0.0,0.0,0.0],
+                "hole_radius_offset"       : 0.0005,
+                "initial_variable_table"     : {
+                            "name"             : "csv_table",
+                            "filename"         : "automated_initial_variable_process_test/input_tables/Layer2_StressComp1.csv",
+                            "delimiter"        : ",",
+                            "skiprows"         : 1,
+                            "first_column_id"  : 0,
+                            "second_column_id" : 1,
+                            "na_replace"       : 0.0
+                }
+            }
+        },{
+            "python_module" : "set_cylindrical_local_axes_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "process_name"  : "SetCylindricalLocalAxesProcess",
+            "Parameters"    : {
+                "model_part_name"      : "Structure.GENERIC_Layer2",
+               "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
+               "cylindrical_generatrix_point"  : [0.0,0.0,0.0],
+               "update_at_each_step"           : false
+            }
+        },{
+            "python_module" : "set_initial_state_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "set_initial_state_process",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Structure.GENERIC_Layer2",
+                    "dimension"       : 3,
+                    "imposed_stress"  : [0.0,0.0,0.0,0.0,0.0,0.0],
+                    "interval"        : [0.0, 1e30]
+            }
+        }],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "gauss_points_check_variables" : ["CAUCHY_STRESS_VECTOR"],
+                "input_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
+                "model_part_name"              : "Structure.Parts_Solid_Body",
+                "time_frequency"               : 0.1
+            }
+        }]
+    },
+	"_json_output_process" : [
+	{
+		"python_module"   : "json_output_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "",
+		"process_name"          : "JsonOutputProcess",
+		"Parameters"            : {
+			"gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
+			"output_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
+			"model_part_name"               : "Structure.Parts_Solid_Body",
+			"time_frequency"                : 0.1
+		}
+	}],
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    },
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}

@@ -221,8 +221,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
         parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
 
-    @classmethod
-    def tearDownClass(_):
+    def tearDown(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             DeleteH5Files()
             DeleteTimeFiles(".")

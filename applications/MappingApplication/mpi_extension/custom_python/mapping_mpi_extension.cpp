@@ -19,13 +19,14 @@
 #include "includes/define_python.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "custom_mappers/barycentric_mapper.h"
+#include "custom_mappers/projection_3D_2D_mapper.h"
 #include "custom_utilities/mapper_mpi_define.h"
 #include "custom_utilities/mapper_mpi_backend.h"
 #include "factories/mapper_factory.h"
 #include "python/add_mapper_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosMappingMPIExtension,m)
 {
@@ -46,9 +47,10 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
 
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
+    KRATOS_REGISTER_MAPPER(BarycentricMapper,     "barycentric");
+    KRATOS_REGISTER_MAPPER(Projection3D2DMapper,  "projection_3D_2D");
 }
 
-}
 }
 
 #endif // KRATOS_PYTHON defined

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED )
-#define  KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -154,6 +153,11 @@ public:
         return false;
     }
 
+    virtual bool IsDoneSearching() const
+    {
+        return HasInterfaceInfoThatIsNotAnApproximation();
+    }
+
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
     {
         KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;
@@ -242,5 +246,3 @@ protected:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED  defined

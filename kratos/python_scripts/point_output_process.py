@@ -5,11 +5,11 @@ import KratosMultiphysics
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return PointOutputProcess(Model, settings["Parameters"])
 
-class PointOutputProcess(KratosMultiphysics.Process):
+class PointOutputProcess(KratosMultiphysics.OutputProcess):
     """This process writes results from a geometrical position (point) in the model to a file
     It first searches the entity containing the requested output location and then interpolates
     the requested variable(s)
@@ -22,7 +22,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
     Furthermore it can be used for testing in MPI where the node numbers can change
     """
     def __init__(self, model, params):
-        KratosMultiphysics.Process.__init__(self)
+        super().__init__()
 
         default_settings = KratosMultiphysics.Parameters('''{
             "help"                 : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
@@ -107,34 +107,34 @@ class PointOutputProcess(KratosMultiphysics.Process):
             self.__SearchPoint()
 
     def ExecuteInitializeSolutionStep(self):
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
         # search for point, moved here, so search happens at start time of the time interval
-        if self.interval.IsInInterval(time) and not self.search_done:
+        if self.IsOutputStep() and not self.search_done:
             self.search_done = True
             self.__SearchPoint()
 
-    def ExecuteFinalizeSolutionStep(self):
+    def IsOutputStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        return self.interval.IsInInterval(time)
 
-        if self.interval.IsInInterval(time):
-            # zip works with the shortes list, which is what we want here
-            # i.e. if no entity was found then also no output_file will be
-            # initialized which means that the loop body will never be executed
-            for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
-                # not formatting time in order to not lead to problems with time recognition
-                # in the file writer when restarting
-                out = str(time)
-                for var in var_list:
-                    value = Interpolate(var, ent, coord, self.historical_value)
+    def PrintOutput(self):
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        # zip works with the shortes list, which is what we want here
+        # i.e. if no entity was found then also no output_file will be
+        # initialized which means that the loop body will never be executed
+        for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
+            # not formatting time in order to not lead to problems with time recognition
+            # in the file writer when restarting
+            out = str(time)
+            for var in var_list:
+                value = Interpolate(var, ent, coord, self.historical_value)
 
-                    if IsArrayVariable(var):
-                        out += " " + " ".join( format(v,self.format) for v in value )
-                    else:
-                        out += " " + format(value,self.format)
+                if IsArrayVariable(var):
+                    out += " " + " ".join( format(v,self.format) for v in value )
+                else:
+                    out += " " + format(value,self.format)
 
-                out += "\n"
-                f.write(out)
+            out += "\n"
+            f.write(out)
 
     def ExecuteFinalize(self):
         for f in self.output_file:
@@ -166,7 +166,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             err_msg += '"node", "element", "condition"'
             raise Exception(err_msg)
 
-        # Check if a point was found, and initalize output
+        # Check if a point was found, and initialize output
         # NOTE: If the search was not successful (i.e. found_id = -1), we fail silently and
         # do nothing. This is BY DESIGN, as we are supposed to work on MPI too, and the point
         # in question might lie on a different partition.

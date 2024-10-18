@@ -16,9 +16,13 @@ debug_mode = False
 
 
 class TestDEMEraseParticles(dem_analysis.DEMAnalysisStage):
-    @classmethod
-    def GetMainPath(self):
+
+    @staticmethod
+    def StaticGetMainPath():
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "erase_particles_test_files")
+
+    def GetMainPath(self):
+        return self.StaticGetMainPath()
 
     def Finalize(self):
         self.number_of_particles_by_the_end = len(self.spheres_model_part.GetElements())
@@ -28,7 +32,7 @@ class TestDEMEraseParticlesWithDelay(KratosUnittest.TestCase):
 
     def setUp(self):
         self.parameters_file_name = 'ProjectParametersDEMWithNoDelay.json'
-        self.path = TestDEMEraseParticles.GetMainPath()
+        self.path = TestDEMEraseParticles.StaticGetMainPath()
         self.analysis = TestDEMEraseParticles
 
     def test_erase_particles_no_delay(self):

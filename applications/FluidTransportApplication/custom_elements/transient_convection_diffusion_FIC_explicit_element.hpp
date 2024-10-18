@@ -38,7 +38,7 @@ public:
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef typename Element::DofsVectorType DofsVectorType;
@@ -62,7 +62,7 @@ public:
     TransientConvectionDiffusionFICExplicitElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : TransientConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    virtual ~TransientConvectionDiffusionFICExplicitElement() {}
+    ~TransientConvectionDiffusionFICExplicitElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +73,9 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+                        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -468,7 +468,7 @@ namespace Kratos
 
   int StrainRate3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
-			       const ProcessInfo& rCurrentProcessInfo)
+			       const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

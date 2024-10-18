@@ -22,7 +22,7 @@
 
 // Application includes
 #include "custom_io/hdf5_condition_flag_value_io.h"
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 #include "tests/test_utils.h"
 
 namespace Kratos
@@ -37,11 +37,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
-
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
+
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}},
                                           {{"LineCondition2D2N"}});
     TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}},
@@ -50,19 +51,28 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);
 
-    std::vector<std::string> variables_list = {{"SLIP"}, {"ACTIVE"}, {"STRUCTURE"}};
+    std::vector<std::string> variables_list = {"SLIP", "ACTIVE", "STRUCTURE"};
+
+    // "shuffle" the list of variables to check whether it's handled
+    // without deadlocks.
+    std::rotate(
+        variables_list.begin(),
+        variables_list.begin() + (r_read_model_part.GetCommunicator().GetDataCommunicator().Rank() % variables_list.size()),
+        variables_list.end()
+    );
 
     for (auto& r_condition : r_write_model_part.Conditions())
     {
         TestModelPartFactory::AssignDataValueContainer(
-            r_condition.Data(), r_condition, variables_list);
+            r_condition.GetData(), r_condition, variables_list);
     }
 
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["SLIP", "ACTIVE", "STRUCTURE"]
+            "list_of_variables": []
         })");
+    io_params["list_of_variables"].SetStringArray(variables_list);
 
     HDF5::ConditionFlagValueIO data_io(io_params, p_test_file);
     data_io.WriteConditionFlags(r_write_model_part.Conditions());
@@ -73,8 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
     {
         HDF5::ConditionType& r_read_condition =
             r_read_model_part.Conditions()[r_write_condition.Id()];
-        CompareDataValueContainers(r_read_condition.Data(), r_read_condition,
-                                   r_write_condition.Data(), r_write_condition);
+        CompareDataValueContainers(r_read_condition.GetData(), r_read_condition,
+                                   r_write_condition.GetData(), r_write_condition);
     }
 }
 

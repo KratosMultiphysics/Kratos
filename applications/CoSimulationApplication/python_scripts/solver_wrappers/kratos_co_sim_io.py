@@ -15,14 +15,23 @@ class KratosCoSimIO(CoSimulationIO):
     """Wrapper for the CoSimIO to be used with Kratos
     """
     def __init__(self, settings, model, solver_name, data_communicator):
+        # backward compatibility
+        for param in ("connect_to", "communication_format", "print_timing"):
+            if settings.Has(param):
+                if not settings.Has("co_sim_io_settings"):
+                    settings.AddEmptyValue("co_sim_io_settings")
+                co_sim_io_settings = settings["co_sim_io_settings"]
+                co_sim_io_settings.AddValue(param, settings[param])
+                settings.RemoveValue(param)
+
         super().__init__(settings, model, solver_name, data_communicator)
 
-        connect_to = self.settings["connect_to"].GetString()
-        if connect_to == "":
-            raise Exception('"connect_to" must be specified!')
+        co_sim_io_settings = settings["co_sim_io_settings"]
 
-        connection_settings = CoSimIO.InfoFromParameters(self.settings)
-        connection_settings.SetString("my_name", solver_name)
+        if not co_sim_io_settings.Has("my_name"):
+            co_sim_io_settings.AddEmptyValue("my_name").SetString(solver_name)
+
+        connection_settings = CoSimIO.InfoFromParameters(co_sim_io_settings)
 
         if self.data_communicator.IsDistributed():
             from KratosMultiphysics.CoSimulationApplication.MPIExtension import CoSimIO as CoSimIOMPI
@@ -113,19 +122,17 @@ class KratosCoSimIO(CoSimulationIO):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "connect_to"           : "",
-            "communication_format" : "file",
-            "print_timing"         : false
+            "co_sim_io_settings" : { }
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 def GetDataLocation(location_str):
     location_map = {
-        "node_historical"     : CoSimIO.DataLocation.NodeHistorical,
-        "node_non_historical" : CoSimIO.DataLocation.NodeNonHistorical,
-        "element"             : CoSimIO.DataLocation.Element,
-        "condition"           : CoSimIO.DataLocation.Condition,
-        "model_part"          : CoSimIO.DataLocation.ModelPart
+        "node_historical"     : KM.Globals.DataLocation.NodeHistorical,
+        "node_non_historical" : KM.Globals.DataLocation.NodeNonHistorical,
+        "element"             : KM.Globals.DataLocation.Element,
+        "condition"           : KM.Globals.DataLocation.Condition,
+        "model_part"          : KM.Globals.DataLocation.ModelPart
     }
     return location_map[location_str]

@@ -169,7 +169,7 @@ void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
     {
         rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_X);
         rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Y);
-        if(TDim > 2) rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Z);
+        if constexpr (TDim > 2) rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Z);
         rElementalDofList[Index++] = rGeom[i].pGetDof(PRESSURE);
     }
 }
@@ -191,7 +191,7 @@ void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rRe
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
-        if(TDim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
+        if constexpr (TDim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
         rResult[Index++] = rGeom[i].GetDof(PRESSURE).EquationId();
     }
 }
@@ -213,7 +213,7 @@ void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step
     {
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
-        if(TDim > 2) rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
+        if constexpr (TDim > 2) rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
     }
 }

@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 data_comm = KM.Testing.GetDefaultDataCommunicator()
 if data_comm.IsDistributed():
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
@@ -46,7 +45,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         else:
             cls.mapper = KM.MapperFactory.CreateMapper(
                 cls.model_part_origin, cls.model_part_destination, mapper_parameters)
-
 
     def test_Map_constant_scalar(self):
         val = 1.234
@@ -238,7 +236,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
-
     def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
         val = 17.09
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
@@ -292,7 +289,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
         self.assertAlmostEqual(sum_origin, sum_destination)
-
 
     # def test_UpdateInterface(self):
     #     pass

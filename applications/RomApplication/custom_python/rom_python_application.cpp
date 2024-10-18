@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "rom_application.h"
 #include "rom_application_variables.h"
+#include "custom_python/add_custom_modelers_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -42,10 +43,16 @@ PYBIND11_MODULE(KratosRomApplication,m)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomModelersToPython(m);
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_LEFT_BASIS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HROM_WEIGHT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_SOLUTION_INCREMENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_SOLUTION_BASE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_SOLUTION_TOTAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOLUTION_BASE )
 
 }
 

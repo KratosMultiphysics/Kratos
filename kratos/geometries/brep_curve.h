@@ -8,8 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_BREP_CURVE_3D_H_INCLUDED )
-#define  KRATOS_BREP_CURVE_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -17,6 +16,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 
@@ -486,10 +486,7 @@ GeometryData BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeom
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
-    1, 3, 1);
+const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);
 
 ///@}
 }// namespace Kratos.
-
-#endif // KRATOS_BREP_CURVE_3D_H_INCLUDED  defined

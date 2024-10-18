@@ -315,7 +315,7 @@ void SetDataBuffer(Variable<TDataType> const& rVariable,
     }
 
     NumberOfGaussPoints = rDataCommunicator.MaxAll(NumberOfGaussPoints);
-    flat_data_size = rDataCommunicator.MaxAll(flat_data_size);
+    flat_data_size = rDataCommunicator.MaxAll((int)flat_data_size);
 
     rData.resize(rContainer.size(), flat_data_size);
 

@@ -13,6 +13,7 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {
@@ -79,7 +80,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration){
+    if constexpr (TElementData::ElementManagesTimeIntegration){
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
@@ -142,7 +143,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         shape_derivatives_enr_pos[g_pos]);
 
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
                 for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg){
@@ -155,7 +156,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         row(shape_functions_enr_neg, g_neg),
                         shape_derivatives_enr_neg[g_neg]);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
                 Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
@@ -316,9 +317,7 @@ const Parameters TwoFluidNavierStokes<TElementData>::GetSpecifications() const
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization.
-            Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian.
-            Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
+            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian. Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
     })");
 
     if (Dim == 2) {
@@ -852,6 +851,22 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodData<2, 3> >::pGetModifiedShapeFunctionsUtility(
+    const GeometryType::Pointer pGeometry,
+    const Vector& rDistances)
+{
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodData<3, 4> >::pGetModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances)
+{
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
         const Matrix& rInterfaceShapeFunctions,
@@ -1018,6 +1033,12 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 }
 
 template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    FluidElement<TElementData>::CalculateStrainRate(rData);
+}
+
+template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
     const TElementData &rData,
     Matrix &rLeftHandSideMatrix,
@@ -1140,7 +1161,7 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
         rInterfaceNormalsNeg,
         rRightHandSideVector);
 
-    PressureGradientStabilization(
+    this->PressureGradientStabilization(
         rData,
         rInterfaceWeights,
         rEnrInterfaceShapeFunctionPos,
@@ -1204,10 +1225,67 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     }
 }
 
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    VectorType &rRHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    VectorType &RLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>;
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>;
+
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>;
 
 } // namespace Kratos

@@ -20,11 +20,11 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/elemental_refining_criteria_process.h"
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/calculate_distance_to_boundary_process.h"
 #include "custom_processes/depth_integration_process.h"
+#include "custom_processes/write_from_sw_at_interface_process.h"
 
 
 namespace Kratos
@@ -37,17 +37,10 @@ namespace Python
     {
         namespace py = pybind11;
 
-        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
-        (m, "ElementalRefiningCriteriaProcess")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, const Variable<double>&, double, bool>())
-        ;
-
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
         py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
         (m, "ApplyPerturbationFunctionToScalar")
-        .def(py::init<ModelPart&, Node<3>::Pointer, Variable<double>&, Parameters&>())
+        .def(py::init<ModelPart&, Node::Pointer, Variable<double>&, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 
@@ -65,12 +58,27 @@ namespace Python
 
         py::class_<CalculateDistanceToBoundaryProcess, CalculateDistanceToBoundaryProcess::Pointer, Process>
         (m, "CalculateDistanceToBoundaryProcess")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         ;
 
-        py::class_<DepthIntegrationProcess, DepthIntegrationProcess::Pointer, Process>
-        (m, "DepthIntegrationProcess")
+        py::class_<DepthIntegrationProcess<2>, DepthIntegrationProcess<2>::Pointer, Process>
+        (m, "DepthIntegrationProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess<3>, DepthIntegrationProcess<3>::Pointer, Process>
+        (m, "DepthIntegrationProcess3D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<WriteFromSwAtInterfaceProcess<2>, WriteFromSwAtInterfaceProcess<2>::Pointer, Process>
+        (m, "WriteFromSwAtInterfaceProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<WriteFromSwAtInterfaceProcess<3>, WriteFromSwAtInterfaceProcess<3>::Pointer, Process>
+        (m, "WriteFromSwAtInterfaceProcess3D")
         .def(py::init<Model&, Parameters>())
         ;
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -24,11 +24,10 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-	namespace Testing {
+namespace Kratos::Testing {
 
-    typedef Node<3>                   PointType;
-    typedef Node<3>::Pointer          PointPtrType;
+    typedef Node                   PointType;
+    typedef Node::Pointer          PointPtrType;
     typedef Tetrahedra3D4<PointType>  TetGeometryType;
     typedef TetGeometryType::Pointer  TetGeometryPtrType;
 
@@ -96,6 +95,21 @@ namespace Kratos {
       ));
     }
 
+    /** Generates a sample Triangle3D3.
+    * Generates a triangle defined by three random points in the space.
+    * @return  Pointer to a Triangle3D3
+    */
+    Triangle3D3<PointType>::Pointer GenerateTriangle3D3(
+    PointPtrType PointA = GeneratePoint<PointType>(),
+    PointPtrType PointB = GeneratePoint<PointType>(),
+    PointPtrType PointC = GeneratePoint<PointType>()) {
+        return Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        PointA,
+        PointB,
+        PointC
+        ));
+    }
+
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
@@ -105,10 +119,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_EQUAL(geomInvLen1->EdgesNumber(), 6);
-      KRATOS_CHECK_EQUAL(geomRegLen1->EdgesNumber(), 6);
-      KRATOS_CHECK_EQUAL(geomRegLen2->EdgesNumber(), 6);
-      KRATOS_CHECK_EQUAL(geomTriRect->EdgesNumber(), 6);
+      KRATOS_EXPECT_EQ(geomInvLen1->EdgesNumber(), 6);
+      KRATOS_EXPECT_EQ(geomRegLen1->EdgesNumber(), 6);
+      KRATOS_EXPECT_EQ(geomRegLen2->EdgesNumber(), 6);
+      KRATOS_EXPECT_EQ(geomTriRect->EdgesNumber(), 6);
     }
 
     /** Checks if the number of faces is correct.
@@ -122,10 +136,10 @@ namespace Kratos {
 
       // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
       // that for planar geometries it also return the number of edges.
-      KRATOS_CHECK_EQUAL(geomInvLen1->FacesNumber(), 4);
-      KRATOS_CHECK_EQUAL(geomRegLen1->FacesNumber(), 4);
-      KRATOS_CHECK_EQUAL(geomRegLen2->FacesNumber(), 4);
-      KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 4);
+      KRATOS_EXPECT_EQ(geomInvLen1->FacesNumber(), 4);
+      KRATOS_EXPECT_EQ(geomRegLen1->FacesNumber(), 4);
+      KRATOS_EXPECT_EQ(geomRegLen2->FacesNumber(), 4);
+      KRATOS_EXPECT_EQ(geomTriRect->FacesNumber(), 4);
     }
 
     /** Checks if the characteristic length of the tetrahedra is calculated correctly.
@@ -137,10 +151,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Length(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Length(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Length(), 2.828427, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Length(), 1.122462, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Length(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Length(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Length(), 2.828427, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Length(), 1.122462, TOLERANCE);
     }
 
     /** Checks if the area of the tetrahedra is calculated correctly.
@@ -152,10 +166,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Area(), -1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Area(),  1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Area(),  8.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Area(),  1.0/6.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Area(), -1.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Area(),  1.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Area(),  8.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Area(),  1.0/6.0, TOLERANCE);
     }
 
     /** Checks if the volume of the tetrahedra is calculated correctly.
@@ -168,10 +182,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Volume(), -1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Volume(),  1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Volume(),  8.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Volume(),  1.0/6.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Volume(), -1.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Volume(),  1.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Volume(),  8.0/3.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Volume(),  1.0/6.0, TOLERANCE);
   	}
 
     /** Checks if the minimum edge length is calculated correctly.
@@ -183,10 +197,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->MinEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->MinEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->MinEdgeLength(), 2.828427, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->MinEdgeLength(), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->MinEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->MinEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->MinEdgeLength(), 2.828427, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->MinEdgeLength(), 1.000000, TOLERANCE);
     }
 
     /** Checks if the maximum edge length is calculated correctly.
@@ -198,10 +212,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->MaxEdgeLength(), 2.828427, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->MaxEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->MaxEdgeLength(), 2.828427, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->MaxEdgeLength(), 1.414213, TOLERANCE);
     }
 
     /** Checks if the average edge length is calculated correctly.
@@ -213,10 +227,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->AverageEdgeLength(), 2.828427, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->AverageEdgeLength(), 1.207106, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->AverageEdgeLength(), 2.828427, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->AverageEdgeLength(), 1.207106, TOLERANCE);
     }
 
     /** Checks if the circumradius is calculated correctly.
@@ -228,10 +242,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Circumradius(), 0.866025, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Circumradius(), 1.732050, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Circumradius(), 0.866025, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Circumradius(), 1.732050, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
     }
 
     /** Checks if the inradius is calculated correctly.
@@ -243,10 +257,10 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Inradius(), 0.288675, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Inradius(), 0.577350, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Inradius(), 0.288675, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Inradius(), 0.577350, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
     }
 
     /** Checks if the inradius to circumradius quality metric is correctly calculated.
@@ -262,10 +276,10 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
     }
 
     /** Checks if the inradius to longest edge quality metric is correctly calculated.
@@ -281,10 +295,10 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
     }
 
     /** Checks if the shortest to longest edge length quality metric is correctly calculated.
@@ -300,10 +314,10 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.707106, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), 0.707106, TOLERANCE);
     }
 
     /** Checks if the regularity quality metric is correctly calculated.
@@ -319,14 +333,14 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::REGULARITY;
 
-      // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4");
     }
 
     /** Checks if the volume to surface area quality metric is correctly calculated.
@@ -342,14 +356,14 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
 
-      // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
-      KRATOS_CHECK_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomInvLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomRegLen1->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomRegLen2->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
+      KRATOS_EXPECT_EXCEPTION_IS_THROWN(geomTriRect->Quality(criteria), "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4");
     }
 
     /** Checks if the volume to edge length quality metric is correctly calculated.
@@ -365,10 +379,10 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.839947, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria),  0.839947, TOLERANCE);
     }
 
     /** Checks if the volume to average edge length quality metric is correctly calculated.
@@ -384,10 +398,10 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.804041, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria),  0.804041, TOLERANCE);
     }
 
     /** Checks if the volume to RMS edge length quality metric is correctly calculated.
@@ -403,17 +417,11 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
-
-
-
-
-
-
 
     /** Checks if the min dihedral angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -423,7 +431,7 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::MIN_DIHEDRAL_ANGLE;
 
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
     }
     
      /** Checks if the max dihedral angle quality metric is correctly calculated.
@@ -434,9 +442,8 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::MAX_DIHEDRAL_ANGLE;
 
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
     }
-
 
     /** Checks if the min solid angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -446,9 +453,8 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::MIN_SOLID_ANGLE;
 
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
     }
-
 
     /** Checks if the dihedral angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -459,15 +465,14 @@ namespace Kratos {
       Vector dihedral_angles(6);
       geomTriRect->ComputeDihedralAngles(dihedral_angles); 
 
-      KRATOS_CHECK_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[2],  Globals::Pi *0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[3],  0.955316618, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[4],  0.955316618, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[2],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[3],  0.955316618, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[4],  0.955316618, TOLERANCE);
+      KRATOS_EXPECT_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
 
     }
-
 
     /** Checks if the solid angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -478,12 +483,74 @@ namespace Kratos {
       Vector solid_angles(6);
       geomTriRect->ComputeSolidAngles(solid_angles); 
 
-      KRATOS_CHECK_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
-      KRATOS_CHECK_NEAR(solid_angles[2],  0.339836909, TOLERANCE);
-      KRATOS_CHECK_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
+      KRATOS_EXPECT_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
+      KRATOS_EXPECT_NEAR(solid_angles[2],  0.339836909, TOLERANCE);
+      KRATOS_EXPECT_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
     }
 
+    /**
+     * This test performs the check of the box intersection method
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4HasIntersection, KratosCoreGeometriesFastSuite) {
+      auto p_tetrahedron = GenerateTriRectangularTetrahedra3D4();
+
+      /* 3D intersection */
+      auto p_geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
+      const bool intersection_geomRegLen1 = p_tetrahedron->HasIntersection(*p_geomRegLen1);
+      KRATOS_EXPECT_TRUE(intersection_geomRegLen1);
+
+      auto p_geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
+      const bool intersection_geomRegLen2 = p_tetrahedron->HasIntersection(*p_geomRegLen2);
+      KRATOS_EXPECT_TRUE(intersection_geomRegLen2);
+
+      PointPtrType PointA = GeneratePoint<PointType>(100.0, 100.0, 100.0);
+      PointPtrType PointB = GeneratePoint<PointType>(101.0, 100.0, 100.0);
+      PointPtrType PointC = GeneratePoint<PointType>(100.0, 101.0, 100.0);
+      PointPtrType PointD = GeneratePoint<PointType>(100.0, 100.0, 101.0);
+      auto p_far_tetrahedron = GenerateTetrahedra3D4(PointA, PointB, PointC, PointD);
+      const bool intersection_far_geom = p_tetrahedron->HasIntersection(*p_far_tetrahedron);
+      KRATOS_EXPECT_FALSE(intersection_far_geom);
+
+      /* 2D intersection */
+      auto p_triangle_inside = Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        GeneratePoint<PointType>(1.0, 0.0, 0.0),
+        GeneratePoint<PointType>(0.0, 1.0, 0.0),
+        GeneratePoint<PointType>(0.0, 0.0, 1.0)
+      ));
+      const bool intersection_geomTriangleInside = p_tetrahedron->HasIntersection(*p_triangle_inside);
+      KRATOS_EXPECT_TRUE(intersection_geomTriangleInside);
+
+      auto p_far_triangle = GenerateTriangle3D3(PointA, PointB, PointC);
+      const bool intersection_far_triangle = p_tetrahedron->HasIntersection(*p_far_triangle);
+      KRATOS_EXPECT_FALSE(intersection_far_triangle);
+
+      /* 1D intersection */
+      auto p_line_1 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(1.0, 0.0, 0.0)
+      );
+      const bool intersection_line_1 = p_tetrahedron->HasIntersection(*p_line_1);
+      KRATOS_EXPECT_TRUE(intersection_line_1);
+
+      auto p_line_2 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(0.0, 1.0, 0.0)
+      );
+      const bool intersection_line_2 = p_tetrahedron->HasIntersection(*p_line_2);
+      KRATOS_EXPECT_TRUE(intersection_line_2);
+
+      auto p_line_3 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(1.0, 1.0, 1.0)
+      );
+      const bool intersection_line_3 = p_tetrahedron->HasIntersection(*p_line_3);
+      KRATOS_EXPECT_TRUE(intersection_line_3);
+
+      auto p_far_line = Kratos::make_shared<Line3D2<PointType>>(PointA, PointB);
+      const bool intersection_far_line = p_tetrahedron->HasIntersection(*p_far_line);
+      KRATOS_EXPECT_FALSE(intersection_far_line);
+    }
 
     /**
      * This test performs the check of the box intersection method
@@ -492,16 +559,16 @@ namespace Kratos {
       auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
 
       //tetrahedron inside the box
-      KRATOS_CHECK(tetrahedron->HasIntersection(Point(-.1,-.2,-.1), Point(1.1,1.1,1.2)));
+      KRATOS_EXPECT_TRUE(tetrahedron->HasIntersection(Point(-.1,-.2,-.1), Point(1.1,1.1,1.2)));
 
       //tetrahedron contains the box
-      KRATOS_CHECK(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(.26,.26,.26)));
+      KRATOS_EXPECT_TRUE(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(.26,.26,.26)));
 
       //tetrahedron intersects the box
-      KRATOS_CHECK(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(1.1,1.1,1.2)));
+      KRATOS_EXPECT_TRUE(tetrahedron->HasIntersection(Point(.25,.25,.25), Point(1.1,1.1,1.2)));
 
       //tetrahedron not intersects the box
-      KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
+      KRATOS_EXPECT_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
     }
 
     /** Checks the inside test for a given point respect to the tetrahedra
@@ -522,10 +589,10 @@ namespace Kratos {
 
         Point LocalCoords;
 
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
     /** Checks the point local coordinates for a given point respect to the
@@ -544,9 +611,9 @@ namespace Kratos {
         array_1d<double, 3> baricentre_local_coords;
         geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
 
-        KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords(2), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(2), 1.0/3.0, TOLERANCE);
 
         Point baricentre_face_1;
         baricentre_face_1.Coordinates()[0] = 0.5;
@@ -557,9 +624,9 @@ namespace Kratos {
         array_1d<double, 3> baricentre_local_coords_face_1;
         geom->PointLocalCoordinates(baricentre_local_coords_face_1, baricentre_face_1);
 
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(2), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_1(0), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_1(1), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_1(2), 0.0, TOLERANCE);
 
         Point baricentre_face_2;
         baricentre_face_2.Coordinates()[0] = 0.5;
@@ -570,9 +637,9 @@ namespace Kratos {
         array_1d<double, 3> baricentre_local_coords_face_2;
         geom->PointLocalCoordinates(baricentre_local_coords_face_2, baricentre_face_2);
 
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(1), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(2), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_2(0), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_2(1), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_2(2), 0.5, TOLERANCE);
 
         Point baricentre_face_3;
         baricentre_face_3.Coordinates()[0] = 0.0;
@@ -583,9 +650,9 @@ namespace Kratos {
         array_1d<double, 3> baricentre_local_coords_face_3;
         geom->PointLocalCoordinates(baricentre_local_coords_face_3, baricentre_face_3);
 
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(0), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(2), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_3(0), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_3(1), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords_face_3(2), 0.5, TOLERANCE);
 
         Point outside_point;
         outside_point.Coordinates()[0] = 0.5;
@@ -596,9 +663,9 @@ namespace Kratos {
         array_1d<double, 3> local_coords_outside_point;
         geom->PointLocalCoordinates(local_coords_outside_point, outside_point);
 
-        KRATOS_CHECK_NEAR(local_coords_outside_point(0), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(local_coords_outside_point(1), 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(local_coords_outside_point(0), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(local_coords_outside_point(1), 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
     }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -607,10 +674,10 @@ namespace Kratos {
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
       coord[2] = 1.0 / 16.0;
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.1875, TOLERANCE);
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.25, TOLERANCE);
-      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.0625, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 0.1875, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), 0.25, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), 0.0625, TOLERANCE);
       CrossCheckShapeFunctionsValues(*geom);
   }
 
@@ -618,5 +685,18 @@ namespace Kratos {
       auto geom = GenerateTriRectangularTetrahedra3D4();
       TestAllShapeFunctionsLocalGradients(*geom);
   }
-	}
-}  // namespace Kratos.
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4CalculateDistance, KratosCoreGeometriesFastSuite)
+  {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+
+      Point point1(0.25, 0.25, 0.25);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), 0.0);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+      Point point2(1.5, 0.0, 0.0);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), 0.5);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+  }
+
+}  // namespace Kratos::Python.

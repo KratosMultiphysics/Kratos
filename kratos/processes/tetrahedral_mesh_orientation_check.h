@@ -31,7 +31,7 @@ namespace Kratos
 ///@{
 
 /// The definition of the node
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /// The definition of the geometry
 typedef Geometry<NodeType> GeometryType;
@@ -73,7 +73,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
@@ -90,7 +90,7 @@ public:
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
@@ -101,7 +101,7 @@ public:
 
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),

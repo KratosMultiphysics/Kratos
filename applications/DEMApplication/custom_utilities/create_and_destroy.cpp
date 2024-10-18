@@ -119,7 +119,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-
     double ParticleCreatorDestructor::rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
         KRATOS_TRY
         if (!stddev) return mean;
@@ -155,9 +154,9 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                      Node < 3 > ::Pointer& pnew_node,
+                                                                      Node ::Pointer& pnew_node,
                                                                       int aId,
-                                                                      Node < 3 > ::Pointer& reference_node,
+                                                                      Node ::Pointer& reference_node,
                                                                       double radius,
                                                                       Properties& params,
                                                                       ModelPart& r_sub_model_part_with_parameters,
@@ -183,7 +182,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -233,9 +232,9 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeForClustersCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                                 Node < 3 > ::Pointer& pnew_node,
+                                                                                 Node ::Pointer& pnew_node,
                                                                                  int aId,
-                                                                                 Node < 3 > ::Pointer& reference_node,
+                                                                                 Node ::Pointer& reference_node,
                                                                                  Properties& params,
                                                                                  ModelPart& r_sub_model_part_with_parameters,
                                                                                  bool has_sphericity,
@@ -260,7 +259,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -282,7 +281,6 @@ namespace Kratos {
         }
 
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
-
 
         pnew_node->AddDof(VELOCITY_X);
         pnew_node->AddDof(VELOCITY_Y);
@@ -334,10 +332,30 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    double ParticleCreatorDestructor::SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                                   std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map){
+
+        KRATOS_TRY
+
+        double radius = r_sub_model_part_with_parameters["RADIUS"].GetDouble();
+        const double& max_radius = r_sub_model_part_with_parameters["MAXIMUM_RADIUS"].GetDouble();
+        const std::string& distribution_type = r_sub_model_part_with_parameters["PROBABILITY_DISTRIBUTION"].GetString();
+
+        const double& std_deviation = r_sub_model_part_with_parameters["STANDARD_DEVIATION"].GetDouble();
+        const double& min_radius = r_sub_model_part_with_parameters["MINIMUM_RADIUS"].GetDouble();
+
+        if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "piecewise_linear" || distribution_type == "discrete") radius = r_random_variables_map[r_sub_model_part_with_parameters["NAME"].GetString()]->Sample();
+        else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters["NAME"].GetString() << std::endl;
+
+        return radius;
+        KRATOS_CATCH("")
+    }
 
     SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
-                                                                        Node < 3 > ::Pointer reference_node,
+                                                                        Node ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
                                                                         Properties::Pointer r_params,
                                                                         ModelPart& r_sub_model_part_with_parameters,
@@ -349,13 +367,13 @@ namespace Kratos {
                                                                         bool initial,
                                                                         ElementsContainerType& array_of_injector_elements) {
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
+        Node::Pointer pnew_node;
 
         double radius = SelectRadius(initial, r_sub_model_part_with_parameters, r_random_variables_map);
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
-        Geometry<Node<3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
@@ -414,13 +432,13 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
-                                                            Node<3>::Pointer& pnew_node,
+                                                            Node::Pointer& pnew_node,
                                                             int aId,
                                                             array_1d<double, 3>& reference_coordinates,
                                                             double radius,
                                                             Properties& params) {
         KRATOS_TRY
-        pnew_node = Kratos::make_intrusive<Node<3>>( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
+        pnew_node = Kratos::make_intrusive<Node>( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -463,11 +481,11 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::CentroidCreatorForRigidBodyElements(ModelPart& r_modelpart,
-                                                                        Node<3>::Pointer& pnew_node,
+                                                                        Node::Pointer& pnew_node,
                                                                         int aId,
                                                                         array_1d<double, 3>& reference_coordinates) {
         KRATOS_TRY
-        pnew_node = Kratos::make_intrusive<Node<3>>(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
+        pnew_node = Kratos::make_intrusive<Node>(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -505,7 +523,7 @@ namespace Kratos {
     }
 
     Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
-                                                                                 Node < 3 > ::Pointer& pnew_node,
+                                                                                 Node ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -518,7 +536,7 @@ namespace Kratos {
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
-        Geometry<Node <3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -544,7 +562,7 @@ namespace Kratos {
     }
 
 SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
-                                                                              Node < 3 > ::Pointer& pnew_node,
+                                                                              Node ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -556,7 +574,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
-        Geometry<Node <3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -586,7 +604,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     Cluster3D* ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
                                                                          ModelPart& r_clusters_modelpart,
                                                                          int r_Elem_Id,
-                                                                         Node<3>::Pointer reference_node,
+                                                                         Node::Pointer reference_node,
                                                                          Element::Pointer injector_element,
                                                                          Properties::Pointer r_params,
                                                                          ModelPart& r_sub_model_part_with_parameters,
@@ -602,7 +620,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         ProcessInfo& r_process_info = r_spheres_modelpart.GetProcessInfo();
 
-        Node<3>::Pointer pnew_node;
+        Node::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
         double min_radius = 0.5 * radius; //TODO: this is a little bit arbitrary
@@ -621,7 +639,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
 
-        Geometry<Node<3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
 
         nodelist.push_back(pnew_node);
 
@@ -715,7 +733,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     SphericParticle* ParticleCreatorDestructor::AddInitialDataToNewlyCreatedElementAndNode(ModelPart& r_modelpart,
                                                 Properties::Pointer r_params,
                                                 const double radius,
-                                                Node<3>::Pointer& pnew_node,
+                                                Node::Pointer& pnew_node,
                                                 Element::Pointer& p_particle){
 
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
@@ -770,21 +788,17 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                                               const double radius,
                                               const Element& r_reference_element){
 
-
-
         double bx = coordinates[0];
         double cy = coordinates[1];
         double dz = coordinates[2];
 
-        Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
-        Geometry<Node<3> >::PointsArrayType nodelist;
+        Node::Pointer pnew_node;
+        pnew_node = Kratos::make_intrusive<Node>(r_Elem_Id, bx, cy, dz);
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
 
-
         AddInitialDataToNewlyCreatedElementAndNode(r_modelpart, r_params, radius, pnew_node, p_particle);
-
 
         #pragma omp critical
         {
@@ -795,7 +809,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
 
         return p_particle;
-
     }
 
     SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
@@ -809,15 +822,13 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         double cy = coordinates[1];
         double dz = coordinates[2];
 
-        Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
-        Geometry<Node<3> >::PointsArrayType nodelist;
+        Node::Pointer pnew_node;
+        pnew_node = Kratos::make_intrusive<Node>(r_Elem_Id, bx, cy, dz);
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
 
-
         SphericParticle* spheric_p_particle = AddInitialDataToNewlyCreatedElementAndNode(r_modelpart, r_params, radius, pnew_node, p_particle);
-
 
         #pragma omp critical
         {
@@ -831,12 +842,11 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
 
         return spheric_p_particle;
-
     }
 
     SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element){
@@ -851,7 +861,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
     SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -861,7 +871,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     SphericParticle* ParticleCreatorDestructor::CreateSphericParticleRaw(ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -896,10 +906,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         return CreateSphericParticleRaw(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
     }
 
-
     Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element){
@@ -914,7 +923,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
     Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -924,12 +933,12 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     Element::Pointer ParticleCreatorDestructor::CreateSphericParticle(ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
 
-        int r_Elem_Id = GetCurrentMaxNodeId() +1;
+        int r_Elem_Id = GetCurrentMaxNodeId() + 1;
         SetMaxNodeId(r_Elem_Id);
 
         return CreateSphericParticle(r_modelpart, r_Elem_Id, reference_node, r_params, radius, element_name);
@@ -958,8 +967,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         return CreateSphericParticle(r_modelpart, r_Elem_Id, coordinates, r_params, radius, element_name);
     }
-
-
 
     void ParticleCreatorDestructor::CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part,
                                                                     ModelPart& r_clusters_model_part,
@@ -1066,7 +1073,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             mStrictHighPoint[2] = r_comm.MaxAll(mStrictHighPoint[2]);
             ref_radius = r_comm.MaxAll(ref_radius);
 
-
             array_1d<double, 3 > midpoint;
             noalias(midpoint) = 0.5 * (mStrictHighPoint + mStrictLowPoint);
             mHighPoint = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
@@ -1095,15 +1101,41 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::UpdateSurroundingBoundingBox(ModelPart& spheres_model_part) {
+        
+        KRATOS_TRY
+
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MIN_CORNER, mLowPoint);
+        spheres_model_part.GetProcessInfo().SetValue(DOMAIN_MAX_CORNER, mHighPoint);
+
+        for (int i = 0; i < 3; ++i) {
+                KRATOS_ERROR_IF(mHighPoint[i] < mLowPoint[i]) << "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." << std::endl;
+            }
+
+        mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
+        mStrictLowPoint = mLowPoint;
+        mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
+        mDiameter = norm_2(mHighPoint - mLowPoint);
+        
+        KRATOS_CATCH("")
+    }
+
+    template<class TParticleType>
     void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part)
     {
         KRATOS_TRY
         const double current_time = r_model_part.GetProcessInfo()[TIME];
-        DestroyParticles(r_model_part.GetCommunicator().LocalMesh(), current_time);
-        DestroyParticles(r_model_part.GetCommunicator().GhostMesh(), current_time);
+        DestroyParticles<TParticleType>(r_model_part.GetCommunicator().LocalMesh(), current_time);
+        DestroyParticles<TParticleType>(r_model_part.GetCommunicator().GhostMesh(), current_time);
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            DestroyParticles<TParticleType>(*sub_model_part);
+        }
 
         KRATOS_CATCH("")
     }
+
+    template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart&);
+    template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart&);
 
     void ParticleCreatorDestructor::DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction)
     {
@@ -1114,14 +1146,18 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    template<class TParticleType>
     bool ParticleCreatorDestructor::CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time){
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*> (p_element.get());
+        TParticleType* p_particle = dynamic_cast<TParticleType*> (p_element.get());
         const bool tag_condition = p_particle->IsNot(TO_ERASE);
         const bool time_condition = p_particle->GetProgrammedDestructionTime() > current_time;
         const double particle_must_be_preserved = tag_condition || time_condition;
         return particle_must_be_preserved;
     }
+    template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<SphericParticle>(const Element::Pointer, const double);
+    template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<Cluster3D>(const Element::Pointer, const double);
 
+    template<class TParticleType>
     void ParticleCreatorDestructor::DestroyParticles(ModelPart::MeshType& rMesh, const double current_time) {
 
         KRATOS_TRY
@@ -1149,7 +1185,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             Element::Pointer p_element = *element_pointer_it;
             auto p_node = p_element->GetGeometry()(0);
 
-            if (CheckParticlePreservationCriteria(*element_pointer_it, current_time)) {
+            if (CheckParticlePreservationCriteria<TParticleType>(*element_pointer_it, current_time)) {
                 if (k != good_elems_counter) {
                         *(rElements.ptr_begin() + good_elems_counter) = std::move(p_element);
                     }
@@ -1161,12 +1197,11 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 p_node->Set(TO_ERASE, true);
             }
         }
-
         int good_nodes_counter = 0;
 
         for (int k = 0; k < (int)rNodes.size(); k++) {
             NodesArrayType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
-            Node<3>::Pointer p_node = *node_pointer_it;
+            Node::Pointer p_node = *node_pointer_it;
 
             if (p_node->IsNot(TO_ERASE)) {
             if (k != good_nodes_counter) {
@@ -1190,6 +1225,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart::MeshType&, const double);
+    template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart::MeshType&, const double);
+
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
         KRATOS_TRY
@@ -1211,7 +1249,20 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         }
 
         if ((int)rElements.size() != good_elems_counter) rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        KRATOS_CATCH("")
+    }
+    
+    void ParticleCreatorDestructor::MarkIsolatedParticlesForErasing(ModelPart& r_model_part) {
 
+        KRATOS_TRY
+        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            SphericContinuumParticle& r_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle&> (rElement);
+            if (!r_continuum_spheric_particle.mContinuumInitialNeighborsSize) {
+                r_continuum_spheric_particle.GetGeometry()[0].Set(TO_ERASE);
+                r_continuum_spheric_particle.Set(TO_ERASE);
+            }
+        });
         KRATOS_CATCH("")
     }
 
@@ -1237,9 +1288,12 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    template <class TParticleType>
     void ParticleCreatorDestructor::MarkDistantParticlesForErasing(ModelPart& r_model_part) {
-        MarkParticlesForErasingGivenBoundingBox(r_model_part, mLowPoint, mHighPoint);
+        MarkParticlesForErasingGivenBoundingBox<TParticleType>(r_model_part, mLowPoint, mHighPoint);
     }
+    template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<SphericParticle>(ModelPart&);
+    template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<Cluster3D>(ModelPart&);
 
     void ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue(ModelPart& r_model_part, const Variable<double>& rVariable, double value, double tol) {
 
@@ -1279,6 +1333,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
     }
 
+    template <class TParticleType>
     void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3 > low_point, array_1d<double, 3 > high_point) {
 
         KRATOS_TRY
@@ -1293,13 +1348,13 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             #pragma omp for
             for (int k = 0; k < (int)rElements.size(); k++){
                 Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-                SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>((*particle_pointer_it).get());
+                TParticleType* p_particle = dynamic_cast<TParticleType*>((*particle_pointer_it).get());
 
-                if (p_spheric_particle->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-                if (p_spheric_particle->Is(BLOCKED)) continue;
-                if (p_spheric_particle->Is(TO_ERASE)) continue;
+                if (p_particle->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                if (p_particle->Is(BLOCKED)) continue;
+                if (p_particle->Is(TO_ERASE)) continue;
 
-                const array_1d<double, 3 >& coor = p_spheric_particle->GetGeometry()[0].Coordinates();
+                const array_1d<double, 3 >& coor = p_particle->GetGeometry()[0].Coordinates();
                 bool include = true;
 
                 for (unsigned int i = 0; i < 3; i++) {
@@ -1307,13 +1362,12 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 }
 
                 if (!include) {
-                    p_spheric_particle->GetGeometry()[0].Set(TO_ERASE);
-                    p_spheric_particle->Set(TO_ERASE);
+                    p_particle->GetGeometry()[0].Set(TO_ERASE);
+                    p_particle->Set(TO_ERASE);
                     if (apply_delayed_destruction){
-                        p_spheric_particle->SetProgrammedDestructionTime(destruction_time);
+                        p_particle->SetProgrammedDestructionTime(destruction_time);
                     }
                 }
-
             }
 
             #pragma omp for
@@ -1332,14 +1386,16 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 if (!include) {
                     (*node_pointer_it)->Set(TO_ERASE);
                 }
-
             }
         }
 
         KRATOS_CATCH("")
     }
+    template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+    template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
 
     void ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius) {
+        
         KRATOS_TRY
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -1392,8 +1448,28 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     void ParticleCreatorDestructor::MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
+        
         KRATOS_TRY
 
+        // TODO: verify
+        block_for_each(r_model_part.GetCommunicator().LocalMesh().Elements(), [&](ModelPart::ElementType& rElement) {
+            if (rElement.GetGeometry()[0].Is(TO_ERASE)) {
+                SphericParticle& r_spheric_particle = dynamic_cast<SphericParticle&> (rElement);
+                std::vector<ParticleContactElement*>& array_of_bonds = r_spheric_particle.mBondElements;
+                for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
+                    if (array_of_bonds[i] != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
+                        array_of_bonds[i]->Set(TO_ERASE);
+                    }
+                }
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    void ParticleCreatorDestructor::MarkContactElementsForErasingContinuum(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
+        
+        KRATOS_TRY
 
         // TODO: verify
         block_for_each(r_model_part.GetCommunicator().LocalMesh().Elements(), [&](ModelPart::ElementType& rElement) {
@@ -1428,12 +1504,15 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    template<class TParticleType>
     void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part) {
         KRATOS_TRY
-        MarkDistantParticlesForErasing(r_model_part);
-        DestroyParticles(r_model_part);
+        MarkDistantParticlesForErasing<TParticleType>(r_model_part);
+        DestroyParticles<TParticleType>(r_model_part);
         KRATOS_CATCH("")
     }
+    template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>(ModelPart&);
+    template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>(ModelPart&);
 
     void ParticleCreatorDestructor::MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part) {
         KRATOS_TRY
@@ -1476,6 +1555,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    //TODO:why we did not call this function anywhere?
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY
         MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
@@ -1514,7 +1594,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     Element::Pointer ParticleCreatorDestructor::GetAnalyticReplacement(const Element& sample_element,
-                                                                       Geometry<Node<3> >::PointsArrayType nodelist,
+                                                                       Geometry<Node >::PointsArrayType nodelist,
                                                                        Element::Pointer p_elem_to_be_replaced,
                                                                        ModelPart& spheres_model_part)
     {

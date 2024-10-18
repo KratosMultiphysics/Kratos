@@ -68,11 +68,13 @@ public:
     virtual double SelectRadius(bool initial,
                                 ModelPart& r_sub_model_part_with_parameters,
                                 std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
+    virtual double SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                           Node < 3 > ::Pointer& pnew_node,
+                                           Node ::Pointer& pnew_node,
                                            int aId,
-                                           Node < 3 > ::Pointer & reference_node,
+                                           Node ::Pointer & reference_node,
                                            double radius,
                                            Properties& params,
                                            ModelPart& r_sub_model_part_with_parameters,
@@ -81,9 +83,9 @@ public:
                                            bool initial);
 
     void NodeForClustersCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                      Node < 3 > ::Pointer& pnew_node,
+                                                      Node ::Pointer& pnew_node,
                                                       int aId,
-                                                      Node < 3 > ::Pointer& reference_node,
+                                                      Node ::Pointer& reference_node,
                                                       Properties& params,
                                                       ModelPart& r_sub_model_part_with_parameters,
                                                       bool has_sphericity,
@@ -92,7 +94,7 @@ public:
 
     SphericParticle* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                           int r_Elem_Id,
-                                                          Node < 3 > ::Pointer reference_node,
+                                                          Node ::Pointer reference_node,
                                                           Element::Pointer injector_element,
                                                           Properties::Pointer r_params,
                                                           ModelPart& r_sub_model_part_with_parameters,
@@ -106,7 +108,7 @@ public:
 
     SphericParticle* AddInitialDataToNewlyCreatedElementAndNode(ModelPart& r_modelpart,
                                                                 Properties::Pointer r_params,
-                                                                const double radius, Node<3>::Pointer& pnew_node,
+                                                                const double radius, Node::Pointer& pnew_node,
                                                                 Element::Pointer& p_particle);
 
 
@@ -119,20 +121,20 @@ public:
 
     SphericParticle* CreateSphericParticleRaw(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element);
 
     SphericParticle* CreateSphericParticleRaw(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_type);
 
     SphericParticle* CreateSphericParticleRaw(ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_type);
@@ -159,20 +161,20 @@ public:
 
     Element::Pointer CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element);
 
     Element::Pointer CreateSphericParticle(ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_type);
 
     Element::Pointer CreateSphericParticle(ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_type);
@@ -194,7 +196,7 @@ public:
     Cluster3D* ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                     ModelPart& r_clusters_modelpart,
                                                     int r_Elem_Id,
-                                                    Node < 3 > ::Pointer reference_node,
+                                                    Node ::Pointer reference_node,
                                                     Element::Pointer injector_element,
                                                     Properties::Pointer r_params,
                                                     ModelPart& r_sub_model_part_with_parameters,
@@ -209,19 +211,19 @@ public:
 
 
     void NodeCreatorForClusters(ModelPart& r_modelpart,
-                                Node < 3 > ::Pointer& pnew_node,
+                                Node ::Pointer& pnew_node,
                                 int aId,
                                 array_1d<double, 3 >& reference_coordinates,
                                 double radius,
                                 Properties& params);
 
     void CentroidCreatorForRigidBodyElements(ModelPart& r_modelpart,
-                                            Node<3>::Pointer& pnew_node,
+                                            Node::Pointer& pnew_node,
                                             int aId,
                                             array_1d<double, 3>& reference_coordinates);
 
     SphericParticle* SphereCreatorForClusters(ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer& pnew_node,
+                                              Node ::Pointer& pnew_node,
                                               int r_Elem_Id,
                                               double radius,
                                               array_1d<double, 3 >& reference_coordinates,
@@ -232,7 +234,7 @@ public:
                                               PropertiesProxy* p_fast_properties);
 
     SphericParticle* SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
-                                                       Node < 3 > ::Pointer& pnew_node,
+                                                       Node ::Pointer& pnew_node,
                                                        int r_Elem_Id,
                                                        double radius,
                                                        array_1d<double, 3>& reference_coordinates,
@@ -248,23 +250,39 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    void UpdateSurroundingBoundingBox(ModelPart& spheres_model_part);
+
+    template<class TParticleType>
     bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
+
+    template<class TParticleType>
     void DestroyParticles(ModelPart& r_model_part);
+
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
+
+    template<class TParticleType>
     void DestroyParticles(ModelPart::MeshType& rMesh, const double current_time);
     void DestroyContactElements(ModelPart& r_model_part);
+    void MarkIsolatedParticlesForErasing(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
     void RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart);
+
+    template<class TParticleType>
     void MarkDistantParticlesForErasing(ModelPart& r_model_part);
     void MarkParticlesForErasingGivenScalarVariableValue(ModelPart& r_model_part, const Variable<double>& rVariable, double value, double tol);
     void MarkParticlesForErasingGivenVectorVariableModulus(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& rVariable, double value, double tol);
+
+    template<class TParticleType>
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point);
     void MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius);
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
+    void MarkContactElementsForErasingContinuum(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
+
+    template<class TParticleType>
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
     void MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part);
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
-    Element::Pointer GetAnalyticReplacement(const Element& sample_element, Geometry<Node<3> >::PointsArrayType nodelist, Element::Pointer p_elem_to_be_replaced, ModelPart& spheres_model_part);
+    Element::Pointer GetAnalyticReplacement(const Element& sample_element, Geometry<Node >::PointsArrayType nodelist, Element::Pointer p_elem_to_be_replaced, ModelPart& spheres_model_part);
     static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius);
     static double rand_lognormal(const double mean, const double stddev, const double max_radius, const double min_radius);
 
@@ -315,6 +333,19 @@ private:
     ParticleCreatorDestructor & operator=(ParticleCreatorDestructor const& rOther);
 
 }; // Class ParticleCreatorDestructor
+
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart&);
+extern template bool KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::CheckParticlePreservationCriteria<SphericParticle>(const Element::Pointer, const double);
+extern template bool KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::CheckParticlePreservationCriteria<Cluster3D>(const Element::Pointer, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart::MeshType&, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart::MeshType&, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkDistantParticlesForErasing<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkDistantParticlesForErasing<Cluster3D>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>(ModelPart&);
 
 } // namespace Kratos
 

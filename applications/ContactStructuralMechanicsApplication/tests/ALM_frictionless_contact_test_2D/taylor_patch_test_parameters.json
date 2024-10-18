@@ -26,7 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
@@ -46,7 +45,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -58,7 +56,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
@@ -70,7 +67,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
@@ -84,7 +80,6 @@
             "check"                 : "DirectorVectorNonZero direction",
             "process_name"          : "ApplyVectorOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 10,

@@ -20,8 +20,8 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
     - add tests
     - more cleanup
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.model_part = self.model[self.model_part_name]
@@ -34,7 +34,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
         domain_size = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         if domain_size == 3:
             self.width = 1
-        
+
         self.interval = KM.IntervalUtility(settings)
 
         if(self.model_part.GetCommunicator().MyPID() == 0):
@@ -52,7 +52,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_settings, file_header).file
 
-    def Execute(self):        
+    def Execute(self):
         current_time = self.model_part.ProcessInfo[KM.TIME]
 
         if(self.interval.IsInInterval(current_time)):
@@ -72,10 +72,10 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                     result_msg = 'Boundary Force force evaluation for model part ' + self.model_part_name + '\n'
                     result_msg += ', '.join([a + b for a, b in zip(res_labels, output_values)])
                     cs_tools.cs_print_info(self._ClassName(), result_msg)
-                
+
                 if(self.write_output_file):
                     self.output_file.write(' '.join(output_values) + '\n')
-    
+
     def _EvaluateGlobalForces(self):
         # vel_x, vel_y, vel_z
         velocity = [0.0, 0.0, 0.0]
@@ -112,11 +112,11 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                 sum_forces[i] += force[i]
 
             pressure_list[0] += pressure
-        
+
         if self.echo_level > 1:
             info_msg = "Computed boundary forces for model part \"" + self.model_part_name  + "\" in solver: \"" + self.settings["solver"].GetString() + "\""
             cs_tools.cs_print_info(self._ClassName(), info_msg)
-        
+
         return velocity + sum_forces + pressure_list
 
     def _GetFileHeader(self):

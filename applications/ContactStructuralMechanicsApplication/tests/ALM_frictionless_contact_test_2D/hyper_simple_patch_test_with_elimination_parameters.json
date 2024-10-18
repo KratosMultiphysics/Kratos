@@ -31,7 +31,6 @@
             "use_block_builder" : false
         },
         "clear_storage"                      : true,
-        "line_search"                        : false,
         "compute_reactions"                  : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,
@@ -50,7 +49,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
@@ -62,7 +60,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -74,7 +71,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.IMPOSE_DISP_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
@@ -86,7 +82,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.Contact_Part",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,false],

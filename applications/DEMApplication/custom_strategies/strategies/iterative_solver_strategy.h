@@ -5,7 +5,6 @@
 #if !defined(KRATOS_ITERATIVE_SOLVER_STRATEGY)
 #define  KRATOS_ITERATIVE_SOLVER_STRATEGY
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos
 {

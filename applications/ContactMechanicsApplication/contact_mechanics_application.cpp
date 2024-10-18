@@ -26,17 +26,17 @@ namespace Kratos {
   //Application Constructor:
   KratosContactMechanicsApplication::KratosContactMechanicsApplication():
     KratosApplication("ContactMechanicsApplication"),
-    mContactDomainLMCondition3D4N( 0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >( Condition::GeometryType::PointsArrayType(4))),
-    mContactDomainLMCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mAxisymContactDomainLMCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mAxisymContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point2D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
-    mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
-    mRigidBodyPointLinkSegregatedVCondition2D1N( 0, Kratos::make_shared< Point2D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
-    mRigidBodyPointLinkSegregatedVCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1)))
+    mContactDomainLMCondition3D4N( 0, Kratos::make_shared< Tetrahedra3D4<Node > >( Condition::GeometryType::PointsArrayType(4))),
+    mContactDomainLMCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mAxisymContactDomainLMCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mAxisymContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node > >( Condition::GeometryType::PointsArrayType(3))),
+    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point2D<Node > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkSegregatedVCondition2D1N( 0, Kratos::make_shared< Point2D<Node > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkSegregatedVCondition3D1N( 0, Kratos::make_shared< Point3D<Node > >( Condition::GeometryType::PointsArrayType(1)))
 
   {}
 

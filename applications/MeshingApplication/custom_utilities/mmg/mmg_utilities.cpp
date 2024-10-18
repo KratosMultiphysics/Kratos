@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -139,11 +139,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 template<>
 SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 {
-#if MMG_VERSION_GE(5,5)
     return NumberOfQuadrilaterals;
-#else
-    return 0;
-#endif
 }
 
 /***********************************************************************************/
@@ -177,9 +173,7 @@ template struct MMGMeshInfo<MMGLibrary::MMGS>;
 // The member variables related with the MMG library
 MMG5_pMesh mMmgMesh; /// The mesh data from MMG
 MMG5_pSol  mMmgMet;  /// The metric variable for MMG
-#if MMG_VERSION_GE(5,5)
-    MMG5_pSol  mMmgSol;  /// The solution variable for MMG
-#endif
+MMG5_pSol  mMmgSol;  /// The solution variable for MMG
 MMG5_pSol  mMmgDisp; /// The displacement variable for MMG
 
 /***********************************************************************************/
@@ -254,20 +248,18 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
     KRATOS_TRY;
 
     rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
         rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
     } else { // Surfaces
         rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
     }
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
-    #if MMG_VERSION_GE(5,5)
         rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
-    #endif
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rMMGMeshInfo.NumberOfTetrahedra = mMmgMesh->ne;
         rMMGMeshInfo.NumberOfPrism = mMmgMesh->nprism;
     } else { // Surfaces
@@ -275,17 +267,11 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
     }
 
     KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-    #if MMG_VERSION_GE(5,5)
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << std::endl;
-    #else
-        KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
-        "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
-        "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
-    #endif
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTetrahedra + rMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rMMGMeshInfo.NumberOfPrism << std::endl;
@@ -645,7 +631,6 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     IndexVectorMapType quadrilateral_map;
 
     IndexVectorType ids_quadrialteral(4);
@@ -671,9 +656,6 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
         if (r_count > 1)
             elements_to_remove.push_back(i + 1);
     }
-#else
-    IndexVectorType elements_to_remove(0);
-#endif
 
     return elements_to_remove;
 
@@ -858,7 +840,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -883,7 +865,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -908,7 +890,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -1419,7 +1401,6 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     bool SkipCreation
     )
 {
-#if MMG_VERSION_GE(5,5)
     Element::Pointer p_element = nullptr;
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
@@ -1453,9 +1434,6 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
 
     if (p_element != nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
-#else
-    return nullptr;
-#endif
 }
 
 /***********************************************************************************/
@@ -1539,9 +1517,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
-#if MMG_VERSION_GE(5,5)
     mMmgSol = nullptr;
-#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1549,11 +1525,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
-    #else
-        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
-    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1574,9 +1546,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
-#if MMG_VERSION_GE(5,5)
     mMmgSol = nullptr;
-#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1584,11 +1554,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
-    #else
-        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
-    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1609,9 +1575,7 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
     mMmgMesh = nullptr;
     mMmgMet = nullptr;
     mMmgDisp = nullptr;
-#if MMG_VERSION_GE(5,5)
     mMmgSol = nullptr;
-#endif
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
@@ -1619,11 +1583,7 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
-    #else
-        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
-    #endif
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1731,9 +1691,9 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMeshOptimizationModeParameter(const bool EnableMeshOptimization)
 {
     KRATOS_TRY;
-#if MMG_VERSION_GE(5,5)
+
     KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_optim, EnableMeshOptimization) ) << "Unable to set optim mode" << std::endl;
-#endif
+
     KRATOS_CATCH("");
 }
 
@@ -1746,11 +1706,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>
     KRATOS_TRY;
 
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
-#if MMG_VERSION_GE(5,5)
-        KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfQuadrilaterals, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
-#else
-        KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
-#endif
+    KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfQuadrilaterals, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -1791,15 +1747,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -1812,15 +1764,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -1833,15 +1781,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgMet,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -1981,12 +1925,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #else
-        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #endif
     } else {
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
@@ -2006,12 +1946,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #else
-        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #endif
     } else {
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
@@ -2031,12 +1967,8 @@ void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #else
-        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
-    #endif
     } else {
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong mesh data" << std::endl;
     }
@@ -2115,7 +2047,6 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG2D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2129,13 +2060,6 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
-    MMG2D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2151,7 +2075,6 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG3D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2165,13 +2088,6 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
-    MMG3D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2187,7 +2103,6 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMGS_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2201,13 +2116,6 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
-    MMGS_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) function calling
-    KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2229,14 +2137,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const std::string vtk_name = rOutputName + ".vtk";
     const char* vtk_file = vtk_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
     const std::string vtu_name = rOutputName + ".vtu";
     const char* vtu_file = vtu_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMG2D_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2258,14 +2164,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const std::string vtk_name = rOutputName + ".vtk";
     const char* vtk_file = vtk_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
     const std::string vtu_name = rOutputName + ".vtu";
     const char* vtu_file = vtu_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMG3D_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2287,14 +2191,12 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
     // b) function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveMesh(mMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const std::string vtk_name = rOutputName + ".vtk";
     const char* vtk_file = vtk_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveVtkMesh(mMmgMesh, mMmgMet,vtk_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
     const std::string vtu_name = rOutputName + ".vtu";
     const char* vtu_file = vtu_name.c_str();
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveVtuMesh(mMmgMesh, mMmgMet,vtu_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2310,7 +2212,6 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG2D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2324,13 +2225,6 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    MMG2D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2346,7 +2240,6 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG3D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2360,13 +2253,6 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    MMG3D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2382,7 +2268,6 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMGS_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -2396,13 +2281,6 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
     }
-#else
-    // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    MMGS_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
-
-    // b) Function calling
-    KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgMet, sol_file) != 1) << "UNABLE TO SAVE METRIC" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -2529,15 +2407,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
-    #if MMG_VERSION_GE(5,5)
         if (mDiscretization == DiscretizationOption::ISOSURFACE) {
             MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
         } else {
             MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
         }
-    #else
-        MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
-    #endif
     }
 
     KRATOS_CATCH("");
@@ -2554,15 +2428,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
-    #if MMG_VERSION_GE(5,5)
         if (mDiscretization == DiscretizationOption::ISOSURFACE) {
             MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
         } else {
             MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
         }
-    #else
-        MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
-    #endif
     }
 
     KRATOS_CATCH("");
@@ -2579,15 +2449,11 @@ void MmgUtilities<MMGLibrary::MMGS>::FreeAll()
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
     } else {
-    #if MMG_VERSION_GE(5,5)
         if (mDiscretization == DiscretizationOption::ISOSURFACE) {
             MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_ppLs,&mMmgSol,MMG5_ARG_end);
         } else {
             MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
         }
-    #else
-        MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgMet,MMG5_ARG_end);
-    #endif
     }
 
     KRATOS_CATCH("");
@@ -2629,6 +2495,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
     if ( deactivate_detect_angle) {
         if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
+
+    // Set the value for angle detection (default 45°)
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        if ( MMG2D_Set_dparameter(mMmgMesh,mMmgMet,MMG2D_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
     }
 
     // Set the gradation
@@ -2675,11 +2547,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     auto p_sol = mMmgSol;
-#else
-    auto p_sol = mMmgMet;
-#endif
 
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
@@ -2693,12 +2561,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,p_sol,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgSol, mMmgMet);
-#else
-    const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgMet);
-#endif
-
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2746,6 +2609,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        // Set the value for angle detection (default 45°)
+        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
+    }
+
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
         if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
@@ -2790,11 +2659,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     auto p_sol = mMmgSol;
-#else
-    auto p_sol = mMmgMet;
-#endif
 
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
@@ -2834,11 +2699,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,p_sol,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgSol, mMmgMet);
-#else
-    const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgMet);
-#endif
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2886,6 +2747,12 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationPa
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
+    // Set the value for angle detection (default 45°)
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        if ( MMGS_Set_dparameter(mMmgMesh,mMmgMet,MMGS_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
+    }
+
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
         if ( MMGS_Set_dparameter(mMmgMesh,mMmgMet,MMGS_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
@@ -2928,12 +2795,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
-
-#if MMG_VERSION_GE(5,5)
     auto p_sol = mMmgSol;
-#else
-    auto p_sol = mMmgMet;
-#endif
 
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
@@ -2946,11 +2808,7 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,p_sol,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-#if MMG_VERSION_GE(5,5)
     const int ier = MMGS_mmgsls(mMmgMesh, mMmgSol, mMmgMet);
-#else
-    const int ier = MMGS_mmgsls(mMmgMesh, mMmgMet);
-#endif
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2958,6 +2816,78 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS. ier: " << ier << std::endl;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+    if ( MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+    if ( MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+    if ( MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
+    IndexType rColor,
+    double HMin,
+    double HMax,
+    double HausdorffValue
+    )
+{
+    if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetLocalParameter(
+    IndexType rColor,
+    double HMin,
+    double HMax,
+    double HausdorffValue
+    )
+{
+    if ( MMG3D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetLocalParameter(
+    IndexType rColor,
+    double HMin,
+    double HMax,
+    double HausdorffValue
+    )
+{
+    if ( MMGS_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
 }
 
 /***********************************************************************************/
@@ -3248,15 +3178,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricScalar(
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG2D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -3272,15 +3198,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricScalar(
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG3D_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -3296,15 +3218,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgSol, Metric, NodeId) != 1 ) << "Unable to set distance" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMGS_Set_scalarSol(mMmgMet, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -3464,16 +3382,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         rMetric = 0.0;
 //         KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -3486,17 +3400,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricScalar(double& rMetric)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         rMetric = 0.0;
 //         KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
-#endif
-
     KRATOS_CATCH("");
 }
 
@@ -3508,16 +3417,12 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
 {
     KRATOS_TRY;
 
-#if MMG_VERSION_GE(5,5)
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         rMetric = 0.0;
 //         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
-#else
-    KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
-#endif
 
     KRATOS_CATCH("");
 }
@@ -3584,15 +3489,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricTensor(array_1d<double, 6>& rMetr
     KRATOS_TRY;
 
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    #if MMG_VERSION_GE(5,5)
-        if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-            rMetric = ZeroVector(6);
-        } else {
-            KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgMet, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
-        }
-    #else
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        rMetric = ZeroVector(6);
+    } else {
         KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgMet, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
-    #endif
+    }
+
     KRATOS_CATCH("");
 }
 
@@ -3661,20 +3563,27 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
     // Iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
         (it_node_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over conditions
     auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&](std::size_t i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over elements
     auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each([&](std::size_t i) {
         (it_elem_begin + i)->SetId(i + 1);
+    });
+
+    r_nodes_array.Unique();
+    r_conditions_array.Unique();
+    r_elements_array.Unique();
 
     KRATOS_CATCH("");
 }
@@ -3697,7 +3606,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     // Before computing colors we do some check and throw a warning to get the user informed
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
-    for (auto sub_model_part_name : sub_model_part_names) {
+    for (const auto& sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
@@ -3722,7 +3631,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Manually set of the mesh */
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         /* Conditions */
         std::size_t num_lines = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
@@ -3752,12 +3661,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 for (auto& r_node : it_elem->GetGeometry())
                     remeshed_nodes.insert(r_node.Id());
                 num_tri += 1;
-        #if MMG_VERSION_GE(5,5)
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) { // Quadrilaterals
                 for (auto& r_node : it_elem->GetGeometry())
                     remeshed_nodes.insert(r_node.Id());
                 num_quad += 1;
-        #endif
             } else {
                 it_elem->Set(OLD_ENTITY, true);
                 KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
@@ -3767,15 +3674,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         mmg_mesh_info.NumberOfTriangles = num_tri;
         mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
 
-    #if MMG_VERSION_GE(5,5)
-        KRATOS_INFO_IF("MmgUtilities", (num_tri < r_elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << std::endl;
-    #else
         KRATOS_INFO_IF("MmgUtilities", ((num_tri + num_quad) < r_elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
-    #endif
+        "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
 
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
@@ -3881,7 +3783,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     /* Nodes */
     IndexType counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
-    [](Node<3>& r_node){
+    [](Node& r_node){
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             return 1;
@@ -3905,6 +3807,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    r_nodes_array.Unique();
 
     /* Conditions */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
@@ -3934,6 +3838,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
+    r_conditions_array.Unique();
+
     /* Elements */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_elements_array,
@@ -3961,6 +3867,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    r_elements_array.Unique();
 
     // Now we compute the colors
     rColors.clear();
@@ -4304,9 +4212,7 @@ void MmgUtilities<TMMGLibrary>::GenerateIsosurfaceMetricDataFromModelPart(ModelP
 {
     KRATOS_TRY;
 
-    #if MMG_VERSION_GE(5,5)
-        this->GenerateSolDataFromModelPart(rModelPart);
-    #endif
+    this->GenerateSolDataFromModelPart(rModelPart);
 
     KRATOS_CATCH("");
 }
@@ -4479,7 +4385,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         const IndexType key = r_color_list.first;
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
-            for (auto sub_model_part_name : r_color_list.second) {
+            for (const auto& sub_model_part_name : r_color_list.second) {
                 ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
@@ -4512,7 +4418,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
-    for (auto sub_model_part_name : sub_model_part_names) {
+    for (const auto& sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         std::unordered_set<IndexType> node_ids;

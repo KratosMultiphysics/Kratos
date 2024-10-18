@@ -22,7 +22,6 @@
         "time_stepping"                      : {
             "time_step" : 0.01
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "mpc_contact_settings" :

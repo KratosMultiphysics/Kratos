@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/variational_distance_calculation_process.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "processes/parallel_distance_calculation_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 
@@ -85,10 +85,15 @@ public:
 
         CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
 
-        unsigned int max_level = 100;
-		double max_distance = 200;
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
+        Parameters parallel_redistance_settings(R"({
+            "max_levels" : 100,
+            "max_distance" : 200.0
+        })");
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculationProcess<TDim>>(
+            rBackgroundModelPart,
+            parallel_redistance_settings
+        );
+        p_distance_smoother->Execute();
 
         VariableUtils().CopyVariable<double>(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
     }
@@ -132,5 +137,3 @@ public:
 }  // namespace Kratos.
 
 #endif // DISTANCE_CALCULATION_UTILITY  defined
-
-

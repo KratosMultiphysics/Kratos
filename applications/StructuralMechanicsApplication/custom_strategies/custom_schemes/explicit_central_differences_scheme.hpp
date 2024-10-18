@@ -1,28 +1,25 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of MSantasusana)
 //
-//
 
-#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED)
-#define KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -257,11 +254,11 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
-        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+        const bool has_dof_for_rot_z = !r_nodes.empty() && r_nodes.begin()->HasDofFor(ROTATION_Z);
         if (has_dof_for_rot_z)
             VariableUtils().SetVariable(MOMENT_RESIDUAL,zero_array,r_nodes);
 
@@ -283,58 +280,56 @@ public:
         /// The array of ndoes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // The first iterator of the array of nodes
-        const auto it_node_begin = rModelPart.NodesBegin();
+        if (!r_nodes.empty()) {
+            // The first iterator of the array of nodes
+            const auto it_node_begin = rModelPart.NodesBegin();
 
-        /// Initialise the database of the nodes
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_node_begin + i);
-            it_node->SetValue(NODAL_MASS, 0.0);
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-            r_middle_velocity  = ZeroVector(3);
-        }
-        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
-        if (has_dof_for_rot_z) {
-            #pragma omp parallel for schedule(guided,512)
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                auto it_node = (it_node_begin + i);
-                it_node->SetValue(NODAL_INERTIA, zero_array);
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                r_middle_angular_velocity  = ZeroVector(3);
-            }
-        }
+            // Construct the node initializer lambda based on whether rot_z exists
+            std::function<void(Node&)> initializer_base, initializer;
+            const array_1d<double, 3> zero_array = ZeroVector(3);
 
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_node_begin + i);
+            initializer_base = [&zero_array, DomainSize](Node& rNode){
+                rNode.SetValue(NODAL_MASS, 0.0);
+                rNode.FastGetSolutionStepValue(MIDDLE_VELOCITY) = zero_array;
 
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-            const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-//             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                array_1d<double, 3>& r_middle_velocity = rNode.FastGetSolutionStepValue(MIDDLE_VELOCITY);
+                const array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& r_current_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
+                //array_1d<double,3>& r_current_displacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
-            for (IndexType j = 0; j < DomainSize; j++) {
-                r_middle_velocity[j] = r_current_velocity[j];
-                r_current_residual[j] = 0.0;
-//                 r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
-            }
-
-            if (has_dof_for_rot_z) {
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                const array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-//                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
-
-                const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-                for (IndexType j = initial_j; j < 3; j++) {
-                    r_middle_angular_velocity[j] = r_current_angular_velocity[j];
-                    r_current_residual_moment[j] = 0.0;
-                    // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
+                for (IndexType j = 0; j < DomainSize; j++) {
+                    r_middle_velocity[j] = r_current_velocity[j];
+                    r_current_residual[j] = 0.0;
+                    //r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
                 }
+            };
+
+            const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z) {
+                initializer = [&zero_array, DomainSize, &initializer_base](Node& rNode){
+                    initializer_base(rNode);
+                    rNode.SetValue(NODAL_INERTIA, zero_array);
+                    rNode.FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY) = zero_array;
+
+                    array_1d<double, 3>& r_middle_angular_velocity = rNode.FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+                    const array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    array_1d<double, 3>& r_current_residual_moment = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                    //array_1d<double,3>& current_rotation = rNode.FastGetSolutionStepValue(ROTATION);
+
+                    const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
+                    for (IndexType j = initial_j; j < 3; j++) {
+                        r_middle_angular_velocity[j] = r_current_angular_velocity[j];
+                        r_current_residual_moment[j] = 0.0;
+                        // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
+                    }
+                };
+            } else {
+                initializer = initializer_base;
             }
-        }
+
+            /// Initialize all nodes
+            block_for_each(r_nodes, initializer);
+        } // if not nodes.empty()
 
         KRATOS_CATCH("")
     }
@@ -356,47 +351,53 @@ public:
         ) override
     {
         KRATOS_TRY
-        // The current process info
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
-        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
+        if (!r_nodes.empty()) {
+            // The current process info
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Step Update
-        // The first step is time =  initial_time ( 0.0) + delta time
-        mTime.Current = r_current_process_info[TIME];
-        mTime.Delta = r_current_process_info[DELTA_TIME];
+            /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
+            const SizeType dim = r_current_process_info[DOMAIN_SIZE];
 
-        mTime.Middle   = mTime.Current - 0.50*mTime.Delta;
-        mTime.Previous = mTime.Current - 1.00*mTime.Delta;
-        mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
+            // Step Update
+            // The first step is time =  initial_time ( 0.0) + delta time
+            mTime.Current = r_current_process_info[TIME];
+            mTime.Delta = r_current_process_info[DELTA_TIME];
 
-        if (mTime.Previous<0.0) mTime.Previous=0.00;
-        if (mTime.PreviousMiddle<0.0) mTime.PreviousMiddle=0.00;
-        // The iterator of the first node
-        const auto it_node_begin = rModelPart.NodesBegin();
-        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+            mTime.Middle   = mTime.Current - 0.50*mTime.Delta;
+            mTime.Previous = mTime.Current - 1.00*mTime.Delta;
+            mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
 
-        // Getting dof position
-        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
+            if (mTime.Previous<0.0) mTime.Previous=0.00;
+            if (mTime.PreviousMiddle<0.0) mTime.PreviousMiddle=0.00;
+            // The iterator of the first node
+            const auto it_node_begin = rModelPart.NodesBegin();
+            const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
 
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedom(it_node_begin + i, disppos, dim);
-        } // for Node parallel
+            // Getting dof position
+            const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
-        if (has_dof_for_rot_z){
-            #pragma omp parallel for schedule(guided,512)
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                this->UpdateRotationalDegreesOfFreedom(it_node_begin + i, rotppos, dim);
-            } // for Node parallel
-        }
+            // Construct loop lambda
+            std::function<void(SizeType)> updater_base, updater;
+            updater_base = [it_node_begin, dim, &disppos, this](SizeType index){
+                this->UpdateTranslationalDegreesOfFreedom(it_node_begin + index, disppos, dim);
+            };
 
+            if (has_dof_for_rot_z) {
+                updater = [it_node_begin, dim, &rotppos, this, &updater_base](SizeType index){
+                    updater_base(index);
+                    this->UpdateRotationalDegreesOfFreedom(it_node_begin + index, rotppos, dim);
+                };
+            } else {
+                updater = updater_base;
+            }
+
+            // Update nodes
+            IndexPartition<SizeType>(r_nodes.size()).for_each(updater);
+        } // if not nodes.empty()
 
         KRATOS_CATCH("")
     }
@@ -518,96 +519,104 @@ public:
         // The array containing the nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // The fisrt node interator
-        const auto it_node_begin = rModelPart.NodesBegin();
+        if (!r_nodes.empty()) {
+            // The fisrt node interator
+            const auto it_node_begin = rModelPart.NodesBegin();
 
-        // If we consider the rotation DoF
-        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+            // If we consider the rotation DoF
+            const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
 
-        // Auxiliar zero array
-        const array_1d<double, 3> zero_array = ZeroVector(3);
+            // Auxiliary zero array
+            const array_1d<double, 3> zero_array = ZeroVector(3);
 
-        // Getting dof position
-        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
+            // Getting dof position
+            const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            auto it_node = it_node_begin + i;
+            // Construct initializer lambda
+            std::function<void(Node&)> initializer_base, initializer;
 
-            const double nodal_mass = it_node->GetValue(NODAL_MASS);
-            const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            initializer_base = [&zero_array, &disppos, DomainSize, this](Node& rNode) {
+                const double nodal_mass = rNode.GetValue(NODAL_MASS);
+                const array_1d<double, 3>& r_current_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-//             array_1d<double,3>& r_current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+                array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+                //array_1d<double,3>& r_current_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                array_1d<double, 3>& r_middle_velocity = rNode.FastGetSolutionStepValue(MIDDLE_VELOCITY);
 
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+                array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
 
-            // Solution of the explicit equation:
-            if (nodal_mass > numerical_limit) {
-                r_current_acceleration = r_current_residual / nodal_mass;
+                // Solution of the explicit equation:
+                if (nodal_mass > numerical_limit) {
+                    r_current_acceleration = r_current_residual / nodal_mass;
+                } else {
+                    r_current_acceleration = zero_array;
+                }
+
+                std::array<bool, 3> fix_displacements = {false, false, false};
+
+                fix_displacements[0] = (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed());
+                fix_displacements[1] = (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
+                if (DomainSize == 3)
+                    fix_displacements[2] = (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
+
+                for (IndexType j = 0; j < DomainSize; j++) {
+                    if (fix_displacements[j]) {
+                        r_current_acceleration[j] = 0.0;
+                        r_middle_velocity[j] = 0.0;
+                    }
+
+                    r_middle_velocity[j] = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j];
+                    r_current_velocity[j] = r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
+                    // r_current_displacement[j]  = 0.0;
+
+                } // for DomainSize
+            };
+
+            if (has_dof_for_rot_z) {
+                initializer = [&rotppos, &initializer_base, DomainSize, this](Node& rNode) {
+                    initializer_base(rNode);
+                    const array_1d<double, 3>& nodal_inertia = rNode.GetValue(NODAL_INERTIA);
+                    const array_1d<double, 3>& r_current_residual_moment = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                    array_1d<double, 3>& r_current_angular_velocity = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    // array_1d<double,3>& current_rotation = rNode.FastGetSolutionStepValue(ROTATION);
+                    array_1d<double, 3>& r_middle_angular_velocity = rNode.FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+                    array_1d<double, 3>& r_current_angular_acceleration = rNode.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+                    const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
+                    for (IndexType kk = initial_k; kk < 3; ++kk) {
+                        if (nodal_inertia[kk] > numerical_limit) {
+                            r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
+                        } else {
+                            r_current_angular_acceleration[kk] = 0.0;
+                        }
+                    }
+
+                    std::array<bool, 3> fix_rotation = {false, false, false};
+                    if (DomainSize == 3) {
+                        fix_rotation[0] = (rNode.GetDof(ROTATION_X, rotppos).IsFixed());
+                        fix_rotation[1] = (rNode.GetDof(ROTATION_Y, rotppos + 1).IsFixed());
+                    }
+                    fix_rotation[2] = (rNode.GetDof(ROTATION_Z, rotppos + 2).IsFixed());
+
+                    for (IndexType j = initial_k; j < 3; j++) {
+                        if (fix_rotation[j]) {
+                            r_current_angular_acceleration[j] = 0.0;
+                            r_middle_angular_velocity[j] = 0.0;
+                        }
+
+                        r_middle_angular_velocity[j] = 0.0 +  (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j];
+                        r_current_angular_velocity[j] = r_middle_angular_velocity[j] +  (mTime.Previous - mTime.PreviousMiddle) *  r_current_angular_acceleration[j];
+                        //current_rotation[j] = 0.0;
+                    }
+                };
             } else {
-                r_current_acceleration = zero_array;
+                initializer = initializer_base;
             }
 
-            std::array<bool, 3> fix_displacements = {false, false, false};
-
-            fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed());
-            fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
-            if (DomainSize == 3)
-                fix_displacements[2] = (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
-
-            for (IndexType j = 0; j < DomainSize; j++) {
-                if (fix_displacements[j]) {
-                    r_current_acceleration[j] = 0.0;
-                    r_middle_velocity[j] = 0.0;
-                }
-
-                r_middle_velocity[j] = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j];
-                r_current_velocity[j] = r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
-                // r_current_displacement[j]  = 0.0;
-
-            } // for DomainSize
-
-            ////// ROTATION DEGRESS OF FREEDOM
-            if (has_dof_for_rot_z) {
-                const array_1d<double, 3>& nodal_inertia = it_node->GetValue(NODAL_INERTIA);
-                const array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-                array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                // array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                array_1d<double, 3>& r_current_angular_acceleration = it_node->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-
-                const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-                for (IndexType kk = initial_k; kk < 3; ++kk) {
-                    if (nodal_inertia[kk] > numerical_limit) {
-                        r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
-                    } else {
-                        r_current_angular_acceleration[kk] = 0.0;
-                    }
-                }
-
-                std::array<bool, 3> fix_rotation = {false, false, false};
-                if (DomainSize == 3) {
-                    fix_rotation[0] = (it_node->GetDof(ROTATION_X, rotppos).IsFixed());
-                    fix_rotation[1] = (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
-                }
-                fix_rotation[2] = (it_node->GetDof(ROTATION_Z, rotppos + 2).IsFixed());
-
-                for (IndexType j = initial_k; j < 3; j++) {
-                    if (fix_rotation[j]) {
-                        r_current_angular_acceleration[j] = 0.0;
-                        r_middle_angular_velocity[j] = 0.0;
-                    }
-
-                    r_middle_angular_velocity[j] = 0.0 +  (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j];
-                    r_current_angular_velocity[j] = r_middle_angular_velocity[j] +  (mTime.Previous - mTime.PreviousMiddle) *  r_current_angular_acceleration[j];
-//                     current_rotation[j] = 0.0;
-                } // trans DoF
-            }   // Rot DoF
-        }     // for node parallel
+            // Initialize all nodes
+            block_for_each(r_nodes, initializer);
+        } // if not nodes.empty()
 
         mTime.Previous = mTime.Current;
         mTime.PreviousMiddle = mTime.Middle;
@@ -664,20 +673,24 @@ public:
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
         ElementsArrayType& r_elements = rModelPart.Elements();
 
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
+        using TLS = std::tuple<LocalSystemVectorType,Element::EquationIdVectorType>;
+        TLS thread_local_storage; // {RHS_contribution, equation_id_vector_dummy}
 
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
-            auto it_cond = r_conditions.begin() + i;
-            CalculateRHSContribution(*it_cond, RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
-        }
+        // Compute on conditions
+        block_for_each(r_conditions, thread_local_storage, [&r_current_process_info, this](Condition& r_condition, TLS& r_rhs_contrib_and_equation_ids){
+            CalculateRHSContribution(r_condition,
+                                     std::get<0>(r_rhs_contrib_and_equation_ids),
+                                     std::get<1>(r_rhs_contrib_and_equation_ids),
+                                     r_current_process_info);
+        });
 
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-            auto it_elem = r_elements.begin() + i;
-            CalculateRHSContribution(*it_elem, RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
-        }
+        // Compute on elements
+        block_for_each(r_elements, thread_local_storage, [&r_current_process_info, this](Element& r_element, TLS& r_rhs_contrib_and_equation_ids){
+            CalculateRHSContribution(r_element,
+                                     std::get<0>(r_rhs_contrib_and_equation_ids),
+                                     std::get<1>(r_rhs_contrib_and_equation_ids),
+                                     r_current_process_info);
+        });
 
         KRATOS_CATCH("")
     }
@@ -832,5 +845,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME  defined */

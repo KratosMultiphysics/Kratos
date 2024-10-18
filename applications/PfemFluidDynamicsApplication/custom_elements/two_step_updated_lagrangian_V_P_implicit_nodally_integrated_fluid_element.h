@@ -64,11 +64,11 @@ namespace Kratos
     /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement);
 
-    ///base type:
+    /// base type:
     typedef TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -111,40 +111,40 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    //Constructors.
+    // Constructors.
 
     /// Default constuctor.
     /**
-       * @param NewId Index number of the new element (optional)
-       */
+     * @param NewId Index number of the new element (optional)
+     */
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
     /// Constructor using an array of nodes.
     /**
-       * @param NewId Index of the new element
-       * @param ThisNodes An array containing the nodes of the new element
-       */
+     * @param NewId Index of the new element
+     * @param ThisNodes An array containing the nodes of the new element
+     */
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
     {
     }
 
     /// Constructor using a geometry object.
     /**
-       * @param NewId Index of the new element
-       * @param pGeometry Pointer to a geometry object
-       */
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     */
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
     /// Constuctor using geometry and properties.
     /**
-       * @param NewId Index of the new element
-       * @param pGeometry Pointer to a geometry object
-       * @param pProperties Pointer to the element's properties
-       */
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     * @param pProperties Pointer to the element's properties
+     */
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
     {
     }
@@ -170,12 +170,12 @@ namespace Kratos
 
     /// Create a new element of this type
     /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement element, created using given input
-       * @param NewId: the ID of the new element
-       * @param ThisNodes: the nodes of the new element
-       * @param pProperties: the properties assigned to the new element
-       * @return a Pointer to the new element
-       */
+     * Returns a pointer to a new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement element, created using given input
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
     Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes,
                             pPropertiesType pProperties) const override
     {
@@ -184,25 +184,25 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override {};
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
     /**
-       * this determines the elemental equation ID vector for all elemental
-       * DOFs
-       * @param rResult A vector containing the global Id of each row
-       * @param rCurrentProcessInfo the current process info object (unused)
-       */
+     * this determines the elemental equation ID vector for all elemental
+     * DOFs
+     * @param rResult A vector containing the global Id of each row
+     * @param rCurrentProcessInfo the current process info object (unused)
+     */
 
     /// Returns a list of the element's Dofs
     /**
-       * @param ElementalDofList the list of DOFs
-       * @param rCurrentProcessInfo the current process info instance
-       */
+     * @param ElementalDofList the list of DOFs
+     * @param rCurrentProcessInfo the current process info instance
+     */
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override;
 
@@ -216,13 +216,13 @@ namespace Kratos
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
-       * This function provides the place to perform checks on the completeness of the input.
-       * It is designed to be called only once (or anyway, not often) typically at the beginning
-       * of the calculations, so to verify that nothing is missing from the input
-       * or that no common error is found.
-       * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
-       * @return 0 if no errors were found.
-       */
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
+     * @return 0 if no errors were found.
+     */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
@@ -273,11 +273,11 @@ namespace Kratos
     ///@{
 
     /**
-       * A constistent mass matrix is used.
-       * @param rMassMatrix The local matrix where the result will be added.
-       * @param rN Elemental shape functions.
-       * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
-       */
+     * A constistent mass matrix is used.
+     * @param rMassMatrix The local matrix where the result will be added.
+     * @param rN Elemental shape functions.
+     * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
+     */
 
     ///@}
     ///@name Protected  Access

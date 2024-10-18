@@ -73,7 +73,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -293,7 +293,7 @@ protected:
      * @param rData Reference to the element data container
      * @param rLHS Reference to the Left Hand Side matrix to be filled
      */
-    void ComputeGaussPointLHSContribution(
+    virtual void ComputeGaussPointLHSContribution(
         TElementData& rData,
         MatrixType& rLHS);
 
@@ -303,7 +303,7 @@ protected:
      * @param rData Reference to the element data container
      * @param rRHS Reference to the Right Hand Side vector to be filled
      */
-    void ComputeGaussPointRHSContribution(
+    virtual void ComputeGaussPointRHSContribution(
         TElementData& rData,
         VectorType& rRHS);
 
@@ -317,7 +317,7 @@ protected:
      * @param rKee Contribution related to the pressure enrichment DOFs in the enrichment equations
      * @param rRHS_ee Right Hand Side of the enrichment equations
      */
-	void ComputeGaussPointEnrichmentContributions(
+	virtual void ComputeGaussPointEnrichmentContributions(
 		TElementData& rData,
 		MatrixType& rV,
 		MatrixType& rH,
@@ -353,6 +353,31 @@ protected:
         const typename TElementData::ShapeDerivativesType& rDN_DX,
         const typename TElementData::MatrixRowType& rNenr,
         const typename TElementData::ShapeDerivativesType& rDN_DXenr) const;
+
+    /**
+     * @brief Computes the enriched LHS/RHS terms associated with the pressure stabilizations at the interface
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
+     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
+     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+    virtual void PressureGradientStabilization(
+        const TElementData& rData,
+        const Vector& rInterfaceWeights,
+        const Matrix& rEnrInterfaceShapeFunctionPos,
+        const Matrix& rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+        MatrixType& rKeeTot,
+		VectorType& rRHSeeTot);
+
+    /**
+     * @brief Calculate the strain rate
+     * In this function we calculate the strain rate at the mid step
+     * @param rData Data container with the input velocity and gradients and output strain rate vector
+     */
+    void CalculateStrainRate(TElementData& rData) const override;
 
     ///@}
     ///@name Protected  Access
@@ -471,23 +496,6 @@ private:
         const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
         VectorType& rRHS);
 
-    /**
-     * @brief Computes the enriched LHS/RHS terms associated with the pressure stabilizations at the interface
-     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
-     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
-     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
-     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
-     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
-     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
-     */
-    void PressureGradientStabilization(
-        const TElementData& rData,
-        const Vector& rInterfaceWeights,
-        const Matrix& rEnrInterfaceShapeFunctionPos,
-        const Matrix& rEnrInterfaceShapeFunctionNeg,
-        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-        MatrixType& rKeeTot,
-		VectorType& rRHSeeTot);
 
     /**
      * @brief Condense the enrichment

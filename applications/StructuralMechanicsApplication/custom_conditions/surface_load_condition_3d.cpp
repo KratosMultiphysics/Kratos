@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix
@@ -18,6 +18,7 @@
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/beam_math_utilities.hpp"
+#include "includes/variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 

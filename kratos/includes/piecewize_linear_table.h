@@ -68,12 +68,9 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef TArgumentType argument_type; // To be STL conformance.
-    typedef TResultType result_type; // To be STL conformance.
-
     typedef std::array<TResultType, TResultsColumns>  result_array_type;
 
-    typedef std::pair<argument_type, result_array_type> RecordType;
+    typedef std::pair<TArgumentType, result_array_type> RecordType;
 
     typedef std::vector<RecordType> TableContainerType;
 
@@ -116,19 +113,19 @@ public:
 
     // This operator calculates the piecewise linear interpolation for
     // given argument
-    result_type operator()(argument_type const& X) const
+    TResultType operator()(TArgumentType const& X) const
     {
         return GetValue(X);
     }
 
     // This operator gives the result for the nearest value to argument found in table
-    result_type const & operator[](argument_type const& X) const
+    TResultType const & operator[](TArgumentType const& X) const
     {
         GetNearestValue(X);
     }
 
     // This operator gives the result for the nearest value to argument found in table
-    result_type & operator[](argument_type& X)
+    TResultType & operator[](TArgumentType& X)
     {
         GetNearestValue(X);
     }
@@ -138,7 +135,7 @@ public:
     ///@{
 
     // Get the value for the given argument using piecewise linear
-    result_type GetValue(argument_type const& X) const
+    TResultType GetValue(TArgumentType const& X) const
     {
         std::size_t size = mData.size();
 
@@ -148,7 +145,7 @@ public:
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
 
-        result_type result;
+        TResultType result;
         if(X <= mData[0].first)
             return Interpolate(X, mData[0].first, mData[0].second, mData[1].first, mData[1].second, result);
 
@@ -156,12 +153,12 @@ public:
             if(X <= mData[i].first)
                 return Interpolate(X, mData[i-1].first, mData[i-1].second, mData[i].first, mData[i].second, result);
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return Interpolate(X, mData[size-2].first, mData[size-2].second, mData[size-1].first, mData[size-1].second, result);
     }
 
     // Get the nesrest value for the given argument
-    result_array_type& GetNearestRow(argument_type const& X)
+    result_array_type& GetNearestRow(TArgumentType const& X)
     {
         std::size_t size = mData.size();
 
@@ -178,12 +175,12 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
     // Get the nesrest value for the given argument
-    result_type const& GetNearestValue(argument_type const& X)  const
+    TResultType const& GetNearestValue(TArgumentType const& X)  const
     {
         std::size_t size = mData.size();
 
@@ -200,16 +197,16 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
-    result_type& Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result)
+    TResultType& Interpolate(TArgumentType const& X, TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result)
     {
         double epsilon = 1e-12;
 
         double dx = X2 - X1;
-        result_type dy = Y2 - Y1;
+        TResultType dy = Y2 - Y1;
 
         double scale = 0.00;
 
@@ -222,7 +219,7 @@ public:
 
     }
 
-    void PushBack(argument_type const& X, result_type const& Y)
+    void PushBack(TArgumentType const& X, TResultType const& Y)
     {
         result_array_type a = {{Y}};
         mData.push_back(RecordType(X,a));

@@ -130,6 +130,49 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
 
             self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
+    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
+    def test_ComputeSimplexNormalModelPartWithLineCondition(self):
+        #Adding one line, to make sure it is getting ignored
+        self.model_part.CreateNewCondition("LineCondition3D2N", 1000, [1,2], self.model_part.GetProperties()[1])
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part)
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            solution_normal /= CalculateNorm(solution_normal)
+
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
+    def test_ComputeSimplexNormalModelPartWithCustomVariable(self):
+        ## Calculate the normals using NODAL_VAUX as custom variable
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            self.model_part,
+            KratosMultiphysics.NODAL_VAUX)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NODAL_VAUX)
+            solution_normal /= CalculateNorm(solution_normal)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
+    def test_ComputeSimplexNormalModelPartNonHistorical(self):
+        ## Calculate the normals using NODAL_VAUX as custom variable
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(self.model_part)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetValue(KratosMultiphysics.NORMAL)
+            solution_normal /= CalculateNorm(solution_normal)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
     def test_ComputeUnitNormalModelPart(self):
         KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(self.model_part)
 
@@ -141,6 +184,39 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
             self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
+    def test_ComputeUnitNormalModelPartWithCustomVariable(self):
+        ## Calculate the unit normals using NODAL_VAUX as custom variable
+        enforce_generic_algorithm = False
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(
+            self.model_part,
+            enforce_generic_algorithm,
+            KratosMultiphysics.NODAL_VAUX)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NODAL_VAUX)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
+    def test_ComputeUnitNormalModelPartNonHistorical(self):
+        ## Calculate the unit normals using NODAL_VAUX as custom variable
+        enforce_generic_algorithm = False
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormalsNonHistorical(
+            self.model_part,
+            enforce_generic_algorithm)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetValue(KratosMultiphysics.NORMAL)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
+
     def test_ComputeNodesMeanNormalModelPart(self):
         KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(self.model_part, True)
 
@@ -150,6 +226,39 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = CalculateAnalyticalNormal(node)
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.1)
+
+    def test_ComputeNodesMeanNormalModelPartWithCustomVariable(self):
+        ## Calculate the unit normals using NODAL_VAUX as custom variable
+        enforce_generic_algorithm = True
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(
+            self.model_part,
+            enforce_generic_algorithm,
+            KratosMultiphysics.NODAL_VAUX)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NODAL_VAUX)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.1)
+
+    def test_ComputeNodesMeanNormalModelPartNonHistorical(self):
+        ## Calculate the unit normals using NODAL_VAUX as custom variable
+        enforce_generic_algorithm = True
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormalsNonHistorical(
+            self.model_part,
+            enforce_generic_algorithm)
+
+        ## DEBUG
+        #PostProcess(self.model_part)
+
+        ## Check results
+        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
+            normal = CalculateAnalyticalNormal(node)
+            solution_normal = node.GetValue(KratosMultiphysics.NORMAL)
             self.assertLess(CalculateNorm(normal - solution_normal), 0.1)
 
     def test_InvertNormal(self):
@@ -218,4 +327,3 @@ class TestNormalUtils2DSymmetricalSquare(KratosUnittest.TestCase):
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
-

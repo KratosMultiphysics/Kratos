@@ -36,14 +36,23 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
     Initialize();
 }
 
-void Kernel::Initialize() {
-    KRATOS_INFO("") << " |  /           |\n"
-                    << " ' /   __| _` | __|  _ \\   __|\n"
-                    << " . \\  |   (   | |   (   |\\__ \\\n"
+Kernel::~Kernel() {
+    GetApplicationsList().clear();
+}
+
+void Kernel::PrintInfo() {
+    KRATOS_INFO("") << " |  /           |                  \n"
+                    << " ' /   __| _` | __|  _ \\   __|    \n"
+                    << " . \\  |   (   | |   (   |\\__ \\  \n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << std::endl;
+                    << "           Multi-Physics " << Kernel::Version() << "\n"
+                    << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
 
     PrintParallelismSupportInfo();
+}
+
+void Kernel::Initialize() {
+    this->PrintInfo();
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
@@ -55,7 +64,7 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-bool Kernel::IsImported(std::string ApplicationName) const {
+bool Kernel::IsImported(const std::string& ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
         return true;
@@ -86,7 +95,7 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     KratosComponents<VariableData>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Geometries:" << std::endl;
-    KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    KratosComponents<Geometry<Node>>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);
@@ -96,14 +105,12 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << std::endl;
     rOStream << "Modelers:" << std::endl;
     KratosComponents<Modeler>().PrintData(rOStream);
-
+    rOStream << std::endl;
     rOStream << "Loaded applications:" << std::endl;
-
     auto& application_list = Kernel::GetApplicationsList();
-    rOStream << "number of loaded applications = " << application_list.size()
-             << std::endl;
+    rOStream << "    Number of loaded applications = " << application_list.size() << std::endl;
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
-        rOStream << "  " << *it << std::endl;
+        rOStream << "    " << *it << std::endl;
 }
 
 // To be removed with the new entry points
@@ -114,6 +121,22 @@ std::string Kernel::BuildType() {
 // To be removed with the new entry points
 std::string Kernel::Version() {
     return GetVersionString();
+}
+
+std::string Kernel::OSName() {
+    return GetOSName();
+}
+
+std::string Kernel::PythonVersion() {
+    return mPyVersion;
+}
+
+std::string Kernel::Compiler() {
+    return GetCompiler();
+}
+
+void Kernel::SetPythonVersion(std::string pyVersion) {
+    mPyVersion = pyVersion;
 }
 
 void Kernel::PrintParallelismSupportInfo() const
@@ -164,5 +187,6 @@ void Kernel::PrintParallelismSupportInfo() const
 }
 
 bool Kernel::mIsDistributedRun = false;
+std::string Kernel::mPyVersion = std::string("Undefined");
 
 }

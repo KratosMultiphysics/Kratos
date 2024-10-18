@@ -33,7 +33,7 @@
         "topography_process_list"           : [],
         "benchmark_process_list"            : [{
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.benchmarks",
-            "python_module"   : "dry_dam_break_benchmark",
+            "python_module"   : "dam_break_benchmark",
             "Parameters"      : {
                 "model_part_name"      : "model_part",
                 "variables_list"       : ["HEIGHT"],
@@ -41,7 +41,8 @@
                 "error_variables_list" : ["HEIGHT_ERROR"],
                 "benchmark_settings"   : {
                     "dam_position"         : 50,
-                    "left_height"          : 10
+                    "left_height"          : 10,
+                    "right_height"         : 0
                 }
             }
         }],

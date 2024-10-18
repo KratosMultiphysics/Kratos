@@ -101,6 +101,13 @@ void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
     });
 }
 
+void ShallowWaterUtilities::ComputeLinearizedMomentum(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = -rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(TOPOGRAPHY);
+    });
+}
+
 template<bool THistorical>
 void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Epsilon)
 {
@@ -231,6 +238,13 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         rNode.Z() = rNode.FastGetSolutionStepValue(rVariable);
+    });
+}
+
+void ShallowWaterUtilities::OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z() += Increment;
     });
 }
 
@@ -385,30 +399,6 @@ bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
     const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
     const double threshold = 1.0 - 1e-6;
     return (wet_fraction >= threshold);
-}
-
-template<>
-KRATOS_API(SHALLOW_WATER_APPLICATION)
-array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ConditionsContainerType>(
-    const double Density,
-    const double Gravity,
-    const double Height,
-    const double Area,
-    const array_1d<double,3>& rNormal)
-{
-    return 0.5 * Density * Gravity * Height * Height * Area * rNormal;
-}
-
-template<>
-KRATOS_API(SHALLOW_WATER_APPLICATION)
-array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ElementsContainerType>(
-    const double Density,
-    const double Gravity,
-    const double Height,
-    const double Area,
-    const array_1d<double,3>& rNormal)
-{
-    return -Density * Gravity * Height * Area * rNormal;
 }
 
 template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeFroude<true>(ModelPart&, const double);

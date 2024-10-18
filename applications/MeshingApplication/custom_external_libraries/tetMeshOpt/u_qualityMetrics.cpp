@@ -1,5 +1,5 @@
 
-#include <math.h>
+#include <cmath>
 #include "Math3D.h"
 #include "u_Types.h"
 #include "u_delphiClasses.h"

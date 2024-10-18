@@ -26,12 +26,12 @@
 #include "geometries/tetrahedra_3d_10.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -58,8 +58,8 @@ namespace Kratos
         typedef ModelPart::ConditionType ConditionType;
         typedef ModelPart::PropertiesType PropertiesType;
         typedef ConditionType::GeometryType GeometryType;
-
-        typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+        typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
+        typedef std::size_t SizeType;
         ///@}
         ///@name Life Cycle
         ///@{
@@ -118,22 +118,16 @@ namespace Kratos
 
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
-            double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-            bool firstMesh = false;
-            if (currentTime < 2 * timeInterval)
-            {
-                firstMesh = true;
-            }
-
-            bool box_side_element = false;
-            bool wrong_added_node = false;
-
+            double deltaTime = rCurrentProcessInfo[DELTA_TIME];
             int number_of_slivers = 0;
 
-            bool refiningBox = mrRemesh.UseRefiningBox;
-            if (!(mrRemesh.UseRefiningBox == true && currentTime > mrRemesh.RefiningBoxInitialTime && currentTime < mrRemesh.RefiningBoxFinalTime))
+            bool refiningBox = false;
+            for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
-                refiningBox = false;
+                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+                {
+                    refiningBox = true;
+                }
             }
 
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
@@ -150,48 +144,49 @@ namespace Kratos
                     std::cout << " Start Element Selection " << OutNumberOfElements << std::endl;
 
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = element_begin->GetGeometry().size();
-                const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+                const SizeType nds = element_begin->GetGeometry().size();
+                const SizeType dimension = element_begin->GetGeometry().WorkingSpaceDimension();
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
                 int el = 0;
                 int number = 0;
 
-                //#pragma omp parallel for reduction(+:number) private(el)
+                // #pragma omp parallel for reduction(+:number) private(el)
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
-                    Geometry<Node<3>> vertices;
-                    double MeanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
-                    unsigned int numfreesurf = 0;
-                    unsigned int numboundary = 0;
-                    unsigned int numrigid = 0;
-                    unsigned int numinlet = 0;
-                    unsigned int numisolated = 0;
+                    Geometry<Node> vertices;
+                    double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
+                    SizeType numfreesurf = 0;
+                    SizeType numboundary = 0;
+                    SizeType numrigid = 0;
+                    SizeType numInletNodes = 0;
+                    SizeType numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
                     normVelocityP.resize(nds, false);
-                    unsigned int checkedNodes = 0;
-                    box_side_element = false;
-                    unsigned int countIsolatedWallNodes = 0;
+                    SizeType checkedNodes = 0;
+                    SizeType countIsolatedWallNodes = 0;
                     bool increaseAlfa = false;
-                    unsigned int previouslyFreeSurfaceNodes = 0;
-                    unsigned int previouslyIsolatedNodes = 0;
-                    unsigned int sumPreviouslyIsolatedFreeSurf = 0;
-                    unsigned int sumIsolatedFreeSurf = 0;
+                    SizeType previouslyFreeSurfaceNodes = 0;
+                    SizeType previouslyIsolatedNodes = 0;
+                    SizeType sumPreviouslyIsolatedFreeSurf = 0;
+                    SizeType sumIsolatedFreeSurf = 0;
                     std::vector<array_1d<double, 3>> nodesCoordinates;
                     nodesCoordinates.resize(nds);
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
-                    unsigned int isolatedNodesInTheElement = 0;
-                    for (unsigned int pn = 0; pn < nds; pn++)
+                    SizeType isolatedNodesInTheElement = 0;
+                    double rigidNodeLocalMeshSize = 0;
+                    double rigidNodeMeshCounter = 0;
+
+                    for (SizeType pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
                             std::cout << " ERROR: something is wrong: nodal id < 0 " << el << std::endl;
 
-                        if ((unsigned int)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
+                        if ((SizeType)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
                         {
-                            wrong_added_node = true;
                             std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
                             break;
                         }
@@ -200,13 +195,19 @@ namespace Kratos
                         if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
-                            // if (isolatedNode==true)
-                            // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
                         }
                         // check flags on nodes
                         if (vertices.back().Is(ISOLATED))
                         {
                             numisolated++;
+                        }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_FREESURFACE))
+                        {
+                            previouslyFreeSurfaceNodes++;
+                        }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_ISOLATED))
+                        {
+                            previouslyIsolatedNodes++;
                         }
                         if (vertices.back().Is(BOUNDARY))
                         {
@@ -217,16 +218,19 @@ namespace Kratos
                             noremesh = true;
                         }
 
-                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       //it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
-                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); //it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
-
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
+                            if (vertices.back().Is(RIGID))
+                            {
+                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
+                                rigidNodeMeshCounter += 1.0;
+                            }
+
                             numrigid++;
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
                             bool localIsolatedWallNode = true;
-                            for (unsigned int i = 0; i < rN.size(); i++)
+                            for (SizeType i = 0; i < rN.size(); i++)
                             {
                                 if (rN[i].IsNot(RIGID))
                                 {
@@ -256,126 +260,55 @@ namespace Kratos
                         }
                         if (vertices.back().Is(INLET))
                         {
-                            numinlet++;
+                            numInletNodes++;
                         }
 
                         if (refiningBox == true && vertices.back().IsNot(RIGID))
                         {
                             if (dimension == 2)
                             {
-                                SetAlphaForRefinedZones2D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             else if (dimension == 3)
                             {
-                                SetAlphaForRefinedZones3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
+                            CriticalVolume = 0.05 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
                         }
+
                         if (dimension == 3)
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
                         }
                     }
 
-                    if (box_side_element || wrong_added_node)
-                    {
-                        std::cout << " ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element " << std::endl;
-                        continue;
-                    }
-
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
+
+                    if (rigidNodeMeshCounter > 0)
+                    {
+                        SetMeshSizeInBoundaryZones(meanMeshSize, previouslyFreeSurfaceNodes, numfreesurf, currentTime, deltaTime, rigidNodeLocalMeshSize, rigidNodeMeshCounter);
+                    }
 
                     if (refiningBox == true)
                     {
-
                         IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
-
-                        if (dimension == 3)
-                        {
-                            Alpha *= 1.1;
-                        }
                     }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
                     sumPreviouslyIsolatedFreeSurf = previouslyFreeSurfaceNodes + previouslyIsolatedNodes;
 
-                    if (dimension == 2)
-                    {
-                        if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
-                        {
-                            Alpha *= 1.5;
-                        }
-                        else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
-                        {
-                            Alpha *= 1.25;
-                        }
-                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
-                        {
-                            Alpha *= 1.125;
-                        }
-                        else
-                        {
-                            Alpha *= 0.975;
-                        }
-                    }
-                    else if (dimension == 3)
-                    {
-                        if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
-                        {
-                            Alpha *= 1.5;
-                        }
-                        else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
-                        {
-                            Alpha *= 1.25;
-                        }
-                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
-                        {
-                            Alpha *= 1.05;
-                        }
-                        else
-                        {
-                            Alpha *= 0.95;
-                        }
-                        // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
-                        // {
-                        //     Alpha *= 1.05;
-                        // }
-
-                        if (numrigid == nds)
-                        {
-                            Alpha *= 0.95;
-                        }
-                        if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
-                        {
-                            if (numrigid == 3 && numfreesurf == 0 && numisolated == 0)
-                            {
-                                Alpha *= 1.1;
-                            }
-                            if (numrigid == 2 && numfreesurf == 0 && numisolated == 0)
-                            {
-                                Alpha *= 1.05;
-                            }
-                        }
-                    }
-                    if (firstMesh == true)
-                    {
-                        Alpha *= 1.15;
-                    }
-
-                    if (numinlet > 0)
-                    {
-                        Alpha *= 1.5;
-                    }
+                    ModifyAlpha(Alpha, dimension, nds, numfreesurf, numrigid, numisolated, numInletNodes, previouslyIsolatedNodes, previouslyFreeSurfaceNodes);
 
                     bool accepted = false;
 
-                    accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, MeanMeshSize);
+                    accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, meanMeshSize);
 
                     if (numrigid == nds || noremesh == true)
                     {
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
@@ -384,35 +317,10 @@ namespace Kratos
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 1.5;
-                                    const double minValue = 1.0 / maxValue;
-                                    if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
-                                        normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
-                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
-                                    {
-                                        accepted = false;
-                                    }
-                                    else
-                                    {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
-
-                                        if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
-                                        {
-                                            accepted = false;
-                                            // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
-                                        }
-                                    }
+                                    ControlSkewedElements2D(accepted, normVelocityP, nodesVelocities);
                                 }
                             }
-                            Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
+                            Geometry<Node> *triangle = new Triangle2D3<Node>(vertices);
                             double elementArea = triangle->Area();
                             if (elementArea < CriticalVolume)
                             {
@@ -427,44 +335,7 @@ namespace Kratos
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 2.5;
-                                    const double minValue = 1.0 / maxValue;
-                                    if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
-                                        normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
-                                        normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
-                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] > maxValue ||
-                                        normVelocityP[2] / normVelocityP[3] < minValue ||
-                                        normVelocityP[2] / normVelocityP[3] > maxValue)
-                                    {
-                                        accepted = false;
-                                    }
-                                    else
-                                    {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-
-                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
-                                        {
-                                            accepted = false;
-                                            // std::cout << "The angle between the velocity vectors is too big" << std::endl;
-                                        }
-                                    }
+                                    ControlSkewedElements3D(accepted, normVelocityP, nodesVelocities);
                                 }
                             }
                         }
@@ -474,116 +345,8 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-                        double Volume = tetrahedron->Volume();
-
-                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
-                        b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
-                        c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
-                        b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
-                        c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
-
-                        double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-                        double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-                        double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                        }
-                        else if (Volume <= CriticalVolume)
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                        }
-                        delete tetrahedron;
+                        ControlSliverElements(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
                     }
-
-                    // // to control that the element has a good shape
-                    // if (accepted && (numfreesurf > 0 || numrigid == nds))
-                    //     {
-                    //         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-
-                    //         double Volume = tetrahedron->Volume();
-                    //         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
-                    //         if(Volume==0){
-                    //             std::cout<<" !!!!! Volume==0 ";
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             Volume = pow(meanLength, 3) * sqrt(2) / 12.0;
-                    //             std::cout<<" now volume is  "<<Volume<<std::endl;
-                    //         }
-                    //         if (CriticalVolume == 0)
-                    //         {
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             double regularTetrahedronVolume = pow(meanLength, 3) * sqrt(2) / 12.0;
-                    //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
-                    //         }
-
-                    //         if (fabs(Volume) < CriticalVolume)
-                    //         {
-                    //             accepted = false;
-                    //             number_of_slivers++;
-                    //         }
-                    //         delete tetrahedron;
-                    //     }
-                    //}
 
                     if (accepted)
                     {
@@ -602,20 +365,20 @@ namespace Kratos
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
             {
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = (*element_begin).GetGeometry().size();
+                const SizeType nds = (*element_begin).GetGeometry().size();
 
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
 
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
-                //check engaged nodes
+                // check engaged nodes
                 for (int el = 0; el < OutNumberOfElements; el++)
                 {
                     if (mrRemesh.PreservedElements[el])
                     {
-                        for (unsigned int pn = 0; pn < nds; pn++)
+                        for (SizeType pn = 0; pn < nds; pn++)
                         {
-                            //set vertices
+                            // set vertices
                             rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
                         }
                     }
@@ -704,7 +467,7 @@ namespace Kratos
 
         ///@}
 
-    private:
+    protected:
         ///@name Static Member Variables
         ///@{
 
@@ -735,117 +498,27 @@ namespace Kratos
         ///@}
         ///@name Un accessible methods
         ///@{
-        void SetAlphaForRefinedZones2D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY)
+
+        void SetMeshSizeInBoundaryZones(double &meanMeshSize,
+                                        bool previouslyFreeSurfaceNodes,
+                                        bool numfreesurf,
+                                        double currentTime,
+                                        double deltaTime,
+                                        SizeType rigidNodeLocalMeshSize,
+                                        SizeType rigidNodeMeshCounter)
         {
-
             KRATOS_TRY
-            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-            double seperation = 0;
-            double coefficient = 0;
-            if (coorX > RefiningBoxMinimumPoint[0] && coorY > RefiningBoxMinimumPoint[1] &&
-                coorX < RefiningBoxMaximumPoint[0] && coorY < RefiningBoxMaximumPoint[1])
+            const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+            const double ratio = rigidWallMeshSize / meanMeshSize;
+            double tolerance = 1.8;
+            if (currentTime < 10 * deltaTime)
             {
-                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+                tolerance = 1.5;
             }
-            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+            if (ratio > tolerance && numfreesurf == 0 && previouslyFreeSurfaceNodes == 0)
             {
-                seperation = coorX - RefiningBoxMinimumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
-            {
-                seperation = coorY - RefiningBoxMinimumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorX - RefiningBoxMaximumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
-            {
-                seperation = coorY - RefiningBoxMaximumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-
-            KRATOS_CATCH("")
-        }
-
-        void SetAlphaForRefinedZones3D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY, double coorZ)
-        {
-
-            KRATOS_TRY
-            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-            double seperation = 0;
-            double coefficient = 0;
-
-            if (coorX > RefiningBoxMinimumPoint[0] && coorX < RefiningBoxMaximumPoint[0] &&
-                coorY > RefiningBoxMinimumPoint[1] && coorY < RefiningBoxMaximumPoint[1] &&
-                coorZ > RefiningBoxMinimumPoint[2] && coorZ < RefiningBoxMaximumPoint[2])
-            {
-                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
-            }
-            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorX - RefiningBoxMinimumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorY - RefiningBoxMinimumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorZ < RefiningBoxMinimumPoint[2] && coorZ > (minExternalPoint[2] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorZ - RefiningBoxMinimumPoint[2];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorX - RefiningBoxMaximumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorY - RefiningBoxMaximumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorZ > RefiningBoxMaximumPoint[2] && coorZ < (maxExternalPoint[2] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorZ - RefiningBoxMaximumPoint[2];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
+                meanMeshSize *= 0.5;
+                meanMeshSize += 0.5 * rigidWallMeshSize;
             }
 
             KRATOS_CATCH("")
@@ -853,18 +526,17 @@ namespace Kratos
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
                                             bool increaseAlfa,
-                                            unsigned int nds,
-                                            unsigned int numfreesurf,
-                                            unsigned int numrigid,
-                                            unsigned int numisolated)
+                                            SizeType nds,
+                                            SizeType numfreesurf,
+                                            SizeType numrigid,
+                                            SizeType numisolated)
         {
             KRATOS_TRY
-
             if (increaseAlfa == true)
             {
                 if (numfreesurf < nds && numisolated == 0)
                 {
-                    Alpha *= 1.275;
+                    Alpha *= 1.2;
                 }
                 else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
                 {
@@ -879,31 +551,228 @@ namespace Kratos
                     Alpha *= 1.8;
                 }
             }
-            if (numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
+
+            KRATOS_CATCH("")
+        }
+
+        void ModifyAlpha(double &Alpha,
+                         const SizeType dimension,
+                         SizeType nds,
+                         SizeType numfreesurf,
+                         SizeType numrigid,
+                         SizeType numisolated,
+                         SizeType numInletNodes,
+                         SizeType previouslyIsolatedNodes,
+                         SizeType previouslyFreeSurfaceNodes)
+        {
+            KRATOS_TRY
+            if (dimension == 2)
             {
-                if (numisolated > 0)
+                if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                 {
-                    Alpha *= 1.0;
+                    Alpha *= 1.5;
                 }
-                else if (numfreesurf == 0)
+                else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                 {
-                    Alpha *= 1.1;
+                    Alpha *= 1.25;
+                }
+                else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
+                {
+                    Alpha *= 1.125;
                 }
                 else
                 {
+                    Alpha *= 0.975;
+                }
+            }
+            else if (dimension == 3)
+            {
+                if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
+                {
+                    Alpha *= 1.5;
+                }
+                else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
+                {
+                    Alpha *= 1.25;
+                }
+                else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
+                {
                     Alpha *= 1.05;
+                }
+                else
+                {
+                    Alpha *= 0.95;
+                }
+
+                if (numrigid == nds)
+                {
+                    Alpha *= 0.95;
+                }
+                if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
+                {
+                    if (numrigid == 3 && numfreesurf == 0 && numisolated == 0)
+                    {
+                        Alpha *= 1.1;
+                    }
+                    if (numrigid == 2 && numfreesurf == 0 && numisolated == 0)
+                    {
+                        Alpha *= 1.05;
+                    }
+                }
+            }
+
+            if (numInletNodes > 0)
+            {
+                Alpha *= 1.5;
+            }
+
+            KRATOS_CATCH("")
+        }
+
+        void ControlSkewedElements2D(bool &accepted,
+                                     std::vector<double> &normVelocityP,
+                                     std::vector<array_1d<double, 3>> &nodesVelocities)
+        {
+            KRATOS_TRY
+
+            const double maxValue = 1.5;
+            const double minValue = 1.0 / maxValue;
+            if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
+                normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
+                normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
+            {
+                accepted = false;
+            }
+            else
+            {
+                const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
+                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)));
+                const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
+                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
+                const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
+                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
+
+                if (std::abs(cosAngle01) < 0.95 || std::abs(cosAngle02) < 0.95 || std::abs(cosAngle12) < 0.95)
+                {
+                    accepted = false;
                 }
             }
             KRATOS_CATCH("")
         }
 
+        void ControlSkewedElements3D(bool &accepted,
+                                     std::vector<double> &normVelocityP,
+                                     std::vector<array_1d<double, 3>> &nodesVelocities)
+        {
+            KRATOS_TRY
+            const double maxValue = 2.5;
+            const double minValue = 1.0 / maxValue;
+            if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
+                normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
+                normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
+                normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] > maxValue ||
+                normVelocityP[2] / normVelocityP[3] < minValue ||
+                normVelocityP[2] / normVelocityP[3] > maxValue)
+            {
+                accepted = false;
+            }
+            else
+            {
+                const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)));
+                const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
+                const double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
+                const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
+                const double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
+                const double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
+                                          (std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)) *
+                                           std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
+
+                if (std::abs(cosAngle01) < 0.85 || std::abs(cosAngle02) < 0.85 || std::abs(cosAngle03) < 0.85 || std::abs(cosAngle12) < 0.85 || std::abs(cosAngle13) < 0.85 || std::abs(cosAngle23) < 0.85)
+                {
+                    accepted = false;
+                    // std::cout << "The angle between the velocity vectors is too big" << std::endl;
+                }
+            }
+            KRATOS_CATCH("")
+        }
+
+        void ControlSliverElements(bool &accepted,
+                                   int &number_of_slivers,
+                                   Geometry<Node> vertices,
+                                   std::vector<array_1d<double, 3>> nodesCoordinates,
+                                   double CriticalVolume)
+        {
+            KRATOS_TRY
+            Geometry<Node> *tetrahedron = new Tetrahedra3D4<Node>(vertices);
+            double Volume = tetrahedron->Volume();
+
+            // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            // b1 slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            // c1 slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            const double a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+            const double b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+            const double c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+            // a2 slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            // b2 slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            // c2 slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            const double a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+            const double b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+            const double c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+            // a3 slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            // b3 slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            // c3 slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            const double a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+            const double b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+            const double c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
+            // a4 slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            // b4 slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            // c4 slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            const double a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+            const double b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+            const double c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+
+            const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+            const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+            const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)));
+            const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+            const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+            const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+
+            if (std::abs(cosAngle12) > 0.999 || std::abs(cosAngle13) > 0.999 || std::abs(cosAngle14) > 0.999 || std::abs(cosAngle23) > 0.999 || std::abs(cosAngle24) > 0.999 || std::abs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+            {
+                accepted = false;
+                number_of_slivers++;
+            }
+            else if (Volume <= CriticalVolume)
+            {
+                accepted = false;
+                number_of_slivers++;
+            }
+            delete tetrahedron;
+            KRATOS_CATCH("")
+        }
+
+    private:
         /// Assignment operator.
         SelectMeshElementsForFluidsProcess &operator=(SelectMeshElementsForFluidsProcess const &rOther);
 
         /// this function is a private function
 
         /// Copy constructor.
-        //Process(Process const& rOther);
+        // Process(Process const& rOther);
 
         ///@}
 

@@ -1,6 +1,6 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication

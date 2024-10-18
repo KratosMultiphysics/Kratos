@@ -1,6 +1,9 @@
-import numpy as np
-from mpmath import sech
+from numpy import roots, cosh, errstate
+from math import pi, sqrt, tanh
 
+@errstate(over='ignore')
+def sech(x):
+    return 1/cosh(x)
 
 class SolitaryWaveSolution:
     """Base class for analytical solutions of a solitary wave."""
@@ -26,7 +29,19 @@ class SolitaryWaveSolution:
 
     @property
     def phase_speed(self):
-        return np.sqrt(self.gravity * (self.amplitude + self.depth))
+        return sqrt(self.gravity * (self.amplitude + self.depth))
+
+    @property
+    def frequency(self):
+        return self.wavenumber * self.phase_speed
+
+    @property
+    def wavelength(self):
+        return 2 * pi / self.wavenumber
+
+    @property
+    def period(self):
+        return 2 * pi / self.frequency
 
 
 class GoringSolution(SolitaryWaveSolution):
@@ -38,7 +53,7 @@ class GoringSolution(SolitaryWaveSolution):
 
     @property
     def wavenumber(self):
-        return np.sqrt(3 / 4 * self.amplitude / self.depth**3)
+        return sqrt(3 / 4 * self.amplitude / self.depth**3)
 
 
 class RayleighSolution(SolitaryWaveSolution):
@@ -50,7 +65,7 @@ class RayleighSolution(SolitaryWaveSolution):
 
     @property
     def wavenumber(self):
-        return np.sqrt(3 * self.amplitude / 4 / self.depth**2 / (self.depth + self.amplitude))
+        return sqrt(3 * self.amplitude / 4 / self.depth**2 / (self.depth + self.amplitude))
 
 
 class BoussinesqSolution(SolitaryWaveSolution):
@@ -74,8 +89,8 @@ class BoussinesqSolution(SolitaryWaveSolution):
             -3*self.alpha - 1 / 3 - 2*self.alpha*self.delta,  # C^4
             2*self.delta*(self.alpha + 1 / 3),                # C^2
             self.alpha + 1 / 3]                               # 1
-        roots = np.roots(coefficients)
-        self.c_dimless = np.sqrt(roots[0])
+        c_roots = roots(coefficients)
+        self.c_dimless = sqrt(c_roots[0])
 
         gh = self.gravity * self.depth
         c2 = gh * self.c_dimless**2
@@ -85,14 +100,14 @@ class BoussinesqSolution(SolitaryWaveSolution):
 
     @property
     def phase_speed(self):
-        return np.sqrt(self.gravity * self.depth) * self.c_dimless
+        return sqrt(self.gravity * self.depth) * self.c_dimless
 
     @property
     def wavenumber(self):
         gh = self.gravity * self.depth
         c2 = self.phase_speed**2
         gha3 = gh * (self.alpha + 1 / 3)
-        return np.sqrt((c2 - gh) / 4 / (gha3 - self.alpha * c2)) / self.depth
+        return sqrt((c2 - gh) / 4 / (gha3 - self.alpha * c2)) / self.depth
 
     def u(self, x, t):
         gh = self.gravity * self.depth
@@ -100,3 +115,10 @@ class BoussinesqSolution(SolitaryWaveSolution):
         horizontal_velocity = (c2 - gh) / self.phase_speed
         phase = self.wavenumber * (self.phase_speed * t - x)
         return horizontal_velocity * sech(phase)**2
+
+    def a(self, x, t):
+        gh = self.gravity * self.depth
+        c2 = self.phase_speed**2
+        horizontal_velocity = (c2 - gh) / self.phase_speed
+        phase = self.wavenumber * (self.phase_speed * t - x)
+        return -2 * self.frequency * horizontal_velocity * tanh(phase) * sech(phase)**2

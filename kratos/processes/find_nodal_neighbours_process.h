@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class FindNodalNeighboursProcess
  * @ingroup KratosCore
  * @brief This method allows to look for neighbours in a triangular or tetrahedral mesh
@@ -60,13 +60,13 @@ class KRATOS_API(KRATOS_CORE) FindNodalNeighboursProcess
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// The index type
     typedef std::size_t IndexType;
-    
+
     /// The size type
     typedef std::size_t SizeType;
-    
+
     /// Pointer definition of FindNodalNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalNeighboursProcess);
 
@@ -79,7 +79,7 @@ public:
      * @param rModelPart The modelpart to be processed
     */
     FindNodalNeighboursProcess(ModelPart& rModelPart);
-    
+
     /**
      * @brief Default constructor (deprecated one)
      * @param rModelPart The modelpart to be processed
@@ -87,11 +87,11 @@ public:
      * @param AverageNodes Expected number of neighbour Nodes
     */
     FindNodalNeighboursProcess(
-      ModelPart& rModelPart, 
-      const SizeType AverageElements, 
+      ModelPart& rModelPart,
+      const SizeType AverageElements,
       const SizeType AverageNodes
       );
-    
+
     /// Destructor.
     ~FindNodalNeighboursProcess() override
     {
@@ -205,11 +205,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrModelPart;                                                                          /// The modelpart to be processed
-    std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr; /// FindGlobalNodalElementalNeighboursProcess pointer 
-    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;          /// FindGlobalNodalNeighboursProcess pointer 
-    
+    std::unique_ptr<FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>> mpElemNeighboursCalculator = nullptr; /// FindGlobalNodalElementalNeighboursProcess pointer
+    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;          /// FindGlobalNodalNeighboursProcess pointer
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -274,6 +274,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined
 
 

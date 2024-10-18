@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,9 +31,12 @@ THE SOFTWARE.
  * \author Denis Demidov <dennis.demidov@gmail.com>
  * \brief  Schur-complement pressure correction preconditioning scheme.
  *
- * [1]  Gmeiner, Björn, et al. "A quantitative performance analysis for Stokes
- *      solvers at the extreme scale." arXiv preprint arXiv:1511.02134 (2015).
- * [2] Vincent, C., and R. Boyer. "A preconditioned conjugate gradient
+ * [1] Elman, Howard, et al. "A taxonomy and comparison of parallel block
+ *     multi-level preconditioners for the incompressible Navier–Stokes
+ *     equations." Journal of Computational Physics 227.3 (2008): 1790-1808.
+ * [2] Gmeiner, Björn, et al. "A quantitative performance analysis for Stokes
+ *     solvers at the extreme scale." arXiv preprint arXiv:1511.02134 (2015).
+ * [3] Vincent, C., and R. Boyer. "A preconditioned conjugate gradient
  *     Uzawa‐type method for the solution of the Stokes problem by mixed Q1–P0
  *     stabilized finite elements." International journal for numerical methods
  *     in fluids 14.3 (1992): 289-298.
@@ -70,6 +73,7 @@ class schur_pressure_correction {
             backend_type;
 
         typedef typename backend_type::value_type value_type;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
         typedef typename backend_type::matrix     matrix;
         typedef typename backend_type::vector     vector;
         typedef typename backend_type::params     backend_params;
@@ -110,9 +114,9 @@ class schur_pressure_correction {
             // as approximation for the Kuu^-1 (as in SIMPLEC algorithm)
             bool simplec_dia;
 
-            int debug;
+            int verbose;
 
-            params() : type(1), approx_schur(false), adjust_p(1), simplec_dia(true), debug(0) {}
+            params() : type(1), approx_schur(false), adjust_p(1), simplec_dia(true), verbose(0) {}
 
 #ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
@@ -122,7 +126,7 @@ class schur_pressure_correction {
                   AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur),
                   AMGCL_PARAMS_IMPORT_VALUE(p, adjust_p),
                   AMGCL_PARAMS_IMPORT_VALUE(p, simplec_dia),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, debug)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, verbose)
             {
                 size_t n = 0;
 
@@ -170,7 +174,7 @@ class schur_pressure_correction {
                             );
                 }
 
-                check_params(p, {"usolver", "psolver", "type", "approx_schur", "adjust_p", "simplec_dia", "pmask_size", "debug"},
+                check_params(p, {"usolver", "psolver", "type", "approx_schur", "adjust_p", "simplec_dia", "pmask_size", "verbose"},
                         {"pmask", "pmask_pattern"});
             }
 
@@ -182,7 +186,7 @@ class schur_pressure_correction {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, adjust_p);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, simplec_dia);
-                AMGCL_PARAMS_EXPORT_VALUE(p, path, debug);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, verbose);
             }
 #endif
         } prm;
@@ -210,8 +214,11 @@ class schur_pressure_correction {
 
         template <class Vec1, class Vec2>
         void apply(const Vec1 &rhs, Vec2 &&x) const {
-            backend::spmv(1, *x2u, rhs, 0, *rhs_u);
-            backend::spmv(1, *x2p, rhs, 0, *rhs_p);
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
+            backend::spmv(one, *x2u, rhs, zero, *rhs_u);
+            backend::spmv(one, *x2p, rhs, zero, *rhs_p);
 
             if (prm.type == 1) {
                 // Kuu u = rhs_u
@@ -219,14 +226,14 @@ class schur_pressure_correction {
                 report("U1", (*U)(*rhs_u, *u));
 
                 // rhs_p -= Kpu u
-                backend::spmv(-1, *Kpu, *u, 1, *rhs_p);
+                backend::spmv(-one, *Kpu, *u, one, *rhs_p);
 
                 // S p = rhs_p
                 backend::clear(*p);
                 report("P1", (*P)(*this, *rhs_p, *p));
 
                 // rhs_u -= Kup p
-                backend::spmv(-1, *Kup, *p, 1, *rhs_u);
+                backend::spmv(-one, *Kup, *p, one, *rhs_u);
 
                 // Kuu u = rhs_u
                 backend::clear(*u);
@@ -237,37 +244,40 @@ class schur_pressure_correction {
                 report("P", (*P)(*this, *rhs_p, *p));
 
                 // Kuu u = fu - Kup p
-                backend::spmv(-1, *Kup, *p, 1, *rhs_u);
+                backend::spmv(-one, *Kup, *p, one, *rhs_u);
                 backend::clear(*u);
                 report("U", (*U)(*rhs_u, *u));
             }
 
-            backend::spmv(1, *u2x, *u, 0, x);
-            backend::spmv(1, *p2x, *p, 1, x);
+            backend::spmv(one, *u2x, *u, zero, x);
+            backend::spmv(one, *p2x, *p, one, x);
         }
 
         template <class Alpha, class Vec1, class Beta, class Vec2>
         void spmv(Alpha alpha, const Vec1 &x, Beta beta, Vec2 &y) const {
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
             // y = beta y + alpha S x, where S = Kpp - Kpu Kuu^-1 Kup
             if (prm.adjust_p == 1) {
                 backend::spmv( alpha, P->system_matrix(), x, beta, y);
-                backend::vmul( alpha, *Ld, x, 1, y);
+                backend::vmul( alpha, *Ld, x, one, y);
             } else if (prm.adjust_p == 2) {
                 backend::spmv( alpha, *Lm, x, beta, y);
             } else {
                 backend::spmv( alpha, P->system_matrix(), x, beta, y);
             }
 
-            backend::spmv(1, *Kup, x, 0, *tmp);
+            backend::spmv(one, *Kup, x, zero, *tmp);
 
             if (prm.approx_schur) {
-                backend::vmul(1, *M, *tmp, 0, *u);
+                backend::vmul(one, *M, *tmp, zero, *u);
             } else {
                 backend::clear(*u);
                 (*U)(*tmp, *u);
             }
 
-            backend::spmv(-alpha, *Kpu, *u, 1, y);
+            backend::spmv(-alpha, *Kpu, *u, one, y);
         }
 
         std::shared_ptr<matrix> system_matrix_ptr() const {
@@ -407,7 +417,7 @@ class schur_pressure_correction {
                 }
             }
 
-            if (prm.debug >= 2) {
+            if (prm.verbose >= 2) {
                 io::mm_write("Kuu.mtx", *Kuu);
                 io::mm_write("Kpp.mtx", *Kpp);
             }
@@ -588,7 +598,7 @@ class schur_pressure_correction {
 
         template <typename I, typename E>
         void report(const std::string &name, const std::tuple<I, E> &c) const {
-            if (prm.debug >= 1) {
+            if (prm.verbose >= 1) {
                 std::cout << name << " (" << std::get<0>(c) << ", " << std::get<1>(c) << ")\n";
             }
         }

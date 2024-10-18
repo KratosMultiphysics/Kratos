@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,8 @@ namespace relaxation {
 template <class Backend>
 struct ilut {
     typedef typename Backend::value_type      value_type;
+    typedef typename Backend::col_type        col_type;
+    typedef typename Backend::ptr_type        ptr_type;
     typedef typename Backend::matrix          matrix;
     typedef typename Backend::matrix_diagonal matrix_diagonal;
     typedef typename Backend::vector          vector;
@@ -157,7 +159,7 @@ struct ilut {
                 value_type wk = w[k];
 
                 if (math::norm(wk) > tol) {
-                    for(ptrdiff_t j = U->ptr[k]; j < U->ptr[k+1]; ++j)
+                    for(ptrdiff_t j = U->ptr[k]; j < static_cast<ptrdiff_t>(U->ptr[k+1]); ++j)
                         w[U->col[j]] -= wk * U->val[j];
                 }
             }
@@ -212,7 +214,7 @@ struct ilut {
     }
 
     private:
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
         std::shared_ptr<ilu_solve> ilu;
 
         struct sparse_vector {

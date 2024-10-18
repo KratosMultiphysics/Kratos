@@ -1,42 +1,38 @@
-FROM quay.io/pypa/manylinux2010_x86_64
+FROM quay.io/pypa/manylinux2014_x86_64
 
-ENV MMG_ROOT=/external_libraries/mmg/mmg_5_4_1
+ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
+# Prepare package dependencies
 RUN yum install -y git wget zip
 
-RUN yum install -y libgfortran.x86_64 blas-devel lapack-devel
-
-# Prepare File system
+# Prepare Shared Volumes
 RUN mkdir -p /data_swap_guest
 
+# Prepare File System
 RUN mkdir -p /workspace/scripts; \
-	mkdir -p /workspace/kratos
+	mkdir -p /workspace/kratos; \
+    mkdir -p /workspace/boost
 
-# Install Boost
-RUN mkdir /workspace/boost; \
-	wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.gz; \
-	tar -C /workspace/boost -xzf /workspace/boost/boost_1_71_0.tar.gz; \
-	rm /workspace/boost/boost_1_71_0.tar.gz
+# Install Boost (from source)
+# RUN git clone -b 'boost-1.74.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git /workspace/boost/boost_1_74_0
 
-# Install CMake
-RUN mkdir /workspace/cmake; \
-	wget -P /workspace/cmake https://github.com/Kitware/CMake/releases/download/v3.15.3/cmake-3.15.3-Linux-x86_64.tar.gz; \
-	tar -C /workspace/cmake -xzf /workspace/cmake/cmake-3.15.3-Linux-x86_64.tar.gz; \
-	rm /workspace/cmake/cmake-3.15.3-Linux-x86_64.tar.gz
+# Install Boost (form zip)
+RUN wget -P /workspace/boost https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz; \
+	tar -C /workspace/boost -xzf /workspace/boost/boost_1_74_0.tar.gz; \
+	rm /workspace/boost/boost_1_74_0.tar.gz
 
-# Install MMG 5.4
-RUN mkdir -p /workspace/mmg_5_4_1
-RUN git clone -b 'v5.4.1' --depth 1 https://github.com/MmgTools/mmg /workspace/mmg_5_4_1 && \
-    mkdir /workspace/mmg_5_4_1/build && \
-    mkdir -p /workspace/external_libraries/mmg/mmg_5_4_1 && \
-    cd /workspace/mmg_5_4_1/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_4_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
+# Install MMG 5.5.1
+# Note ( upgraded from 5.4.1 because of https://github.com/MmgTools/mmg/issues/85)
+RUN mkdir -p /workspace/mmg_5_5_1
+RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/mmg_5_5_1 && \
+    mkdir /workspace/mmg_5_5_1/build && \
+    mkdir -p /workspace/external_libraries/mmg/mmg_5_5_1 && \
+    cd /workspace/mmg_5_5_1/build && \
+    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j2 install && \
-    rm -r /workspace/mmg_5_4_1 && \
+    rm -r /workspace/mmg_5_5_1 && \
     cd /
-
-ENV CMAKE /workspace/cmake/cmake-3.15.3-Linux-x86_64/bin/cmake
 
 COPY start.sh /workspace/scripts/start.sh
 

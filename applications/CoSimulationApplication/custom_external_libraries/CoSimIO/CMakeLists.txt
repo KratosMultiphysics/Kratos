@@ -42,11 +42,11 @@ message("    CO_SIM_IO_BUILD_MPI:       " ${CO_SIM_IO_BUILD_MPI})
 message("    CO_SIM_IO_BUILD_TESTING:   " ${CO_SIM_IO_BUILD_TESTING})
 message("    CO_SIM_IO_BUILD_C:         " ${CO_SIM_IO_BUILD_C})
 message("    CO_SIM_IO_BUILD_PYTHON:    " ${CO_SIM_IO_BUILD_PYTHON})
-# message("    CO_SIM_IO_BUILD_FORTRAN:   " ${CO_SIM_IO_BUILD_FORTRAN})
+message("    CO_SIM_IO_BUILD_FORTRAN:   " ${CO_SIM_IO_BUILD_FORTRAN})
 message("    CO_SIM_IO_STRICT_COMPILER: " ${CO_SIM_IO_STRICT_COMPILER})
 message("")
 
-
+# needs to be here as otherwise doesn't find MPI properly
 if (CO_SIM_IO_BUILD_MPI)
     find_package(MPI REQUIRED)
     add_definitions( -DCO_SIM_IO_USING_MPI )
@@ -55,6 +55,8 @@ if (CO_SIM_IO_BUILD_MPI)
     set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
+
+find_package (Threads REQUIRED)
 
 # detect whether CoSimIO is integrated into another project
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -83,7 +85,7 @@ if(MSVC)
     endif()
 
 elseif(${CMAKE_COMPILER_IS_GNUCXX})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -95,8 +97,11 @@ elseif(${CMAKE_COMPILER_IS_GNUCXX})
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override -Wignored-qualifiers")
     endif()
 
+    # Always link with libstdc++fs.a when using GCC 8 (greater than 7 and less than 9)
+    # Note: This command makes sure that this option comes pretty late on the cmdline.
+    link_libraries("$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:-lstdc++fs>")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -105,7 +110,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -114,7 +119,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     endif()
 
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wpedantic")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -Wall -Wpedantic")
 endif()
 
@@ -122,8 +127,7 @@ message("CMAKE_CXX_FLAGS:" ${CMAKE_CXX_FLAGS})
 message("CMAKE_C_FLAGS:" ${CMAKE_C_FLAGS})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # to suppress warning "MACOSX_RPATH is not specified for the following targets"
-    set(CMAKE_MACOSX_RPATH 0)
+    cmake_policy(SET CMP0042 NEW)
 endif()
 
 # clean the bin directory
@@ -136,22 +140,33 @@ file(GLOB_RECURSE co_sim_io_source_files
     ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/sources/*.cpp
 )
 add_library (co_sim_io SHARED ${co_sim_io_source_files})
+target_link_libraries(co_sim_io ${CMAKE_THREAD_LIBS_INIT})
 
 # To automatically configure a library export header into build tree
 include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION libs) # Kratos does this
+install(TARGETS co_sim_io DESTINATION libs)
 
 if (CO_SIM_IO_BUILD_MPI)
-    # Adding CoSimIO library
+    # optionally enable communication via MPI
+    OPTION ( CO_SIM_IO_BUILD_MPI_COMMUNICATION "Enabling communication via MPI" OFF )
+    if (CO_SIM_IO_BUILD_MPI_COMMUNICATION)
+        add_definitions( -DCO_SIM_IO_BUILD_MPI_COMMUNICATION )
+        message("Enabled communication via MPI")
+        if(MPI_CXX_VERSION_MAJOR VERSION_LESS 2.0)
+            message(WARNING "Communication via MPI requires at least MPI version 2.0! Currently detected version: " ${MPI_CXX_VERSION})
+        endif ()
+    endif()
+
+    # Adding CoSimIOMPI library
     file(GLOB_RECURSE co_sim_io_mpi_source_files ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/mpi/sources/*.cpp)
     add_library (co_sim_io_mpi SHARED ${co_sim_io_mpi_source_files})
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION libs) # Kratos does this
+    install(TARGETS co_sim_io_mpi DESTINATION libs)
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
@@ -167,9 +182,14 @@ if (CO_SIM_IO_BUILD_PYTHON)
 endif()
 
 if (CO_SIM_IO_BUILD_FORTRAN)
-    # TODO since fortran relies on C, a check is needed
-    message( FATAL_ERROR "The CoSimIO is currently not working for Fortran")
-    add_subdirectory(co_sim_io/fortran)
+    if (NOT CO_SIM_IO_BUILD_C)
+        message(FATAL_ERROR "Fortran requires the C interface!")
+    endif()
+    include(CMakeAddFortranSubdirectory)
+    cmake_add_fortran_subdirectory(
+        co_sim_io/fortran
+        NO_EXTERNAL_INSTALL
+    )
 endif()
 
 if (CO_SIM_IO_BUILD_TESTING)
@@ -184,4 +204,3 @@ if (CO_SIM_IO_BUILD_TESTING)
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/compiled_config.json"
     )
 endif()
-

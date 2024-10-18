@@ -232,7 +232,9 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {
+        rOStream << "DistributedNumbering: CpuBounds = " << mCpuBounds << std::endl; 
+    }
 
 
 protected:

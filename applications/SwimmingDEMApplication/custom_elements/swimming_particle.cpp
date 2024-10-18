@@ -71,7 +71,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> vorticity_induced_lift = ZeroVector(3);
     array_1d<double, 3> rotation_induced_lift = ZeroVector(3);
     array_1d<double, 3> steady_viscous_torque = ZeroVector(3);
-    Geometry<Node<3> >& r_geometry = GetGeometry();
+    Geometry<Node >& r_geometry = GetGeometry();
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here

@@ -77,7 +77,7 @@ namespace Kratos {
         return 2 * particle_radius * modulus_of_minus_slip_velocity / fluid_kinematic_viscosity;
     }
 
-    void HydrodynamicInteractionLaw::ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeBuoyancyForce(Geometry<Node >& r_geometry,
                                                           const double fluid_density,
                                                           const double displaced_volume,
                                                           const array_1d<double, 3>& body_force,
@@ -114,7 +114,7 @@ namespace Kratos {
 
     }
 
-    void HydrodynamicInteractionLaw::ComputeInviscidForce(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeInviscidForce(Geometry<Node >& r_geometry,
                                                           const double fluid_density,
                                                           const double displaced_volume,
                                                           array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
@@ -127,7 +127,7 @@ namespace Kratos {
                                          r_current_process_info);
     }
 
-    double HydrodynamicInteractionLaw::GetInviscidAddedMass(Geometry<Node<3> >& r_geometry,
+    double HydrodynamicInteractionLaw::GetInviscidAddedMass(Geometry<Node >& r_geometry,
                                                             double fluid_density,
                                                             const ProcessInfo& r_current_process_info)
     {
@@ -136,7 +136,7 @@ namespace Kratos {
                                                 r_current_process_info);
     }
 
-    void HydrodynamicInteractionLaw::ComputeHistoryForce(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeHistoryForce(Geometry<Node >& r_geometry,
                                                          double particle_radius,
                                                          double fluid_density,
                                                          double fluid_kinematic_viscosity,
@@ -157,13 +157,13 @@ namespace Kratos {
                                                r_current_process_info);
     }
 
-    double HydrodynamicInteractionLaw::GetHistoryForceAddedMass(Geometry<Node<3> >& r_geometry,
+    double HydrodynamicInteractionLaw::GetHistoryForceAddedMass(Geometry<Node >& r_geometry,
                                                                 const ProcessInfo& r_current_process_info)
     {
         return mpHistoryForceLaw->GetAddedMass(r_geometry, r_current_process_info);
     }
 
-    void HydrodynamicInteractionLaw::ComputeVorticityInducedLift(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeVorticityInducedLift(Geometry<Node >& r_geometry,
                                                                  double particle_radius,
                                                                  double fluid_density,
                                                                  double fluid_kinematic_viscosity,
@@ -184,7 +184,7 @@ namespace Kratos {
                                                        r_current_process_info);
     }
 
-    void HydrodynamicInteractionLaw::ComputeRotationInducedLift(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeRotationInducedLift(Geometry<Node >& r_geometry,
                                                                 double particle_radius,
                                                                 double fluid_density,
                                                                 double fluid_kinematic_viscosity,
@@ -205,7 +205,7 @@ namespace Kratos {
                                                       r_current_process_info);
     }
 
-    void HydrodynamicInteractionLaw::ComputeSteadyViscousTorque(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeSteadyViscousTorque(Geometry<Node >& r_geometry,
                                                                 double particle_radius,
                                                                 double fluid_density,
                                                                 double fluid_kinematic_viscosity,

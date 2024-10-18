@@ -70,9 +70,91 @@ namespace Kratos
         if (rParameters["geometry_type"].GetString() == "NurbsSurface") {
             for (IndexType n = 0; n < geometry_list.size(); ++n) {
                 auto p_nurbs_surface = (geometry_list[n].size() > 0)
-                    ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n))
-                    : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+                    ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n))
+                    : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
+                if (rParameters["parameters"].Has("increase_degree_u")) {
+                    SizeType increase_degree_u = rParameters["parameters"]["increase_degree_u"].GetInt();
+
+                    if (increase_degree_u > 0) {
+                        std::vector<double> spans_local_space;
+                        p_nurbs_surface->SpansLocalSpace(spans_local_space, 0);
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Refining nurbs surface #" << p_nurbs_surface->Id() << " by elevating degree in u: "
+                            << increase_degree_u << std::endl;
+
+                        PointerVector<NodeType> PointsRefined;
+                        Vector KnotsURefined;
+                        Vector WeightsRefined;
+
+                        NurbsSurfaceRefinementUtilities::DegreeElevationU(*(p_nurbs_surface.get()), increase_degree_u,
+                            PointsRefined, KnotsURefined, WeightsRefined);
+
+                        // Recreate nodes in model part to ensure correct assignment of dofs
+                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                            if (PointsRefined(i)->Id() == 0) {
+                                PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
+                                node_id++;
+                            }
+                        }
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "New knot vector: " << KnotsURefined
+                            << ", new weights vector: " << WeightsRefined << std::endl;
+
+                        p_nurbs_surface->SetInternals(PointsRefined,
+                            p_nurbs_surface->PolynomialDegreeU() + increase_degree_u, p_nurbs_surface->PolynomialDegreeV(),
+                            KnotsURefined, p_nurbs_surface->KnotsV(),
+                            WeightsRefined);
+                    } else {
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
+                            << " by elevating degree in u, however increase_degree_u is set to 0." << std::endl;
+                    }
+                }
+                if (rParameters["parameters"].Has("increase_degree_v")) {
+                    SizeType increase_degree_v = rParameters["parameters"]["increase_degree_v"].GetInt();
+
+                    if (increase_degree_v > 0) {
+                        std::vector<double> spans_local_space;
+                        p_nurbs_surface->SpansLocalSpace(spans_local_space, 0);
+
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Refining nurbs surface #" << p_nurbs_surface->Id() << " by elevating degree in v: "
+                            << increase_degree_v << std::endl;
+
+                        PointerVector<NodeType> PointsRefined;
+                        Vector KnotsVRefined;
+                        Vector WeightsRefined;
+
+                        NurbsSurfaceRefinementUtilities::DegreeElevationV(*(p_nurbs_surface.get()), increase_degree_v,
+                            PointsRefined, KnotsVRefined, WeightsRefined);
+
+                        // Recreate nodes in model part to ensure correct assignment of dofs
+                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                            if (PointsRefined(i)->Id() == 0) {
+                                PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
+                                node_id++;
+                            }
+                        }
+                    
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "New knot vector: " << KnotsVRefined
+                            << ", new weights vector: " << WeightsRefined << std::endl;
+
+                        p_nurbs_surface->SetInternals(PointsRefined,
+                            p_nurbs_surface->PolynomialDegreeU(), p_nurbs_surface->PolynomialDegreeV() + increase_degree_v,
+                            p_nurbs_surface->KnotsU(), KnotsVRefined,
+                            WeightsRefined);
+                    } else {
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                            << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
+                            << " by elevating degree in v, however increase_degree_v is set to 0." << std::endl;
+                    }
+                }
                 if (rParameters["parameters"].Has("insert_nb_per_span_u")) {
                     const IndexType nb_per_span_u = rParameters["parameters"]["insert_nb_per_span_u"].GetInt();
 

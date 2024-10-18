@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -16,8 +16,6 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
-
-/* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"
@@ -184,11 +182,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
         auto& r_nodes_array = mDestinationModelPart.Nodes();
 
         if (mOptions.Is(DESTINATION_IS_HISTORICAL)){
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         } else {
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.GetValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         }
@@ -732,14 +730,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // Calculate the mean of the normal in all the nodes
     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mOriginModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(mOriginModelPart, true);
     }
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mDestinationModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(mDestinationModelPart, true);
     }
 
     // Defining tolerance
@@ -904,14 +902,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // Calculate the mean of the normal in all the nodes
     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mOriginModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(mOriginModelPart, true);
     }
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mDestinationModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(mDestinationModelPart, true);
     }
 
     // Defining tolerance

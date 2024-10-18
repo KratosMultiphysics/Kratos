@@ -3,13 +3,12 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//  license: 	 structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors:    Klaus B. Sautter
 //
-//
-//
+
 // System includes
 
 // External includes
@@ -648,11 +647,24 @@ CrBeamElement2D2N::CalculateDeformationParameters()
     Vector current_displacement = ZeroVector(msElementSize);
     GetValuesVector(current_displacement, 0);
 
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    BoundedVector<double, 2> initial_strain_vector = ZeroVector(2);
+    double initial_unit_elongation = 0.0;
+    double initial_unit_rotation = 0.0;
+
+    if (Has(BEAM_INITIAL_STRAIN_VECTOR)) {
+    initial_strain_vector = GetValue(BEAM_INITIAL_STRAIN_VECTOR);
+    initial_unit_elongation = initial_strain_vector[0];
+    initial_unit_rotation = initial_strain_vector[1];
+    }
+
     BoundedVector<double, msLocalSize> deformation_parameters =
         ZeroVector(msLocalSize);
-    deformation_parameters[0] =
-        CalculateLength() - StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    deformation_parameters[0] = CalculateLength() - L;
+    deformation_parameters[0] -= initial_unit_elongation * L; // adding initial strain contributions
     deformation_parameters[1] = current_displacement[5] - current_displacement[2];
+    deformation_parameters[1] -= initial_unit_rotation * L; // adding initial curvature contributions
     deformation_parameters[2] = current_displacement[5] + current_displacement[2];
     deformation_parameters[2] -= 2.00 * (CalculateDeformedElementAngle() -
                                          CalculateInitialElementAngle());
@@ -669,10 +681,7 @@ BoundedVector<double, CrBeamElement2D2N::msLocalSize>
 CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
 {
     KRATOS_TRY;
-    // calculate t
-
-    BoundedVector<double, msLocalSize> deformation_stresses =
-        ZeroVector(msLocalSize);
+    // calculate the deformation parameters
 
     BoundedVector<double, msLocalSize> deformation_modes =
         CalculateDeformationParameters();
@@ -683,7 +692,7 @@ CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
         CreateElementStiffnessMatrix_Kd_geo();
     BoundedMatrix<double, msLocalSize, msLocalSize> K_d = K_d_mat + K_d_geo;
 
-    deformation_stresses = prod(K_d, deformation_modes);
+    BoundedVector<double, msLocalSize> deformation_stresses = prod(K_d, deformation_modes);
 
     return deformation_stresses;
     KRATOS_CATCH("")

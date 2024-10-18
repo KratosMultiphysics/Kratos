@@ -1,15 +1,15 @@
 
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   
+//
 //
 
 #if !defined(KRATOS_CSR_SPMM_UTILITIES_H_INCLUDED)
@@ -43,16 +43,16 @@ public:
     static typename CsrMatrix<TDataType, TIndexType>::Pointer SparseMultiply(
         const CsrMatrix<TDataType, TIndexType>& rA,
         const CsrMatrix<TDataType, TIndexType>& rB
-        )
-	{
-        auto pAamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rA);
-        auto pBamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rB); 
+    )
+    {
+        auto pAamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,TIndexType>(rA);
+        auto pBamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,TIndexType>(rB);
 
         auto Camgcl = amgcl::backend::product(*pAamgcl, *pBamgcl);
         amgcl::backend::sort_rows(*Camgcl);
 
-        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl);
-	}
+        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*Camgcl);
+    }
 
 
 

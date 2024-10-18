@@ -104,7 +104,7 @@ public:
     /**
     * Returns the member pointer to the splitting utility.
     */
-    const DivideGeometry::Pointer pGetSplittingUtil() const override;
+    const DivideGeometry<Node>::Pointer pGetSplittingUtil() const override;
 
     ///@}
 protected:
@@ -115,7 +115,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    DivideTetrahedra3D4::Pointer mpTetrahedraSplitter;
+    DivideTetrahedra3D4<Node>::Pointer mpTetrahedraSplitter;
 
     ///@}
     ///@name Protected Operators
@@ -181,7 +181,7 @@ private:
     /// Copy constructor.
     Tetrahedra3D4AusasModifiedShapeFunctions(Tetrahedra3D4AusasModifiedShapeFunctions const& rOther) :
         AusasModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
-        mpTetrahedraSplitter(new DivideTetrahedra3D4(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
+        mpTetrahedraSplitter(new DivideTetrahedra3D4<Node>(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
 
         // Perform the element splitting
         mpTetrahedraSplitter->GenerateDivision();

@@ -57,7 +57,7 @@ class TestCreateXdmfSpatialGrid(KratosUnittest.TestCase):
             f.create_dataset(
                 "/ModelPart/Nodes/Local/Coordinates", (15, 3), "float64")
             elem2d4n = f.create_group("/ModelPart/Xdmf/Elements/Element2D4N")
-            elem2d4n.attrs["Dimension"] = 2
+            elem2d4n.attrs["WorkingSpaceDimension"] = 2
             elem2d4n.attrs["NumberOfNodes"] = 4
             elem2d4n.create_dataset("Connectivities", (10, 4), "int32")
             sgrid = CreateXdmfSpatialGrid(f["/ModelPart"])
@@ -260,14 +260,14 @@ class TestFindMatchingFiles(KratosUnittest.TestCase):
 class TestCreateXdmfTemporalGridFromMultifile(KratosUnittest.TestCase):
 
     def setUp(self):
-        with h5py.File("kratos.h5") as f0:
+        with h5py.File("kratos.h5", "w") as f0:
             f0.create_dataset(
             "/ModelPart/Nodes/Local/Coordinates", (15, 3), "float64")
             elem2d4n = f0.create_group("/ModelPart/Xdmf/Elements/Element2D4N")
-            elem2d4n.attrs["Dimension"] = 2
+            elem2d4n.attrs["WorkingSpaceDimension"] = 2
             elem2d4n.attrs["NumberOfNodes"] = 4
             elem2d4n.create_dataset("Connectivities", (10, 4), "int32")
-        with h5py.File("kratos-1.0.h5") as f1:
+        with h5py.File("kratos-1.0.h5", "w") as f1:
             f1.create_dataset(
             "/Results/NodalSolutionStepData/VELOCITY", (15, 3), "float64")
 
@@ -302,7 +302,7 @@ class TestCreateXdmfTemporalGridFromMultifile(KratosUnittest.TestCase):
             f.create_dataset(
             "/ModelPart/Nodes/Local/Coordinates", (20, 3), "float64")
             elem2d4n = f.create_group("/ModelPart/Xdmf/Elements/Element3D3N")
-            elem2d4n.attrs["Dimension"] = 3
+            elem2d4n.attrs["WorkingSpaceDimension"] = 3
             elem2d4n.attrs["NumberOfNodes"] = 3
             elem2d4n.create_dataset("Connectivities", (8, 3), "int32")
             f.create_dataset(

@@ -38,8 +38,7 @@ namespace Kratos
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
-        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<SetIdentityFunction<Dof<double>>::result_type>, std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double>* > DofsArrayType;
-
+        typedef ModelPart::DofsArrayType DofsArrayType;
         /**
          * @brief Common method to set the displacement scheme
          */
@@ -171,9 +170,9 @@ namespace Kratos
 //                 // Debug
 //                 std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
             }
 
             // Test updates with fixed velocities and accelerations
@@ -217,9 +216,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Update (fix acceleration)
@@ -260,9 +259,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
             }
 
@@ -297,9 +296,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Predict (velocity)
@@ -333,9 +332,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
 
                 // Check Predict (acceleration)
@@ -369,9 +368,9 @@ namespace Kratos
 //                     // Debug
 //                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
 
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(a + std::cos(time)), tolerance);
                 }
             }
         }

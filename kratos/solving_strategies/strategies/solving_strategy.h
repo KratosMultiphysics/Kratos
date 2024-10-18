@@ -86,10 +86,6 @@ public:
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
 
-    typedef typename DofsArrayType::iterator                                 DofIteratorType;
-
-    typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
-
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
 
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
@@ -251,9 +247,9 @@ public:
      * @details
      * {
      * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
+     * 1 -> Printing time and basic information
      * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
      * }
      */
     virtual void SetEchoLevel(const int Level)
@@ -266,9 +262,9 @@ public:
      * @details
      * {
      * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
+     * 1 -> Printing time and basic information
      * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
      * }
      * @return Level of echo for the solving strategy
      */
@@ -337,7 +333,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+        block_for_each(GetModelPart().Nodes(), [](Node& rNode){
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
             noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
         });
@@ -387,17 +383,7 @@ public:
             VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
-        // Check elements, conditions and constraints
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        for (const auto& r_elem : GetModelPart().Elements()) {
-            r_elem.Check(r_process_info);
-        }
-        for (const auto& r_cond : GetModelPart().Conditions()) {
-            r_cond.Check(r_process_info);
-        }
-        for (const auto& r_cons : GetModelPart().MasterSlaveConstraints()) {
-            r_cons.Check(r_process_info);
-        }
+        GetModelPart().Check();
 
         return 0;
 

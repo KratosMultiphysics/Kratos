@@ -15,6 +15,13 @@
 #if !defined(KRATOS_CHUNK_H_INCLUDED )
 #define  KRATOS_CHUNK_H_INCLUDED
 
+// System includes
+#include <atomic>
+
+// External includes
+
+// Project includes
+#include "includes/checks.h"
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 
@@ -30,11 +37,11 @@ namespace Kratos
   /** The memory management of Kratos is implemented based on the design
 	  given in Modern C++ Design by A. Alexandrescu and chunk is the lower
 	  layer of it holding a chunk of NumberOfBlocks objects of BlockSize.
-	  This implemnetation is designed for larg chunk size (i.e. 1M)
-	  imposes more overhead than the reference for stroing a header
-	  containing the chunk size and block size and thread private links.
+	  This implementation is designed for large chunk size (i.e. 1M)
+	  imposes more overhead than the reference for storing a header
+	  containing the chunk size and block size.
   */
-  class Chunk : public LockObject
+  class Chunk 
     {
     public:
 
@@ -42,11 +49,11 @@ namespace Kratos
 	  ///@{
 
 		// The reference algorithm uses unsigned char as data type
-		// Here I use std::size_t to ensure better alignment considering
+		// Here I use std::int64_t to ensure better alignment considering
 		// that objects in Kratos are "always" larger than a double
-		using DataType = std::size_t;
+		using BlockType = std::int64_t;
 
-		using SizeType = DataType;
+		using SizeType = std::size_t;
 
 
 	  ///@}
@@ -59,24 +66,18 @@ namespace Kratos
 	  /// Copy constructor is deleted.
 	  Chunk(Chunk const& rOther) = delete;
 
-	  Chunk(Chunk&& rOther) noexcept
-		  : LockObject(std::move(rOther))
-		  , mpData(rOther.mpData)
-		  , mSize(rOther.mSize)
-		  , mBlockSizeInBytes(rOther.mBlockSizeInBytes)
-		  , mOwnerThread(rOther.mOwnerThread)
-	  {
-		  rOther.mpData = nullptr;
-	  }
+	  Chunk(Chunk&& rOther) = delete;
 
 	  /// The constructor to be called
 	  Chunk(std::size_t BlockSizeInBytes, SizeType SizeInBytes) noexcept
-		  : LockObject()
-		  , mpData(nullptr)
+		  : mpData(nullptr)
+		  , mpEnd(nullptr)
+		  , mpUninitializedMemory(nullptr)
 		  , mSize(SizeInBytes)
-		  , mBlockSizeInBytes(BlockSizeInBytes){
-		  mOwnerThread = OpenMPUtils::ThisThread();
-	  }
+		  , mBlockSizeInBytes(BlockSizeInBytes)
+		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
+		  , mFirstAvailableBlock(mpData)
+		  , mBlockSizeAfterAlignment((BlockSizeInBytes + sizeof(BlockType) - 1) / sizeof(BlockType)){}
 
       /// Destructor is not virtual. This class can not be drived.
 	  ~Chunk() noexcept {
@@ -94,47 +95,44 @@ namespace Kratos
       ///@name Operations
       ///@{
 	  void Initialize() {
-		  mOwnerThread = OpenMPUtils::ThisThread();  // initialization can change the owner thread
-		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
-		  mpData = new DataType[DataSize()];
-  		  SetFirstAvailableBlockIndex(0);
-		  for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
-			  SetNumberOfAvailableBlocks(0, i_thread);
-		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
+		  const std::size_t data_size = DataSize();
+		  mpData = new BlockType[data_size];
+		  mpEnd = mpData + data_size;
+  		  mFirstAvailableBlock = mpData;
+		  mNumberOfAvailableBlocks = AllocatableDataSize() / mBlockSizeAfterAlignment;
+		  mpUninitializedMemory = mpData;
+		  
 
-		  SizeType i_block = 0;
-		  for (auto p = GetData(); i_block < GetNumberOfBlocks(); p += block_size_after_alignment)
-			  *p = ++i_block;
-
-		  KRATOS_DEBUG_CHECK_EQUAL(i_block, GetNumberOfAvailableBlocks());
+		  *mpData = 0; // The first entry of the link list to the next one
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  KRATOS_DEBUG_CHECK_EQUAL(mOwnerThread, OpenMPUtils::ThisThread()); // Allocate should be called only by owner thread
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 
-		  if (GetTotalNumberOfAvailableBlocks() == 0)
+		  if (IsFull())
 			  return nullptr;
 
-		  if (GetNumberOfAvailableBlocks() == 0) // Time to get blocks from other threads
-		  {
-			  lock();
-			  for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
-				  if (GetNumberOfAvailableBlocks(i_thread) != 0) {
-					  SetFirstAvailableBlockIndex(GetFirstAvailableBlockIndex(i_thread));
-					  SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks(i_thread));
-					  SetNumberOfAvailableBlocks(0, i_thread);
-					  break;
-				  }
-			  unlock();
-		  }
-		  DataType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
-		  KRATOS_DEBUG_CHECK(Has(p_result));
-		  SetFirstAvailableBlockIndex(*p_result);
-		  SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks()-1);
+			lock();  
+			BlockType * p_result = mFirstAvailableBlock;
+			mFirstAvailableBlock = (p_result >= mpUninitializedMemory) ? mFirstAvailableBlock + mBlockSizeAfterAlignment : (BlockType*)*p_result;
+			// if(p_result >= mpUninitializedMemory) {
+			// 	mFirstAvailableBlock += mBlockSizeAfterAlignment;
+			// 	if(mpUninitializedMemory < mpEnd) {
+			// 		mpUninitializedMemory += mBlockSizeAfterAlignment;
+			// 	}
+			// }
+			// else{
+			// 	mFirstAvailableBlock = (BlockType*)*p_result;
+			// }
+				
+			KRATOS_DEBUG_CHECK(Has(p_result));
 
+			mNumberOfAvailableBlocks--;
+			unlock();
 
+			mpUninitializedMemory += mBlockSizeAfterAlignment * ((p_result >= mpUninitializedMemory) && (mpUninitializedMemory < mpEnd));
+	
 		  return p_result;
 	  }
 
@@ -142,20 +140,19 @@ namespace Kratos
 		  if (pPointrerToRelease == nullptr)
 			  return;
 
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(GetData(), nullptr);
+		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 		  // Range check at least in lower bound.
-		  KRATOS_DEBUG_CHECK_GREATER_EQUAL(pPointrerToRelease, GetData());
-		  DataType* p_to_release = static_cast<DataType*>(pPointrerToRelease);
+		  KRATOS_DEBUG_CHECK_GREATER_EQUAL(pPointrerToRelease, mpData);
+		  BlockType* p_to_release = static_cast<BlockType*>(pPointrerToRelease);
 
 		  // Alignment check
-		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - GetData()) % GetBlockSize(mBlockSizeInBytes), 0);
+		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % mBlockSizeAfterAlignment, 0);
+		  
 		  lock();
-		  *p_to_release = GetFirstAvailableBlockIndex();
-		  SetFirstAvailableBlockIndex(static_cast<SizeType>((p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes)));
+		  *p_to_release = (BlockType)mFirstAvailableBlock;
+		  mFirstAvailableBlock = p_to_release;
 
-		  // Check if there is no truncation error
-		  KRATOS_DEBUG_CHECK_EQUAL(GetFirstAvailableBlockIndex(), double(p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
-		  SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks() + 1);
+		  mNumberOfAvailableBlocks++;
 		  unlock();
 		  pPointrerToRelease = nullptr;
 
@@ -166,11 +163,13 @@ namespace Kratos
 			  return;
 		  delete[] mpData;
 		  mpData = nullptr;
+		  mpEnd = nullptr;
+		  mpUninitializedMemory = nullptr;
 
 	  }
 
 	  std::size_t Size() const {
-		  return mSize; // GetBlockSize(BlockSizeInBytes) * NumberOfBlocks * sizeof(DataType);
+		  return mSize; 
 	  }
 
 	  std::size_t MemoryUsed() const {
@@ -182,7 +181,7 @@ namespace Kratos
 	  std::size_t MemoryOverhead() const {
 		  if (mpData == nullptr)
 			  return sizeof(Chunk);
-		  return MemoryUsed() - (mBlockSizeInBytes*(GetNumberOfBlocks() - GetTotalNumberOfAvailableBlocks()));
+		  return MemoryUsed() - (mBlockSizeInBytes*(GetNumberOfBlocks() - mNumberOfAvailableBlocks));
 	  }
 
 	  ///@}
@@ -190,19 +189,24 @@ namespace Kratos
       ///@{
 
 	  SizeType GetNumberOfBlocks() const {
-		  return AllocatableDataSize() / GetBlockSize(mBlockSizeInBytes);
+		  return AllocatableDataSize() / mBlockSizeAfterAlignment;
 	  }
 
 	  SizeType GetNumberOfAvailableBlocks() const {
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-		  // remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-		  return (mpData+ OpenMPUtils::GetCurrentNumberOfThreads())[OpenMPUtils::ThisThread()];
+		  return mNumberOfAvailableBlocks;
 	  }
 
-	  const DataType* pGetData() const {
+	  const BlockType* pGetData() const {
 		  return mpData;
 	  }
 
+	  const BlockType* pDataBegin() const {
+		  return mpData;
+	  }
+
+	  const BlockType* pDataEnd() const {
+		  return mpData + DataSize();
+	  }
 
 	  ///@}
       ///@name Inquiry
@@ -211,32 +215,20 @@ namespace Kratos
 	  bool HasAvailableBlock() const {
 		  if (GetNumberOfAvailableBlocks() != 0)
 			  return true;
-#ifdef _OPENMP
-		  if (mOwnerThread == OpenMPUtils::ThisThread()) // The thread which chunk belongs to
-		  {
-			  lock();
-			  for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
-				  if (GetNumberOfAvailableBlocks(i_thread) != 0)
-				  {
-					  unlock();
-					  return true;
-				  }
-			  unlock();
-		  }
-#endif
+
 		  return false;
 	  }
 
-	  bool Has(void* pThePointer) const {
-		  return ((pThePointer >= GetData()) && (pThePointer <= (mpData + Size() - mBlockSizeInBytes)));
+	  bool Has(const void* pThePointer) const {
+		  return ((pThePointer >= mpData) && (pThePointer < mpEnd));
 	  }
 
 	  bool IsEmpty() const {
-		  return (GetTotalNumberOfAvailableBlocks() == GetNumberOfBlocks());
+		  return (mNumberOfAvailableBlocks == GetNumberOfBlocks());
 	  }
 
 	  bool IsFull() {
-		  return (GetTotalNumberOfAvailableBlocks() == 0);
+		  return (mNumberOfAvailableBlocks == 0);
 	  }
 
 	  bool IsInitialized() const {
@@ -245,6 +237,15 @@ namespace Kratos
 
 	  bool IsReleased() const {
 		  return mpData == nullptr;
+	  }
+
+	  void lock(){
+		while(std::atomic_flag_test_and_set_explicit(&mLocked, std::memory_order_acquire))
+             ; // spin until the lock is acquired
+	  }
+
+	  void unlock(){
+		std::atomic_flag_clear_explicit(&mLocked, std::memory_order_release);
 	  }
 
 	  ///@}
@@ -263,7 +264,7 @@ namespace Kratos
 
       /// Print object's data.
 	  void PrintData(std::ostream& rOStream) const {
-		  rOStream << static_cast<SizeType>(GetTotalNumberOfAvailableBlocks()) << " blocks are available" << std::endl;
+		  rOStream << " from " << pDataBegin() << " to " << pDataEnd() << " with size " << Size() << " bytes allocated as " << DataSize() << " size_t with " << static_cast<SizeType>(GetNumberOfAvailableBlocks()) << " available blocks" << std::endl;
 	  }
 
       ///@}
@@ -273,33 +274,26 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-		DataType * mpData;
+		BlockType * mpData;
+		BlockType* mpEnd;
+		BlockType* mpUninitializedMemory;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
-		int mOwnerThread;
+		SizeType mNumberOfAvailableBlocks;
+		BlockType* mFirstAvailableBlock;
+		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
+		const SizeType mBlockSizeAfterAlignment;
 
       ///@}
       ///@name Operations
       ///@{
 
 		SizeType GetHeaderSize() const {
-			return OpenMPUtils::GetCurrentNumberOfThreads() * 2; // mFirstAvailableBlockIndex and mNumberOfAvailableBlocks for each thread
-		}
-
-		const DataType* GetData() const {
-			if (mpData == nullptr)
-				return nullptr;
-			return mpData + GetHeaderSize();
-		}
-
-		DataType* GetData() {
-			if (mpData == nullptr)
-				return nullptr;
-			return mpData + GetHeaderSize();
+			return 0; // mFirstAvailableBlockIndex
 		}
 
 		SizeType DataSize() const {
-			return mSize / sizeof(DataType);
+			return mSize / sizeof(BlockType);
 		}
 
 		SizeType AllocatableDataSize() const {
@@ -311,55 +305,7 @@ namespace Kratos
 		}
 
 		static std::size_t GetBlockSize(std::size_t BlockSizeInBytes) {
-			return (BlockSizeInBytes + sizeof(DataType) - 1) / sizeof(DataType);
-		}
-
-		void SetFirstAvailableBlockIndex(SizeType NewValue) {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			mpData[OpenMPUtils::ThisThread()] = NewValue;
-		}
-
-		SizeType GetFirstAvailableBlockIndex() const {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			return mpData[OpenMPUtils::ThisThread()];
-		}
-
-		SizeType GetFirstAvailableBlockIndex(SizeType TheThreadNumber) const {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			return mpData[TheThreadNumber];
-		}
-
-		void SetNumberOfAvailableBlocks(SizeType NumberOfAvailableBlocks, SizeType TheThreadNumber) {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			(mpData + OpenMPUtils::GetCurrentNumberOfThreads())[TheThreadNumber] = NumberOfAvailableBlocks;
-		}
-
-		void SetNumberOfAvailableBlocks(SizeType NumberOfAvailableBlocks) {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			(mpData + OpenMPUtils::GetCurrentNumberOfThreads())[OpenMPUtils::ThisThread()] = NumberOfAvailableBlocks;
-		}
-
-
-		SizeType GetNumberOfAvailableBlocks(SizeType TheThreadNumber) const {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			return (mpData + OpenMPUtils::GetCurrentNumberOfThreads())[TheThreadNumber];
-		}
-
-		SizeType GetTotalNumberOfAvailableBlocks() const {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
-			SizeType total_number_of_available_blocks = 0;
-			lock();
-			for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
-				total_number_of_available_blocks += (mpData + OpenMPUtils::GetCurrentNumberOfThreads())[i_thread];
-			unlock();
-			return total_number_of_available_blocks;
+			return (BlockSizeInBytes + sizeof(BlockType) - 1) / sizeof(BlockType);
 		}
 
 		///@}
@@ -370,7 +316,7 @@ namespace Kratos
   ///@name Operators
   ///@{
 
-	inline bool operator < (Chunk const& rFirst, Chunk const& rSedond) {
+	inline bool operator << (Chunk const& rFirst, Chunk const& rSedond) {
 		return rFirst.pGetData() < rSedond.pGetData();
 	}
 
@@ -379,7 +325,6 @@ namespace Kratos
 				    const Chunk& rThis)
     {
       rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
       rThis.PrintData(rOStream);
 
       return rOStream;

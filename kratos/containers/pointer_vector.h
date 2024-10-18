@@ -267,11 +267,21 @@ public:
         mData.swap(rOther.mData);
     }
 
-    void push_back(TPointerType x)
+    void push_back(const TPointerType& x)
     {
         mData.push_back(x);
     }
 
+    void push_back(TPointerType&& rX)
+    {
+        mData.push_back(std::move(rX));
+    }
+
+    template<class... Args>
+    void emplace_back(Args&&... args) 
+    {
+        mData.emplace_back(std::forward<Args>(args)...);
+    }
 
     iterator insert(iterator Position, const TPointerType pData)
     {

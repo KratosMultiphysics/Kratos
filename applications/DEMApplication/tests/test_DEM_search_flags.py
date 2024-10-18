@@ -19,7 +19,6 @@ class DEM3D_SearchFlagTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
     Two particles are created in two different locations and assigned velocities in order to make them collide. A FEM surface is also created between the two particles. With boths search flags set to FALSE, the test expect no collision between particles or against the middle wall.
     '''
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_search_flags_tests_files")
 
@@ -28,16 +27,16 @@ class DEM3D_SearchFlagTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
 
     def Finalize(self):
         tolerance = 1.0e-5
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 1:
-                final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                self.assertAlmostEqual(-3.9, final_vel, delta=tolerance)
-            if node.Id == 2:
-                final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                self.assertAlmostEqual(1.0, final_vel, delta=tolerance)
+        node = self.spheres_model_part.GetNode(1)
+        final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+        self.assertAlmostEqual(-3.9, final_vel, delta=tolerance)
+
+        node = self.spheres_model_part.GetNode(2)
+        final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+        self.assertAlmostEqual(1.0, final_vel, delta=tolerance)
+
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
-
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         properties = KratosMultiphysics.Properties(0)
@@ -85,13 +84,11 @@ class TestDEM3DSearchFlag(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM3D_search(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_search_flags_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchFlagTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
-
 
 
 if __name__ == "__main__":

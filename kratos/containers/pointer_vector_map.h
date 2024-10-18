@@ -483,19 +483,40 @@ public:
         return mData;
     }
 
+    /**
+     * @brief Get the maximum size of buffer used in the container.
+     */
+    size_type GetMaxBufferSize() const 
+    {
+        return mMaxBufferSize;
+    }
 
-    /** Set the maximum size of buffer used in the container.
-
-    This container uses a buffer which keep data unsorted. After
-    buffer size arrived to the MaxBufferSize it will sort all
-    container and empties buffer.
-
-    @param NewSize Is the new buffer maximum size. */
-    void SetMaxBufferSize(size_type NewSize)
+    /** 
+     * @brief Set the maximum size of buffer used in the container.
+     * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetMaxBufferSize(const size_type NewSize)
     {
         mMaxBufferSize = NewSize;
     }
 
+    /**
+     * @brief Get the sorted part size of buffer used in the container.
+     */
+    size_type GetSortedPartSize() const 
+    {
+        return mSortedPartSize;
+    }
+
+    /** 
+     * @brief Set the sorted part size of buffer used in the container.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetSortedPartSize(const size_type NewSize)
+    {
+        mSortedPartSize = NewSize;
+    }
 
     ///@}
     ///@name Inquiry
@@ -583,7 +604,7 @@ protected:
     ///@}
 
 private:
-    class CompareKey : public std::binary_function<value_type, key_type, bool>
+    class CompareKey
     {
     public:
         bool operator()(value_type const& a, key_type b) const
@@ -604,7 +625,7 @@ private:
 //       bool operator()(value_type& a, value_type& b) const
 //       {return TCompareType()(a.first, b.first);}
 //     };
-    class EqualKeyTo : public std::binary_function<value_type&, value_type&, bool>
+    class EqualKeyTo
     {
         key_type mKey;
     public:
@@ -618,9 +639,6 @@ private:
             return a.first == mKey;
         }
     };
-
-//        static typename TCompareType::result_type TCompareType(TDataType const & a, TDataType const & b)
-//        {return TCompareType()(KeyOf(a), KeyOf(b));}
 
     ///@name Static Member Variables
     ///@{

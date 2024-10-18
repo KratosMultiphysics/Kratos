@@ -9,6 +9,9 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "")
 set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "")
+if (${USE_MPI})
+    set(CO_SIM_IO_BUILD_MPI_COMMUNICATION ON CACHE BOOL "")
+endif()
 add_subdirectory(custom_external_libraries/CoSimIO)
 
 ## CoSimulation Core sources
@@ -22,7 +25,19 @@ file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE
 
 ## CoSimulation testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES 
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+    )
+    kratos_add_gtests(TARGET KratosCoSimulationCore SOURCES "${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES}")
+
+    if (${USE_MPI})
+        file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_DISTRIBUTED_TESTING_SOURCES 
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_distributed_tests/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+        )
+        kratos_add_gtests(TARGET KratosCoSimulationMPICore SOURCES "${KRATOS_CO_SIMULATION_APPLICATION_DISTRIBUTED_TESTING_SOURCES}" USE_MPI)
+    endif()
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## CoSimulation python interface sources
@@ -32,7 +47,11 @@ set(KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/te
 set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_pong/cpp_test_solver_pong.cpp)
 
 
-add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE} ${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES})
+add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE})
+if (${USE_MPI})
+    add_library(KratosCoSimulationMPICore ALIAS KratosCoSimulationCore)
+endif()
+
 target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore co_sim_io)
 set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
 

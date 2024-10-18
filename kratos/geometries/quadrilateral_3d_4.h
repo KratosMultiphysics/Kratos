@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_QUADRILATERAL_3D_4_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_3D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,9 +24,11 @@
 // Project includes
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -442,116 +443,50 @@ public:
         return std::sqrt( Area() );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-        // Finite element way
-        Vector temp;
-        DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-           area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
-
-//         // 24/01/2014 - Massimo Petracca
-//         // the following procedure calculates the area of a general
-//         // quadrilateral (flat or warped) using the parametric representation
-//         // of ruled hyperbolic paraboloid surface.
-//         // the integration of the normal is then performed with a 2x2 gauss quadrature
-//         // in the U-V domain [0,1].
-//         // results explicitly written after symbolic calculation.
-//
-//         const TPointType& p1 = this->Points()[0];
-//         const TPointType& p2 = this->Points()[1];
-//         const TPointType& p3 = this->Points()[2];
-//         const TPointType& p4 = this->Points()[3];
-//
-//         const double& p1x = p1.X();
-//         const double& p1y = p1.Y();
-//         const double& p1z = p1.Z();
-//
-//         const double& p2x = p2.X();
-//         const double& p2y = p2.Y();
-//         const double& p2z = p2.Z();
-//
-//         const double& p3x = p3.X();
-//         const double& p3y = p3.Y();
-//         const double& p3z = p3.Z();
-//
-//         const double& p4x = p4.X();
-//         const double& p4y = p4.Y();
-//         const double& p4z = p4.Z();
-//
-//         const double pos = 0.5 + 0.5 / std::sqrt(3.0);
-//         const double w = 0.25;
-//
-//         const double C1  = pos*(p1z - p2z + p3z - p4z);
-//         const double C2  = pos*(p1y - p2y + p3y - p4y);
-//         const double C3  = pos*(p1x - p2x + p3x - p4x);
-//         const double C4  = C1 - p1z + p2z;
-//         const double C5  = C1 + p1z - p2z;
-//         const double C6  = C2 + p1y - p2y;
-//         const double C7  = C2 - p1y + p2y;
-//         const double C8  = C3 - p1x + p2x;
-//         const double C9  = C3 + p1x - p2x;
-//         const double C10 = C1 - p1z + p4z;
-//         const double C11 = C2 - p1y + p4y;
-//         const double C12 = C3 - p1x + p4x;
-//         const double C13 = C1 + p1z - p4z;
-//         const double C14 = C2 + p1y - p4y;
-//         const double C15 = C3 + p1x - p4x;
-//
-//         return w * (
-//             std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) +
-//             std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) +
-//             std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) +
-//             std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
-//             );
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
-     * @return double value contains length, area or volume.
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Error, the volume of a 2D geometry is not defined (In June 2023)
      * @see Length()
      * @see Area()
      * @see Volume()
      */
+    double Volume() const override
+    {
+        KRATOS_WARNING("Quadrilateral3D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
+        return Area();
+        // TODO: Replace in June 2023
+        // KRATOS_ERROR << "Quadrilateral3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl;
+        // return 0.0;
+    }
+
     /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
      */
     double DomainSize() const override
     {
         return Area();
     }
 
-
-    double Volume() const override
-    {
-        return Area();
-    }
 
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
@@ -941,88 +876,6 @@ public:
         return std::sqrt(det_j);
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates inverse of jacobians matrices
-     * in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which inverse of jacobians has to
-     * be calculated in it.
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculates inverse of jacobian
-     * matrix in given point.
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
     ///@}
     ///@name Edge
     ///@{
@@ -1255,22 +1108,29 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
+    ///@name Spatial Operations
     ///@{
 
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        // Calculate distances
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), point);
     }
 
     ///@}
@@ -1316,11 +1176,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1977,9 +1842,6 @@ const GeometryData Quadrilateral3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

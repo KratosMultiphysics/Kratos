@@ -41,15 +41,18 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) DivideTriangle3D3 : public DivideTriangle2D3
+template<class TPointType>
+class KRATOS_API(KRATOS_CORE) DivideTriangle3D3 : public DivideTriangle2D3<TPointType>
 {
 public:
     ///@name Type Definitions
     ///@{
-
+    typedef DivideGeometry<TPointType>                                  BaseType;
+    typedef typename BaseType::GeometryType                             GeometryType;
+    typedef typename BaseType::IndexedPointType                         IndexedPointType;
     typedef Line3D2 < IndexedPointType >                                IndexedPointLineType;
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
-
+    typedef typename BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
     /// Pointer definition of DivideTriangle2D3
     KRATOS_CLASS_POINTER_DEFINITION(DivideTriangle3D3);
 
@@ -130,7 +133,7 @@ private:
 
     /// Copy constructor.
     DivideTriangle3D3(DivideTriangle3D3 const& rOther)
-        : DivideTriangle2D3(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
+        : DivideTriangle2D3<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
 
     ///@}
 

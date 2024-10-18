@@ -33,12 +33,12 @@ typedef ModelPart::NodeType NodeType;
 
 void FillModelParts2D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPart)
 {
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -52,6 +52,7 @@ void FillModelParts2D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPar
     root_model_part.AddNodalSolutionStepVariable(MOMENTUM);
     root_model_part.AddNodalSolutionStepVariable(HEIGHT);
     root_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+    root_model_part.GetProcessInfo().SetValue(GRAVITY, array_1d<double,3>({0.0, -9.81, 0.0}));
     StructuredMeshGeneratorProcess(geometry, rVolumeModelPart, mesher_parameters).Execute();
 
     auto id = root_model_part.NumberOfNodes();
@@ -60,16 +61,16 @@ void FillModelParts2D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPar
 
 void FillModelParts3D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPart)
 {
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_5 = Kratos::make_intrusive<Node<3>>(5, 0.0, 0.0, 1.0);
-    Node<3>::Pointer p_point_6 = Kratos::make_intrusive<Node<3>>(6, 1.0, 0.0, 1.0);
-    Node<3>::Pointer p_point_7 = Kratos::make_intrusive<Node<3>>(7, 1.0, 1.0, 1.0);
-    Node<3>::Pointer p_point_8 = Kratos::make_intrusive<Node<3>>(8, 0.0, 1.0, 1.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_5 = Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0);
+    Node::Pointer p_point_6 = Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0);
+    Node::Pointer p_point_7 = Kratos::make_intrusive<Node>(7, 1.0, 1.0, 1.0);
+    Node::Pointer p_point_8 = Kratos::make_intrusive<Node>(8, 0.0, 1.0, 1.0);
 
-    Hexahedra3D8<Node<3>> geometry(
+    Hexahedra3D8<Node> geometry(
         p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"(
@@ -84,6 +85,7 @@ void FillModelParts3D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPar
     root_model_part.AddNodalSolutionStepVariable(MOMENTUM);
     root_model_part.AddNodalSolutionStepVariable(HEIGHT);
     root_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+    root_model_part.GetProcessInfo().SetValue(GRAVITY, array_1d<double,3>({0.0, 0.0, -9.81}));
     StructuredMeshGeneratorProcess(geometry, rVolumeModelPart, mesher_parameters).Execute();
 
     auto id = root_model_part.NumberOfNodes();
@@ -118,17 +120,16 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess2D, ShallowWaterApplicationFast
     {
         "volume_model_part_name"    : "model_part.volume",
         "interface_model_part_name" : "model_part.interface",
-        "direction_of_integration"  : [0.0, 1.0, 0.0],
         "store_historical_database" : false
     })");
-    DepthIntegrationProcess(model, process_parameters).Execute();
+    DepthIntegrationProcess<2>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.482051, 0.0, 0.0});
+    reference.push_back({0.55, 0.0, 0.0});
 
     for(std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
-        KRATOS_CHECK_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
     }
 }
 
@@ -145,21 +146,20 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess3D, ShallowWaterApplicationFast
     {
         "volume_model_part_name"    : "model_part.volume",
         "interface_model_part_name" : "model_part.interface",
-        "direction_of_integration"  : [0.0, 0.0, 1.0],
         "store_historical_database" : false
     })");
-    DepthIntegrationProcess(model, process_parameters).Execute();
+    DepthIntegrationProcess<3>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.462963, 0.0, 0.0});
-    reference.push_back({0.574074, 0.0, 0.0});
-    reference.push_back({0.851852, 0.0, 0.0});
-    reference.push_back({1.129630, 0.0, 0.0});
-    reference.push_back({1.240741, 0.0, 0.0});
+    reference.push_back({0.426304, 0.0, 0.0});
+    reference.push_back({0.657407, 0.0, 0.0});
+    reference.push_back({0.935185, 0.0, 0.0});
+    reference.push_back({1.157407, 0.0, 0.0});
+    reference.push_back({1.435185, 0.0, 0.0});
 
     for (std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
-        KRATOS_CHECK_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(i_node->GetValue(VELOCITY), reference[i], 1e-6);
     }
 }
 

@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include "u_Types.h"
 #include "Math3D.h"
 

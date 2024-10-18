@@ -198,7 +198,6 @@ class Plotter:
 class Figure:
     total_number_of_figures = 0
 
-    @classmethod
     def CalculateLastSlopes(self, sizes, results):
         delta_result = math.log(results[-1] / results[-2])
         delta_size   = math.log(sizes[-1] / sizes[-2])

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ THE SOFTWARE.
 #include <amgcl/coarsening/aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggr_emin.hpp>
+#include <amgcl/coarsening/as_scalar.hpp>
 
 namespace amgcl {
 namespace runtime {
@@ -100,6 +101,7 @@ template <class Backend>
 struct wrapper {
     typedef boost::property_tree::ptree params;
     type c;
+    bool as_scalar;
     void *handle;
 
     wrapper(params prm = params())
@@ -108,11 +110,24 @@ struct wrapper {
     {
         if (!prm.erase("type")) AMGCL_PARAM_MISSING("type");
 
+        typedef typename backend::value_type<Backend>::type value_type;
+        const bool block_value_type = math::static_rows<value_type>::value > 1;
+
+        as_scalar = (
+                block_value_type &&
+                c != ruge_stuben &&
+                prm.get("nullspace.cols", 0) > 0
+                );
+
         switch(c) {
 
-#define AMGCL_RUNTIME_COARSENING(type) \
-            case type: \
-                handle = call_constructor<amgcl::coarsening::type>(prm); \
+#define AMGCL_RUNTIME_COARSENING(t) \
+            case t: \
+                if (as_scalar) { \
+                    handle = call_constructor<amgcl::coarsening::as_scalar<amgcl::coarsening::t>::type>(prm); \
+                } else { \
+                    handle = call_constructor<amgcl::coarsening::t>(prm); \
+                } \
                 break
 
             AMGCL_RUNTIME_COARSENING(ruge_stuben);
@@ -130,9 +145,13 @@ struct wrapper {
     ~wrapper() {
         switch(c) {
 
-#define AMGCL_RUNTIME_COARSENING(type) \
-            case type: \
-                call_destructor<amgcl::coarsening::type>(); \
+#define AMGCL_RUNTIME_COARSENING(t) \
+            case t: \
+                if (as_scalar) { \
+                    call_destructor<amgcl::coarsening::as_scalar<amgcl::coarsening::t>::type>(); \
+                } else { \
+                    call_destructor<amgcl::coarsening::t>(); \
+                } \
                 break
 
             AMGCL_RUNTIME_COARSENING(ruge_stuben);
@@ -152,9 +171,12 @@ struct wrapper {
     transfer_operators(const Matrix &A) {
         switch(c) {
 
-#define AMGCL_RUNTIME_COARSENING(type) \
-            case type: \
-                return make_operators<amgcl::coarsening::type>(A)
+#define AMGCL_RUNTIME_COARSENING(t) \
+            case t: \
+                if (as_scalar) { \
+                    return make_operators<amgcl::coarsening::as_scalar<amgcl::coarsening::t>::type>(A); \
+                } \
+                return make_operators<amgcl::coarsening::t>(A)
 
             AMGCL_RUNTIME_COARSENING(ruge_stuben);
             AMGCL_RUNTIME_COARSENING(aggregation);
@@ -173,9 +195,12 @@ struct wrapper {
     coarse_operator(const Matrix &A, const Matrix &P, const Matrix &R) const {
         switch(c) {
 
-#define AMGCL_RUNTIME_COARSENING(type) \
-            case type: \
-                return make_coarse<amgcl::coarsening::type>(A, P, R)
+#define AMGCL_RUNTIME_COARSENING(t) \
+            case t: \
+                if (as_scalar) { \
+                    return make_coarse<amgcl::coarsening::as_scalar<amgcl::coarsening::t>::type>(A, P, R); \
+                } \
+                return make_coarse<amgcl::coarsening::t>(A, P, R)
 
             AMGCL_RUNTIME_COARSENING(ruge_stuben);
             AMGCL_RUNTIME_COARSENING(aggregation);

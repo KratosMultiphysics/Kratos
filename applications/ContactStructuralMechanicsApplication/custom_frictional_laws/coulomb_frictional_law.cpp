@@ -4,10 +4,10 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -22,7 +22,7 @@ namespace Kratos
 {
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetThresholdValue(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -52,7 +52,7 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDerivativeThresholdValue(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo,
     const DerivativeDataType& rDerivativeData,
@@ -75,11 +75,11 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
     } else {
         double delta_weighted_gap = 0.0;
 
-        // Getting auxiliar indixes
+        // Getting auxiliary indixes
         const IndexType derivative_node_index = IndexDerivative/TDim;
         const IndexType derivative_dimension_index = IndexDerivative%TDim;
 
-        // Auxiliar values
+        // Auxiliary values
         const double common_epsilon = rCurrentProcessInfo[INITIAL_PENALTY];
         const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
 

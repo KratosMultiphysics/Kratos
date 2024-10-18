@@ -190,7 +190,7 @@ public:
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-            if (TNumNodes == 4) {
+            if constexpr (TNumNodes == 4) {
                 p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
             } else {
                 p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
@@ -1235,7 +1235,7 @@ protected:
         constexpr unsigned int BlockSize = TDim+1;
         rB_matrix.clear();
 
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             for (unsigned int i=0; i<TNumNodes; i++) {
                 rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
                 rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
@@ -1269,7 +1269,7 @@ protected:
         rNormProjMatrix.clear();
 
         // Fill the normal projection matrix (nxn)
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             noalias(rNormProjMatrix) = outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rNormProjMatrix(0,0) = rUnitNormal(0)*rUnitNormal(0);
@@ -1291,12 +1291,8 @@ protected:
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
-        if (TDim == 3) {
-            #ifdef KRATOS_USE_AMATRIX
-            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim);
-            #else
+        if constexpr (TDim == 3) {
             BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
-            #endif
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);
@@ -1317,7 +1313,7 @@ protected:
 
         rVoigtNormProjMatrix.clear();
 
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
             rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
             rVoigtNormProjMatrix(0,5) = rUnitNormal(2);

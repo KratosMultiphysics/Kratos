@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,11 +52,10 @@ namespace io {
 class mm_reader {
     public:
         /// Open the file by name
-        mm_reader(const std::string &fname) : f(fname.c_str()) {
+        mm_reader(const std::string &fname) : f(fname) {
             precondition(f, "Failed to open file \"" + fname + "\"");
 
             // Read banner.
-            std::string line;
             precondition(std::getline(f, line), format_error());
 
             std::istringstream is(line);
@@ -99,16 +98,11 @@ class mm_reader {
             }
 
             // Skip comments.
-            std::streampos pos;
             do {
-                pos = f.tellg();
                 precondition(std::getline(f, line), format_error("unexpected eof"));
             } while (line[0] == '%');
 
-            // Get back to the first non-comment line.
-            f.seekg(pos);
-
-            // Read matrix size
+            // The last line is comment-free and holds the matrix sizes
             is.clear(); is.str(line);
             precondition(is >> nrows >> ncols, format_error());
         }
@@ -156,10 +150,9 @@ class mm_reader {
             // Read sizes
             ptrdiff_t n, m;
             size_t nnz;
-            std::string line;
             std::istringstream is;
             {
-                precondition(std::getline(f, line), format_error("unexpected eof"));
+                // line already holds the matrix sizes
                 is.clear(); is.str(line);
                 precondition(is >> n >> m >> nnz, format_error());
             }
@@ -265,10 +258,9 @@ class mm_reader {
 
             // Read sizes
             ptrdiff_t n, m;
-            std::string line;
             std::istringstream is;
             {
-                precondition(std::getline(f, line), format_error("unexpected eof"));
+                // line already holds the matrix sizes
                 is.clear(); is.str(line);
                 precondition(is >> n >> m, format_error());
             }
@@ -295,6 +287,7 @@ class mm_reader {
         }
     private:
         std::ifstream f;
+        std::string line;
 
         bool _sparse;
         bool _symmetric;

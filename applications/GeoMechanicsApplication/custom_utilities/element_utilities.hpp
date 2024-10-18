@@ -11,463 +11,179 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_ELEMENT_UTILITIES )
-#define  KRATOS_GEO_ELEMENT_UTILITIES
-
-// System includes
-//#include <cmath>
+#pragma once
 
 // Project includes
-#include "utilities/math_utils.h"
 #include "includes/element.h"
+#include "includes/kratos_export_api.h"
+#include "utilities/math_utils.h"
 
 // Application includes
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class GeoElementUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoElementUtilities
 {
-
-typedef std::size_t IndexType;
-
 public:
+    using IndexType    = std::size_t;
+    using GeometryType = Geometry<Node>;
 
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
-                                         const Matrix& NContainer,
-                                         const unsigned int& GPoint)
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline void CalculateNuMatrix(BoundedMatrix<double, TDim, TDim * TNumNodes>& rNu,
+                                         const Matrix&                                  NContainer,
+                                         unsigned int                                   GPoint)
     {
-        for (unsigned int i=0; i < TDim; ++i) {
-            unsigned int index = i - TDim;
-            for (unsigned int j=0; j < TNumNodes; ++j) {
-                index += TDim;
+        CalculateNuMatrix(TDim, TNumNodes, rNu, NContainer, GPoint);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void CalculateNuMatrix(std::size_t        Dim,
+                                         std::size_t        NumNodes,
+                                         MatrixType1&       rNu,
+                                         const MatrixType2& NContainer,
+                                         unsigned int       GPoint)
+    {
+        for (unsigned int i = 0; i < Dim; ++i) {
+            unsigned int index = i;
+            for (unsigned int j = 0; j < NumNodes; ++j) {
                 rNu(i, index) = NContainer(GPoint, j);
+                index += Dim;
             }
         }
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void CalculateNuElementMatrix(BoundedMatrix<double, (TDim+1), TNumNodes*(TDim+1)>& rNut,
-                                                const Matrix& NContainer,
-                                                const unsigned int& GPoint)
-    {
-        const unsigned int offset = (TDim+1);
-
-        for (unsigned int i=0; i < TDim; ++i) {
-            unsigned int index = i - offset;
-            for (unsigned int j=0; j < TNumNodes; ++j) {
-                index += offset;
-                rNut(i, index) = NContainer(GPoint, j);
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
+    template <unsigned int TDim, unsigned int TNumNodes>
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
-                                                         const Matrix& NContainer,
-                                                         const array_1d<double, TDim*TNumNodes>& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         const Matrix&           NContainer,
+                                                         const array_1d<double, TDim * TNumNodes>& VariableWithComponents,
+                                                         unsigned int GPoint)
     {
         noalias(rVector) = ZeroVector(TDim);
 
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; ++i) {
-            for (unsigned int j=0; j<TDim; ++j) {
-                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index++];
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            for (unsigned int j = 0; j < TDim; ++j) {
+                rVector[j] += NContainer(GPoint, i) * VariableWithComponents[index];
+                index++;
             }
         }
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDof, unsigned int TNumNodes >
-    static inline void InterpolateVariableWithComponents(Vector& rVector,
+    template <unsigned int TDof, unsigned int TNumNodes>
+    static inline void InterpolateVariableWithComponents(Vector&       rVector,
                                                          const Matrix& NContainer,
                                                          const Vector& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         unsigned int  GPoint)
     {
-        if ( rVector.size() != TDof ) rVector.resize( TDof, false );
-        KRATOS_ERROR_IF(VariableWithComponents.size() != TDof*TNumNodes) << "Wrong size in InterpolateVariableWithComponents" << std::endl;
+        if (rVector.size() != TDof) rVector.resize(TDof, false);
+        KRATOS_ERROR_IF(VariableWithComponents.size() != TDof * TNumNodes)
+            << "Wrong size in InterpolateVariableWithComponents" << std::endl;
 
         noalias(rVector) = ZeroVector(TDof);
 
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; ++i) {
-            for (unsigned int j=0; j<TDof; ++j) {
-                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index++];
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            for (unsigned int j = 0; j < TDof; ++j) {
+                rVector[j] += NContainer(GPoint, i) * VariableWithComponents[index++];
             }
         }
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue,
-                                         const array_1d<double,2>& ComputedValue)
-    {
-        rOutputValue[0] = ComputedValue[0];
-        rOutputValue[1] = ComputedValue[1];
-        rOutputValue[2] = 0.0;
-    }
+    static void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 2>& ComputedValue);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue,
-                                         const array_1d<double,3>& ComputedValue)
-    {
-        rOutputValue[0] = ComputedValue[0];
-        rOutputValue[1] = ComputedValue[1];
-        rOutputValue[2] = ComputedValue[2];
-    }
+    static void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 3>& ComputedValue);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void GetNodalVariableVector(array_1d<double,TDim*TNumNodes>& rNodalVariableVector,
-                                              const Element::GeometryType& Geom,
-                                              const Variable<array_1d<double,3>>& Variable,
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline void GetNodalVariableVector(array_1d<double, TDim * TNumNodes>& rNodalVariableVector,
+                                              const Element::GeometryType&         Geom,
+                                              const Variable<array_1d<double, 3>>& Variable,
                                               IndexType SolutionStepIndex = 0)
     {
         array_1d<double, 3> NodalVariableAux;
-        unsigned int index = 0;
-        for (unsigned int i=0; i < TNumNodes; ++i) {
+        unsigned int        index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable, SolutionStepIndex);
-            for (unsigned int j=0; j < TDim; ++j) {
-                rNodalVariableVector[index++] = NodalVariableAux[j];
+            for (unsigned int j = 0; j < TDim; ++j) {
+                rNodalVariableVector[index] = NodalVariableAux[j];
+                index++;
             }
         }
     }
 
-//----------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void GetNodalVariableMatrix(Matrix& rNodalVariableMatrix,
-                                              const Element::GeometryType& rGeom,
-                                              const Variable<array_1d<double,3>>& Variable,
-                                              IndexType SolutionStepIndex = 0)
+    static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
+                                       const Element::PropertiesType& Prop);
+
+    static void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
+                                       const Element::PropertiesType& Prop);
+
+    static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
+                                       const Element::PropertiesType& Prop);
+
+    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
+                              const BoundedMatrix<double, 2, 2>& InputMatrix,
+                              double&                            InputMatrixDet);
+
+    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
+                              const BoundedMatrix<double, 2, 2>& InputMatrix);
+
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
     {
-        rNodalVariableMatrix.resize(TNumNodes , TDim, false);
-
-        for ( IndexType node = 0; node < TNumNodes; ++node ) {
-            const array_1d<double, 3>& NodalVariableAux = rGeom[node].FastGetSolutionStepValue(Variable, SolutionStepIndex);
-
-            for ( IndexType iDim = 0; iDim < TDim; ++iDim )
-                rNodalVariableMatrix(node, iDim) = NodalVariableAux[iDim];
-        }
+        constexpr auto row_offset    = std::size_t{0};
+        constexpr auto column_offset = row_offset;
+        AddMatrixAtPosition(rUUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
-                                              const Element::PropertiesType& Prop)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssembleUPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUPBlockMatrix)
     {
-        //2D
-        rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
-        rPermeabilityMatrix(1,1) = Prop[PERMEABILITY_YY];
-
-        rPermeabilityMatrix(0,1) = Prop[PERMEABILITY_XY];
-        rPermeabilityMatrix(1,0) = rPermeabilityMatrix(0,1);
+        constexpr auto row_offset    = std::size_t{0};
+        const auto     column_offset = rLeftHandSideMatrix.size2() - rUPBlockMatrix.size2();
+        AddMatrixAtPosition(rUPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void FillPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
-                                              const Element::PropertiesType& Prop)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssemblePUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPUBlockMatrix)
     {
-        //3D
-        rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
-        rPermeabilityMatrix(1,1) = Prop[PERMEABILITY_YY];
-        rPermeabilityMatrix(2,2) = Prop[PERMEABILITY_ZZ];
-
-        rPermeabilityMatrix(0,1) = Prop[PERMEABILITY_XY];
-        rPermeabilityMatrix(1,0) = rPermeabilityMatrix(0,1);
-
-        rPermeabilityMatrix(1,2) = Prop[PERMEABILITY_YZ];
-        rPermeabilityMatrix(2,1) = rPermeabilityMatrix(1,2);
-
-        rPermeabilityMatrix(2,0) = Prop[PERMEABILITY_ZX];
-        rPermeabilityMatrix(0,2) = rPermeabilityMatrix(2,0);
+        const auto     row_offset    = rLeftHandSideMatrix.size1() - rPUBlockMatrix.size1();
+        constexpr auto column_offset = std::size_t{0};
+        AddMatrixAtPosition(rPUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void InvertMatrix2(BoundedMatrix<double,2,2>& rInvertedMatrix,
-                                     const BoundedMatrix<double,2,2>& InputMatrix,
-                                     double &InputMatrixDet)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssemblePPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPPBlockMatrix)
     {
-        KRATOS_TRY;
-
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
-
-        InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
-
-        if (InputMatrixDet < numerical_limit) {
-            KRATOS_ERROR << "determinant zero or negative" << std::endl;
-        }
-
-        rInvertedMatrix(0,0) =  InputMatrix(1,1)/InputMatrixDet;
-        rInvertedMatrix(0,1) = -InputMatrix(0,1)/InputMatrixDet;
-        rInvertedMatrix(1,0) = -InputMatrix(1,0)/InputMatrixDet;
-        rInvertedMatrix(1,1) =  InputMatrix(0,0)/InputMatrixDet;
-
-        KRATOS_CATCH("");
+        const auto row_offset    = rLeftHandSideMatrix.size1() - rPPBlockMatrix.size1();
+        const auto column_offset = row_offset;
+        AddMatrixAtPosition(rPPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void InvertMatrix2(BoundedMatrix<double,2,2>& rInvertedMatrix,
-                                     const BoundedMatrix<double,2,2>& InputMatrix)
+    template <typename VectorType1, typename VectorType2>
+    static inline void AssembleUBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rUBlockVector)
     {
-        KRATOS_TRY;
-
-        double InputMatrixDet;
-
-        InvertMatrix2(rInvertedMatrix, InputMatrix, InputMatrixDet);
-
-        KRATOS_CATCH("");
+        constexpr auto offset = std::size_t{0};
+        AddVectorAtPosition(rUBlockVector, rRightHandSideVector, offset);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim>
-    static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
-                                             const double &Density)
+    template <typename VectorType1, typename VectorType2>
+    static inline void AssemblePBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rPBlockVector)
     {
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
+        const auto offset = rRightHandSideVector.size() - rPBlockVector.size();
+        AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
-                                             const double &Density)
-    {
-        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
-            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
-                DensityMatrix(idim, jdim) = Density;
-            }
-        }
-    }
+    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 2, 2>& DN_DeContainer);
 
+    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 3, 3>& DN_DeContainer);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
-                                            const BoundedMatrix<double,TDim*TNumNodes, TDim*TNumNodes> &UBlockMatrix)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1);
-            const unsigned int Local_i  = i * TDim;
+    static void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double, 3, 3>& NContainer);
 
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                const unsigned int Global_j = j * (TDim + 1);
-                const unsigned int Local_j  = j * TDim;
+    static void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer);
 
-                for (unsigned int idim = 0; idim < TDim; ++idim) {
-                    for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
-                        rLeftHandSideMatrix(Global_i+idim, Global_j+jdim) += UBlockMatrix(Local_i+idim, Local_j+jdim);
-                    }
-                }
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
-                                            const Matrix &UBlockMatrix,
-                                            const double &TNumNodes,
-                                            const double &TDim)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1);
-            const unsigned int Local_i  = i * TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                const unsigned int Global_j = j * (TDim + 1);
-                const unsigned int Local_j  = j * TDim;
-
-                for (unsigned int idim = 0; idim < TDim; ++idim) {
-                    for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
-                        rLeftHandSideMatrix(Global_i+idim, Global_j+jdim) += UBlockMatrix(Local_i+idim, Local_j+jdim);
-                    }
-                }
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                             const BoundedMatrix<double,TDim*TNumNodes,TNumNodes>& UPBlockMatrix)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1);
-            const unsigned int Local_i = i * TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                const unsigned int Global_j = j * (TDim + 1) + TDim;
-
-                for (unsigned int dim = 0; dim < TDim; ++dim) {
-                    rLeftHandSideMatrix(Global_i + dim, Global_j)  += UPBlockMatrix(Local_i + dim, j);
-                }
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                             const BoundedMatrix<double,TNumNodes,TNumNodes*TDim>& PUBlockMatrix)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1) + TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                const unsigned int Global_j = j * (TDim + 1);
-                const unsigned int Local_j = j * TDim;
-
-                for (unsigned int dim = 0; dim < TDim; ++dim) {
-                    rLeftHandSideMatrix(Global_i, Global_j+dim) += PUBlockMatrix(i, Local_j+dim);
-                }
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                            const BoundedMatrix<double,TNumNodes,TNumNodes> &PBlockMatrix)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1) + TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                const unsigned int Global_j = j * (TDim + 1) + TDim;
-
-                rLeftHandSideMatrix(Global_i,Global_j) += PBlockMatrix(i,j);
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double,TDim*TNumNodes>& UBlockVector,
-                                            int unsigned OffsetDof = 1)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + OffsetDof);
-            const unsigned int Local_i  = i * TDim;
-
-            for (unsigned int dim = 0; dim < TDim; ++dim) {
-                rRightHandSideVector[Global_i + dim] += UBlockVector[Local_i + dim];
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double, TNumNodes> &PBlockVector)
-    {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1) + TDim;
-
-            rRightHandSideVector[Global_i] += PBlockVector[i];
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double,2,2>& DN_DeContainer)
-    {
-        //Line 2-noded
-        // nodes:
-        // 0------------1
-        const unsigned int NumNodes = 2;
-        const std::vector<double> Xi{-1.0, 1.0};
-
-        noalias(DN_DeContainer) = ZeroMatrix(NumNodes,NumNodes);
-
-        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-            DN_DeContainer(integrationPoint,0) = - 0.5;
-            DN_DeContainer(integrationPoint,1) =   0.5;
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double,3,3>& DN_DeContainer)
-    {
-        //Line 3-noded
-        // nodes:
-        // 0------2------1
-        const unsigned int NumNodes = 3;
-        const std::vector<double> Xi{-1.0, 0.0, 1.0};
-
-        noalias(DN_DeContainer) = ZeroMatrix(NumNodes,NumNodes);
-
-        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-            DN_DeContainer(integrationPoint,0) =  Xi[integrationPoint] - 0.5;
-            DN_DeContainer(integrationPoint,1) =  Xi[integrationPoint] + 0.5;
-            DN_DeContainer(integrationPoint,2) = -Xi[integrationPoint] * 2.0;
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double,3,3>& NContainer)
-    {
-        //Line 3-noded
-        // nodes:
-        // 0------2------1
-        const unsigned int NumNodes = 3;
-
-        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-            for (unsigned int node = 0; node < NumNodes; ++node) {
-                NContainer(integrationPoint,node) = (integrationPoint == node ? 1.0 : 0.0);
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer)
-    {
-        //Line 3-noded
-        // nodes:
-        // 0------2------1
-        const unsigned int NumNodes = 3;
-        const std::vector<double> Xi{-1.0/3.0, 1.0/3.0};
-
-        if ( NContainer.size1() != Xi.size() || NContainer.size2() != NumNodes) 
-            NContainer.resize( Xi.size(), NumNodes, false );
-
-        for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
-            const double& X = Xi[integrationPoint];
-            NContainer(integrationPoint, 0) = -0.5 * (1.0 - X) * X;
-            NContainer(integrationPoint, 1) =  0.5 * (1.0 + X) * X;
-            NContainer(integrationPoint, 2) = (1.0 + X) * (1.0 - X);
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer)
-    {
-        //Line 3-noded
-        // nodes:
-        // 0------2------1
-        const unsigned int NumNodes = 3;
-        const std::vector<double> Xi{-1.0/3.0, 1.0/3.0};
-
-        if ( DN_DeContainer.size() != Xi.size()) 
-            DN_DeContainer.resize( Xi.size());
-
-        for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
-            if ( DN_DeContainer[integrationPoint].size1() != NumNodes || DN_DeContainer[integrationPoint].size2() != 1) 
-                DN_DeContainer[integrationPoint].resize( NumNodes, 1);
-
-            DN_DeContainer[integrationPoint](0,0) =  Xi[integrationPoint] - 0.5;
-            DN_DeContainer[integrationPoint](1,0) =  Xi[integrationPoint] + 0.5;
-            DN_DeContainer[integrationPoint](2,0) = -Xi[integrationPoint] * 2.0;
-        }
-    }
+    static void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer);
 
     /**
      * Calculates the radius of axisymmetry
@@ -476,21 +192,48 @@ public:
      * @return Radius: The radius of axisymmetry
      */
 
-    static inline double CalculateRadius(const Vector N, const GeometryType& Geom)
+    static double CalculateRadius(const Vector& N, const GeometryType& Geom);
+
+    static double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom);
+
+    static void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix,
+                                                     const GeometryData::IntegrationMethod& rIntegrationMethod);
+
+    static void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix,
+                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
+
+    static void CalculateExtrapolationMatrixTetra(Matrix& rExtrapolationMatrix,
+                                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
+
+    static void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
+                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
+
+    static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
+                                                                const Properties&   rProp);
+
+    static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                         const Geometry<Node>& rGeometry);
+
+private:
+    template <typename VectorType1, typename VectorType2>
+    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
     {
-        double Radius = 0.0;
-
-        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++) {
-            // Displacement from the reference to the current configuration
-            const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
-            Radius += CurrentPosition[0] * N[iNode];
-        }
-
-        return Radius;
+        auto pos = std::begin(rDestinationVector) + Offset;
+        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
     }
 
+    template <typename MatrixType1, typename MatrixType2>
+    static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                    MatrixType2&       rDestinationMatrix,
+                                    std::size_t        RowOffset,
+                                    std::size_t        ColumnOffset)
+    {
+        for (auto i = std::size_t{0}; i < rSourceMatrix.size1(); ++i) {
+            for (auto j = std::size_t{0}; j < rSourceMatrix.size2(); ++j) {
+                rDestinationMatrix(i + RowOffset, j + ColumnOffset) += rSourceMatrix(i, j);
+            }
+        }
+    }
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_GEO_ELEMENT_UTILITIES defined */

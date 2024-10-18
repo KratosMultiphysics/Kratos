@@ -70,8 +70,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GeometricalObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -93,11 +93,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -110,7 +112,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class have to implement next
-     * contructors, copy constructors and destructor: MANDATORY
+     * constructors, copy constructors and destructor: MANDATORY
      */
 
     /**
@@ -470,7 +472,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the first derivatives constributions
+     * to calculate the elemental left hand side matrix for the first derivatives contributions
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -484,7 +486,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the first derivatives constributions
+     * to calculate the elemental right hand side vector for the first derivatives contributions
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -527,7 +529,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
+     * to calculate the elemental left hand side matrix for the second derivatives contributions
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -541,7 +543,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
+     * to calculate the elemental right hand side vector for the second derivatives contributions
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -714,39 +716,73 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      */
 
-    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-                          std::vector<bool>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                          std::vector<int>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                          std::vector< array_1d<double,3>>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector< array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double,6>>& rVariable,
-                          std::vector<array_1d<double,6>>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        std::vector< array_1d<double, 4>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                          std::vector<Vector>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        std::vector<array_1d<double, 9>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -762,12 +798,6 @@ public:
     // {
     // }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                          std::vector<Matrix>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
     // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
     //                       std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
     //                       const ProcessInfo& rCurrentProcessInfo)
@@ -779,12 +809,6 @@ public:
     //                       const ProcessInfo& rCurrentProcessInfo)
     // {
     // }
-
-    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
 
     /**
      * Access for variables on Integration points.
@@ -798,50 +822,72 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
-    virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
-                         const std::vector<bool>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        const std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-                         const std::vector<int>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                         const std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         const std::vector<array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                         const std::vector<array_1d<double, 6 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                         const std::vector<Vector>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        const std::vector<array_1d<double, 4>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                         const std::vector<Matrix>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const std::vector<array_1d<double, 6>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                         const std::vector<ConstitutiveLaw::Pointer>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        const std::vector<array_1d<double, 9>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        const std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        const std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        const std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 

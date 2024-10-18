@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -66,7 +65,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def Execute(self):
         """This function executes the process
         """
-        print("Execute check_and_prepare_model_process_fluid")
 
         #construct body model parts:
         fluid_body_model_parts = []
@@ -82,8 +80,12 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 if prop.Id > max_property_id:
                     max_property_id = prop.Id
 
+            biggestFluidBody=0
+            largestNumberOfElements=0
+
             for i in range(self.bodies_parts_list.size()):
                 #create body model part
+
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
                 self.main_model_part.CreateSubModelPart(body_model_part_name)
                 body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
@@ -109,7 +111,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                             property_id = self.main_model_part.GetProperties()[materials["properties"][k]["properties_id"].GetInt()]
                             body_model_part.AddProperties(property_id)
                             is_solid_or_fluid = True
-
                     # Assign a new dummy property to the rigid boundaries to keep them separated in the GiD post process
                     if not is_solid_or_fluid:
                         max_property_id += 1
@@ -121,14 +122,18 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
+                counter=0
                 for part in body_parts_list:
                     entity_type = "Nodes"
                     clock_time = StartTimeMeasuring()
-
+                    numElements=len(part.Elements)
                     if (body_model_part_type=="Fluid"):
                         assign_flags = [KratosMultiphysics.FLUID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
+                        if(numElements>largestNumberOfElements):
+                            biggestFluidBody=counter
+                            largestNumberOfElements=numElements
                     elif (body_model_part_type=="Solid"):
                         assign_flags  = [KratosMultiphysics.SOLID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
@@ -137,6 +142,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         assign_flags  = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
+
+                    counter+=1
 
                     StopTimeMeasuring(clock_time,"1. for node in part.Nodes", True);
 
@@ -155,9 +162,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                     StopTimeMeasuring(clock_time,"1. part.Conditions", True);
 
-
-                print(" Bodies Appended ")
-
                 if body_model_part_type == "Fluid":
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
@@ -168,7 +172,17 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 if (body_model_part_type == "Rigid" or body_model_part_type == "Interface"):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
+
+
+                if (body_model_part_type=="Fluid"):
+                    set_main_material_property_process=KratosPfemFluid.SetMainMaterialProperty(body_parts_list[biggestFluidBody])
+                    set_main_material_property_process.Execute()
+
+
+
             clock_time = StartTimeMeasuring()
+
+
 
             #add walls in fluid domains:
             transfer_flags = [KratosMultiphysics.RIGID, (KratosMultiphysics.FLUID).AsFalse()]

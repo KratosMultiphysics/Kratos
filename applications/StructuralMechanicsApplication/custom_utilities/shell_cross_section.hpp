@@ -3,16 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //                   Philipp Bucher
 //
 
-#if !defined(SHELL_CROSS_SECTION_H_INCLUDED)
-#define SHELL_CROSS_SECTION_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -51,7 +49,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ShellCrossSection);
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     typedef std::vector< Ply > PlyCollection;
 
@@ -223,11 +221,11 @@ public:
         * sets the variable or the pointer of a specified variable: assigns the direction of the pointer for the mpvariables, only non const values can be modified
         */
 
-        void Set(Flags ThisFlag)
+        void Set(const Flags ThisFlag)
         {
             mOptions.Set(ThisFlag);
         };
-        void Reset(Flags ThisFlag)
+        void Reset(const Flags ThisFlag)
         {
             mOptions.Reset(ThisFlag);
         };
@@ -1277,6 +1275,8 @@ public:
         return mDrillingPenalty;
     }
 
+    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawsVector(const Properties& rProps);
+
     /**
     * Parses the shell orthotropic material data from properties
     */
@@ -1407,6 +1407,3 @@ inline std::ostream& operator << (std::ostream& rOStream, ShellCrossSection& rTh
 ///@}
 
 }
-
-
-#endif // SHELL_CROSS_SECTION_H_INCLUDED

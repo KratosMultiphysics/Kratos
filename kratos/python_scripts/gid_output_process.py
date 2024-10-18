@@ -1,8 +1,6 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
-from KratosMultiphysics import * # TODO remove
-# Other imports
-from  KratosMultiphysics.deprecation_management import DeprecationManager
+from KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 from pathlib import Path
 
@@ -19,7 +17,7 @@ def Factory(settings, Model):
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class GiDOutputProcess(KM.Process):
+class GiDOutputProcess(KM.OutputProcess):
 
     defaults = KM.Parameters('''{
         "result_file_configuration": {
@@ -94,7 +92,7 @@ class GiDOutputProcess(KM.Process):
                     }
 
     def __init__(self,model_part,file_name,param = None):
-        KM.Process.__init__(self)
+        super().__init__()
 
         if param is None:
             param = self.defaults
@@ -103,7 +101,7 @@ class GiDOutputProcess(KM.Process):
             self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
-            # not exist and I don't want the validator assinging defaults there.
+            # not exist and I don't want the validator assigning defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
@@ -121,14 +119,18 @@ class GiDOutputProcess(KM.Process):
 
         point_data_configuration = self.param["point_data_configuration"]
         if point_data_configuration.size() > 0:
-            import point_output_process
-            self.point_output_process = point_output_process.PointOutputProcess(self.model_part,point_data_configuration)
+            from KratosMultiphysics.point_output_process import PointOutputProcess
+            self.point_output_process = PointOutputProcess(self.model_part,point_data_configuration)
         else:
             self.point_output_process = None
 
-        self.step_count = 0
         self.printed_step_count = 0
-        self.next_output = 0.0
+
+        controller_settings = KM.Parameters("""{}""")
+        controller_settings.AddString("model_part_name", model_part.FullName())
+        if param["result_file_configuration"].Has("output_control_type"): controller_settings.AddValue("output_control_type", param["result_file_configuration"]["output_control_type"])
+        if param["result_file_configuration"].Has("output_interval"): controller_settings.AddValue("output_interval", param["result_file_configuration"]["output_interval"])
+        self.controller = KM.OutputController(model_part.GetModel(), controller_settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
@@ -233,32 +235,33 @@ class GiDOutputProcess(KM.Process):
     def ExecuteBeforeSolutionLoop(self):
         '''Initialize output meshes.'''
 
-        if self.multifile_flag == MultiFileFlag.SingleFile:
+        if self.multifile_flag == KM.MultiFileFlag.SingleFile:
             mesh_name = 0.0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
+            self.__write_step_to_list()
 
-            if self.post_mode == GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
-
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             label = 0.0
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
+            self.__write_gp_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
             self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
 
+            if self.output_label_is_time:
+                file_label = 0.0
+            else:
+                file_label = 0
+            self.__write_step_to_list(file_label)
+
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
 
@@ -268,26 +271,24 @@ class GiDOutputProcess(KM.Process):
             self.point_output_process.ExecuteFinalizeSolutionStep()
 
     def IsOutputStep(self):
-        if self.output_control_is_time:
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
-            return (time >= self.__get_pretty_time(self.next_output))
-        else:
-            return ( self.step_count >= self.next_output )
+        return self.controller.Evaluate()
 
     def PrintOutput(self):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
+            if self.point_output_process.IsOutputStep():
+                self.point_output_process.PrintOutput()
 
         # Print the output
-        time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
+        time = self.__get_pretty_time(self.model_part.ProcessInfo[KM.TIME])
         self.printed_step_count += 1
-        self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+        self.model_part.ProcessInfo[KM.PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
             label = time
         else:
             label = self.printed_step_count
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
             self.__initialize_results(label)
 
@@ -297,24 +298,18 @@ class GiDOutputProcess(KM.Process):
         self.__write_nodal_flags(time)
         self.__write_elemental_conditional_flags(time)
 
-        if self.flush_after_output and self.multifile_flag != MultiFileFlag.MultipleFiles:
+        if self.flush_after_output and self.multifile_flag != KM.MultiFileFlag.MultipleFiles:
             if self.body_io is not None:
                 self.body_io.Flush()
             if self.cut_io is not None:
                 self.cut_io.Flush()
 
-        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+        if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             self.__finalize_results()
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_interval
+        self.controller.Update()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
@@ -322,7 +317,7 @@ class GiDOutputProcess(KM.Process):
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
 
-        if self.multifile_flag == MultiFileFlag.SingleFile:
+        if self.multifile_flag == KM.MultiFileFlag.SingleFile:
             self.__finalize_results()
 
         if self.point_output_process is not None:
@@ -334,7 +329,7 @@ class GiDOutputProcess(KM.Process):
             f.close()
 
         # Note: it is important to call the GidIO destructor, since it closes output files
-        # Since Python's garbage colletion DOES NOT ensure that the destructor will be called,
+        # Since Python's garbage collection DOES NOT ensure that the destructor will be called,
         # I'm deallocating the GidIO instances explicitly. This is VERY BAD PRACTICE
         # and effectively breaks the class if called after this point, but we haven't found
         # a better solution yet (jcotela 12/V/2016)
@@ -351,18 +346,20 @@ class GiDOutputProcess(KM.Process):
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
 
         if self.body_output or self.node_output:
-            self.body_io = GidIO( self.volume_file_name,
+            self.body_io = KM.GidIO( self.volume_file_name,
                                     self.post_mode,
                                     self.multifile_flag,
                                     self.write_deformed_mesh,
-                                    self.write_conditions)
+                                    self.write_conditions,
+                                    self.param["result_file_configuration"]["gauss_point_results"].size()>0)
 
         if self.skin_output or self.num_planes > 0:
-            self.cut_io = GidIO(self.cut_file_name,
+            self.cut_io = KM.GidIO(self.cut_file_name,
                                 self.post_mode,
                                 self.multifile_flag,
                                 self.write_deformed_mesh,
-                                WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
+                                KM.WriteConditionsFlag.WriteConditionsOnly,
+                                self.param["result_file_configuration"]["gauss_point_results"].size()>0) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_pretty_time(self,time):
         pretty_time = self.time_label_format.format(time)
@@ -376,7 +373,7 @@ class GiDOutputProcess(KM.Process):
         try:
             value = dictionary[keystring]
         except KeyError:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,value,label)
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,keystring,label)
             raise Exception(msg)
 
         return value
@@ -400,7 +397,7 @@ class GiDOutputProcess(KM.Process):
 
     def _InitializeListFiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
-        If we have only one tipe of output (volume or cut), the
+        If we have only one type of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
         both types, call the volume one <gid_model_name>.post.lst and
         the cut one <gid_model_name>_cuts.post.lst.
@@ -427,14 +424,14 @@ class GiDOutputProcess(KM.Process):
         if self.body_io is not None:
             list_file = open(name_base+name_ext,"w")
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-            elif self.multifile_flag == MultiFileFlag.SingleFile:
+            elif self.multifile_flag == KM.MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
             self.volume_list_files.append( [1,list_file] )
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
                 for freq in extra_frequencies:
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
@@ -448,14 +445,14 @@ class GiDOutputProcess(KM.Process):
 
             list_file = open(name_base+name_ext,"w")
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-            elif self.multifile_flag == MultiFileFlag.SingleFile:
+            elif self.multifile_flag == KM.MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
             self.cut_list_files.append( [1,list_file] )
 
-            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
                 for freq in extra_frequencies:
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
@@ -467,7 +464,7 @@ class GiDOutputProcess(KM.Process):
         '''Add a plane to the output plane list.'''
 
         normal_data = cut_data["normal"]
-        n = Vector(3)
+        n = KM.Vector(3)
         n[0] = normal_data[0].GetDouble()
         n[1] = normal_data[1].GetDouble()
         n[2] = normal_data[2].GetDouble()
@@ -477,7 +474,7 @@ class GiDOutputProcess(KM.Process):
             raise Exception("{0} Error: something went wrong in output plane definition: plane {1} has a normal with module 0.".format(self.__class__.__name__,self.output_surface_index))
 
         point_data = cut_data["point"]
-        p = Vector(3)
+        p = KM.Vector(3)
         p[0] = point_data[0].GetDouble()
         p[1] = point_data[1].GetDouble()
         p[2] = point_data[2].GetDouble()
@@ -569,11 +566,11 @@ class GiDOutputProcess(KM.Process):
             self.cut_io.FinalizeResults()
 
     def __write_step_to_list(self,step_label=None):
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
+        if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAscii:
             ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"  # ??? CHECK!
         else:
             return # No support for list_files in this format
@@ -602,11 +599,11 @@ class GiDOutputProcess(KM.Process):
 
         self._InitializeListFiles(additional_frequencies)
 
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
+        if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAscii:
             ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"
         else:
             return # No support for list_files in this format
@@ -679,11 +676,11 @@ class GiDOutputProcess(KM.Process):
     def __remove_post_results_files(self, step_label):
         path = os.getcwd()
 
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
+        if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAscii:
             ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+        elif self.post_mode == KM.GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"
 
         # remove post result files:
@@ -723,13 +720,7 @@ class GiDOutputProcess(KM.Process):
         return KM.CuttingUtility()
 
     def _SetCurrentTimeParameters(self, additional_list_files):
-        self.step_count = self.model_part.ProcessInfo[KM.STEP]
         self.printed_step_count = self.model_part.ProcessInfo[KM.PRINTED_STEP]
-
-        if self.output_control_is_time:
-            self.next_output = self.model_part.ProcessInfo[KM.TIME]
-        else:
-            self.next_output = self.model_part.ProcessInfo[KM.STEP]
 
         # Remove post results
         if self.output_label_is_time:
@@ -750,6 +741,6 @@ class GiDOutputProcess(KM.Process):
 
         # Make sure that the path to the desired output folder exists
         output_path = Path(file_name).parent
-        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+        KM.FilesystemExtensions.MPISafeCreateDirectories(output_path)
 
         return file_name

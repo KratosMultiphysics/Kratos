@@ -11,8 +11,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED)
-#define  KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -359,5 +358,3 @@ private:
 }; /// FunctionParser
 
 } /// namespace Kratos
-
-#endif // KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED

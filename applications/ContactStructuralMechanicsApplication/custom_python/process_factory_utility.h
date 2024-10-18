@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 // 
 
-#if !defined(PROCESS_FACTORY_UTILITY_DEFINED )
-#define  PROCESS_FACTORY_UTILITY_DEFINED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -51,7 +50,7 @@ namespace Kratos
  * @details This class is used in order to interoperate between c++ and python
  * @author Vicente Mataix Ferrandiz
  */
-class ProcessFactoryUtility
+class KRATOS_API_EXPORT ProcessFactoryUtility
 {
 public:
 
@@ -62,10 +61,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
     /// The object type in python
-    typedef pybind11::object ObjectType;
+    using ObjectType = pybind11::object;
     
     /// The list [] of python
-    typedef pybind11::list     ListType;
+    using ListType = pybind11::list;
     
     ///@}
     ///@name Life Cycle
@@ -223,36 +222,6 @@ public:
         rOStream << "ProcessFactoryUtility. Number of processes:" << mProcesses.size();
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -331,5 +300,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // PROCESS_FACTORY_UTILITY_DEFINED  defined

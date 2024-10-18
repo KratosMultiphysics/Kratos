@@ -165,11 +165,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::SetOctreeBoundingBox()
     }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    GetOctreePointer()->SetBoundingBox(low.data(), high.data());
-#else
     GetOctreePointer()->SetBoundingBox(low.data().data(), high.data().data());
-#endif // ifdef KRATOS_USE_AMATRIX
 }
 
 /***********************************************************************************/

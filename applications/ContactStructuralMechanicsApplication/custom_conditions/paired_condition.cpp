@@ -4,10 +4,10 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -108,8 +108,8 @@ void PairedCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentPr
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
     // We update the normals if necessary
-    const auto normal_variation = rCurrentProcessInfo.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(rCurrentProcessInfo.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
-    if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
+    const auto normal_variation = rCurrentProcessInfo.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(rCurrentProcessInfo.GetValue(CONSIDER_NORMAL_VARIATION)) : NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION;
+    if (normal_variation != NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION) {
         const auto& r_paired_geometry = GetPairedGeometry();
         GeometryType::CoordinatesArrayType aux_coords;
         r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
@@ -117,6 +117,24 @@ void PairedCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentPr
     }
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+    rSerializer.save("PairedNormal", mPairedNormal);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+    rSerializer.load("PairedNormal", mPairedNormal);
 }
 
 } // Namespace Kratos
