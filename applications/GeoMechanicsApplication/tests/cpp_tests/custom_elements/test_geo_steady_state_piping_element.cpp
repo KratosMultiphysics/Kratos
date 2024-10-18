@@ -223,6 +223,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     auto element1 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model1, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
                                       "Error: DENSITY_WATER does not exist in the properties of element 1")
+    element1.GetProperties().SetValue(DENSITY_WATER, -1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
+                                      "Error: DENSITY_WATER (-1000) has an invalid value at element 1")
 
 }
 

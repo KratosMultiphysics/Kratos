@@ -154,7 +154,7 @@ private:
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
             << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << "(" << GetProperties()[rVariable]
+            << rVariable.Name() << " (" << GetProperties()[rVariable]
             << ") has an invalid value at element " << Id() << std::endl;
     }
 
