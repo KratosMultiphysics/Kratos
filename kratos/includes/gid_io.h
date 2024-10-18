@@ -1125,7 +1125,7 @@ public:
      * or undeformed state
      * @param Mode either GiD_PostAscii (default) or GiD_PostBinary
      */
-    void WriteNodeMesh(MeshType& rThisMesh) override
+    void WriteNodeMesh(const MeshType& rThisMesh) override
     {
         KRATOS_TRY
 
@@ -1292,7 +1292,7 @@ public:
      * @param deformed_flag states whether the mesh should be written in deformed configuration
      * @param conditions_flag states whether conditions should also be written
      */
-    void WriteMesh(MeshType& rThisMesh) override
+    void WriteMesh(const MeshType& rThisMesh) override
     {
         KRATOS_TRY
 

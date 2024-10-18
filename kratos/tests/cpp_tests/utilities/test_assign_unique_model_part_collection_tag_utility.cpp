@@ -62,11 +62,11 @@ namespace Kratos
 //             // Debug
 //             KRATOS_WATCH(first_model_part)
 
-            AssignUniqueModelPartCollectionTagUtility collections_utility(r_first_model_part);
+            AssignUniqueModelPartCollectionTagUtility collections_utility;
 
             IndexIndexMapType nodes_tags, conds_tags, elems_tags;
             IndexStringMapType collections;
-            collections_utility.ComputeTags(nodes_tags, conds_tags, elems_tags, collections);
+            collections_utility.ComputeTags(r_first_model_part, nodes_tags, conds_tags, elems_tags, collections);
 
             // Creating the second model part
             ModelPart& second_model_part = current_model.CreateModelPart("SecondMain");
@@ -158,11 +158,11 @@ namespace Kratos
             r_first_sub_modelpart_1b.AddElement(r_first_model_part.pGetElement(3));
             r_first_sub_modelpart_2.AddElement(r_first_model_part.pGetElement(4));
 
-            AssignUniqueModelPartCollectionTagUtility collections_utility(r_first_model_part);
+            AssignUniqueModelPartCollectionTagUtility collections_utility;
 
             IndexIndexMapType nodes_tags, conds_tags, elems_tags;
             IndexStringMapType collections;
-            collections_utility.ComputeTags(nodes_tags, conds_tags, elems_tags, collections);
+            collections_utility.ComputeTags(r_first_model_part, nodes_tags, conds_tags, elems_tags, collections);
 
             // Creating the second model part
             ModelPart& r_second_model_part = current_model.CreateModelPart("SecondMain");
@@ -271,11 +271,11 @@ namespace Kratos
             r_model_part.CreateSubModelPart("ZSubModelPart3");
             r_model_part.CreateSubModelPart("YSubModelPart4");
 
-            AssignUniqueModelPartCollectionTagUtility collections_utility(r_model_part);
+            AssignUniqueModelPartCollectionTagUtility collections_utility;
 
             IndexIndexMapType nodes_tags, conds_tags, elems_tags;
             IndexStringMapType collections;
-            collections_utility.ComputeTags(nodes_tags, conds_tags, elems_tags, collections);
+            collections_utility.ComputeTags(r_model_part, nodes_tags, conds_tags, elems_tags, collections);
 
             const std::string filename = "test";
 
