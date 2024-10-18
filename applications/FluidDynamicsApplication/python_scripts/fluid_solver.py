@@ -71,8 +71,9 @@ class FluidSolver(PythonSolver):
         super().ValidateSettings()
 
         # Validate some subparameters
-        if self.settings.Has("builder_and_solver_settings"):
-            self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
+        if not self.settings.Has("builder_and_solver_settings"):
+            self.settings.AddEmptyValue("builder_and_solver_settings")
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
 
     def AddVariables(self):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
