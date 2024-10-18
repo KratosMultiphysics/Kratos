@@ -96,6 +96,7 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
         average_length = sum_length / static_cast<double>(r_entities.size());
         ref_area = average_length * average_length * AreaTolerance;
     }
+    ref_area = ref_area * ref_area; // Using squared area tolerance to avoid expensive square roots, also will avoid numerical issues due to geometries that are 3 nodes in the same line, which squared area is negative and therefore area will be undefined (NaN)
 
     // Lambda function to check if two nodes are at the same position using relative tolerance
     auto ComputeDistance = [](const Node& rNode1, const Node& rNode2) -> double {
@@ -104,14 +105,31 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
         return norm_2(r_coords1 - r_coords2);
     };
 
+    // Define GeometryType
+    using GeometryType = typename TEntityType::GeometryType;
+
+    // Lambda to compute the squared area of a triangle
+    auto ComputeSquaredArea = [](const GeometryType& rGeometry) -> double {
+        const array_1d<double, 3>& r_point1 = rGeometry[0].Coordinates();
+        const array_1d<double, 3>& r_point2 = rGeometry[1].Coordinates();
+        const array_1d<double, 3>& r_point3 = rGeometry[2].Coordinates();
+
+        const double a = MathUtils<double>::Norm3(r_point1 - r_point2);
+        const double b = MathUtils<double>::Norm3(r_point2 - r_point3);
+        const double c = MathUtils<double>::Norm3(r_point3 - r_point1);
+        const double s = (a + b + c) / 2.0;
+        return s * (s - a) * (s - b) * (s - c);
+    };
+
     // Lambda to compute number of null area triangles
-    auto ComputeNullAreaTriangles = [](ModelPart& rThisModelPart, const double RefArea, const double AreaTolerance) -> std::size_t {
+    auto ComputeNullAreaTriangles = [&ComputeSquaredArea](ModelPart& rThisModelPart, const double RefArea, const double AreaTolerance) -> std::size_t {
         const std::size_t null_area_triangles = block_for_each<SumReduction<std::size_t>>(EntitiesUtilities::GetEntities<TEntityType>(rThisModelPart), [&](auto& rEntity) {
             if (rEntity.IsNot(TO_ERASE)) {
                 const auto& r_geometry = rEntity.GetGeometry();
                 if (r_geometry.PointsNumber() == 3) {
-                    const double area = r_geometry.Area();
-                    if (area < RefArea) {
+                    const double squared_area = ComputeSquaredArea(r_geometry);
+                    // Now check that the area is small enough
+                    if (squared_area < RefArea) {
                         return 1;
                     }
                 }
@@ -137,13 +155,13 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
                 auto& r_geometry = r_entity.GetGeometry();
 
                 // Check if the entity is a triangle
-                if (r_geometry.PointsNumber() != 3) {
+                if (r_geometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
                     continue;
                 }
 
                 // Check that the area is below a certain tolerance
-                const double area = r_geometry.Area();
-                if (area < ref_area) {
+                const double squared_area = ComputeSquaredArea(r_geometry);
+                if (squared_area < ref_area) {
                     // Get the nodes
                     auto& r_node1 = r_geometry[0];
                     auto& r_node2 = r_geometry[1];
