@@ -118,10 +118,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(residual_stress_vector);
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
     uniaxial_residual_stress = (rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)) ? uniaxial_residual_stress : 0.0;
+    double load_direction_residual_stress = residual_stress_vector[1];
 
     if (((time - time_offset) % load_increments_per_cycle) == 0 && (time - time_offset) > 0) {
 
-        if (relaxation_factor < 1.0 || local_number_of_cycles >= 10) {
+        if (relaxation_factor < 1.0) {
             mFirstCycleNonlinearity = false; 
         }
 
@@ -613,7 +614,9 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == CYCLE_PERIOD) {
         return true;
-    } else if (rThisVariable == INFINITY_YIELD_STRESS) {
+    } else if (rThisVariable == REVERSION_FACTOR) {
+        return true;
+    } else if (rThisVariable == STRESS_RELAXATION_FACTOR) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -749,8 +752,10 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         rValue = mPreviousCycleTime;
     } else if (rThisVariable == CYCLE_PERIOD) {
         rValue = mPeriod;
-    } else if (rThisVariable == INFINITY_YIELD_STRESS) {
+    } else if (rThisVariable == REVERSION_FACTOR) {
         rValue = mMinStress/mMaxStress;
+    } else if (rThisVariable == STRESS_RELAXATION_FACTOR) {
+        rValue = mRelaxationFactor;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

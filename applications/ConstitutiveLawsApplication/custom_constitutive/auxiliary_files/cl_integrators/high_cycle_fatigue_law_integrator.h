@@ -250,10 +250,6 @@ public:
 	{
 
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
-        const double c1_stress_concentration = r_fatigue_coefficients[8];
-        const double c2_stress_concentration = r_fatigue_coefficients[9];
-        const double c1_roughness = r_fatigue_coefficients[10];
-        const double c2_roughness = r_fatigue_coefficients[11];
 
         // Reduction factors applied to the fatigue limit
         double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction

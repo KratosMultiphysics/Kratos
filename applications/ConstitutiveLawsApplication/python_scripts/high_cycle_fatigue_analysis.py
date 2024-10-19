@@ -70,7 +70,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                             local_number_of_cycles = elem.CalculateOnIntegrationPoints(CLA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
                             damage = elem.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
                             f_red = elem.CalculateOnIntegrationPoints(CLA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
-                            reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
+                            reversion_factor = elem.CalculateOnIntegrationPoints(CLA.REVERSION_FACTOR,self.main_model_part.ProcessInfo)
 
                             if first_code_line == True:
                                 plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
@@ -94,7 +94,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                         uniaxial_stresses = elem.CalculateOnIntegrationPoints(CLA.UNIAXIAL_STRESS,self.main_model_part.ProcessInfo)
                         damage = elem.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
                         f_red = elem.CalculateOnIntegrationPoints(CLA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
-                        reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
+                        reversion_factor = elem.CalculateOnIntegrationPoints(CLA.REVERSION_FACTOR,self.main_model_part.ProcessInfo)
 
                         if first_code_line == True:
                             plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
