@@ -320,8 +320,9 @@ inline std::istream & operator >>(std::istream& rIStream,
 
 /// output stream function
 
-inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const CleanUpProblematicTrianglesModeler& rThis)
+inline std::ostream & operator <<(
+    std::ostream& rOStream,
+    const CleanUpProblematicTrianglesModeler& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
