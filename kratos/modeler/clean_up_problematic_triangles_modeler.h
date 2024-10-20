@@ -315,8 +315,9 @@ void CleanUpProblematicTrianglesModeler::RemoveEntitiesAndNodes<Condition>(Model
 ///@{
 
 /// input stream function
-inline std::istream & operator >>(std::istream& rIStream,
-                                  CleanUpProblematicTrianglesModeler& rThis);
+inline std::istream & operator >>(
+    std::istream& rIStream,
+    CleanUpProblematicTrianglesModeler& rThis);
 
 /// output stream function
 
