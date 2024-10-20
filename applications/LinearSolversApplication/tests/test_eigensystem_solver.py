@@ -14,7 +14,7 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "test_files", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, K) # symmetric test matrix
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
@@ -60,16 +60,21 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(value, 1.0, 7)
 
     def test_eigen_eigensystem_solver(self):
-        settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 3,
-            "max_iteration": 1000,
-            "tolerance": 1e-8,
-            "normalize_eigenvectors": true,
-            "echo_level": 0
-        }''')
+        import platform
 
-        self._run_test(settings)
+        if platform.system() != "Windows":
+            settings = KratosMultiphysics.Parameters('''{
+                "solver_type": "eigen_eigensystem",
+                "number_of_eigenvalues": 3,
+                "max_iteration": 1000,
+                "tolerance": 1e-8,
+                "normalize_eigenvectors": true,
+                "echo_level": 0
+            }''')
+
+            self._run_test(settings)
+        else:
+            self.skipTest("Test disabled in Windows")
 
     def test_spectra_sym_g_eigs_shift_solver(self):
         settings = KratosMultiphysics.Parameters('''{

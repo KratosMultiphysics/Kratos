@@ -19,7 +19,7 @@ class TestMPIModelPart(KratosUnittest.TestCase):
 
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
-        ReadDistributedModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator"), main_model_part)
+        ReadDistributedModelPart(GetFilePath("test_files/mdpa_files/test_mpi_communicator"), main_model_part)
 
         for node in main_model_part.Nodes:
             if node.Id % 2:

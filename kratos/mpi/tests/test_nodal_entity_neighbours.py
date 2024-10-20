@@ -20,7 +20,7 @@ class TestNodalEntityNeighbours(KratosUnittest.TestCase):
         cls.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
-        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator")
+        input_filename = GetFilePath("test_files/mdpa_files/test_mpi_communicator")
         ReadModelPart(input_filename, cls.main_model_part)
 
     def test_global_elemental_neighbour_pointers(self):
