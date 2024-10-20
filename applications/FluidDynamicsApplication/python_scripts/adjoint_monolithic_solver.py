@@ -110,6 +110,12 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
                 "time_step"           : -0.1
             },
             "consider_periodic_conditions": false,
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
+            "multi_point_constraints_used": true,
             "assign_neighbour_elements_to_conditions": true,
             "formulation": {
                 "element_type": "qsvms"
