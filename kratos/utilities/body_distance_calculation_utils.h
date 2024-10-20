@@ -350,12 +350,10 @@ public:
 
 
         //approximate computation of distance on failed nodes
-        unsigned int confirmed_failures = 0;
         for (PointerVector< Node >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
         {
             if (it->GetValue(IS_VISITED) != 1 ) //it was not possible to calculate the distance
             {
-                confirmed_failures++;
                 double davg = 0.0;
                 double counter = 0.0;
                 for (GlobalPointersVector< Node >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)

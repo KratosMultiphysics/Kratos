@@ -846,7 +846,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double
 
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     std::unordered_map<IndexType,std::vector<std::string>>& rColors,
     ColorsMapType& rColorMapCondition,
     ColorsMapType& rColorMapElement,
@@ -858,7 +858,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+        const ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
         KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
@@ -870,11 +870,11 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     // Build mesh in MMG5 format //
 
     // Iterate over components
-    auto& r_nodes_array = rModelPart.Nodes();
+    const auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    auto& r_conditions_array = rModelPart.Conditions();
+    const auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    auto& r_elements_array = rModelPart.Elements();
+    const auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     // The following nodes will be remeshed
@@ -951,8 +951,8 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     // Now we compute the colors
     rColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
-    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
+    AssignUniqueModelPartCollectionTagUtility model_part_collections;
+    model_part_collections.ComputeTags(rModelPart, nodes_colors, cond_colors, elem_colors, rColors);
 
     /* Nodes */
     block_for_each(r_nodes_array, nodes_colors,
@@ -993,12 +993,12 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     // Add missing entities
-    Model& r_model = rModelPart.GetModel();
+    const Model& r_model = rModelPart.GetModel();
     for (auto& r_color : rColors) {
         const IndexType color = r_color.first;
         if (color != 0 && r_color.second.size() == 1) { // Not including main model part, and adding only simple model parts
             for (auto& r_sub_model_part_name : r_color.second) {
-                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
+                const ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
                 if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
                     if (r_sub_model_part.NumberOfConditions() > 0) {
                         const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
@@ -1090,7 +1090,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PrintParallelInterfaces(
 
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     const ColorsMapType& rColorMapCondition,
     const ColorsMapType& rColorMapElement,
     std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
@@ -1128,7 +1128,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
+void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(const ModelPart& rModelPart)
 {
     BaseType::GenerateSolDataFromModelPart(rModelPart);
 }
