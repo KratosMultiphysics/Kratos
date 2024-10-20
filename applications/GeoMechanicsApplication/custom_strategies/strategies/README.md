@@ -38,7 +38,8 @@ get the height value.
 
 ### CalculateParticleDiameter
 
-This is SteadyStatePwPipingElement class function. In case of PIPE_MODIFIED_D
+In case of PIPE_MODIFIED_D, the function returns
+
 $$ diameter = 2.08\times 10^{-4} * \Bigg(\frac{D_{70}}{2.08\times 10^{-4}}\Bigg)^{0.4}$$
 
 otherwise, $$diameter = D_{70}$$
