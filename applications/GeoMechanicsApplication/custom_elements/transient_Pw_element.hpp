@@ -118,18 +118,13 @@ public:
     // Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "transient Pw flow Element #" << this->Id()
-               << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        return buffer.str();
+        const std::string retention_info =
+            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+        return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
     }
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "transient Pw flow Element #" << this->Id()
-                 << "\nRetention law: " << mRetentionLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
