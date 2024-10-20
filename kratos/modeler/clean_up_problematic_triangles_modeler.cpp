@@ -163,9 +163,9 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
                 const double squared_area = ComputeSquaredArea(r_geometry);
                 if (squared_area < ref_area) {
                     // Get the nodes
-                    auto& r_node1 = r_geometry[0];
-                    auto& r_node2 = r_geometry[1];
-                    auto& r_node3 = r_geometry[2];
+                    const auto& r_node1 = r_geometry[0];
+                    const auto& r_node2 = r_geometry[1];
+                    const auto& r_node3 = r_geometry[2];
 
                     // Compute the squared distances
                     distance_1 = ComputeDistance(r_node1, r_node2);
