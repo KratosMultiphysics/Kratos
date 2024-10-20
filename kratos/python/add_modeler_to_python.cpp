@@ -120,8 +120,6 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<CleanUpProblematicTrianglesModeler, CleanUpProblematicTrianglesModeler::Pointer, Modeler>(m, "CleanUpProblematicTrianglesModeler")
         .def(py::init<Model&, Parameters>())
-        .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&>())
         .def_static("CleanUpProblematicGeometriesInMesh", &CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometriesInMesh,
           py::arg("rThisModelPart"),
           py::arg("rEntityType") = "element",
