@@ -14,13 +14,14 @@
 #pragma once
 
 #include "geometries/geometry.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
 #include "includes/node.h"
+
+#include <algorithm>
 
 namespace Kratos
 {
 
+template <typename MidGeometryType>
 class LineInterfaceGeometry : public Geometry<Node>
 {
 public:
@@ -41,13 +42,8 @@ public:
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
 
-        const auto points_of_mid_line = CreatePointsOfMidLine();
-
-        if (points_of_mid_line.size() == 2) {
-            mMidLineGeometry = std::make_unique<Line2D2<Node>>(points_of_mid_line);
-        } else {
-            mMidLineGeometry = std::make_unique<Line2D3<Node>>(points_of_mid_line);
-        }
+        mMidLineGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
+        this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
@@ -119,7 +115,8 @@ public:
 
     [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
     {
-        return "This Geometry type does not support functionality related to integration schemes.\n";
+        return "This Geometry type does not support functionality related to integration "
+               "schemes.\n";
     }
 
     array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
@@ -211,6 +208,26 @@ public:
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
     }
 
+    GeometriesArrayType GenerateEdges() const override
+    {
+        const auto points = this->Points();
+
+        // The first edge coincides with the first side of the element
+        auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
+        const auto nodes_of_first_edge = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
+
+        // The second edge coincides with the second side of the element. However, the nodes must be
+        // traversed in opposite direction.
+        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
+        std::swap(nodes_of_second_edge(0), nodes_of_second_edge(1)); // end nodes
+        std::reverse(nodes_of_second_edge.ptr_begin() + 2, nodes_of_second_edge.ptr_end()); // any high-order nodes
+
+        auto result = GeometriesArrayType{};
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_edge));
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_edge));
+        return result;
+    }
+
     void CreateIntegrationPoints(IntegrationPointsArrayType& rIntegrationPoints,
                                  IntegrationInfo&            rIntegrationInfo) const override
     {
@@ -218,9 +235,9 @@ public:
     }
 
     void CreateQuadraturePointGeometries(GeometriesArrayType& rResultGeometries,
-                                     IndexType            NumberOfShapeFunctionDerivatives,
-                                     const IntegrationPointsArrayType& rIntegrationPoints,
-                                     IntegrationInfo& rIntegrationInfo) override
+                                         IndexType            NumberOfShapeFunctionDerivatives,
+                                         const IntegrationPointsArrayType& rIntegrationPoints,
+                                         IntegrationInfo& rIntegrationInfo) override
     {
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
     }
@@ -244,6 +261,13 @@ private:
     {
         const auto points                  = this->Points();
         const auto number_of_midline_nodes = std::size_t{points.size() / 2};
+
+        auto is_null = [](const auto& rNodePtr) { return rNodePtr == nullptr; };
+        if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
+            // At least one point is not defined, so the points of the mid-line can't be computed.
+            // As a result, all the mid-line points will be undefined.
+            return PointerVector<Node>{number_of_midline_nodes};
+        }
 
         auto result = PointerVector<Node>{};
         for (std::size_t i = 0; i < number_of_midline_nodes; ++i) {

@@ -36,8 +36,6 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineNormalLoad2DDiffOrderCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     LineNormalLoad2DDiffOrderCondition();
 
@@ -47,20 +45,14 @@ public:
     // Constructor 2
     LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
     double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
@@ -68,8 +60,6 @@ protected:
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     // Serialization

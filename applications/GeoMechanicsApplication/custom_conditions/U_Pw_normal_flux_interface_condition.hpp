@@ -22,7 +22,7 @@
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -43,8 +43,6 @@ public:
     using VectorType     = Vector;
     using MatrixType     = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Default constructor
     UPwNormalFluxInterfaceCondition() : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>() {}
 
@@ -60,30 +58,18 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     // Member Variables
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;
