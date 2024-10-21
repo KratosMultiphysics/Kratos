@@ -9,7 +9,7 @@ described in
 
 ## Algorithm
 
-The algorithm is implemented in FinalizeSolutionStep function that loops over all piping elements until the erosion
+The algorithm is implemented in the FinalizeSolutionStep function that loops over all piping elements until the erosion
 growth is finished or all piping elements are checked.
 
 ### FinalizeSolutionStep function
@@ -40,15 +40,19 @@ get the height value.
 
 In case of PIPE_MODIFIED_D, the function returns
 
-$$ diameter = 2.08\times 10^{-4} * \Bigg(\frac{D_{70}}{2.08\times 10^{-4}}\Bigg)^{0.4}$$
+$$ diameter = factor \Bigg(\frac{D_{70}}{factor}\Bigg)^{0.4}$$
 
 otherwise, $$diameter = D_{70}$$
 
+where \
+$D_{70}$ is the particle diameter of 70%-quantile of the grain size distribution by weight [m],\
+factor = $2.08\times 10^{-4}$ [m].
+
 ### check_pipe_equilibrium function
 
-This function performs iterative process with a prescribed maximum number of iterations. For each iteration the
-modelling is
-performed. Then a pipe height is calculated for each open piping element.
+This function performs an iterative process towards a certain equilibrium values of the pipe heights. For each iteration
+the modelling is performed. Then a pipe height is corrected by a given increment for each open piping element. The
+maximum number of iterations is the user input, "max_piping_iterations".
 
 ![check_pipe_equilibrium.svg](check_pipe_equilibrium.svg)
 
@@ -69,8 +73,8 @@ where $F$ is the model factor,\
 $D_p$ is the particle diameter calculated with CalculateParticleDiameter function,\
 $\rho_s$ is the solid density,\
 $\rho_w$ is the water density,\
-$\eta=\frac{n d^2}{A}$ is the packing coefficient?\
-$\theta$ is the angle of repose or bedding angle?\
+$\eta$ is the packing coefficient,\
+$\theta$ is the angle of repose or bedding angle,\
 $\alpha$ is the slope of the pipe,\
 $\frac{dh}{dx}$ is the head gradient obtained with CalculateHeadGradient function,\
 Currently, the pipe is assumed horizontal $\alpha = 0$.
@@ -84,8 +88,9 @@ too small then the function changes the pipe properties: PIPE_EROSION and PIPE_A
 
 ### save_or_reset_pipe_heights function
 
-Based on the grow value, this function sets PREV_PIPE_HEIGHT equal to PIPE_HEIGHT or reset PIPE_HEIGHT to
-PREV_PIPE_HEIGHT value.
+This function sets values of PREV_PIPE_HEIGHT and PIPE_HEIGHT parameters based on 'grow' input value. If grow is equal
+to true then PREV_PIPE_HEIGHT value is assigned to PIPE_HEIGHT value. If grow is fail then PIPE_HEIGHT value is assigned
+to the PREV_PIPE_HEIGHT value.
 
 ### Interaction with Interface classes.
 
