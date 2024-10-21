@@ -431,7 +431,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_VARIABLE(name) \
     AddKratosComponent(name.Name(), name); \
-    KratosComponents<VariableData>::Add(name.Name(), name);
+    KratosComponents<VariableData>::Add(name.Name(), name); \
+    name.Register();
 
 #ifdef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
