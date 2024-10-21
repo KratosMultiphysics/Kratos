@@ -322,7 +322,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         # model_part.ProcessInfo.SetValue(KratosMultiphysics.CROSS_WIND_STABILIZATION_FACTOR, 0.0)
 
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
-        model_part.CloneTimeStep(0.0)
+        self.time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+        # model_part.CloneTimeStep(0.0)
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(
@@ -334,10 +335,6 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             node.SetSolutionStepValue(
                 KratosMultiphysics.DISTANCE, 2, BaseJumpedDistance(node.X, node.Y, node.Z))
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2,ConvectionVelocity(node.X,node.Y,node.Z))
-            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0,0.1)
-
-            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 1, 0.1)
-            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 2, 0.1)
 
             node.SetValue(KratosMultiphysics.HEAT_FLUX, 0.1)
 
@@ -355,7 +352,6 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         linear_solver = linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
 
-        self.time = model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         gid_output = GiDOutputProcess(model_part,
                                       "testing_uxue/test_ux",
@@ -386,15 +382,15 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
 
 
-        while self.time <0.01:
+        while self.time <20:
             self.time += 0.01
             model_part.CloneTimeStep(self.time)
             model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
 
 
             KratosMultiphysics.TimeDiscretization.BDF(2).ComputeAndSaveBDFCoefficients(model_part.ProcessInfo)
-            bdf_vec = [1.0/0.01,-1.0/0.01,0.0]
-            model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+            # bdf_vec = [1.0/0.01,-1.0/0.01,0.0]
+            # model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
             KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
 
             levelset_convection_settings = KratosMultiphysics.Parameters("""{
@@ -407,7 +403,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
                 model_part,
                 linear_solver,
                 levelset_convection_settings).Execute()
-
+            print("hola")
             gid_output.ExecuteInitializeSolutionStep()
             gid_output.PrintOutput()
             gid_output.ExecuteFinalizeSolutionStep()

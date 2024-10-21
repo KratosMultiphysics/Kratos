@@ -111,10 +111,14 @@ namespace Kratos
             // phi_frac[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             // phi_frac_old[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
             phi[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+
+            
+
             phi_old[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);
             phi_old_1[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 2);
             a_n[i] = this -> GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
             v[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
+
             // proj_oss[i] = this->GetGeometry()[i].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
         }
 
@@ -230,9 +234,8 @@ namespace Kratos
         rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
 
-
-        KRATOS_CATCH("Error in Levelset Element")
-    }
+            KRATOS_CATCH("Error in Levelset Element")
+        }
     // template <unsigned int TDim, unsigned int TNumNodes>
     // void LevelSetConvectionElementSimplexBDF<TDim, TNumNodes>::InitializeSolutionStep(
     //     const ProcessInfo &rCurrentProcessInfo)
@@ -303,12 +306,13 @@ namespace Kratos
             const Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                phi[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+                phi[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,0);
                 phi_old[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
                 phi_old_1[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,2);
-
                 v[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             }
+            
+
             // velocity interpolation
             array_1d<double, TDim> vel_gauss = ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
@@ -322,31 +326,25 @@ namespace Kratos
             array_1d<double, TDim> grad_phi = prod(trans(DN_DX), phi);
             double fractional_acceleration_gauss = 0.0;
             for(unsigned int igauss=0; igauss<TDim+1; igauss++){
-                for (unsigned int j= 0; j<TNumNodes; j++)
-                {
-                    fractional_acceleration_gauss = BDFcoeffs[0] * N[j] * phi[j] + BDFcoeffs[1] * N[j] * phi_old[j] + BDFcoeffs[2] * N[j]* phi_old_1[j];
-                    for (unsigned int d = 0; d < TDim; d++)
+
+                    for (unsigned int j = 0; j < TNumNodes; j++)
                     {
-                    fractional_acceleration_gauss += DN_DX(j, d) * phi[j] * vel_gauss[d];
-                    KRATOS_WATCH(DN_DX(j, d))
-                    KRATOS_WATCH(phi[j])
-                    KRATOS_WATCH(vel_gauss[d])
+                        fractional_acceleration_gauss = BDFcoeffs[0] * N[j] * phi[j] + BDFcoeffs[1] * N[j] * phi_old[j] + BDFcoeffs[2] * N[j] * phi_old_1[j];
+
+
+                        for (unsigned int d = 0; d < TDim; d++)
+                        {
+                            fractional_acceleration_gauss += DN_DX(j, d) * phi[j] * vel_gauss[d];
+
+                        }
                     }
-                }
-                fractional_acceleration_gauss *= Volume / static_cast<double>(TNumNodes);
-                KRATOS_WATCH(fractional_acceleration_gauss)
-                auto &r_geometry = this->GetGeometry();
-                for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
-                {
-                    KRATOS_WATCH( N[i_node] * fractional_acceleration_gauss)
-                    AtomicAdd(r_geometry[i_node].GetValue(rVolumeSourceVar), N[i_node] * fractional_acceleration_gauss);
-                }
-            }
-
-
-
-
-
+                        fractional_acceleration_gauss *= Volume / static_cast<double>(TNumNodes);
+                        auto &r_geometry = this->GetGeometry();
+                        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
+                        {
+                            AtomicAdd(r_geometry[i_node].GetValue(rVolumeSourceVar), N[i_node] * fractional_acceleration_gauss);
+                        }
+                    }
     }
 
 

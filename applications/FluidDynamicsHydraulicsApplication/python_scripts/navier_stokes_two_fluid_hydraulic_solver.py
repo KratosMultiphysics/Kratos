@@ -249,7 +249,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Non historical variable are initilized in order to avoid memory problems
         if self.eulerian_fm_ale:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.FRACTIONAL_ACCELERATION, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.HEAT_FLUX, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.NODAL_AREA, self.main_model_part.Nodes)
             for node in self.main_model_part.Nodes:
@@ -468,10 +467,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1,1)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 2,2)
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(a_n_var[i], self.eulerian_acceleration_var, self.main_model_part, self.main_model_part, 0,0)
-            for node in self.main_model_part.Nodes:
-                print(node.GetSolutionStepValue( self.eulerian_acceleration_var))
-                print(node.GetSolutionStepValue(KratosCFD.FRACTIONAL_ACCELERATION_X))
+            # KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(a_n_var[i], self.eulerian_acceleration_var, self.main_model_part, self.main_model_part, 0,0)
+            # for node in self.main_model_part.Nodes:
+            #     print(node.GetValue( self.eulerian_acceleration_var))
+            #     print(node.GetSolutionStepValue(KratosCFD.FRACTIONAL_ACCELERATION_X))
+            print("hola")
 
             self._GetEulerianFmAleProcess().Execute()
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)

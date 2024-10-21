@@ -351,6 +351,7 @@ namespace Testing
         p_element->GetGeometry()[1].FastGetSolutionStepValue(HEAT_FLUX, 1) =0.1;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(HEAT_FLUX, 2) = 0.1;
 
+        p_element->GetGeometry()[0].SetValue(HEAT_FLUX,0.0);
         p_element->GetGeometry()[0].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[1].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;
         p_element->GetGeometry()[2].FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0;

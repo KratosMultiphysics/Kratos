@@ -204,9 +204,8 @@ public:
     void ExecuteInitialize() override
     {
 
+        KRATOS_WATCH("LIANDOLA")
         ComputeNodalArea();
-        block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode)
-                       { rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
     }
 
     void Execute() override
@@ -221,6 +220,7 @@ public:
         }
 
         // If required, calculate nodal element size
+        KRATOS_WATCH("PRIMERO")
         // Note that this is done once assuming no mesh deformation
         if (mElementTauNodal || mCalculateNodalH) {
             ComputeNodalH();
@@ -270,9 +270,9 @@ public:
             }
         );
 
-         NodalAccelerationProjection();
+        ComputeNodalArea();
+        NodalAccelerationProjection();
         mpSolvingStrategy->InitializeSolutionStep();
-        // ComputeNodalArea();
         // if (mIsBDFElement)
         // {
         //     NodalOSSProjection();
@@ -470,6 +470,7 @@ protected:
         }
         // Checks and assign all the required member variables
         CheckAndAssignSettings(ThisParameters);
+        KRATOS_WATCH("HOLA  DFDFD")
 
         // Sets the convection diffusion problem settings
         SetConvectionProblemSettings();
@@ -494,13 +495,11 @@ protected:
         // Get the base model part process info
         // Note that this will be shared with the auxiliary model part used in the convection resolution
         auto& r_process_info = mrBaseModelPart.GetProcessInfo();
-
         // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
         if(!r_process_info.Has(CONVECTION_DIFFUSION_SETTINGS)){
             auto p_conv_diff_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
-            p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
             p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
 
             if (mpLevelSetGradientVar)
@@ -512,6 +511,7 @@ protected:
         // This call returns a function pointer with the ProcessInfo filling directives
         // If the user-defined level set convection requires nothing to be set, the function does nothing
         auto fill_process_info_function = GetFillProcessInfoFormulationDataFunction();
+   
         fill_process_info_function(mrBaseModelPart);
     }
 
@@ -839,6 +839,9 @@ protected:
             double& sum_proj = rNode.FastGetSolutionStepValue(*mpVolumeSourceVar);
             sum_proj /= rNode.GetValue(NODAL_AREA); });
     }
+
+
+
     void ComputeNodalArea(){
         // Calculate the NODAL_AREA
         CalculateNodalAreaProcess<false> nodal_area_process(mrBaseModelPart);
