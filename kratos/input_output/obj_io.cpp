@@ -18,7 +18,6 @@
 #include "input_output/obj_io.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "modeler/clean_up_problematic_triangles_modeler.h"
 
 namespace Kratos
 {
