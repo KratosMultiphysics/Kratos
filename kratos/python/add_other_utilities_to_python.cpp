@@ -25,6 +25,8 @@
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_filesystem.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -69,8 +71,21 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/model_part_utils.h"
+#include "utilities/quadrature_points_utility.h"
 
 namespace Kratos::Python {
+
+typedef std::size_t IndexType;
+typedef std::size_t SizeType;
+typedef Node NodeType;
+typedef PointerVector<NodeType> NodeContainerType;
+typedef Geometry<NodeType> GeometryType;
+typedef typename GeometryType::PointsArrayType PointsArrayType;
+
+typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
+typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
@@ -861,6 +876,48 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             py::arg("properties")
         );
     ;
+
+    py::class_<CreateQuadraturePointsUtility<NodeType>>(m, "CreateQuadraturePointsUtility")
+        .def("CreateQuadraturePoint", [](
+        GeometryType& GeometryParent,
+        SizeType WorkingSpaceDimension, SizeType LocalSpaceDimension
+        ,std::vector<std::array<double,4>>& rIntegrationPoints
+        // PointsArrayType rPoints        
+        // GeometriesArrayType& rResultGeometries
+        ) 
+        {
+            const auto default_method = GeometryParent.GetDefaultIntegrationMethod();
+
+            // IntegrationPointsContainerType integration_points;
+            // ShapeFunctionsValuesContainerType shape_function_values;
+            // ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
+
+            IntegrationPoint<3> point_tmp(rIntegrationPoints[0][0],rIntegrationPoints[0][1],rIntegrationPoints[0][2],rIntegrationPoints[0][3]);
+
+            int num_nonzero_cps = 2;
+            Matrix N(1, num_nonzero_cps);
+            DenseVector<Matrix> shape_function_derivatives(2);
+
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
+            
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                default_method, 
+                point_tmp,
+                N, 
+                shape_function_derivatives);
+
+            // GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            //     default_method, 
+            //     integration_points,
+            //     shape_function_values, 
+            //     shape_function_gradients);
+
+            // return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points)); 
+            return(CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(WorkingSpaceDimension, LocalSpaceDimension, data_container, nonzero_control_points, &GeometryParent)); 
+            })
+        ;
+
+
 }
 
 } // namespace Kratos::Python.
