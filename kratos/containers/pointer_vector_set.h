@@ -654,6 +654,51 @@ public:
     }
 
     /**
+     * @brief Insert elements from a range of iterators from an unordered set.
+     * @details This method allows adding elements from an unordered set, therefore skips the step which
+     *          the normal insert is made to unique since unordered sets are always having unique elements.
+     * @tparam TArgs
+     * @param first An input iterator pointing to the beginning of the range to insert.
+     * @param last An input iterator pointing to the end of the range to insert.
+     */
+    template <class... TArgs>
+    void insert(
+        typename std::unordered_set<TArgs...>::const_iterator first,
+        typename std::unordered_set<TArgs...>::const_iterator last)
+    {
+        using unordered_set_key_type = typename std::unordered_set<TArgs...>::key_type;
+        using unordered_set_key_equal = typename std::unordered_set<TArgs...>::key_equal;
+
+        if constexpr(
+                (
+                    std::is_same_v<unordered_set_key_type, key_type> &&
+                    std::is_same_v<unordered_set_key_equal, std::equal_to<std::remove_cv_t<key_type>>>
+                    // unordered set has used the same key type, and the std::equal_to to add elements.
+                    // hence the given range [first, last] was created by having unique elements while doing the same comparison
+                    // as the PointerVectorSet. Hence, no std::unique is required.
+                )
+                ||
+                (
+                    std::is_pointer_v<unordered_set_key_type> &&
+                    std::is_same_v<unordered_set_key_equal, PointerComparor<std::remove_cv_t<key_type>>>
+                    // unordered set has used the pointer type of the key, and PointerComparor to add elements.
+                    // hence the given range [first, last] was created by having unique elements while doing the same comparison
+                    // as the PointerVectorSet. Hence, no std::unique is required.
+                ))  {
+
+                TContainerType aux_container;
+                aux_container.resize(std::distance(first, last));
+                std::copy(first, last, aux_container.begin());
+                std::sort(aux_container.begin(), aux_container.end(), CompareKey());
+                SortedInsert(aux_container.begin(), aux_container.end());
+        } else {
+            static_assert(
+                !std::is_same_v<unordered_set_key_type, unordered_set_key_type>,
+                "The unordered set is not created with either (key, std::equal_to<key>) or (key*, PointerComparor<key>) types.");
+        }
+    }    
+
+    /**
      * @brief Insert elements from another PointerVectorSet range.
      * @details This function inserts element pointers from another PointerVectorSet range specified by first and last into the current set.
      * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
