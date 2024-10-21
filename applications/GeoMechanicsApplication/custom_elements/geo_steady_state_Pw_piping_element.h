@@ -82,7 +82,7 @@ public:
         const auto fluid_body_vector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
         AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
-
+        
         KRATOS_CATCH("")
     }
 
@@ -164,7 +164,7 @@ private:
             auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
                                                   [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
         }
     }
 
@@ -222,6 +222,7 @@ private:
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse,
                 constitutive_matrix, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
+
         return result;
     }
 

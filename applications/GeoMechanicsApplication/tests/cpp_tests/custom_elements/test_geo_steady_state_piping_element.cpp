@@ -38,10 +38,11 @@ PointerVector<Node> CreateIdenticalNodes()
     return result;
 }
 
-ModelPart& CreateModelPartWithWaterPressureVariable(Model& rModel)
+ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
     return r_result;
 }
@@ -60,7 +61,7 @@ GeoSteadyStatePwPipingElement<2, 2> CreateGeoSteadyStatePwPipingElementWithPWDof
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(
     Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithWaterPressureVariable(rModel);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -72,7 +73,7 @@ GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPi
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(
     Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithWaterPressureVariable(rModel);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
@@ -216,33 +217,80 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
 
     Model model;
     auto new_element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(model, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(new_element.Check(dummy_process_info),
-                                      "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        new_element.Check(dummy_process_info),
+        "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
 
     Model model1;
     auto element1 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model1, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: DENSITY_WATER does not exist in the properties of element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: DENSITY_WATER does not exist in the properties of element 1")
     element1.GetProperties().SetValue(DENSITY_WATER, -1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: DENSITY_WATER (-1000) has an invalid value at element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: DENSITY_WATER (-1000) has an invalid value at element 1")
     element1.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: DYNAMIC_VISCOSITY does not exist in the properties of element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: DYNAMIC_VISCOSITY does not exist in the properties of element 1")
     element1.GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: DYNAMIC_VISCOSITY (-0.01) has an invalid value at element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: DYNAMIC_VISCOSITY (-0.01) has an invalid value at element 1")
     element1.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: PIPE_HEIGHT does not exist in the properties of element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: PIPE_HEIGHT does not exist in the properties of element 1")
     element1.GetProperties().SetValue(PIPE_HEIGHT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
                                       "Error: PIPE_HEIGHT (-1) has an invalid value at element 1")
     element1.GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
+    element1.GetGeometry().begin()->Z() += 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
+                                      "Error: Node with non-zero Z coordinate found. Id: 0")
+    element1.GetGeometry().begin()->Z() = 0;
+
     // No exeptions on correct input
     KRATOS_EXPECT_EQ(element1.Check(dummy_process_info), 0);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHandSideAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto dummy_process_info = ProcessInfo{};
+    const auto p_properties       = std::make_shared<Properties>();
+
+    Model model;
+    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model, p_properties);
+    element.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    element.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    element.GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
+    // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
+    element.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -10.0, 0.0};
+    // Create a head gradient of -10.
+    element.GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+    element.GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+
+    // Assert
+    auto expected_left_hand_side  = Matrix{ScalarMatrix{2, 2, 0.1 / 12.}};
+    expected_left_hand_side(0, 0) = -expected_left_hand_side(0, 0);
+    expected_left_hand_side(1, 1) = -expected_left_hand_side(1, 1);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    auto expected_right_hand_side = Vector{ScalarVector{2, 1. / 12.}};
+    expected_right_hand_side(1)   = -expected_right_hand_side(1);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing
