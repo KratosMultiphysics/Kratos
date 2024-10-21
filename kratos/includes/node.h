@@ -226,9 +226,9 @@ public:
     {
     }
 
-    typename Node::Pointer Clone()
+    typename Node::Pointer Clone(IndexType NewId)
     {
-        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( NewId, (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mNodalData = this->mNodalData;
 
         Node::DofsContainerType& my_dofs = (this)->GetDofs();
