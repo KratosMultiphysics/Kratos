@@ -88,9 +88,7 @@ Parameters ObjIO::GetDefaultParameters()
         "open_mode"                       : "read",
         "entity_type"                     : "element",
         "decompose_quads_into_triangles"  : false,
-        "normal_as_historical"            : false,
-        "clean_up_problematic_geometries" : true,
-        "area_tolerance"                  : 1.0e-4
+        "normal_as_historical"            : false
     })" );
 }
 
@@ -125,23 +123,6 @@ void ObjIO::ReadModelPart(ModelPart& rThisModelPart)
     const std::string entity_type = mParameters["entity_type"].GetString();
     const bool decompose_quads_into_triangles = mParameters["decompose_quads_into_triangles"].GetBool();
     ReadVerticesAndFaces(rThisModelPart, entity_type, normal_as_historical, decompose_quads_into_triangles);
-
-    // Clean up problematic geometries
-    const bool clean_up_problematic_geometries = mParameters["clean_up_problematic_geometries"].GetBool();
-    if (clean_up_problematic_geometries) {
-        Parameters clean_up_parameters = Parameters(R"({
-            "entity_type"        : "element",
-            "first_node_id"      : 1,
-            "first_element_id"   : 1,
-            "first_condition_id" : 1
-        })");
-        clean_up_parameters["entity_type"].SetString(entity_type);
-        clean_up_parameters["first_node_id"].SetInt(mFirstNodeId);
-        clean_up_parameters["first_element_id"].SetInt(mFirstElementId);
-        clean_up_parameters["first_condition_id"].SetInt(mFirstConditionId);
-        clean_up_parameters.AddValue("area_tolerance", mParameters["area_tolerance"]);
-        CleanUpProblematicTrianglesModeler(rThisModelPart, clean_up_parameters).SetupModelPart();
-    }
 }
 
 /***********************************************************************************/
