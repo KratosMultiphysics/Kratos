@@ -60,6 +60,9 @@ public:
     /// Definition of the base type
     using BaseType = Modeler;
 
+    // Define GeometryType
+    using GeometryType = Geometry<Node>;
+
     /// Pointer definition of CleanUpProblematicTrianglesModeler
     KRATOS_CLASS_POINTER_DEFINITION(CleanUpProblematicTrianglesModeler);
 
@@ -238,6 +241,41 @@ private:
         const IndexType FirstNodeId = 1,
         const IndexType FirstEntityId = 1,
         const double AreaTolerance = 1.0e-4
+        );
+
+    /**
+    * @brief Computes the distance between two nodes.
+    * @details This function calculates the Euclidean distance between two nodes using their coordinates. The distance is computed as the norm of the difference between the two position vectors.
+    * @param rNode1 The first node.
+    * @param rNode2 The second node.
+    * @return The distance between the two nodes.
+    */
+    static double ComputeDistance(
+        const Node& rNode1,
+        const Node& rNode2
+        );
+
+    /**
+    * @brief Computes the squared area of a triangle.
+    * @details This function calculates the squared area of a triangle defined by three points in a 3D space. The area is calculated using the semi-perimeter formula.
+    * @param rGeometry The geometry of the triangle containing three points.
+    * @return The squared area of the triangle.
+    */
+    static double ComputeSquaredArea(const GeometryType& rGeometry);
+
+    /**
+    * @brief Computes the number of triangles with null area in a model part.
+    * @details This function iterates over the entities in the given model part and counts the number of triangles that have a squared area less than the specified reference area.
+    * @param rThisModelPart The model part containing the geometrical entities.
+    * @param RefArea The reference area to compare against.
+    * @param AreaTolerance The tolerance for determining if a triangle's area is considered null.
+    * @return The number of triangles with null area.
+    */
+    template <typename TEntityType>
+    static std::size_t ComputeNullAreaTriangles(
+        ModelPart& rThisModelPart,
+        const double RefArea,
+        const double AreaTolerance
         );
 
     ///@}

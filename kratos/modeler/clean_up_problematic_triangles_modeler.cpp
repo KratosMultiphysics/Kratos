@@ -98,50 +98,9 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
     }
     ref_area = ref_area * ref_area; // Using squared area tolerance to avoid expensive square roots, also will avoid numerical issues due to geometries that are 3 nodes in the same line, which squared area is negative and therefore area will be undefined (NaN)
 
-    // Lambda function to check if two nodes are at the same position using relative tolerance
-    auto ComputeDistance = [](const Node& rNode1, const Node& rNode2) -> double {
-        const array_1d<double, 3>& r_coords1 = rNode1.Coordinates();
-        const array_1d<double, 3>& r_coords2 = rNode2.Coordinates();
-        return norm_2(r_coords1 - r_coords2);
-    };
-
-    // Define GeometryType
-    using GeometryType = typename TEntityType::GeometryType;
-
-    // Lambda to compute the squared area of a triangle
-    auto ComputeSquaredArea = [](const GeometryType& rGeometry) -> double {
-        const array_1d<double, 3>& r_point1 = rGeometry[0].Coordinates();
-        const array_1d<double, 3>& r_point2 = rGeometry[1].Coordinates();
-        const array_1d<double, 3>& r_point3 = rGeometry[2].Coordinates();
-
-        const double a = MathUtils<double>::Norm3(r_point1 - r_point2);
-        const double b = MathUtils<double>::Norm3(r_point2 - r_point3);
-        const double c = MathUtils<double>::Norm3(r_point3 - r_point1);
-        const double s = (a + b + c) / 2.0;
-        return s * (s - a) * (s - b) * (s - c);
-    };
-
-    // Lambda to compute number of null area triangles
-    auto ComputeNullAreaTriangles = [&ComputeSquaredArea](ModelPart& rThisModelPart, const double RefArea, const double AreaTolerance) -> std::size_t {
-        const std::size_t null_area_triangles = block_for_each<SumReduction<std::size_t>>(EntitiesUtilities::GetEntities<TEntityType>(rThisModelPart), [&](auto& rEntity) {
-            if (rEntity.IsNot(TO_ERASE)) {
-                const auto& r_geometry = rEntity.GetGeometry();
-                if (r_geometry.PointsNumber() == 3) {
-                    const double squared_area = ComputeSquaredArea(r_geometry);
-                    // Now check that the area is small enough
-                    if (squared_area < RefArea) {
-                        return 1;
-                    }
-                }
-            }
-            return 0;
-        });
-        return null_area_triangles;
-    };
-
     // Iterate until all null area triangles are removed
     std::size_t iter = 0;
-    std::size_t null_area_triangles = ComputeNullAreaTriangles(rThisModelPart, ref_area, AreaTolerance);
+    std::size_t null_area_triangles = ComputeNullAreaTriangles<TEntityType>(rThisModelPart, ref_area, AreaTolerance);
     KRATOS_INFO("CleanUpProblematicTrianglesModeler") << "Number of null area triangles: " << null_area_triangles << " in iteration " << iter << std::endl;
     while (null_area_triangles > 0) {
         // Initialize variables
@@ -253,7 +212,7 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
 
         // Recompute the number of null area triangles
         KRATOS_INFO("CleanUpProblematicTrianglesModeler") << "Number of null area triangles removed: " << null_area_triangles << " in iteration " << iter << std::endl;
-        null_area_triangles = ComputeNullAreaTriangles(rThisModelPart, ref_area, AreaTolerance);
+        null_area_triangles = ComputeNullAreaTriangles<TEntityType>(rThisModelPart, ref_area, AreaTolerance);
         iter++;
         KRATOS_INFO_IF("CleanUpProblematicTrianglesModeler", null_area_triangles > 0) << "Number of null area triangles: " << null_area_triangles << " in iteration " << iter << std::endl;
     }
@@ -302,5 +261,64 @@ void CleanUpProblematicTrianglesModeler::RemoveEntitiesAndNodes<Condition>(Model
     rThisModelPart.RemoveConditions(TO_ERASE);
     rThisModelPart.RemoveNodes(TO_ERASE);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double CleanUpProblematicTrianglesModeler::ComputeDistance(
+    const Node& rNode1,
+    const Node& rNode2
+    )
+{
+    const array_1d<double, 3>& r_coords1 = rNode1.Coordinates();
+    const array_1d<double, 3>& r_coords2 = rNode2.Coordinates();
+    return norm_2(r_coords1 - r_coords2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double CleanUpProblematicTrianglesModeler::ComputeSquaredArea(const GeometryType& rGeometry)
+{
+    const array_1d<double, 3>& r_point1 = rGeometry[0].Coordinates();
+    const array_1d<double, 3>& r_point2 = rGeometry[1].Coordinates();
+    const array_1d<double, 3>& r_point3 = rGeometry[2].Coordinates();
+
+    const double a = MathUtils<double>::Norm3(r_point1 - r_point2);
+    const double b = MathUtils<double>::Norm3(r_point2 - r_point3);
+    const double c = MathUtils<double>::Norm3(r_point3 - r_point1);
+    const double s = (a + b + c) / 2.0;
+    return s * (s - a) * (s - b) * (s - c);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <typename TEntityType>
+std::size_t CleanUpProblematicTrianglesModeler::ComputeNullAreaTriangles(
+    ModelPart& rThisModelPart,
+    const double RefArea,
+    const double AreaTolerance
+    )
+{
+    const std::size_t null_area_triangles = block_for_each<SumReduction<std::size_t>>(EntitiesUtilities::GetEntities<TEntityType>(rThisModelPart), [&](auto& rEntity) {
+        if (rEntity.IsNot(TO_ERASE)) {
+            const auto& r_geometry = rEntity.GetGeometry();
+            if (r_geometry.PointsNumber() == 3) {
+                const double squared_area = ComputeSquaredArea(r_geometry);
+                // Now check that the area is small enough
+                if (squared_area < RefArea) {
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    });
+    return null_area_triangles;
+}
+
+// Explicit instantiation of template functions for Element and Condition
+template std::size_t CleanUpProblematicTrianglesModeler::ComputeNullAreaTriangles<Element>(ModelPart& rThisModelPart, const double RefArea, const double AreaTolerance);
+template std::size_t CleanUpProblematicTrianglesModeler::ComputeNullAreaTriangles<Condition>(ModelPart& rThisModelPart, const double RefArea, const double AreaTolerance);
 
 }
