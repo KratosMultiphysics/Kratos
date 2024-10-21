@@ -240,6 +240,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
                                       "Error: PIPE_HEIGHT (-1) has an invalid value at element 1")
     element1.GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
+    // No exeptions on correct input
+    KRATOS_EXPECT_EQ(element1.Check(dummy_process_info), 0);
+
 }
 
 } // namespace Kratos::Testing
