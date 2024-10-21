@@ -78,19 +78,6 @@ public:
         : BaseType(rModel, ModelerParameters),
           mrModelPart(rModel.GetModelPart(ModelerParameters["model_part_name"].GetString()))
     {
-    }
-
-    /**
-     * @brief Constructor with ModelPart
-     * @param rSourceModelPart The model part to be used.
-     * @param ModelerParameters The parameters for the modeler.
-     */
-    CleanUpProblematicTrianglesModeler(
-        ModelPart& rSourceModelPart,
-        Parameters ModelerParameters = Parameters()
-        ) : BaseType(rSourceModelPart.GetModel(), ModelerParameters),
-            mrModelPart(rSourceModelPart)
-    {
         mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     }
 
