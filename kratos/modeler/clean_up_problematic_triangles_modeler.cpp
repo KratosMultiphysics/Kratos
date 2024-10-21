@@ -36,7 +36,7 @@ void CleanUpProblematicTrianglesModeler::SetupModelPart()
     const IndexType first_element_id = mParameters["first_element_id"].GetInt();
     const IndexType first_condition_id = mParameters["first_condition_id"].GetInt();
     const double area_tolerance = mParameters["area_tolerance"].GetDouble();
-    CleanUpProblematicGeometriesInMesh(mrModelPart, entity_type, first_node_id, first_element_id, first_condition_id, area_tolerance);
+    CleanUpProblematicGeometriesInMesh(*mpModelPart, entity_type, first_node_id, first_element_id, first_condition_id, area_tolerance);
 
     Timer::Stop("CleanUpProblematicTrianglesModeler");
 

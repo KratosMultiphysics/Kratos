@@ -18,6 +18,8 @@
 
 // Project includes
 #include "modeler/modeler.h"
+#include "includes/define_registry.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -70,6 +72,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
+    CleanUpProblematicTrianglesModeler() : Modeler() {};
+
     /**
      * @brief Constructor with Model
      * @param Model The model to be used.
@@ -79,7 +84,7 @@ public:
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : BaseType(rModel, ModelerParameters),
-          mrModelPart(rModel.GetModelPart(ModelerParameters["model_part_name"].GetString()))
+          mpModelPart(&rModel.GetModelPart(ModelerParameters["model_part_name"].GetString()))
     {
         mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     }
@@ -199,11 +204,14 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, CleanUpProblematicTrianglesModeler)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", Modeler, CleanUpProblematicTrianglesModeler)
+
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     ///@}
     ///@name Private Operators
