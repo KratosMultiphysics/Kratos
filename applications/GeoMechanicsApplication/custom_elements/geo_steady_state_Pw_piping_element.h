@@ -82,19 +82,15 @@ public:
         const auto fluid_body_vector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
         AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
-        
+
         KRATOS_CATCH("")
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        switch (TNumNodes) {
-        case 2:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
-        }
+        KRATOS_ERROR_IF(TNumNodes != 2)
+            << "Can't return integration method: unexpected number of nodes: " << TNumNodes << std::endl;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     int Check(const ProcessInfo&) const override
@@ -191,9 +187,9 @@ private:
         auto result = Vector{r_integration_points.size()};
         // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ;
-                       });
+                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
+            return rIntegrationPoint.Weight() * rDetJ;
+        });
         return result;
     }
 
@@ -230,26 +226,10 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
-                       [&rNodalVariable](const auto& node) {
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
-    }
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // nothing to do?, no retention law
-    }
-
-    void InitializeSolutionStep(const ProcessInfo&) override
-    {
-        // nothing to do?, no retention law
-    }
-
-    void FinalizeSolutionStep(const ProcessInfo&) override
-    {
-        // nothing to do?, no retention law
     }
 
     array_1d<double, TNumNodes> CalculateFluidBodyVector(const Matrix& rNContainer,

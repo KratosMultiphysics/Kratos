@@ -14,9 +14,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-// #include <boost/numeric/ublas/assignment.hpp>
-// #include <cstddef>
-
 namespace
 {
 
