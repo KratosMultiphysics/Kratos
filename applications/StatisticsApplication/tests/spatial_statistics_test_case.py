@@ -59,6 +59,10 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                 InitializeModelPartVariables(self.model_part, False)
                 ExecuteProcessFinalizeSolutionStep(self)
 
+                for process in self.process_list:
+                    if isinstance(process, Kratos.OutputProcess) and process.IsOutputStep():
+                        process.PrintOutput()
+
             for process in self.process_list:
                 process.ExecuteFinalize()
 
@@ -78,7 +82,7 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                             "variable_names" : ["PRESSURE", "VELOCITY"]
                         },
                         {
-                            "norm_type"      : "magnitude",
+                            "norm_type"      : "l2",
                             "container"      : "<CONTAINER_NAME>",
                             "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"]
                         }
@@ -106,7 +110,11 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                             "method_name"    : "median"
                         },
                         {
-                            "method_name"    : "distribution"
+                            "method_name"    : "distribution",
+                            "method_settings": {
+                                "min_value": -1.0,
+                                "max_value": 100.0
+                            }
                         }
                     ],
                     "output_settings" : {
