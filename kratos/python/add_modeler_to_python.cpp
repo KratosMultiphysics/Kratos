@@ -120,14 +120,6 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<CleanUpProblematicTrianglesModeler, CleanUpProblematicTrianglesModeler::Pointer, Modeler>(m, "CleanUpProblematicTrianglesModeler")
         .def(py::init<Model&, Parameters>())
-        .def_static("CleanUpProblematicGeometriesInMesh", &CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometriesInMesh,
-          py::arg("rThisModelPart"),
-          py::arg("rEntityType") = "element",
-          py::arg("FirstNodeId") = 1,
-          py::arg("FirstElementId") = 1,
-          py::arg("FirstConditionId") = 1,
-          py::arg("AreaTolerance") = 1.0e-4,
-          "Clean up the problematic geometries (null area geometries) in the mesh.")
     ;
 }
 
