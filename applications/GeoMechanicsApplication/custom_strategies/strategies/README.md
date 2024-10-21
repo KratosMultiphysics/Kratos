@@ -82,15 +82,16 @@ Currently, the pipe is assumed horizontal $\alpha = 0$.
 ### check_status_tip_element function
 
 This function checks the open piping elements and if their height is larger than a maximum value of the pipe height or
-too small then the function changes the pipe properties: PIPE_EROSION and PIPE_ACTIVE to false.
+too small then the function changes the pipe properties: PIPE_EROSION and PIPE_ACTIVE to false. In this case the
+function sets grow parameter as false. As well the grow is set to false if all piping elements are open.
 
 ![check_status_tip_element.svg](check_status_tip_element.svg)
 
 ### save_or_reset_pipe_heights function
 
 This function sets values of PREV_PIPE_HEIGHT and PIPE_HEIGHT parameters based on 'grow' input value. If grow is equal
-to true then PREV_PIPE_HEIGHT value is assigned to PIPE_HEIGHT value. If grow is fail then PIPE_HEIGHT value is assigned
-to the PREV_PIPE_HEIGHT value.
+to true which means the piping is growing then PREV_PIPE_HEIGHT value is assigned to PIPE_HEIGHT value. If grow is false
+then PIPE_HEIGHT value is assigned to the PREV_PIPE_HEIGHT value.
 
 ### Interaction with Interface classes.
 
