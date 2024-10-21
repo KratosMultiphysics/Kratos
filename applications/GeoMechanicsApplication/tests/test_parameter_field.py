@@ -73,8 +73,7 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
         except shutil.SameFileError as e:
-            print(f"Source and destination represents the same file. {e}")
-            raise
+            raise RuntimeError(f"Source and destination represents the same file.") from e
         except PermissionError as e:
             raise RuntimeError(f"Permission denied.") from e
         except IOError as e:
