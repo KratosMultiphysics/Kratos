@@ -17,7 +17,6 @@
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -95,7 +94,6 @@ public:
         const Matrix& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
-        const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients);
 
         rRightHandSideVector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
@@ -303,29 +301,6 @@ private:
                        result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
             return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
         });
-        return result;
-    }
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-        const Vector&                                    rIntegrationCoefficients) const
-    {
-        RetentionLaw::Parameters    RetentionParameters(GetProperties());
-        BoundedMatrix<double, 1, 1> constitutive_matrix;
-        const auto&                 r_properties = GetProperties();
-        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
-
-        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            const double RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-            result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-                rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
-                RelativePermeability, rIntegrationCoefficients[integration_point_index]);
-        }
         return result;
     }
 
