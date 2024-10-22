@@ -20,6 +20,7 @@
 /* Processes */
 #include "custom_processes/assign_nodal_elements_to_nodes_process.h"
 #include "structural_mechanics_application_variables.h"
+#include "structural_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
