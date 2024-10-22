@@ -43,12 +43,12 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return this->Create(NewId, GetGeometry().Create(rThisNodes), pProperties);
     }
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, pGeom, pProperties);
+        return make_intrusive<GeoSteadyStatePwPipingElement>(NewId, pGeometry, pProperties);
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
