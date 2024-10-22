@@ -187,8 +187,8 @@ private:
         // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ;
-                       });
+            return rIntegrationPoint.Weight() * rDetJ;
+        });
         return result;
     }
 
@@ -201,8 +201,8 @@ private:
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients) const
     {
-        const auto&              r_properties              = GetProperties();
-        const double             dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+        const auto&  r_properties              = GetProperties();
+        const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
 
         auto constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
 
@@ -222,8 +222,7 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
-                       [&rNodalVariable](const auto& node) {
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

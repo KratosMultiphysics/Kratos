@@ -52,7 +52,7 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& 
     return r_result;
 }
 
-const Element::IndexType NextElementNumber(const ModelPart& rModelPart)
+Element::IndexType NextElementNumber(const ModelPart& rModelPart)
 {
     return rModelPart.NumberOfElements() + 1;
 }
@@ -230,7 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
         p_new_element->Check(dummy_process_info),
         "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
 
-     auto p_element2 =
+    auto p_element2 =
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),

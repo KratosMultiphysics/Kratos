@@ -84,6 +84,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N)
+    KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N)
@@ -158,7 +159,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
 
-    // Updated-Lagranian elements
+    // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D4N", mUPwUpdatedLagrangianElement2D4N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement3D4N", mUPwUpdatedLagrangianElement3D4N)
