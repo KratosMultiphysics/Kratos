@@ -21,6 +21,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "calculator.h"
 
 namespace Kratos
 {
