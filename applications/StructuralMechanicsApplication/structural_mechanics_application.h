@@ -24,9 +24,6 @@
 
 /* ELEMENTS */
 
-/* 0D elements */
-#include "custom_elements/nodal_concentrated_element.h"
-
 /* Mass elements */
 #include "custom_elements/mass_element.h"
 
@@ -53,13 +50,17 @@
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
+#include "custom_elements/membrane_element_2D2N.h"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
 
-/* Springs elements */
+/* 0D - Springs elements */
 #include "custom_elements/nodal_concentrated_element.h"
+
+/* Adding the bushing element */
+#include "custom_elements/bushing_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element.hpp"
@@ -76,13 +77,19 @@
 #include "custom_elements/updated_lagrangian.h"
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
+#include "custom_elements/small_displacement_shifted_boundary_element.h"
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
+#include "custom_elements/timoshenko_beam_element_2D2N.h"
+#include "custom_elements/timoshenko_beam_element_2D3N.h"
+#include "custom_elements/timoshenko_curved_beam_element_2D3N.h"
 
-/* CONDITIONS */
+/* Conditions */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
@@ -96,11 +103,14 @@
 #include "custom_conditions/displacement_control_condition.h"
 #include "custom_conditions/moving_load_condition.h"
 
+/* Adding the displacement-based SBM condition */
+#include "custom_conditions/displacement_shifted_boundary_condition.h"
+
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 
-/* CONSTITUTIVE LAWS */
+/* Constitutive Laws */
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -108,6 +118,8 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
+// Constitutive laws for the Timoshenko beams
+#include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -264,6 +276,9 @@ private:
     const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
+    const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
+    const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
+    const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
 
 
     // Adding the shells elements
@@ -275,9 +290,10 @@ private:
     const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
 
-    // Adding the membrane element
+    // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
     const MembraneElement mMembraneElement3D3N;
+    const MembraneElement2D2N mMembraneElement2D2N;
 
     // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
@@ -312,10 +328,23 @@ private:
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
 
+    const SmallDisplacementShiftedBoundaryElement<2> mSmallDisplacementShiftedBoundaryElement2D3N;
+    const SmallDisplacementShiftedBoundaryElement<3> mSmallDisplacementShiftedBoundaryElement3D4N;
+
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D3N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement2D4N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainOssElement mSmallDisplacementMixedVolumetricStrainOssElement3D8N;
+
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
@@ -386,6 +415,9 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D6N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D8N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
+
+    // Adding the bushing element
+    const BushingElement mBushingElement3D2N;    
 
     // Adding the spring damper element
     const SpringDamperElement<2> mSpringDamperElement2D;
@@ -462,6 +494,9 @@ private:
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;
 
+    // SBM displacement conditions
+    const DisplacementShiftedBoundaryCondition mDisplacementShiftedBoundaryCondition;
+
     // Moving load
     const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;
     const MovingLoadCondition<2, 3> mMovingLoadCondition2D3N;
@@ -478,6 +513,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
+    const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

@@ -1,42 +1,52 @@
 {
+    "rom_manager": false,
+    "train_hrom": false,
+    "run_hrom": false,
+    "projection_strategy": "galerkin",
+    "assembling_strategy": "global",
+    "rom_format": "json",
     "rom_settings": {
+        "rom_bns_settings": {},
         "nodal_unknowns": [
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 2,
-        "petrov_galerkin_number_of_rom_dofs": 0,
-        "rom_bns_settings":{}
+        "petrov_galerkin_number_of_rom_dofs": 0
+    },
+    "hrom_settings": {
+        "hrom_format": "json"
     },
     "nodal_modes": {
-        "1": [
-            [
-                -0.17574638455134867,
-                0.7543959227866553
-            ]
-        ],
         "2": [
             [
-                -0.2949770806015417,
-                0.4615067950960123
-            ]
-        ],
-        "3": [
-            [
-                -0.4142077766517345,
-                0.16861766740536666
-            ]
-        ],
-        "4": [
-            [
-                -0.5334384727019273,
-                -0.12427146028527797
+                -0.01983405679273213,
+                0.5993762115792658
             ]
         ],
         "5": [
             [
-                -0.6526691687521202,
-                -0.4171605879759215
+                -0.04391666176273041,
+                0.5763832650962621
+            ]
+        ],
+        "12": [
+            [
+                -0.10010940669272668,
+                0.5227330566359412
+            ]
+        ],
+        "69": [
+            [
+                -0.5576789011226962,
+                0.08586707345904437
+            ]
+        ],
+        "102": [
+            [
+                -0.8225875557926786,
+                -0.16705533785390972
             ]
         ]
-    }
+    },
+    "elements_and_weights": {}
 }

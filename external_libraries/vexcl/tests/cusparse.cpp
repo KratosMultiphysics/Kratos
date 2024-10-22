@@ -1,11 +1,15 @@
 #define BOOST_TEST_MODULE CUSPARSE
-#define VEXCL_USE_CUSPARSE
+#include <cuda.h>
+#if (CUDA_VERSION <= 10010)
+#  define VEXCL_USE_CUSPARSE
+#endif
 #include <boost/test/unit_test.hpp>
 #include <vexcl/vector.hpp>
 #include <vexcl/spmat.hpp>
 #include "random_matrix.hpp"
 #include "context_setup.hpp"
 
+#if (CUDA_VERSION <= 10010)
 BOOST_AUTO_TEST_CASE(hyb_matrix)
 {
     const size_t n = 1024;
@@ -86,5 +90,6 @@ BOOST_AUTO_TEST_CASE(crs_matrix)
             });
 
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

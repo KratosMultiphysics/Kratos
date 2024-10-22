@@ -475,8 +475,19 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePK2StressFromStrainPlaneStra
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
+    const Properties& rProperties
+    )
+{
+    const double E  = rProperties[YOUNG_MODULUS];
+    const double nu = rProperties[POISSON_RATIO];
+    return E / (2.0 * (1.0 + nu));
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
+
 
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;

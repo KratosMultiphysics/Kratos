@@ -579,42 +579,68 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     ///@name Inquiry
     ///@{
 
-    /// Return the parallel rank for this DataCommunicator.
-    /** This is a wrapper for calls to MPI_Comm_rank. */
+    /**
+     * @brief Get the parallel rank for this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_rank.
+     * @return The parallel rank of the current process.
+     */
     virtual int Rank() const
     {
         return 0;
     }
 
-    /// Return the parallel size for this DataCommunicator.
-    /** This is a wrapper for calls to MPI_Comm_size. */
+    /**
+     * @brief Get the parallel size of this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_size.
+     * @return The parallel size of the communicator.
+     */
     virtual int Size() const
     {
         return 1;
     }
 
-    /// Check whether this DataCommunicator is aware of parallelism.
+    /**
+     * @brief Check whether this DataCommunicator is aware of parallelism.
+     * @return True if the DataCommunicator is distributed, otherwise false.
+     */
     virtual bool IsDistributed() const
     {
         return false;
     }
 
-    /// Check whether this DataCommunicator involves the current rank.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+    /**
+     * @brief Check whether this DataCommunicator involves the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is defined on the current rank, otherwise false.
      */
     virtual bool IsDefinedOnThisRank() const
     {
         return true;
     }
 
-    /// Check whether this DataCommunicator is MPI_COMM_NULL.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+    /**
+     * @brief Check whether this DataCommunicator is MPI_COMM_NULL for the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is MPI_COMM_NULL, otherwise false.
      */
     virtual bool IsNullOnThisRank() const
     {
         return false;
+    }
+
+    /**
+     * @brief Get a sub-data communicator.
+     * @details This function returns a sub-data communicator based on the provided ranks and a new communicator name.
+     * @param rRanks               The ranks to include in the sub-communicator.
+     * @param rNewCommunicatorName The name of the new sub-communicator.
+     * @return The sub-data communicator.
+     */
+    virtual const DataCommunicator& GetSubDataCommunicator(
+        const std::vector<int>& rRanks,
+        const std::string& rNewCommunicatorName
+        ) const
+    {
+        return *this;
     }
 
     ///@}

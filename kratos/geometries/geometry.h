@@ -231,10 +231,10 @@ public:
     }
 
     /// Standard Constructor with a geometry Id
-    Geometry(IndexType GeomertyId)
+    Geometry(IndexType GeometryId)
         : mpGeometryData(&GeometryDataInstance())
     {
-        SetId(GeomertyId);
+        SetId(GeometryId);
     }
 
     /// Standard Constructor with a Name

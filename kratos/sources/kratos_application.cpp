@@ -31,6 +31,11 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 
+#include "modeler/coloring/voxel_mesher_coloring_factory.h"
+#include "modeler/key_plane_generation/key_plane_generation_factory.h"
+#include "modeler/entity_generation/voxel_mesher_entity_generation_factory.h"
+#include "modeler/operation/voxel_mesher_operation_factory.h"
+
 namespace Kratos {
 
 KratosApplication::KratosApplication(const std::string& ApplicationName)
@@ -88,6 +93,20 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mElement3D20N( 0, GeometryType::Pointer(new Hexahedra3D20<NodeType >(GeometryType::PointsArrayType(20)))),
       mElement3D27N( 0, GeometryType::Pointer(new Hexahedra3D27<NodeType >(GeometryType::PointsArrayType(27)))),
 
+      mPointElement2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),
+      mPointElement3D1N( 0, GeometryType::Pointer(new Point3D<NodeType >(GeometryType::PointsArrayType(1)))),
+
+      mLineElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineElement2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLineElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineElement3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+
+      mSurfaceElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mSurfaceElement3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      mSurfaceElement3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mSurfaceElement3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mSurfaceElement3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
+
       mDistanceCalculationElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
@@ -116,7 +135,16 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
-      mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {}
+      mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {
+
+        Registry::SetCurrentSource(mApplicationName);
+
+        for (auto component : {"geometries", "elements", "conditions", "constraints", "modelers", "constitutive_laws"}) {
+            if (!Registry::HasItem(std::string(component))) {
+                Registry::AddItem<RegistryItem>(std::string(component)+"."+mApplicationName);
+            }
+        }
+      }
 
 void KratosApplication::RegisterKratosCore() {
 
@@ -146,26 +174,29 @@ void KratosApplication::RegisterKratosCore() {
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition
     KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
-    //point conditions
+    
+    // Point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
-    //line conditions
+
+    // Line conditions
     KRATOS_REGISTER_CONDITION("LineCondition2D2N", mLineCondition2D2N);
     KRATOS_REGISTER_CONDITION("LineCondition2D3N", mLineCondition2D3N);
     KRATOS_REGISTER_CONDITION("LineCondition3D2N", mLineCondition3D2N);
     KRATOS_REGISTER_CONDITION("LineCondition3D3N", mLineCondition3D3N);
-    //surface conditions
+
+    // Surface conditions
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D3N", mSurfaceCondition3D3N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D6N", mSurfaceCondition3D6N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
-    //prism conditions
+
+    //Prism conditions
     KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
     KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
 
-
-    //master-slave constraints
+    //Master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
@@ -197,6 +228,20 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D20N", mElement3D20N)
     KRATOS_REGISTER_ELEMENT("Element3D27N", mElement3D27N)
 
+    KRATOS_REGISTER_ELEMENT("PointElement2D1N", mPointElement2D1N)
+    KRATOS_REGISTER_ELEMENT("PointElement3D1N", mPointElement3D1N)
+
+    KRATOS_REGISTER_ELEMENT("LineElement2D2N", mLineElement2D2N)
+    KRATOS_REGISTER_ELEMENT("LineElement2D3N", mLineElement2D3N)
+    KRATOS_REGISTER_ELEMENT("LineElement3D2N", mLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LineElement3D3N", mLineElement3D3N)
+
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D3N", mSurfaceElement3D3N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D6N", mSurfaceElement3D6N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D4N", mSurfaceElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D8N", mSurfaceElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SurfaceElement3D9N", mSurfaceElement3D9N)
+
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D3N", mDistanceCalculationElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
 
@@ -215,6 +260,8 @@ void KratosApplication::RegisterKratosCore() {
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
     KRATOS_REGISTER_MODELER("CombineModelPartModeler", mCombineModelPartModeler);
+    KRATOS_REGISTER_MODELER("ConnectivityPreserveModeler", mConnectivityPreserveModeler);
+    KRATOS_REGISTER_MODELER("VoxelMeshGeneratorModeler", mVoxelMeshGeneratorModeler);
 
     // Register general geometries:
     // Point register:
@@ -253,6 +300,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface2D", mQuadraturePointGeometrySurface2D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface3D", mQuadraturePointGeometrySurface3D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryVolume3D", mQuadraturePointGeometryVolume3D);
+    KRATOS_REGISTER_GEOMETRY("CouplingGeometry", mCouplingGeometry);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
@@ -293,5 +341,91 @@ void KratosApplication::RegisterKratosCore() {
 
     // Register ConstitutiveLaw BaseClass
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
+
+    //Register Voxel Modeler modular components
+    RegisterVoxelMesherColoring();
+    RegisterVoxelMesherKeyPlaneGeneration();
+    RegisterVoxelMesherEntityGeneration();
+    RegisterVoxelMesherOperation();
 }
+
+template<class TComponentsContainer>
+void KratosApplication::DeregisterComponent(std::string const & rComponentName) {
+    auto path = std::string(rComponentName)+"."+mApplicationName;
+
+    // Remove only if the application has this type of components registered
+    if (Registry::HasItem(path)) {
+
+        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this into a transform range when C++20 is available)
+        std::vector<std::string> keys;
+        std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
+
+        for (auto & key : keys) {
+            auto cmpt_key = "components."+key;
+            auto type_key = path+"."+key;
+
+            // Remove from KratosComponents
+            KratosComponents<TComponentsContainer>::Remove(key);
+
+            // Remove from registry general component list
+            if (Registry::HasItem(cmpt_key)) {
+                Registry::RemoveItem(cmpt_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << cmpt_key << " which was not found in registry" << std::endl;
+            }
+
+            // Remove from registry component typed list
+            if (Registry::HasItem(type_key)) {
+                Registry::RemoveItem(type_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << type_key << " which was not found in registry" << std::endl;
+            }
+        }
+
+        // Finally, remove the entry all together
+        Registry::RemoveItem(path);
+    }
+}
+
+void KratosApplication::DeregisterCommonComponents()
+{
+    KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
+
+    DeregisterComponent<Geometry<Node>>("geometries");
+    DeregisterComponent<Element>("elements");
+    DeregisterComponent<Condition>("conditions");
+    DeregisterComponent<MasterSlaveConstraint>("constraints");
+    DeregisterComponent<Modeler>("modelers");
+    DeregisterComponent<ConstitutiveLaw>("constitutive_laws");
+}
+
+void KratosApplication::DeregisterApplication() {
+    DeregisterMappers();
+    // DeregisterLinearSolvers();
+    // DeregisterPreconditioners();
+}
+
+void KratosApplication::DeregisterMappers() {
+    // Unload the mpi branch first to avoid having a special case later
+    const std::string mpi_path = "mappers."+mApplicationName+".mpi";
+    if (Registry::HasItem(mpi_path)) {
+        auto& r_mappers = Registry::GetItem(mpi_path);
+        // Iterate over items at path. For each item, remove it from the mappers.all.mpi branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            Registry::RemoveItem("mappers.all.mpi."+*i_key);
+        }
+        Registry::RemoveItem(mpi_path);
+    }
+
+    const std::string path = "mappers."+mApplicationName;
+    if (Registry::HasItem(path)) {
+        auto& r_mappers = Registry::GetItem(path);
+        // Iterate over items at path. For each item, remove it from the mappers.all branch too
+        for (auto i_key = r_mappers.KeyConstBegin(); i_key != r_mappers.KeyConstEnd(); ++i_key) {
+            Registry::RemoveItem("mappers.all."+*i_key);
+        }
+        Registry::RemoveItem(path);
+    }
+}
+
 }  // namespace Kratos.
