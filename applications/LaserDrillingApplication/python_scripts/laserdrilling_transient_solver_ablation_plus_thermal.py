@@ -74,7 +74,25 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             print('distance_to_surface:', distance_to_surface)
             print()'''
 
-            delta_temp = self.TemperatureVariationDueToLaser(radius, l, theta_1)
+            a = radius
+            h = X[0] - distance_to_surface
+
+            hole_length = 0.5 * (np.sqrt(a*a + 4*h*h) + 0.5*a*(a/h) * np.log(2*h/a + np.sqrt(4*h*h/(a*a)+1)))
+
+            tangent_length = node.Y / np.cos(theta_1)
+            print('\nh: ', h)
+            print('tangent_length: ', tangent_length)
+            print('hole_length: ', hole_length)
+            y_prima = hole_length - z * np.sin(theta_1) + l * np.sin(theta_2)
+
+            Y_prima = y_prima * np.sin(0.5 * np.pi - theta_1) / np.sin(0.5 * np.pi + theta_1 - theta_2)
+            z_prima = l
+
+            if not h:
+                delta_temp = self.TemperatureVariationDueToLaser(radius, z, theta_1)
+            else:
+                delta_temp = self.TemperatureVariationDueToLaser(Y_prima, z_prima, theta_1)
+
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             if self.adjust_T_field_after_ablation:
                 old_temp = self.reference_T_after_laser
