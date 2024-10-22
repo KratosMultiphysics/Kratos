@@ -27,6 +27,14 @@ PointerVector<Node> CreateNodes()
     return result;
 }
 
+PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
+{
+    PointerVector<Node> result;
+    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    return result;
+}
+
 PointerVector<Node> CreateCoincidentNodes()
 {
     PointerVector<Node> result;
@@ -58,24 +66,16 @@ GeoSteadyStatePwPipingElement<2, 2> CreateGeoSteadyStatePwPipingElementWithPWDof
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(
     Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
+    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(r_model_part));
     return CreateGeoSteadyStatePwPipingElementWithPWDofs(rProperties, p_geometry);
 }
 
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(
     Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
+    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(r_model_part));
     return GeoSteadyStatePwPipingElement<2, 2>{1, p_geometry, rProperties};
 }
 
@@ -246,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
 
     element1.GetGeometry().begin()->Z() += 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: Node with non-zero Z coordinate found. Id: 0")
+                                      "Error: Node with non-zero Z coordinate found. Id: 1")
     element1.GetGeometry().begin()->Z() = 0;
 
     // No exeptions on correct input
