@@ -276,21 +276,6 @@ private:
         }
     }
 
-    static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix)
-    {
-        rLeftHandSideMatrix = rPermeabilityMatrix;
-    }
-
-    void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
-                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-                                     const array_1d<double, TNumNodes>& rFluidBodyVector) const
-    {
-        const auto permeability_vector =
-            array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
-        rRightHandSideVector = permeability_vector + rFluidBodyVector;
-    }
-
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
         const auto& r_properties         = GetProperties();
