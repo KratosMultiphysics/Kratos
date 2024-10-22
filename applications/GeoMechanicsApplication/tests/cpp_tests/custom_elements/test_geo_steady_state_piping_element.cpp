@@ -64,18 +64,16 @@ GeoSteadyStatePwPipingElement<2, 2> CreateGeoSteadyStatePwPipingElementWithPWDof
 }
 
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(
-    Model& rModel, const Properties::Pointer& rProperties)
+    ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
-    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(r_model_part));
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(rModelPart));
     return CreateGeoSteadyStatePwPipingElementWithPWDofs(rProperties, p_geometry);
 }
 
 GeoSteadyStatePwPipingElement<2, 2> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(
-    Model& rModel, const Properties::Pointer& rProperties)
+    ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(rModel);
-    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(r_model_part));
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(rModelPart));
     return GeoSteadyStatePwPipingElement<2, 2>{1, p_geometry, rProperties};
 }
 
@@ -137,7 +135,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    const auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model, p_properties);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    const auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -158,7 +157,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedEquatio
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model, p_properties);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
 
     unsigned int i = 0;
     for (const auto& node : element.GetGeometry()) {
@@ -208,13 +208,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
     Model model;
-    auto new_element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(model, p_properties);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto  new_element =
+        CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(r_model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         new_element.Check(dummy_process_info),
         "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
 
     Model model1;
-    auto element2 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model1, p_properties);
+    auto& r_model_part1 = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model1);
+    auto element2 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part1, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         element2.Check(dummy_process_info),
         "Error: DENSITY_WATER does not exist in the properties of element 1")
@@ -257,7 +260,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     const auto p_properties       = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model, p_properties);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto element = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     element.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     element.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     element.GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
