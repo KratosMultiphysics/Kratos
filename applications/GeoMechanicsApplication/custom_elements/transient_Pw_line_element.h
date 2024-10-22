@@ -22,6 +22,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "permeability_calculator.h"
 
 namespace Kratos
 {
@@ -96,14 +97,15 @@ public:
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients);
 
-        const auto fluid_body_vector =
+        rRightHandSideVector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
-        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix);
-        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
-
+        rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         CompressibilityCalculator compressibility_calculator(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         compressibility_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
+
+        PermeabilityCalculator permeability_calculator(CreatePermeabilityInputProvider());
+        permeability_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -114,6 +116,13 @@ public:
             GetPropertiesLambda(), GetRetentionLawsLambda(), GetNContainerLambda(),
             GetIntegrationCoefficientsLambda(), GetDtPressureCoefficientLambda(rCurrentProcessInfo),
             GetNodalVariableLambda());
+    }
+
+    PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
+    {
+        return PermeabilityCalculator::InputProvider(
+            GetPropertiesLambda(), GetRetentionLawsLambda(), GetIntegrationCoefficientsLambda(),
+            GetNodalVariableLambda(), GetShapeFunctionLocalGradientsLambda());
     }
 
     auto GetPropertiesLambda()

@@ -39,8 +39,9 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
     auto        result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
-        const auto   N                  = Vector{row(r_N_container, integration_point_index)};
-        const double BiotModulusInverse = CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]);
+        const auto   N = Vector{row(r_N_container, integration_point_index)};
+        const double BiotModulusInverse =
+            CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]);
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             N, BiotModulusInverse, r_integration_coefficients[integration_point_index]);
     }

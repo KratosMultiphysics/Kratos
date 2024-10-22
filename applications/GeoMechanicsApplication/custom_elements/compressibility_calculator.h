@@ -44,7 +44,10 @@ public:
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const { return mGetElementProperties(); }
+        [[nodiscard]] const Properties& GetElementProperties() const
+        {
+            return mGetElementProperties();
+        }
 
         [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
         {
@@ -53,9 +56,15 @@ public:
 
         [[nodiscard]] const Matrix& GetNContainer() const { return mGetNContainer(); }
 
-        [[nodiscard]] Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
+        [[nodiscard]] Vector GetIntegrationCoefficients() const
+        {
+            return mGetIntegrationCoefficients();
+        }
 
-        [[nodiscard]] double GetDtPressureCoefficient() const { return mGetDtPressureCoefficient(); }
+        [[nodiscard]] double GetDtPressureCoefficient() const
+        {
+            return mGetDtPressureCoefficient();
+        }
 
         [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
         {

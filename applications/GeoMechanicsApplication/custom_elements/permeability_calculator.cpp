@@ -1,0 +1,59 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Richard Faasse
+//
+#include "permeability_calculator.h"
+#include "custom_retention/retention_law.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
+
+namespace Kratos
+{
+
+PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
+    : mInputProvider{std::move(InputProvider)}
+{
+}
+
+Matrix PermeabilityCalculator::LHSContribution() { return {}; }
+
+Vector PermeabilityCalculator::RHSContribution() { return {}; }
+
+void PermeabilityCalculator::CalculateLeftAndRightHandSide(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector)
+{
+    const auto permeability_matrix = CalculatePermeabilityMatrix();
+    rLeftHandSideMatrix += permeability_matrix;
+    rRightHandSideVector += -prod(permeability_matrix, mInputProvider.GetNodalValues(WATER_PRESSURE));
+}
+
+Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
+{
+    RetentionLaw::Parameters    RetentionParameters(mInputProvider.GetElementProperties());
+    BoundedMatrix<double, 1, 1> constitutive_matrix;
+    const auto&                 r_properties = mInputProvider.GetElementProperties();
+    GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+    auto rIntegrationCoefficients = mInputProvider.GetIntegrationCoefficients();
+
+    auto               shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const auto dimension                = shape_function_gradients[0].size1();
+    auto               result                   = Matrix{ZeroMatrix{dimension, dimension}};
+    for (unsigned int integration_point_index = 0;
+         integration_point_index < rIntegrationCoefficients.size(); ++integration_point_index) {
+        const double RelativePermeability =
+            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+        double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+        result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
+            shape_function_gradients[integration_point_index], dynamic_viscosity_inverse,
+            constitutive_matrix, RelativePermeability, rIntegrationCoefficients[integration_point_index]);
+    }
+    return result;
+}
+
+} // namespace Kratos
