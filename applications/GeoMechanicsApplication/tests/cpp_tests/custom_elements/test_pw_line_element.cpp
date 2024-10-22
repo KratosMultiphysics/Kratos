@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
     p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
     p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.000000e-03);
+    element.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
@@ -217,10 +217,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
 
     Model model;
     auto  element = TransientPwLineElementWithPWDofs(model, p_properties);
-    element.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    element.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    element.GetProperties().SetValue(PIPE_HEIGHT, 1.0E-1);
-    // Set gravity perpendicular to the line ( so no fluid body flow vector from this )
     element.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
     element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
