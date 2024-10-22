@@ -35,23 +35,23 @@ void PermeabilityCalculator::CalculateLeftAndRightHandSide(Matrix& rLeftHandSide
 
 Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
 {
-    RetentionLaw::Parameters    RetentionParameters(mInputProvider.GetElementProperties());
+    RetentionLaw::Parameters    retention_parameters(mInputProvider.GetElementProperties());
     BoundedMatrix<double, 1, 1> constitutive_matrix;
     const auto&                 r_properties = mInputProvider.GetElementProperties();
     GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
-    auto rIntegrationCoefficients = mInputProvider.GetIntegrationCoefficients();
+    auto r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
-    auto               shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    auto       shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
     const auto dimension                = shape_function_gradients[0].size1();
-    auto               result                   = Matrix{ZeroMatrix{dimension, dimension}};
+    auto       result                   = Matrix{ZeroMatrix{dimension, dimension}};
     for (unsigned int integration_point_index = 0;
-         integration_point_index < rIntegrationCoefficients.size(); ++integration_point_index) {
-        const double RelativePermeability =
-            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+         integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+        const double relative_permeability =
+            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_parameters);
         double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
-            shape_function_gradients[integration_point_index], dynamic_viscosity_inverse,
-            constitutive_matrix, RelativePermeability, rIntegrationCoefficients[integration_point_index]);
+            shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
+            relative_permeability, r_integration_coefficients[integration_point_index]);
     }
     return result;
 }
