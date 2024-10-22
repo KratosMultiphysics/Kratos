@@ -23,7 +23,7 @@ PointerVector<Node> CreateNodes1()
 {
     PointerVector<Node> result;
     result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 1.0, 0.0));
     return result;
 }
 
@@ -63,7 +63,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(Model& rModel, con
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
     return TransientPwLineElementWithPWDofs(rProperties, p_geometry);
 }
@@ -74,7 +74,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(Model& rModel, 
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
     return TransientPwLineElement<2, 2>{1, p_geometry, rProperties};
 }
@@ -235,12 +235,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{ScalarMatrix{2, 2, 0.00090839999999999996}};
+    auto expected_left_hand_side  = Matrix{ScalarMatrix{2, 2, 0.0006423358000298597}};
     expected_left_hand_side(0, 0) = -expected_left_hand_side(0, 0);
     expected_left_hand_side(1, 1) = -expected_left_hand_side(1, 1);
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    auto expected_right_hand_side = Vector{ScalarVector{2, 0.009084}};
+    auto expected_right_hand_side = Vector{ScalarVector{2, 6.42978}};
     expected_right_hand_side(1)   = -expected_right_hand_side(1);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
