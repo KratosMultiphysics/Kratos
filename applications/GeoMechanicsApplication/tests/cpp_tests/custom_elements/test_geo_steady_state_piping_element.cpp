@@ -114,7 +114,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithGeom
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto nodes        = CreateNodes();
     const auto p_properties = std::make_shared<Properties>();
 
     // The source element needs to have a geometry, otherwise the version of the
@@ -123,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithNode
     const GeoSteadyStatePwPipingElement<2, 2> element(0, p_geometry, p_properties);
 
     // Act
-    const auto p_created_element = element.Create(1, nodes, p_properties);
+    const auto p_created_element = element.Create(1, CreateNodes(), p_properties);
 
     // Assert
     EXPECT_NE(p_created_element, nullptr);
