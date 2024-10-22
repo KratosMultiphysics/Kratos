@@ -22,16 +22,16 @@ using namespace Kratos;
 PointerVector<Node> CreateNodes()
 {
     PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
     return result;
 }
 
-PointerVector<Node> CreateIdenticalNodes()
+PointerVector<Node> CreateCoincidentNodes()
 {
     PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(2, 0.0, 0.0, 0.0));
     return result;
 }
 
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
 {
     // Arrange
     const GeoSteadyStatePwPipingElement<2, 2> element;
-    auto       p_geometry        = std::make_shared<Line2D2<Node>>(CreateIdenticalNodes());
+    auto       p_geometry        = std::make_shared<Line2D2<Node>>(CreateCoincidentNodes());
     const auto p_properties      = std::make_shared<Properties>();
     auto       p_created_element = element.Create(1, p_geometry, p_properties);
 
