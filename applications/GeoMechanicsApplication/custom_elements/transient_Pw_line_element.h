@@ -34,12 +34,12 @@ public:
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry)
         : Element(NewId, pGeometry)
     {
     }
 
-    TransientPwLineElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
     }
@@ -110,26 +110,55 @@ public:
 
     CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
-        auto get_properties           = [this]() -> const Properties& { return GetProperties(); };
-        auto get_retention_law_vector = [this]() -> const std::vector<RetentionLaw::Pointer>& {
-            return mRetentionLawVector;
-        };
-        auto get_N_container = [this]() -> const Matrix& {
+        return CompressibilityCalculator::InputProvider(
+            GetPropertiesLambda(), GetRetentionLawsLambda(), GetNContainerLambda(),
+            GetIntegrationCoefficientsLambda(), GetDtPressureCoefficientLambda(rCurrentProcessInfo),
+            GetNodalVariableLambda());
+    }
+
+    auto GetPropertiesLambda()
+    {
+        return [this]() -> const Properties& { return GetProperties(); };
+    }
+
+    auto GetRetentionLawsLambda()
+    {
+        return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
+    }
+
+    auto GetNContainerLambda()
+    {
+        return [this]() -> const Matrix& {
             return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
         };
-        auto get_integration_coefficients = [this]() -> Vector {
+    }
+
+    auto GetIntegrationCoefficientsLambda()
+    {
+        return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
             return integration_coefficients;
         };
-        auto get_dt_pressure_coefficient = [&rCurrentProcessInfo]() -> double {
+    }
+
+    auto GetDtPressureCoefficientLambda(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return [&rCurrentProcessInfo]() -> double {
             return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
         };
-        auto get_nodal_values_of_dt_water_pressure = [this](const Variable<double>& variable) -> Vector {
-            return GetNodalValuesOf(variable);
-        };
-        auto get_shape_function_gradients = [this]() -> GeometryType::ShapeFunctionsGradientsType {
+    }
+
+    auto GetNodalVariableLambda()
+    {
+        return
+            [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
+    }
+
+    auto GetShapeFunctionLocalGradientsLambda()
+    {
+        return [this]() -> GeometryType::ShapeFunctionsGradientsType {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             GeometryType::ShapeFunctionsGradientsType dN_dX_container =
@@ -139,10 +168,6 @@ public:
 
             return dN_dX_container;
         };
-
-        return  CompressibilityCalculator::InputProvider(get_properties, get_retention_law_vector, get_N_container,
-                                            get_integration_coefficients, get_dt_pressure_coefficient,
-                                            get_nodal_values_of_dt_water_pressure);
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
@@ -308,7 +333,7 @@ private:
     void InitializeSolutionStep(const ProcessInfo&) override
     {
         RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (auto retention_law : mRetentionLawVector) {
+        for (const auto& retention_law : mRetentionLawVector) {
             retention_law->InitializeSolutionStep(RetentionParameters);
         }
     }
@@ -316,7 +341,7 @@ private:
     void FinalizeSolutionStep(const ProcessInfo&) override
     {
         RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-        for (auto retention_law : mRetentionLawVector) {
+        for (const auto& retention_law : mRetentionLawVector) {
             retention_law->FinalizeSolutionStep(RetentionParameters);
         }
     }
@@ -344,12 +369,12 @@ private:
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
             volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
-        array_1d<double, TDim> body_acceleration;
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
+            array_1d<double, TDim> body_acceleration;
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
 
