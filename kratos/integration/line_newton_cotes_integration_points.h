@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints1
+class LineNewtonCotesIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints1);
@@ -58,7 +58,7 @@ public:
 
 }; // Class LineNewtonCotesIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints2
+class LineNewtonCotesIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints2);
@@ -98,7 +98,7 @@ public:
 }; // Class LineNewtonCotesIntegrationPoints2
 
 
-class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints3
+class LineNewtonCotesIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints3);
@@ -138,7 +138,7 @@ public:
 
 }; // Class LineNewtonCotesIntegrationPoints3
 
-class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints4
+class LineNewtonCotesIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints4);
@@ -180,7 +180,7 @@ public:
 
 }; // Class LineNewtonCotesIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) LineNewtonCotesIntegrationPoints5
+class LineNewtonCotesIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineNewtonCotesIntegrationPoints5);
