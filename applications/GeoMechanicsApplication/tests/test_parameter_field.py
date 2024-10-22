@@ -63,6 +63,8 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         custom_script_name = "custom_field_umat_parameters.py"
         custom_python_file = os.path.join(file_path, custom_script_name)
+        if not os.path.isfile(custom_python_file):
+            raise RuntimeError(f"Source file does not exist. {custom_python_file}")
 
         # copy user defined python script to installation folder
         new_custom_script_path = os.path.join(os.path.dirname(KratosGeo.__file__), "user_defined_scripts")
@@ -71,20 +73,27 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         try:
             shutil.copy(custom_python_file, new_custom_script_path)
         except shutil.SameFileError as e:
-             print(f"Source and destination represents the same file. {e}")
-             raise
+            raise RuntimeError(f"Source and destination represents the same file.") from e
         except PermissionError as e:
-             print(f"Permission denied: {e}")
-             raise
+            raise RuntimeError(f"Permission denied.") from e
         except IOError as e:
-             print(f"Try to change the destination file permission {e}")
-             os.chmod(new_custom_script_path, stat.S_IRWXU)
-             shutil.copy(custom_python_file, new_custom_script_path)
+            print(f"Try to change the destination file permission {e}")
+            os.chmod(new_custom_script_path, stat.S_IRWXU)
+            shutil.copy(custom_python_file, new_custom_script_path)
         except Exception as e:
-             print(f"Error occurred while copying the file {e}.")
-             raise
+            raise RuntimeError(f"Error occurred while copying the file.") from e
+        except BaseException as e:
+            raise RuntimeError(f"An unknown error occurred while copying the file.") from e
+
+        custom_python_file_new_location = os.path.join(new_custom_script_path, custom_script_name)
+
+        if not os.path.isfile(custom_python_file_new_location):
+            raise RuntimeError(f"File {custom_python_file_new_location} does not exist after copying the source.")
 
         simulation = test_helper.run_kratos(file_path)
+
+        if not os.path.isfile(custom_python_file_new_location):
+            raise RuntimeError(f"File {custom_python_file_new_location} does not exist after run_kratos.")
 
         # get element centers
         elements = simulation._list_of_output_processes[0].model_part.Elements
@@ -97,6 +106,9 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         for center_coord, res in zip(center_coords, results):
             expected_res = 20000 * center_coord[0] + 30000 * center_coord[1]
             self.assertAlmostEqual(expected_res, res[0][0])
+
+        if not os.path.isfile(custom_python_file_new_location):
+            raise RuntimeError(f"File {custom_python_file_new_location} does not exist before removal.")
 
         # remove user defined python script from installation folder
         os.remove(os.path.join(new_custom_script_path, custom_script_name))
@@ -124,7 +136,6 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
         for center_coord, res in zip(center_coords, results):
             expected_res = 20000 * center_coord[0] + 30000 * center_coord[1]
             self.assertAlmostEqual(expected_res, res[0][0])
-
 
     def test_parameter_field_with_function(self):
         """
