@@ -145,8 +145,7 @@ public:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
-            return integration_coefficients;
+            return CalculateIntegrationCoefficients(det_J_container);
         };
     }
 
