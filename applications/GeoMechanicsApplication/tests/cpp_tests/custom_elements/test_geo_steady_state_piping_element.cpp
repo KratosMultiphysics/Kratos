@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedEquatio
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    Element::EquationIdVectorType expected_ids = {1, 2};
+    const Element::EquationIdVectorType expected_ids = {1, 2};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
@@ -181,12 +181,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedIntegra
 {
     // Arrange
     const GeoSteadyStatePwPipingElement<2, 2> element;
-    const auto p_geometry        = std::make_shared<Line2D2<Node>>(CreateNodes());
-    const auto p_properties      = std::make_shared<Properties>();
-    const auto p_created_element = element.Create(1, p_geometry, p_properties);
 
     // Act
-    const auto p_integration_method = p_created_element->GetIntegrationMethod();
+    const auto p_integration_method = element.GetIntegrationMethod();
 
     // Assert
     const auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
@@ -196,19 +193,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedIntegra
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const GeoSteadyStatePwPipingElement<2, 2> element;
-    auto       p_geometry        = std::make_shared<Line2D2<Node>>(CreateCoincidentNodes());
-    const auto p_properties      = std::make_shared<Properties>();
-    auto       p_created_element = element.Create(1, p_geometry, p_properties);
+    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateCoincidentNodes());
+    const auto p_properties = std::make_shared<Properties>();
+    const GeoSteadyStatePwPipingElement<2, 2> element(1, p_geometry, p_properties);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_created_element->Check(dummy_process_info),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
-    p_geometry        = std::make_shared<Line2D2<Node>>(CreateNodes());
-    p_created_element = element.Create(2, p_geometry, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_created_element->Check(dummy_process_info),
+    const auto p_geometry2 = std::make_shared<Line2D2<Node>>(CreateNodes());
+    const GeoSteadyStatePwPipingElement<2, 2> element2(1, p_geometry2, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element2.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
     Model model;
@@ -239,8 +235,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
         element1.Check(dummy_process_info),
         "Error: PIPE_HEIGHT does not exist in the properties of element 1")
     element1.GetProperties().SetValue(PIPE_HEIGHT, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: PIPE_HEIGHT (-1) is not in the range [0,-> at element 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element1.Check(dummy_process_info),
+        "Error: PIPE_HEIGHT (-1) is not in the range [0,-> at element 1")
     element1.GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
     element1.GetGeometry().begin()->Z() += 1;
