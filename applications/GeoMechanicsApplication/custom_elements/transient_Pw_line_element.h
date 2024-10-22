@@ -95,18 +95,12 @@ public:
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients);
-        const auto compressibility_matrix =
-            CalculateCompressibilityMatrix(r_N_container, integration_coefficients);
-
-
 
         const auto fluid_body_vector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
-        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix, compressibility_matrix,
-                                    rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]);
-        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix,
-                                    compressibility_matrix, fluid_body_vector);
+        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix);
+        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, fluid_body_vector);
 
         CompressibilityCalculator compressibility_calculator(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         compressibility_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
@@ -251,16 +245,13 @@ private:
     }
 
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
-                                            double DtPressureCoefficient)
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix)
     {
         rLeftHandSideMatrix = rPermeabilityMatrix;
     }
 
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
                                      const array_1d<double, TNumNodes>& rFluidBodyVector) const
     {
         const auto permeability_vector =
@@ -304,25 +295,6 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(const Matrix& rNContainer,
-                                                                               const Vector& rIntegrationCoefficients) const
-    {
-        const auto&              r_properties = GetProperties();
-        RetentionLaw::Parameters parameters(r_properties);
-        auto                     retention_law = RetentionLawFactory::Clone(r_properties);
-
-        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            const auto   N                  = Vector{row(rNContainer, integration_point_index)};
-            const double BiotModulusInverse = CalculateBiotModulusInverse(integration_point_index);
-            result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix<TNumNodes>(
-                N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
-        }
-        return result;
-    }
-
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
         auto        result     = array_1d<double, TNumNodes>{};
@@ -330,29 +302,6 @@ private:
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
-        return result;
-    }
-
-    double CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
-    {
-        const auto&  r_properties     = GetProperties();
-        const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
-
-        double bulk_fluid = TINY;
-        if (!r_properties[IGNORE_UNDRAINED]) {
-            bulk_fluid = r_properties[BULK_MODULUS_FLUID];
-        }
-        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
-                        r_properties[POROSITY] / bulk_fluid;
-
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-        const double             degree_of_saturation =
-            mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
-        const double derivative_of_saturation =
-            mRetentionLawVector[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
-
-        result *= degree_of_saturation;
-        result -= derivative_of_saturation * r_properties[POROSITY];
         return result;
     }
 
