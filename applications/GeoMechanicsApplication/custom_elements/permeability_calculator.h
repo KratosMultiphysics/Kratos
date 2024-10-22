@@ -77,6 +77,4 @@ private:
     Matrix CalculatePermeabilityMatrix() const;
 };
 
-
-
 } // namespace Kratos
