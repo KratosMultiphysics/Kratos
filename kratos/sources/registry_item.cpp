@@ -23,13 +23,21 @@ namespace Kratos
     RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap()
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *(boost::any_cast<SubRegistryItemPointerType>(mpValue));
+#else
         return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
+#endif
     }
 
     RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap() const
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+        return *(boost::any_cast<SubRegistryItemPointerType>(mpValue));
+#else
         return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
+#endif
     }
 
     RegistryItem::SubRegistryItemType::iterator RegistryItem::begin()

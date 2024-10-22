@@ -51,7 +51,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<class TObject>
-class PointObject
+class KRATOS_API(KRATOS_CORE) PointObject
     : public Point
 {
 public:

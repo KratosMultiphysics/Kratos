@@ -16,22 +16,24 @@
 
 #include "includes/kratos_parameters.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-class ParametersUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ParametersUtilities
 {
 public:
+    static Parameters CopyRequiredParameters(const Parameters& rSourceParameters,
+                                             const std::vector<std::string>& rNamesOfParametersToCopy);
 
-    static Parameters ExtractParameters(const Parameters& rSourceParameters,
-                                        const std::vector<std::string>& rNamesOfParametersToCopy);
+    static Parameters CopyOptionalParameters(const Parameters& rSourceParameters,
+                                             const std::vector<std::string>& rNamesOfParametersToCopy);
 
-    static void AppendParameterNameIfExists(const std::string& rParameterName,
-                                            const Parameters& rSourceParameters,
+    static void AppendParameterNameIfExists(const std::string&        rParameterName,
+                                            const Parameters&         rSourceParameters,
                                             std::vector<std::string>& rResult);
 
     static bool HasTableAttached(const Parameters& rSettings);
-    
     static bool HasTableAttached(const Parameters& rSettings, int component);
- };
+};
 
-}
+} // namespace Kratos

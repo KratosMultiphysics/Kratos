@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "Initial_MPM_Material.Parts_bar",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticIsotropicPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"             : 1.0,
+                "MATERIAL_POINTS_PER_ELEMENT" : 1,
+                "DENSITY"               : 1.0,
+                "YOUNG_MODULUS"         : 39.4784176043574,
+                "POISSON_RATIO"         : 0
+            },
+            "Tables"           : {}
+        }
+    }]
+}
