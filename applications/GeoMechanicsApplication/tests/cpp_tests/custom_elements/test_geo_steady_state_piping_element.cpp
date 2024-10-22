@@ -203,8 +203,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
     const auto p_geometry2 = std::make_shared<Line2D2<Node>>(CreateTwoNodes());
-    const GeoSteadyStatePwPipingElement<2, 2> element2(1, p_geometry2, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element2.Check(dummy_process_info),
+    const GeoSteadyStatePwPipingElement<2, 2> element1(1, p_geometry2, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
     Model model;
@@ -214,39 +214,39 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
         "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
 
     Model model1;
-    auto element1 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model1, p_properties);
+    auto element2 = CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(model1, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: DENSITY_WATER does not exist in the properties of element 1")
-    element1.GetProperties().SetValue(DENSITY_WATER, -1.0E3);
+    element2.GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: DENSITY_WATER (-1000) is not in the range [0,-> at element 1")
-    element1.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    element2.GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: DYNAMIC_VISCOSITY does not exist in the properties of element 1")
-    element1.GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
+    element2.GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: DYNAMIC_VISCOSITY (-0.01) is not in the range [0,-> at element 1")
-    element1.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    element2.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: PIPE_HEIGHT does not exist in the properties of element 1")
-    element1.GetProperties().SetValue(PIPE_HEIGHT, -1.0);
+    element2.GetProperties().SetValue(PIPE_HEIGHT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        element1.Check(dummy_process_info),
+        element2.Check(dummy_process_info),
         "Error: PIPE_HEIGHT (-1) is not in the range [0,-> at element 1")
-    element1.GetProperties().SetValue(PIPE_HEIGHT, 1.0);
+    element2.GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
-    element1.GetGeometry().begin()->Z() += 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
+    element2.GetGeometry().begin()->Z() += 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element2.Check(dummy_process_info),
                                       "Error: Node with non-zero Z coordinate found. Id: 1")
-    element1.GetGeometry().begin()->Z() = 0;
+    element2.GetGeometry().begin()->Z() = 0;
 
     // No exceptions on correct input
-    KRATOS_EXPECT_EQ(element1.Check(dummy_process_info), 0);
+    KRATOS_EXPECT_EQ(element2.Check(dummy_process_info), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHandSideAndRightHandSide,
