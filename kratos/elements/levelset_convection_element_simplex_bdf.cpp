@@ -95,8 +95,8 @@ namespace Kratos
         const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<double> &rVolumeSourceVar = my_settings->GetVolumeSourceVariable(); // To be activated for the a_n source term
+        KRATOS_WATCH(rVolumeSourceVar)
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
-
         //getting data for the given geometry
         double Volume;
         array_1d<double, TNumNodes > N;
@@ -112,12 +112,15 @@ namespace Kratos
             // phi_frac_old[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
             phi[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
 
-            
+
 
             phi_old[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);
             phi_old_1[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 2);
-            a_n[i] = this -> GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+            a_n[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+            KRATOS_WATCH(rVolumeSourceVar)
+            KRATOS_WATCH(a_n[i])
             v[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
+
 
             // proj_oss[i] = this->GetGeometry()[i].GetValue(VOLUMETRIC_STRAIN_PROJECTION);
         }
@@ -149,10 +152,7 @@ namespace Kratos
             {
                  for(unsigned int k=0; k<TDim; k++){
                     vel_gauss[k] += N[i]*v[i][k];
-
-
                  }
-
             }
 
             const double norm_vel = norm_2(vel_gauss);
@@ -172,11 +172,7 @@ namespace Kratos
             }
             else{
                 const double tau_denom = std::max(dyn_st_beta * dt_inv + 2.0 * norm_vel / h, 1e-2);
-                // const double tau_denom = 1.0* norm_vel / h;
                 tau = 1.0 / (tau_denom);
-                // tau = 0.0;
-;
-
             }
 
             // double proj_oss=0.0;
@@ -311,8 +307,6 @@ namespace Kratos
                 phi_old_1[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,2);
                 v[i] = this->GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             }
-            
-
             // velocity interpolation
             array_1d<double, TDim> vel_gauss = ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
@@ -322,7 +316,6 @@ namespace Kratos
                     vel_gauss[k] += N[i] * v[i][k];
                 }
             }
-
             array_1d<double, TDim> grad_phi = prod(trans(DN_DX), phi);
             double fractional_acceleration_gauss = 0.0;
             for(unsigned int igauss=0; igauss<TDim+1; igauss++){
@@ -342,12 +335,10 @@ namespace Kratos
                         auto &r_geometry = this->GetGeometry();
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
                         {
-                            AtomicAdd(r_geometry[i_node].GetValue(rVolumeSourceVar), N[i_node] * fractional_acceleration_gauss);
+                            AtomicAdd(r_geometry[i_node].FastGetSolutionStepValue(rVolumeSourceVar), N[i_node] * fractional_acceleration_gauss);
                         }
                     }
     }
-
-
     template class LevelSetConvectionElementSimplexBDF<2, 3>;
     template class LevelSetConvectionElementSimplexBDF<3, 4>;
 

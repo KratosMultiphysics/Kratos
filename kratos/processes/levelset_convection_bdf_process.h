@@ -278,7 +278,7 @@ public:
         //     NodalOSSProjection();
         // }
         mpSolvingStrategy->Predict();
-        block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
+        // block_for_each(mpDistanceModelPart->Nodes(), [&](Node &rNode){ rNode.FastGetSolutionStepValue(*mpVolumeSourceVar, 0.0); });
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
 
@@ -295,6 +295,7 @@ public:
 
         }
         );
+
 
 
 
@@ -390,7 +391,7 @@ protected:
 
     const Variable<double>* mpLevelSetVar = nullptr;
 
-    const Variable<double> *mpVolumeSourceVar = nullptr;
+    const Variable<double>* mpVolumeSourceVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
@@ -468,9 +469,9 @@ protected:
         {
             mIsBDFElement = true;
         }
+        KRATOS_WATCH("llaamos al consturctor de la clase levelset process")
         // Checks and assign all the required member variables
         CheckAndAssignSettings(ThisParameters);
-        KRATOS_WATCH("HOLA  DFDFD")
 
         // Sets the convection diffusion problem settings
         SetConvectionProblemSettings();
@@ -500,8 +501,11 @@ protected:
             auto p_conv_diff_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
+            KRATOS_WATCH(*mpConvectVar)
+            p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
+            KRATOS_WATCH("SetConvectionProblemSettings")
             p_conv_diff_settings->SetVolumeSourceVariable(*mpVolumeSourceVar);
-
+            KRATOS_WATCH(*mpVolumeSourceVar)
             if (mpLevelSetGradientVar)
             {
                 p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
@@ -511,7 +515,7 @@ protected:
         // This call returns a function pointer with the ProcessInfo filling directives
         // If the user-defined level set convection requires nothing to be set, the function does nothing
         auto fill_process_info_function = GetFillProcessInfoFormulationDataFunction();
-   
+
         fill_process_info_function(mrBaseModelPart);
     }
 
@@ -923,6 +927,8 @@ private:
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
         mpVolumeSourceVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_volume_source_variable_name"].GetString());
+        KRATOS_WATCH("CheckAndAssignSettings")
+        KRATOS_WATCH(mpVolumeSourceVar)
 
         if (ThisParameters["convection_model_part_name"].GetString() == "")
         {
@@ -936,6 +942,7 @@ private:
         // Limiter related settings
         mpLevelSetGradientVar = (mIsBfecc || mElementRequiresLevelSetGradient) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mEvaluateLimiter = (mIsBfecc || mElementRequiresLimiter) ? true : false;
+        KRATOS_WATCH("")
     }
 
     std::string GetConvectionElementRegisteredName(Parameters ThisParameters)
