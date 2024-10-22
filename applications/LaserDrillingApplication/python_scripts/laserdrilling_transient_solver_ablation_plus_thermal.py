@@ -53,27 +53,28 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             x_lo = X[lo]
             x_hi = X[hi]
 
-            slope =  (x_hi - x_lo) / (y_hi - y_lo)
             if not (y_hi - y_lo):
                 continue
+            slope =  (x_hi - x_lo) / (y_hi - y_lo)
             if slope < 0:
                 slope = -slope
+
             theta_1 = np.arctan(slope)
             n1 = 1
             n2 = self.refractive_index_n
             theta_2 = np.arcsin(n1 * np.sin(theta_1) / n2)
-            alpha = np.pi - theta_2
-            l = z * np.sin(np.pi - theta_1) / np.sin(alpha)
+            alpha = 0.5 * np.pi - theta_2
+            l = z * np.sin(0.5 * np.pi - theta_1) / np.sin(alpha)
 
-            print('\ny_lo:', y_lo)
+            '''print('\ny_lo:', y_lo)
             print('y_hi:', y_hi)
             print('radius:', radius)
             print('x_lo:', x_lo)
             print('x_hi:', x_hi)
             print('distance_to_surface:', distance_to_surface)
-            print()
+            print()'''
 
-            delta_temp = self.TemperatureVariationDueToLaser(radius, l)
+            delta_temp = self.TemperatureVariationDueToLaser(radius, l, theta_1)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             if self.adjust_T_field_after_ablation:
                 old_temp = self.reference_T_after_laser
@@ -88,7 +89,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             omega_0 = self.omega_0
             import math
-            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen)
+            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) * math.cos(theta_1)
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -147,12 +148,12 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
 
-    def TemperatureVariationDueToLaser(self, radius, z):        
+    def TemperatureVariationDueToLaser(self, radius, z, incidence_angle = 0):        
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
         import math
-        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen)
+        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) * math.cos(incidence_angle)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)            
         return delta_temp
 
