@@ -13,6 +13,7 @@
 #include "custom_elements/transient_Pw_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -194,23 +195,25 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto dummy_process_info = ProcessInfo{};
+    auto process_info = ProcessInfo{};
     const auto p_properties       = std::make_shared<Properties>();
-    p_properties->SetValue(YOUNG_MODULUS,                     1.000000e+07);
-    p_properties->SetValue(POISSON_RATIO,                     0.000000e+00);
-    p_properties->SetValue(DENSITY_SOLID,                     2.650000e+03);
-    p_properties->SetValue(DENSITY_WATER,                     1.000000e+03);
-    p_properties->SetValue(POROSITY,                          1.000000e-01);
-    p_properties->SetValue(BULK_MODULUS_SOLID,                9.000000e+19);
-    p_properties->SetValue(BULK_MODULUS_FLUID,                1.000000e+20);
-    p_properties->SetValue(PERMEABILITY_XX,                   9.084000e-06);
-    p_properties->SetValue(DYNAMIC_VISCOSITY,                 1.000000e-03);
-    p_properties->SetValue(BIOT_COEFFICIENT,                  1.000000e+00);
-    p_properties->SetValue(RETENTION_LAW,                     "SaturatedLaw");
-    p_properties->SetValue(SATURATED_SATURATION,              1.000000e+00);
-    p_properties->SetValue(RESIDUAL_SATURATION,               0.000000e+00);
-    p_properties->SetValue(CROSS_AREA,                        1.0);
+    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
+    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
+    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
+    p_properties->SetValue(POROSITY, 1.000000e-01);
+    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
+    p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
+    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.000000e-03);
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
+    p_properties->SetValue(RESIDUAL_SATURATION, 0.000000e+00);
+    p_properties->SetValue(CROSS_AREA, 1.0);
+    p_properties->SetValue(IGNORE_UNDRAINED, false);
 
+    process_info[DT_PRESSURE_COEFFICIENT] = 1.5;
 
     Model model;
     auto  element = TransientPwLineElementWithPWDofs(model, p_properties);
@@ -223,25 +226,24 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
     // Create a head gradient of -10.
-    element.GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
-    element.GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    element.GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 10.0;
+    element.GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 0.0;
     element.GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 4.0;
     element.GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 5.0;
 
     // Act
     Vector actual_right_hand_side;
     Matrix actual_left_hand_side;
-    element.Initialize(dummy_process_info);
-    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.Initialize(process_info);
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, process_info);
 
     // Assert
-    auto expected_left_hand_side  = Matrix{ScalarMatrix{2, 2, 0.0006423358000298597}};
-    expected_left_hand_side(0, 0) = -expected_left_hand_side(0, 0);
-    expected_left_hand_side(1, 1) = -expected_left_hand_side(1, 1);
+    auto expected_left_hand_side  = Matrix{2, 2, 0.0006423358000298597};
+    expected_left_hand_side <<= -0.00099588919125952972,0.00046555910441502474, 0.00046555910441502474,-0.00099588919125952972;
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    auto expected_right_hand_side = Vector{ScalarVector{2, 6.42978}};
-    expected_right_hand_side(1)   = -expected_right_hand_side(1);
+    auto expected_right_hand_side = Vector{2};
+    expected_right_hand_side <<= 6.43131,-6.42813;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing
