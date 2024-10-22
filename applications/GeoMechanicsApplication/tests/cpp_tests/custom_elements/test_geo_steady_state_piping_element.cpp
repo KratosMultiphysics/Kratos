@@ -146,8 +146,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 2);
-    for (auto dof : degrees_of_freedom) {
-        KRATOS_EXPECT_EQ(dof->GetVariable(), WATER_PRESSURE);
+    for (auto p_dof : degrees_of_freedom) {
+        KRATOS_EXPECT_EQ(p_dof->GetVariable(), WATER_PRESSURE);
     }
 }
 
