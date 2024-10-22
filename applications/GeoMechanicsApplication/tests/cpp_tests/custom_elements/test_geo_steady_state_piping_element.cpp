@@ -19,7 +19,7 @@ namespace
 
 using namespace Kratos;
 
-PointerVector<Node> CreateNodes()
+PointerVector<Node> CreateTwoNodes()
 {
     PointerVector<Node> result;
     result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithGeom
 {
     // Arrange
     const GeoSteadyStatePwPipingElement<2, 2> element;
-    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodes());
+    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateTwoNodes());
     const auto p_properties = std::make_shared<Properties>();
 
     // Act
@@ -118,11 +118,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithNode
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodes());
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateTwoNodes());
     const GeoSteadyStatePwPipingElement<2, 2> element(0, p_geometry, p_properties);
 
     // Act
-    const auto p_created_element = element.Create(1, CreateNodes(), p_properties);
+    const auto p_created_element = element.Create(1, CreateTwoNodes(), p_properties);
 
     // Assert
     EXPECT_NE(p_created_element, nullptr);
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
-    const auto p_geometry2 = std::make_shared<Line2D2<Node>>(CreateNodes());
+    const auto p_geometry2 = std::make_shared<Line2D2<Node>>(CreateTwoNodes());
     const GeoSteadyStatePwPipingElement<2, 2> element2(1, p_geometry2, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element2.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
