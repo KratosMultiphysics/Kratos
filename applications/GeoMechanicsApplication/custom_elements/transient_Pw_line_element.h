@@ -63,6 +63,21 @@ public:
         rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (const std::size_t number_integration_points =
+                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+            mRetentionLawVector.size() != number_integration_points) {
+            mRetentionLawVector.resize(number_integration_points);
+        }
+        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+            mRetentionLawVector[i]->InitializeMaterial(
+                GetProperties(), GetGeometry(),
+                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
+        }
+    }
+
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override
@@ -275,21 +290,6 @@ private:
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
-    }
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (const std::size_t number_integration_points =
-                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-            mRetentionLawVector.size() != number_integration_points) {
-            mRetentionLawVector.resize(number_integration_points);
-        }
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
-            mRetentionLawVector[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(),
-                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
-        }
     }
 
     double CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
