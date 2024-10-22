@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedLeftHandSideAn
     p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
     p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
     p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
-    element.GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -21,7 +22,6 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "calculator.h"
 
 namespace Kratos
 {
@@ -98,6 +98,8 @@ public:
         const auto compressibility_matrix =
             CalculateCompressibilityMatrix(r_N_container, integration_coefficients);
 
+
+
         const auto fluid_body_vector =
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
@@ -106,7 +108,47 @@ public:
         AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix,
                                     compressibility_matrix, fluid_body_vector);
 
+        CompressibilityCalculator compressibility_calculator(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        compressibility_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
+
         KRATOS_CATCH("")
+    }
+
+    CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    {
+        auto get_properties           = [this]() -> const Properties& { return GetProperties(); };
+        auto get_retention_law_vector = [this]() -> const std::vector<RetentionLaw::Pointer>& {
+            return mRetentionLawVector;
+        };
+        auto get_N_container = [this]() -> const Matrix& {
+            return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        };
+        auto get_integration_coefficients = [this]() -> Vector {
+            Vector det_J_container;
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+            return integration_coefficients;
+        };
+        auto get_dt_pressure_coefficient = [&rCurrentProcessInfo]() -> double {
+            return rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+        };
+        auto get_nodal_values_of_dt_water_pressure = [this](const Variable<double>& variable) -> Vector {
+            return GetNodalValuesOf(variable);
+        };
+        auto get_shape_function_gradients = [this]() -> GeometryType::ShapeFunctionsGradientsType {
+            Vector det_J_container;
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            GeometryType::ShapeFunctionsGradientsType dN_dX_container =
+                GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
+
+            return dN_dX_container;
+        };
+
+        return  CompressibilityCalculator::InputProvider(get_properties, get_retention_law_vector, get_N_container,
+                                            get_integration_coefficients, get_dt_pressure_coefficient,
+                                            get_nodal_values_of_dt_water_pressure);
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
@@ -213,7 +255,7 @@ private:
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
                                             double DtPressureCoefficient)
     {
-        rLeftHandSideMatrix = rPermeabilityMatrix + DtPressureCoefficient * rCompressibilityMatrix;
+        rLeftHandSideMatrix = rPermeabilityMatrix;
     }
 
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
@@ -221,11 +263,9 @@ private:
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
                                      const array_1d<double, TNumNodes>& rFluidBodyVector) const
     {
-        const auto compressibility_vector =
-            array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
         const auto permeability_vector =
             array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
-        rRightHandSideVector = compressibility_vector + permeability_vector + rFluidBodyVector;
+        rRightHandSideVector = permeability_vector + rFluidBodyVector;
     }
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
