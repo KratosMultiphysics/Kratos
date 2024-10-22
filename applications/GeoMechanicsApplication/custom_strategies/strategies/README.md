@@ -50,7 +50,7 @@ factor = $2.08\times 10^{-4}$ [m].
 
 ### check_pipe_equilibrium function
 
-This function performs an iterative process towards a certain equilibrium values of the pipe heights. For each iteration
+This function performs an iterative process towards certain equilibrium values of the pipe heights. For each iteration
 the modelling is performed. Then a pipe height is corrected by a given increment for each open piping element. The
 maximum number of iterations is the user input, "max_piping_iterations".
 
