@@ -10,15 +10,14 @@
 //  Main authors:    Richard Faasse
 //
 #include "compressibility_calculator.h"
-#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-CompressibilityCalculator::CompressibilityCalculator(const InputProvider& rInputProvider)
-    : mInputProvider(rInputProvider)
+CompressibilityCalculator::CompressibilityCalculator(InputProvider rInputProvider)
+    : mInputProvider(std::move(rInputProvider))
 {
 }
 
@@ -28,27 +27,27 @@ Vector CompressibilityCalculator::RHSContribution() { return {}; }
 
 void CompressibilityCalculator::CalculateLeftAndRightHandSide(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector)
 {
-    auto compressibility_matrix = CalculateCompressibilityMatrix(
-        mInputProvider.GetNContainer(), mInputProvider.GetIntegrationCoefficients());
+    auto compressibility_matrix = CalculateCompressibilityMatrix();
     rLeftHandSideMatrix += compressibility_matrix * mInputProvider.GetDtPressureCoefficient();
     rRightHandSideVector += -prod(compressibility_matrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE));
 }
 
-Matrix CompressibilityCalculator::CalculateCompressibilityMatrix(const Matrix& rNContainer,
-                                                                 const Vector& rIntegrationCoefficients)
+Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
 {
-    auto result = Matrix{ZeroMatrix{rNContainer.size2(), rNContainer.size2()}};
+    const auto& r_N_container              = mInputProvider.GetNContainer();
+    const auto& r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    auto        result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
-         integration_point_index < rIntegrationCoefficients.size(); ++integration_point_index) {
-        const auto   N                  = Vector{row(rNContainer, integration_point_index)};
-        const double BiotModulusInverse = CalculateBiotModulusInverse(integration_point_index);
+         integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+        const auto   N                  = Vector{row(r_N_container, integration_point_index)};
+        const double BiotModulusInverse = CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]);
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
+            N, BiotModulusInverse, r_integration_coefficients[integration_point_index]);
     }
     return result;
 }
 
-double CompressibilityCalculator::CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const
+double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw) const
 {
     const auto&  r_properties     = mInputProvider.GetElementProperties();
     const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
@@ -60,11 +59,9 @@ double CompressibilityCalculator::CalculateBiotModulusInverse(const unsigned int
     double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
                     r_properties[POROSITY] / bulk_fluid;
 
-    RetentionLaw::Parameters RetentionParameters(mInputProvider.GetElementProperties());
-    const double             degree_of_saturation =
-        mInputProvider.GetRetentionLaws()[integrationPointIndex]->CalculateSaturation(RetentionParameters);
-    const double derivative_of_saturation =
-        mInputProvider.GetRetentionLaws()[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
+    RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
+    const double degree_of_saturation = rRetentionLaw->CalculateSaturation(retention_parameters);
+    const double derivative_of_saturation = rRetentionLaw->CalculateDerivativeOfSaturation(retention_parameters);
 
     result *= degree_of_saturation;
     result -= derivative_of_saturation * r_properties[POROSITY];

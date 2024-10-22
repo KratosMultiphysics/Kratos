@@ -17,6 +17,7 @@
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
+#include <utility>
 #include <vector>
 
 namespace Kratos
@@ -34,29 +35,29 @@ public:
                       std::function<Vector()>                        rIntegrationCoefficients,
                       std::function<const double()>                  DtPressureCoefficient,
                       std::function<Vector(const Variable<double>&)> rNodalValuesOfDtWaterPressure)
-            : mGetElementProperties(rElementProperties),
-              mGetRetentionLaws(rRetentionLaws),
-              mGetNContainer(rNContainer),
-              mGetIntegrationCoefficients(rIntegrationCoefficients),
-              mGetDtPressureCoefficient(DtPressureCoefficient),
-              mGetNodalValues(rNodalValuesOfDtWaterPressure)
+            : mGetElementProperties(std::move(rElementProperties)),
+              mGetRetentionLaws(std::move(rRetentionLaws)),
+              mGetNContainer(std::move(rNContainer)),
+              mGetIntegrationCoefficients(std::move(rIntegrationCoefficients)),
+              mGetDtPressureCoefficient(std::move(DtPressureCoefficient)),
+              mGetNodalValues(std::move(rNodalValuesOfDtWaterPressure))
         {
         }
 
-        const Properties& GetElementProperties() const { return mGetElementProperties(); }
+        [[nodiscard]] const Properties& GetElementProperties() const { return mGetElementProperties(); }
 
-        const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
+        [[nodiscard]] const std::vector<RetentionLaw::Pointer>& GetRetentionLaws() const
         {
             return mGetRetentionLaws();
         }
 
-        const Matrix& GetNContainer() const { return mGetNContainer(); }
+        [[nodiscard]] const Matrix& GetNContainer() const { return mGetNContainer(); }
 
-        Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
+        [[nodiscard]] Vector GetIntegrationCoefficients() const { return mGetIntegrationCoefficients(); }
 
-        double GetDtPressureCoefficient() const { return mGetDtPressureCoefficient(); }
+        [[nodiscard]] double GetDtPressureCoefficient() const { return mGetDtPressureCoefficient(); }
 
-        Vector GetNodalValues(const Variable<double>& rVariable) const
+        [[nodiscard]] Vector GetNodalValues(const Variable<double>& rVariable) const
         {
             return mGetNodalValues(rVariable);
         }
@@ -70,16 +71,15 @@ public:
         std::function<Vector(const Variable<double>&)>             mGetNodalValues;
     };
 
-    explicit CompressibilityCalculator(const InputProvider& rInputProvider);
+    explicit CompressibilityCalculator(InputProvider rInputProvider);
 
     Matrix LHSContribution() override;
     Vector RHSContribution() override;
     void CalculateLeftAndRightHandSide(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector) override;
 
 private:
-    Matrix CompressibilityCalculator::CalculateCompressibilityMatrix(const Matrix& rNContainer,
-                                                                     const Vector& rIntegrationCoefficients);
-    double CompressibilityCalculator::CalculateBiotModulusInverse(const unsigned int integrationPointIndex) const;
+    [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;
+    [[nodiscard]] double CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw) const;
 
     InputProvider mInputProvider;
 };
