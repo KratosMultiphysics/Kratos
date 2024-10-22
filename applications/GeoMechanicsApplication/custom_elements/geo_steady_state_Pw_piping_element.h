@@ -150,7 +150,7 @@ private:
             << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
             << rVariable.Name() << " (" << GetProperties()[rVariable]
-            << ") has an invalid value at element " << Id() << std::endl;
+            << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
