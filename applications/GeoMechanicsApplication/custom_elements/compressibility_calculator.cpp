@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 #include "compressibility_calculator.h"
-#include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -28,8 +28,8 @@ Vector CompressibilityCalculator::RHSContribution() { return {}; }
 
 void CompressibilityCalculator::CalculateLeftAndRightHandSide(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector)
 {
-    auto compressibility_matrix = CalculateCompressibilityMatrix(mInputProvider.GetNContainer(),
-                                                                 mInputProvider.GetIntegrationCoefficients());
+    auto compressibility_matrix = CalculateCompressibilityMatrix(
+        mInputProvider.GetNContainer(), mInputProvider.GetIntegrationCoefficients());
     rLeftHandSideMatrix += compressibility_matrix * mInputProvider.GetDtPressureCoefficient();
     rRightHandSideVector += -prod(compressibility_matrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE));
 }
@@ -37,10 +37,6 @@ void CompressibilityCalculator::CalculateLeftAndRightHandSide(Matrix& rLeftHandS
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix(const Matrix& rNContainer,
                                                                  const Vector& rIntegrationCoefficients)
 {
-    const auto&              r_properties = mInputProvider.GetElementProperties();
-    RetentionLaw::Parameters parameters(r_properties);
-    auto                     retention_law = RetentionLawFactory::Clone(r_properties);
-
     auto result = Matrix{ZeroMatrix{rNContainer.size2(), rNContainer.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < rIntegrationCoefficients.size(); ++integration_point_index) {
