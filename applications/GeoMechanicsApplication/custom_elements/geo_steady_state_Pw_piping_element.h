@@ -187,23 +187,20 @@ private:
         // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
                        result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ;
-        });
+                           return rIntegrationPoint.Weight() * rDetJ;
+                       });
         return result;
     }
 
     Matrix FillPermeabilityMatrix(double pipe_height) const
     {
-        Matrix constitutive_matrix(1, 1);
-        constitutive_matrix(0, 0) = std::pow(pipe_height, 3) / 12.0;
-        return constitutive_matrix;
+        return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients) const
     {
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
         const auto&              r_properties              = GetProperties();
         const double             dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
 
@@ -225,7 +222,8 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(),
+                       [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
@@ -248,17 +246,15 @@ private:
         const auto& r_properties        = GetProperties();
         auto        constitutive_matrix = FillPermeabilityMatrix(r_properties[PIPE_HEIGHT]);
 
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
             volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
-        array_1d<double, TDim> body_acceleration;
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
+            array_1d<double, TDim> body_acceleration;
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
 
