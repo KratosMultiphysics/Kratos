@@ -1083,9 +1083,7 @@ private:
                 mData.push_back(GetPointer(it));
             }
         } else {
-            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-
-            if (lower_bound_first == mData.end()) {
+            if (KeyOf(GetReference(first)) > KeyOf(*(mData.back()))) {
                 // all are pointing to the end of the vector, hence pushing back.
                 mData.reserve(mData.size() + std::distance(first, last));
                 for (auto it = first; it != last; ++it) {
