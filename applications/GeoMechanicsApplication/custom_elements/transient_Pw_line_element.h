@@ -25,40 +25,40 @@
 
 namespace Kratos
 {
+enum Contribution
+{
+    Permeability,
+    Compressibility
+};
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
 {
 public:
-    enum Contribution
-    {
-        Permeability,
-        Compressibility
-    };
 
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry)
-        : Element(NewId, pGeometry)
+    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const std::vector<Contribution>& rContributions)
+        : Element(NewId, pGeometry), mContributions(rContributions)
     {
     }
 
-    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const PropertiesType::Pointer pProperties, const std::vector<Contribution>& rContributions)
+        : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties, mContributions);
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties);
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions);
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override

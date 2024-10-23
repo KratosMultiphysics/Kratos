@@ -307,17 +307,17 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)), {Contribution::Permeability, Contribution::Compressibility}};
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
-        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)), {Contribution::Permeability, Contribution::Compressibility}};
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
-        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4))};
+        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)), {Contribution::Permeability, Contribution::Compressibility}};
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
-        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5))};
+        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)), {Contribution::Permeability, Contribution::Compressibility}};
     const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)), {Contribution::Permeability, Contribution::Compressibility}};
     const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
-        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)), {Contribution::Permeability, Contribution::Compressibility}};
 
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
