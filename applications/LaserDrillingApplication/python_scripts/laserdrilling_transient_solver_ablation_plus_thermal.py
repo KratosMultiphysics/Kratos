@@ -38,60 +38,31 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         self.hole_profile_in_Y_zero_file = open('hole_profile_in_Y_zero.txt', "w")
 
+        # Equation of the approximated hole shape (as a parabola)
+        # x(y) = A * y^2 + C
+        a = Y[-1]
+        b = X[0]
+        A = b / (a * a)
+        C = - b
+
         for node in self.main_model_part.Nodes:
-            radius = node.Y
-            F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
-            distance_to_surface = F(radius)
-            z = node.X - distance_to_surface
-            Y_index = np.searchsorted(Y, radius)
-            Y_index = Y_index.clip(1, len(Y)-1).astype(int)
 
-            lo = Y_index - 1
-            hi = Y_index
-            y_lo = Y[lo]
-            y_hi = Y[hi]
-            x_lo = X[lo]
-            x_hi = X[hi]
+            y0 = node.Y
+            x0 = A * y0 * y0 + C
+            z = node.X + x0
 
-            if not (y_hi - y_lo):
-                continue
-            slope =  (x_hi - x_lo) / (y_hi - y_lo)
-            if slope < 0:
-                slope = -slope
-
-            theta_1 = np.arctan(slope)
+            theta_1 = np.arctan(2 * b * y0 / (a * a))
             n1 = 1
             n2 = self.refractive_index_n
             theta_2 = np.arcsin(n1 * np.sin(theta_1) / n2)
-            alpha = 0.5 * np.pi - theta_2
+            
+            alpha = 0.5 * np.pi + theta_2
             l = z * np.sin(0.5 * np.pi - theta_1) / np.sin(alpha)
 
-            '''print('\ny_lo:', y_lo)
-            print('y_hi:', y_hi)
-            print('radius:', radius)
-            print('x_lo:', x_lo)
-            print('x_hi:', x_hi)
-            print('distance_to_surface:', distance_to_surface)
-            print()'''
+            y1 = y0 - l * np.sin(theta_1 - theta_2)
 
-            a = radius
-            h = X[0] - distance_to_surface
-
-            hole_length = 0.5 * (np.sqrt(a*a + 4*h*h) + 0.5*a*(a/h) * np.log(2*h/a + np.sqrt(4*h*h/(a*a)+1)))
-
-            tangent_length = node.Y / np.cos(theta_1)
-            print('\nh: ', h)
-            print('tangent_length: ', tangent_length)
-            print('hole_length: ', hole_length)
-            y_prima = hole_length - z * np.sin(theta_1) + l * np.sin(theta_2)
-
-            Y_prima = y_prima * np.sin(0.5 * np.pi - theta_1) / np.sin(0.5 * np.pi + theta_1 - theta_2)
-            z_prima = l
-
-            if not h:
-                delta_temp = self.TemperatureVariationDueToLaser(radius, z, theta_1)
-            else:
-                delta_temp = self.TemperatureVariationDueToLaser(Y_prima, z_prima, theta_1)
+            incident_angle = 0 #theta_1 # TODO
+            delta_temp = self.TemperatureVariationDueToLaser(y1, l, incident_angle)
 
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             if self.adjust_T_field_after_ablation:
@@ -100,14 +71,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
 
-            if radius < 1e-8:
+            if y0 < 1e-8:
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
             delta_pen = self.delta_pen
             F_p = self.F_p
             omega_0 = self.omega_0
             import math
-            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) * math.cos(theta_1)
+            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (y1 / omega_0)**2) * math.exp(- l / delta_pen) * math.cos(incident_angle)
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -240,8 +211,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def Finalize(self):
         super().Finalize()
         if self.print_hole_geometry_files:
-            self.hole_theoretical_profile_file = open('hole_theoretical_profile.txt', "w")
 
+            self.hole_theoretical_profile_file = open('hole_theoretical_profile.txt', "w")
             for i, node_Y in enumerate(self.hole_theoretical_Y_coords):
                 if self.hole_theoretical_X_coords[i]:
                     self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n")
@@ -252,3 +223,15 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                 if self.one_pulse_hole_theoretical_X_coords[i]:
                     self.hole_theoretical_profile_file_no_z_offset_variation.write(str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n")
             self.hole_theoretical_profile_file_no_z_offset_variation.close()
+
+            a = self.list_of_ablated_nodes_coords_Y[-1]
+            b = self.list_of_ablated_nodes_coords_X[0]
+            A = b / (a * a)
+            C = - b
+
+            parabola_Y_coords = np.linspace(0.0, a, 101)
+            self.hole_parabolical_profile = open('hole_parabolical_profile.txt', "w")
+            for Y_coords in parabola_Y_coords:
+                X_coords = A * Y_coords * Y_coords + C
+                self.hole_parabolical_profile.write(str(Y_coords) + " " + str(X_coords) + "\n")
+            self.hole_parabolical_profile.close()

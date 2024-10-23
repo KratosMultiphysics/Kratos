@@ -103,10 +103,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         with open("ProjectParameters.json", 'r') as project_parameters_file:
             self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
 
-        if not self.project_parameters["problem_data"].Has("energy"):
-            self.Q = 25e-6
+        if not self.project_parameters["problem_data"].Has("average_laser_power"):
+            self.average_laser_power = 18
         else:
-            self.Q = self.project_parameters["problem_data"]["energy"].GetDouble()
+            self.average_laser_power = self.project_parameters["problem_data"]["average_laser_power"].GetDouble()
+
+        if not self.project_parameters["problem_data"].Has("pulse_frequency"):
+            self.pulse_frequency = 2e5
+        else:
+            self.pulse_frequency = self.project_parameters["problem_data"]["pulse_frequency"].GetDouble()
 
         if not self.project_parameters["problem_data"].Has("beam_waist_diameter"):
             self.beam_waist_diameter = 0.0179
@@ -131,11 +136,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.T_e = 1000.0
         else:
             self.T_e = self.project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
-
-        if not self.project_parameters["problem_data"].Has("time_jump_between_pulses"):
-            self.time_jump_between_pulses = 1e6
-        else:
-            self.time_jump_between_pulses = self.project_parameters["problem_data"]["time_jump_between_pulses"].GetDouble()
 
         if not self.project_parameters["problem_data"].Has("compute_vaporisation"):
             self.compute_vaporisation = False
@@ -182,6 +182,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.print_hole_geometry_files = self.project_parameters["problem_data"]["print_hole_geometry_files"].GetBool()
 
+        self.Q = self.average_laser_power / self.pulse_frequency
+        self.time_jump_between_pulses = 1.0 / self.pulse_frequency
         self.cp = self.material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = self.material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = self.material_settings['Variables']['DENSITY'].GetDouble()
