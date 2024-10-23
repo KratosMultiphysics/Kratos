@@ -1080,7 +1080,7 @@ private:
         if (empty()) {
             mData.reserve(std::distance(first, last));
             for (auto it = first; it != last; ++it) {
-                mData.push_back(TPointerType(&GetReference(it)));
+                mData.push_back(GetPointer(it));
             }
         } else {
             const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
@@ -1089,7 +1089,7 @@ private:
                 // all are pointing to the end of the vector, hence pushing back.
                 mData.reserve(mData.size() + std::distance(first, last));
                 for (auto it = first; it != last; ++it) {
-                    mData.push_back(TPointerType(&GetReference(it)));
+                    mData.push_back(GetPointer(it));
                 }
             } else {
                 TContainerType temp;
@@ -1100,23 +1100,23 @@ private:
 
                 while (p_existing_data_itr != mData.end() && first != last) {
                     if (key_comparator(*p_existing_data_itr, KeyOf(GetReference(first)))) {
-                        temp.push_back(TPointerType(&GetReference(p_existing_data_itr++)));
+                        temp.push_back(GetPointer(p_existing_data_itr++));
                     } else if (EqualKeyTo(KeyOf(GetReference(p_existing_data_itr)))(*first)) {
                         // here we keep the old entity, and discard the new entity.
-                        temp.push_back(TPointerType(&GetReference(p_existing_data_itr++)));
+                        temp.push_back(GetPointer(p_existing_data_itr++));
                         ++first;
                     } else {
-                        temp.push_back(TPointerType(&GetReference(first++)));
+                        temp.push_back(GetPointer(first++));
                     }
                 }
 
                 // now either p_existing_data_itr reached the end or first reached the end,
                 // hence we add the remaining without checking
                 for (; p_existing_data_itr != mData.end(); ++p_existing_data_itr) {
-                    temp.push_back(TPointerType(&GetReference(p_existing_data_itr)));
+                    temp.push_back(GetPointer(p_existing_data_itr));
                 }
                 for (; first != last; ++first) {
-                    temp.push_back(TPointerType(&GetReference(first)));
+                    temp.push_back(GetPointer(first));
                 }
 
                 mData.swap(temp);
@@ -1187,6 +1187,27 @@ private:
             return *Iterator;
         } else if constexpr(std::is_same_v<iterator_value_type, pointer>) {
             return **Iterator;
+        } else {
+            static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
+            return 0;
+        }
+    }
+
+    template<class TIteratorType>
+    inline TPointerType GetPointer(TIteratorType Iterator) const
+    {
+        // It is difficult to use std::iterator_traits to get the value
+        // type of the iterator because, boost::indirect has a value type
+        // which is harder to guess, and cryptic. Hence, using the decltype.
+        using iterator_value_type = std::decay_t<decltype(*Iterator)>;
+
+        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
+            // this supports any type of pointers
+            return *Iterator;
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>> && std::is_same_v<TPointerType, Kratos::intrusive_ptr<std::decay_t<decltype(*Iterator)>>>) {
+            // now the *iterator points to a value type. Then we can only return the pointer if
+            // the PointerVectorSet is of the type with intrusive_ptrs. Then we can safely construct the intrusive ptrs
+            return TPointerType(&*Iterator);
         } else {
             static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
             return 0;
