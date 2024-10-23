@@ -32,7 +32,7 @@ extern "C"
 namespace Kratos
 {
 
-void TestMatrixRead();
+void KRATOS_API(KRATOS_CORE) TestMatrixRead();
 
 // Type checks
 template<typename T>
