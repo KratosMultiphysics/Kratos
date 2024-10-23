@@ -238,14 +238,7 @@ bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
         for (int j = 0; j < nz[i]; j++)
             (*m)(i, columns[indices[i] + j]) = values[k++];
 
-    std::cout << "-M Size: " << M.size1() << " " << M.size2() << std::endl;
-    std::cout << "-m Size: " << m->size1() << " " << m->size2() << std::endl;
-
     M.resize(m->size1(), m->size2(), false);
-
-    std::cout << "+M Size: " << M.size1() << " " << M.size2() << std::endl;
-    std::cout << "+m Size: " << m->size1() << " " << m->size2() << std::endl;
-
 
     M = *m;
 
