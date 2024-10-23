@@ -71,13 +71,11 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
         BoundedMatrix<double, 1, 1> result_1d;
         FillPermeabilityMatrix(result_1d, Prop);
         return result_1d;
-    }
-    else if (Dimension == 2) {
+    } else if (Dimension == 2) {
         BoundedMatrix<double, 2, 2> result_2d;
         FillPermeabilityMatrix(result_2d, Prop);
         return result_2d;
-    }
-    else if (Dimension == 3) {
+    } else if (Dimension == 3) {
         BoundedMatrix<double, 2, 2> result_3d;
         FillPermeabilityMatrix(result_3d, Prop);
         return result_3d;
