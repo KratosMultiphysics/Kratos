@@ -6,10 +6,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import sys
 
-# import numpy as np
+import numpy as np
 
 try:
-    # from scipy import sparse, io
+    from scipy import sparse, io
     missing_scipy = False
 except ImportError as e:
     missing_scipy = True
@@ -21,42 +21,26 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
     def __sparse_matrix_sum(self, file_name = "test_files/matrix.mm"):
         # Read the matrices
+        print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
+        print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
 
-        # from scipy.io import mmread
+        A = KratosMultiphysics.CompressedMatrix()
+        B = KratosMultiphysics.CompressedMatrix()
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
 
-        # print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
-        # print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
+        A_python = io.mmread(GetFilePath(file_name))
+        A_python.toarray()
+        B_python = io.mmread(GetFilePath(file_name))
+        B_python.toarray()
 
-        # try:
+        A_python = A_python + B_python
 
-        #     matrix_test = mmread(GetFilePath(file_name))
+        # Solve
+        KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixAdd(A, B, 1.0)
 
-        # except Exception as e:
-
-        #     print('Error reading matrix file ', file_name, file=sys.stderr)
-        #     print('Error reading matrix file ', file_name, file=sys.stdout)
-
-        #     raise e
-
-        KratosMultiphysics.TestMatrixRead()
-
-        # A = KratosMultiphysics.CompressedMatrix()
-        # B = KratosMultiphysics.CompressedMatrix()
-        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
-        # KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
-
-        # A_python = io.mmread(GetFilePath(file_name))
-        # A_python.toarray()
-        # B_python = io.mmread(GetFilePath(file_name))
-        # B_python.toarray()
-
-        # A_python = A_python + B_python
-
-        # # Solve
-        # KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixAdd(A, B, 1.0)
-
-        # for i, j in np.nditer(A_python.nonzero()):
-        #     self.assertAlmostEqual(A[int(i), int(j)], A_python[int(i), int(j)])
+        for i, j in np.nditer(A_python.nonzero()):
+            self.assertAlmostEqual(A[int(i), int(j)], A_python[int(i), int(j)])
 
     # @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
     # def test_sparse_matrix_sum_small(self):
