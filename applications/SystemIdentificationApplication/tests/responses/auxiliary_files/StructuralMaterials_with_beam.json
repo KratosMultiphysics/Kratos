@@ -1,0 +1,43 @@
+{
+    "properties": [
+        {
+            "model_part_name": "Structure.Parts_Solid_full",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "LinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "THICKNESS": 0.02,
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 20.0,
+                    "POISSON_RATIO": 0.29
+                },
+                "Tables": null
+            }
+        },
+        {
+            "model_part_name": "Structure.tendons",
+            "properties_id": 2,
+            "Material": {
+                "name": "Material",
+                "constitutive_law": {
+                    "name": "BeamConstitutiveLaw"
+                },
+                "Variables": {
+                    "CROSS_AREA": 0.01,
+                    "DENSITY": 7850,
+                    "YOUNG_MODULUS": 10,
+                    "POISSON_RATIO": 0.30000,
+                    "COMPUTE_LUMPED_MASS_MATRIX": false,
+                    "TORSIONAL_INERTIA": 3.0,
+                    "I22": 1.0,
+                    "I33": 1.0,
+                    "RAYLEIGH_ALPHA": 49.67,
+                    "RAYLEIGH_BETA": 2.4e-5
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}

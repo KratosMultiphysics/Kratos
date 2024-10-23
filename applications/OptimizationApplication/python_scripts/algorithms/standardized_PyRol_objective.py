@@ -32,6 +32,7 @@ class StandardizedPyRolObjective(Objective):
             "type"         : "",
             "scaling"      : 1.0
         }""")
+
         parameters.ValidateAndAssignDefaults(default_parameters)
 
         self.__objective = StandardizedObjective(parameters, master_control, optimization_problem, required_buffer_size)
@@ -63,6 +64,7 @@ class StandardizedPyRolObjective(Objective):
             for process in self.__optimization_problem.GetListOfProcesses("output_processes"):
                 if process.IsOutputStep():
                     process.PrintOutput()
+            self.__optimization_problem.AdvanceStep()
 
         return value
 
@@ -80,7 +82,7 @@ class StandardizedPyRolObjective(Objective):
         RuntimeError: If there is an issue with the gradient computation.
         """
 
-        self.value(x, tol, False)  # Compute new primal if x has changed. Does nothing if x the same
+        # self.value(x, tol, False)  # Compute new primal if x has changed. Does nothing if x the same
 
         result = self.__objective.CalculateStandardizedGradient(save_field)
 
@@ -88,10 +90,7 @@ class StandardizedPyRolObjective(Objective):
         g[:] = [gAux[i] for i in range(len(gAux))]  # Copy values from gAux to g
 
         # I haven't found a good place to set next optimization step. As most methods do one gradeint calucation per iteration, I set it here.
-        self.__optimization_problem.AdvanceStep()
-
-    def hessVec(self, hv, v, x, tol):
-        raise RuntimeError("Hessian-vector product is not implemented for the pyrol objective response function.")
+        # self.__optimization_problem.AdvanceStep()
 
     def Initialize(self):
         self.__objective.Initialize()
@@ -104,3 +103,9 @@ class StandardizedPyRolObjective(Objective):
                 
     def Finalize(self):
         self.__objective.Finalize()
+
+    def GetStandartizedObjective(self):
+        return self.__objective
+    
+    def GetScalingFactor(self):
+        return self.__objective.GetScalingFactor()

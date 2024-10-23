@@ -75,6 +75,8 @@ class PyRolAlgorithms(Algorithm):
 
         # controls
         self.master_control = MasterControl()
+        self._optimization_problem.AddComponent(self.master_control)
+        
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
@@ -87,9 +89,12 @@ class PyRolAlgorithms(Algorithm):
 
         # objective & constraints
         self.__objective = StandardizedPyRolObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective.GetStandartizedObjective())
         self.__constraints = []
         for constraint_settings in parameters["constraints"]:
-            self.__constraints.append(StandardizedPyRolConstraint(constraint_settings, self.master_control, self._optimization_problem))
+            constraint = StandardizedPyRolConstraint(constraint_settings, self.master_control, self._optimization_problem)
+            self.__constraints.append(constraint)
+            self._optimization_problem.AddComponent(constraint)
     
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -144,10 +149,6 @@ class PyRolAlgorithms(Algorithm):
             l = myVector(np.array([0.0]))
             self.problem.addConstraint(constraint.GetName(), constraint, l)
 
-        Kratos.Logger.PrintInfo(self.problem.checkDerivatives())
-        # Kratos.Logger.PrintInfo(self.problem.check())
-        raise RuntimeError(1)
-
     @time_decorator()
     def Finalize(self):
         self.__objective.Finalize()
@@ -158,5 +159,19 @@ class PyRolAlgorithms(Algorithm):
     @time_decorator()
     def Solve(self):
         stream = getCout()
+        # value = self.__objective.GetStandartizedObjective().CalculateStandardizedValue(self.__control_field)
+        # result = self.__objective.GetStandartizedObjective().CalculateStandardizedGradient()
+        # norm = KratosOA.ExpressionUtils.NormL2(result)
+        # result /= norm
+        # gAux = result.Evaluate().reshape(-1) * self.__objective.GetScalingFactor()
+        # g = myVector(np.zeros(len(gAux)))
+        # g[:] = [gAux[i] for i in range(len(gAux))]  # Copy values from gAux to g
+        # self.problem.checkDerivatives(True, stream, g, 1e-2)
+        # # self.problem.check(True, stream)
+        # # Kratos.Logger.PrintInfo()
+        # # Kratos.Logger.PrintInfo(self.problem.check())
+        # # print(dir(self.__objective))
+        # raise RuntimeError(1)
+
         solver = Solver(self.problem, self.method_settings)
         solver.solve(stream)

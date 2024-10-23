@@ -5,6 +5,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+import csv
 
 class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
@@ -145,11 +146,92 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
 
             gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
 
+            element = model_part.GetElement(5)
+            with open('test_FD_index5.csv', mode='w', newline='') as file:
+                # Write to CSV file
+                writer = csv.writer(file)
+                # Write the headers
+                writer.writerow(['delta', 'FD approx', 'Computed gradient'])
+                for delta in [1e-8, 1e-7, 1e-6, 1e-5, 1e-4]:
+                    element.Properties[Kratos.YOUNG_MODULUS] += delta
+                    sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                    # self.assertAlmostEqual(gradients[100], sensitivity, 6)
+                    element.Properties[Kratos.YOUNG_MODULUS] -= delta
+                    print("delta: ", delta, "sensitivity: ", sensitivity, "gradient: ", gradients[4])
+                    
+                    # Write the data
+                    writer.writerow([delta, sensitivity, gradients[4]])
+
             delta = 1e-8
             for index, element in enumerate(model_part.Elements):
                 element.Properties[Kratos.YOUNG_MODULUS] += delta
                 sensitivity = ((response.CalculateValue() - ref_value) / delta)
                 self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                print(sensitivity, gradients[index])
+                element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
+class TestDamageDetectionResponse(kratos_unittest.TestCase):
+    def test_DamageResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files/optimization_parameters_with_beam.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 0.0006500531091271053, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
+
+            element = model_part.GetElement(5)
+            with open('test_FD_with_beam_index5.csv', mode='w', newline='') as file:
+                # Write to CSV file
+                writer = csv.writer(file)
+                # Write the headers
+                writer.writerow(['delta', 'FD approx', 'Computed gradient'])
+                for delta in [1e-8, 1e-7, 1e-6, 1e-5, 1e-4]:
+                    element.Properties[Kratos.YOUNG_MODULUS] += delta
+                    sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                    # self.assertAlmostEqual(gradients[100], sensitivity, 6)
+                    element.Properties[Kratos.YOUNG_MODULUS] -= delta
+                    print("delta: ", delta, "sensitivity: ", sensitivity, "gradient: ", gradients[4])
+                    
+                    # Write the data
+                    writer.writerow([delta, sensitivity, gradients[4]])
+
+            element = model_part.GetElement(9)
+            with open('test_FD_with_beam_index8.csv', mode='w', newline='') as file:
+                # Write to CSV file
+                writer = csv.writer(file)
+                # Write the headers
+                writer.writerow(['delta', 'FD approx', 'Computed gradient'])
+                for delta in [1e-8, 1e-7, 1e-6, 1e-5, 1e-4]:
+                    element.Properties[Kratos.YOUNG_MODULUS] += delta
+                    sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                    # self.assertAlmostEqual(gradients[100], sensitivity, 6)
+                    element.Properties[Kratos.YOUNG_MODULUS] -= delta
+                    print("delta: ", delta, "sensitivity: ", sensitivity, "gradient: ", gradients[8])
+                    
+                    # Write the data
+                    writer.writerow([delta, sensitivity, gradients[8]])
+
+            delta = 1e-7
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += delta
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                # self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                print(sensitivity, gradients[index])
                 element.Properties[Kratos.YOUNG_MODULUS] -= delta
 
 if __name__ == "__main__":

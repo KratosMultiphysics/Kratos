@@ -193,7 +193,7 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
     // if (abs_sum/count <= 1e-6) KRATOS_ERROR << "The sum of the absolute values of the errors is too small. Please check the sensor values and the measured values.";
 
-    if (max <= 1e-5) KRATOS_ERROR << "The maximum error is too small. Please check the sensor values and the measured values.";
+    if (max <= 1e-6) KRATOS_ERROR << "The maximum error is too small. Please check the sensor values and the measured values.";
 
 
     return std::pow(sum, 1 / mPCoefficient);
