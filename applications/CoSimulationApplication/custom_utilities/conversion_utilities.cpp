@@ -59,7 +59,7 @@ void ConversionUtilities::ConvertNodalDataToElementalData(
     const Variable<TDataType>& rNodalVariable )
 {
     // prepare nodal variable
-    VariableUtils().SetHistoricalVariableToZero(rNodalVariable, rModelPart.Nodes());
+    VariableUtils().SetVariable(rElementalVariable, rElementalVariable.Zero(), rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();

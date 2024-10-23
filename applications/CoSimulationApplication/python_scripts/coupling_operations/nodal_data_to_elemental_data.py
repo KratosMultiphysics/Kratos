@@ -21,10 +21,6 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
         self.variable = self.interface_data.variable
         self.dimension = self.interface_data.dimension
-        self.consistent = self.settings["consistent"].GetBool()
-
-        if not self.consistent:
-            raise RuntimeError("Conservative mapper from nodes on elements is not implemented!")
 
     def Execute(self):
         if not self.interface_data.IsDefinedOnThisRank(): return
@@ -43,19 +39,11 @@ class NodalToElementalData(CoSimulationCouplingOperation):
         if self.echo_level > 0:
             cs_tools.cs_print_info("ConvertNodalDataToElementalData", "Done")
 
-    def PrintInfo(self):
-        pass
-
-    def Check(self):
-        # TODO in case the NORMALS are computed with historical variables then you should check if the var is in the ModelPart
-        pass
-
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
-            "consistent": true,
             "interval"  : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())

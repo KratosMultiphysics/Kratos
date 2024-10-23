@@ -5,8 +5,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 from KratosMultiphysics.CoSimulationApplication import ConversionUtilities
 
-import KratosMultiphysics.OptimizationApplication as KratosOA
-
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
@@ -23,7 +21,6 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         data_communicator (KM.DataCommunicator): Data communicator for parallel execution.
         interface_data (InterfaceData): Interface data object.
         variable (KM.Variable): Variable to be mapped.
-        consistent (bool): Flag indicating if the mapping should be consistent.
 
     Methods:
         __init__(settings, solver_wrappers, process_info, data_communicator):
@@ -49,8 +46,6 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
             solver_wrappers (dict): Dictionary containing solver wrappers.
             process_info (KratosMultiphysics.ProcessInfo): Process information.
             data_communicator (KratosMultiphysics.DataCommunicator): Data communicator for parallel operations.
-        Raises:
-            RuntimeError: If the consistent mapper from elements to nodes is requested but not implemented.
         """
 
         super().__init__(settings, process_info, data_communicator)
@@ -58,10 +53,6 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
         self.variable = self.interface_data.variable
-        self.consistent = self.settings["consistent"].GetBool()
-
-        if self.consistent:
-            raise RuntimeError("Consistent mapper from elements to nodes is not implemented!")
 
 
     def Execute(self):
@@ -106,7 +97,6 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
-            "consistent": false,
             "interval"  : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
