@@ -30,6 +30,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
 {
 public:
+    enum Contribution
+    {
+        Permeability,
+        Compressibility
+    };
+
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
@@ -99,13 +106,26 @@ public:
             CalculateFluidBodyVector(r_N_container, dN_dX_container, integration_coefficients);
 
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
-        CompressibilityCalculator compressibility_calculator(CreateCompressibilityInputProvider(rCurrentProcessInfo));
-        compressibility_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
 
-        PermeabilityCalculator permeability_calculator(CreatePermeabilityInputProvider());
-        permeability_calculator.CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
+        for (auto contribution : mContributions) {
+            auto calculator = CreateCalculator(contribution, rCurrentProcessInfo);
+            calculator->CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
+        }
 
         KRATOS_CATCH("")
+    }
+
+    std::unique_ptr<Calculator> CreateCalculator(Contribution contribution,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+    {
+        switch (contribution) {
+        case Contribution::Permeability:
+            return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
+        case Contribution::Compressibility:
+            return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        default:
+            KRATOS_ERROR << "Unknown contribution: " << contribution << std::endl;
+        }
     }
 
     CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
@@ -379,6 +399,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
+
+    std::vector<Contribution> mContributions = {Permeability, Compressibility};
 };
 
 } // namespace Kratos
