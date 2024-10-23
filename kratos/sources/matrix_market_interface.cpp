@@ -574,15 +574,15 @@ bool WriteMatrixMarketVector(const char *FileName, VectorType &V)
     return true;
 }
 
-template bool ReadMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M);
-template bool ReadMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M);
 
-template bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M, bool Symmetric);
-template bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M, bool Symmetric);
 
-template bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
-template bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 
-template bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
-template bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 }
