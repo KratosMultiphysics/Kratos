@@ -66,7 +66,7 @@ inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<do
 
 template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
-    std::cout << "Reading Matrix Market Matrix" << std::endl;
+    std::cout << "Reading Matrix Market Matrix: " << FileName << std::endl;
 
     typedef typename CompressedMatrixType::value_type ValueType;
 
@@ -77,6 +77,8 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     {
         printf("ReadMatrixMarketMatrix(): unable to open %s.\n", FileName);
         return false;
+    } else {
+        printf("Able to open but something is wrong\n");
     }
 
     // Process MM file header
