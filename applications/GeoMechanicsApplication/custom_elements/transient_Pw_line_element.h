@@ -25,35 +25,35 @@
 
 namespace Kratos
 {
-enum Contribution
-{
-    Permeability,
-    Compressibility
-};
+enum Contribution { Permeability, Compressibility };
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
 {
 public:
-
-
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const std::vector<Contribution>& rContributions)
+    TransientPwLineElement(IndexType                        NewId,
+                           const GeometryType::Pointer&     pGeometry,
+                           const std::vector<Contribution>& rContributions)
         : Element(NewId, pGeometry), mContributions(rContributions)
     {
     }
 
-    TransientPwLineElement(IndexType NewId, const GeometryType::Pointer& pGeometry, const PropertiesType::Pointer pProperties, const std::vector<Contribution>& rContributions)
+    TransientPwLineElement(IndexType                        NewId,
+                           const GeometryType::Pointer&     pGeometry,
+                           const PropertiesType::Pointer    pProperties,
+                           const std::vector<Contribution>& rContributions)
         : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties, mContributions);
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
+                                                      pProperties, mContributions);
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
@@ -115,8 +115,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::unique_ptr<Calculator> CreateCalculator(Contribution contribution,
-                                                 const ProcessInfo& rCurrentProcessInfo)
+    std::unique_ptr<Calculator> CreateCalculator(Contribution contribution, const ProcessInfo& rCurrentProcessInfo)
     {
         switch (contribution) {
         case Contribution::Permeability:
@@ -395,10 +394,7 @@ private:
         rSerializer.save("RetentionlawVector", mRetentionLawVector);
     }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     std::vector<Contribution> mContributions = {Permeability, Compressibility};
 };

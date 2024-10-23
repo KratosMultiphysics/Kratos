@@ -20,19 +20,11 @@ namespace
 
 using namespace Kratos;
 
-PointerVector<Node> CreateNodes1()
+PointerVector<Node> CreateNodesUnder45DegreeAngle()
 {
     PointerVector<Node> result;
     result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 1.0, 0.0));
-    return result;
-}
-
-PointerVector<Node> CreateIdenticalNodes1()
-{
-    PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
     return result;
 }
 
@@ -49,7 +41,8 @@ ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration1(Model&
 TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(const Properties::Pointer& rProperties,
                                                               const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = TransientPwLineElement<2, 2>{1, rGeometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
+    auto result = TransientPwLineElement<2, 2>{
+        1, rGeometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(WATER_PRESSURE);
         node.AddDof(DT_WATER_PRESSURE);
@@ -77,7 +70,8 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(Model& rModel, 
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    return TransientPwLineElement<2, 2>{1, p_geometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
+    return TransientPwLineElement<2, 2>{
+        1, p_geometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
 }
 
 } // namespace
@@ -97,8 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCanCreateInstanceWithGeometryInp
 {
     // Arrange
     const TransientPwLineElement<2, 2> element;
-    const auto                         p_geometry = std::make_shared<Line2D2<Node>>(CreateNodes1());
-    const auto                         p_properties = std::make_shared<Properties>();
+    const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateNodesUnder45DegreeAngle());
+    const auto p_properties = std::make_shared<Properties>();
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);
@@ -113,13 +107,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCanCreateInstanceWithGeometryInp
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCanCreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto nodes        = CreateNodes1();
+    const auto nodes        = CreateNodesUnder45DegreeAngle();
     const auto p_properties = std::make_shared<Properties>();
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto                         p_geometry = std::make_shared<Line2D2<Node>>(CreateNodes1());
-    const TransientPwLineElement<2, 2> element(0, p_geometry, p_properties, {Contribution::Permeability, Contribution::Compressibility});
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesUnder45DegreeAngle());
+    const TransientPwLineElement<2, 2> element(
+        0, p_geometry, p_properties, {Contribution::Permeability, Contribution::Compressibility});
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -179,9 +174,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementReturnsTheExpectedIntegrationMet
 {
     // Arrange
     const TransientPwLineElement<2, 2> element;
-    const auto                         p_geometry = std::make_shared<Line2D2<Node>>(CreateNodes1());
-    const auto                         p_properties = std::make_shared<Properties>();
-    const auto p_created_element                    = element.Create(1, p_geometry, p_properties);
+    const auto p_geometry        = std::make_shared<Line2D2<Node>>(CreateNodesUnder45DegreeAngle());
+    const auto p_properties      = std::make_shared<Properties>();
+    const auto p_created_element = element.Create(1, p_geometry, p_properties);
 
     // Act
     const auto p_integration_method = p_created_element->GetIntegrationMethod();
