@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-enum Contribution { Permeability, Compressibility };
+enum CalculationContribution { Permeability, Compressibility };
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
@@ -37,7 +37,7 @@ public:
 
     TransientPwLineElement(IndexType                        NewId,
                            const GeometryType::Pointer&     pGeometry,
-                           const std::vector<Contribution>& rContributions)
+                           const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry), mContributions(rContributions)
     {
     }
@@ -45,7 +45,7 @@ public:
     TransientPwLineElement(IndexType                        NewId,
                            const GeometryType::Pointer&     pGeometry,
                            const PropertiesType::Pointer    pProperties,
-                           const std::vector<Contribution>& rContributions)
+                           const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
     }
@@ -109,18 +109,20 @@ public:
 
         for (auto contribution : mContributions) {
             auto calculator = CreateCalculator(contribution, rCurrentProcessInfo);
-            calculator->CalculateLeftAndRightHandSide(rLeftHandSideMatrix, rRightHandSideVector);
+            const auto [LHSContribution, RHSContribution] = calculator->CalculateLeftAndRightHandSide();
+            rLeftHandSideMatrix += LHSContribution;
+            rRightHandSideVector += RHSContribution;
         }
 
         KRATOS_CATCH("")
     }
 
-    std::unique_ptr<Calculator> CreateCalculator(Contribution contribution, const ProcessInfo& rCurrentProcessInfo)
+    std::unique_ptr<Calculator> CreateCalculator(CalculationContribution contribution, const ProcessInfo& rCurrentProcessInfo)
     {
         switch (contribution) {
-        case Contribution::Permeability:
+        case CalculationContribution::Permeability:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
-        case Contribution::Compressibility:
+        case CalculationContribution::Compressibility:
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         default:
             KRATOS_ERROR << "Unknown contribution: " << contribution << std::endl;
@@ -396,7 +398,7 @@ private:
 
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
-    std::vector<Contribution> mContributions = {Permeability, Compressibility};
+    std::vector<CalculationContribution> mContributions = {Permeability, Compressibility};
 };
 
 } // namespace Kratos

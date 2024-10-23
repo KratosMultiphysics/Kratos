@@ -23,7 +23,7 @@ public:
 
     virtual Matrix LHSContribution() = 0;
     virtual Vector RHSContribution() = 0;
-    virtual void CalculateLeftAndRightHandSide(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector) = 0;
+    virtual std::pair<Matrix, Vector> CalculateLeftAndRightHandSide() = 0;
 };
 
 } // namespace Kratos

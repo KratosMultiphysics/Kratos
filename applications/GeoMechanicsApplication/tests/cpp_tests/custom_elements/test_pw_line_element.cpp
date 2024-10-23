@@ -42,7 +42,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithPWDofs(const Properties::
                                                               const Geometry<Node>::Pointer& rGeometry)
 {
     auto result = TransientPwLineElement<2, 2>{
-        1, rGeometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
+        1, rGeometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(WATER_PRESSURE);
         node.AddDof(DT_WATER_PRESSURE);
@@ -71,7 +71,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(Model& rModel, 
     nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
     return TransientPwLineElement<2, 2>{
-        1, p_geometry, rProperties, {Contribution::Permeability, Contribution::Compressibility}};
+        1, p_geometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
 }
 
 } // namespace
@@ -114,7 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCanCreateInstanceWithNodeInput, 
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesUnder45DegreeAngle());
     const TransientPwLineElement<2, 2> element(
-        0, p_geometry, p_properties, {Contribution::Permeability, Contribution::Compressibility});
+        0, p_geometry, p_properties, {CalculationContribution::Permeability, CalculationContribution::Compressibility});
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
