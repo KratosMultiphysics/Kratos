@@ -28,11 +28,11 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     
     if(rVariables.pc > rVariables.pb)
     {
-        Liquid saturation degree
+        // Liquid saturation degree
         rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
                 + rVariables.Slr;
 
-        Derivative of the liquid saturation degree with respect to the capillary pressure
+        // Derivative of the liquid saturation degree with respect to the capillary pressure
         rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
                     std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
     }
