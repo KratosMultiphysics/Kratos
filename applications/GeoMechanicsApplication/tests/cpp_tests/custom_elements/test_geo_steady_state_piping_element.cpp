@@ -58,7 +58,7 @@ Element::IndexType NextElementNumber(const ModelPart& rModelPart)
 }
 
 intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateGeoSteadyStatePwPipingElementWithPWDofs(
-    ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
+    const ModelPart& rModelPart, const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
 {
     auto p_result = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
         NextElementNumber(rModelPart), rGeometry, rProperties);
