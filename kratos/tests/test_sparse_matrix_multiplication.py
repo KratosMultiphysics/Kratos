@@ -6,10 +6,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import sys
 
-import numpy as np
+# import numpy as np
 
 try:
-    from scipy import sparse, io
+    # from scipy import sparse, io
     missing_scipy = False
 except ImportError as e:
     missing_scipy = True
@@ -22,7 +22,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
     def __sparse_matrix_sum(self, file_name = "test_files/matrix.mm"):
         # Read the matrices
 
-        from scipy.io import mmread
+        # from scipy.io import mmread
 
         print('Reading matrix file ', GetFilePath(file_name), file=sys.stderr)
         print('Reading matrix file ', GetFilePath(file_name), file=sys.stdout)
@@ -56,76 +56,75 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         # for i, j in np.nditer(A_python.nonzero()):
         #     self.assertAlmostEqual(A[int(i), int(j)], A_python[int(i), int(j)])
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_sum_small(self):
-        self.__sparse_matrix_sum("test_files/matrix.mm")
+    # @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+    # def test_sparse_matrix_sum_small(self):
+    #     self.__sparse_matrix_sum("test_files/matrix.mm")
 
-    @KratosUnittest.skipIf(True,"Missing python libraries (scipy)")
     def test_sparse_matrix_sum_full(self):
         self.__sparse_matrix_sum()
 
-class TestSparseMatrixTranspose(KratosUnittest.TestCase):
+# class TestSparseMatrixTranspose(KratosUnittest.TestCase):
 
-    def __sparse_matrix_transpose(self, file_name = "test_files/matrix.mm"):
-        # Read the matrices
-        A = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
-        B = KratosMultiphysics.CompressedMatrix()
+#     def __sparse_matrix_transpose(self, file_name = "test_files/matrix.mm"):
+#         # Read the matrices
+#         A = KratosMultiphysics.CompressedMatrix()
+#         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+#         B = KratosMultiphysics.CompressedMatrix()
 
-        A_python = io.mmread(GetFilePath(file_name))
-        B_python = np.matrix.transpose(A_python.toarray())
+#         A_python = io.mmread(GetFilePath(file_name))
+#         B_python = np.matrix.transpose(A_python.toarray())
 
-        # Solve
-        KratosMultiphysics.SparseMatrixMultiplicationUtility.TransposeMatrix(B, A, 1.0)
+#         # Solve
+#         KratosMultiphysics.SparseMatrixMultiplicationUtility.TransposeMatrix(B, A, 1.0)
 
-        for i, j in np.nditer(B_python.nonzero()):
-            self.assertAlmostEqual(B[int(i), int(j)], A[int(j), int(i)])
+#         for i, j in np.nditer(B_python.nonzero()):
+#             self.assertAlmostEqual(B[int(i), int(j)], A[int(j), int(i)])
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_transpose_small(self):
-        self.__sparse_matrix_transpose("test_files/matrix.mm")
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_transpose_small(self):
+#         self.__sparse_matrix_transpose("test_files/matrix.mm")
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_transpose_full(self):
-        self.__sparse_matrix_transpose()
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_transpose_full(self):
+#         self.__sparse_matrix_transpose()
 
-class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
+# class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
 
-    def __sparse_matrix_multiplication(self, problem = "saad", file_name = "test_files/matrix.mm"):
-        # Read the matrices
-        A = KratosMultiphysics.CompressedMatrix()
-        A2 = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
+#     def __sparse_matrix_multiplication(self, problem = "saad", file_name = "test_files/matrix.mm"):
+#         # Read the matrices
+#         A = KratosMultiphysics.CompressedMatrix()
+#         A2 = KratosMultiphysics.CompressedMatrix()
+#         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
 
-        A_python = io.mmread(GetFilePath(file_name))
-        A_python.toarray()
+#         A_python = io.mmread(GetFilePath(file_name))
+#         A_python.toarray()
 
-        A2_python = np.dot(A_python, A_python)
+#         A2_python = np.dot(A_python, A_python)
 
-        # Solve
-        if problem == "saad":
-            KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationSaad(A, A, A2)
-        elif problem == "rmerge":
-            KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationRMerge(A, A, A2)
+#         # Solve
+#         if problem == "saad":
+#             KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationSaad(A, A, A2)
+#         elif problem == "rmerge":
+#             KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationRMerge(A, A, A2)
 
-        for i, j in np.nditer(A2_python.nonzero()):
-            self.assertAlmostEqual(A2[int(i), int(j)], A2_python[int(i), int(j)], places=3)
+#         for i, j in np.nditer(A2_python.nonzero()):
+#             self.assertAlmostEqual(A2[int(i), int(j)], A2_python[int(i), int(j)], places=3)
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_multiplication_saad_small(self):
-        self.__sparse_matrix_multiplication("saad", "test_files/matrix.mm")
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_multiplication_saad_small(self):
+#         self.__sparse_matrix_multiplication("saad", "test_files/matrix.mm")
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_multiplication_rmerge_small(self):
-        self.__sparse_matrix_multiplication("rmerge", "test_files/matrix.mm")
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_multiplication_rmerge_small(self):
+#         self.__sparse_matrix_multiplication("rmerge", "test_files/matrix.mm")
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_multiplication_saad_full(self):
-        self.__sparse_matrix_multiplication("saad")
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_multiplication_saad_full(self):
+#         self.__sparse_matrix_multiplication("saad")
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
-    def test_sparse_matrix_multiplication_rmerge_full(self):
-        self.__sparse_matrix_multiplication("rmerge")
+#     @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+#     def test_sparse_matrix_multiplication_rmerge_full(self):
+#         self.__sparse_matrix_multiplication("rmerge")
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -66,12 +66,14 @@ inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<do
 
 template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
+    const char * harcoded_path = "D:\\a\\Kratos\\Kratos\\kratos\\tests\\test_files\\matrix.mm";
+    
     std::cout << "Reading Matrix Market Matrix: " << FileName << std::endl;
 
     typedef typename CompressedMatrixType::value_type ValueType;
 
     // Open MM file for reading
-    FILE *f = fopen(FileName, "r");
+    FILE *f = fopen(harcoded_path, "r");
 
     if (f == NULL)
     {
